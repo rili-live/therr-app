@@ -1,0 +1,47 @@
+[core]
+    autocrlf = input
+    safecrlf = false
+    repositoryformatversion = 0
+    filemode = true
+    bare = false
+    logallrefupdates = true
+[remote "origin"]
+   fetch = +refs/heads/*:refs/remotes/origin/*
+[help]
+   autocorrect = 1
+[alias]
+    lga = log --oneline --graph --all --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
+    dm = diff --minimal --
+    dms = diff --minimal --staged
+    pod = pull origin develop
+    pud = push origin develop
+    cm = commit -m
+    cam = commit -am
+    dammit = commit --amend
+    s = status
+    rd = rebase develop
+    ch = checkout
+
+[push]
+   default = simple
+[branch "develop"]
+    remote = origin
+    merge = refs/heads/develop
+[branch "master"]
+    remote = origin
+    merge = refs/heads/master
+[diff]
+    tool = meld
+    renameLimit = 999999
+[difftool]
+    prompt = false
+[difftool "meld"]
+    trustExitCode = true
+    cmd = open -W -a Meld --args \"$LOCAL\" \"$REMOTE\"
+[filter "lfs"]
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+    process = git-lfs filter-process
+    required = true
+[merge]
+    renameLimit = 999999

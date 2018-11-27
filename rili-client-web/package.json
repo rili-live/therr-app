@@ -1,0 +1,15 @@
+{
+  "name": "rili-client-web",
+  "version": "0.0.1",
+  "description": "The web client side code for Rili",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "rili",
+    "web"
+  ],
+  "author": "Rili, Inc.",
+  "license": "MIT"
+}
