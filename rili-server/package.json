@@ -1,0 +1,15 @@
+{
+  "name": "rili-server",
+  "version": "0.0.1",
+  "description": "The server side code for Rili",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "rili",
+    "server"
+  ],
+  "author": "Rili, Inc.",
+  "license": "MIT"
+}
