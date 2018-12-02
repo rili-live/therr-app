@@ -1,1 +1,1 @@
-# rili-app
+# rili-client-web

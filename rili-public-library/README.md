@@ -1,1 +1,1 @@
-# rili-app
+# rili-public-library
