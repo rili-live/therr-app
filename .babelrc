@@ -1,0 +1,13 @@
+{
+    "presets": [
+        "env",
+        "react"
+    ],
+    "env": {
+        "start": {
+            "presets": [
+                "react-hmre"
+            ]
+        }
+    }
+}
