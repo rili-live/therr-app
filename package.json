@@ -1,0 +1,26 @@
+{
+  "name": "rili-app",
+  "version": "0.0.1",
+  "description": "The main Rili app root",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rili-live/rili-app.git"
+  },
+  "keywords": [
+    "Rili",
+    "app"
+  ],
+  "author": "Rili, Inc.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rili-live/rili-app/issues"
+  },
+  "homepage": "https://github.com/rili-live/rili-app#readme",
+  "devDependencies": {
+    "husky": "^1.2.0"
+  }
+}
