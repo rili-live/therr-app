@@ -1,0 +1,69 @@
+// Animation
+$animation-duration-1: 250ms;
+$animation-duration-2: 500ms;
+
+// Bb Common Colors
+$bb-black: #262626;
+$bb-grey-default: #cdcdcd;
+$bb-grey-placeholder: #cdcdcd;
+$bb-pink-light: #c56fd5;
+$bb-pink-shadow: rgba(162, 52, 181, .1);
+$bb-green-shadow: rgba(0, 125, 44, .1);
+
+// Bb Offical Primary Colors
+$bb-green: #2edc91;
+$bb-red-orange: #ff6600;
+$bb-purple: #c56fd5;
+$bb-yellow: #ffe300;
+$bb-bright-blue: #26d7fd;
+
+// Bb Official Secondary Colors
+$bb-dark-blue: #2073A1;
+$bb-blue: #157afb;
+$bb-blue-green: #14c6cc;
+$bb-teal: #85f3da;
+$bb-lime: #80f56b;
+$bb-pink: #ff5991;
+$bb-magenta: #cc14ae;
+
+// Secondary magenta color specified in UX review
+// TODO: Is it a part of the official palette?
+$bb-magenta-b: #a234b5;
+
+// Bb Grading Palette
+$bb-grades-green: #39e379;
+$bb-grades-yellow-green: #cdee4b;
+$bb-grades-yellow: #ffe300;
+$bb-grades-bright-orange: #ff9600;
+$bb-grades-red: #ff4a36;
+
+// Bb Background Colors
+$bb-white: #ffffff;
+$bb-bg-grey: #f8f8f8;
+$bb-hover-grey: #f0f0f0;
+$bb-light-grey: #e5e5e5;
+$bb-divider-grey: #cdcdcd;
+$bb-ghost-grey: #767676;
+$bb-middle-grey: #666666;
+$bb-very-dark-grey: #262626;
+$bb-dark-grey: #404040;
+$bb-true-black: #000000;
+$bb-light-pink: #fef7f7;
+$bb-light-purple: #fbf4fc;
+
+// Bb Base Content Colors
+$bb-light-on-dark-grey: #8c8c8c;
+$bb-link-blue-a: #2073a1;
+$bb-link-blue-b: #2c9ede;
+$bb-link-hover: #004270;
+
+// Bb AX UI Colors
+$bb-ax-green: #007d2c;
+$bb-ax-red: #c23e37;
+$bb-ax-tab-highlight-blue: #006dc7;
+$bb-ax-tab-highlight-light-blue: #2f8df7;
+
+// Accesibility
+$box-shadow-ax: 0 0 0 .125rem $bb-ax-tab-highlight-blue inset;
+$bb-input-shadow: inset 0 0 0 .25rem $bb-pink-shadow;
+$bb-input-shadow-valid: inset 0 0 0 .25rem $bb-green-shadow;

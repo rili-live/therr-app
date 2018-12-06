@@ -1,0 +1,122 @@
+@import './variables';
+
+.pagination-controls {
+  display: flex;
+  flex-direction: column-reverse;
+
+  .pages-info {
+    color: $bb-black;
+    font-weight: bold;
+    margin: .3125rem .3125rem .3125rem 0;
+    flex: 1;
+    text-align: center;
+  }
+
+  .controls-list {
+    list-style-type: none;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .page-button,
+    .page-button-start,
+    .page-button-end,
+    .page-button-back,
+    .page-button-forward {
+      height: 2.125rem;
+      width: auto;
+      padding: .1875rem;
+      background: $bb-bg-grey;
+      color: $bb-middle-grey;
+      display: inline-block;
+      justify-content: center;
+      align-items: center;
+      transition: all 500ms;
+      outline: none;
+      margin: 0 .0625rem;
+      cursor: pointer;
+      min-width: 2.125rem;
+      border-radius: 0px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      &:nth-child(1),
+      &:nth-child(2) {
+        .fa {
+          margin-top: -.125rem;
+        }
+      }
+
+      &:nth-last-child(1),
+      &:nth-last-child(2) {
+        .fa {
+          margin-top: -.125rem;
+          margin-right: -.125rem;
+        }
+      }
+
+      &:hover {
+        text-decoration: underline;
+        background: $bb-light-grey;
+        &:active {
+          text-decoration: none;
+        }
+      }
+
+      &:disabled {
+        color: #ffffff;
+        cursor: not-allowed;
+        background: transparentize($bb-grey-default, .5);
+      }
+
+      &.active {
+        color: #ffffff;
+        background: $bb-magenta-b;
+        font-weight: bold;
+      }
+    }
+
+    .page-button-back,
+    .page-button-forward {
+      position: relative;
+      background: transparent;
+
+      &:disabled {
+        background: transparentize($bb-grey-default, .75);
+      }
+
+      &:hover,
+      &:active {
+        background: transparent;
+      }
+    }
+
+    .page-button-back {
+      &::before {
+        left: .125rem;
+        top: .3125rem;
+      }
+    }
+
+    .page-button-forward {
+      &::before {
+        right: .125rem;
+        top: .3125rem;
+      }
+    }
+  }
+
+  @media screen and (min-width: 44rem) {
+    flex-direction: row;
+
+    .pages-info {
+      text-align: left;
+    }
+
+    .controls-list {
+      justify-content: flex-end;
+    }
+  }
+}

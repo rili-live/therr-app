@@ -1,0 +1,196 @@
+@import '../variables';
+@import './radio-group';
+@import './search-box';
+@import './validations';
+
+a,
+button {
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+:focus {
+  box-shadow: $box-shadow-ax;
+}
+
+h1:focus {
+  box-shadow: none;
+}
+
+label {
+  font-weight: 700;
+  line-height: 2.5rem;
+  color: $bb-black;
+  margin-bottom: 0;
+
+  &.required {
+    &::before {
+      content: '*';
+      color: $bb-ax-red;
+      padding-right: .25rem;
+    }
+  }
+}
+
+.form-field {
+  margin: 0 0 1rem;
+}
+
+input[type=color],
+input[type=date],
+input[type=datetime-local],
+input[type=datetime],
+input[type=email],
+input[type=month],
+input[type=number],
+input[type=password],
+input[type=search],
+input[type=tel],
+input[type=text],
+input[type=time],
+input[type=url],
+input[type=week],
+select,
+.select-box,
+textarea {
+  -webkit-appearance: none;
+  background-color: $bb-white;
+  border: 1px solid #cdcdcd;
+  border-radius: 2px;
+  box-shadow: none;
+  color: #262626;
+  display: block;
+  font-family: inherit;
+  height: 2.3125rem;
+  margin: 0;
+  padding: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+  -webkit-transition: border-color 0.15s linear, background 0.15s linear;
+  transition: border-color 0.15s linear, background 0.15s linear;
+
+  &:focus {
+    background-color: $bb-white;
+    border-color: $bb-pink;
+    outline: none;
+    border-color: $bb-pink-light;
+    box-shadow: $bb-input-shadow;
+    outline: none !important;
+  }
+
+  &.is-dirty,
+  &.is-touched {
+    &.is-invalid {
+      border-color: $bb-ax-red;
+    }
+  }
+
+  &.is-touched {
+    &.is-valid {
+      border-color: $bb-ax-green;
+
+      &:focus {
+        box-shadow: $bb-input-shadow-valid;
+      }
+    }
+  }
+
+  &:disabled,
+  &.disabled,
+  &.disabled button {
+    cursor: not-allowed;
+    color: $bb-middle-grey;
+    background: $bb-hover-grey;
+  }
+}
+
+select,
+.select-box {
+    position: relative;
+    -webkit-appearance: none !important;
+    background-color: $bb-white;
+    background-position: 95%;
+    background-repeat: no-repeat;
+    background-size: .75rem;
+    border: 1px solid #cdcdcd;
+    color: #262626;
+    font-family: inherit;
+    line-height: normal;
+    padding: 0;
+    height: 2.3125rem;
+
+    &.active {
+      button {
+        box-shadow: none;
+      }
+    }
+
+    button {
+      text-align: left;
+      padding: .5rem 1.5rem .5rem .5rem;
+      height: 100%;
+      width: 100%;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      outline: none;
+
+      &::before {
+        right: .5rem;
+        top: .65rem;
+        color: $bb-black;
+      }
+    }
+
+    .options-list {
+      z-index: 20;
+      position: absolute;
+      width: 100%;
+      left: -.125rem;
+      top: 2rem;
+      list-style: none;
+      padding: 0;
+      border: 1px solid;
+      border-radius: .125rem;
+      text-align: left;
+      box-shadow: 0 0 0 0.25rem rgba(38,38,38,.075);
+      background: $bb-white;
+      border: 1px solid #ccc;
+
+      .option-container {
+        white-space: nowrap;
+        float: none;
+        display: block;
+        cursor: pointer;
+        line-height: 1.125rem;
+        margin: 0;
+
+        a {
+          display: block;
+          padding: .5rem 1rem;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          color: inherit;
+        }
+
+        &:hover:not(.selected) {
+          text-decoration: underline;
+          background: $bb-hover-grey;
+        }
+
+        &.selected,
+        &:active,
+        &:active:hover {
+          color: $bb-white;
+          background: $bb-black;
+        }
+
+        &.ax-active {
+          box-shadow: $box-shadow-ax;
+        }
+      }
+    }
+}

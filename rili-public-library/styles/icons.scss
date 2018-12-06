@@ -1,0 +1,30 @@
+// An .icon-small, .icon-medium, or .icon-small with a class className
+// of the respective icon in svg-icons folder will add a background image
+// to the applied element
+// TODO: Add icons on a per need basis
+// TODO: Include icons from the color folder
+
+// Configurable icons
+@each $size, $value in (xsmall: .75rem, small: 1rem, medium: 2rem, large: 3rem, xlarge: 4rem) {
+  @each $name in
+  (
+    attention,
+    attention-alert,
+    arrow-down,
+    arrow-up,
+    back-arrow,
+    check,
+    forward-arrow,
+    search
+  ) {
+    .icon-#{$size} {
+      &.#{$name} {
+        &::before {
+          content: url('./svg-icons/#{$name}.svg');
+          position: absolute;
+          width: $value;
+        }
+      }
+    }
+  }
+}
