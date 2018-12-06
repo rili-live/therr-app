@@ -1,17 +1,19 @@
 set -e
 
 # Get color variables for output messages
-source ./lib/colorize.sh;
+pushd _bin
+source ./lib/colorize.sh
+popd
 
 # The rili-public-library utilities then react-components commands must happen first to ensure cross-package dependencies
-pushd rili-public-library/utilities;
+pushd rili-public-library/utilities
     if [ -f package.json ]
     then
         printMessageNeutral "Running command '${1}': rili-public-library/utilities"
         eval $1
     fi
 popd
-pushd rili-public-library/react-components;
+pushd rili-public-library/react-components
     if [ -f package.json ]
     then
         printMessageNeutral "Running command '${1}': rili-public-library/react-components"
@@ -27,12 +29,12 @@ then
 fi
 
 # Remaining directores to run script in. Order matters.
-declare -a arr=("./rili-client-server" "./rili-client-web" "rili-client-mobile")
+declare -a arr=("rili-server" "rili-client-web" "rili-client-mobile")
 for i in "${arr[@]}"; do
-    pushd ${d}
+    pushd ${i}
     if [ -f package.json ]
     then
-        printMessageNeutral "Running command '${1}': ${d}"
+        printMessageNeutral "Running command '${1}': ${i}"
         eval $1
     fi
     popd

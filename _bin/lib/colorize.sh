@@ -8,17 +8,17 @@ C_RED="\033[38;5;9m"
 
 # Methods
 printMessageSuccess() {
-    echo -e "${F_BOLD}${C_GREEN}$1${NO_FORMAT}";
+    echo -e "${F_BOLD}${C_GREEN}$1${NO_FORMAT}"
 }
 
 printMessageNeutral() {
-    echo -e "${F_BOLD}${C_BLUE}$1${NO_FORMAT}";
+    echo -e "${F_BOLD}${C_BLUE}$1${NO_FORMAT}"
 }
 
 printMessageWarning() {
-    echo -e "${F_BOLD}${C_YELLOW}$1${NO_FORMAT}";
+    echo -e "${F_BOLD}${C_YELLOW}$1${NO_FORMAT}"
 }
 
 printMessageError() {
-    echo -e "${F_BOLD}${C_RED}$1${NO_FORMAT}";
+    echo -e "${F_BOLD}${C_RED}$1${NO_FORMAT}"
 }

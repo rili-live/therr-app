@@ -7,7 +7,7 @@
     "build:all": "sh _bin/apply-to-all.sh 'npm run build'",
     "clean:all": "rm -rf node_modules && sh _bin/apply-to-all.sh 'rm -rf node_modules'",
     "lint:all": "npm install && sh _bin/apply-to-all.sh 'npm run lint'",
-    "install:root": "npm install && sh _bin/apply-to-all.sh 'npm install' rootOnly && sh _bin/apply-to-all.sh 'npm run build' rootOnly",
+    "install:root": "npm install && sh _bin/apply-to-all.sh 'npm install' rootOnly",
     "install:all": "npm install && sh _bin/apply-to-all.sh 'npm install'",
     "preinstall": "rm -f package-lock.json*",
     "test:all": "sh _bin/apply-to-all.sh 'npm test'",
