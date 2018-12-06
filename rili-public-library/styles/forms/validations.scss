@@ -1,0 +1,15 @@
+.validation-errors {
+  color: $bb-ax-red;
+  margin: .375rem;
+  margin-bottom: 0;
+
+  .message-container {
+    position: relative;
+
+    .message {
+      display: block;
+      line-height: 1rem;
+      margin-left: 1.25rem;
+    }
+  }
+}

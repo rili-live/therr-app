@@ -1,0 +1,45 @@
+@import './variables';
+
+button,
+[type="button"],
+[type="reset"],
+[type="submit"] {
+  border-radius: .1875rem;
+}
+
+button {
+  height: 2.375rem;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: .75;
+  }
+
+  &.anchor {
+    text-decoration: none;
+    color: $bb-link-blue-a;
+
+    &:hover {
+      color: $bb-link-hover;
+      text-decoration: underline;
+    }
+
+    &:visited {
+      color: $bb-link-blue-a;
+    }
+  }
+
+  &.secondary {
+    background: $bb-divider-grey;
+    &:hover {
+      background: $bb-light-grey;
+    }
+  }
+
+  &.primary {
+    background: $bb-very-dark-grey;
+    &:hover {
+      background: $bb-dark-grey;
+    }
+  }
+}
