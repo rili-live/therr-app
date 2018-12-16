@@ -4,12 +4,32 @@
   "description": "The server side code for Rili",
   "main": "build/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack --env production",
+    "build:watch": "webpack --watch --env production",
+    "lint:fix": "eslint --ext .jsx,.js --fix ./ && tslint --fix -p ./",
+    "lint": "eslint --ext .jsx,.js ./ && tslint -p ./",
+    "preinstall": "rm -f package-lock.json*",
+    "start": "npm run server:dev",
+    "server": "webpack-dev-server --env development",
+    "server:dev": "nodemon --watch webpack.config.js --exec \"npm run server\""
   },
   "keywords": [
     "rili",
     "server"
   ],
   "author": "Rili, Inc.",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.4",
+    "socket.io": "^2.2.0",
+    "socket.io-emitter": "^3.1.1",
+    "socket.io-redis": "^5.2.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.16.0",
+    "@types/socket.io": "^2.1.2",
+    "@types/socket.io-redis": "^1.0.25",
+    "nodemon": "^1.18.9",
+    "tslint": "^5.11.0"
+  }
 }

@@ -1,0 +1,42 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"target": "es6",
+		"baseUrl": ".",
+		"rootDir": "./src/",
+		"typeRoots": ["node_modules/@types", "typings"],
+		"declaration": false,
+		"removeComments": false,
+		"noLib": false,
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"sourceMap": true,
+		"inlineSources": true,
+		"paths": {
+			"react": ["node_modules/@types/react"],
+            "rili-public-library/styles/*": ["../rili-public-library/styles/*"],
+            "rili-public-library/utilities": ["../rili-public-library/utilities/lib"],
+		},
+		"pretty": true,
+		"allowUnreachableCode": false,
+		"allowUnusedLabels": false,
+		"noImplicitAny": true,
+		"noImplicitReturns": false,
+		"noImplicitUseStrict": false,
+		"noFallthroughCasesInSwitch": true,
+		"moduleResolution": "node",
+		"outDir": "build",
+		"jsx": "react"
+	},
+	"files": [
+		"src/app.d.ts",
+		"src/unit_test.d.ts"
+	],
+	"include": [
+		"src/**/*"
+	],
+	"exclude": [
+		"node_modules/**/*.*"
+	],
+	"compileOnSave": false
+}
