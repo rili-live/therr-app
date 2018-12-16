@@ -8,33 +8,38 @@ const utilities = require('./src');
 
 const PATHS = {
     app: path.join(__dirname, 'src'),
-    build: path.join(__dirname, 'lib'),
+    lib: path.join(__dirname, 'lib'),
     public: '/',
 };
 
 const entry = {};
 utilities.forEach((utility) => {
-    entry[utility] = `${PATHS.app}/${utility}.js`;
+    entry[utility] = `${PATHS.app}/${utility}.ts`;
 });
 
 const common = merge([
     {
         entry,
         output: {
-            path: PATHS.build,
+            path: PATHS.lib,
             filename: '[name].js',
             publicPath: PATHS.public,
             libraryTarget: 'umd',
             library: 'Rili Public Library: Utilities',
         },
         resolve: {
-            extensions: ['.js', '.jsx', '.json'],
+            extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
         },
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
         ],
     },
+    parts.processTypescript([PATHS.app], false),
+    parts.generateSourcemaps('source-map'),
+    parts.deDupe(),
 ]);
+
+// TODO: Add a dev build?
 
 const buildProd = () => merge([
     common,
@@ -56,7 +61,7 @@ const buildProd = () => merge([
 
 const buildUmd = () => merge([
     buildProd(),
-    parts.clean(PATHS.build),
+    parts.clean(PATHS.lib),
     {
         output: {
             filename: '[name].js',
@@ -67,9 +72,9 @@ const buildUmd = () => merge([
 module.exports = (env) => {
     process.env.BABEL_ENV = env;
 
-    // if (env === 'production') {
-    //     return [buildUmd()];
-    // }
+    if (env === 'production') {
+        return [buildUmd()];
+    }
 
     return [buildUmd()];
 };
