@@ -1,13 +1,11 @@
 const path = require('path');
 const webpack = require('webpack');
 const merge = require('webpack-merge');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 const parts = require('../webpack.parts');
 
 const PATHS = {
     app: path.join(__dirname, 'src'),
-    build: path.join(__dirname, 'build'),
-    reactComponents: path.join(__dirname, '../rili-public-library/react-components'),
+    lib: path.join(__dirname, 'lib'),
     public: '/',
 };
 
@@ -24,48 +22,17 @@ const common = merge([
         },
         resolve: {
             extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
-            alias: {
-                'rili-public-library/react-components': path.join(__dirname, '../rili-public-library/react-components/lib'),
-                'rili-public-library/styles': path.join(__dirname, '../rili-public-library/styles'),
-                'rili-public-library/utilities': path.join(__dirname, '../rili-public-library/utilities/lib'),
-            },
         },
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
         ],
     },
-    parts.loadCSS(),
-    parts.loadSASS(),
-    parts.loadSvg(),
-    parts.processReact([PATHS.app, PATHS.reactComponents], false),
     parts.processTypescript([PATHS.app], false),
     parts.generateSourcemaps('source-map'),
     parts.deDupe(),
 ]);
 
-const buildDev = () => merge([
-    common,
-    parts.clean(PATHS.build, ['index.html']),
-    {
-        mode: 'development',
-        plugins: [
-            new webpack.WatchIgnorePlugin([
-                path.join(__dirname, 'node_modules'),
-            ]),
-            new webpack.NamedModulesPlugin(),
-            new HtmlWebpackPlugin({
-                template: 'src/index.html',
-                inject: false,
-            }),
-        ],
-    },
-    parts.devServer({
-        disableHostCheck: true,
-        host: process.env.HOST || 'localhost',
-        port: process.env.PORT || 7070,
-        publicPath: PATHS.public,
-    }),
-]);
+// TODO: Add a dev build?
 
 const buildProd = () => merge([
     common,
@@ -73,10 +40,6 @@ const buildProd = () => merge([
         mode: 'production',
         plugins: [
             new webpack.HashedModuleIdsPlugin(),
-            new HtmlWebpackPlugin({
-                template: 'src/index.html',
-                inject: false,
-            }),
         ],
     },
     parts.lintJavaScript({
@@ -91,7 +54,7 @@ const buildProd = () => merge([
 
 const buildUmd = () => merge([
     buildProd(),
-    parts.clean(PATHS.build),
+    parts.clean(PATHS.lib),
     {
         output: {
             filename: 'bundle.js',
@@ -106,5 +69,5 @@ module.exports = (env) => {
         return [buildUmd()];
     }
 
-    return [buildDev()];
+    return [buildUmd()];
 };

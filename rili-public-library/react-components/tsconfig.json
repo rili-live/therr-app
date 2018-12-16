@@ -14,8 +14,8 @@
 		"inlineSources": true,
 		"paths": {
 			"react": ["node_modules/@types/react"],
-            "rili-public-library/styles/*": ["../rili-public-library/styles/*"],
-            "rili-public-library/utilities": ["../rili-public-library/utilities/lib"],
+            "rili-public-library/styles/*": ["../styles/*"],
+            "rili-public-library/utilities/*": ["../utilities/lib"],
 		},
 		"pretty": true,
 		"allowUnreachableCode": false,
@@ -36,7 +36,10 @@
 		"src/**/*"
 	],
 	"exclude": [
-		"node_modules/**/*.*"
+		"node_modules/**/*.*",
+		"build/**/*.*",
+		"lib/**/*.*",
+		"**/*.js"
 	],
 	"compileOnSave": false
 }
