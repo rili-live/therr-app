@@ -6,12 +6,16 @@
   "scripts": {
     "build": "webpack --env production",
     "build:watch": "webpack --watch --env production",
+    "cleanup": "npm run stop:redis",
     "lint:fix": "eslint --ext .jsx,.js --fix ./ && tslint --fix -p ./",
     "lint": "eslint --ext .jsx,.js ./ && tslint -p ./",
     "preinstall": "rm -f package-lock.json*",
-    "start": "npm run server:dev",
     "server": "webpack-dev-server --env development",
-    "server:dev": "nodemon --watch webpack.config.js --exec \"npm run server\""
+    "server:dev": "nodemon --watch webpack.config.js --exec \"npm run server\"",
+    "start": "npm run server:dev",
+    "start:redis": "docker run --name rili-redis-dev -d redis:5.0.3",
+    "start:redis:cli": "docker run -it --link rili-redis-dev:redis --name rili-redis-cli --rm redis redis-cli -h redis -p 6379",
+    "stop:redis": "docker stop rili-redis-dev rili-redis-cli && docker rm rili-redis-dev rili-redis-cli"
   },
   "keywords": [
     "rili",
