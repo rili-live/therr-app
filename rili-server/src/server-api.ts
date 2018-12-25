@@ -9,6 +9,11 @@ let app = express();
 // Serves static files in the /build/static directory
 app.use(express.static(path.join(__dirname, 'static')));
 
+// Routes
+app.get('/', (req, res) => {
+    res.send('Hello, world!');
+});
+
 // Cluster config and server start
 if (cluster.isMaster) {
     let numWorkers = os.cpus().length;
@@ -29,14 +34,10 @@ if (cluster.isMaster) {
         cluster.fork();
     });
 } else {
-    app.listen(config.serverPort, (err: string) => {
+    app.listen(config[process.env.NODE_ENV].serverPort, (err: string) => {
         if (err) {
             throw err;
         }
-        console.log(`Server running on port ${config.serverPort} with process id`, process.pid); // tslint:disable-line no-console
-    });
-
-    app.get('/', (req, res) => {
-        res.send('Hello, world!');
+        console.log(`Server running on port ${config[process.env.NODE_ENV].serverPort} with process id`, process.pid); // tslint:disable-line no-console
     });
 }

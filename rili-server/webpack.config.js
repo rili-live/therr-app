@@ -49,7 +49,20 @@ const common = merge([
     parts.deDupe(),
 ]);
 
-// TODO: Add a dev build?
+const buildDev = () => merge([
+    common,
+    {
+        mode: 'development',
+    },
+    parts.setFreeVariable('process.env.NODE_ENV', 'development'),
+    parts.lintJavaScript({
+        paths: PATHS.app,
+        options: {
+            emitWarning: true,
+        },
+    }),
+    parts.minifyJavaScript({ useSourceMap: true }),
+]);
 
 const buildProd = () => merge([
     common,
@@ -66,7 +79,7 @@ const buildProd = () => merge([
         },
     }),
     parts.setFreeVariable('process.env.NODE_ENV', 'production'),
-    parts.minifyJavaScript({ useSourceMap: true }),
+    parts.minifyJavaScript({ useSourceMap: false }),
 ]);
 
 const buildUmd = () => merge([
@@ -81,5 +94,5 @@ module.exports = (env) => {
         return [buildUmd()];
     }
 
-    return [buildUmd()];
+    return [buildDev()];
 };
