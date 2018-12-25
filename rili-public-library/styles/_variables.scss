@@ -1,0 +1,69 @@
+// Animation
+$animation-duration-1: 250ms;
+$animation-duration-2: 500ms;
+
+// Rili Common Colors
+$rili-black: #262626;
+$rili-grey-default: #cdcdcd;
+$rili-grey-placeholder: #cdcdcd;
+$rili-pink-light: #c56fd5;
+$rili-pink-shadow: rgba(162, 52, 181, .1);
+$rili-green-shadow: rgba(0, 125, 44, .1);
+
+// Rili Offical Primary Colors
+$rili-green: #2edc91;
+$rili-red-orange: #ff6600;
+$rili-purple: #c56fd5;
+$rili-yellow: #ffe300;
+$rili-bright-blue: #26d7fd;
+
+// Rili Official Secondary Colors
+$rili-dark-blue: #2073A1;
+$rili-blue: #157afb;
+$rili-blue-green: #14c6cc;
+$rili-teal: #85f3da;
+$rili-lime: #80f56b;
+$rili-pink: #ff5991;
+$rili-magenta: #cc14ae;
+
+// Secondary magenta color specified in UX review
+// TODO: Is it a part of the official palette?
+$rili-magenta-b: #a234b5;
+
+// Rili Grading Palette
+$rili-grades-green: #39e379;
+$rili-grades-yellow-green: #cdee4b;
+$rili-grades-yellow: #ffe300;
+$rili-grades-bright-orange: #ff9600;
+$rili-grades-red: #ff4a36;
+
+// Rili Background Colors
+$rili-white: #ffffff;
+$rili-bg-grey: #f8f8f8;
+$rili-hover-grey: #f0f0f0;
+$rili-light-grey: #e5e5e5;
+$rili-divider-grey: #cdcdcd;
+$rili-ghost-grey: #767676;
+$rili-middle-grey: #666666;
+$rili-very-dark-grey: #262626;
+$rili-dark-grey: #404040;
+$rili-true-black: #000000;
+$rili-light-pink: #fef7f7;
+$rili-light-purple: #fbf4fc;
+
+// Rili Base Content Colors
+$rili-light-on-dark-grey: #8c8c8c;
+$rili-link-blue-a: #2073a1;
+$rili-link-blue-b: #2c9ede;
+$rili-link-hover: #004270;
+
+// Rili AX UI Colors
+$rili-ax-green: #007d2c;
+$rili-ax-red: #c23e37;
+$rili-ax-tab-highlight-blue: #006dc7;
+$rili-ax-tab-highlight-light-blue: #2f8df7;
+
+// Accesibility
+$box-shadow-ax: 0 0 0 .125rem $rili-ax-tab-highlight-blue inset;
+$rili-input-shadow: inset 0 0 0 .25rem $rili-pink-shadow;
+$rili-input-shadow-valid: inset 0 0 0 .25rem $rili-green-shadow;
