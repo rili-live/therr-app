@@ -4,11 +4,11 @@ import * as socketioRedis from 'socket.io-redis';
 import * as config from '../config.js';
 
 let app = express();
-let server = app.listen(config.socketPort);
+let server = app.listen(config[process.env.NODE_ENV].socketPort);
 let io = socketio(server);
 
 io.adapter(socketioRedis({
-    host: config.redisHost, port: config.redisPort
+    host: config[process.env.NODE_ENV].redisHost, port: config[process.env.NODE_ENV].redisPort
 }));
 
 io.on('connection', (socket: any) => {
