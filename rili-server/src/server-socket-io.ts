@@ -1,11 +1,11 @@
 import * as express from 'express';
 import * as socketio from 'socket.io';
-import * as config from './config.js';
 import * as socketioRedis from 'socket.io-redis';
+import * as config from '../config.js';
 
-var app = express();
-var server = app.listen(7770);
-var io = socketio(server);
+let app = express();
+let server = app.listen(config.socketPort);
+let io = socketio(server);
 
 app.use(express.static('static'));
 
