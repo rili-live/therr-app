@@ -37,6 +37,9 @@ const common = merge([
         },
         externals: nodeModules,
         target: 'node',
+        node: {
+            __dirname: false,
+        },
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
         ],
@@ -68,7 +71,7 @@ const buildProd = () => merge([
 
 const buildUmd = () => merge([
     buildProd(),
-    parts.clean(PATHS.build),
+    parts.clean(PATHS.build, ['static']),
 ]);
 
 module.exports = (env) => {
