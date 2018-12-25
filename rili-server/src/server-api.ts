@@ -1,10 +1,13 @@
 import * as cluster from 'cluster';
 import * as express from 'express';
 import * as os from 'os';
+import * as path from 'path';
 import * as config from '../config.js';
 
 let app = express();
-app.use(express.static('static'));
+
+// Serves static files in the /build/static directory
+app.use(express.static(path.join(__dirname, 'static')));
 
 // Cluster config and server start
 if (cluster.isMaster) {
@@ -30,6 +33,10 @@ if (cluster.isMaster) {
         if (err) {
             throw err;
         }
-        console.log('Server running with process id', process.pid); // tslint:disable-line no-console
+        console.log(`Server running on port ${config.serverPort} with process id`, process.pid); // tslint:disable-line no-console
+    });
+
+    app.get('/', (req, res) => {
+        res.send('Hello, world!');
     });
 }

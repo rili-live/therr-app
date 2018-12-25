@@ -7,8 +7,6 @@ let app = express();
 let server = app.listen(config.socketPort);
 let io = socketio(server);
 
-app.use(express.static('static'));
-
 io.adapter(socketioRedis({
     host: config.redisHost, port: config.redisPort
 }));
