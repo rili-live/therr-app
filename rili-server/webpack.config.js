@@ -1,28 +1,42 @@
 const path = require('path');
+const fs = require('fs');
 const webpack = require('webpack');
 const merge = require('webpack-merge');
 const parts = require('../webpack.parts');
 
+// List of utility filenames
+const servers = require('./src');
+
 const PATHS = {
     app: path.join(__dirname, 'src'),
-    lib: path.join(__dirname, 'lib'),
+    build: path.join(__dirname, 'build'),
     public: '/',
 };
 
+const entry = {};
+servers.forEach((server) => {
+    entry[server] = `${PATHS.app}/${server}.ts`;
+});
+
+const nodeModules = {};
+fs.readdirSync('node_modules').filter(x => ['.bin'].indexOf(x) === -1)
+    .forEach((mod) => { nodeModules[mod] = `commonjs ${mod}`; });
+
+
 const common = merge([
     {
-        entry: {
-            app: PATHS.app,
-        },
+        entry,
         output: {
             path: PATHS.build,
-            filename: 'index.js',
+            filename: '[name].js',
             publicPath: PATHS.public,
             libraryTarget: 'umd',
         },
         resolve: {
             extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
         },
+        externals: nodeModules,
+        target: 'node',
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
         ],
@@ -54,12 +68,7 @@ const buildProd = () => merge([
 
 const buildUmd = () => merge([
     buildProd(),
-    parts.clean(PATHS.lib),
-    {
-        output: {
-            filename: 'bundle.js',
-        },
-    },
+    parts.clean(PATHS.build),
 ]);
 
 module.exports = (env) => {
