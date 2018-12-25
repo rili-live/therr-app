@@ -1,0 +1,69 @@
+@import '../variables';
+
+$field-height: 2.25rem;
+$searchBox-icon-width: 2rem;
+$searchBox-padding-top: 1rem;
+
+.search-box {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  margin-right: .625rem;
+  padding-top: .625rem;
+  overflow: hidden;
+  white-space: nowrap;
+
+  #contentSearchInput {
+    height: 2.375rem;
+    margin-top: 0.5rem;
+  }
+
+  &::before {
+    opacity: 1;
+    padding: .5rem .4rem .3rem .4rem;
+    left: 0;
+    top: 1.25rem;
+    transition: left $animation-duration-1, opacity $animation-duration-1;
+  }
+
+  label {
+    max-width: calc(100% - 2.125rem);
+    top: 2px;
+    left: 0;
+    z-index: 1;
+    color: #767676;
+    background: transparent;
+    cursor: text;
+    font-weight: 400;
+    padding: 0;
+    line-height: $field-height;
+    position: absolute;
+    text-align: left;
+    transition: transform $animation-duration-1 cubic-bezier(0.55, 0, 0.1, 1),
+      color $animation-duration-1, background $animation-duration-1 + 100ms,
+      font-weight $animation-duration-1,
+      line-height $animation-duration-1,
+      padding $animation-duration-1;
+    transform: translate($searchBox-icon-width + .125rem, 1.0625rem) scale(1);
+    transform-origin: bottom;
+    text-overflow: ellipsis;
+  }
+
+  &.is-active,
+  &.is-dirty {
+    label {
+      padding: 0 .1875rem;
+      line-height: .875rem;
+      transform: translate(.5rem, $searchBox-padding-top / 2) scale(.85);
+      background-color: #ffffff;
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+
+    &::before {
+      left: -1.25rem;
+      opacity: 0;
+    }
+
+  }
+}
