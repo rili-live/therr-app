@@ -13,9 +13,9 @@
     "preinstall": "rm -f package-lock.json*",
     "start:server:api": "node build/server-api.js",
     "start:server:socketio": "node build/server-socket-io.js",
-    "start:redis": "docker run --name rili-redis-dev -d redis:5.0.3",
-    "start:redis:cli": "docker run -it --link rili-redis-dev:redis --name rili-redis-cli --rm redis redis-cli -h redis -p 6379",
-    "stop:redis": "docker stop rili-redis-dev rili-redis-cli && docker rm rili-redis-dev rili-redis-cli"
+    "start:redis": "docker run --name rili-redis-dev -d -p 17771:6379 redis:5.0.3",
+    "start:redis:cli": "docker run -it --link rili-redis-dev:redis --name rili-redis-cli --rm redis redis-cli -h redis -p 16379:6379",
+    "stop:redis": "docker stop rili-redis-dev && docker rm rili-redis-dev && docker stop rili-redis-cli && docker rm rili-redis-cli"
   },
   "keywords": [
     "rili",
