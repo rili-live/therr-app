@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import 'rili-public-library/styles/index.scss';
+import 'rili-public-library/styles/index.scss'; //tslint:disable-line:no-implicit-dependencies
 
 // NOTE: Order matters for these css files
 // ...the latter will overwrite the former

@@ -4,12 +4,48 @@
   "description": "The server side code for Rili",
   "main": "build/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack --env production",
+    "build:dev": "webpack --env development",
+    "build:watch": "webpack --watch --env development",
+    "cleanup": "npm run stop:redis",
+    "lint:fix": "eslint --ext .jsx,.js --fix ./ && tslint --fix -p ./",
+    "lint": "eslint --ext .jsx,.js ./ && tslint -p ./",
+    "preinstall": "rm -f package-lock.json*",
+    "start:server:api": "node build/server-api.js",
+    "start:server:socketio": "node build/server-socket-io.js",
+    "start:redis": "docker run --name rili-redis-dev -d -p 17771:6379 redis:5.0.3",
+    "start:redis:cli": "docker run -it --link rili-redis-dev:redis --name rili-redis-cli --rm redis redis-cli -h redis -p 16379:6379",
+    "stop:redis": "docker stop rili-redis-dev && docker rm rili-redis-dev && docker stop rili-redis-cli && docker rm rili-redis-cli"
   },
   "keywords": [
     "rili",
     "server"
   ],
   "author": "Rili, Inc.",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.4",
+    "socket.io": "^2.2.0",
+    "socket.io-emitter": "^3.1.1",
+    "socket.io-redis": "^5.2.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.16.0",
+    "@types/socket.io": "^2.1.2",
+    "@types/socket.io-redis": "^1.0.25",
+    "babel-eslint": "^8.2.1",
+    "babel-plugin-array-includes": "^2.0.3",
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb": "^15.1.0",
+    "eslint-loader": "^2.1.0",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-jsx-a11y": "^5.1.1",
+    "eslint-plugin-react": "^7.1.0",
+    "identity-obj-proxy": "^3.0.0",
+    "nodemon": "^1.18.9",
+    "tslint": "^5.11.0",
+    "webpack": "^4.16.2",
+    "webpack-dev-server": "^3.1.10",
+    "webpack-merge": "^4.1.3"
+  }
 }

@@ -1,6 +1,6 @@
-export const normalizeLocale = locale => locale.toLowerCase().replace('_', '-');
+export const normalizeLocale = (locale: string) => locale.toLowerCase().replace('_', '-');
 
-export const fallbackToLocale = (originalLocale) => {
+export const fallbackToLocale = (originalLocale: string) => {
     // Fallback from locale to language, then fallback to 'en',
     // eg: pt-BR => pt => en
     if (originalLocale.includes('-')) {
@@ -12,14 +12,14 @@ export const fallbackToLocale = (originalLocale) => {
     return null;
 };
 
-export const configureTranslator = (translations) => {
-    const translateInternal = (locale, key, params) => {
+export const configureTranslator = (translations: any) => {
+    const translateInternal = (locale: string, key: string, params: any) => {
         if (!translations[locale]) {
             return null;
         }
         const propertyArray = key.split('.');
         let translatedValue = translations[locale];
-        propertyArray.forEach((property) => {
+        propertyArray.forEach((property: string) => {
             if (!translatedValue || !translatedValue[property]) {
                 translatedValue = null;
             } else {
@@ -36,7 +36,7 @@ export const configureTranslator = (translations) => {
         return translatedValue;
     };
 
-    return (locale, key, params) => {
+    return (locale: string, key: string, params: any) => {
         let newLocale = normalizeLocale(locale);
         let translatedValue = translateInternal(newLocale, key, params);
         while (!translatedValue) {

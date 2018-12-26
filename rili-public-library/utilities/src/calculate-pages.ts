@@ -1,4 +1,15 @@
-export default ({ totalItems, itemsPerPage, pageNumber }, visiblePageButtons = 5) => {
+interface IItemsConfig {
+    totalItems: number;
+    itemsPerPage: number;
+    pageNumber: number;
+}
+
+/**
+ * calculatePages
+ * @param itemConfig - when deconstructed, should include totalItems, itemsPerPage, and pageNumber
+ * @param visiblePageButtons - number of page buttons to display in pagination controls
+ */
+const calculatePages = ({ totalItems, itemsPerPage, pageNumber }: IItemsConfig, visiblePageButtons = 5) => {
     let endPage;
     let startPage;
     const totalPages = totalItems ?
@@ -39,3 +50,5 @@ export default ({ totalItems, itemsPerPage, pageNumber }, visiblePageButtons = 5
         totalPages,
     };
 };
+
+export default calculatePages;
