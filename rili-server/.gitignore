@@ -62,3 +62,9 @@ typings/
 
 # next.js build output
 .next
+
+# Build files
+build/server-api.js
+build/server-api.js.map
+build/server-socket-io.js
+build/server-socket-io.js.map
