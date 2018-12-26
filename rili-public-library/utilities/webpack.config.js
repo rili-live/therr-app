@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 const merge = require('webpack-merge');
@@ -17,6 +18,10 @@ utilities.forEach((utility) => {
     entry[utility] = `${PATHS.app}/${utility}.ts`;
 });
 
+const nodeModules = {};
+fs.readdirSync('node_modules').filter(x => ['.bin'].indexOf(x) === -1)
+    .forEach((mod) => { nodeModules[mod] = `commonjs ${mod}`; });
+
 const common = merge([
     {
         entry,
@@ -30,6 +35,11 @@ const common = merge([
         resolve: {
             extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
         },
+        externals: nodeModules,
+        target: 'node',
+        node: {
+            __dirname: false,
+        },
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
         ],
@@ -39,7 +49,23 @@ const common = merge([
     parts.deDupe(),
 ]);
 
-// TODO: Add a dev build?
+const buildDev = () => merge([
+    common,
+    {
+        mode: 'development',
+        plugins: [
+            new webpack.HashedModuleIdsPlugin(),
+        ],
+    },
+    parts.lintJavaScript({
+        paths: PATHS.app,
+        options: {
+            emitWarning: true,
+        },
+    }),
+    parts.setFreeVariable('process.env.NODE_ENV', 'development'),
+    parts.minifyJavaScript({ useSourceMap: true }),
+]);
 
 const buildProd = () => merge([
     common,
@@ -56,7 +82,7 @@ const buildProd = () => merge([
         },
     }),
     parts.setFreeVariable('process.env.NODE_ENV', 'production'),
-    parts.minifyJavaScript({ useSourceMap: true }),
+    parts.minifyJavaScript({ useSourceMap: false }),
 ]);
 
 const buildUmd = () => merge([
@@ -76,5 +102,5 @@ module.exports = (env) => {
         return [buildUmd()];
     }
 
-    return [buildUmd()];
+    return [buildDev()];
 };

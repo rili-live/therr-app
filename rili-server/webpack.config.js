@@ -34,6 +34,9 @@ const common = merge([
         },
         resolve: {
             extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+            alias: {
+                'rili-public-library/utilities': path.join(__dirname, '../rili-public-library/utilities/lib'),
+            },
         },
         externals: nodeModules,
         target: 'node',

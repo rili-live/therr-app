@@ -14,9 +14,9 @@
 		"inlineSources": true,
 		"paths": {
 			"react": ["node_modules/@types/react"],
-			"bb-public-library/react-components/*": ["../rili-public-library/react-components/lib/*"],
-            "bb-public-library/styles/*": ["../rili-public-library/styles/*"],
-            "bb-public-library/utilities": ["../rili-public-library/utilities/lib"],
+			"rili-public-library/react-components/*": ["../rili-public-library/react-components/lib/*"],
+            "rili-public-library/styles/*": ["../rili-public-library/styles/*"],
+            "rili-public-library/utilities": ["../rili-public-library/utilities/lib"],
 		},
 		"pretty": true,
 		"allowUnreachableCode": false,
