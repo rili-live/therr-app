@@ -17,18 +17,21 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js"></script>
     <script>
-        var socket = io({
+        var socket = io('http://localhost:7771', {
             transports: ['websocket'],
             upgrade: false
         });
         document.getElementById('join_room').addEventListener('click', (e) => {
-            socket.emit('room.join', document.getElementById('room').value);
+            socket.emit('room.join', {
+              roomName: document.getElementById('room').value,
+              userName: document.getElementById('name').value
+            });
         });
 
         document.getElementById('say_hello').addEventListener('click', (e) => {
             socket.emit('event', {
-                name: document.getElementById('name').value,
-                room: document.getElementById('room').value
+                userName: document.getElementById('name').value,
+                roomName: document.getElementById('room').value
             });
         });
 
