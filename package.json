@@ -7,7 +7,7 @@
     "build:all": "sh _bin/apply-to-all.sh 'npm run build'",
     "clean:all": "rm -rf node_modules && sh _bin/apply-to-all.sh 'rm -rf node_modules'",
     "lint:all": "npm install && sh _bin/apply-to-all.sh 'npm run lint'",
-    "install:root": "npm install && sh _bin/apply-to-all.sh 'npm install' rootOnly && sh _bin/apply-to-all.sh 'npm run build' rootOnly",
+    "install:root": "npm install && sh _bin/apply-to-all.sh 'npm install' rootOnly",
     "install:all": "npm install && sh _bin/apply-to-all.sh 'npm install'",
     "preinstall": "rm -f package-lock.json*",
     "test:all": "sh _bin/apply-to-all.sh 'npm test'",
@@ -28,6 +28,7 @@
   },
   "homepage": "https://github.com/rili-live/rili-app#readme",
   "devDependencies": {
+    "@babel/core": "^7.2.2",
     "@babel/preset-env": "^7.1.6",
     "@types/enzyme": "^3.1.12",
     "@types/enzyme-adapter-react-16": "^1.0.2",

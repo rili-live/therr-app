@@ -1,7 +1,7 @@
 const huskyConfig = {
     "hooks": {
-        "pre-commit": "pushd _bin && ./pre-commit.sh && popd",
-        "pre-push": "pushd _bin && ./pre-push.sh && popd"
+        "pre-commit": "./_bin/pre-commit.sh",
+        "pre-push": "./_bin/pre-push.sh"
     }
 };
 

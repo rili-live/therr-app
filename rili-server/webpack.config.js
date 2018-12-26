@@ -1,43 +1,49 @@
 const path = require('path');
+const fs = require('fs');
 const webpack = require('webpack');
 const merge = require('webpack-merge');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 const parts = require('../webpack.parts');
+
+// List of utility filenames
+const servers = require('./src');
 
 const PATHS = {
     app: path.join(__dirname, 'src'),
     build: path.join(__dirname, 'build'),
-    reactComponents: path.join(__dirname, '../rili-public-library/react-components'),
     public: '/',
 };
 
+const entry = {};
+servers.forEach((server) => {
+    entry[server] = `${PATHS.app}/${server}.ts`;
+});
+
+const nodeModules = {};
+fs.readdirSync('node_modules').filter(x => ['.bin'].indexOf(x) === -1)
+    .forEach((mod) => { nodeModules[mod] = `commonjs ${mod}`; });
+
+
 const common = merge([
     {
-        entry: {
-            app: PATHS.app,
-        },
+        entry,
         output: {
             path: PATHS.build,
-            filename: 'index.js',
+            filename: '[name].js',
             publicPath: PATHS.public,
             libraryTarget: 'umd',
         },
         resolve: {
             extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
-            alias: {
-                'rili-public-library/react-components': path.join(__dirname, '../rili-public-library/react-components/lib'),
-                'rili-public-library/styles': path.join(__dirname, '../rili-public-library/styles'),
-                'rili-public-library/utilities': path.join(__dirname, '../rili-public-library/utilities/lib'),
-            },
+        },
+        externals: nodeModules,
+        target: 'node',
+        node: {
+            __dirname: false,
         },
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
         ],
     },
-    parts.loadCSS(),
-    parts.loadSASS(),
-    parts.loadSvg(),
-    parts.processReact([PATHS.app, PATHS.reactComponents], false),
     parts.processTypescript([PATHS.app], false),
     parts.generateSourcemaps('source-map'),
     parts.deDupe(),
@@ -45,26 +51,17 @@ const common = merge([
 
 const buildDev = () => merge([
     common,
-    parts.clean(PATHS.build, ['index.html']),
     {
         mode: 'development',
-        plugins: [
-            new webpack.WatchIgnorePlugin([
-                path.join(__dirname, 'node_modules'),
-            ]),
-            new webpack.NamedModulesPlugin(),
-            new HtmlWebpackPlugin({
-                template: 'src/index.html',
-                inject: false,
-            }),
-        ],
     },
-    parts.devServer({
-        disableHostCheck: true,
-        host: process.env.HOST || 'localhost',
-        port: process.env.PORT || 7070,
-        publicPath: PATHS.public,
+    parts.setFreeVariable('process.env.NODE_ENV', 'development'),
+    parts.lintJavaScript({
+        paths: PATHS.app,
+        options: {
+            emitWarning: true,
+        },
     }),
+    parts.minifyJavaScript({ useSourceMap: true }),
 ]);
 
 const buildProd = () => merge([
@@ -73,10 +70,6 @@ const buildProd = () => merge([
         mode: 'production',
         plugins: [
             new webpack.HashedModuleIdsPlugin(),
-            new HtmlWebpackPlugin({
-                template: 'src/index.html',
-                inject: false,
-            }),
         ],
     },
     parts.lintJavaScript({
@@ -86,17 +79,12 @@ const buildProd = () => merge([
         },
     }),
     parts.setFreeVariable('process.env.NODE_ENV', 'production'),
-    parts.minifyJavaScript({ useSourceMap: true }),
+    parts.minifyJavaScript({ useSourceMap: false }),
 ]);
 
 const buildUmd = () => merge([
     buildProd(),
-    parts.clean(PATHS.build),
-    {
-        output: {
-            filename: 'bundle.js',
-        },
-    },
+    parts.clean(PATHS.build, ['static']),
 ]);
 
 module.exports = (env) => {
