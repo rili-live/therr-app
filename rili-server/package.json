@@ -4,9 +4,9 @@
   "description": "The server side code for Rili",
   "main": "build/index.js",
   "scripts": {
-    "build": "webpack --env production",
-    "build:dev": "webpack --env development",
-    "build:watch": "webpack --watch --env development",
+    "build": "NODE_ENV=production && webpack --env production",
+    "build:dev": "NODE_ENV=development && webpack --env development",
+    "build:watch": "NODE_ENV=development && webpack --watch --env development",
     "cleanup": "npm run stop:redis",
     "lint:fix": "eslint --ext .jsx,.js --fix ./ && tslint --fix -p ./",
     "lint": "eslint --ext .jsx,.js ./ && tslint -p ./",
