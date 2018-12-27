@@ -30,8 +30,8 @@
         });
         document.getElementById('join_room').addEventListener('click', (e) => {
             socket.emit('room.join', {
-              roomName: document.getElementById('room').value,
-              userName: document.getElementById('name').value
+                roomName: document.getElementById('room').value,
+                userName: document.getElementById('name').value
             });
         });
 
