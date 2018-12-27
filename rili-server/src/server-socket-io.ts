@@ -2,11 +2,19 @@ import * as express from 'express';
 import * as Redis from 'ioredis';
 import * as socketio from 'socket.io';
 import * as socketioRedis from 'socket.io-redis';
-import * as config from '../config.js';
 import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disable-line no-implicit-dependencies
+import * as config from '../config.js';
+import RedisSession from './services/redis-session';
 
+const rsAppName = 'riliChat';
+// Session to attach socket.io details to username while logged in
+const shouldIncludeAllLogs = process.argv[2] === 'withAllLogs';
 const shouldIncludeLogs = process.argv[2] === 'withLogs';
-const shouldIncludeRedisLogs = process.argv[2] === 'withAllLogs' || process.argv[2] === 'withRedisLogs';
+const shouldIncludeRedisLogs =  process.argv[2] === 'withRedisLogs'
+    || shouldIncludeAllLogs;
+const shouldIncludeSocketLogs = process.argv[2] === 'withSocketLogs'
+    || shouldIncludeAllLogs
+    || shouldIncludeRedisLogs;
 
 const nodes = [
     // Pub
@@ -26,14 +34,18 @@ const nodes = [
 // const redisPubCluster = new Redis.Cluster(nodes);
 // const redisSubCluster = new Redis.Cluster(nodes);
 
-const redisPub = new Redis(nodes[0].port, nodes[0].host, {
+const redisPub: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
     connectionName: 'redisSocketPub',
     lazyConnect: true,
 });
 
+const redisSession = new RedisSession({
+    client: redisPub,
+});
+
 // TODO: RSERV-5: PubSub doesn't seem to work when on different ports
 // This might simply require redis clusters
-const redisSub = new Redis(nodes[0].port, nodes[0].host, {
+const redisSub: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
     connectionName: 'redisSocketSub',
     lazyConnect: true,
 });
@@ -93,7 +105,8 @@ const startExpressSocketIOServer = () => {
     });
 
     io.on('connection', (socket: any) => {
-        printLogs(shouldIncludeLogs, 'SOCKET_IO_LOGS', null, 'NEW CONNECTION...');
+        printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, 'NEW CONNECTION...');
+
         socket.on('room.join', (details: any) => {
             // Leave all current rooms (except default room) before joining a new one
             Object.keys(socket.rooms)
@@ -103,16 +116,35 @@ const startExpressSocketIOServer = () => {
                     socket.leave(room);
                 });
 
+            // TODO: RSERV-4: Determine why this setTimeout exists
             setTimeout(() => {
                 socket.join(details.roomName, () => {
-                    // TODO: Store the user ID in redis with a username to be used while socket is disconnecting
-                    printLogs(shouldIncludeLogs, 'SOCKET_IO_LOGS', null, `User, ${details.userName} with socketId ${socket.id}, joined room ${details.roomName}`);
-                    printLogs(shouldIncludeLogs, 'SOCKET_IO_LOGS', null, `${details.userName}'s Current Rooms: ${JSON.stringify(socket.rooms)}`);
+                    // TODO: After adding user login, this should be created after login rather then after joining a room
+                    if (socket.handshake && socket.handshake.headers && socket.handshake.headers.host) {
+                        redisSession.create({
+                            app: rsAppName,
+                            socketId: socket.id,
+                            ip: socket.handshake.headers.host.split(':')[0],
+                            // 30 minutes
+                            ttl: 60 * 1000 * 30,
+                            data: {
+                                userName: details.userName,
+                            },
+                        }).then((response: any) => {
+                            socket.emit('session_message', response);
+                        }).catch((err: any) => {
+                            printLogs(shouldIncludeRedisLogs, 'REDIS_SESSION_ERROR', null, err);
+                        });
+                    }
+
+                    printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `User, ${details.userName} with socketId ${socket.id}, joined room ${details.roomName}`);
+                    printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `${details.userName}'s Current Rooms: ${JSON.stringify(socket.rooms)}`);
+
+                    // Emits an event back to the client who joined
+                    socket.emit('event', `You joined room ${details.roomName}`);
+                    // Broadcasts an event back to the client for all users in the specified room (excluding the user who triggered it)
+                    socket.broadcast.to(details.roomName).emit('event', `${details.userName} joined room ${details.roomName}`);
                 });
-                // Emits an event back to the client who joined
-                socket.emit('event', `You joined room ${details.roomName}`);
-                // Broadcasts an event back to the client for all users in the specified room (excluding the user who triggered it)
-                socket.broadcast.to(details.roomName).emit('event', `${details.userName} joined room ${details.roomName}`);
             }, 0);
         });
 
@@ -121,22 +153,33 @@ const startExpressSocketIOServer = () => {
             if (event.message) {
                 socket.emit('message', `You: ${event.message}`);
                 socket.broadcast.to(event.roomName).emit('message', `${event.userName}: ${event.message}`);
-                printLogs(shouldIncludeLogs, 'SOCKET_IO_LOGS', null, `${event.userName} said: ${event.message}`);
+                printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `${event.userName} said: ${event.message}`);
             } else {
                 // Broadcasts an event back to the client for all users in the specified room (excluding the user who triggered it)
                 socket.emit('message', `You said hello.`);
                 socket.broadcast.to(event.roomName).emit('message', `${event.userName} says hello!`);
-                printLogs(shouldIncludeLogs, 'SOCKET_IO_LOGS', null, `${event.userName} says hello!`);
+                printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `${event.userName} says hello!`);
             }
         });
 
         socket.on('disconnecting', (reason: string) => {
             // TODO: Use the socket ID to retrieve the username from redis
-            printLogs(shouldIncludeLogs, 'SOCKET_IO_LOGS', null, `DISCONNECTING... ${reason}`);
-            Object.keys(socket.rooms)
-                .forEach((room) => {
-                    socket.broadcast.to(room).emit('event', `Someone left the room`);
+            printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `DISCONNECTING... ${reason}`);
+            const activeRooms = Object.keys(socket.rooms)
+            .filter((room) => room !== socket.id);
+
+            if (activeRooms.length) {
+                redisSession.get(socket.id).then((response: any) => {
+                    activeRooms.forEach((room) => {
+                        const parsedResponse = JSON.parse(response);
+                        if (parsedResponse && parsedResponse.userName) {
+                            socket.broadcast.to(room).emit('event', `${parsedResponse.userName} left the room`);
+                        }
+                    });
+                }).catch((err: any) => {
+                    printLogs(shouldIncludeRedisLogs, 'REDIS_SESSION_ERROR', null, err);
                 });
+            }
         });
     });
 };
