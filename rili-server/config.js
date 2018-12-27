@@ -13,4 +13,5 @@ module.exports = {
         serverPort: 7770,
         socketPort: 7771,
     },
+    userSocketSessionExpire: 1000 * 60 * 60,
 };

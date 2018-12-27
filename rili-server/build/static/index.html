@@ -24,10 +24,11 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js"></script>
     <script>
-        var socket = io('http://localhost:7771', {
+        const socket = io('http://localhost:7771', {
             transports: ['websocket'],
             upgrade: false
         });
+        let sessionToken = '';
         document.getElementById('join_room').addEventListener('click', (e) => {
             socket.emit('room.join', {
                 roomName: document.getElementById('room').value,
@@ -50,14 +51,19 @@
             });
         });
 
-        var addLi = (message) => {
-            var li = document.createElement('li');
+        const addLi = (message) => {
+            const li = document.createElement('li');
             li.appendChild(document.createTextNode(message));
             document.getElementById('list').appendChild(li);
         };
 
+        const handleSessionUpdate = (message) => {
+            console.log(message);
+        }
+
         socket.on('event', addLi);
         socket.on('message', addLi);
+        socket.on('session_message', handleSessionUpdate);
     </script>
     </body>
 
