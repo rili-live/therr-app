@@ -2,7 +2,9 @@
 <html>
 
 <head>
-    <title>Socket.io Rooms</title </head> <body>
+    <title>Socket.io Rooms</title>
+
+<body>
     <h1>Socket.io Rooms</h1>
 
     <label for="name">Username:</label>
@@ -64,7 +66,8 @@
         socket.on('event', addLi);
         socket.on('message', addLi);
         socket.on('session:message', handleSessionUpdate);
+
     </script>
-    </body>
+</body>
 
 </html>

@@ -17,29 +17,29 @@ button {
 
   &.anchor {
     text-decoration: none;
-    color: $bb-link-blue-a;
+    color: $rili-link-blue-a;
 
     &:hover {
-      color: $bb-link-hover;
+      color: $rili-link-hover;
       text-decoration: underline;
     }
 
     &:visited {
-      color: $bb-link-blue-a;
+      color: $rili-link-blue-a;
     }
   }
 
   &.secondary {
-    background: $bb-divider-grey;
+    background: $rili-divider-grey;
     &:hover {
-      background: $bb-light-grey;
+      background: $rili-light-grey;
     }
   }
 
   &.primary {
-    background: $bb-very-dark-grey;
+    background: $rili-very-dark-grey;
     &:hover {
-      background: $bb-dark-grey;
+      background: $rili-dark-grey;
     }
   }
 }

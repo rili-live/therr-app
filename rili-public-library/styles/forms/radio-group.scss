@@ -24,12 +24,12 @@
         + label {
           &::before {
             display: inline;
-            background: $bb-ghost-grey;
+            background: $rili-ghost-grey;
           }
 
           &.selected {
             &::before {
-              background: $bb-black;
+              background: $rili-black;
             }
           }
         }
@@ -42,30 +42,30 @@
       position: relative;
       height: 1rem;
       width: 1rem;
-      background: $bb-white;
+      background: $rili-white;
       float:left;
       border-radius: 50%;
       cursor: pointer;
-      border: 1px solid $bb-grey-default;
+      border: 1px solid $rili-grey-default;
       box-sizing: content-box;
 
       &.selected {
-        background: $bb-green;
+        background: $rili-green;
         &::before {
           display: inline;
-          background: $bb-black;
+          background: $rili-black;
         }
       }
 
       &:hover {
         &::before {
           display: inline;
-          background: $bb-ghost-grey;
+          background: $rili-ghost-grey;
         }
 
         &.selected {
           &::before {
-            background: $bb-black;
+            background: $rili-black;
           }
         }
       }
@@ -78,7 +78,7 @@
         left: 4px;
         height: 8px;
         width: 8px;
-        background: $bb-black;
+        background: $rili-black;
         border-radius: 50%;
       }
     }

@@ -7,6 +7,7 @@ const parts = require('../webpack.parts');
 const PATHS = {
     app: path.join(__dirname, 'src'),
     build: path.join(__dirname, 'build'),
+    utils: path.join(__dirname, '../utilities'),
     reactComponents: path.join(__dirname, '../rili-public-library/react-components'),
     public: '/',
 };
@@ -14,7 +15,7 @@ const PATHS = {
 const common = merge([
     {
         entry: {
-            app: PATHS.app,
+            app: path.join(PATHS.app, 'index.tsx'),
         },
         output: {
             path: PATHS.build,
@@ -37,7 +38,7 @@ const common = merge([
     parts.loadCSS(),
     parts.loadSASS(),
     parts.loadSvg(),
-    parts.processReact([PATHS.app, PATHS.reactComponents], false),
+    parts.processReact([PATHS.app, PATHS.reactComponents, PATHS.utils], false),
     parts.processTypescript([PATHS.app], false),
     parts.generateSourcemaps('source-map'),
     parts.deDupe(),
@@ -55,7 +56,7 @@ const buildDev = () => merge([
             new webpack.NamedModulesPlugin(),
             new HtmlWebpackPlugin({
                 template: 'src/index.html',
-                inject: false,
+                inject: true,
             }),
         ],
     },
@@ -75,7 +76,7 @@ const buildProd = () => merge([
             new webpack.HashedModuleIdsPlugin(),
             new HtmlWebpackPlugin({
                 template: 'src/index.html',
-                inject: false,
+                inject: true,
             }),
         ],
     },
