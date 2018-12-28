@@ -5,43 +5,65 @@
     <title>Socket.io Rooms</title </head> <body>
     <h1>Socket.io Rooms</h1>
 
-    <label for="name">Name:</label>
-    <input type="text" id="name" />
+    <label for="name">Username:</label>
+    <input type="text" id="user_name" />
     <button id="say_hello">Say Hello!</button>
+    <br />
+
+    <label for="name">Message:</label>
+    <input type="text" id="message" />
+    <button id="enter_message">Enter a message!</button>
+    <br />
 
     <label for="room">Room:</label>
-    <input type="text" id="room" />
+    <input type="text" id="room" value="General Chat" />
     <button id="join_room">Join Room</button>
+    <br />
 
     <ul id="list"></ul>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js"></script>
     <script>
-        var socket = io('http://localhost:7771', {
+        const socket = io('http://localhost:7771', {
             transports: ['websocket'],
             upgrade: false
         });
+        let sessionToken = '';
         document.getElementById('join_room').addEventListener('click', (e) => {
             socket.emit('room.join', {
-              roomName: document.getElementById('room').value,
-              userName: document.getElementById('name').value
+                roomName: document.getElementById('room').value,
+                userName: document.getElementById('user_name').value
             });
         });
 
         document.getElementById('say_hello').addEventListener('click', (e) => {
             socket.emit('event', {
-                userName: document.getElementById('name').value,
+                userName: document.getElementById('user_name').value,
                 roomName: document.getElementById('room').value
             });
         });
 
-        var addLi = (message) => {
-            var li = document.createElement('li');
+        document.getElementById('enter_message').addEventListener('click', (e) => {
+            socket.emit('event', {
+                userName: document.getElementById('user_name').value,
+                message: document.getElementById('message').value,
+                roomName: document.getElementById('room').value
+            });
+        });
+
+        const addLi = (message) => {
+            const li = document.createElement('li');
             li.appendChild(document.createTextNode(message));
             document.getElementById('list').appendChild(li);
         };
 
+        const handleSessionUpdate = (message) => {
+            console.log('SESSION_UPDATE:', message);
+        }
+
         socket.on('event', addLi);
+        socket.on('message', addLi);
+        socket.on('session:message', handleSessionUpdate);
     </script>
     </body>
 
