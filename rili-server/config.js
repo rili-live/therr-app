@@ -13,5 +13,9 @@ module.exports = {
         serverPort: 7770,
         socketPort: 7771,
     },
-    userSocketSessionExpire: 1000 * 60 * 60,
+    socket: {
+        pingInterval: 1000 * 10,
+        pingTimeout: 1000 * 5,
+        userSocketSessionExpire: 1000 * 60 * 60,
+    },
 };

@@ -2,6 +2,7 @@
     "rules": {
         "class-name": true,
         "curly": true,
+        "eofline": true,
         "indent": [true, "spaces"],
         "interface-name": true,
         "jsdoc-format": true,
@@ -20,7 +21,6 @@
         "no-string-literal": true,
         "no-switch-case-fall-through": true,
         "no-unused-expression": true,
-        "no-unused-variable": true,
         "no-use-before-declare": false,
         "no-var-requires": true,
         "one-line": [

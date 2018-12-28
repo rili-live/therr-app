@@ -4,6 +4,7 @@
   "description": "The mobile client side code for Rili",
   "main": "index.js",
   "scripts": {
+    "lint": "echo \"No lint script yet\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

@@ -20,7 +20,7 @@ export default class RedisHelper {
         return new Promise((resolve, reject) => {
             this.client.setex(
                 userSocketConfig.socketId,
-                userSocketConfig.ttl || config.userSocketSessionExpire,
+                userSocketConfig.ttl || config.socket.userSocketSessionExpire,
                 userSocketConfig.data,
                 promiser(resolve, reject)
             );

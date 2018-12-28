@@ -5,8 +5,8 @@
     <title>Socket.io Rooms</title </head> <body>
     <h1>Socket.io Rooms</h1>
 
-    <label for="name">Name:</label>
-    <input type="text" id="name" />
+    <label for="name">Username:</label>
+    <input type="text" id="user_name" />
     <button id="say_hello">Say Hello!</button>
     <br />
 
@@ -16,7 +16,7 @@
     <br />
 
     <label for="room">Room:</label>
-    <input type="text" id="room" />
+    <input type="text" id="room" value="General Chat" />
     <button id="join_room">Join Room</button>
     <br />
 
@@ -32,20 +32,20 @@
         document.getElementById('join_room').addEventListener('click', (e) => {
             socket.emit('room.join', {
                 roomName: document.getElementById('room').value,
-                userName: document.getElementById('name').value
+                userName: document.getElementById('user_name').value
             });
         });
 
         document.getElementById('say_hello').addEventListener('click', (e) => {
             socket.emit('event', {
-                userName: document.getElementById('name').value,
+                userName: document.getElementById('user_name').value,
                 roomName: document.getElementById('room').value
             });
         });
 
         document.getElementById('enter_message').addEventListener('click', (e) => {
             socket.emit('event', {
-                userName: document.getElementById('name').value,
+                userName: document.getElementById('user_name').value,
                 message: document.getElementById('message').value,
                 roomName: document.getElementById('room').value
             });
@@ -58,12 +58,12 @@
         };
 
         const handleSessionUpdate = (message) => {
-            console.log(message);
+            console.log('SESSION_UPDATE:', message);
         }
 
         socket.on('event', addLi);
         socket.on('message', addLi);
-        socket.on('session_message', handleSessionUpdate);
+        socket.on('session:message', handleSessionUpdate);
     </script>
     </body>
 

@@ -70,7 +70,13 @@ Promise.all(redisConnectPromises).then((responses: any[]) => {
 const startExpressSocketIOServer = () => {
     let app = express();
     let server = app.listen(config[process.env.NODE_ENV].socketPort);
-    let io = socketio(server);
+    // NOTE: engine.io config options https://github.com/socketio/engine.io#methods-1
+    let io = socketio(server, {
+        // how many ms before sending a new ping packet
+        pingInterval: config.socket.pingInterval,
+        // how many ms without a pong packet to consider the connection closed
+        pingTimeout: config.socket.pingTimeout,
+    });
 
     const redisAdapter = socketioRedis({
         pubClient: redisPub,
@@ -104,7 +110,7 @@ const startExpressSocketIOServer = () => {
         printLogs(shouldIncludeRedisLogs, 'REDIS_SUB_CLIENT', null, `Message from channel ${channel}: ${message}`); // tslint:disable-line
     });
 
-    io.on('connection', (socket: any) => {
+    io.on('connection', (socket: socketio.Socket) => {
         printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, 'NEW CONNECTION...');
 
         socket.on('room.join', (details: any) => {
@@ -131,7 +137,7 @@ const startExpressSocketIOServer = () => {
                                 userName: details.userName,
                             },
                         }).then((response: any) => {
-                            socket.emit('session_message', response);
+                            socket.emit('session:message', response);
                         }).catch((err: any) => {
                             printLogs(shouldIncludeRedisLogs, 'REDIS_SESSION_ERROR', null, err);
                         });
@@ -163,23 +169,27 @@ const startExpressSocketIOServer = () => {
         });
 
         socket.on('disconnecting', (reason: string) => {
-            // TODO: Use the socket ID to retrieve the username from redis
+            // TODO: Use constants to mitigate disconnect reasons
             printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `DISCONNECTING... ${reason}`);
-            const activeRooms = Object.keys(socket.rooms)
-            .filter((room) => room !== socket.id);
-
-            if (activeRooms.length) {
-                redisSession.get(socket.id).then((response: any) => {
-                    activeRooms.forEach((room) => {
-                        const parsedResponse = JSON.parse(response);
-                        if (parsedResponse && parsedResponse.userName) {
-                            socket.broadcast.to(room).emit('event', `${parsedResponse.userName} left the room`);
-                        }
-                    });
-                }).catch((err: any) => {
-                    printLogs(shouldIncludeRedisLogs, 'REDIS_SESSION_ERROR', null, err);
-                });
-            }
+            leaveAndNotifyRooms(socket);
         });
     });
+};
+
+const leaveAndNotifyRooms = (socket: SocketIO.Socket) => {
+    const activeRooms = Object.keys(socket.rooms)
+        .filter((room) => room !== socket.id);
+
+        if (activeRooms.length) {
+            redisSession.get(socket.id).then((response: any) => {
+                activeRooms.forEach((room) => {
+                    const parsedResponse = JSON.parse(response);
+                    if (parsedResponse && parsedResponse.userName) {
+                        socket.broadcast.to(room).emit('event', `${parsedResponse.userName} left the room`);
+                    }
+                });
+            }).catch((err: any) => {
+                printLogs(shouldIncludeRedisLogs, 'REDIS_SESSION_ERROR', null, err);
+            });
+        }
 };
