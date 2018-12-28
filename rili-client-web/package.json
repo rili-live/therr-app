@@ -24,6 +24,7 @@
   "author": "Rili, Inc.",
   "license": "MIT",
   "devDependencies": {
+    "@types/jest": "^23.3.10",
     "@types/socket.io-client": "^1.4.32",
     "babel-eslint": "^8.2.1",
     "babel-plugin-array-includes": "^2.0.3",

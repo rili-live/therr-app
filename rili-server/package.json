@@ -17,7 +17,8 @@
     "start:redis:prod": "docker run --name rili-redis-pub -d -p 17771:6379 redis:5.0.3 && docker run --name rili-redis-sub -d -p 17772:6379 redis:5.0.3",
     "start:redis:cli": "docker run -it --link rili-redis-dev:redis --name rili-redis-cli --rm redis redis-cli -h redis -p 16379:6379",
     "stop:redis:dev": "docker stop rili-redis-pub-dev && docker rm rili-redis-pub-dev && docker stop rili-redis-sub-dev && docker rm rili-redis-sub-dev && docker stop rili-redis-cli && docker rm rili-redis-cli",
-    "stop:redis:prod": "docker stop rili-redis-pub && docker rm rili-redis-pub && docker stop rili-redis-sub && docker rm rili-redis-sub"
+    "stop:redis:prod": "docker stop rili-redis-pub && docker rm rili-redis-pub && docker stop rili-redis-sub && docker rm rili-redis-sub",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "rili",

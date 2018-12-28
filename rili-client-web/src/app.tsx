@@ -27,27 +27,40 @@ export default class App extends React.Component<IAppProps, IAppState> {
     }
 
     componentDidMount() {
-        document.getElementById('join_room').addEventListener('click', (e) => {
-            this.socket.emit('room.join', {
-                roomName: (document.getElementById('room') as HTMLInputElement).value,
-                userName: ((document.getElementById('user_name') as HTMLInputElement) as HTMLInputElement).value
-            });
-        });
+        const roomInputEl = document.getElementById('room') as HTMLInputElement;
+        const userNameInputEl = document.getElementById('user_name') as HTMLInputElement;
+        const messageInputEl = document.getElementById('message') as HTMLInputElement;
+        const joinRoomBtnEl = document.getElementById('join_room') as HTMLInputElement;
+        const sayHelloBtnEl = document.getElementById('say_hello') as HTMLInputElement;
+        const enterMessageBtnEl = document.getElementById('enter_message');
 
-        document.getElementById('say_hello').addEventListener('click', (e) => {
-            this.socket.emit('event', {
-                userName: (document.getElementById('user_name') as HTMLInputElement).value,
-                roomName: (document.getElementById('room') as HTMLInputElement).value
+        if (joinRoomBtnEl) {
+            joinRoomBtnEl.addEventListener('click', (e) => {
+                this.socket.emit('room.join', {
+                    roomName: roomInputEl.value,
+                    userName: userNameInputEl.value
+                });
             });
-        });
+        }
 
-        document.getElementById('enter_message').addEventListener('click', (e) => {
-            this.socket.emit('event', {
-                userName: (document.getElementById('user_name') as HTMLInputElement).value,
-                message: (document.getElementById('message') as HTMLInputElement).value,
-                roomName: (document.getElementById('room') as HTMLInputElement).value
+        if (sayHelloBtnEl) {
+            sayHelloBtnEl.addEventListener('click', (e) => {
+                this.socket.emit('event', {
+                    userName: userNameInputEl.value,
+                    roomName: roomInputEl.value
+                });
             });
-        });
+        }
+
+        if (enterMessageBtnEl) {
+            enterMessageBtnEl.addEventListener('click', (e) => {
+                this.socket.emit('event', {
+                    userName: userNameInputEl.value,
+                    message: messageInputEl.value,
+                    roomName: roomInputEl.value
+                });
+            });
+        }
 
         const addLi = (message: any) => {
             const li = document.createElement('li');
@@ -77,7 +90,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
                 <br />
 
                 <label htmlFor="room">Room:</label>
-                <input type="text" id="room" value="General Chat" />
+                <input type="text" id="room" defaultValue="General Chat" />
                 <button id="join_room">Join Room</button>
                 <br />
 
