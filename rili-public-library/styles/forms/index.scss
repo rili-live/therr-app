@@ -23,13 +23,13 @@ h1:focus {
 label {
   font-weight: 700;
   line-height: 2.5rem;
-  color: $bb-black;
+  color: $rili-black;
   margin-bottom: 0;
 
   &.required {
     &::before {
       content: '*';
-      color: $bb-ax-red;
+      color: $rili-ax-red;
       padding-right: .25rem;
     }
   }
@@ -57,7 +57,7 @@ select,
 .select-box,
 textarea {
   -webkit-appearance: none;
-  background-color: $bb-white;
+  background-color: $rili-white;
   border: 1px solid #cdcdcd;
   border-radius: 2px;
   box-shadow: none;
@@ -73,27 +73,27 @@ textarea {
   transition: border-color 0.15s linear, background 0.15s linear;
 
   &:focus {
-    background-color: $bb-white;
-    border-color: $bb-pink;
+    background-color: $rili-white;
+    border-color: $rili-pink;
     outline: none;
-    border-color: $bb-pink-light;
-    box-shadow: $bb-input-shadow;
+    border-color: $rili-pink-light;
+    box-shadow: $rili-input-shadow;
     outline: none !important;
   }
 
   &.is-dirty,
   &.is-touched {
     &.is-invalid {
-      border-color: $bb-ax-red;
+      border-color: $rili-ax-red;
     }
   }
 
   &.is-touched {
     &.is-valid {
-      border-color: $bb-ax-green;
+      border-color: $rili-ax-green;
 
       &:focus {
-        box-shadow: $bb-input-shadow-valid;
+        box-shadow: $rili-input-shadow-valid;
       }
     }
   }
@@ -102,8 +102,8 @@ textarea {
   &.disabled,
   &.disabled button {
     cursor: not-allowed;
-    color: $bb-middle-grey;
-    background: $bb-hover-grey;
+    color: $rili-middle-grey;
+    background: $rili-hover-grey;
   }
 }
 
@@ -111,7 +111,7 @@ select,
 .select-box {
     position: relative;
     -webkit-appearance: none !important;
-    background-color: $bb-white;
+    background-color: $rili-white;
     background-position: 95%;
     background-repeat: no-repeat;
     background-size: .75rem;
@@ -141,7 +141,7 @@ select,
       &::before {
         right: .5rem;
         top: .65rem;
-        color: $bb-black;
+        color: $rili-black;
       }
     }
 
@@ -157,7 +157,7 @@ select,
       border-radius: .125rem;
       text-align: left;
       box-shadow: 0 0 0 0.25rem rgba(38,38,38,.075);
-      background: $bb-white;
+      background: $rili-white;
       border: 1px solid #ccc;
 
       .option-container {
@@ -178,14 +178,14 @@ select,
 
         &:hover:not(.selected) {
           text-decoration: underline;
-          background: $bb-hover-grey;
+          background: $rili-hover-grey;
         }
 
         &.selected,
         &:active,
         &:active:hover {
-          color: $bb-white;
-          background: $bb-black;
+          color: $rili-white;
+          background: $rili-black;
         }
 
         &.ax-active {

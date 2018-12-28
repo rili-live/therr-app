@@ -10,8 +10,8 @@ $spin-duration: 1.3s;
     border-radius: 50%;
     width: 100%;
     height: 100%;
-    border: $border-size solid $bb-bg-grey;
-    border-top-color: $bb-purple;
+    border: $border-size solid $rili-bg-grey;
+    border-top-color: $rili-purple;
     animation: spinAnimation $spin-duration infinite cubic-bezier(.53,.21,.29,.67);
 
     &.xsmall {
