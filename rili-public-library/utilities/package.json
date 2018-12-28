@@ -8,7 +8,8 @@
     "build:dev": "webpack --env development",
     "lint:fix": "eslint --ext .jsx,.js --fix ./ && tslint --fix -p ./",
     "lint": "eslint --ext .jsx,.js ./ && tslint -p ./",
-    "preinstall": "rm -f package-lock.json*"
+    "preinstall": "rm -f package-lock.json*",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "MIT",
