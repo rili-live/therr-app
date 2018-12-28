@@ -5,9 +5,14 @@ pushd _bin
 source ./lib/colorize.sh
 popd
 
+is_pre_check_success()
+{
+    npm run lint:all
+}
+
 # TODO: Add conditions to prevent bad commits
 # Use CHANGEME.json file to verify development changes and re-build respective pages
-if [ 1 -eq 1 ]; then
+if is_pre_check_success; then
     printMessageNeutral "-- PRE PUSH SUCCESS --"
 else
     printMessageError "-- PRE PUSH ERROR --"
