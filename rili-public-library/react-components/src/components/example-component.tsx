@@ -1,6 +1,14 @@
 import * as React from 'react';
 
-export default class Example extends React.Component {
+interface IExampleProps {
+
+}
+
+interface IExampleState {
+
+}
+
+export default class Example extends React.Component<IExampleProps, IExampleState> {
     public render() {
         return (<div>Hello, World</div>);
     }

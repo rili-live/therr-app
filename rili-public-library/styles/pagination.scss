@@ -5,7 +5,7 @@
   flex-direction: column-reverse;
 
   .pages-info {
-    color: $bb-black;
+    color: $rili-black;
     font-weight: bold;
     margin: .3125rem .3125rem .3125rem 0;
     flex: 1;
@@ -27,8 +27,8 @@
       height: 2.125rem;
       width: auto;
       padding: .1875rem;
-      background: $bb-bg-grey;
-      color: $bb-middle-grey;
+      background: $rili-bg-grey;
+      color: $rili-middle-grey;
       display: inline-block;
       justify-content: center;
       align-items: center;
@@ -59,7 +59,7 @@
 
       &:hover {
         text-decoration: underline;
-        background: $bb-light-grey;
+        background: $rili-light-grey;
         &:active {
           text-decoration: none;
         }
@@ -68,12 +68,12 @@
       &:disabled {
         color: #ffffff;
         cursor: not-allowed;
-        background: transparentize($bb-grey-default, .5);
+        background: transparentize($rili-grey-default, .5);
       }
 
       &.active {
         color: #ffffff;
-        background: $bb-magenta-b;
+        background: $rili-magenta-b;
         font-weight: bold;
       }
     }
@@ -84,7 +84,7 @@
       background: transparent;
 
       &:disabled {
-        background: transparentize($bb-grey-default, .75);
+        background: transparentize($rili-grey-default, .75);
       }
 
       &:hover,
