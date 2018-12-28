@@ -18,7 +18,7 @@
     "start:redis:cli": "docker run -it --link rili-redis-dev:redis --name rili-redis-cli --rm redis redis-cli -h redis -p 16379:6379",
     "stop:redis:dev": "docker stop rili-redis-pub-dev && docker rm rili-redis-pub-dev && docker stop rili-redis-sub-dev && docker rm rili-redis-sub-dev && docker stop rili-redis-cli && docker rm rili-redis-cli",
     "stop:redis:prod": "docker stop rili-redis-pub && docker rm rili-redis-pub && docker stop rili-redis-sub && docker rm rili-redis-sub",
-    "test": "npm run lint:fix && echo \"Error: no test specified\" && exit 1"
+    "test": "npm run lint:fix && echo \"Error: no test specified\" && exit 0"
   },
   "keywords": [
     "rili",
