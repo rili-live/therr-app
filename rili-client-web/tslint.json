@@ -38,7 +38,7 @@
             {
                 "call-signature": "nospace",
                 "index-signature": "nospace"
-            },
+            }
         ],
         "whitespace": [
             true,
