@@ -16,7 +16,7 @@
 			"react": ["node_modules/@types/react"],
 			"rili-public-library/react-components/*": ["../rili-public-library/react-components/lib/*"],
             "rili-public-library/styles/*": ["../rili-public-library/styles/*"],
-            "rili-public-library/utilities": ["../rili-public-library/utilities/lib"],
+            "rili-public-library/utilities": ["../rili-public-library/utilities/lib"]
 		},
 		"pretty": true,
 		"allowUnreachableCode": false,
