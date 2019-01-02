@@ -1,9 +1,9 @@
-import React from 'react';
-import { shallow } from 'enzyme';
+import * as React from 'react';
+import { shallow } from 'enzyme'; // tslint:disable-line no-implicit-dependencies
 import RadioGroup from '../radio-group';
 
 describe('RadioGroup', () => {
-    let wrapper = null;
+    let wrapper: any = null;
     const mockOptions = [{
         value: 'a',
         text: 'Label for value a',
@@ -45,7 +45,7 @@ describe('RadioGroup', () => {
 
     it('calls onSelect with the correct values when button is clicked and selection radio button', () => {
         wrapper.setProps({
-            onSelect: (key, value) => {
+            onSelect: (key: any, value: any) => {
                 expect(key).toBe(radioGroupName);
                 expect(value).toBe(mockOptions[0].value);
                 wrapper.setProps({

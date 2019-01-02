@@ -1,12 +1,12 @@
-import React from 'react';
-import { mount } from 'enzyme';
-import KeyCode from 'key-code';
+import * as React from 'react';
+import { mount } from 'enzyme'; // tslint:disable-line no-implicit-dependencies
+import { Key as KeyCode } from 'ts-keycode-enum';
 import SearchBox from '../search-box';
 
 describe('SearchBox', () => {
-    let wrapper = null;
+    let wrapper: any = null;
     const mockSearch = jest.fn();
-    const mockTranslate = key => key;
+    const mockTranslate = (key: any) => key;
     const searchBoxName = 'text-search-box';
 
     beforeEach(() => {
@@ -27,7 +27,7 @@ describe('SearchBox', () => {
         wrapper.unmount();
     });
 
-    function simulateKeyDown(keyCode) {
+    function simulateKeyDown(keyCode: any) {
         const element = wrapper.find('input');
         element.simulate('keyDown', { keyCode });
     }
@@ -63,7 +63,7 @@ describe('SearchBox', () => {
             inputValue: testInput,
         });
         wrapper.update();
-        simulateKeyDown(KeyCode.ENTER);
+        simulateKeyDown(KeyCode.Enter);
         expect(mockSearch).toHaveBeenCalledTimes(1);
         expect(mockSearch).toHaveBeenCalledWith(expect.anything(), testInput);
     });

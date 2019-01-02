@@ -1,13 +1,13 @@
-import React from 'react';
-import { mount } from 'enzyme';
+import * as React from 'react';
+import { mount } from 'enzyme'; // tslint:disable-line no-implicit-dependencies
 import Input from '../input';
-import VALIDATIONS from '../constants/validations';
+import VALIDATIONS from '../../../constants/validations';
 
 describe('Input', () => {
-    let wrapper;
+    let wrapper: any;
     const inputName = 'test-input';
     const mockOnValidate = jest.fn();
-    const mockTranslate = key => key;
+    const mockTranslate = (key: any) => key;
 
     beforeEach(() => {
         wrapper = mount(

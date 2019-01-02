@@ -1,9 +1,9 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import KeyCode from 'key-code';
+import { Key as KeyCode } from 'ts-keycode-enum';
 import classNames from 'classnames';
 
-const SELECTION_KEYS: any = [KeyCode.ENTER, KeyCode.SPACE];
+const SELECTION_KEYS: any = [KeyCode.Enter, KeyCode.Space];
 
 class SelectBox extends React.Component<any, any> {
     static propTypes: any = {
@@ -90,7 +90,7 @@ class SelectBox extends React.Component<any, any> {
     handleKeyDown(event: any) {
         if (!this.props.disabled) {
             const pressedKey = event.keyCode;
-            if (pressedKey === KeyCode.TAB) {
+            if (pressedKey === KeyCode.Tab) {
                 if (this.state.optionsAreVisible) {
                     this.toggleSelectionVisibility();
                 }
@@ -98,11 +98,11 @@ class SelectBox extends React.Component<any, any> {
             }
             event.preventDefault();
             if (this.state.optionsAreVisible) {
-                if (pressedKey === KeyCode.UP) {
+                if (pressedKey === KeyCode.UpArrow) {
                     this.handleArrowKey(-1);
-                } else if (pressedKey === KeyCode.DOWN) {
+                } else if (pressedKey === KeyCode.DownArrow) {
                     this.handleArrowKey(1);
-                } else if (pressedKey === KeyCode.ESC) {
+                } else if (pressedKey === KeyCode.Escape) {
                     this.toggleSelectionVisibility();
                 } else if (SELECTION_KEYS.includes(pressedKey)) {
                     this.props.onChange(this.props.options[this.state.axIndex].value);

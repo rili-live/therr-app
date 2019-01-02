@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import classNames from 'classnames';
-import KeyCode from 'key-code';
+import { Key as KeyCode } from 'ts-keycode-enum';
 import VALIDATIONS from '../../constants/validations';
 
 // interface IInputProps {
@@ -95,7 +95,7 @@ class Input extends React.Component<any, any> {
     }
 
     handleKeyDown(event: any) {
-        if (this.props.onEnter && event.keyCode === KeyCode.ENTER) {
+        if (this.props.onEnter && event.keyCode === KeyCode.Enter) {
             this.props.onEnter(event);
         }
     }
@@ -131,6 +131,7 @@ class Input extends React.Component<any, any> {
         this.setState({
             validationErrors,
         });
+
         if (onValidate) {
             onValidate({
                 [props.id]: validationErrors,
