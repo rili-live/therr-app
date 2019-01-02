@@ -8,8 +8,8 @@ interface IAppProps {
 }
 
 interface IAppState {
-    hasJoinedARoom: boolean,
-    inputs: any,
+    hasJoinedARoom: boolean;
+    inputs: any;
 }
 
 /**
@@ -68,8 +68,6 @@ export default class App extends React.Component<IAppProps, IAppState> {
     }
 
     onButtonClick(event: any) {
-        console.log(event.target.id);
-
         switch (event.target.id) {
             case 'say_hello':
                 return this.socket.emit('event', {
@@ -95,7 +93,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
     }
 
     shouldDisableInput(buttonName: string) {
-        switch(buttonName) {
+        switch (buttonName) {
             case 'room':
                 return !this.state.inputs.roomName || !this.state.inputs.userName;
             case 'sayHello':
