@@ -46,6 +46,7 @@
     "clean-webpack-plugin": "^0.1.19",
     "css-loader": "^1.0.0",
     "duplicate-package-checker-webpack-plugin": "^3.0.0",
+    "ejs": "^2.6.1",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
     "happypack": "^5.0.0",
     "husky": "^1.2.0",
