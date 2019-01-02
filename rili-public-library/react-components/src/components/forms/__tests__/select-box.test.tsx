@@ -1,10 +1,10 @@
-import React from 'react';
-import { shallow } from 'enzyme';
-import KeyCode from 'key-code';
+import * as React from 'react';
+import { shallow } from 'enzyme'; // tslint:disable-line no-implicit-dependencies
+import { Key as KeyCode } from 'ts-keycode-enum';
 import SelectBox from '../select-box';
 
 describe('SelectBox', () => {
-    let wrapper;
+    let wrapper: any;
     const mockOptions = [
         {
             value: '',
@@ -20,7 +20,7 @@ describe('SelectBox', () => {
         },
     ];
     const mockPreventDefault = jest.fn();
-    const mockTranslate = key => key;
+    const mockTranslate = (key: any) => key;
     const testId = 'test-id';
 
     beforeEach(() => {
@@ -29,7 +29,7 @@ describe('SelectBox', () => {
         );
     });
 
-    const simulateButtonKeydown = (keyCode) => {
+    const simulateButtonKeydown = (keyCode : any) => {
         wrapper.find('button').simulate('keyDown', {
             keyCode,
             preventDefault: mockPreventDefault,
@@ -87,7 +87,7 @@ describe('SelectBox', () => {
         wrapper.find('button').simulate('focus');
         wrapper.find('button').simulate('keyDown', {
             preventDefault: mockPreventDefault,
-            keyCode: KeyCode.ENTER,
+            keyCode: KeyCode.Enter,
         });
         wrapper.update();
         expect(mockPreventDefault).not.toHaveBeenCalled();
@@ -123,19 +123,19 @@ describe('SelectBox', () => {
         expect(wrapper.find('.option-container').length).toBe(3);
         expect(wrapper.state().axIndex).toBe(1);
 
-        simulateButtonKeydown(KeyCode.DOWN);
+        simulateButtonKeydown(KeyCode.DownArrow);
         expect(mockPreventDefault).toHaveBeenCalledTimes(1);
         expect(wrapper.state().axIndex).toBe(2);
 
-        simulateButtonKeydown(KeyCode.DOWN);
+        simulateButtonKeydown(KeyCode.DownArrow);
         expect(mockPreventDefault).toHaveBeenCalledTimes(2);
         expect(wrapper.state().axIndex).toBe(0);
 
-        simulateButtonKeydown(KeyCode.UP);
+        simulateButtonKeydown(KeyCode.UpArrow);
         expect(mockPreventDefault).toHaveBeenCalledTimes(3);
         expect(wrapper.state().axIndex).toBe(2);
 
-        simulateButtonKeydown(KeyCode.ENTER);
+        simulateButtonKeydown(KeyCode.Enter);
         expect(mockPreventDefault).toHaveBeenCalledTimes(4);
         wrapper.update();
         expect(wrapper.state().axIndex).toBe(2);
@@ -147,7 +147,7 @@ describe('SelectBox', () => {
         expect(wrapper.state().optionsAreVisible).toBe(true);
         expect(wrapper.find('.option-container').length).toBe(3);
 
-        simulateButtonKeydown(KeyCode.TAB);
+        simulateButtonKeydown(KeyCode.Tab);
         // event.preventDefault does not get called when TAB key is pressed
         expect(mockPreventDefault).toHaveBeenCalledTimes(4);
         expect(wrapper.state().axIndex).toBe(1);

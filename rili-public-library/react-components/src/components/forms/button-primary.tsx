@@ -1,22 +1,13 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
+import BaseButton from './base/base-button';
 
-const ButtonPrimary = ({ children, className, disabled, onClick }: any) => (
-    <button className={className} onClick={onClick} type="button" disabled={disabled} >
-        {children}
-    </button>
-);
-
-ButtonPrimary.propTypes = {
-    onClick: PropTypes.func.isRequired,
-    children: PropTypes.string.isRequired,
-    className: PropTypes.string,
-    disabled: PropTypes.bool,
-};
-
-ButtonPrimary.defaultProps = {
+const overrideProps = {
     className: 'primary text-white py-2 px-4 ml-2',
-    disabled: false,
 };
+
+class ButtonPrimary extends BaseButton {
+    static defaultProps = { ...BaseButton.defaultProps, ...overrideProps};
+}
 
 export default ButtonPrimary;

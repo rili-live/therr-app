@@ -11,6 +11,7 @@ module.exports = {
     moduleNameMapper: {
         '^.+\\.(css|scss|svg)$': 'identity-obj-proxy',
         'rili-public-library/utilities': '<rootDir>../rili-public-library/utilities/lib',
+        'rili-public-library/styles/*': '<rootDir>../rili-public-library/styles',
     },
     setupFiles: [],
     setupTestFrameworkScriptFile: './test-setup.ts',

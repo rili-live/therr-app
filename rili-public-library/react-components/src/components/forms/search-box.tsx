@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import classNames from 'classnames';
-import 'rili-public-library/styles/icons.scss'; // tslint:disable-line no-implicit-dependencies
+// import 'rili-public-library/styles/icons.scss'; // tslint:disable-line no-implicit-dependencies
 import Input from './input';
 import VALIDATIONS from '../../constants/validations';
 
