@@ -16,8 +16,10 @@ const PATHS = {
 };
 
 const entry = {};
-components.forEach((component) => {
-    entry[component] = `${PATHS.app}/components/${component}.tsx`;
+components.forEach((componentPath) => {
+    const pathSplit = componentPath.split('/');
+    const name = pathSplit[pathSplit.length - 1];
+    entry[name] = `${PATHS.app}/components/${componentPath}.tsx`;
 });
 
 const common = merge([

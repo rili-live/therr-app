@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as io from 'socket.io-client';
+import Input from 'rili-public-library/react-components/input'; // tslint:disable-line no-implicit-dependencies
 
 interface IAppProps {
 
