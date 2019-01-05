@@ -2,7 +2,7 @@
 const webpack = require('webpack');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const DuplicatePackageCheckerPlugin = require("duplicate-package-checker-webpack-plugin");
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HappyPack = require('happypack');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
@@ -109,38 +109,40 @@ exports.lintJavaScript = ({ paths, options }) => ({
     },
 });
 
-exports.loadCSS = paths => ({
-    module: {
-        rules: [
-            {
-                test: /\.css$/,
-                include: paths,
-                use: ExtractTextPlugin.extract({
-                    fallback: 'style-loader',
+exports.loadCSS = (paths, env) => {
+    const response = {
+        module: {
+            rules: [
+                {
+                    test: /\.(sa|sc|c)ss$/,
                     use: [
-                    { loader: 'css-loader', options: { importLoaders: 1 } },
+                        env === 'development' ? 'style-loader' : MiniCssExtractPlugin.loader,
+                        {
+                            loader: 'css-loader',
+                            options: { importLoaders: 1 }
+                        },
                         'postcss-loader',
+                        'sass-loader',
                     ],
-                }),
-            },
+                },
+            ],
+        },
+        plugins: [
+            new MiniCssExtractPlugin({
+                // Options similar to the same options in webpackOptions.output
+                // both options are optional
+                filename: env === 'development' ? '[name].css' : '[name].[hash].css',
+                chunkFilename: env === 'development' ? '[id].css' : '[id].[hash].css',
+            })
         ],
-    },
-    plugins: [
-        new ExtractTextPlugin('styles.css'),
-    ],
-});
+    };
 
-exports.loadSASS = paths => ({
-    module: {
-        rules: [
-            {
-                test: /\.scss$/,
-                include: paths,
-                use: ['style-loader?sourceMap', 'css-loader?sourceMap', 'sass-loader?sourceMap'],
-            },
-        ],
-    },
-});
+    if (paths) {
+        response.module.rules[0].include = paths;
+    }
+
+    return response;
+};
 
 exports.loadSvg = paths => ({
     module: {
