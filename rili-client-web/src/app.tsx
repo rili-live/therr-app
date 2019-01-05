@@ -74,8 +74,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
                     roomName: this.state.inputs.roomName,
                     userName: this.state.inputs.userName
                 });
-            case 'message':
-                return this.socket.emit('room.join', {
+            case 'enter_message':
+                return this.socket.emit('event', {
                     roomName: this.state.inputs.roomName,
                     message: this.state.inputs.message,
                     userName: this.state.inputs.userName
