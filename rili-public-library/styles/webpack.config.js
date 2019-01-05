@@ -4,47 +4,31 @@ const merge = require('webpack-merge');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const parts = require('../../webpack.parts');
 
-// List of utility filenames
-const components = require('./src');
-
 const PATHS = {
-    app: path.join(__dirname, 'src'),
-    build: path.join(__dirname, 'build'),
+    app: path.join(__dirname, 'src/index.js'),
     lib: path.join(__dirname, 'lib'),
-    utils: path.join(__dirname, '../utilities'),
     public: '/',
 };
 
-const entry = {};
-components.forEach((componentPath) => {
-    const pathSplit = componentPath.split('/');
-    const name = pathSplit[pathSplit.length - 1];
-    entry[name] = `${PATHS.app}/components/${componentPath}.tsx`;
-});
-
 const common = merge([
     {
-        entry,
+        entry: PATHS.app,
         output: {
-            path: PATHS.build,
-            filename: '[name].js',
+            path: PATHS.lib,
+            filename: 'index.js',
             publicPath: PATHS.public,
             libraryTarget: 'umd',
-            library: 'Rili Public Library: React Components',
+            library: 'Rili Public Library: Styles',
         },
         resolve: {
-            extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.scss'],
-            alias: {
-                'rili-public-library/styles': path.join(__dirname, '../styles'),
-                'rili-public-library/utilities': path.join(__dirname, '../utilities/lib'),
-            },
+            extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.scss']
         },
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
         ],
     },
     parts.loadSvg(),
-    parts.processReact([PATHS.app, PATHS.utils], false),
+    parts.processReact([PATHS.app], false),
     parts.processTypescript([PATHS.app], false),
     parts.generateSourcemaps('source-map'),
     parts.deDupe(),
@@ -52,7 +36,7 @@ const common = merge([
 
 const buildDev = () => merge([
     common,
-    parts.clean(PATHS.build),
+    parts.clean(PATHS.lib, ['svg-icons']),
     {
         mode: 'development',
         plugins: [
@@ -87,12 +71,6 @@ const buildProd = () => merge([
             }),
         ],
     },
-    parts.lintJavaScript({
-        paths: PATHS.app,
-        options: {
-            emitWarning: true,
-        },
-    }),
     parts.setFreeVariable('process.env.NODE_ENV', 'production'),
     parts.loadCSS(null, 'production'),
     parts.minifyJavaScript({ useSourceMap: true }),
@@ -100,10 +78,10 @@ const buildProd = () => merge([
 
 const buildUmd = () => merge([
     buildProd(),
-    parts.clean(PATHS.lib),
+    parts.clean(PATHS.lib, ['svg-icons']),
     {
         output: {
-            filename: '[name].js',
+            filename: 'index.js',
             path: PATHS.lib,
         },
     },
