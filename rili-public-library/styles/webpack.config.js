@@ -74,6 +74,7 @@ const buildProd = () => merge([
     parts.setFreeVariable('process.env.NODE_ENV', 'production'),
     parts.loadCSS(null, 'production'),
     parts.minifyJavaScript({ useSourceMap: true }),
+    parts.minifyCss(),
 ]);
 
 const buildUmd = () => merge([

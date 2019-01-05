@@ -2,8 +2,9 @@
 const webpack = require('webpack');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const DuplicatePackageCheckerPlugin = require("duplicate-package-checker-webpack-plugin");
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HappyPack = require('happypack');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 // Max thread pool size for parallel tasks
@@ -175,6 +176,14 @@ exports.clean = (path, excludesArray) => ({
 exports.generateSourcemaps = type => ({
     devtool: type,
 });
+
+exports.minifyCss = () => ({
+    optimization: {
+        minimizer: [
+            new OptimizeCSSAssetsPlugin({})
+        ],
+    }
+})
 
 exports.minifyJavaScript = ({ useSourceMap }) => ({
     optimization: {
