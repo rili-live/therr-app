@@ -10,8 +10,8 @@ module.exports = {
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
     moduleNameMapper: {
         '^.+\\.(css|scss|svg)$': 'identity-obj-proxy',
-        'rili-public-library/utilities': '<rootDir>../rili-public-library/utilities/lib',
-        'rili-public-library/styles/*': '<rootDir>../rili-public-library/styles',
+        'rili-public-library/utilities/(.*)': '<rootDir>../rili-public-library/utilities/lib/$1.js',
+        'rili-public-library/styles/(.*)': '<rootDir>../rili-public-library/styles/$1.js',
     },
     setupFiles: [],
     setupTestFrameworkScriptFile: './test-setup.ts',
