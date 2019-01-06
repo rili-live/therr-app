@@ -112,15 +112,21 @@ export default class App extends React.Component<IAppProps, IAppState> {
             <div>
                 <label htmlFor="user_name">Username:</label>
                 <Input type="text" id="user_name" name="userName" onChange={this.onInputChange} />
-                <ButtonSecondary id="say_hello" text="Say Hello!" onClick={this.onButtonClick} disabled={this.shouldDisableInput('sayHello')} />
+                <div className="form-field">
+                    <ButtonSecondary id="say_hello" text="Say Hello!" onClick={this.onButtonClick} disabled={this.shouldDisableInput('sayHello')} />
+                </div>
 
                 <label htmlFor="message">Message:</label>
                 <Input type="text" id="message" name="message" onChange={this.onInputChange} />
-                <ButtonSecondary id="enter_message" text="Enter a message!" onClick={this.onButtonClick} disabled={this.shouldDisableInput('sendMessage')} />
+                <div className="form-field">
+                    <ButtonSecondary id="enter_message" text="Enter a message!" onClick={this.onButtonClick} disabled={this.shouldDisableInput('sendMessage')} />
+                </div>
 
                 <label htmlFor="room_name">Room:</label>
                 <Input type="text" id="room_name" name="roomName" defaultValue="General Chat" onChange={this.onInputChange} />
-                <ButtonSecondary id="join_room" text="Join Room" onClick={this.onButtonClick} disabled={this.shouldDisableInput('room')} />
+                <div className="form-field">
+                    <ButtonSecondary id="join_room" text="Join Room" onClick={this.onButtonClick} disabled={this.shouldDisableInput('room')} />
+                </div>
 
                 <ul id="list"></ul>
             </div>
