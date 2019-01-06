@@ -1,0 +1,15 @@
+.validation-errors {
+  color: #c23e37;
+  margin: 0.375rem;
+  margin-bottom: 0;
+}
+.validation-errors .message-container {
+  position: relative;
+}
+.validation-errors .message-container .message {
+  display: block;
+  line-height: 1rem;
+  margin-left: 1.25rem;
+}
+
+/*# sourceMappingURL=validations.css.map */
