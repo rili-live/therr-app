@@ -24,10 +24,10 @@ const common = merge([
             libraryTarget: 'umd',
         },
         resolve: {
-            extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+            extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.scss', '.css'],
             alias: {
                 'rili-public-library/react-components': path.join(__dirname, '../rili-public-library/react-components/lib'),
-                'rili-public-library/styles': path.join(__dirname, '../rili-public-library/styles'),
+                'rili-public-library/styles': path.join(__dirname, '../rili-public-library/styles/lib'),
                 'rili-public-library/utilities': path.join(__dirname, '../rili-public-library/utilities/lib'),
             },
         },
@@ -35,8 +35,6 @@ const common = merge([
             new webpack.NoEmitOnErrorsPlugin(),
         ],
     },
-    parts.loadCSS(),
-    parts.loadSASS(),
     parts.loadSvg(),
     parts.processReact([PATHS.app, PATHS.reactComponents, PATHS.utils], false),
     parts.processTypescript([PATHS.app], false),
@@ -60,6 +58,7 @@ const buildDev = () => merge([
             }),
         ],
     },
+    parts.loadCSS(null, 'development'),
     parts.devServer({
         disableHostCheck: true,
         host: process.env.HOST || 'localhost',
@@ -87,6 +86,7 @@ const buildProd = () => merge([
         },
     }),
     parts.setFreeVariable('process.env.NODE_ENV', 'production'),
+    parts.loadCSS(null, 'production'),
     parts.minifyJavaScript({ useSourceMap: true }),
 ]);
 
