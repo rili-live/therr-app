@@ -1,0 +1,241 @@
+.icon-xsmall.attention::before {
+  content: url("./svg-icons/attention.svg");
+  position: absolute;
+  width: 0.75rem;
+}
+
+.icon-xsmall.attention-alert::before {
+  content: url("./svg-icons/attention-alert.svg");
+  position: absolute;
+  width: 0.75rem;
+}
+
+.icon-xsmall.arrow-down::before {
+  content: url("./svg-icons/arrow-down.svg");
+  position: absolute;
+  width: 0.75rem;
+}
+
+.icon-xsmall.arrow-up::before {
+  content: url("./svg-icons/arrow-up.svg");
+  position: absolute;
+  width: 0.75rem;
+}
+
+.icon-xsmall.back-arrow::before {
+  content: url("./svg-icons/back-arrow.svg");
+  position: absolute;
+  width: 0.75rem;
+}
+
+.icon-xsmall.check::before {
+  content: url("./svg-icons/check.svg");
+  position: absolute;
+  width: 0.75rem;
+}
+
+.icon-xsmall.forward-arrow::before {
+  content: url("./svg-icons/forward-arrow.svg");
+  position: absolute;
+  width: 0.75rem;
+}
+
+.icon-xsmall.search::before {
+  content: url("./svg-icons/search.svg");
+  position: absolute;
+  width: 0.75rem;
+}
+
+.icon-small.attention::before {
+  content: url("./svg-icons/attention.svg");
+  position: absolute;
+  width: 1rem;
+}
+
+.icon-small.attention-alert::before {
+  content: url("./svg-icons/attention-alert.svg");
+  position: absolute;
+  width: 1rem;
+}
+
+.icon-small.arrow-down::before {
+  content: url("./svg-icons/arrow-down.svg");
+  position: absolute;
+  width: 1rem;
+}
+
+.icon-small.arrow-up::before {
+  content: url("./svg-icons/arrow-up.svg");
+  position: absolute;
+  width: 1rem;
+}
+
+.icon-small.back-arrow::before {
+  content: url("./svg-icons/back-arrow.svg");
+  position: absolute;
+  width: 1rem;
+}
+
+.icon-small.check::before {
+  content: url("./svg-icons/check.svg");
+  position: absolute;
+  width: 1rem;
+}
+
+.icon-small.forward-arrow::before {
+  content: url("./svg-icons/forward-arrow.svg");
+  position: absolute;
+  width: 1rem;
+}
+
+.icon-small.search::before {
+  content: url("./svg-icons/search.svg");
+  position: absolute;
+  width: 1rem;
+}
+
+.icon-medium.attention::before {
+  content: url("./svg-icons/attention.svg");
+  position: absolute;
+  width: 2rem;
+}
+
+.icon-medium.attention-alert::before {
+  content: url("./svg-icons/attention-alert.svg");
+  position: absolute;
+  width: 2rem;
+}
+
+.icon-medium.arrow-down::before {
+  content: url("./svg-icons/arrow-down.svg");
+  position: absolute;
+  width: 2rem;
+}
+
+.icon-medium.arrow-up::before {
+  content: url("./svg-icons/arrow-up.svg");
+  position: absolute;
+  width: 2rem;
+}
+
+.icon-medium.back-arrow::before {
+  content: url("./svg-icons/back-arrow.svg");
+  position: absolute;
+  width: 2rem;
+}
+
+.icon-medium.check::before {
+  content: url("./svg-icons/check.svg");
+  position: absolute;
+  width: 2rem;
+}
+
+.icon-medium.forward-arrow::before {
+  content: url("./svg-icons/forward-arrow.svg");
+  position: absolute;
+  width: 2rem;
+}
+
+.icon-medium.search::before {
+  content: url("./svg-icons/search.svg");
+  position: absolute;
+  width: 2rem;
+}
+
+.icon-large.attention::before {
+  content: url("./svg-icons/attention.svg");
+  position: absolute;
+  width: 3rem;
+}
+
+.icon-large.attention-alert::before {
+  content: url("./svg-icons/attention-alert.svg");
+  position: absolute;
+  width: 3rem;
+}
+
+.icon-large.arrow-down::before {
+  content: url("./svg-icons/arrow-down.svg");
+  position: absolute;
+  width: 3rem;
+}
+
+.icon-large.arrow-up::before {
+  content: url("./svg-icons/arrow-up.svg");
+  position: absolute;
+  width: 3rem;
+}
+
+.icon-large.back-arrow::before {
+  content: url("./svg-icons/back-arrow.svg");
+  position: absolute;
+  width: 3rem;
+}
+
+.icon-large.check::before {
+  content: url("./svg-icons/check.svg");
+  position: absolute;
+  width: 3rem;
+}
+
+.icon-large.forward-arrow::before {
+  content: url("./svg-icons/forward-arrow.svg");
+  position: absolute;
+  width: 3rem;
+}
+
+.icon-large.search::before {
+  content: url("./svg-icons/search.svg");
+  position: absolute;
+  width: 3rem;
+}
+
+.icon-xlarge.attention::before {
+  content: url("./svg-icons/attention.svg");
+  position: absolute;
+  width: 4rem;
+}
+
+.icon-xlarge.attention-alert::before {
+  content: url("./svg-icons/attention-alert.svg");
+  position: absolute;
+  width: 4rem;
+}
+
+.icon-xlarge.arrow-down::before {
+  content: url("./svg-icons/arrow-down.svg");
+  position: absolute;
+  width: 4rem;
+}
+
+.icon-xlarge.arrow-up::before {
+  content: url("./svg-icons/arrow-up.svg");
+  position: absolute;
+  width: 4rem;
+}
+
+.icon-xlarge.back-arrow::before {
+  content: url("./svg-icons/back-arrow.svg");
+  position: absolute;
+  width: 4rem;
+}
+
+.icon-xlarge.check::before {
+  content: url("./svg-icons/check.svg");
+  position: absolute;
+  width: 4rem;
+}
+
+.icon-xlarge.forward-arrow::before {
+  content: url("./svg-icons/forward-arrow.svg");
+  position: absolute;
+  width: 4rem;
+}
+
+.icon-xlarge.search::before {
+  content: url("./svg-icons/search.svg");
+  position: absolute;
+  width: 4rem;
+}
+
+/*# sourceMappingURL=icons.css.map */

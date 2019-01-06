@@ -16,8 +16,10 @@ const PATHS = {
 };
 
 const entry = {};
-components.forEach((component) => {
-    entry[component] = `${PATHS.app}/components/${component}.tsx`;
+components.forEach((componentPath) => {
+    const pathSplit = componentPath.split('/');
+    const name = pathSplit[pathSplit.length - 1];
+    entry[name] = `${PATHS.app}/components/${componentPath}.tsx`;
 });
 
 const common = merge([
@@ -31,7 +33,7 @@ const common = merge([
             library: 'Rili Public Library: React Components',
         },
         resolve: {
-            extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+            extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.scss'],
             alias: {
                 'rili-public-library/styles': path.join(__dirname, '../styles'),
                 'rili-public-library/utilities': path.join(__dirname, '../utilities/lib'),
@@ -41,8 +43,6 @@ const common = merge([
             new webpack.NoEmitOnErrorsPlugin(),
         ],
     },
-    parts.loadCSS(),
-    parts.loadSASS(),
     parts.loadSvg(),
     parts.processReact([PATHS.app, PATHS.utils], false),
     parts.processTypescript([PATHS.app], false),
@@ -52,7 +52,7 @@ const common = merge([
 
 const buildDev = () => merge([
     common,
-    parts.clean(PATHS.build, ['index.html']),
+    parts.clean(PATHS.build),
     {
         mode: 'development',
         plugins: [
@@ -66,6 +66,7 @@ const buildDev = () => merge([
             }),
         ],
     },
+    parts.loadCSS(null, 'development'),
     parts.devServer({
         disableHostCheck: true,
         host: process.env.HOST || 'localhost',
@@ -93,6 +94,7 @@ const buildProd = () => merge([
         },
     }),
     parts.setFreeVariable('process.env.NODE_ENV', 'production'),
+    parts.loadCSS(null, 'production'),
     parts.minifyJavaScript({ useSourceMap: true }),
 ]);
 

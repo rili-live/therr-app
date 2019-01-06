@@ -1,5 +1,5 @@
 {
-  "name": "rili-library-ui-components",
+  "name": "rili-public-library-utilities",
   "version": "1.0.0",
   "description": "Helper utilities to provide common functions that were abstracted for re-use.",
   "main": "index.js",

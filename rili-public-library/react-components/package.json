@@ -1,5 +1,5 @@
 {
-  "name": "rili-public-library",
+  "name": "rili-public-library-react-components",
   "version": "0.0.1",
   "description": "Multi-purpose code used in the Rili codebase and open-sourced to the developer community",
   "main": "index.js",
@@ -25,15 +25,17 @@
   "author": "Rili, Inc.",
   "license": "MIT",
   "peerDependencies": {
+    "classnames": "^2.2.6",
     "prop-types": "^15.6.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0"
   },
   "devDependencies": {
+    "@types/jest": "^23.3.10",
     "babel-eslint": "^8.2.6",
     "enzyme": "^3.8.0",
     "enzyme-adapter-react-16": "^1.7.1",
-    "eslint": "^3.19.0",
+    "eslint": "^5.11.1",
     "eslint-config-airbnb": "^15.1.0",
     "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-import": "^2.7.0",
@@ -47,5 +49,8 @@
     "webpack": "^4.28.2",
     "webpack-dev-server": "^3.1.14",
     "webpack-merge": "^4.1.5"
+  },
+  "dependencies": {
+    "ts-keycode-enum": "^1.0.6"
   }
 }
