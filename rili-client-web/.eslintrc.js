@@ -26,7 +26,7 @@ module.exports = {
             alias: {
                 map: [
                     ['rili-public-library/react-components/*', path.join(__dirname, '../rili-public-library/react-components/lib')],
-                    ['rili-public-library/styles/*', path.join(__dirname, '../rili-public-library/styles')],
+                    ['rili-public-library/styles/*', path.join(__dirname, '../rili-public-library/styles/lib')],
                     ['rili-public-library/utilities/*', path.join(__dirname, '../rili-public-library/utilities/lib')],
                 ],
                 extensions: ['.js', '.jsx', '.json', '.scss']

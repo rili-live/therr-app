@@ -24,10 +24,10 @@ const common = merge([
             libraryTarget: 'umd',
         },
         resolve: {
-            extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.scss'],
+            extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.scss', '.css'],
             alias: {
                 'rili-public-library/react-components': path.join(__dirname, '../rili-public-library/react-components/lib'),
-                'rili-public-library/styles': path.join(__dirname, '../rili-public-library/styles'),
+                'rili-public-library/styles': path.join(__dirname, '../rili-public-library/styles/lib'),
                 'rili-public-library/utilities': path.join(__dirname, '../rili-public-library/utilities/lib'),
             },
         },
