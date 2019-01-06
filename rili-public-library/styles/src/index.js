@@ -1,3 +1,3 @@
 import './index.scss';
 
-console.log('Demo Page');
+console.log('Rili Public Library: Styles Demo Page');

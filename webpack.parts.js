@@ -110,7 +110,7 @@ exports.lintJavaScript = ({ paths, options }) => ({
     },
 });
 
-exports.loadCSS = (paths, env) => {
+exports.loadCSS = (paths, env, dontHash) => {
     const response = {
         module: {
             rules: [
@@ -132,8 +132,8 @@ exports.loadCSS = (paths, env) => {
             new MiniCssExtractPlugin({
                 // Options similar to the same options in webpackOptions.output
                 // both options are optional
-                filename: env === 'development' ? '[name].css' : '[name].css',
-                chunkFilename: env === 'development' ? '[id].css' : '[id].css',
+                filename: (env === 'development' || dontHash) ? '[name].css' : '[name].[hash].css',
+                chunkFilename: (env === 'development' || dontHash) ? '[id].css' : '[id].[hash].css',
             })
         ],
     };

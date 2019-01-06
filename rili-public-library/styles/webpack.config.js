@@ -6,6 +6,7 @@ const parts = require('../../webpack.parts');
 
 const PATHS = {
     app: path.join(__dirname, 'src/index.js'),
+    appSrc: path.join(__dirname, 'src'),
     lib: path.join(__dirname, 'lib'),
     public: '/',
 };
@@ -46,11 +47,11 @@ const buildDev = () => merge([
             new webpack.NamedModulesPlugin(),
             new HtmlWebpackPlugin({
                 template: 'src/index.html',
-                inject: false,
+                inject: true,
             }),
         ],
     },
-    parts.loadCSS(null, 'development'),
+    parts.loadCSS(PATHS.appSrc, 'development', true),
     parts.devServer({
         disableHostCheck: true,
         host: process.env.HOST || 'localhost',
@@ -67,12 +68,12 @@ const buildProd = () => merge([
             new webpack.HashedModuleIdsPlugin(),
             new HtmlWebpackPlugin({
                 template: 'src/index.html',
-                inject: false,
+                inject: true,
             }),
         ],
     },
     parts.setFreeVariable('process.env.NODE_ENV', 'production'),
-    parts.loadCSS(null, 'production'),
+    parts.loadCSS(PATHS.appSrc, 'production', true),
     parts.minifyJavaScript({ useSourceMap: true }),
     parts.minifyCss(),
 ]);

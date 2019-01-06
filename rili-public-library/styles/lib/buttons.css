@@ -1,0 +1,39 @@
+button,
+[type=button],
+[type=reset],
+[type=submit] {
+  border-radius: 0.1875rem;
+}
+
+button {
+  height: 2.375rem;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+button.anchor {
+  text-decoration: none;
+  color: #2073a1;
+}
+button.anchor:hover {
+  color: #004270;
+  text-decoration: underline;
+}
+button.anchor:visited {
+  color: #2073a1;
+}
+button.secondary {
+  background: #cdcdcd;
+}
+button.secondary:hover {
+  background: #e5e5e5;
+}
+button.primary {
+  background: #262626;
+}
+button.primary:hover {
+  background: #404040;
+}
+
+/*# sourceMappingURL=buttons.css.map */
