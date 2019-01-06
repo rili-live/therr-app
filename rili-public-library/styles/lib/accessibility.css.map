@@ -1,1 +1,1 @@
-{"version":3,"sourceRoot":"","sources":["../src/accessibility.scss","../src/_variables.scss"],"names":[],"mappings":"AAEA;EACE,OCqDiB;;ADnDjB;EACE,OCiDe","file":"accessibility.css"}
+{"version":3,"sourceRoot":"","sources":["accessibility.scss","_variables.scss"],"names":[],"mappings":"AAEA;EACE,OCqDiB;;ADnDjB;EACE,OCiDe","file":"accessibility.css"}

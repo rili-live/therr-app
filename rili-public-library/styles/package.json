@@ -4,14 +4,11 @@
   "description": "Multi-purpose code used in the Rili codebase and open-sourced to the developer community",
   "main": "index.js",
   "scripts": {
-    "build": "sass src:lib",
-    "build:watch": "webpack --watch --env production",
+    "build": "sass lib:lib",
+    "build:watch": "sass --watch lib:lib",
     "lint:fix": "eslint --ext .jsx,.js --fix ./ && tslint --fix -p ./",
-    "lint": "echo \"Error: no test specified\" && exit 0",
+    "lint": "sass-lint --config .sass-lint.yml '**/*.scss' --verbose --no-exit",
     "preinstall": "rm -f package-lock.json*",
-    "start": "npm run server:dev",
-    "server": "webpack-dev-server --env development",
-    "server:dev": "nodemon --watch webpack.config.js --exec \"npm run server\"",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "keywords": [
@@ -31,6 +28,8 @@
     "eslint-plugin-react": "^7.12.0",
     "html-webpack-plugin": "^3.2.0",
     "nodemon": "^1.18.9",
+    "sass": "^1.15.3",
+    "sass-lint": "^1.12.1",
     "tslint": "^5.12.0",
     "webpack": "^4.28.2",
     "webpack-dev-server": "^3.1.14",
