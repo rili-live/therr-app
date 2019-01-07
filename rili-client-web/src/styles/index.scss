@@ -1,3 +1,13 @@
+@import '../../../rili-public-library/styles/lib/variables';
+
 html, body {
-    background: whitesmoke;
+    font-size: 16px;
+    background: $rili-grey-default;
+    font-family: sans-serif;
+}
+
+hr {
+    border-color: $rili-purple;
+    border-width: 0.125rem;
+    border-style: solid;
 }
