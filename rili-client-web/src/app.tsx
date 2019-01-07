@@ -110,11 +110,9 @@ export default class App extends React.Component<IAppProps, IAppState> {
     render() {
         return (
             <div>
+                <hr />
                 <label htmlFor="user_name">Username:</label>
                 <Input type="text" id="user_name" name="userName" onChange={this.onInputChange} />
-                <div className="form-field">
-                    <ButtonSecondary id="say_hello" text="Say Hello!" onClick={this.onButtonClick} disabled={this.shouldDisableInput('sayHello')} />
-                </div>
 
                 <label htmlFor="message">Message:</label>
                 <Input type="text" id="message" name="message" onChange={this.onInputChange} />
