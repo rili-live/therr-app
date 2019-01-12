@@ -8,6 +8,6 @@ html, body {
 
 hr {
     border-color: $rili-purple;
-    border-width: 0.125rem;
+    border-width: rem-calc(2px);
     border-style: solid;
 }
