@@ -169,7 +169,7 @@ class SelectBox extends React.Component<any, any> {
     render() {
         const { className, disabled, id, isTesting, options, placeHolderText, required, translate, value } = this.props;
         const { axIndex, isInValid, isTouched, optionsAreVisible } = this.state;
-        const selectedOption = options.find((option: any) => option.value === value);
+        const selectedOption = options.find((option: any) => option.value === value) || [];
         const selectedText = translate(selectedOption.text);
         const mainClasses = classNames({
             active: optionsAreVisible,

@@ -18,6 +18,7 @@ class Input extends React.Component<any, any> {
     static propTypes: any = {
         autoComplete: PropTypes.oneOf(['off', 'on']),
         className: PropTypes.string,
+        formClassName: PropTypes.string,
         disabled: PropTypes.bool,
         id: PropTypes.string.isRequired,
         name: PropTypes.string.isRequired,
@@ -26,6 +27,7 @@ class Input extends React.Component<any, any> {
         onFocus: PropTypes.func,
         onEnter: PropTypes.func,
         onValidate: PropTypes.func,
+        placeholder: PropTypes.string,
         translate: PropTypes.func.isRequired,
         type: PropTypes.oneOf(['number', 'password', 'search', 'text', 'url']),
         validations: PropTypes.arrayOf(PropTypes.oneOf(Object.keys(VALIDATIONS))),
@@ -36,11 +38,13 @@ class Input extends React.Component<any, any> {
         autoComplete: 'on',
         className: 'appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter py-3 px-4',
         disabled: false,
+        formClassName: '',
         isRequired: false,
         onBlur: null,
         onFocus: null,
         onEnter: null,
         onValidate: null,
+        placeholder: '',
         type: 'text',
         validations: [],
         value: '',
@@ -140,7 +144,7 @@ class Input extends React.Component<any, any> {
     }
 
     render() {
-        const { autoComplete, className, disabled, id, name, type, onBlur, validations } = this.props;
+        const { autoComplete, className, disabled, formClassName, id, name, placeholder, type, onBlur, validations } = this.props;
         const { inputValue, isDirty, isTouched, validationErrors } = this.state;
         const additionalClasses = classNames({
             'is-dirty': isDirty,
@@ -150,7 +154,7 @@ class Input extends React.Component<any, any> {
         });
 
         return (
-            <div className="form-field">
+            <div className={`form-field ${formClassName}`}>
                 <input
                     ref={(el) => { this.inputEl = el; }}
                     autoComplete={autoComplete}
@@ -164,6 +168,7 @@ class Input extends React.Component<any, any> {
                     onBlur={onBlur}
                     onFocus={this.onFocus}
                     onKeyDown={this.handleKeyDown}
+                    placeholder={placeholder}
                 />
                 {
                     validationErrors.length > 0 && (isTouched || isDirty) &&
