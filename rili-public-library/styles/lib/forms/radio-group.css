@@ -33,11 +33,11 @@
   float: left;
   border-radius: 50%;
   cursor: pointer;
-  border: 1px solid #cdcdcd;
+  border: 1px solid #fffffd;
   box-sizing: content-box;
 }
 .radio-group .radio-option label.selected {
-  background: #2edc91;
+  background: #105952;
 }
 .radio-group .radio-option label.selected::before {
   display: inline;

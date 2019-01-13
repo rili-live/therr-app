@@ -5,7 +5,7 @@
   width: 100%;
   height: 100%;
   border: 1.5px solid #f8f8f8;
-  border-top-color: #c56fd5;
+  border-top-color: #ff4081;
   animation: spinAnimation 1.3s infinite cubic-bezier(0.53, 0.21, 0.29, 0.67);
 }
 .spinner .circle.xsmall {

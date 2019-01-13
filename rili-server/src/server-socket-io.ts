@@ -5,6 +5,7 @@ import * as socketioRedis from 'socket.io-redis';
 import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disable-line no-implicit-dependencies
 import * as config from '../config.js';
 import RedisSession from './services/redis-session';
+import getRoomsList from './utilities/get-socket-rooms-list';
 
 const rsAppName = 'riliChat';
 // Session to attach socket.io details to username while logged in
@@ -112,6 +113,9 @@ const startExpressSocketIOServer = () => {
 
     io.on('connection', (socket: socketio.Socket) => {
         printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, 'NEW CONNECTION...');
+        printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `All Rooms: ${JSON.stringify(getRoomsList(io.sockets.adapter.rooms))}`);
+
+        socket.emit('rooms:list', JSON.stringify(getRoomsList(io.sockets.adapter.rooms)));
 
         socket.on('room.join', (details: any) => {
             // Leave all current rooms (except default room) before joining a new one

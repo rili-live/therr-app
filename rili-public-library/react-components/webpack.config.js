@@ -35,7 +35,7 @@ const common = merge([
         resolve: {
             extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.scss'],
             alias: {
-                'rili-public-library/styles': path.join(__dirname, '../styles'),
+                'rili-public-library/styles': path.join(__dirname, '../styles/lib'),
                 'rili-public-library/utilities': path.join(__dirname, '../utilities/lib'),
             },
         },

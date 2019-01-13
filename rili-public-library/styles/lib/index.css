@@ -78,11 +78,11 @@ button.primary:hover {
   float: left;
   border-radius: 50%;
   cursor: pointer;
-  border: 1px solid #cdcdcd;
+  border: 1px solid #fffffd;
   box-sizing: content-box;
 }
 .radio-group .radio-option label.selected {
-  background: #2edc91;
+  background: #105952;
 }
 .radio-group .radio-option label.selected::before {
   display: inline;
@@ -258,7 +258,7 @@ textarea:focus {
   background-color: #ffffff;
   border-color: #ff5991;
   outline: none;
-  border-color: #c56fd5;
+  border-color: #e2c5cf;
   box-shadow: inset 0 0 0 0.25rem rgba(162, 52, 181, 0.1);
   outline: none !important;
 }
@@ -801,7 +801,7 @@ select .options-list .option-container.ax-active,
 .pagination-controls .controls-list .page-button-forward:disabled {
   color: #ffffff;
   cursor: not-allowed;
-  background: rgba(205, 205, 205, 0.5);
+  background: rgba(255, 255, 253, 0.5);
 }
 .pagination-controls .controls-list .page-button.active,
 .pagination-controls .controls-list .page-button-start.active,
@@ -819,7 +819,7 @@ select .options-list .option-container.ax-active,
 }
 .pagination-controls .controls-list .page-button-back:disabled,
 .pagination-controls .controls-list .page-button-forward:disabled {
-  background: rgba(205, 205, 205, 0.25);
+  background: rgba(255, 255, 253, 0.25);
 }
 .pagination-controls .controls-list .page-button-back:hover, .pagination-controls .controls-list .page-button-back:active,
 .pagination-controls .controls-list .page-button-forward:hover,
@@ -853,7 +853,7 @@ select .options-list .option-container.ax-active,
   width: 100%;
   height: 100%;
   border: 1.5px solid #f8f8f8;
-  border-top-color: #c56fd5;
+  border-top-color: #ff4081;
   animation: spinAnimation 1.3s infinite cubic-bezier(0.53, 0.21, 0.29, 0.67);
 }
 .spinner .circle.xsmall {

@@ -1,7 +1,14 @@
 import * as React from 'react';
 import * as io from 'socket.io-client';
 import Input from 'rili-public-library/react-components/input'; // tslint:disable-line no-implicit-dependencies
+import SelectBox from 'rili-public-library/react-components/select-box'; // tslint:disable-line no-implicit-dependencies
+import translator from './services/translator';
 import ButtonSecondary from 'rili-public-library/react-components/button-secondary'; // tslint:disable-line no-implicit-dependencies
+
+enum ViewEnum {
+    HOME = 'home',
+    IN_ROOM = 'inRoom'
+}
 
 interface IAppProps {
 
@@ -10,6 +17,9 @@ interface IAppProps {
 interface IAppState {
     hasJoinedARoom: boolean;
     inputs: any;
+    roomsList: any;
+    selectedRoomKey: string;
+    view: ViewEnum;
 }
 
 /**
@@ -19,12 +29,19 @@ export default class App extends React.Component<IAppProps, IAppState> {
     private sessionToken: string;
     private socket: any;
 
+    private translate: Function;
+
     constructor(props: IAppProps) {
         super(props);
 
         this.state = {
             hasJoinedARoom: false,
-            inputs: {},
+            inputs: {
+                room: ''
+            },
+            roomsList: [],
+            selectedRoomKey: '',
+            view: ViewEnum.HOME,
         };
 
         this.sessionToken = '';
@@ -32,9 +49,12 @@ export default class App extends React.Component<IAppProps, IAppState> {
             transports: ['websocket'],
             upgrade: false
         });
+        this.translate = (key: string, params: any) => translator('en-us', key, params);
 
         this.onInputChange = this.onInputChange.bind(this);
         this.onButtonClick = this.onButtonClick.bind(this);
+        this.renderHomeScreen = this.renderHomeScreen.bind(this);
+        this.renderRoomView = this.renderRoomView.bind(this);
         this.shouldDisableInput = this.shouldDisableInput.bind(this);
         this.socketEmit = this.socketEmit.bind(this);
     }
@@ -46,12 +66,22 @@ export default class App extends React.Component<IAppProps, IAppState> {
             document.getElementById('list').appendChild(li);
         };
 
+        const updateRoomsList = (message: any) => {
+            const roomsList = JSON.parse(message).map((room: any) => (room.roomKey));
+            if (roomsList.length > 0) {
+                document.getElementById('rooms_list').innerHTML = `Active Rooms: ${roomsList}`;
+            } else {
+                document.getElementById('rooms_list').innerHTML = `Active Rooms: None`;
+            }
+        };
+
         const handleSessionUpdate = (message: any) => {
-            console.log('SESSION_UPDATE:', message); // tslint:disable-line
+            console.log('SESSION_UPDATE:', message); // tslint:disable-line no-console
         };
 
         this.socket.on('event', addLi);
         this.socket.on('message', addLi);
+        this.socket.on('rooms:list', updateRoomsList);
         this.socket.on('session:message', handleSessionUpdate);
     }
 
@@ -83,11 +113,12 @@ export default class App extends React.Component<IAppProps, IAppState> {
             case 'join_room':
                 this.setState({
                     hasJoinedARoom: true,
-                });
-
-                return this.socket.emit('room.join', {
-                    roomName: this.state.inputs.roomName,
-                    userName: this.state.inputs.userName
+                    view: ViewEnum.IN_ROOM
+                }, () => {
+                    return this.socket.emit('room.join', {
+                        roomName: this.state.inputs.roomName,
+                        userName: this.state.inputs.userName
+                    });
                 });
         }
     }
@@ -99,7 +130,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
             case 'sayHello':
                 return !this.state.hasJoinedARoom || !this.state.inputs.userName;
             case 'sendMessage':
-                return !this.state.hasJoinedARoom || !this.state.inputs.userName || !this.state.inputs.message;
+                return !this.state.hasJoinedARoom || !this.state.inputs.message;
         }
     }
 
@@ -107,29 +138,48 @@ export default class App extends React.Component<IAppProps, IAppState> {
         this.socket.emit(eventType, data);
     }
 
-    render() {
+    renderHomeScreen() {
         return (
             <div>
+                <hr />
+
                 <label htmlFor="user_name">Username:</label>
                 <Input type="text" id="user_name" name="userName" onChange={this.onInputChange} />
-                <div className="form-field">
-                    <ButtonSecondary id="say_hello" text="Say Hello!" onClick={this.onButtonClick} disabled={this.shouldDisableInput('sayHello')} />
-                </div>
-
-                <label htmlFor="message">Message:</label>
-                <Input type="text" id="message" name="message" onChange={this.onInputChange} />
-                <div className="form-field">
-                    <ButtonSecondary id="enter_message" text="Enter a message!" onClick={this.onButtonClick} disabled={this.shouldDisableInput('sendMessage')} />
-                </div>
 
                 <label htmlFor="room_name">Room:</label>
-                <Input type="text" id="room_name" name="roomName" defaultValue="General Chat" onChange={this.onInputChange} />
+                <Input type="text" id="room_name" name="roomName" onChange={this.onInputChange} />
+                <span id="rooms_list"></span>
                 <div className="form-field">
                     <ButtonSecondary id="join_room" text="Join Room" onClick={this.onButtonClick} disabled={this.shouldDisableInput('room')} />
+                </div>
+            </div>
+        );
+    }
+
+    renderRoomView() {
+        return (
+            <div>
+                <hr />
+
+                <div className="form-field-wrapper inline">
+                    <Input autoComplete="false" type="text" id="message" name="message" onChange={this.onInputChange} placeholder="Enter a message"/>
+                    <div className="form-field">
+                        <ButtonSecondary id="enter_message" text="Send" onClick={this.onButtonClick} disabled={this.shouldDisableInput('sendMessage')} />
+                    </div>
                 </div>
 
                 <ul id="list"></ul>
             </div>
         );
+    }
+
+    render() {
+        if (this.state.view === ViewEnum.HOME) {
+            return this.renderHomeScreen();
+        } else if (this.state.view === ViewEnum.IN_ROOM) {
+            return this.renderRoomView();
+        }
+
+        return (<div>Oops! Something went wrong.</div>);
     }
 }
