@@ -7,7 +7,38 @@ html, body {
 }
 
 hr {
-    border-color: $rili-purple;
+    border-color: $rili-green;
     border-width: rem-calc(2px);
     border-style: solid;
+}
+
+.form-field-wrapper {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+
+    &.inline {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    :nth-child(1).form-field {
+        flex: 1;
+        margin: 0 .25rem 1rem .5rem;
+    }
+
+    :nth-child(2).form-field {
+        margin: 0 .5rem 1rem .25rem;
+        button {
+            width: 4rem;
+        }
+    }
+}
+
+ul {
+    &#list {
+        padding-bottom: 4rem;
+    }
 }

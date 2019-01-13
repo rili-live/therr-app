@@ -115,6 +115,8 @@ const startExpressSocketIOServer = () => {
         printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, 'NEW CONNECTION...');
         printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `All Rooms: ${JSON.stringify(getRoomsList(io.sockets.adapter.rooms))}`);
 
+        socket.emit('rooms:list', JSON.stringify(getRoomsList(io.sockets.adapter.rooms)));
+
         socket.on('room.join', (details: any) => {
             // Leave all current rooms (except default room) before joining a new one
             Object.keys(socket.rooms)
