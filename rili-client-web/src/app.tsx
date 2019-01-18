@@ -4,6 +4,11 @@ import Input from 'rili-public-library/react-components/input'; // tslint:disabl
 import SelectBox from 'rili-public-library/react-components/select-box'; // tslint:disable-line no-implicit-dependencies
 import translator from './services/translator';
 import ButtonSecondary from 'rili-public-library/react-components/button-secondary'; // tslint:disable-line no-implicit-dependencies
+import * as globalConfig from '../../global-config.js';
+
+// Environment Variables
+const envVars = globalConfig[process.env.NODE_ENV];
+console.log(envVars); // tslint:disable-line
 
 enum ViewEnum {
     HOME = 'home',
@@ -45,7 +50,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
         };
 
         this.sessionToken = '';
-        this.socket = io('http://localhost:7771', {
+        this.socket = io(`${envVars.baseUrl}`, {
             transports: ['websocket'],
             upgrade: false
         });
