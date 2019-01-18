@@ -3,7 +3,7 @@ module.exports = {
         baseUrl: 'http://localhost:7771'
     },
     production: {
-        baseUrl: 'http://rili.live:7771'
+        baseUrl: 'http://3.16.170.45:7771'
     },
     socket: {
     },
