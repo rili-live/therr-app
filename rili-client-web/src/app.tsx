@@ -2,8 +2,9 @@ import * as React from 'react';
 import * as io from 'socket.io-client';
 import Input from 'rili-public-library/react-components/input'; // tslint:disable-line no-implicit-dependencies
 import SelectBox from 'rili-public-library/react-components/select-box'; // tslint:disable-line no-implicit-dependencies
-import translator from './services/translator';
 import ButtonSecondary from 'rili-public-library/react-components/button-secondary'; // tslint:disable-line no-implicit-dependencies
+import scrollTo from 'rili-public-library/utilities/scroll-to'; // tslint:disable-line no-implicit-dependencies
+import translator from './services/translator';
 import * as globalConfig from '../../global-config.js';
 
 // Environment Variables
@@ -31,6 +32,7 @@ interface IAppState {
  * App
  */
 export default class App extends React.Component<IAppProps, IAppState> {
+    private messageInputRef: any;
     private sessionToken: string;
     private socket: any;
 
@@ -42,13 +44,14 @@ export default class App extends React.Component<IAppProps, IAppState> {
         this.state = {
             hasJoinedARoom: false,
             inputs: {
-                room: ''
+                roomName: 'general-chat'
             },
             roomsList: [],
             selectedRoomKey: '',
             view: ViewEnum.HOME,
         };
 
+        this.messageInputRef = React.createRef();
         this.sessionToken = '';
         this.socket = io(`${envVars.baseUrl}`, {
             transports: ['websocket'],
@@ -66,17 +69,19 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
     componentDidMount() {
         const addLi = (message: any) => {
+            const listEl = document.getElementById('list');
             const li = document.createElement('li');
             li.appendChild(document.createTextNode(message));
-            document.getElementById('list').appendChild(li);
+            listEl.appendChild(li);
+            scrollTo(listEl.scrollHeight, 200);
         };
 
         const updateRoomsList = (message: any) => {
             const roomsList = JSON.parse(message).map((room: any) => (room.roomKey));
             if (roomsList.length > 0) {
-                document.getElementById('rooms_list').innerHTML = `Active Rooms: ${roomsList}`;
+                document.getElementById('rooms_list').innerHTML = `Active Rooms: <i>${roomsList}</i>`;
             } else {
-                document.getElementById('rooms_list').innerHTML = `Active Rooms: None`;
+                document.getElementById('rooms_list').innerHTML = `<i>No rooms are currently active. Click 'Join Room' to start a new one.</i>`;
             }
         };
 
@@ -110,21 +115,30 @@ export default class App extends React.Component<IAppProps, IAppState> {
                     userName: this.state.inputs.userName
                 });
             case 'enter_message':
-                return this.socket.emit('event', {
+            case 'message':
+                this.socket.emit('event', {
                     roomName: this.state.inputs.roomName,
                     message: this.state.inputs.message,
                     userName: this.state.inputs.userName
                 });
+                return this.onInputChange('message', '');
             case 'join_room':
-                this.setState({
+            case 'room_name':
+            case 'user_name':
+            if (!this.shouldDisableInput('room')) {
+                return this.setState({
                     hasJoinedARoom: true,
                     view: ViewEnum.IN_ROOM
                 }, () => {
-                    return this.socket.emit('room.join', {
+                    if (this.messageInputRef.current && this.messageInputRef.current.inputEl) {
+                        this.messageInputRef.current.inputEl.focus();
+                    }
+                    this.socket.emit('room.join', {
                         roomName: this.state.inputs.roomName,
                         userName: this.state.inputs.userName
                     });
                 });
+            }
         }
     }
 
@@ -149,11 +163,13 @@ export default class App extends React.Component<IAppProps, IAppState> {
                 <hr />
 
                 <label htmlFor="user_name">Username:</label>
-                <Input type="text" id="user_name" name="userName" onChange={this.onInputChange} />
+                <Input type="text" id="user_name" name="userName" onChange={this.onInputChange} onEnter={this.onButtonClick} />
 
                 <label htmlFor="room_name">Room:</label>
-                <Input type="text" id="room_name" name="roomName" onChange={this.onInputChange} />
+                <Input type="text" id="room_name" name="roomName" value={this.state.inputs.roomName} onChange={this.onInputChange} onEnter={this.onButtonClick}/>
                 <span id="rooms_list"></span>
+                <br />
+
                 <div className="form-field">
                     <ButtonSecondary id="join_room" text="Join Room" onClick={this.onButtonClick} disabled={this.shouldDisableInput('room')} />
                 </div>
@@ -167,12 +183,23 @@ export default class App extends React.Component<IAppProps, IAppState> {
                 <hr />
 
                 <div className="form-field-wrapper inline">
-                    <Input autoComplete="false" type="text" id="message" name="message" onChange={this.onInputChange} placeholder="Enter a message"/>
+                    <Input
+                        ref={this.messageInputRef}
+                        autoComplete="false"
+                        type="text"
+                        id="message"
+                        name="message"
+                        value={this.state.inputs.message}
+                        onChange={this.onInputChange}
+                        onEnter={this.onButtonClick}
+                        placeholder="Enter a message"
+                    />
                     <div className="form-field">
                         <ButtonSecondary id="enter_message" text="Send" onClick={this.onButtonClick} disabled={this.shouldDisableInput('sendMessage')} />
                     </div>
                 </div>
 
+                <div id="roomTitle">Room Name: {this.state.inputs.roomName}</div>
                 <ul id="list"></ul>
             </div>
         );
