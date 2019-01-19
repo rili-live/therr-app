@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Variables
 NO_FORMAT="\033[0m"
 F_BOLD="\033[1m"
