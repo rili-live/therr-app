@@ -25,6 +25,11 @@ hr {
     .form-field-wrapper :nth-child(2).form-field button {
       width: 4rem; }
 
+#rooms_list {
+  padding: 1rem .5rem;
+  display: block;
+  text-align: center; }
+
 ul#list {
   padding-bottom: 4rem; }
 
@@ -802,4 +807,4 @@ select,
     transform: rotate(360deg); } }
 
 
-/*# sourceMappingURL=app.5b1a6716640fd2981ca6.css.map*/
+/*# sourceMappingURL=app.db131442a41bcff56efd.css.map*/
