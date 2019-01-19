@@ -1,4 +1,7 @@
 import * as express from 'express';
+import * as fs from 'fs';
+import * as http from 'http';
+import * as https from 'https';
 import * as Redis from 'ioredis';
 import * as socketio from 'socket.io';
 import * as socketioRedis from 'socket.io-redis';
@@ -70,7 +73,17 @@ Promise.all(redisConnectPromises).then((responses: any[]) => {
 
 const startExpressSocketIOServer = () => {
     let app = express();
-    let server = app.listen(config[process.env.NODE_ENV].socketPort);
+    let httpsServer;
+    if (process.env.NODE_ENV === 'development') {
+        httpsServer = http.createServer(app);
+    } else if (process.env.NODE_ENV === 'production') {
+        let httpsCredentials = {
+            key: fs.readFileSync('/etc/letsencrypt/live/rili.live/privkey.pem'),
+            cert: fs.readFileSync('/etc/letsencrypt/live/rili.live/fullchain.pem'),
+        };
+        httpsServer = https.createServer(httpsCredentials, app);
+    }
+    let server = httpsServer.listen(config[process.env.NODE_ENV].socketPort);
     // NOTE: engine.io config options https://github.com/socketio/engine.io#methods-1
     let io = socketio(server, {
         // how many ms before sending a new ping packet
