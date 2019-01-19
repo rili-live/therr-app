@@ -9,7 +9,6 @@ import * as globalConfig from '../../global-config.js';
 
 // Environment Variables
 const envVars = globalConfig[process.env.NODE_ENV];
-console.log(envVars); // tslint:disable-line
 
 enum ViewEnum {
     HOME = 'home',
@@ -54,6 +53,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
         this.messageInputRef = React.createRef();
         this.sessionToken = '';
         this.socket = io(`${envVars.baseUrl}`, {
+            secure: true,
             transports: ['websocket'],
             upgrade: false
         });

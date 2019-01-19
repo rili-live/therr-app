@@ -11,7 +11,7 @@ module.exports = {
         redisPubPort: 17771,
         redisSubPort: 17772,
         serverPort: 7770,
-        socketPort: 7771,
+        socketPort: 7743,
     },
     socket: {
         pingInterval: 1000 * 10,
