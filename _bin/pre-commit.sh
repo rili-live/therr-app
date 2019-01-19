@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Get color variables for output messages
 pushd _bin
 source ./lib/colorize.sh

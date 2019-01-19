@@ -1,3 +1,5 @@
+#!/bin/bash
+
 set -e
 
 # Get color variables for output messages
