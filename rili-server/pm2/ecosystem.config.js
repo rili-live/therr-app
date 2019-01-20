@@ -9,6 +9,7 @@ module.exports = {
         env_production: {
             NODE_ENV: 'production',
         },
+        args: 'withAllLogs',
     }, {
         name: 'rili-server-api',
         script: './build/server-api.js',
