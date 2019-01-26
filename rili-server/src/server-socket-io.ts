@@ -78,12 +78,15 @@ const startExpressSocketIOServer = () => {
         httpsServer = http.createServer(app);
     } else if (process.env.NODE_ENV === 'production') {
         let httpsCredentials = {
-            key: fs.readFileSync('/etc/letsencrypt/live/rili.live/privkey.pem'),
-            cert: fs.readFileSync('/etc/letsencrypt/live/rili.live/fullchain.pem'),
+            key: fs.readFileSync(config[process.env.NODE_ENV].security.keyLocation),
+            cert: fs.readFileSync(config[process.env.NODE_ENV].security.certLocation),
         };
         httpsServer = https.createServer(httpsCredentials, app);
     }
-    let server = httpsServer.listen(config[process.env.NODE_ENV].socketPort);
+    let server = httpsServer.listen(config[process.env.NODE_ENV].socketPort, (err: string) => {
+        const port = config[process.env.NODE_ENV].socketPort;
+        printLogs(true, 'SOCKET_IO_LOGS', null, `Server running on port, ${port}, with process id ${process.pid}`);
+    });
     // NOTE: engine.io config options https://github.com/socketio/engine.io#methods-1
     let io = socketio(server, {
         // how many ms before sending a new ping packet

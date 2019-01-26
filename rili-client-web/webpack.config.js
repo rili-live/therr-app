@@ -16,10 +16,11 @@ const common = merge([
     {
         entry: {
             app: path.join(PATHS.app, 'index.tsx'),
+            'server-client': path.join(PATHS.app, 'server-client.tsx'),
         },
         output: {
             path: PATHS.build,
-            filename: 'index.js',
+            filename: '[name].js',
             publicPath: PATHS.public,
             libraryTarget: 'umd',
         },
@@ -95,7 +96,7 @@ const buildUmd = () => merge([
     parts.clean(PATHS.build),
     {
         output: {
-            filename: 'bundle.js',
+            filename: '[name].js',
         },
     },
 ]);

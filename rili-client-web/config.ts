@@ -1,6 +1,5 @@
-module.exports = {
+const config: any = {
     development: {
-        clientPort: 7070,
         redisHost: '127.0.0.1',
         redisPubPort: 17771,
         redisSubPort: 17772,
@@ -12,7 +11,6 @@ module.exports = {
         },
     },
     production: {
-        clientPort: 7070,
         redisHost: '127.0.0.1',
         redisPubPort: 17771,
         redisSubPort: 17772,
@@ -29,3 +27,5 @@ module.exports = {
         userSocketSessionExpire: 1000 * 60 * 60,
     },
 };
+
+export default config;
