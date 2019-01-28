@@ -110,6 +110,23 @@ exports.lintJavaScript = ({ paths, options }) => ({
     },
 });
 
+exports.lintTypeScript = ({ paths, options }) => ({
+    module: {
+        rules: [
+            {
+                test: /\.ts$/,
+                enforce: 'pre',
+                use: [
+                    {
+                        loader: 'tslint-loader',
+                        options: options || {},
+                    }
+                ]
+            }
+        ]
+    }
+});
+
 exports.loadCSS = (paths, env, dontHash) => {
     const response = {
         module: {
