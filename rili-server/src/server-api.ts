@@ -2,7 +2,7 @@ import * as cluster from 'cluster';
 import * as express from 'express';
 import * as os from 'os';
 import * as path from 'path';
-import * as config from '../config.js';
+import * as globalConfig from '../../global-config.js';
 
 let app = express();
 
@@ -34,10 +34,10 @@ if (cluster.isMaster) {
         cluster.fork();
     });
 } else {
-    app.listen(config[process.env.NODE_ENV].serverPort, (err: string) => {
+    app.listen(globalConfig[process.env.NODE_ENV].serverPort, (err: string) => {
         if (err) {
             throw err;
         }
-        console.log(`Server running on port ${config[process.env.NODE_ENV].serverPort} with process id`, process.pid); // tslint:disable-line no-console
+        console.log(`Server running on port ${globalConfig[process.env.NODE_ENV].serverPort} with process id`, process.pid); // tslint:disable-line no-console
     });
 }

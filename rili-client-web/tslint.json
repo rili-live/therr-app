@@ -20,6 +20,7 @@
         "no-string-literal": true,
         "no-switch-case-fall-through": true,
         "no-unused-expression": true,
+        "no-unused-variable": true,
         "no-use-before-declare": false,
         "no-var-requires": true,
         "one-line": [
@@ -46,7 +47,8 @@
             "check-decl",
             "check-operator",
             "check-separator",
-            "check-type"
+            "check-type",
+            "check-module"
         ]
     }
 }

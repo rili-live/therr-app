@@ -1,12 +1,12 @@
 const path = require('path');
-const webpack = require('webpack');
-const merge = require('webpack-merge');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-dependencies
+const merge = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
+const HtmlWebpackPlugin = require('html-webpack-plugin'); // eslint-disable-line import/no-extraneous-dependencies
 const parts = require('../webpack.parts');
 
 const PATHS = {
     app: path.join(__dirname, 'src'),
-    build: path.join(__dirname, 'build'),
+    build: path.join(__dirname, 'build/static'),
     utils: path.join(__dirname, '../utilities'),
     reactComponents: path.join(__dirname, '../rili-public-library/react-components'),
     public: '/',
@@ -16,11 +16,10 @@ const common = merge([
     {
         entry: {
             app: path.join(PATHS.app, 'index.tsx'),
-            'server-client': path.join(PATHS.app, 'server-client.tsx'),
         },
         output: {
             path: PATHS.build,
-            filename: '[name].js',
+            filename: 'app.js',
             publicPath: PATHS.public,
             libraryTarget: 'umd',
         },
@@ -45,7 +44,7 @@ const common = merge([
 
 const buildDev = () => merge([
     common,
-    parts.clean(PATHS.build, ['index.html']),
+    parts.clean(PATHS.build),
     {
         mode: 'development',
         plugins: [
@@ -74,10 +73,6 @@ const buildProd = () => merge([
         mode: 'production',
         plugins: [
             new webpack.HashedModuleIdsPlugin(),
-            new HtmlWebpackPlugin({
-                template: 'src/index.html',
-                inject: true,
-            }),
         ],
     },
     parts.lintJavaScript({
@@ -96,7 +91,7 @@ const buildUmd = () => merge([
     parts.clean(PATHS.build),
     {
         output: {
-            filename: '[name].js',
+            filename: 'app.js',
         },
     },
 ]);

@@ -1,11 +1,12 @@
 import * as React from 'react';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 import * as io from 'socket.io-client';
 import Input from 'rili-public-library/react-components/input'; // tslint:disable-line no-implicit-dependencies
-import SelectBox from 'rili-public-library/react-components/select-box'; // tslint:disable-line no-implicit-dependencies
+// import SelectBox from 'rili-public-library/react-components/select-box'; // tslint:disable-line no-implicit-dependencies
 import ButtonSecondary from 'rili-public-library/react-components/button-secondary'; // tslint:disable-line no-implicit-dependencies
 import scrollTo from 'rili-public-library/utilities/scroll-to'; // tslint:disable-line no-implicit-dependencies
-import translator from './services/translator';
-import * as globalConfig from '../../global-config.js';
+// import translator from '../services/translator';
+import * as globalConfig from '../../../global-config.js';
 
 // Environment Variables
 const envVars = globalConfig[process.env.NODE_ENV];
@@ -15,11 +16,19 @@ enum ViewEnum {
     IN_ROOM = 'inRoom'
 }
 
-interface IAppProps {
+interface IHomeRouterProps {
 
 }
 
-interface IAppState {
+interface IHomeProps extends RouteComponentProps<IHomeRouterProps> {
+// Add your regular properties here
+}
+
+interface IHomeDispatchProps {
+// Add your dispatcher properties here
+}
+
+interface IHomeState {
     hasJoinedARoom: boolean;
     inputs: any;
     roomsList: any;
@@ -28,16 +37,16 @@ interface IAppState {
 }
 
 /**
- * App
+ * Home
  */
-export default class App extends React.Component<IAppProps, IAppState> {
+class Home extends React.Component<IHomeProps & IHomeDispatchProps, IHomeState> {
     private messageInputRef: any;
-    private sessionToken: string;
+    // private sessionToken: string;
     private socket: any;
 
-    private translate: Function;
+    // private translate: Function;
 
-    constructor(props: IAppProps) {
+    constructor(props: IHomeProps & IHomeDispatchProps) {
         super(props);
 
         this.state = {
@@ -51,13 +60,13 @@ export default class App extends React.Component<IAppProps, IAppState> {
         };
 
         this.messageInputRef = React.createRef();
-        this.sessionToken = '';
+        // this.sessionToken = '';
         this.socket = io(`${envVars.baseUrl}`, {
             secure: true,
             transports: ['websocket'],
             upgrade: false
         });
-        this.translate = (key: string, params: any) => translator('en-us', key, params);
+        // this.translate = (key: string, params: any) => translator('en-us', key, params);
 
         this.onInputChange = this.onInputChange.bind(this);
         this.onButtonClick = this.onButtonClick.bind(this);
@@ -68,6 +77,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
     }
 
     componentDidMount() {
+        document.title = 'Rili | Home';
+
         const addLi = (message: any) => {
             const listEl = document.getElementById('list');
             const li = document.createElement('li');
@@ -215,3 +226,5 @@ export default class App extends React.Component<IAppProps, IAppState> {
         return (<div>Oops! Something went wrong.</div>);
     }
 }
+
+export default withRouter(Home);

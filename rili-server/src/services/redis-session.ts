@@ -1,5 +1,5 @@
 import * as Redis from 'ioredis';
-import * as config from '../../config.js';
+import * as globalConfig from '../../../global-config.js';
 import RedisHelper from './redis-helper';
 
 interface IRedisSessionArgs {
@@ -34,7 +34,7 @@ export default class RedisSession {
             app: args.app,
             socketId: args.socketId,
             ip: args.ip.toString(),
-            ttl: args.ttl || config.socket.userSocketSessionExpire,
+            ttl: args.ttl || globalConfig[process.env.NODE_ENV].socket.userSocketSessionExpire,
             data: JSON.stringify(args.data),
         });
 

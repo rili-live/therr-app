@@ -1,5 +1,5 @@
 import * as React from 'react';
-import App from '../app';
+import Home from '../home';
 import { mount } from 'enzyme'; // tslint:disable-line no-implicit-dependencies
 
 describe('Rili App', () => {
@@ -12,7 +12,7 @@ describe('Rili App', () => {
         }
 
         wrapper = mount(
-            <App {...props} />,
+            <Home {...props} />,
         );
     }
 

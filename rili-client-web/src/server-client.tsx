@@ -3,6 +3,20 @@ import * as https from 'https';
 import * as path from 'path';
 import * as express from 'express';
 import * as fs from 'fs';
+
+// TODO: RFRONT-9: Fix window is undefined hack
+declare global {
+    namespace NodeJS {
+        interface Global { // tslint:disable-line
+            window: any;
+        }
+    }
+}
+
+if (!process.env.BROWSER) {
+    global.window = {}; // Temporarily define window for server-side
+}
+
 import * as React from 'react';
 import * as ReactDOMServer from 'react-dom/server';
 import { StaticRouter, matchPath } from 'react-router-dom';
@@ -14,7 +28,7 @@ import * as globalConfig from '../../global-config.js';
 import routeConfig from './routeConfig';
 import rootReducer from './reducers';
 import Layout from './components/Layout';
-import routes from './routes';
+import routes, { IRoute } from './routes';
 
 // Initialize the server and configure support for handlebars templates
 const createAppServer = () => {
@@ -43,7 +57,7 @@ app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
 // Define the folder that will be used for static assets
-app.use(express.static(path.join(__dirname + '/../dist/')));
+app.use(express.static(path.join(__dirname + '/../build/static/')));
 
 // Universal routing and rendering for SEO
 for (let i in routeConfig) {
@@ -62,7 +76,7 @@ for (let i in routeConfig) {
             )
         );
 
-        routes.some((route: any) => {
+        routes.some((route: IRoute) => {
             const match = matchPath(req.url, route);
             if (match && route.fetchData) {
                 const Comp = route.component.WrappedComponent;
@@ -70,7 +84,7 @@ for (let i in routeConfig) {
                 // fetchData calls a dispatch on the store updating the current state before render
                 promises.push(initData(store));
             }
-            return match;
+            return !!match;
         });
 
         Promise.all(promises).then(() => {

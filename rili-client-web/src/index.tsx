@@ -1,7 +1,21 @@
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-import App from './app';
+import { render } from 'react-dom';
+import { BrowserRouter } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import Layout from './components/Layout';
+import store from './store';
 import './styles/index.scss';
 import 'rili-public-library/styles/index.scss'; // tslint:disable-line no-implicit-dependencies
 
-ReactDOM.render(<App />, document.getElementById('app'));
+console.log('INDEX_WINDOW: ', window); // tslint:disable-line
+
+window.onload = () => {
+    render(
+        <Provider store={store}>
+            <BrowserRouter>
+                <Layout />
+            </BrowserRouter>
+        </Provider>,
+        document.getElementById('app')
+    );
+};

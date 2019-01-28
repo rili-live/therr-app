@@ -6,7 +6,7 @@ import * as Redis from 'ioredis';
 import * as socketio from 'socket.io';
 import * as socketioRedis from 'socket.io-redis';
 import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disable-line no-implicit-dependencies
-import * as config from '../config.js';
+import * as globalConfig from '../../global-config.js';
 import RedisSession from './services/redis-session';
 import getRoomsList from './utilities/get-socket-rooms-list';
 
@@ -23,13 +23,13 @@ const shouldIncludeSocketLogs = process.argv[2] === 'withSocketLogs'
 const nodes = [
     // Pub
     {
-        host: config[process.env.NODE_ENV].redisHost,
-        port: config[process.env.NODE_ENV].redisPubPort
+        host: globalConfig[process.env.NODE_ENV].redisHost,
+        port: globalConfig[process.env.NODE_ENV].redisPubPort
     },
     // Sub
     {
-        host: config[process.env.NODE_ENV].redisHost,
-        port: config[process.env.NODE_ENV].redisSubPort
+        host: globalConfig[process.env.NODE_ENV].redisHost,
+        port: globalConfig[process.env.NODE_ENV].redisSubPort
     },
 ];
 
@@ -78,21 +78,21 @@ const startExpressSocketIOServer = () => {
         httpsServer = http.createServer(app);
     } else if (process.env.NODE_ENV === 'production') {
         let httpsCredentials = {
-            key: fs.readFileSync(config[process.env.NODE_ENV].security.keyLocation),
-            cert: fs.readFileSync(config[process.env.NODE_ENV].security.certLocation),
+            key: fs.readFileSync(globalConfig[process.env.NODE_ENV].security.keyLocation),
+            cert: fs.readFileSync(globalConfig[process.env.NODE_ENV].security.certLocation),
         };
         httpsServer = https.createServer(httpsCredentials, app);
     }
-    let server = httpsServer.listen(config[process.env.NODE_ENV].socketPort, (err: string) => {
-        const port = config[process.env.NODE_ENV].socketPort;
+    let server = httpsServer.listen(globalConfig[process.env.NODE_ENV].socketPort, (err: string) => {
+        const port = globalConfig[process.env.NODE_ENV].socketPort;
         printLogs(true, 'SOCKET_IO_LOGS', null, `Server running on port, ${port}, with process id ${process.pid}`);
     });
     // NOTE: engine.io config options https://github.com/socketio/engine.io#methods-1
     let io = socketio(server, {
         // how many ms before sending a new ping packet
-        pingInterval: config.socket.pingInterval,
+        pingInterval: globalConfig[process.env.NODE_ENV].socket.pingInterval,
         // how many ms without a pong packet to consider the connection closed
-        pingTimeout: config.socket.pingTimeout,
+        pingTimeout: globalConfig[process.env.NODE_ENV].socket.pingTimeout,
     });
 
     const redisAdapter = socketioRedis({

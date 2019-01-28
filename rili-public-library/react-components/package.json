@@ -28,10 +28,12 @@
     "classnames": "^2.2.6",
     "prop-types": "^15.6.0",
     "react": "^16.2.0",
-    "react-dom": "^16.2.0"
+    "react-dom": "^16.2.0",
+    "react-router-dom": "^4.3.1"
   },
   "devDependencies": {
     "@types/jest": "^23.3.10",
+    "@types/react-router-dom": "^4.3.1",
     "babel-eslint": "^8.2.6",
     "enzyme": "^3.8.0",
     "enzyme-adapter-react-16": "^1.7.1",
