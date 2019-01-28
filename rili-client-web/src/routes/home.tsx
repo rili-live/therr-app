@@ -61,7 +61,7 @@ class Home extends React.Component<IHomeProps & IHomeDispatchProps, IHomeState> 
 
         this.messageInputRef = React.createRef();
         // this.sessionToken = '';
-        this.socket = io(`${envVars.baseUrl}`, {
+        this.socket = io(`${envVars.baseSocketUrl}`, {
             secure: true,
             transports: ['websocket'],
             upgrade: false
