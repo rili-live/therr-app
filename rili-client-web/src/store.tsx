@@ -11,9 +11,8 @@ declare global {
 }
 
 const loggerMiddleware = createLogger();
-let store: any, storedUser, preLoadedState;
-
-console.log('STORE_WINDOW: ', window); // tslint:disable-line
+let store: any, preLoadedState;
+// let storedUser: any;
 
 const composeEnhancers = typeof window === 'object' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ ?
     window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
@@ -33,9 +32,10 @@ function safelyParse(input: any) {
 
 // Get stored user details from session storage if they are already logged in
 if (typeof(Storage) !== 'undefined' && typeof(window) !== 'undefined') {
-    storedUser = JSON.parse(sessionStorage.getItem('user'));
-    storedUser = storedUser ? storedUser : {};
-    preLoadedState = Object.assign(safelyParse(window.__PRELOADED_STATE__), {'user': storedUser, 'isAuthenticated': !!storedUser.roleConfig});
+    // storedUser = JSON.parse(sessionStorage.getItem('user'));
+    // storedUser = storedUser ? storedUser : {};
+    // preLoadedState = Object.assign(safelyParse(window.__PRELOADED_STATE__), {'user': storedUser, 'isAuthenticated': !!storedUser.roleConfig});
+    preLoadedState = safelyParse(window.__PRELOADED_STATE__);
 }
 
 if (process.env.NODE_ENV === 'production') {

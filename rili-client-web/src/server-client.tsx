@@ -27,7 +27,7 @@ import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disa
 import * as globalConfig from '../../global-config.js';
 import routeConfig from './routeConfig';
 import rootReducer from './reducers';
-import Layout from './components/Layout';
+import Layout from './components/layout';
 import routes, { IRoute } from './routes';
 
 // Initialize the server and configure support for handlebars templates
@@ -51,7 +51,6 @@ const createAppServer = () => {
 };
 
 const { app, server } = createAppServer();
-server.listen(globalConfig[process.env.NODE_ENV].socketPort);
 
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));

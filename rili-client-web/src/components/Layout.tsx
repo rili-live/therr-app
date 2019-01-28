@@ -1,5 +1,7 @@
 import * as React from 'react';
-import { Route, Switch, withRouter } from 'react-router-dom';
+import { bindActionCreators, Dispatch } from 'redux';
+import { connect } from 'react-redux';
+import { Route, Switch, withRouter, RouteComponentProps } from 'react-router-dom';
 import { TransitionGroup as Animation } from 'react-transition-group';
 // import * as ReactGA from 'react-ga';
 // import TopNav from './pieces/TopNav';
@@ -13,13 +15,29 @@ import initInterceptors from '../interceptors';
 import * as globalConfig from '../../../global-config.js';
 // const AuthRoute = configureAuthRoute(roleConfig);
 import routes from '../routes';
+import { Location } from 'history';
 
 let _viewListener: any;
 
-// TODO: Animation between view change is not working when wrapped around a Switch
+const mapStateToProps = (state: any) => {
+    return {
+        'redirectRoute': state.redirectRoute
+    };
+};
 
-class Layout extends React.Component<any, any> {
-    constructor(props: any) {
+const mapDispatchToProps = (dispatch: Dispatch) => {
+    return bindActionCreators({
+
+    }, dispatch);
+};
+
+interface ILayoutProps extends RouteComponentProps {
+
+}
+
+// TODO: Animation between view change is not working when wrapped around a Switch
+class Layout extends React.Component<ILayoutProps, any> {
+    constructor(props: ILayoutProps) {
         super(props);
 
         this.state = {
@@ -64,15 +82,15 @@ class Layout extends React.Component<any, any> {
                     </header>
 
                     <Animation
-                        transitionName="view"
-                        transitionAppear={true}
-                        transitionAppearTimeout={250}
-                        transitionEnter={true}
-                        transitionEnterTimeout={250}
-                        transitionLeave={true}
-                        transitionLeaveTimeout={250}
+                        appear={true}
+                        enter={true}
+                        exit={true}
+                        timeout={{
+                            enter: 250,
+                            exit: 250
+                        }}
                         component="div"
-                        className="content-container"
+                        className="content-container view"
                     >
                         <Switch>
                             {routes.map((route, i) => {
@@ -115,4 +133,4 @@ class Layout extends React.Component<any, any> {
     }
 }
 
-export default withRouter(Layout);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Layout));

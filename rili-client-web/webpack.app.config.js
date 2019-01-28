@@ -54,7 +54,7 @@ const buildDev = () => merge([
             new webpack.NamedModulesPlugin(),
             new HtmlWebpackPlugin({
                 template: 'src/index.html',
-                inject: true,
+                inject: false,
             }),
         ],
     },
