@@ -1,5 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
 const webpack = require('webpack');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const DuplicatePackageCheckerPlugin = require("duplicate-package-checker-webpack-plugin");
 const HappyPack = require('happypack');
@@ -23,6 +24,12 @@ const createHappyLoader = (id, loaders, cache = true) => {
         cache: cache
     });
 }
+
+exports.analyzeBundle = () => ({
+    plugins: [new BundleAnalyzerPlugin({
+        analyzerPort: 8888,
+    })],
+});
 
 exports.deDupe = () => ({
     plugins: [new DuplicatePackageCheckerPlugin(
