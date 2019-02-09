@@ -3,6 +3,7 @@ const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-
 const merge = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
 const HtmlWebpackPlugin = require('html-webpack-plugin'); // eslint-disable-line import/no-extraneous-dependencies
 const parts = require('../webpack.parts');
+const pkg = require('./package.json');
 
 const PATHS = {
     app: path.join(__dirname, 'src'),
@@ -75,6 +76,7 @@ const buildProd = () => merge([
             new webpack.HashedModuleIdsPlugin(),
         ],
     },
+    parts.analyzeBundle(),
     parts.lintJavaScript({
         paths: PATHS.app,
         options: {
@@ -93,6 +95,7 @@ const buildUmd = () => merge([
         output: {
             filename: 'app.js',
         },
+        externals: Object.keys(pkg.peerDependencies || {}),
     },
 ]);
 

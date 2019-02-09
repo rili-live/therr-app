@@ -4,6 +4,8 @@ const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-
 const merge = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
 const parts = require('../webpack.parts');
 
+const pkg = require('./package.json');
+
 const PATHS = {
     src: path.join(__dirname, 'src'),
     clientServer: path.join(__dirname, 'src/server-client.tsx'),
@@ -91,6 +93,7 @@ const buildUmd = () => merge([
         output: {
             filename: 'server-client.js',
         },
+        externals: Object.keys(pkg.peerDependencies || {}),
     },
 ]);
 
