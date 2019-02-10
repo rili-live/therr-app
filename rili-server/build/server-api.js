@@ -104,14 +104,14 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ (function(module, exports) {
 
 const apiPort = 7770;
-const socketPortDev = 7743;
+const socketPortDev = 7771;
 const socketPortProd = 7743;
 
 module.exports = {
     development: {
         apiPort,
         baseApiRoute: `http://localhost:${apiPort}/api/`,
-        baseUrl: `http://localhost:7771${socketPortDev}`,
+        baseSocketUrl: `http://localhost:${socketPortDev}`,
         clientPort: 7070,
         googleAnalyticsKey: '',
         redisHost: '127.0.0.1',
@@ -131,7 +131,7 @@ module.exports = {
     production: {
         apiPort,
         baseApiRoute: `http://rili.live:${apiPort}/api/`,
-        baseUrl: `https://rili.live:7743${socketPortProd}`,
+        baseSocketUrl: `https://rili.live:${socketPortProd}`,
         clientPort: 7070,
         googleAnalyticsKey: '',
         redisHost: '127.0.0.1',

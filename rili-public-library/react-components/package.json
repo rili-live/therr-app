@@ -4,18 +4,17 @@
   "description": "Multi-purpose code used in the Rili codebase and open-sourced to the developer community",
   "main": "index.js",
   "scripts": {
-    "build": "webpack --env production",
-    "build:watch": "webpack --watch --env production",
-    "lint:fix": "eslint --ext .jsx,.js --fix ./ && tslint --fix -p ./",
-    "lint": "eslint --ext .jsx,.js ./ && tslint -p ./",
-    "preinstall": "rm -f package-lock.json*",
+    "build": "../../node_modules/.bin/webpack --env production",
+    "build:watch": "../../node_modules/.bin/webpack --watch --env development",
+    "lint:fix": "../../node_modules/.bin/eslint --ext .jsx,.js --fix ./ && tslint --fix -p ./",
+    "lint": "../../node_modules/.bin/eslint --ext .jsx,.js ./ && tslint -p ./",
     "start": "npm run server:dev",
-    "server": "webpack-dev-server --env development",
-    "server:dev": "nodemon --watch webpack.config.js --exec \"npm run server\"",
-    "test": "npm run lint:fix && jest --no-cache",
-    "test:update": "jest -u",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "server": "../../node_modules/.bin/webpack-dev-server --env development",
+    "server:dev": "../../node_modules/.bin/nodemon --watch webpack.config.js --exec \"npm run server\"",
+    "test": "npm run lint:fix && ../../node_modules/.bin/jest --no-cache",
+    "test:update": "../../node_modules/.bin/jest -u",
+    "test:watch": "../../node_modules/.bin/jest --watch",
+    "test:coverage": "../../node_modules/.bin/jest --coverage"
   },
   "keywords": [
     "rili",
@@ -24,35 +23,7 @@
   ],
   "author": "Rili, Inc.",
   "license": "MIT",
-  "peerDependencies": {
-    "classnames": "^2.2.6",
-    "prop-types": "^15.6.0",
-    "react": "^16.2.0",
-    "react-dom": "^16.2.0",
-    "react-router-dom": "^4.3.1"
-  },
-  "devDependencies": {
-    "@types/jest": "^23.3.10",
-    "@types/react-router-dom": "^4.3.1",
-    "babel-eslint": "^8.2.6",
-    "enzyme": "^3.8.0",
-    "enzyme-adapter-react-16": "^1.7.1",
-    "eslint": "^5.11.1",
-    "eslint-config-airbnb": "^15.1.0",
-    "eslint-import-resolver-alias": "^1.1.2",
-    "eslint-plugin-import": "^2.7.0",
-    "eslint-plugin-jsx-a11y": "^5.1.1",
-    "eslint-plugin-react": "^7.12.0",
-    "html-webpack-plugin": "^3.2.0",
-    "jest": "^20.0.4",
-    "nodemon": "^1.18.9",
-    "react-test-renderer": "^16.7.0",
-    "tslint": "^5.12.0",
-    "webpack": "^4.28.2",
-    "webpack-dev-server": "^3.1.14",
-    "webpack-merge": "^4.1.5"
-  },
-  "dependencies": {
-    "ts-keycode-enum": "^1.0.6"
-  }
+  "peerDependencies": {},
+  "devDependencies": {},
+  "dependencies": {}
 }

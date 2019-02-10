@@ -75,6 +75,7 @@ const buildProd = () => merge([
             new webpack.HashedModuleIdsPlugin(),
         ],
     },
+    parts.analyzeBundle(),
     parts.lintJavaScript({
         paths: PATHS.app,
         options: {

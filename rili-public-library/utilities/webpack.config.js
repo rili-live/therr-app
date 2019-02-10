@@ -1,8 +1,11 @@
-const fs = require('fs');
 const path = require('path');
-const webpack = require('webpack');
-const merge = require('webpack-merge');
+const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-dependencies
+const merge = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
 const parts = require('../../webpack.parts');
+
+// For externals
+const localPkg = require('./package.json');
+const rootPkg = require('../../package.json');
 
 // List of utility filenames
 const utilities = require('./src');
@@ -18,10 +21,6 @@ utilities.forEach((utility) => {
     entry[utility] = `${PATHS.app}/${utility}.ts`;
 });
 
-const nodeModules = {};
-fs.readdirSync('node_modules').filter(x => ['.bin'].indexOf(x) === -1)
-    .forEach((mod) => { nodeModules[mod] = `commonjs ${mod}`; });
-
 const common = merge([
     {
         entry,
@@ -35,7 +34,6 @@ const common = merge([
         resolve: {
             extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
         },
-        externals: nodeModules,
         target: 'node',
         node: {
             __dirname: false,
@@ -74,7 +72,12 @@ const buildProd = () => merge([
         plugins: [
             new webpack.HashedModuleIdsPlugin(),
         ],
+        externals: [
+            ...Object.keys(localPkg.peerDependencies || {}),
+            ...Object.keys(rootPkg.dependencies || {}),
+        ],
     },
+    parts.analyzeBundle(),
     parts.lintJavaScript({
         paths: PATHS.app,
         options: {
