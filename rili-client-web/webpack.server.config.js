@@ -1,4 +1,3 @@
-const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-dependencies
 const merge = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
@@ -14,10 +13,6 @@ const PATHS = {
     reactComponents: path.join(__dirname, '../rili-public-library/react-components'),
     public: '/',
 };
-
-const nodeModules = {};
-fs.readdirSync('node_modules').filter(x => ['.bin'].indexOf(x) === -1)
-    .forEach((mod) => { nodeModules[mod] = `commonjs ${mod}`; });
 
 const common = merge([
     {
@@ -38,7 +33,6 @@ const common = merge([
                 'rili-public-library/utilities': path.join(__dirname, '../rili-public-library/utilities/lib'),
             },
         },
-        externals: nodeModules,
         target: 'node',
         node: {
             __dirname: true,
@@ -81,6 +75,7 @@ const buildProd = () => merge([
         plugins: [
             new webpack.HashedModuleIdsPlugin(),
         ],
+        externals: Object.keys(pkg.peerDependencies || {}),
     },
     parts.analyzeBundle(),
     parts.setFreeVariable('process.env.NODE_ENV', 'production'),
@@ -94,7 +89,6 @@ const buildUmd = () => merge([
         output: {
             filename: 'server-client.js',
         },
-        externals: Object.keys(pkg.peerDependencies || {}),
     },
 ]);
 
