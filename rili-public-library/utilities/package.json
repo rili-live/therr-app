@@ -4,28 +4,14 @@
   "description": "Helper utilities to provide common functions that were abstracted for re-use.",
   "main": "index.js",
   "scripts": {
-    "build": "webpack --env production",
-    "build:dev": "webpack --env development",
-    "lint:fix": "eslint --ext .jsx,.js --fix ./ && tslint --fix -p ./",
-    "lint": "eslint --ext .jsx,.js ./ && tslint -p ./",
-    "preinstall": "rm -f package-lock.json*",
+    "build": "../../node_modules/.bin/webpack --env production",
+    "build:dev": "../../node_modules/.bin/webpack --env development",
+    "lint:fix": "../../node_modules/.bin/eslint --ext .jsx,.js --fix ./ && ../../node_modules/.bin/tslint --fix -p ./",
+    "lint": "../../node_modules/.bin/eslint --ext .jsx,.js ./ && ../../node_modules/.bin/tslint -p ./",
     "test": "npm run lint:fix && echo \"Error: no test specified\" && exit 0"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {},
-  "devDependencies": {
-    "babel-eslint": "^8.2.1",
-    "babel-plugin-array-includes": "^2.0.3",
-    "eslint": "^3.19.0",
-    "eslint-config-airbnb": "^15.1.0",
-    "eslint-loader": "^2.1.0",
-    "eslint-plugin-import": "^2.7.0",
-    "eslint-plugin-jsx-a11y": "^5.1.1",
-    "eslint-plugin-react": "^7.1.0",
-    "identity-obj-proxy": "^3.0.0",
-    "tslint": "^5.11.0",
-    "webpack": "^4.16.2",
-    "webpack-merge": "^4.1.3"
-  }
+  "devDependencies": {}
 }

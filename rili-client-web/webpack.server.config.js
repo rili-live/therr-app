@@ -82,6 +82,7 @@ const buildProd = () => merge([
             new webpack.HashedModuleIdsPlugin(),
         ],
     },
+    parts.analyzeBundle(),
     parts.setFreeVariable('process.env.NODE_ENV', 'production'),
     parts.minifyJavaScript({ useSourceMap: true }),
 ]);

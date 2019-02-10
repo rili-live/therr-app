@@ -4,7 +4,7 @@
 		"target": "es6",
 		"baseUrl": ".",
 		"rootDir": "./src/",
-		"typeRoots": ["node_modules/@types", "typings"],
+		"typeRoots": ["../../node_modules/@types", "typings"],
 		"declaration": false,
 		"removeComments": false,
 		"noLib": false,

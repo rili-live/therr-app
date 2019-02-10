@@ -25,10 +25,10 @@ const createHappyLoader = (id, loaders, cache = true) => {
     });
 }
 
-exports.analyzeBundle = () => ({
-    plugins: [new BundleAnalyzerPlugin({
+exports.analyzeBundle = (config = {}) => ({
+    plugins: [new BundleAnalyzerPlugin(Object.assign({
         analyzerPort: 8888,
-    })],
+    }, config))],
 });
 
 exports.deDupe = () => ({
