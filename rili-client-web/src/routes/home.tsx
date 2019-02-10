@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import * as io from 'socket.io-client';
-import Input from 'rili-public-library/react-components/input'; // tslint:disable-line no-implicit-dependencies
-// import SelectBox from 'rili-public-library/react-components/select-box'; // tslint:disable-line no-implicit-dependencies
-import ButtonSecondary from 'rili-public-library/react-components/button-secondary'; // tslint:disable-line no-implicit-dependencies
-import scrollTo from 'rili-public-library/utilities/scroll-to'; // tslint:disable-line no-implicit-dependencies
-// import translator from '../services/translator';
+import Input from 'rili-public-library/react-components/input';
+// import SelectBox from 'rili-public-library/react-components/select-box';
+import ButtonSecondary from 'rili-public-library/react-components/button-secondary';
+import scrollTo from 'rili-public-library/utilities/scroll-to';
+import translator from '../services/translator';
 import * as globalConfig from '../../../global-config.js';
 
 // Environment Variables
@@ -39,12 +39,12 @@ interface IHomeState {
 /**
  * Home
  */
-class Home extends React.Component<IHomeProps & IHomeDispatchProps, IHomeState> {
+export class HomeComponent extends React.Component<IHomeProps & IHomeDispatchProps, IHomeState> {
     private messageInputRef: any;
     // private sessionToken: string;
     private socket: any;
 
-    // private translate: Function;
+    private translate: Function;
 
     constructor(props: IHomeProps & IHomeDispatchProps) {
         super(props);
@@ -66,7 +66,7 @@ class Home extends React.Component<IHomeProps & IHomeDispatchProps, IHomeState> 
             transports: ['websocket'],
             upgrade: false
         });
-        // this.translate = (key: string, params: any) => translator('en-us', key, params);
+        this.translate = (key: string, params: any) => translator('en-us', key, params);
 
         this.onInputChange = this.onInputChange.bind(this);
         this.onButtonClick = this.onButtonClick.bind(this);
@@ -174,10 +174,10 @@ class Home extends React.Component<IHomeProps & IHomeDispatchProps, IHomeState> 
                 <hr />
 
                 <label htmlFor="user_name">Username:</label>
-                <Input type="text" id="user_name" name="userName" onChange={this.onInputChange} onEnter={this.onButtonClick} />
+                <Input type="text" id="user_name" name="userName" onChange={this.onInputChange} onEnter={this.onButtonClick} translate={this.translate} />
 
                 <label htmlFor="room_name">Room:</label>
-                <Input type="text" id="room_name" name="roomName" value={this.state.inputs.roomName} onChange={this.onInputChange} onEnter={this.onButtonClick}/>
+                <Input type="text" id="room_name" name="roomName" value={this.state.inputs.roomName} onChange={this.onInputChange} onEnter={this.onButtonClick} translate={this.translate} />
                 <span id="rooms_list"></span>
                 <br />
 
@@ -196,7 +196,7 @@ class Home extends React.Component<IHomeProps & IHomeDispatchProps, IHomeState> 
                 <div className="form-field-wrapper inline">
                     <Input
                         ref={this.messageInputRef}
-                        autoComplete="false"
+                        autoComplete="off"
                         type="text"
                         id="message"
                         name="message"
@@ -204,6 +204,7 @@ class Home extends React.Component<IHomeProps & IHomeDispatchProps, IHomeState> 
                         onChange={this.onInputChange}
                         onEnter={this.onButtonClick}
                         placeholder="Enter a message"
+                        translate={this.translate}
                     />
                     <div className="form-field">
                         <ButtonSecondary id="enter_message" text="Send" onClick={this.onButtonClick} disabled={this.shouldDisableInput('sendMessage')} />
@@ -227,4 +228,4 @@ class Home extends React.Component<IHomeProps & IHomeDispatchProps, IHomeState> 
     }
 }
 
-export default withRouter(Home);
+export default withRouter(HomeComponent);

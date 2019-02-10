@@ -14,10 +14,10 @@
     "preinstall": "rm -f package-lock.json*",
     "start": "npm run server:dev",
     "server:dev": "nodemon --watch node build/server-client.js",
-    "test": "npm run lint:fix && jest --no-cache",
-    "test:update": "jest -u",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test": "npm run lint:fix && ../node_modules/.bin/jest --no-cache",
+    "test:update": "../node_modules/.bin/jest -u",
+    "test:watch": "../node_modules/.bin/jest --watch",
+    "test:coverage": "../node_modules/.bin/jest --coverage"
   },
   "keywords": [
     "rili",

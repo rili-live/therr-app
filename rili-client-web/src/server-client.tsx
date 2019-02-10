@@ -90,7 +90,7 @@ for (let i in routeConfig) {
             const markup = ReactDOMServer.renderToString(
                 <Provider store={store}>
                     <StaticRouter location={req.url} context={context}>
-                        <Layout/>
+                        <Layout />
                     </StaticRouter>
                 </Provider>
             );
