@@ -31,12 +31,27 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
     }, dispatch);
 };
 
+interface ILayoutRouterProps {
+
+}
+
 interface ILayoutProps extends RouteComponentProps {
 
 }
 
+interface ILayoutProps extends RouteComponentProps<ILayoutRouterProps> {
+// Add your regular properties here
+}
+
+interface ILayoutDispatchProps {
+// Add your dispatcher properties here
+}
+
+// interface ILayoutState {
+// }
+
 // TODO: Animation between view change is not working when wrapped around a Switch
-class Layout extends React.Component<ILayoutProps, any> {
+class Layout extends React.Component<ILayoutProps & ILayoutDispatchProps, any> {
     constructor(props: ILayoutProps) {
         super(props);
 
