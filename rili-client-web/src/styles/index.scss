@@ -1,15 +1,33 @@
 @import '../../../rili-public-library/styles/lib/variables';
 
+@function rem-calc($size) {
+    $remSize: $size / 16px;
+    @return #{$remSize}rem;
+}
+
 html, body {
     font-size: 16px;
     background: $rili-grey-default;
     font-family: sans-serif;
 }
 
+body {
+    border: rem-calc(4px) solid $rili-green;
+    border-radius: rem-calc(14px);
+    padding: 1rem;
+}
+
 hr {
     border-color: $rili-green;
     border-width: rem-calc(2px);
     border-style: solid;
+}
+
+footer {
+    bottom: 0;
+    position: fixed;
+    width: 100%;
+    text-align: center;
 }
 
 .form-field-wrapper {
