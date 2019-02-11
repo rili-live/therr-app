@@ -81,7 +81,10 @@ const buildProd = () => merge([
         plugins: [
             new webpack.HashedModuleIdsPlugin(),
         ],
-        externals: Object.keys(pkg.peerDependencies || {}),
+        externals: [
+            ...Object.keys(pkg.peerDependencies || {}),
+            nodeModules,
+        ],
     },
     parts.analyzeBundle(),
     parts.setFreeVariable('process.env.NODE_ENV', 'production'),

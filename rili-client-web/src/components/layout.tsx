@@ -100,10 +100,7 @@ class Layout extends React.Component<ILayoutProps & ILayoutDispatchProps, any> {
                         appear={true}
                         enter={true}
                         exit={true}
-                        timeout={{
-                            enter: 250,
-                            exit: 250
-                        }}
+                        timeout={250}
                         component="div"
                         className="content-container view"
                     >
