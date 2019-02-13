@@ -62,6 +62,7 @@ app.use(express.static(path.join(__dirname + '/../build/static/')));
 for (let i in routeConfig) {
     let routePath = routeConfig[i].route;
     let routeView = routeConfig[i].view;
+    let title = routeConfig[i].head.title;
 
     app.get(routePath, (req, res) => {
         let promises: any = [];
@@ -107,7 +108,7 @@ for (let i in routeConfig) {
                 });
                 res.end();
             } else {
-                return res.render(routeView, {markup, state});
+                return res.render(routeView, {title, markup, state});
             }
         });
 

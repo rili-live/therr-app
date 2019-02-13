@@ -4,19 +4,21 @@
   "description": "The web client side code for Rili",
   "main": "index.js",
   "scripts": {
-    "build": "npm run build:app && npm run build:server",
+    "build:dev": "npm run build:app:dev && npm run build:server:dev",
     "build:app": "../node_modules/.bin/webpack --config webpack.app.config.js --env production",
+    "build:app:dev": "../node_modules/.bin/webpack --config webpack.app.config.js --env development",
     "build:server": "../node_modules/.bin/webpack --config webpack.server.config.js --env production",
-    "build:app:watch": "../node_modules/.bin/webpack --config webpack.app.config.js --watch --env development",
-    "build:server:watch": "../node_modules/.bin/webpack --config webpack.server.config.js --watch --env development",
+    "build:server:dev": "../node_modules/.bin/webpack --config webpack.server.config.js --env development",
     "lint:fix": "../node_modules/.bin/eslint --ext .jsx,.js --fix ./ && ../node_modules/.bin/tslint --fix -p ./",
     "lint": "../node_modules/.bin/eslint --ext .jsx,.js ./ && ../node_modules/.bin/tslint -p ./",
-    "start": "npm run server:dev",
-    "server:dev": "../node_modules/.bin/nodemon --watch node build/server-client.js",
+    "start": "../node_modules/.bin/pm2 start pm2/ecosystem.config.js --only rili-server-client --env production",
+    "start:dev": "npm run build:dev && ../node_modules/.bin/nodemon ./build/server-client.js",
     "test": "npm run lint:fix && ../node_modules/.bin/jest --no-cache",
     "test:update": "../node_modules/.bin/jest -u",
     "test:watch": "../node_modules/.bin/jest --watch",
-    "test:coverage": "../node_modules/.bin/jest --coverage"
+    "test:coverage": "../node_modules/.bin/jest --coverage",
+    "watch:app": "../node_modules/.bin/webpack --config webpack.app.config.js --watch --env development",
+    "watch:server": "../node_modules/.bin/webpack --config webpack.server.config.js --watch --env development"
   },
   "keywords": [
     "rili",

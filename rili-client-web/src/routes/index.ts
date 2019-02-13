@@ -1,3 +1,4 @@
+import ChatRoom from './chat-room';
 import Home from './home';
 import { RouteProps } from 'react-router-dom';
 // import Login from './components/pages/Login';
@@ -16,6 +17,11 @@ let routes: IRoute[] = [
     {
         path: '/',
         component: Home,
+        exact: true
+    },
+    {
+        path: '/chat-room',
+        component: ChatRoom,
         exact: true
     },
     // {

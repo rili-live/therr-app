@@ -80,6 +80,7 @@
     "nodemon": "^1.18.9",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
     "path": "^0.12.7",
+    "pm2": "^3.2.9",
     "postcss-loader": "^2.1.6",
     "react-test-renderer": "^16.7.0",
     "sass": "^1.15.3",
