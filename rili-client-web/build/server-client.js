@@ -32,7 +32,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "65f2a0c12714e5ebd440";
+/******/ 	var hotCurrentHash = "ad3b8c97ee78c46d5136";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -5011,10 +5011,174 @@ exports.default = redux_1.combineReducers({
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = [
     {
-        'route': '/',
-        'view': 'index'
+        route: '/',
+        head: {
+            title: 'Home'
+        },
+        view: 'index'
+    },
+    {
+        route: '/chat-room',
+        head: {
+            title: 'Chat Room'
+        },
+        view: 'index'
     },
 ];
+
+
+/***/ }),
+
+/***/ "./src/routes/chat-room.tsx":
+/*!**********************************!*\
+  !*** ./src/routes/chat-room.tsx ***!
+  \**********************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const React = __webpack_require__(/*! react */ "react");
+const react_router_dom_1 = __webpack_require__(/*! react-router-dom */ "react-router-dom");
+const io = __webpack_require__(/*! socket.io-client */ "socket.io-client");
+const input_1 = __webpack_require__(/*! rili-public-library/react-components/input */ "../rili-public-library/react-components/lib/input.js");
+// import SelectBox from 'rili-public-library/react-components/select-box';
+const button_secondary_1 = __webpack_require__(/*! rili-public-library/react-components/button-secondary */ "../rili-public-library/react-components/lib/button-secondary.js");
+const scroll_to_1 = __webpack_require__(/*! rili-public-library/utilities/scroll-to */ "../rili-public-library/utilities/lib/scroll-to.js");
+const translator_1 = __webpack_require__(/*! ../services/translator */ "./src/services/translator.ts");
+const globalConfig = __webpack_require__(/*! ../../../global-config.js */ "../global-config.js");
+// Environment Variables
+const envVars = globalConfig["development"];
+var ViewEnum;
+(function (ViewEnum) {
+    ViewEnum["HOME"] = "home";
+    ViewEnum["IN_ROOM"] = "inRoom";
+})(ViewEnum || (ViewEnum = {}));
+/**
+ * ChatRoom
+ */
+class ChatRoomComponent extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            hasJoinedARoom: false,
+            inputs: {
+                roomName: 'general-chat'
+            },
+            roomsList: [],
+            selectedRoomKey: '',
+            view: ViewEnum.HOME,
+        };
+        this.messageInputRef = React.createRef();
+        // this.sessionToken = '';
+        this.socket = io(`${envVars.baseSocketUrl}`, {
+            secure: true,
+            transports: ['websocket'],
+            upgrade: false
+        });
+        this.translate = (key, params) => translator_1.default('en-us', key, params);
+        this.onInputChange = this.onInputChange.bind(this);
+        this.onButtonClick = this.onButtonClick.bind(this);
+        this.shouldDisableInput = this.shouldDisableInput.bind(this);
+        this.socketEmit = this.socketEmit.bind(this);
+    }
+    componentDidMount() {
+        document.title = 'Rili | ChatRoom';
+        const addLi = (message) => {
+            const listEl = document.getElementById('list');
+            const li = document.createElement('li');
+            li.appendChild(document.createTextNode(message));
+            listEl.appendChild(li);
+            scroll_to_1.default(listEl.scrollHeight, 200);
+        };
+        const updateRoomsList = (message) => {
+            const roomsList = JSON.parse(message).map((room) => (room.roomKey));
+            if (roomsList.length > 0) {
+                document.getElementById('rooms_list').innerHTML = `Active Rooms: <i>${roomsList}</i>`;
+            }
+            else {
+                document.getElementById('rooms_list').innerHTML = `<i>No rooms are currently active. Click 'Join Room' to start a new one.</i>`;
+            }
+        };
+        const handleSessionUpdate = (message) => {
+            console.log('SESSION_UPDATE:', message); // tslint:disable-line no-console
+        };
+        this.socket.on('event', addLi);
+        this.socket.on('message', addLi);
+        this.socket.on('rooms:list', updateRoomsList);
+        this.socket.on('session:message', handleSessionUpdate);
+    }
+    onInputChange(name, value) {
+        const newInputChanges = {
+            [name]: value,
+        };
+        this.setState({
+            inputs: Object.assign({}, this.state.inputs, newInputChanges)
+        });
+    }
+    onButtonClick(event) {
+        switch (event.target.id) {
+            case 'say_hello':
+                return this.socket.emit('event', {
+                    roomName: this.state.inputs.roomName,
+                    userName: this.state.inputs.userName
+                });
+            case 'enter_message':
+            case 'message':
+                this.socket.emit('event', {
+                    roomName: this.state.inputs.roomName,
+                    message: this.state.inputs.message,
+                    userName: this.state.inputs.userName
+                });
+                return this.onInputChange('message', '');
+            case 'join_room':
+            case 'room_name':
+            case 'user_name':
+                if (!this.shouldDisableInput('room')) {
+                    return this.setState({
+                        hasJoinedARoom: true,
+                        view: ViewEnum.IN_ROOM
+                    }, () => {
+                        if (this.messageInputRef.current && this.messageInputRef.current.inputEl) {
+                            this.messageInputRef.current.inputEl.focus();
+                        }
+                        this.socket.emit('room.join', {
+                            roomName: this.state.inputs.roomName,
+                            userName: this.state.inputs.userName
+                        });
+                    });
+                }
+        }
+    }
+    shouldDisableInput(buttonName) {
+        switch (buttonName) {
+            case 'room':
+                return !this.state.inputs.roomName || !this.state.inputs.userName;
+            case 'sayHello':
+                return !this.state.hasJoinedARoom || !this.state.inputs.userName;
+            case 'sendMessage':
+                return !this.state.hasJoinedARoom || !this.state.inputs.message;
+        }
+    }
+    socketEmit(eventType, data) {
+        this.socket.emit(eventType, data);
+    }
+    render() {
+        return (React.createElement("div", null,
+            React.createElement("hr", null),
+            React.createElement("div", { className: "form-field-wrapper inline" },
+                React.createElement(input_1.default, { ref: this.messageInputRef, autoComplete: "off", type: "text", id: "message", name: "message", value: this.state.inputs.message, onChange: this.onInputChange, onEnter: this.onButtonClick, placeholder: "Enter a message", translate: this.translate }),
+                React.createElement("div", { className: "form-field" },
+                    React.createElement(button_secondary_1.default, { id: "enter_message", text: "Send", onClick: this.onButtonClick, disabled: this.shouldDisableInput('sendMessage') }))),
+            React.createElement("div", { id: "roomTitle" },
+                "Room Name: ",
+                this.state.inputs.roomName),
+            React.createElement("ul", { id: "list" })));
+    }
+}
+exports.ChatRoomComponent = ChatRoomComponent;
+exports.default = react_router_dom_1.withRouter(ChatRoomComponent);
 
 
 /***/ }),
@@ -5070,8 +5234,6 @@ class HomeComponent extends React.Component {
         this.translate = (key, params) => translator_1.default('en-us', key, params);
         this.onInputChange = this.onInputChange.bind(this);
         this.onButtonClick = this.onButtonClick.bind(this);
-        this.renderHomeScreen = this.renderHomeScreen.bind(this);
-        this.renderRoomView = this.renderRoomView.bind(this);
         this.shouldDisableInput = this.shouldDisableInput.bind(this);
         this.socketEmit = this.socketEmit.bind(this);
     }
@@ -5156,7 +5318,7 @@ class HomeComponent extends React.Component {
     socketEmit(eventType, data) {
         this.socket.emit(eventType, data);
     }
-    renderHomeScreen() {
+    render() {
         return (React.createElement("div", null,
             React.createElement("hr", null),
             React.createElement("label", { htmlFor: "user_name" }, "Username:"),
@@ -5167,27 +5329,6 @@ class HomeComponent extends React.Component {
             React.createElement("br", null),
             React.createElement("div", { className: "form-field" },
                 React.createElement(button_secondary_1.default, { id: "join_room", text: "Join Room", onClick: this.onButtonClick, disabled: this.shouldDisableInput('room') }))));
-    }
-    renderRoomView() {
-        return (React.createElement("div", null,
-            React.createElement("hr", null),
-            React.createElement("div", { className: "form-field-wrapper inline" },
-                React.createElement(input_1.default, { ref: this.messageInputRef, autoComplete: "off", type: "text", id: "message", name: "message", value: this.state.inputs.message, onChange: this.onInputChange, onEnter: this.onButtonClick, placeholder: "Enter a message", translate: this.translate }),
-                React.createElement("div", { className: "form-field" },
-                    React.createElement(button_secondary_1.default, { id: "enter_message", text: "Send", onClick: this.onButtonClick, disabled: this.shouldDisableInput('sendMessage') }))),
-            React.createElement("div", { id: "roomTitle" },
-                "Room Name: ",
-                this.state.inputs.roomName),
-            React.createElement("ul", { id: "list" })));
-    }
-    render() {
-        if (this.state.view === ViewEnum.HOME) {
-            return this.renderHomeScreen();
-        }
-        else if (this.state.view === ViewEnum.IN_ROOM) {
-            return this.renderRoomView();
-        }
-        return (React.createElement("div", null, "Oops! Something went wrong."));
     }
 }
 exports.HomeComponent = HomeComponent;
@@ -5206,11 +5347,17 @@ exports.default = react_router_dom_1.withRouter(HomeComponent);
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+const chat_room_1 = __webpack_require__(/*! ./chat-room */ "./src/routes/chat-room.tsx");
 const home_1 = __webpack_require__(/*! ./home */ "./src/routes/home.tsx");
 let routes = [
     {
         path: '/',
         component: home_1.default,
+        exact: true
+    },
+    {
+        path: '/chat-room',
+        component: chat_room_1.default,
         exact: true
     },
 ];
@@ -5271,6 +5418,7 @@ app.use(express.static(path.join(__dirname + '/../build/static/')));
 for (let i in routeConfig_1.default) {
     let routePath = routeConfig_1.default[i].route;
     let routeView = routeConfig_1.default[i].view;
+    let title = routeConfig_1.default[i].head.title;
     app.get(routePath, (req, res) => {
         let promises = [];
         const context = {};
@@ -5301,7 +5449,7 @@ for (let i in routeConfig_1.default) {
                 res.end();
             }
             else {
-                return res.render(routeView, { markup, state });
+                return res.render(routeView, { title, markup, state });
             }
         });
     });

@@ -70,8 +70,6 @@ export class HomeComponent extends React.Component<IHomeProps & IHomeDispatchPro
 
         this.onInputChange = this.onInputChange.bind(this);
         this.onButtonClick = this.onButtonClick.bind(this);
-        this.renderHomeScreen = this.renderHomeScreen.bind(this);
-        this.renderRoomView = this.renderRoomView.bind(this);
         this.shouldDisableInput = this.shouldDisableInput.bind(this);
         this.socketEmit = this.socketEmit.bind(this);
     }
@@ -168,7 +166,7 @@ export class HomeComponent extends React.Component<IHomeProps & IHomeDispatchPro
         this.socket.emit(eventType, data);
     }
 
-    renderHomeScreen() {
+    render() {
         return (
             <div>
                 <hr />
@@ -186,45 +184,6 @@ export class HomeComponent extends React.Component<IHomeProps & IHomeDispatchPro
                 </div>
             </div>
         );
-    }
-
-    renderRoomView() {
-        return (
-            <div>
-                <hr />
-
-                <div className="form-field-wrapper inline">
-                    <Input
-                        ref={this.messageInputRef}
-                        autoComplete="off"
-                        type="text"
-                        id="message"
-                        name="message"
-                        value={this.state.inputs.message}
-                        onChange={this.onInputChange}
-                        onEnter={this.onButtonClick}
-                        placeholder="Enter a message"
-                        translate={this.translate}
-                    />
-                    <div className="form-field">
-                        <ButtonSecondary id="enter_message" text="Send" onClick={this.onButtonClick} disabled={this.shouldDisableInput('sendMessage')} />
-                    </div>
-                </div>
-
-                <div id="roomTitle">Room Name: {this.state.inputs.roomName}</div>
-                <ul id="list"></ul>
-            </div>
-        );
-    }
-
-    render() {
-        if (this.state.view === ViewEnum.HOME) {
-            return this.renderHomeScreen();
-        } else if (this.state.view === ViewEnum.IN_ROOM) {
-            return this.renderRoomView();
-        }
-
-        return (<div>Oops! Something went wrong.</div>);
     }
 }
 

@@ -171,17 +171,26 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps & IChatRoo
             <div>
                 <hr />
 
-                <label htmlFor="user_name">Username:</label>
-                <Input type="text" id="user_name" name="userName" onChange={this.onInputChange} onEnter={this.onButtonClick} translate={this.translate} />
-
-                <label htmlFor="room_name">Room:</label>
-                <Input type="text" id="room_name" name="roomName" value={this.state.inputs.roomName} onChange={this.onInputChange} onEnter={this.onButtonClick} translate={this.translate} />
-                <span id="rooms_list"></span>
-                <br />
-
-                <div className="form-field">
-                    <ButtonSecondary id="join_room" text="Join Room" onClick={this.onButtonClick} disabled={this.shouldDisableInput('room')} />
+                <div className="form-field-wrapper inline">
+                    <Input
+                        ref={this.messageInputRef}
+                        autoComplete="off"
+                        type="text"
+                        id="message"
+                        name="message"
+                        value={this.state.inputs.message}
+                        onChange={this.onInputChange}
+                        onEnter={this.onButtonClick}
+                        placeholder="Enter a message"
+                        translate={this.translate}
+                    />
+                    <div className="form-field">
+                        <ButtonSecondary id="enter_message" text="Send" onClick={this.onButtonClick} disabled={this.shouldDisableInput('sendMessage')} />
+                    </div>
                 </div>
+
+                <div id="roomTitle">Room Name: {this.state.inputs.roomName}</div>
+                <ul id="list"></ul>
             </div>
         );
     }
