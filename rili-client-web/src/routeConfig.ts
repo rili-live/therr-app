@@ -13,4 +13,11 @@ export default [
         },
         view: 'index'
     },
+    {
+        route: '*',
+        head: {
+            title: 'Not Found'
+        },
+        view: 'index'
+    }
 ];

@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "5550489863d1445dba63";
+/******/ 	var hotCurrentHash = "f4c08ba65c064a23c485";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -46573,11 +46573,13 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         _createClass(_class, [{
           key: "render",
           value: function render() {
-            var _this2 = this;
-
+            var _props = this.props,
+                e = _props.from,
+                t = _props.statusCode,
+                r = _props.to;
             return o.createElement(n.Route, { render: function render(_ref) {
-                var e = _ref.staticContext;
-                return e && (e.status = status), o.createElement(n.Redirect, { from: _this2.props.from, to: _this2.props.to });
+                var u = _ref.staticContext;
+                return u && (u.statusCode = t), o.createElement(n.Redirect, { from: e, to: r });
               } });
           }
         }]);
@@ -46591,6 +46593,92 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
     } });
 });
 //# sourceMappingURL=redirect-with-status.js.map
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../node_modules/webpack/buildin/module.js */ "../node_modules/webpack/buildin/module.js")(module)))
+
+/***/ }),
+
+/***/ "../rili-public-library/react-components/lib/status.js":
+/*!*************************************************************!*\
+  !*** ../rili-public-library/react-components/lib/status.js ***!
+  \*************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(module) {var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+!function (e, t) {
+  "object" == ( false ? undefined : _typeof(exports)) && "object" == ( false ? undefined : _typeof(module)) ? module.exports = t(__webpack_require__(/*! react */ "../node_modules/react/index.js"), __webpack_require__(/*! react-router-dom */ "../node_modules/react-router-dom/es/index.js")) :  true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! react */ "../node_modules/react/index.js"), __webpack_require__(/*! react-router-dom */ "../node_modules/react-router-dom/es/index.js")], __WEBPACK_AMD_DEFINE_FACTORY__ = (t),
+				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
+				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) : undefined;
+}(window, function (e, t) {
+  return function (e) {
+    var t = {};function r(o) {
+      if (t[o]) return t[o].exports;var n = t[o] = { i: o, l: !1, exports: {} };return e[o].call(n.exports, n, n.exports, r), n.l = !0, n.exports;
+    }return r.m = e, r.c = t, r.d = function (e, t, o) {
+      r.o(e, t) || Object.defineProperty(e, t, { enumerable: !0, get: o });
+    }, r.r = function (e) {
+      "undefined" != typeof Symbol && Symbol.toStringTag && Object.defineProperty(e, Symbol.toStringTag, { value: "Module" }), Object.defineProperty(e, "__esModule", { value: !0 });
+    }, r.t = function (e, t) {
+      if (1 & t && (e = r(e)), 8 & t) return e;if (4 & t && "object" == (typeof e === "undefined" ? "undefined" : _typeof(e)) && e && e.__esModule) return e;var o = Object.create(null);if (r.r(o), Object.defineProperty(o, "default", { enumerable: !0, value: e }), 2 & t && "string" != typeof e) for (var n in e) {
+        r.d(o, n, function (t) {
+          return e[t];
+        }.bind(null, n));
+      }return o;
+    }, r.n = function (e) {
+      var t = e && e.__esModule ? function () {
+        return e.default;
+      } : function () {
+        return e;
+      };return r.d(t, "a", t), t;
+    }, r.o = function (e, t) {
+      return Object.prototype.hasOwnProperty.call(e, t);
+    }, r.p = "/", r(r.s = "2/cV");
+  }({ "2/cV": function cV(e, t, r) {
+      "use strict";
+      Object.defineProperty(t, "__esModule", { value: !0 });var o = r("cDcd"),
+          n = r("oncg");t.default = function (_o$Component) {
+        _inherits(_class, _o$Component);
+
+        function _class(e) {
+          _classCallCheck(this, _class);
+
+          return _possibleConstructorReturn(this, (_class.__proto__ || Object.getPrototypeOf(_class)).call(this, e));
+        }
+
+        _createClass(_class, [{
+          key: "render",
+          value: function render() {
+            var _props = this.props,
+                e = _props.children,
+                t = _props.statusCode;
+            return o.createElement(n.Route, { render: function render(_ref) {
+                var r = _ref.staticContext;
+                return r && (r.statusCode = t), e;
+              } });
+          }
+        }]);
+
+        return _class;
+      }(o.Component);
+    }, cDcd: function cDcd(t, r) {
+      t.exports = e;
+    }, oncg: function oncg(e, r) {
+      e.exports = t;
+    } });
+});
+//# sourceMappingURL=status.js.map
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../node_modules/webpack/buildin/module.js */ "../node_modules/webpack/buildin/module.js")(module)))
 
 /***/ }),
@@ -47578,10 +47666,10 @@ const react_transition_group_1 = __webpack_require__(/*! react-transition-group 
 // import * as ReactGA from 'react-ga';
 // import TopNav from './pieces/TopNav';
 // import { configureAuthRoute } from '../library/authentication';
-const redirect_with_status_1 = __webpack_require__(/*! rili-public-library/react-components/redirect-with-status */ "../rili-public-library/react-components/lib/redirect-with-status.js"); // tslint:disable-line no-implicit-dependencies
+const redirect_with_status_1 = __webpack_require__(/*! rili-public-library/react-components/redirect-with-status */ "../rili-public-library/react-components/lib/redirect-with-status.js");
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
-const scroll_to_1 = __webpack_require__(/*! rili-public-library/utilities/scroll-to */ "../rili-public-library/utilities/lib/scroll-to.js"); // tslint:disable-line no-implicit-dependencies
+const scroll_to_1 = __webpack_require__(/*! rili-public-library/utilities/scroll-to */ "../rili-public-library/utilities/lib/scroll-to.js");
 const interceptors_1 = __webpack_require__(/*! ../interceptors */ "./src/interceptors.ts");
 // import roleConfig from '../../roleConfig';
 const globalConfig = __webpack_require__(/*! ../../../global-config.js */ "../global-config.js");
@@ -47622,7 +47710,7 @@ class Layout extends React.Component {
         });
     }
     onViewChange(location) {
-        scroll_to_1.scrollTo(0, 100);
+        scroll_to_1.default(0, 100);
         // if (typeof(window) !== 'undefined') {
         //     ReactGA.set({ 'page': window.location.pathname });
         //     ReactGA.pageview(window.location.pathname);
@@ -47637,9 +47725,7 @@ class Layout extends React.Component {
                     React.createElement(react_router_dom_1.Switch, null,
                         routes_1.default.map((route, i) => {
                             if (route.access) {
-                                return (React.createElement(react_router_dom_1.Route, Object.assign({ location: this.props.location, key: i }, route))
-                                // <AuthRoute location={this.props.location} key={i} {...route}/>
-                                );
+                                return (React.createElement(react_router_dom_1.Route, Object.assign({ location: this.props.location, key: i }, route)));
                             }
                             else {
                                 return (React.createElement(react_router_dom_1.Route, Object.assign({ location: this.props.location, key: i }, route)));
@@ -47838,11 +47924,13 @@ const translator_1 = __webpack_require__(/*! ../services/translator */ "./src/se
 const globalConfig = __webpack_require__(/*! ../../../global-config.js */ "../global-config.js");
 // Environment Variables
 const envVars = globalConfig["development"];
-var ViewEnum;
-(function (ViewEnum) {
-    ViewEnum["HOME"] = "home";
-    ViewEnum["IN_ROOM"] = "inRoom";
-})(ViewEnum || (ViewEnum = {}));
+const addLi = (message) => {
+    const listEl = document.getElementById('list');
+    const li = document.createElement('li');
+    li.appendChild(document.createTextNode(message));
+    listEl.appendChild(li);
+    scroll_to_1.default(listEl.scrollHeight, 200);
+};
 /**
  * ChatRoom
  */
@@ -47850,13 +47938,8 @@ class ChatRoomComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            hasJoinedARoom: false,
-            inputs: {
-                roomName: 'general-chat'
-            },
-            roomsList: [],
+            inputs: {},
             selectedRoomKey: '',
-            view: ViewEnum.HOME,
         };
         this.messageInputRef = React.createRef();
         // this.sessionToken = '';
@@ -47869,33 +47952,11 @@ class ChatRoomComponent extends React.Component {
         this.onInputChange = this.onInputChange.bind(this);
         this.onButtonClick = this.onButtonClick.bind(this);
         this.shouldDisableInput = this.shouldDisableInput.bind(this);
-        this.socketEmit = this.socketEmit.bind(this);
     }
     componentDidMount() {
-        document.title = 'Rili | ChatRoom';
-        const addLi = (message) => {
-            const listEl = document.getElementById('list');
-            const li = document.createElement('li');
-            li.appendChild(document.createTextNode(message));
-            listEl.appendChild(li);
-            scroll_to_1.default(listEl.scrollHeight, 200);
-        };
-        const updateRoomsList = (message) => {
-            const roomsList = JSON.parse(message).map((room) => (room.roomKey));
-            if (roomsList.length > 0) {
-                document.getElementById('rooms_list').innerHTML = `Active Rooms: <i>${roomsList}</i>`;
-            }
-            else {
-                document.getElementById('rooms_list').innerHTML = `<i>No rooms are currently active. Click 'Join Room' to start a new one.</i>`;
-            }
-        };
-        const handleSessionUpdate = (message) => {
-            console.log('SESSION_UPDATE:', message); // tslint:disable-line no-console
-        };
+        document.title = 'Rili | Chat Room';
         this.socket.on('event', addLi);
         this.socket.on('message', addLi);
-        this.socket.on('rooms:list', updateRoomsList);
-        this.socket.on('session:message', handleSessionUpdate);
     }
     onInputChange(name, value) {
         const newInputChanges = {
@@ -47907,11 +47968,6 @@ class ChatRoomComponent extends React.Component {
     }
     onButtonClick(event) {
         switch (event.target.id) {
-            case 'say_hello':
-                return this.socket.emit('event', {
-                    roomName: this.state.inputs.roomName,
-                    userName: this.state.inputs.userName
-                });
             case 'enter_message':
             case 'message':
                 this.socket.emit('event', {
@@ -47920,37 +47976,13 @@ class ChatRoomComponent extends React.Component {
                     userName: this.state.inputs.userName
                 });
                 return this.onInputChange('message', '');
-            case 'join_room':
-            case 'room_name':
-            case 'user_name':
-                if (!this.shouldDisableInput('room')) {
-                    return this.setState({
-                        hasJoinedARoom: true,
-                        view: ViewEnum.IN_ROOM
-                    }, () => {
-                        if (this.messageInputRef.current && this.messageInputRef.current.inputEl) {
-                            this.messageInputRef.current.inputEl.focus();
-                        }
-                        this.socket.emit('room.join', {
-                            roomName: this.state.inputs.roomName,
-                            userName: this.state.inputs.userName
-                        });
-                    });
-                }
         }
     }
     shouldDisableInput(buttonName) {
         switch (buttonName) {
-            case 'room':
-                return !this.state.inputs.roomName || !this.state.inputs.userName;
-            case 'sayHello':
-                return !this.state.hasJoinedARoom || !this.state.inputs.userName;
             case 'sendMessage':
-                return !this.state.hasJoinedARoom || !this.state.inputs.message;
+                return !this.state.inputs.message;
         }
-    }
-    socketEmit(eventType, data) {
-        this.socket.emit(eventType, data);
     }
     render() {
         return (React.createElement("div", null,
@@ -47987,16 +48019,22 @@ const io = __webpack_require__(/*! socket.io-client */ "../node_modules/socket.i
 const input_1 = __webpack_require__(/*! rili-public-library/react-components/input */ "../rili-public-library/react-components/lib/input.js");
 // import SelectBox from 'rili-public-library/react-components/select-box';
 const button_secondary_1 = __webpack_require__(/*! rili-public-library/react-components/button-secondary */ "../rili-public-library/react-components/lib/button-secondary.js");
-const scroll_to_1 = __webpack_require__(/*! rili-public-library/utilities/scroll-to */ "../rili-public-library/utilities/lib/scroll-to.js");
 const translator_1 = __webpack_require__(/*! ../services/translator */ "./src/services/translator.ts");
 const globalConfig = __webpack_require__(/*! ../../../global-config.js */ "../global-config.js");
 // Environment Variables
 const envVars = globalConfig["development"];
-var ViewEnum;
-(function (ViewEnum) {
-    ViewEnum["HOME"] = "home";
-    ViewEnum["IN_ROOM"] = "inRoom";
-})(ViewEnum || (ViewEnum = {}));
+const handleSessionUpdate = (message) => {
+    console.log('SESSION_UPDATE:', message); // tslint:disable-line no-console
+};
+const updateRoomsList = (message) => {
+    const roomsList = JSON.parse(message).map((room) => (room.roomKey));
+    if (roomsList.length > 0) {
+        document.getElementById('rooms_list').innerHTML = `Active Rooms: <i>${roomsList}</i>`;
+    }
+    else {
+        document.getElementById('rooms_list').innerHTML = `<i>No rooms are currently active. Click 'Join Room' to start a new one.</i>`;
+    }
+};
 /**
  * Home
  */
@@ -48009,10 +48047,7 @@ class HomeComponent extends React.Component {
                 roomName: 'general-chat'
             },
             roomsList: [],
-            selectedRoomKey: '',
-            view: ViewEnum.HOME,
         };
-        this.messageInputRef = React.createRef();
         // this.sessionToken = '';
         this.socket = io(`${envVars.baseSocketUrl}`, {
             secure: true,
@@ -48023,31 +48058,9 @@ class HomeComponent extends React.Component {
         this.onInputChange = this.onInputChange.bind(this);
         this.onButtonClick = this.onButtonClick.bind(this);
         this.shouldDisableInput = this.shouldDisableInput.bind(this);
-        this.socketEmit = this.socketEmit.bind(this);
     }
     componentDidMount() {
         document.title = 'Rili | Home';
-        const addLi = (message) => {
-            const listEl = document.getElementById('list');
-            const li = document.createElement('li');
-            li.appendChild(document.createTextNode(message));
-            listEl.appendChild(li);
-            scroll_to_1.default(listEl.scrollHeight, 200);
-        };
-        const updateRoomsList = (message) => {
-            const roomsList = JSON.parse(message).map((room) => (room.roomKey));
-            if (roomsList.length > 0) {
-                document.getElementById('rooms_list').innerHTML = `Active Rooms: <i>${roomsList}</i>`;
-            }
-            else {
-                document.getElementById('rooms_list').innerHTML = `<i>No rooms are currently active. Click 'Join Room' to start a new one.</i>`;
-            }
-        };
-        const handleSessionUpdate = (message) => {
-            console.log('SESSION_UPDATE:', message); // tslint:disable-line no-console
-        };
-        this.socket.on('event', addLi);
-        this.socket.on('message', addLi);
         this.socket.on('rooms:list', updateRoomsList);
         this.socket.on('session:message', handleSessionUpdate);
     }
@@ -48061,35 +48074,15 @@ class HomeComponent extends React.Component {
     }
     onButtonClick(event) {
         switch (event.target.id) {
-            case 'say_hello':
-                return this.socket.emit('event', {
-                    roomName: this.state.inputs.roomName,
-                    userName: this.state.inputs.userName
-                });
-            case 'enter_message':
-            case 'message':
-                this.socket.emit('event', {
-                    roomName: this.state.inputs.roomName,
-                    message: this.state.inputs.message,
-                    userName: this.state.inputs.userName
-                });
-                return this.onInputChange('message', '');
             case 'join_room':
             case 'room_name':
             case 'user_name':
                 if (!this.shouldDisableInput('room')) {
-                    return this.setState({
-                        hasJoinedARoom: true,
-                        view: ViewEnum.IN_ROOM
-                    }, () => {
-                        if (this.messageInputRef.current && this.messageInputRef.current.inputEl) {
-                            this.messageInputRef.current.inputEl.focus();
-                        }
-                        this.socket.emit('room.join', {
-                            roomName: this.state.inputs.roomName,
-                            userName: this.state.inputs.userName
-                        });
+                    this.socket.emit('room.join', {
+                        roomName: this.state.inputs.roomName,
+                        userName: this.state.inputs.userName
                     });
+                    this.props.history.push('/chat-room');
                 }
         }
     }
@@ -48102,9 +48095,6 @@ class HomeComponent extends React.Component {
             case 'sendMessage':
                 return !this.state.hasJoinedARoom || !this.state.inputs.message;
         }
-    }
-    socketEmit(eventType, data) {
-        this.socket.emit(eventType, data);
     }
     render() {
         return (React.createElement("div", null,
@@ -48137,6 +48127,7 @@ exports.default = react_router_dom_1.withRouter(HomeComponent);
 Object.defineProperty(exports, "__esModule", { value: true });
 const chat_room_1 = __webpack_require__(/*! ./chat-room */ "./src/routes/chat-room.tsx");
 const home_1 = __webpack_require__(/*! ./home */ "./src/routes/home.tsx");
+const page_not_found_1 = __webpack_require__(/*! ./page-not-found */ "./src/routes/page-not-found.tsx");
 let routes = [
     {
         path: '/',
@@ -48148,8 +48139,63 @@ let routes = [
         component: chat_room_1.default,
         exact: true
     },
+    // {
+    // 	'path': '/login',
+    // 	'component': Login,
+    // 	'exact': true
+    // },
+    // {
+    // 	'path': '/register',
+    // 	'component': Register,
+    // 	'exact': true
+    // },
+    // If no route matches, return NotFound component
+    {
+        'component': page_not_found_1.default
+    }
 ];
 exports.default = routes;
+
+
+/***/ }),
+
+/***/ "./src/routes/page-not-found.tsx":
+/*!***************************************!*\
+  !*** ./src/routes/page-not-found.tsx ***!
+  \***************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const React = __webpack_require__(/*! react */ "../node_modules/react/index.js");
+const react_router_dom_1 = __webpack_require__(/*! react-router-dom */ "../node_modules/react-router-dom/es/index.js");
+const status_1 = __webpack_require__(/*! rili-public-library/react-components/status */ "../rili-public-library/react-components/lib/status.js");
+const translator_1 = __webpack_require__(/*! ../services/translator */ "./src/services/translator.ts");
+const globalConfig = __webpack_require__(/*! ../../../global-config.js */ "../global-config.js");
+// Environment Variables
+const envVars = globalConfig["development"];
+/**
+ * PageNotFound
+ */
+class PageNotFoundComponent extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {};
+        this.translate = (key, params) => translator_1.default('en-us', key, params);
+    }
+    componentDidMount() {
+        document.title = 'Rili | Page Not Found';
+    }
+    render() {
+        return (React.createElement(status_1.default, Object.assign({ statusCode: 404 }, this.props),
+            React.createElement("div", null,
+                React.createElement("h1", null, "404 | Page not found"))));
+    }
+}
+exports.PageNotFoundComponent = PageNotFoundComponent;
+exports.default = react_router_dom_1.withRouter(PageNotFoundComponent);
 
 
 /***/ }),

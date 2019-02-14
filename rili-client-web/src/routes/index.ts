@@ -1,5 +1,6 @@
 import ChatRoom from './chat-room';
 import Home from './home';
+import PageNotFound from './page-not-found';
 import { RouteProps } from 'react-router-dom';
 // import Login from './components/pages/Login';
 // import NotFound from './components/pages/NotFound';
@@ -36,9 +37,9 @@ let routes: IRoute[] = [
     // },
 
     // If no route matches, return NotFound component
-    // {
-    // 	'component': NotFound
-    // }
+    {
+        'component': PageNotFound
+    }
 ];
 
 export default routes;

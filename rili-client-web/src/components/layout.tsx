@@ -6,10 +6,10 @@ import { TransitionGroup as Animation } from 'react-transition-group';
 // import * as ReactGA from 'react-ga';
 // import TopNav from './pieces/TopNav';
 // import { configureAuthRoute } from '../library/authentication';
-import { RedirectWithStatus } from 'rili-public-library/react-components/redirect-with-status'; // tslint:disable-line no-implicit-dependencies
+import { RedirectWithStatus } from 'rili-public-library/react-components/redirect-with-status';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
-import { scrollTo } from 'rili-public-library/utilities/scroll-to'; // tslint:disable-line no-implicit-dependencies
+import scrollTo from 'rili-public-library/utilities/scroll-to';
 import initInterceptors from '../interceptors';
 // import roleConfig from '../../roleConfig';
 import * as globalConfig from '../../../global-config.js';
@@ -108,12 +108,11 @@ class Layout extends React.Component<ILayoutProps & ILayoutDispatchProps, any> {
                             {routes.map((route, i) => {
                                 if (route.access) {
                                     return (
-                                        <Route location={this.props.location} key={i} {...route}/>
-                                        // <AuthRoute location={this.props.location} key={i} {...route}/>
+                                        <Route location={this.props.location} key={i} {...route} />
                                     );
                                 } else {
                                     return (
-                                        <Route location={this.props.location} key={i} {...route}/>
+                                        <Route location={this.props.location} key={i} {...route} />
                                     );
                                 }
                             })}
