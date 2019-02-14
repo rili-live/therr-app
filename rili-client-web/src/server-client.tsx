@@ -66,7 +66,7 @@ for (let i in routeConfig) {
 
     app.get(routePath, (req, res) => {
         let promises: any = [];
-        const context: any = {};
+        const staticContext: any = {};
         const initialState = {};
         const store = createStore(
             rootReducer,
@@ -90,7 +90,7 @@ for (let i in routeConfig) {
         Promise.all(promises).then(() => {
             const markup = ReactDOMServer.renderToString(
                 <Provider store={store}>
-                    <StaticRouter location={req.url} context={context}>
+                    <StaticRouter location={req.url} context={staticContext}>
                         <Layout />
                     </StaticRouter>
                 </Provider>
@@ -101,10 +101,10 @@ for (let i in routeConfig) {
 
             const state = JSON.stringify(initialState);
 
-            if (context.url) {
+            if (staticContext.url) {
                 printLogs(true, 'SERVER_CLIENT', null, 'Somewhere a <Redirect> was rendered');
-                res.writeHead(context.status, {
-                    'Location': context.url
+                res.writeHead(staticContext.statusCode, {
+                    'Location': staticContext.url
                 });
                 res.end();
             } else {

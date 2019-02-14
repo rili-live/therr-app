@@ -8,14 +8,6 @@ import scrollTo from 'rili-public-library/utilities/scroll-to';
 import translator from '../services/translator';
 import * as globalConfig from '../../../global-config.js';
 
-// Environment Variables
-const envVars = globalConfig[process.env.NODE_ENV];
-
-enum ViewEnum {
-    HOME = 'home',
-    IN_ROOM = 'inRoom'
-}
-
 interface IHomeRouterProps {
 
 }
@@ -32,18 +24,30 @@ interface IHomeState {
     hasJoinedARoom: boolean;
     inputs: any;
     roomsList: any;
-    selectedRoomKey: string;
-    view: ViewEnum;
 }
+
+// Environment Variables
+const envVars = globalConfig[process.env.NODE_ENV];
+
+const handleSessionUpdate = (message: any) => {
+    console.log('SESSION_UPDATE:', message); // tslint:disable-line no-console
+};
+
+const updateRoomsList = (message: any) => {
+    const roomsList = JSON.parse(message).map((room: any) => (room.roomKey));
+    if (roomsList.length > 0) {
+        document.getElementById('rooms_list').innerHTML = `Active Rooms: <i>${roomsList}</i>`;
+    } else {
+        document.getElementById('rooms_list').innerHTML = `<i>No rooms are currently active. Click 'Join Room' to start a new one.</i>`;
+    }
+};
 
 /**
  * Home
  */
 export class HomeComponent extends React.Component<IHomeProps & IHomeDispatchProps, IHomeState> {
-    private messageInputRef: any;
     // private sessionToken: string;
     private socket: any;
-
     private translate: Function;
 
     constructor(props: IHomeProps & IHomeDispatchProps) {
@@ -55,11 +59,8 @@ export class HomeComponent extends React.Component<IHomeProps & IHomeDispatchPro
                 roomName: 'general-chat'
             },
             roomsList: [],
-            selectedRoomKey: '',
-            view: ViewEnum.HOME,
         };
 
-        this.messageInputRef = React.createRef();
         // this.sessionToken = '';
         this.socket = io(`${envVars.baseSocketUrl}`, {
             secure: true,
@@ -71,35 +72,11 @@ export class HomeComponent extends React.Component<IHomeProps & IHomeDispatchPro
         this.onInputChange = this.onInputChange.bind(this);
         this.onButtonClick = this.onButtonClick.bind(this);
         this.shouldDisableInput = this.shouldDisableInput.bind(this);
-        this.socketEmit = this.socketEmit.bind(this);
     }
 
     componentDidMount() {
         document.title = 'Rili | Home';
 
-        const addLi = (message: any) => {
-            const listEl = document.getElementById('list');
-            const li = document.createElement('li');
-            li.appendChild(document.createTextNode(message));
-            listEl.appendChild(li);
-            scrollTo(listEl.scrollHeight, 200);
-        };
-
-        const updateRoomsList = (message: any) => {
-            const roomsList = JSON.parse(message).map((room: any) => (room.roomKey));
-            if (roomsList.length > 0) {
-                document.getElementById('rooms_list').innerHTML = `Active Rooms: <i>${roomsList}</i>`;
-            } else {
-                document.getElementById('rooms_list').innerHTML = `<i>No rooms are currently active. Click 'Join Room' to start a new one.</i>`;
-            }
-        };
-
-        const handleSessionUpdate = (message: any) => {
-            console.log('SESSION_UPDATE:', message); // tslint:disable-line no-console
-        };
-
-        this.socket.on('event', addLi);
-        this.socket.on('message', addLi);
         this.socket.on('rooms:list', updateRoomsList);
         this.socket.on('session:message', handleSessionUpdate);
     }
@@ -118,35 +95,15 @@ export class HomeComponent extends React.Component<IHomeProps & IHomeDispatchPro
 
     onButtonClick(event: any) {
         switch (event.target.id) {
-            case 'say_hello':
-                return this.socket.emit('event', {
-                    roomName: this.state.inputs.roomName,
-                    userName: this.state.inputs.userName
-                });
-            case 'enter_message':
-            case 'message':
-                this.socket.emit('event', {
-                    roomName: this.state.inputs.roomName,
-                    message: this.state.inputs.message,
-                    userName: this.state.inputs.userName
-                });
-                return this.onInputChange('message', '');
             case 'join_room':
             case 'room_name':
             case 'user_name':
             if (!this.shouldDisableInput('room')) {
-                return this.setState({
-                    hasJoinedARoom: true,
-                    view: ViewEnum.IN_ROOM
-                }, () => {
-                    if (this.messageInputRef.current && this.messageInputRef.current.inputEl) {
-                        this.messageInputRef.current.inputEl.focus();
-                    }
-                    this.socket.emit('room.join', {
-                        roomName: this.state.inputs.roomName,
-                        userName: this.state.inputs.userName
-                    });
+                this.socket.emit('room.join', {
+                    roomName: this.state.inputs.roomName,
+                    userName: this.state.inputs.userName
                 });
+                this.props.history.push('/chat-room');
             }
         }
     }
@@ -160,10 +117,6 @@ export class HomeComponent extends React.Component<IHomeProps & IHomeDispatchPro
             case 'sendMessage':
                 return !this.state.hasJoinedARoom || !this.state.inputs.message;
         }
-    }
-
-    socketEmit(eventType: string, data: any) {
-        this.socket.emit(eventType, data);
     }
 
     render() {

@@ -8,14 +8,6 @@ import scrollTo from 'rili-public-library/utilities/scroll-to';
 import translator from '../services/translator';
 import * as globalConfig from '../../../global-config.js';
 
-// Environment Variables
-const envVars = globalConfig[process.env.NODE_ENV];
-
-enum ViewEnum {
-    HOME = 'home',
-    IN_ROOM = 'inRoom'
-}
-
 interface IChatRoomRouterProps {
 
 }
@@ -29,12 +21,20 @@ interface IChatRoomDispatchProps {
 }
 
 interface IChatRoomState {
-    hasJoinedARoom: boolean;
     inputs: any;
-    roomsList: any;
     selectedRoomKey: string;
-    view: ViewEnum;
 }
+
+// Environment Variables
+const envVars = globalConfig[process.env.NODE_ENV];
+
+const addLi = (message: any) => {
+    const listEl = document.getElementById('list');
+    const li = document.createElement('li');
+    li.appendChild(document.createTextNode(message));
+    listEl.appendChild(li);
+    scrollTo(listEl.scrollHeight, 200);
+};
 
 /**
  * ChatRoom
@@ -43,20 +43,14 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps & IChatRoo
     private messageInputRef: any;
     // private sessionToken: string;
     private socket: any;
-
     private translate: Function;
 
     constructor(props: IChatRoomProps & IChatRoomDispatchProps) {
         super(props);
 
         this.state = {
-            hasJoinedARoom: false,
-            inputs: {
-                roomName: 'general-chat'
-            },
-            roomsList: [],
+            inputs: {},
             selectedRoomKey: '',
-            view: ViewEnum.HOME,
         };
 
         this.messageInputRef = React.createRef();
@@ -71,37 +65,13 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps & IChatRoo
         this.onInputChange = this.onInputChange.bind(this);
         this.onButtonClick = this.onButtonClick.bind(this);
         this.shouldDisableInput = this.shouldDisableInput.bind(this);
-        this.socketEmit = this.socketEmit.bind(this);
     }
 
     componentDidMount() {
-        document.title = 'Rili | ChatRoom';
-
-        const addLi = (message: any) => {
-            const listEl = document.getElementById('list');
-            const li = document.createElement('li');
-            li.appendChild(document.createTextNode(message));
-            listEl.appendChild(li);
-            scrollTo(listEl.scrollHeight, 200);
-        };
-
-        const updateRoomsList = (message: any) => {
-            const roomsList = JSON.parse(message).map((room: any) => (room.roomKey));
-            if (roomsList.length > 0) {
-                document.getElementById('rooms_list').innerHTML = `Active Rooms: <i>${roomsList}</i>`;
-            } else {
-                document.getElementById('rooms_list').innerHTML = `<i>No rooms are currently active. Click 'Join Room' to start a new one.</i>`;
-            }
-        };
-
-        const handleSessionUpdate = (message: any) => {
-            console.log('SESSION_UPDATE:', message); // tslint:disable-line no-console
-        };
+        document.title = 'Rili | Chat Room';
 
         this.socket.on('event', addLi);
         this.socket.on('message', addLi);
-        this.socket.on('rooms:list', updateRoomsList);
-        this.socket.on('session:message', handleSessionUpdate);
     }
 
     onInputChange(name: string, value: string) {
@@ -118,11 +88,6 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps & IChatRoo
 
     onButtonClick(event: any) {
         switch (event.target.id) {
-            case 'say_hello':
-                return this.socket.emit('event', {
-                    roomName: this.state.inputs.roomName,
-                    userName: this.state.inputs.userName
-                });
             case 'enter_message':
             case 'message':
                 this.socket.emit('event', {
@@ -131,39 +96,14 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps & IChatRoo
                     userName: this.state.inputs.userName
                 });
                 return this.onInputChange('message', '');
-            case 'join_room':
-            case 'room_name':
-            case 'user_name':
-            if (!this.shouldDisableInput('room')) {
-                return this.setState({
-                    hasJoinedARoom: true,
-                    view: ViewEnum.IN_ROOM
-                }, () => {
-                    if (this.messageInputRef.current && this.messageInputRef.current.inputEl) {
-                        this.messageInputRef.current.inputEl.focus();
-                    }
-                    this.socket.emit('room.join', {
-                        roomName: this.state.inputs.roomName,
-                        userName: this.state.inputs.userName
-                    });
-                });
-            }
         }
     }
 
     shouldDisableInput(buttonName: string) {
         switch (buttonName) {
-            case 'room':
-                return !this.state.inputs.roomName || !this.state.inputs.userName;
-            case 'sayHello':
-                return !this.state.hasJoinedARoom || !this.state.inputs.userName;
             case 'sendMessage':
-                return !this.state.hasJoinedARoom || !this.state.inputs.message;
+                return !this.state.inputs.message;
         }
-    }
-
-    socketEmit(eventType: string, data: any) {
-        this.socket.emit(eventType, data);
     }
 
     render() {

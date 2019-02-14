@@ -16,6 +16,7 @@ const formComponents = [
 
 // Routing
 const routingComponents = [
+    'routing/status',
     'routing/redirect-with-status',
 ];
 
