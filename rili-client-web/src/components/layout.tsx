@@ -6,7 +6,8 @@ import { TransitionGroup as Animation } from 'react-transition-group';
 // import * as ReactGA from 'react-ga';
 // import TopNav from './pieces/TopNav';
 // import { configureAuthRoute } from '../library/authentication';
-import { RedirectWithStatus } from 'rili-public-library/react-components/redirect-with-status';
+import { ISocketState } from '../redux/reducers/socket';
+import RedirectWithStatus from 'rili-public-library/react-components/redirect-with-status';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
 import scrollTo from 'rili-public-library/utilities/scroll-to';
@@ -18,6 +19,26 @@ import routes from '../routes';
 import { Location } from 'history';
 
 let _viewListener: any;
+
+interface ILayoutRouterProps {
+
+}
+
+interface ILayoutDispatchProps {
+    // Add your dispatcher properties here
+}
+
+interface IStoreProps extends ILayoutDispatchProps {
+    socket?: ISocketState;
+}
+
+interface ILayoutProps extends RouteComponentProps<ILayoutRouterProps>, IStoreProps {
+// Add your regular properties here
+}
+
+interface ILayoutState {
+    clientHasLoaded: boolean;
+}
 
 const mapStateToProps = (state: any) => {
     return {
@@ -31,28 +52,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
     }, dispatch);
 };
 
-interface ILayoutRouterProps {
-
-}
-
-interface ILayoutProps extends RouteComponentProps {
-
-}
-
-interface ILayoutProps extends RouteComponentProps<ILayoutRouterProps> {
-// Add your regular properties here
-}
-
-interface ILayoutDispatchProps {
-// Add your dispatcher properties here
-}
-
-// interface ILayoutState {
-// }
-
 // TODO: Animation between view change is not working when wrapped around a Switch
-class Layout extends React.Component<ILayoutProps & ILayoutDispatchProps, any> {
-    constructor(props: ILayoutProps) {
+export class Layout extends React.Component<ILayoutProps, ILayoutState> {
+    constructor(props: ILayoutProps, state: ILayoutState) {
         super(props);
 
         this.state = {
@@ -86,7 +88,7 @@ class Layout extends React.Component<ILayoutProps & ILayoutDispatchProps, any> {
         // }
     }
 
-    render() {
+    public render(): JSX.Element | null {
         // Cloak the view so it doesn't flash before client mounts
         if (this.state.clientHasLoaded) {
             return (
@@ -100,22 +102,23 @@ class Layout extends React.Component<ILayoutProps & ILayoutDispatchProps, any> {
                         appear={true}
                         enter={true}
                         exit={true}
-                        timeout={250}
                         component="div"
                         className="content-container view"
                     >
                         <Switch>
-                            {routes.map((route, i) => {
-                                if (route.access) {
-                                    return (
-                                        <Route location={this.props.location} key={i} {...route} />
-                                    );
-                                } else {
-                                    return (
-                                        <Route location={this.props.location} key={i} {...route} />
-                                    );
-                                }
-                            })}
+                            {
+                                routes.map((route, i) => {
+                                    if (route.access) {
+                                        return (
+                                            <Route location={this.props.location} key={i} {...route} />
+                                        );
+                                    } else {
+                                        return (
+                                            <Route location={this.props.location} key={i} {...route} />
+                                        );
+                                    }
+                                })
+                            }
                             <RedirectWithStatus from="/redirect" to="/" />
                         </Switch>
                     </Animation>
@@ -144,4 +147,5 @@ class Layout extends React.Component<ILayoutProps & ILayoutDispatchProps, any> {
     }
 }
 
+// export default Layout;
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Layout));

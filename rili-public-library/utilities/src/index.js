@@ -2,6 +2,10 @@
 // This allows tree-shaking
 
 const utilities = [
+    // Constants
+    'constants/index',
+
+    // Utilities
     'calculate-pages',
     'localization',
     'promiser',

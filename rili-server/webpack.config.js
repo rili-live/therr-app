@@ -37,6 +37,7 @@ const common = merge([
             extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
             alias: {
                 'rili-public-library/utilities': path.join(__dirname, '../rili-public-library/utilities/lib'),
+                'rili-public-library/react-components': path.join(__dirname, '../rili-public-library/react-components/lib'),
             },
         },
         externals: nodeModules,

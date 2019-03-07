@@ -1,7 +1,8 @@
 import thunkMiddleware from 'redux-thunk';
 import { createLogger } from 'redux-logger';
 import { applyMiddleware, compose, createStore } from 'redux';
-import rootReducer from './reducers';
+import rootReducer from './redux/reducers';
+import socketIOMiddleWare from './socket-io-middleware';
 
 declare global {
     interface Window { // tslint:disable-line interface-name
@@ -44,6 +45,7 @@ if (process.env.NODE_ENV === 'production') {
         rootReducer,
         preLoadedState,
         applyMiddleware(
+            socketIOMiddleWare,
             thunkMiddleware
         )
     );
@@ -53,8 +55,9 @@ if (process.env.NODE_ENV === 'production') {
         rootReducer,
         preLoadedState,
         composeEnhancers(applyMiddleware(
+            loggerMiddleware, // middleware that logs actions (development only)
+            socketIOMiddleWare,
             thunkMiddleware, // let's us dispatch functions
-            loggerMiddleware // middleware that logs actions (development only)
         ))
     );
 }

@@ -153,6 +153,17 @@ module.exports = {
 
 /***/ }),
 
+/***/ "../rili-public-library/utilities/lib/constants.js":
+/*!*********************************************************!*\
+  !*** ../rili-public-library/utilities/lib/constants.js ***!
+  \*********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+!function(e,t){ true?module.exports=t():undefined}(global,function(){return function(e){var t={};function n(r){if(t[r])return t[r].exports;var o=t[r]={i:r,l:!1,exports:{}};return e[r].call(o.exports,o,o.exports,n),o.l=!0,o.exports}return n.m=e,n.c=t,n.d=function(e,t,r){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)n.d(r,o,function(t){return e[t]}.bind(null,o));return r},n.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="/",n(n.s="jxKE")}({"0sdN":function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.JOIN_ROOM="CLIENT:JOIN_ROOM",e.SEND_MESSAGE="CLIENT:SEND_MESSAGE"}(r||(r={})),t.default=r},jxKE:function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const r=n("0sdN");t.SocketClientActionTypes=r.default;const o=n("nwmR");t.SocketServerActionTypes=o.default,t.SERVER_PREFIX="SERVER",t.WEB_CLIENT_PREFIX="CLIENT"},nwmR:function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.DISCONNECT="SERVER:DISCONNECT",e.JOINED_ROOM="SERVER:JOINED_ROOM",e.SEND_ROOMS_LIST="SERVER:SEND_ROOMS_LIST",e.SEND_MESSAGE="SERVER:SEND_MESSAGE",e.SESSION_MESSAGE="SERVER:SESSION_MESSAGE"}(r||(r={})),t.default=r}})});
+
+/***/ }),
+
 /***/ "../rili-public-library/utilities/lib/print-logs.js":
 /*!**********************************************************!*\
   !*** ../rili-public-library/utilities/lib/print-logs.js ***!
@@ -175,6 +186,126 @@ module.exports = {
 
 /***/ }),
 
+/***/ "./src/handlers/socket/index.ts":
+/*!**************************************!*\
+  !*** ./src/handlers/socket/index.ts ***!
+  \**************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const join_room_1 = __webpack_require__(/*! ./join-room */ "./src/handlers/socket/join-room.ts");
+exports.joinRoom = join_room_1.default;
+const send_message_1 = __webpack_require__(/*! ./send-message */ "./src/handlers/socket/send-message.ts");
+exports.sendMessage = send_message_1.default;
+
+
+/***/ }),
+
+/***/ "./src/handlers/socket/join-room.ts":
+/*!******************************************!*\
+  !*** ./src/handlers/socket/join-room.ts ***!
+  \******************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const print_logs_1 = __webpack_require__(/*! rili-public-library/utilities/print-logs */ "../rili-public-library/utilities/lib/print-logs.js"); // tslint:disable-line no-implicit-dependencies
+const constants_1 = __webpack_require__(/*! rili-public-library/utilities/constants */ "../rili-public-library/utilities/lib/constants.js");
+const server_socket_io_1 = __webpack_require__(/*! ../../server-socket-io */ "./src/server-socket-io.ts");
+const joinRoom = (socket, redisSession, data) => {
+    // Leave all current rooms (except default room) before joining a new one
+    Object.keys(socket.rooms)
+        .filter((room) => room !== socket.id)
+        .forEach((room) => {
+        socket.broadcast.to(room).emit('event', `${data.userName} left the room`);
+        socket.leave(room);
+    });
+    // TODO: RSERV-4: Determine why this setTimeout exists
+    setTimeout(() => {
+        socket.join(data.roomId, () => {
+            // TODO: After adding user login, this should be created after login rather then after joining a room
+            if (socket.handshake && socket.handshake.headers && socket.handshake.headers.host) {
+                redisSession.create({
+                    app: server_socket_io_1.rsAppName,
+                    socketId: socket.id,
+                    ip: socket.handshake.headers.host.split(':')[0],
+                    // 30 minutes
+                    ttl: 60 * 1000 * 30,
+                    data: {
+                        userName: data.userName,
+                    },
+                }).then((response) => {
+                    socket.emit('saction', {
+                        type: constants_1.SocketServerActionTypes.SessionMessage,
+                        data: response,
+                    });
+                }).catch((err) => {
+                    print_logs_1.default(server_socket_io_1.shouldIncludeRedisLogs, 'REDIS_SESSION_ERROR', null, err);
+                });
+            }
+            print_logs_1.default(server_socket_io_1.shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `User, ${data.userName} with socketId ${socket.id}, joined room ${data.roomId}`);
+            print_logs_1.default(server_socket_io_1.shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `${data.userName}'s Current Rooms: ${JSON.stringify(socket.rooms)}`);
+            // Emits an event back to the client who joined
+            socket.emit('action', {
+                type: constants_1.SocketServerActionTypes.JOINED_ROOM,
+                data: {
+                    roomId: data.roomId,
+                    message: `You joined room ${data.roomId}`,
+                }
+            });
+            // Broadcasts an event back to the client for all users in the specified room (excluding the user who triggered it)
+            socket.broadcast.to(data.roomId).emit('action', {
+                type: constants_1.SocketServerActionTypes.JOINED_ROOM,
+                data: {
+                    roomId: data.roomId,
+                    message: `${data.userName} joined room ${data.roomId}`,
+                },
+            });
+        });
+    }, 0);
+};
+exports.default = joinRoom;
+
+
+/***/ }),
+
+/***/ "./src/handlers/socket/send-message.ts":
+/*!*********************************************!*\
+  !*** ./src/handlers/socket/send-message.ts ***!
+  \*********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const print_logs_1 = __webpack_require__(/*! rili-public-library/utilities/print-logs */ "../rili-public-library/utilities/lib/print-logs.js"); // tslint:disable-line no-implicit-dependencies
+const constants_1 = __webpack_require__(/*! rili-public-library/utilities/constants */ "../rili-public-library/utilities/lib/constants.js");
+const server_socket_io_1 = __webpack_require__(/*! ../../server-socket-io */ "./src/server-socket-io.ts");
+const sendMessage = (socket, data) => {
+    print_logs_1.default(server_socket_io_1.shouldIncludeLogs, constants_1.SocketClientActionTypes.SEND_MESSAGE, null, data);
+    socket.emit('action', {
+        type: constants_1.SocketServerActionTypes.SEND_MESSAGE,
+        data: `You: ${data.message}`,
+        roomId: data.roomId,
+    });
+    socket.broadcast.to(data.roomName).emit('action', {
+        type: constants_1.SocketServerActionTypes.SEND_MESSAGE,
+        data: `${data.userName}: ${data.message}`,
+        roomId: data.roomId,
+    });
+    print_logs_1.default(server_socket_io_1.shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `${data.userName} said: ${data.message}`);
+};
+exports.default = sendMessage;
+
+
+/***/ }),
+
 /***/ "./src/server-socket-io.ts":
 /*!*********************************!*\
   !*** ./src/server-socket-io.ts ***!
@@ -192,19 +323,21 @@ const https = __webpack_require__(/*! https */ "https");
 const Redis = __webpack_require__(/*! ioredis */ "ioredis");
 const socketio = __webpack_require__(/*! socket.io */ "socket.io");
 const socketioRedis = __webpack_require__(/*! socket.io-redis */ "socket.io-redis");
-const print_logs_1 = __webpack_require__(/*! rili-public-library/utilities/print-logs */ "../rili-public-library/utilities/lib/print-logs.js"); // tslint:disable-line no-implicit-dependencies
+const socketHandlers = __webpack_require__(/*! ./handlers/socket */ "./src/handlers/socket/index.ts");
+const constants_1 = __webpack_require__(/*! rili-public-library/utilities/constants */ "../rili-public-library/utilities/lib/constants.js");
+const print_logs_1 = __webpack_require__(/*! rili-public-library/utilities/print-logs */ "../rili-public-library/utilities/lib/print-logs.js");
 const globalConfig = __webpack_require__(/*! ../../global-config.js */ "../global-config.js");
 const redis_session_1 = __webpack_require__(/*! ./services/redis-session */ "./src/services/redis-session.ts");
 const get_socket_rooms_list_1 = __webpack_require__(/*! ./utilities/get-socket-rooms-list */ "./src/utilities/get-socket-rooms-list.ts");
-const rsAppName = 'riliChat';
+exports.rsAppName = 'riliChat';
 // Session to attach socket.io details to username while logged in
-const shouldIncludeAllLogs = process.argv[2] === 'withAllLogs';
-const shouldIncludeLogs = process.argv[2] === 'withLogs';
-const shouldIncludeRedisLogs = process.argv[2] === 'withRedisLogs'
-    || shouldIncludeAllLogs;
-const shouldIncludeSocketLogs = process.argv[2] === 'withSocketLogs'
-    || shouldIncludeAllLogs
-    || shouldIncludeRedisLogs;
+exports.shouldIncludeAllLogs = process.argv[2] === 'withAllLogs';
+exports.shouldIncludeLogs = process.argv[2] === 'withLogs';
+exports.shouldIncludeRedisLogs = process.argv[2] === 'withRedisLogs'
+    || exports.shouldIncludeAllLogs;
+exports.shouldIncludeSocketLogs = process.argv[2] === 'withSocketLogs'
+    || exports.shouldIncludeAllLogs
+    || exports.shouldIncludeRedisLogs;
 const nodes = [
     // Pub
     {
@@ -238,7 +371,7 @@ const redisSub = new Redis(nodes[0].port, nodes[0].host, {
 const redisConnectPromises = [redisPub.connect(), redisSub.connect()];
 Promise.all(redisConnectPromises).then((responses) => {
     // connection ready
-    if (shouldIncludeRedisLogs) {
+    if (exports.shouldIncludeRedisLogs) {
         redisPub.monitor().then(function (monitor) {
             monitor.on('monitor', function (time, args, source, database) {
                 print_logs_1.default(true, `REDIS_PUB_LOG`, time, `Source: ${source}, Database: ${database}`, ...args);
@@ -279,75 +412,33 @@ const startExpressSocketIOServer = () => {
     //     printLogs(shouldIncludeRedisLogs, 'REDIS_SUB_CLUSTER_CONNECTION_ERROR:', null, error);
     // });
     redisAdapter.pubClient.on('error', (err) => {
-        print_logs_1.default(shouldIncludeRedisLogs, 'REDIS_PUB_CLIENT_ERROR', null, err);
+        print_logs_1.default(exports.shouldIncludeRedisLogs, 'REDIS_PUB_CLIENT_ERROR', null, err);
     });
     redisAdapter.subClient.on('error', (err) => {
-        print_logs_1.default(shouldIncludeRedisLogs, 'REDIS_SUB_CLIENT_ERROR', null, err);
+        print_logs_1.default(exports.shouldIncludeRedisLogs, 'REDIS_SUB_CLIENT_ERROR', null, err);
     });
     redisAdapter.subClient.on('subscribe', (channel, count) => {
-        print_logs_1.default(shouldIncludeRedisLogs, 'REDIS_SUB_CLIENT', null, `Subscribed to ${channel}. Now subscribed to ${count} channel(s).`);
+        print_logs_1.default(exports.shouldIncludeRedisLogs, 'REDIS_SUB_CLIENT', null, `Subscribed to ${channel}. Now subscribed to ${count} channel(s).`);
     });
     redisAdapter.subClient.on('message', (channel, message) => {
-        print_logs_1.default(shouldIncludeRedisLogs, 'REDIS_SUB_CLIENT', null, `Message from channel ${channel}: ${message}`); // tslint:disable-line
+        print_logs_1.default(exports.shouldIncludeRedisLogs, 'REDIS_SUB_CLIENT', null, `Message from channel ${channel}: ${message}`);
     });
     io.on('connection', (socket) => {
-        print_logs_1.default(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, 'NEW CONNECTION...');
-        print_logs_1.default(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `All Rooms: ${JSON.stringify(get_socket_rooms_list_1.default(io.sockets.adapter.rooms))}`);
-        socket.emit('rooms:list', JSON.stringify(get_socket_rooms_list_1.default(io.sockets.adapter.rooms)));
-        socket.on('room.join', (details) => {
-            // Leave all current rooms (except default room) before joining a new one
-            Object.keys(socket.rooms)
-                .filter((room) => room !== socket.id)
-                .forEach((room) => {
-                socket.broadcast.to(room).emit('event', `${details.userName} left the room`);
-                socket.leave(room);
-            });
-            // TODO: RSERV-4: Determine why this setTimeout exists
-            setTimeout(() => {
-                socket.join(details.roomName, () => {
-                    // TODO: After adding user login, this should be created after login rather then after joining a room
-                    if (socket.handshake && socket.handshake.headers && socket.handshake.headers.host) {
-                        redisSession.create({
-                            app: rsAppName,
-                            socketId: socket.id,
-                            ip: socket.handshake.headers.host.split(':')[0],
-                            // 30 minutes
-                            ttl: 60 * 1000 * 30,
-                            data: {
-                                userName: details.userName,
-                            },
-                        }).then((response) => {
-                            socket.emit('session:message', response);
-                        }).catch((err) => {
-                            print_logs_1.default(shouldIncludeRedisLogs, 'REDIS_SESSION_ERROR', null, err);
-                        });
-                    }
-                    print_logs_1.default(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `User, ${details.userName} with socketId ${socket.id}, joined room ${details.roomName}`);
-                    print_logs_1.default(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `${details.userName}'s Current Rooms: ${JSON.stringify(socket.rooms)}`);
-                    // Emits an event back to the client who joined
-                    socket.emit('event', `You joined room ${details.roomName}`);
-                    // Broadcasts an event back to the client for all users in the specified room (excluding the user who triggered it)
-                    socket.broadcast.to(details.roomName).emit('event', `${details.userName} joined room ${details.roomName}`);
-                });
-            }, 0);
-        });
-        socket.on('event', (event) => {
-            print_logs_1.default(shouldIncludeLogs, 'EVENT', null, event);
-            if (event.message) {
-                socket.emit('message', `You: ${event.message}`);
-                socket.broadcast.to(event.roomName).emit('message', `${event.userName}: ${event.message}`);
-                print_logs_1.default(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `${event.userName} said: ${event.message}`);
+        print_logs_1.default(exports.shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, 'NEW CONNECTION...');
+        print_logs_1.default(exports.shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `All Rooms: ${JSON.stringify(get_socket_rooms_list_1.default(io.sockets.adapter.rooms))}`);
+        socket.emit(constants_1.SocketServerActionTypes.SEND_ROOMS_LIST, get_socket_rooms_list_1.default(io.sockets.adapter.rooms));
+        // Event sent from socket.io, redux store middleware
+        socket.on('action', (action) => {
+            if (action.type === constants_1.SocketClientActionTypes.JOIN_ROOM) {
+                socketHandlers.joinRoom(socket, redisSession, action.data);
             }
-            else {
-                // Broadcasts an event back to the client for all users in the specified room (excluding the user who triggered it)
-                socket.emit('message', `You said hello.`);
-                socket.broadcast.to(event.roomName).emit('message', `${event.userName} says hello!`);
-                print_logs_1.default(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `${event.userName} says hello!`);
+            if (action.type === constants_1.SocketClientActionTypes.SEND_MESSAGE) {
+                socketHandlers.sendMessage(socket, action.data);
             }
         });
         socket.on('disconnecting', (reason) => {
             // TODO: Use constants to mitigate disconnect reasons
-            print_logs_1.default(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `DISCONNECTING... ${reason}`);
+            print_logs_1.default(exports.shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `DISCONNECTING... ${reason}`);
             leaveAndNotifyRooms(socket);
         });
     });
@@ -360,11 +451,14 @@ const leaveAndNotifyRooms = (socket) => {
             activeRooms.forEach((room) => {
                 const parsedResponse = JSON.parse(response);
                 if (parsedResponse && parsedResponse.userName) {
-                    socket.broadcast.to(room).emit('event', `${parsedResponse.userName} left the room`);
+                    socket.broadcast.to(room).emit('event', {
+                        type: constants_1.SocketServerActionTypes.DISCONNECT,
+                        data: `${parsedResponse.userName} left the room`,
+                    });
                 }
             });
         }).catch((err) => {
-            print_logs_1.default(shouldIncludeRedisLogs, 'REDIS_SESSION_ERROR', null, err);
+            print_logs_1.default(exports.shouldIncludeRedisLogs, 'REDIS_SESSION_ERROR', null, err);
         });
     }
 };
@@ -382,7 +476,7 @@ const leaveAndNotifyRooms = (socket) => {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const promiser_1 = __webpack_require__(/*! rili-public-library/utilities/promiser */ "../rili-public-library/utilities/lib/promiser.js"); // tslint:disable-line no-implicit-dependencies
+const promiser_1 = __webpack_require__(/*! rili-public-library/utilities/promiser */ "../rili-public-library/utilities/lib/promiser.js");
 const globalConfig = __webpack_require__(/*! ../../../global-config.js */ "../global-config.js");
 /**
  * RedisHelper

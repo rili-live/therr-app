@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "f4c08ba65c064a23c485";
+/******/ 	var hotCurrentHash = "7c7c60da3afb76fb13dc";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -40341,6 +40341,91 @@ if (false) {} else {
 
 /***/ }),
 
+/***/ "../node_modules/redux-socket.io/dist/index.js":
+/*!*****************************************************!*\
+  !*** ../node_modules/redux-socket.io/dist/index.js ***!
+  \*****************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = createSocketIoMiddleware;
+
+/**
+* Allows you to register actions that when dispatched, send the action to the
+* server via a socket.io socket.
+* `criteria` may be a function (type, action) that returns true if you wish to send the
+*  action to the server, array of action types, or a string prefix.
+* the third parameter is an options object with the following properties:
+* {
+*   eventName,// a string name to use to send and receive actions from the server.
+*   execute, // a function (action, emit, next, dispatch) that is responsible for
+*            // sending the message to the server.
+* }
+*
+*/
+function createSocketIoMiddleware(socket) {
+  var criteria = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+
+  var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+      _ref$eventName = _ref.eventName,
+      eventName = _ref$eventName === undefined ? 'action' : _ref$eventName,
+      _ref$execute = _ref.execute,
+      execute = _ref$execute === undefined ? defaultExecute : _ref$execute;
+
+  var emitBound = socket.emit.bind(socket);
+  return function (_ref2) {
+    var dispatch = _ref2.dispatch;
+
+    // Wire socket.io to dispatch actions sent by the server.
+    socket.on(eventName, dispatch);
+    return function (next) {
+      return function (action) {
+        if (evaluate(action, criteria)) {
+          return execute(action, emitBound, next, dispatch);
+        }
+        return next(action);
+      };
+    };
+  };
+
+  function evaluate(action, option) {
+    if (!action || !action.type) {
+      return false;
+    }
+
+    var type = action.type;
+
+    var matched = false;
+    if (typeof option === 'function') {
+      // Test function
+      matched = option(type, action);
+    } else if (typeof option === 'string') {
+      // String prefix
+      matched = type.indexOf(option) === 0;
+    } else if (Array.isArray(option)) {
+      // Array of types
+      matched = option.some(function (item) {
+        return type.indexOf(item) === 0;
+      });
+    }
+    return matched;
+  }
+
+  function defaultExecute(action, emit, next, dispatch) {
+    // eslint-disable-line no-unused-vars
+    emit(eventName, action);
+    return next(action);
+  }
+}
+
+/***/ }),
+
 /***/ "../node_modules/redux-thunk/es/index.js":
 /*!***********************************************!*\
   !*** ../node_modules/redux-thunk/es/index.js ***!
@@ -42256,6 +42341,767 @@ if (false) {} else {
 if (false) {} else {
   module.exports = __webpack_require__(/*! ./cjs/scheduler-tracing.development.js */ "../node_modules/scheduler/cjs/scheduler-tracing.development.js");
 }
+
+
+/***/ }),
+
+/***/ "../node_modules/seamless-immutable/seamless-immutable.development.js":
+/*!****************************************************************************!*\
+  !*** ../node_modules/seamless-immutable/seamless-immutable.development.js ***!
+  \****************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_RESULT__;(function() {
+  "use strict";
+
+function immutableInit(config) {
+
+  // https://github.com/facebook/react/blob/v15.0.1/src/isomorphic/classic/element/ReactElement.js#L21
+  var REACT_ELEMENT_TYPE = typeof Symbol === 'function' && Symbol.for && Symbol.for('react.element');
+  var REACT_ELEMENT_TYPE_FALLBACK = 0xeac7;
+
+  var globalConfig = {
+    use_static: false
+  };
+  if (isObject(config)) {
+      if (config.use_static !== undefined) {
+          globalConfig.use_static = Boolean(config.use_static);
+      }
+  }
+
+  function isObject(data) {
+    return (
+      typeof data === 'object' &&
+      !Array.isArray(data) &&
+      data !== null
+    );
+  }
+
+  function instantiateEmptyObject(obj) {
+      var prototype = Object.getPrototypeOf(obj);
+      if (!prototype) {
+          return {};
+      } else {
+          return Object.create(prototype);
+      }
+  }
+
+  function addPropertyTo(target, methodName, value) {
+    Object.defineProperty(target, methodName, {
+      enumerable: false,
+      configurable: false,
+      writable: false,
+      value: value
+    });
+  }
+
+  function banProperty(target, methodName) {
+    addPropertyTo(target, methodName, function() {
+      throw new ImmutableError("The " + methodName +
+        " method cannot be invoked on an Immutable data structure.");
+    });
+  }
+
+  var immutabilityTag = "__immutable_invariants_hold";
+
+  function addImmutabilityTag(target) {
+    addPropertyTo(target, immutabilityTag, true);
+  }
+
+  function isImmutable(target) {
+    if (typeof target === "object") {
+      return target === null || Boolean(
+        Object.getOwnPropertyDescriptor(target, immutabilityTag)
+      );
+    } else {
+      // In JavaScript, only objects are even potentially mutable.
+      // strings, numbers, null, and undefined are all naturally immutable.
+      return true;
+    }
+  }
+
+  function isEqual(a, b) {
+    // Avoid false positives due to (NaN !== NaN) evaluating to true
+    return (a === b || (a !== a && b !== b));
+  }
+
+  function isMergableObject(target) {
+    return target !== null && typeof target === "object" && !(Array.isArray(target)) && !(target instanceof Date);
+  }
+
+  var mutatingObjectMethods = [
+    "setPrototypeOf"
+  ];
+
+  var nonMutatingObjectMethods = [
+    "keys"
+  ];
+
+  var mutatingArrayMethods = mutatingObjectMethods.concat([
+    "push", "pop", "sort", "splice", "shift", "unshift", "reverse"
+  ]);
+
+  var nonMutatingArrayMethods = nonMutatingObjectMethods.concat([
+    "map", "filter", "slice", "concat", "reduce", "reduceRight"
+  ]);
+
+  var mutatingDateMethods = mutatingObjectMethods.concat([
+    "setDate", "setFullYear", "setHours", "setMilliseconds", "setMinutes", "setMonth", "setSeconds",
+    "setTime", "setUTCDate", "setUTCFullYear", "setUTCHours", "setUTCMilliseconds", "setUTCMinutes",
+    "setUTCMonth", "setUTCSeconds", "setYear"
+  ]);
+
+  function ImmutableError(message) {
+    this.name = 'MyError';
+    this.message = message;
+    this.stack = (new Error()).stack;
+  }
+  ImmutableError.prototype = new Error();
+  ImmutableError.prototype.constructor = Error;
+
+  function makeImmutable(obj, bannedMethods) {
+    // Tag it so we can quickly tell it's immutable later.
+    addImmutabilityTag(obj);
+
+    if (true) {
+      // Make all mutating methods throw exceptions.
+      for (var index in bannedMethods) {
+        if (bannedMethods.hasOwnProperty(index)) {
+          banProperty(obj, bannedMethods[index]);
+        }
+      }
+
+      // Freeze it and return it.
+      Object.freeze(obj);
+    }
+
+    return obj;
+  }
+
+  function makeMethodReturnImmutable(obj, methodName) {
+    var currentMethod = obj[methodName];
+
+    addPropertyTo(obj, methodName, function() {
+      return Immutable(currentMethod.apply(obj, arguments));
+    });
+  }
+
+  function arraySet(idx, value, config) {
+    var deep          = config && config.deep;
+
+    if (idx in this) {
+      if (deep && this[idx] !== value && isMergableObject(value) && isMergableObject(this[idx])) {
+        value = Immutable.merge(this[idx], value, {deep: true, mode: 'replace'});
+      }
+      if (isEqual(this[idx], value)) {
+        return this;
+      }
+    }
+
+    var mutable = asMutableArray.call(this);
+    mutable[idx] = Immutable(value);
+    return makeImmutableArray(mutable);
+  }
+
+  var immutableEmptyArray = Immutable([]);
+
+  function arraySetIn(pth, value, config) {
+    var head = pth[0];
+
+    if (pth.length === 1) {
+      return arraySet.call(this, head, value, config);
+    } else {
+      var tail = pth.slice(1);
+      var thisHead = this[head];
+      var newValue;
+
+      if (typeof(thisHead) === "object" && thisHead !== null) {
+        // Might (validly) be object or array
+        newValue = Immutable.setIn(thisHead, tail, value);
+      } else {
+        var nextHead = tail[0];
+        // If the next path part is a number, then we are setting into an array, else an object.
+        if (nextHead !== '' && isFinite(nextHead)) {
+          newValue = arraySetIn.call(immutableEmptyArray, tail, value);
+        } else {
+          newValue = objectSetIn.call(immutableEmptyObject, tail, value);
+        }
+      }
+
+      if (head in this && thisHead === newValue) {
+        return this;
+      }
+
+      var mutable = asMutableArray.call(this);
+      mutable[head] = newValue;
+      return makeImmutableArray(mutable);
+    }
+  }
+
+  function makeImmutableArray(array) {
+    // Don't change their implementations, but wrap these functions to make sure
+    // they always return an immutable value.
+    for (var index in nonMutatingArrayMethods) {
+      if (nonMutatingArrayMethods.hasOwnProperty(index)) {
+        var methodName = nonMutatingArrayMethods[index];
+        makeMethodReturnImmutable(array, methodName);
+      }
+    }
+
+    if (!globalConfig.use_static) {
+      addPropertyTo(array, "flatMap",  flatMap);
+      addPropertyTo(array, "asObject", asObject);
+      addPropertyTo(array, "asMutable", asMutableArray);
+      addPropertyTo(array, "set", arraySet);
+      addPropertyTo(array, "setIn", arraySetIn);
+      addPropertyTo(array, "update", update);
+      addPropertyTo(array, "updateIn", updateIn);
+      addPropertyTo(array, "getIn", getIn);
+    }
+
+    for(var i = 0, length = array.length; i < length; i++) {
+      array[i] = Immutable(array[i]);
+    }
+
+    return makeImmutable(array, mutatingArrayMethods);
+  }
+
+  function makeImmutableDate(date) {
+    if (!globalConfig.use_static) {
+      addPropertyTo(date, "asMutable", asMutableDate);
+    }
+
+    return makeImmutable(date, mutatingDateMethods);
+  }
+
+  function asMutableDate() {
+    return new Date(this.getTime());
+  }
+
+  /**
+   * Effectively performs a map() over the elements in the array, using the
+   * provided iterator, except that whenever the iterator returns an array, that
+   * array's elements are added to the final result instead of the array itself.
+   *
+   * @param {function} iterator - The iterator function that will be invoked on each element in the array. It will receive three arguments: the current value, the current index, and the current object.
+   */
+  function flatMap(iterator) {
+    // Calling .flatMap() with no arguments is a no-op. Don't bother cloning.
+    if (arguments.length === 0) {
+      return this;
+    }
+
+    var result = [],
+        length = this.length,
+        index;
+
+    for (index = 0; index < length; index++) {
+      var iteratorResult = iterator(this[index], index, this);
+
+      if (Array.isArray(iteratorResult)) {
+        // Concatenate Array results into the return value we're building up.
+        result.push.apply(result, iteratorResult);
+      } else {
+        // Handle non-Array results the same way map() does.
+        result.push(iteratorResult);
+      }
+    }
+
+    return makeImmutableArray(result);
+  }
+
+  /**
+   * Returns an Immutable copy of the object without the given keys included.
+   *
+   * @param {array} keysToRemove - A list of strings representing the keys to exclude in the return value. Instead of providing a single array, this method can also be called by passing multiple strings as separate arguments.
+   */
+  function without(remove) {
+    // Calling .without() with no arguments is a no-op. Don't bother cloning.
+    if (typeof remove === "undefined" && arguments.length === 0) {
+      return this;
+    }
+
+    if (typeof remove !== "function") {
+      // If we weren't given an array, use the arguments list.
+      var keysToRemoveArray = (Array.isArray(remove)) ?
+         remove.slice() : Array.prototype.slice.call(arguments);
+
+      // Convert numeric keys to strings since that's how they'll
+      // come from the enumeration of the object.
+      keysToRemoveArray.forEach(function(el, idx, arr) {
+        if(typeof(el) === "number") {
+          arr[idx] = el.toString();
+        }
+      });
+
+      remove = function(val, key) {
+        return keysToRemoveArray.indexOf(key) !== -1;
+      };
+    }
+
+    var result = instantiateEmptyObject(this);
+
+    for (var key in this) {
+      if (this.hasOwnProperty(key) && remove(this[key], key) === false) {
+        result[key] = this[key];
+      }
+    }
+
+    return makeImmutableObject(result);
+  }
+
+  function asMutableArray(opts) {
+    var result = [], i, length;
+
+    if(opts && opts.deep) {
+      for(i = 0, length = this.length; i < length; i++) {
+        result.push(asDeepMutable(this[i]));
+      }
+    } else {
+      for(i = 0, length = this.length; i < length; i++) {
+        result.push(this[i]);
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Effectively performs a [map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map) over the elements in the array, expecting that the iterator function
+   * will return an array of two elements - the first representing a key, the other
+   * a value. Then returns an Immutable Object constructed of those keys and values.
+   *
+   * @param {function} iterator - A function which should return an array of two elements - the first representing the desired key, the other the desired value.
+   */
+  function asObject(iterator) {
+    // If no iterator was provided, assume the identity function
+    // (suggesting this array is already a list of key/value pairs.)
+    if (typeof iterator !== "function") {
+      iterator = function(value) { return value; };
+    }
+
+    var result = {},
+        length = this.length,
+        index;
+
+    for (index = 0; index < length; index++) {
+      var pair  = iterator(this[index], index, this),
+          key   = pair[0],
+          value = pair[1];
+
+      result[key] = value;
+    }
+
+    return makeImmutableObject(result);
+  }
+
+  function asDeepMutable(obj) {
+    if (
+      (!obj) ||
+      (typeof obj !== 'object') ||
+      (!Object.getOwnPropertyDescriptor(obj, immutabilityTag)) ||
+      (obj instanceof Date)
+    ) { return obj; }
+    return Immutable.asMutable(obj, {deep: true});
+  }
+
+  function quickCopy(src, dest) {
+    for (var key in src) {
+      if (Object.getOwnPropertyDescriptor(src, key)) {
+        dest[key] = src[key];
+      }
+    }
+
+    return dest;
+  }
+
+  /**
+   * Returns an Immutable Object containing the properties and values of both
+   * this object and the provided object, prioritizing the provided object's
+   * values whenever the same key is present in both objects.
+   *
+   * @param {object} other - The other object to merge. Multiple objects can be passed as an array. In such a case, the later an object appears in that list, the higher its priority.
+   * @param {object} config - Optional config object that contains settings. Supported settings are: {deep: true} for deep merge and {merger: mergerFunc} where mergerFunc is a function
+   *                          that takes a property from both objects. If anything is returned it overrides the normal merge behaviour.
+   */
+  function merge(other, config) {
+    // Calling .merge() with no arguments is a no-op. Don't bother cloning.
+    if (arguments.length === 0) {
+      return this;
+    }
+
+    if (other === null || (typeof other !== "object")) {
+      throw new TypeError("Immutable#merge can only be invoked with objects or arrays, not " + JSON.stringify(other));
+    }
+
+    var receivedArray = (Array.isArray(other)),
+        deep          = config && config.deep,
+        mode          = config && config.mode || 'merge',
+        merger        = config && config.merger,
+        result;
+
+    // Use the given key to extract a value from the given object, then place
+    // that value in the result object under the same key. If that resulted
+    // in a change from this object's value at that key, set anyChanges = true.
+    function addToResult(currentObj, otherObj, key) {
+      var immutableValue = Immutable(otherObj[key]);
+      var mergerResult = merger && merger(currentObj[key], immutableValue, config);
+      var currentValue = currentObj[key];
+
+      if ((result !== undefined) ||
+        (mergerResult !== undefined) ||
+        (!currentObj.hasOwnProperty(key)) ||
+        !isEqual(immutableValue, currentValue)) {
+
+        var newValue;
+
+        if (mergerResult !== undefined) {
+          newValue = mergerResult;
+        } else if (deep && isMergableObject(currentValue) && isMergableObject(immutableValue)) {
+          newValue = Immutable.merge(currentValue, immutableValue, config);
+        } else {
+          newValue = immutableValue;
+        }
+
+        if (!isEqual(currentValue, newValue) || !currentObj.hasOwnProperty(key)) {
+          if (result === undefined) {
+            // Make a shallow clone of the current object.
+            result = quickCopy(currentObj, instantiateEmptyObject(currentObj));
+          }
+
+          result[key] = newValue;
+        }
+      }
+    }
+
+    function clearDroppedKeys(currentObj, otherObj) {
+      for (var key in currentObj) {
+        if (!otherObj.hasOwnProperty(key)) {
+          if (result === undefined) {
+            // Make a shallow clone of the current object.
+            result = quickCopy(currentObj, instantiateEmptyObject(currentObj));
+          }
+          delete result[key];
+        }
+      }
+    }
+
+    var key;
+
+    // Achieve prioritization by overriding previous values that get in the way.
+    if (!receivedArray) {
+      // The most common use case: just merge one object into the existing one.
+      for (key in other) {
+        if (Object.getOwnPropertyDescriptor(other, key)) {
+          addToResult(this, other, key);
+        }
+      }
+      if (mode === 'replace') {
+        clearDroppedKeys(this, other);
+      }
+    } else {
+      // We also accept an Array
+      for (var index = 0, length = other.length; index < length; index++) {
+        var otherFromArray = other[index];
+
+        for (key in otherFromArray) {
+          if (otherFromArray.hasOwnProperty(key)) {
+            addToResult(result !== undefined ? result : this, otherFromArray, key);
+          }
+        }
+      }
+    }
+
+    if (result === undefined) {
+      return this;
+    } else {
+      return makeImmutableObject(result);
+    }
+  }
+
+  function objectReplace(value, config) {
+    var deep          = config && config.deep;
+
+    // Calling .replace() with no arguments is a no-op. Don't bother cloning.
+    if (arguments.length === 0) {
+      return this;
+    }
+
+    if (value === null || typeof value !== "object") {
+      throw new TypeError("Immutable#replace can only be invoked with objects or arrays, not " + JSON.stringify(value));
+    }
+
+    return Immutable.merge(this, value, {deep: deep, mode: 'replace'});
+  }
+
+  var immutableEmptyObject = Immutable({});
+
+  function objectSetIn(path, value, config) {
+    if (!(Array.isArray(path)) || path.length === 0) {
+      throw new TypeError("The first argument to Immutable#setIn must be an array containing at least one \"key\" string.");
+    }
+
+    var head = path[0];
+    if (path.length === 1) {
+      return objectSet.call(this, head, value, config);
+    }
+
+    var tail = path.slice(1);
+    var newValue;
+    var thisHead = this[head];
+
+    if (this.hasOwnProperty(head) && typeof(thisHead) === "object" && thisHead !== null) {
+      // Might (validly) be object or array
+      newValue = Immutable.setIn(thisHead, tail, value);
+    } else {
+      newValue = objectSetIn.call(immutableEmptyObject, tail, value);
+    }
+
+    if (this.hasOwnProperty(head) && thisHead === newValue) {
+      return this;
+    }
+
+    var mutable = quickCopy(this, instantiateEmptyObject(this));
+    mutable[head] = newValue;
+    return makeImmutableObject(mutable);
+  }
+
+  function objectSet(property, value, config) {
+    var deep          = config && config.deep;
+
+    if (this.hasOwnProperty(property)) {
+      if (deep && this[property] !== value && isMergableObject(value) && isMergableObject(this[property])) {
+        value = Immutable.merge(this[property], value, {deep: true, mode: 'replace'});
+      }
+      if (isEqual(this[property], value)) {
+        return this;
+      }
+    }
+
+    var mutable = quickCopy(this, instantiateEmptyObject(this));
+    mutable[property] = Immutable(value);
+    return makeImmutableObject(mutable);
+  }
+
+  function update(property, updater) {
+    var restArgs = Array.prototype.slice.call(arguments, 2);
+    var initialVal = this[property];
+    return Immutable.set(this, property, updater.apply(initialVal, [initialVal].concat(restArgs)));
+  }
+
+  function getInPath(obj, path) {
+    /*jshint eqnull:true */
+    for (var i = 0, l = path.length; obj != null && i < l; i++) {
+      obj = obj[path[i]];
+    }
+
+    return (i && i == l) ? obj : undefined;
+  }
+
+  function updateIn(path, updater) {
+    var restArgs = Array.prototype.slice.call(arguments, 2);
+    var initialVal = getInPath(this, path);
+
+    return Immutable.setIn(this, path, updater.apply(initialVal, [initialVal].concat(restArgs)));
+  }
+
+  function getIn(path, defaultValue) {
+    var value = getInPath(this, path);
+    return value === undefined ? defaultValue : value;
+  }
+
+  function asMutableObject(opts) {
+    var result = instantiateEmptyObject(this), key;
+
+    if(opts && opts.deep) {
+      for (key in this) {
+        if (this.hasOwnProperty(key)) {
+          result[key] = asDeepMutable(this[key]);
+        }
+      }
+    } else {
+      for (key in this) {
+        if (this.hasOwnProperty(key)) {
+          result[key] = this[key];
+        }
+      }
+    }
+
+    return result;
+  }
+
+  // Creates plain object to be used for cloning
+  function instantiatePlainObject() {
+    return {};
+  }
+
+  // Finalizes an object with immutable methods, freezes it, and returns it.
+  function makeImmutableObject(obj) {
+    if (!globalConfig.use_static) {
+      addPropertyTo(obj, "merge", merge);
+      addPropertyTo(obj, "replace", objectReplace);
+      addPropertyTo(obj, "without", without);
+      addPropertyTo(obj, "asMutable", asMutableObject);
+      addPropertyTo(obj, "set", objectSet);
+      addPropertyTo(obj, "setIn", objectSetIn);
+      addPropertyTo(obj, "update", update);
+      addPropertyTo(obj, "updateIn", updateIn);
+      addPropertyTo(obj, "getIn", getIn);
+    }
+
+    return makeImmutable(obj, mutatingObjectMethods);
+  }
+
+  // Returns true if object is a valid react element
+  // https://github.com/facebook/react/blob/v15.0.1/src/isomorphic/classic/element/ReactElement.js#L326
+  function isReactElement(obj) {
+    return typeof obj === 'object' &&
+           obj !== null &&
+           (obj.$$typeof === REACT_ELEMENT_TYPE_FALLBACK || obj.$$typeof === REACT_ELEMENT_TYPE);
+  }
+
+  function isFileObject(obj) {
+    return typeof File !== 'undefined' &&
+           obj instanceof File;
+  }
+
+  function isBlobObject(obj) {
+    return typeof Blob !== 'undefined' &&
+           obj instanceof Blob;
+  }
+
+  function isPromise(obj) {
+    return typeof obj === 'object' &&
+           typeof obj.then === 'function';
+  }
+
+  function isError(obj) {
+    return obj instanceof Error;
+  }
+
+  function Immutable(obj, options, stackRemaining) {
+    if (isImmutable(obj) || isReactElement(obj) || isFileObject(obj) || isBlobObject(obj) || isError(obj)) {
+      return obj;
+    } else if (isPromise(obj)) {
+      return obj.then(Immutable);
+    } else if (Array.isArray(obj)) {
+      return makeImmutableArray(obj.slice());
+    } else if (obj instanceof Date) {
+      return makeImmutableDate(new Date(obj.getTime()));
+    } else {
+      // Don't freeze the object we were given; make a clone and use that.
+      var prototype = options && options.prototype;
+      var instantiateEmptyObject =
+        (!prototype || prototype === Object.prototype) ?
+          instantiatePlainObject : (function() { return Object.create(prototype); });
+      var clone = instantiateEmptyObject();
+
+      if (true) {
+        /*jshint eqnull:true */
+        if (stackRemaining == null) {
+          stackRemaining = 64;
+        }
+        if (stackRemaining <= 0) {
+          throw new ImmutableError("Attempt to construct Immutable from a deeply nested object was detected." +
+            " Have you tried to wrap an object with circular references (e.g. React element)?" +
+            " See https://github.com/rtfeldman/seamless-immutable/wiki/Deeply-nested-object-was-detected for details.");
+        }
+        stackRemaining -= 1;
+      }
+
+      for (var key in obj) {
+        if (Object.getOwnPropertyDescriptor(obj, key)) {
+          clone[key] = Immutable(obj[key], undefined, stackRemaining);
+        }
+      }
+
+      return makeImmutableObject(clone);
+    }
+  }
+
+  // Wrapper to allow the use of object methods as static methods of Immutable.
+  function toStatic(fn) {
+    function staticWrapper() {
+      var args = [].slice.call(arguments);
+      var self = args.shift();
+      return fn.apply(self, args);
+    }
+
+    return staticWrapper;
+  }
+
+  // Wrapper to allow the use of object methods as static methods of Immutable.
+  // with the additional condition of choosing which function to call depending
+  // if argument is an array or an object.
+  function toStaticObjectOrArray(fnObject, fnArray) {
+    function staticWrapper() {
+      var args = [].slice.call(arguments);
+      var self = args.shift();
+      if (Array.isArray(self)) {
+          return fnArray.apply(self, args);
+      } else {
+          return fnObject.apply(self, args);
+      }
+    }
+
+    return staticWrapper;
+  }
+
+  // Wrapper to allow the use of object methods as static methods of Immutable.
+  // with the additional condition of choosing which function to call depending
+  // if argument is an array or an object or a date.
+  function toStaticObjectOrDateOrArray(fnObject, fnArray, fnDate) {
+    function staticWrapper() {
+      var args = [].slice.call(arguments);
+      var self = args.shift();
+      if (Array.isArray(self)) {
+          return fnArray.apply(self, args);
+      } else if (self instanceof Date) {
+          return fnDate.apply(self, args);
+      } else {
+          return fnObject.apply(self, args);
+      }
+    }
+
+    return staticWrapper;
+  }
+
+  // Export the library
+  Immutable.from           = Immutable;
+  Immutable.isImmutable    = isImmutable;
+  Immutable.ImmutableError = ImmutableError;
+  Immutable.merge          = toStatic(merge);
+  Immutable.replace        = toStatic(objectReplace);
+  Immutable.without        = toStatic(without);
+  Immutable.asMutable      = toStaticObjectOrDateOrArray(asMutableObject, asMutableArray, asMutableDate);
+  Immutable.set            = toStaticObjectOrArray(objectSet, arraySet);
+  Immutable.setIn          = toStaticObjectOrArray(objectSetIn, arraySetIn);
+  Immutable.update         = toStatic(update);
+  Immutable.updateIn       = toStatic(updateIn);
+  Immutable.getIn          = toStatic(getIn);
+  Immutable.flatMap        = toStatic(flatMap);
+  Immutable.asObject       = toStatic(asObject);
+  if (!globalConfig.use_static) {
+      Immutable.static = immutableInit({
+          use_static: true
+      });
+  }
+
+  Object.freeze(Immutable);
+
+  return Immutable;
+}
+
+  var Immutable = immutableInit();
+  /* istanbul ignore if */
+  if (true) {
+    !(__WEBPACK_AMD_DEFINE_RESULT__ = (function() {
+      return Immutable;
+    }).call(exports, __webpack_require__, exports, module),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+  } else {}
+})();
 
 
 /***/ }),
@@ -46259,7 +47105,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 !function (e, t) {
-  "object" == ( false ? undefined : _typeof(exports)) && "object" == ( false ? undefined : _typeof(module)) ? module.exports = t(__webpack_require__(/*! react */ "../node_modules/react/index.js"), __webpack_require__(/*! prop-types */ "../rili-public-library/react-components/node_modules/prop-types/index.js")) :  true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! react */ "../node_modules/react/index.js"), __webpack_require__(/*! prop-types */ "../rili-public-library/react-components/node_modules/prop-types/index.js")], __WEBPACK_AMD_DEFINE_FACTORY__ = (t),
+  "object" == ( false ? undefined : _typeof(exports)) && "object" == ( false ? undefined : _typeof(module)) ? module.exports = t(__webpack_require__(/*! react */ "../node_modules/react/index.js"), __webpack_require__(/*! prop-types */ "../node_modules/prop-types/index.js")) :  true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! react */ "../node_modules/react/index.js"), __webpack_require__(/*! prop-types */ "../node_modules/prop-types/index.js")], __WEBPACK_AMD_DEFINE_FACTORY__ = (t),
 				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
 				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) : undefined;
@@ -46367,7 +47213,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 !function (e, t) {
-  "object" == ( false ? undefined : _typeof(exports)) && "object" == ( false ? undefined : _typeof(module)) ? module.exports = t(__webpack_require__(/*! classnames */ "../node_modules/classnames/index.js"), __webpack_require__(/*! react */ "../node_modules/react/index.js"), __webpack_require__(/*! prop-types */ "../rili-public-library/react-components/node_modules/prop-types/index.js")) :  true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! classnames */ "../node_modules/classnames/index.js"), __webpack_require__(/*! react */ "../node_modules/react/index.js"), __webpack_require__(/*! prop-types */ "../rili-public-library/react-components/node_modules/prop-types/index.js")], __WEBPACK_AMD_DEFINE_FACTORY__ = (t),
+  "object" == ( false ? undefined : _typeof(exports)) && "object" == ( false ? undefined : _typeof(module)) ? module.exports = t(__webpack_require__(/*! classnames */ "../node_modules/classnames/index.js"), __webpack_require__(/*! react */ "../node_modules/react/index.js"), __webpack_require__(/*! prop-types */ "../node_modules/prop-types/index.js")) :  true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! classnames */ "../node_modules/classnames/index.js"), __webpack_require__(/*! react */ "../node_modules/react/index.js"), __webpack_require__(/*! prop-types */ "../node_modules/prop-types/index.js")], __WEBPACK_AMD_DEFINE_FACTORY__ = (t),
 				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
 				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) : undefined;
@@ -46683,804 +47529,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 /***/ }),
 
-/***/ "../rili-public-library/react-components/node_modules/object-assign/index.js":
-/*!***********************************************************************************!*\
-  !*** ../rili-public-library/react-components/node_modules/object-assign/index.js ***!
-  \***********************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/*
-object-assign
-(c) Sindre Sorhus
-@license MIT
-*/
-
-
-/* eslint-disable no-unused-vars */
-
-var getOwnPropertySymbols = Object.getOwnPropertySymbols;
-var hasOwnProperty = Object.prototype.hasOwnProperty;
-var propIsEnumerable = Object.prototype.propertyIsEnumerable;
-
-function toObject(val) {
-	if (val === null || val === undefined) {
-		throw new TypeError('Object.assign cannot be called with null or undefined');
-	}
-
-	return Object(val);
-}
-
-function shouldUseNative() {
-	try {
-		if (!Object.assign) {
-			return false;
-		}
-
-		// Detect buggy property enumeration order in older V8 versions.
-
-		// https://bugs.chromium.org/p/v8/issues/detail?id=4118
-		var test1 = new String('abc'); // eslint-disable-line no-new-wrappers
-		test1[5] = 'de';
-		if (Object.getOwnPropertyNames(test1)[0] === '5') {
-			return false;
-		}
-
-		// https://bugs.chromium.org/p/v8/issues/detail?id=3056
-		var test2 = {};
-		for (var i = 0; i < 10; i++) {
-			test2['_' + String.fromCharCode(i)] = i;
-		}
-		var order2 = Object.getOwnPropertyNames(test2).map(function (n) {
-			return test2[n];
-		});
-		if (order2.join('') !== '0123456789') {
-			return false;
-		}
-
-		// https://bugs.chromium.org/p/v8/issues/detail?id=3056
-		var test3 = {};
-		'abcdefghijklmnopqrst'.split('').forEach(function (letter) {
-			test3[letter] = letter;
-		});
-		if (Object.keys(Object.assign({}, test3)).join('') !== 'abcdefghijklmnopqrst') {
-			return false;
-		}
-
-		return true;
-	} catch (err) {
-		// We don't expect any of the above to throw, but better to be safe.
-		return false;
-	}
-}
-
-module.exports = shouldUseNative() ? Object.assign : function (target, source) {
-	var from;
-	var to = toObject(target);
-	var symbols;
-
-	for (var s = 1; s < arguments.length; s++) {
-		from = Object(arguments[s]);
-
-		for (var key in from) {
-			if (hasOwnProperty.call(from, key)) {
-				to[key] = from[key];
-			}
-		}
-
-		if (getOwnPropertySymbols) {
-			symbols = getOwnPropertySymbols(from);
-			for (var i = 0; i < symbols.length; i++) {
-				if (propIsEnumerable.call(from, symbols[i])) {
-					to[symbols[i]] = from[symbols[i]];
-				}
-			}
-		}
-	}
-
-	return to;
-};
-
-/***/ }),
-
-/***/ "../rili-public-library/react-components/node_modules/prop-types/checkPropTypes.js":
-/*!*****************************************************************************************!*\
-  !*** ../rili-public-library/react-components/node_modules/prop-types/checkPropTypes.js ***!
-  \*****************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var printWarning = function printWarning() {};
-
-if (true) {
-  var ReactPropTypesSecret = __webpack_require__(/*! ./lib/ReactPropTypesSecret */ "../rili-public-library/react-components/node_modules/prop-types/lib/ReactPropTypesSecret.js");
-  var loggedTypeFailures = {};
-
-  printWarning = function printWarning(text) {
-    var message = 'Warning: ' + text;
-    if (typeof console !== 'undefined') {
-      console.error(message);
-    }
-    try {
-      // --- Welcome to debugging React ---
-      // This error was thrown as a convenience so that you can use this stack
-      // to find the callsite that caused this warning to fire.
-      throw new Error(message);
-    } catch (x) {}
-  };
-}
-
-/**
- * Assert that the values match with the type specs.
- * Error messages are memorized and will only be shown once.
- *
- * @param {object} typeSpecs Map of name to a ReactPropType
- * @param {object} values Runtime values that need to be type-checked
- * @param {string} location e.g. "prop", "context", "child context"
- * @param {string} componentName Name of the component for error messages.
- * @param {?Function} getStack Returns the component stack.
- * @private
- */
-function checkPropTypes(typeSpecs, values, location, componentName, getStack) {
-  if (true) {
-    for (var typeSpecName in typeSpecs) {
-      if (typeSpecs.hasOwnProperty(typeSpecName)) {
-        var error;
-        // Prop type validation may throw. In case they do, we don't want to
-        // fail the render phase where it didn't fail before. So we log it.
-        // After these have been cleaned up, we'll let them throw.
-        try {
-          // This is intentionally an invariant that gets caught. It's the same
-          // behavior as without this statement except with a better message.
-          if (typeof typeSpecs[typeSpecName] !== 'function') {
-            var err = Error((componentName || 'React class') + ': ' + location + ' type `' + typeSpecName + '` is invalid; ' + 'it must be a function, usually from the `prop-types` package, but received `' + _typeof(typeSpecs[typeSpecName]) + '`.');
-            err.name = 'Invariant Violation';
-            throw err;
-          }
-          error = typeSpecs[typeSpecName](values, typeSpecName, componentName, location, null, ReactPropTypesSecret);
-        } catch (ex) {
-          error = ex;
-        }
-        if (error && !(error instanceof Error)) {
-          printWarning((componentName || 'React class') + ': type specification of ' + location + ' `' + typeSpecName + '` is invalid; the type checker ' + 'function must return `null` or an `Error` but returned a ' + (typeof error === 'undefined' ? 'undefined' : _typeof(error)) + '. ' + 'You may have forgotten to pass an argument to the type checker ' + 'creator (arrayOf, instanceOf, objectOf, oneOf, oneOfType, and ' + 'shape all require an argument).');
-        }
-        if (error instanceof Error && !(error.message in loggedTypeFailures)) {
-          // Only monitor this failure once because there tends to be a lot of the
-          // same error.
-          loggedTypeFailures[error.message] = true;
-
-          var stack = getStack ? getStack() : '';
-
-          printWarning('Failed ' + location + ' type: ' + error.message + (stack != null ? stack : ''));
-        }
-      }
-    }
-  }
-}
-
-module.exports = checkPropTypes;
-
-/***/ }),
-
-/***/ "../rili-public-library/react-components/node_modules/prop-types/factoryWithTypeCheckers.js":
-/*!**************************************************************************************************!*\
-  !*** ../rili-public-library/react-components/node_modules/prop-types/factoryWithTypeCheckers.js ***!
-  \**************************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var assign = __webpack_require__(/*! object-assign */ "../rili-public-library/react-components/node_modules/object-assign/index.js");
-
-var ReactPropTypesSecret = __webpack_require__(/*! ./lib/ReactPropTypesSecret */ "../rili-public-library/react-components/node_modules/prop-types/lib/ReactPropTypesSecret.js");
-var checkPropTypes = __webpack_require__(/*! ./checkPropTypes */ "../rili-public-library/react-components/node_modules/prop-types/checkPropTypes.js");
-
-var printWarning = function printWarning() {};
-
-if (true) {
-  printWarning = function printWarning(text) {
-    var message = 'Warning: ' + text;
-    if (typeof console !== 'undefined') {
-      console.error(message);
-    }
-    try {
-      // --- Welcome to debugging React ---
-      // This error was thrown as a convenience so that you can use this stack
-      // to find the callsite that caused this warning to fire.
-      throw new Error(message);
-    } catch (x) {}
-  };
-}
-
-function emptyFunctionThatReturnsNull() {
-  return null;
-}
-
-module.exports = function (isValidElement, throwOnDirectAccess) {
-  /* global Symbol */
-  var ITERATOR_SYMBOL = typeof Symbol === 'function' && Symbol.iterator;
-  var FAUX_ITERATOR_SYMBOL = '@@iterator'; // Before Symbol spec.
-
-  /**
-   * Returns the iterator method function contained on the iterable object.
-   *
-   * Be sure to invoke the function with the iterable as context:
-   *
-   *     var iteratorFn = getIteratorFn(myIterable);
-   *     if (iteratorFn) {
-   *       var iterator = iteratorFn.call(myIterable);
-   *       ...
-   *     }
-   *
-   * @param {?object} maybeIterable
-   * @return {?function}
-   */
-  function getIteratorFn(maybeIterable) {
-    var iteratorFn = maybeIterable && (ITERATOR_SYMBOL && maybeIterable[ITERATOR_SYMBOL] || maybeIterable[FAUX_ITERATOR_SYMBOL]);
-    if (typeof iteratorFn === 'function') {
-      return iteratorFn;
-    }
-  }
-
-  /**
-   * Collection of methods that allow declaration and validation of props that are
-   * supplied to React components. Example usage:
-   *
-   *   var Props = require('ReactPropTypes');
-   *   var MyArticle = React.createClass({
-   *     propTypes: {
-   *       // An optional string prop named "description".
-   *       description: Props.string,
-   *
-   *       // A required enum prop named "category".
-   *       category: Props.oneOf(['News','Photos']).isRequired,
-   *
-   *       // A prop named "dialog" that requires an instance of Dialog.
-   *       dialog: Props.instanceOf(Dialog).isRequired
-   *     },
-   *     render: function() { ... }
-   *   });
-   *
-   * A more formal specification of how these methods are used:
-   *
-   *   type := array|bool|func|object|number|string|oneOf([...])|instanceOf(...)
-   *   decl := ReactPropTypes.{type}(.isRequired)?
-   *
-   * Each and every declaration produces a function with the same signature. This
-   * allows the creation of custom validation functions. For example:
-   *
-   *  var MyLink = React.createClass({
-   *    propTypes: {
-   *      // An optional string or URI prop named "href".
-   *      href: function(props, propName, componentName) {
-   *        var propValue = props[propName];
-   *        if (propValue != null && typeof propValue !== 'string' &&
-   *            !(propValue instanceof URI)) {
-   *          return new Error(
-   *            'Expected a string or an URI for ' + propName + ' in ' +
-   *            componentName
-   *          );
-   *        }
-   *      }
-   *    },
-   *    render: function() {...}
-   *  });
-   *
-   * @internal
-   */
-
-  var ANONYMOUS = '<<anonymous>>';
-
-  // Important!
-  // Keep this list in sync with production version in `./factoryWithThrowingShims.js`.
-  var ReactPropTypes = {
-    array: createPrimitiveTypeChecker('array'),
-    bool: createPrimitiveTypeChecker('boolean'),
-    func: createPrimitiveTypeChecker('function'),
-    number: createPrimitiveTypeChecker('number'),
-    object: createPrimitiveTypeChecker('object'),
-    string: createPrimitiveTypeChecker('string'),
-    symbol: createPrimitiveTypeChecker('symbol'),
-
-    any: createAnyTypeChecker(),
-    arrayOf: createArrayOfTypeChecker,
-    element: createElementTypeChecker(),
-    instanceOf: createInstanceTypeChecker,
-    node: createNodeChecker(),
-    objectOf: createObjectOfTypeChecker,
-    oneOf: createEnumTypeChecker,
-    oneOfType: createUnionTypeChecker,
-    shape: createShapeTypeChecker,
-    exact: createStrictShapeTypeChecker
-  };
-
-  /**
-   * inlined Object.is polyfill to avoid requiring consumers ship their own
-   * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
-   */
-  /*eslint-disable no-self-compare*/
-  function is(x, y) {
-    // SameValue algorithm
-    if (x === y) {
-      // Steps 1-5, 7-10
-      // Steps 6.b-6.e: +0 != -0
-      return x !== 0 || 1 / x === 1 / y;
-    } else {
-      // Step 6.a: NaN == NaN
-      return x !== x && y !== y;
-    }
-  }
-  /*eslint-enable no-self-compare*/
-
-  /**
-   * We use an Error-like object for backward compatibility as people may call
-   * PropTypes directly and inspect their output. However, we don't use real
-   * Errors anymore. We don't inspect their stack anyway, and creating them
-   * is prohibitively expensive if they are created too often, such as what
-   * happens in oneOfType() for any type before the one that matched.
-   */
-  function PropTypeError(message) {
-    this.message = message;
-    this.stack = '';
-  }
-  // Make `instanceof Error` still work for returned errors.
-  PropTypeError.prototype = Error.prototype;
-
-  function createChainableTypeChecker(validate) {
-    if (true) {
-      var manualPropTypeCallCache = {};
-      var manualPropTypeWarningCount = 0;
-    }
-    function checkType(isRequired, props, propName, componentName, location, propFullName, secret) {
-      componentName = componentName || ANONYMOUS;
-      propFullName = propFullName || propName;
-
-      if (secret !== ReactPropTypesSecret) {
-        if (throwOnDirectAccess) {
-          // New behavior only for users of `prop-types` package
-          var err = new Error('Calling PropTypes validators directly is not supported by the `prop-types` package. ' + 'Use `PropTypes.checkPropTypes()` to call them. ' + 'Read more at http://fb.me/use-check-prop-types');
-          err.name = 'Invariant Violation';
-          throw err;
-        } else if ( true && typeof console !== 'undefined') {
-          // Old behavior for people using React.PropTypes
-          var cacheKey = componentName + ':' + propName;
-          if (!manualPropTypeCallCache[cacheKey] &&
-          // Avoid spamming the console because they are often not actionable except for lib authors
-          manualPropTypeWarningCount < 3) {
-            printWarning('You are manually calling a React.PropTypes validation ' + 'function for the `' + propFullName + '` prop on `' + componentName + '`. This is deprecated ' + 'and will throw in the standalone `prop-types` package. ' + 'You may be seeing this warning due to a third-party PropTypes ' + 'library. See https://fb.me/react-warning-dont-call-proptypes ' + 'for details.');
-            manualPropTypeCallCache[cacheKey] = true;
-            manualPropTypeWarningCount++;
-          }
-        }
-      }
-      if (props[propName] == null) {
-        if (isRequired) {
-          if (props[propName] === null) {
-            return new PropTypeError('The ' + location + ' `' + propFullName + '` is marked as required ' + ('in `' + componentName + '`, but its value is `null`.'));
-          }
-          return new PropTypeError('The ' + location + ' `' + propFullName + '` is marked as required in ' + ('`' + componentName + '`, but its value is `undefined`.'));
-        }
-        return null;
-      } else {
-        return validate(props, propName, componentName, location, propFullName);
-      }
-    }
-
-    var chainedCheckType = checkType.bind(null, false);
-    chainedCheckType.isRequired = checkType.bind(null, true);
-
-    return chainedCheckType;
-  }
-
-  function createPrimitiveTypeChecker(expectedType) {
-    function validate(props, propName, componentName, location, propFullName, secret) {
-      var propValue = props[propName];
-      var propType = getPropType(propValue);
-      if (propType !== expectedType) {
-        // `propValue` being instance of, say, date/regexp, pass the 'object'
-        // check, but we can offer a more precise error message here rather than
-        // 'of type `object`'.
-        var preciseType = getPreciseType(propValue);
-
-        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + preciseType + '` supplied to `' + componentName + '`, expected ') + ('`' + expectedType + '`.'));
-      }
-      return null;
-    }
-    return createChainableTypeChecker(validate);
-  }
-
-  function createAnyTypeChecker() {
-    return createChainableTypeChecker(emptyFunctionThatReturnsNull);
-  }
-
-  function createArrayOfTypeChecker(typeChecker) {
-    function validate(props, propName, componentName, location, propFullName) {
-      if (typeof typeChecker !== 'function') {
-        return new PropTypeError('Property `' + propFullName + '` of component `' + componentName + '` has invalid PropType notation inside arrayOf.');
-      }
-      var propValue = props[propName];
-      if (!Array.isArray(propValue)) {
-        var propType = getPropType(propValue);
-        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + propType + '` supplied to `' + componentName + '`, expected an array.'));
-      }
-      for (var i = 0; i < propValue.length; i++) {
-        var error = typeChecker(propValue, i, componentName, location, propFullName + '[' + i + ']', ReactPropTypesSecret);
-        if (error instanceof Error) {
-          return error;
-        }
-      }
-      return null;
-    }
-    return createChainableTypeChecker(validate);
-  }
-
-  function createElementTypeChecker() {
-    function validate(props, propName, componentName, location, propFullName) {
-      var propValue = props[propName];
-      if (!isValidElement(propValue)) {
-        var propType = getPropType(propValue);
-        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + propType + '` supplied to `' + componentName + '`, expected a single ReactElement.'));
-      }
-      return null;
-    }
-    return createChainableTypeChecker(validate);
-  }
-
-  function createInstanceTypeChecker(expectedClass) {
-    function validate(props, propName, componentName, location, propFullName) {
-      if (!(props[propName] instanceof expectedClass)) {
-        var expectedClassName = expectedClass.name || ANONYMOUS;
-        var actualClassName = getClassName(props[propName]);
-        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + actualClassName + '` supplied to `' + componentName + '`, expected ') + ('instance of `' + expectedClassName + '`.'));
-      }
-      return null;
-    }
-    return createChainableTypeChecker(validate);
-  }
-
-  function createEnumTypeChecker(expectedValues) {
-    if (!Array.isArray(expectedValues)) {
-       true ? printWarning('Invalid argument supplied to oneOf, expected an instance of array.') : undefined;
-      return emptyFunctionThatReturnsNull;
-    }
-
-    function validate(props, propName, componentName, location, propFullName) {
-      var propValue = props[propName];
-      for (var i = 0; i < expectedValues.length; i++) {
-        if (is(propValue, expectedValues[i])) {
-          return null;
-        }
-      }
-
-      var valuesString = JSON.stringify(expectedValues);
-      return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of value `' + propValue + '` ' + ('supplied to `' + componentName + '`, expected one of ' + valuesString + '.'));
-    }
-    return createChainableTypeChecker(validate);
-  }
-
-  function createObjectOfTypeChecker(typeChecker) {
-    function validate(props, propName, componentName, location, propFullName) {
-      if (typeof typeChecker !== 'function') {
-        return new PropTypeError('Property `' + propFullName + '` of component `' + componentName + '` has invalid PropType notation inside objectOf.');
-      }
-      var propValue = props[propName];
-      var propType = getPropType(propValue);
-      if (propType !== 'object') {
-        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + propType + '` supplied to `' + componentName + '`, expected an object.'));
-      }
-      for (var key in propValue) {
-        if (propValue.hasOwnProperty(key)) {
-          var error = typeChecker(propValue, key, componentName, location, propFullName + '.' + key, ReactPropTypesSecret);
-          if (error instanceof Error) {
-            return error;
-          }
-        }
-      }
-      return null;
-    }
-    return createChainableTypeChecker(validate);
-  }
-
-  function createUnionTypeChecker(arrayOfTypeCheckers) {
-    if (!Array.isArray(arrayOfTypeCheckers)) {
-       true ? printWarning('Invalid argument supplied to oneOfType, expected an instance of array.') : undefined;
-      return emptyFunctionThatReturnsNull;
-    }
-
-    for (var i = 0; i < arrayOfTypeCheckers.length; i++) {
-      var checker = arrayOfTypeCheckers[i];
-      if (typeof checker !== 'function') {
-        printWarning('Invalid argument supplied to oneOfType. Expected an array of check functions, but ' + 'received ' + getPostfixForTypeWarning(checker) + ' at index ' + i + '.');
-        return emptyFunctionThatReturnsNull;
-      }
-    }
-
-    function validate(props, propName, componentName, location, propFullName) {
-      for (var i = 0; i < arrayOfTypeCheckers.length; i++) {
-        var checker = arrayOfTypeCheckers[i];
-        if (checker(props, propName, componentName, location, propFullName, ReactPropTypesSecret) == null) {
-          return null;
-        }
-      }
-
-      return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` supplied to ' + ('`' + componentName + '`.'));
-    }
-    return createChainableTypeChecker(validate);
-  }
-
-  function createNodeChecker() {
-    function validate(props, propName, componentName, location, propFullName) {
-      if (!isNode(props[propName])) {
-        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` supplied to ' + ('`' + componentName + '`, expected a ReactNode.'));
-      }
-      return null;
-    }
-    return createChainableTypeChecker(validate);
-  }
-
-  function createShapeTypeChecker(shapeTypes) {
-    function validate(props, propName, componentName, location, propFullName) {
-      var propValue = props[propName];
-      var propType = getPropType(propValue);
-      if (propType !== 'object') {
-        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type `' + propType + '` ' + ('supplied to `' + componentName + '`, expected `object`.'));
-      }
-      for (var key in shapeTypes) {
-        var checker = shapeTypes[key];
-        if (!checker) {
-          continue;
-        }
-        var error = checker(propValue, key, componentName, location, propFullName + '.' + key, ReactPropTypesSecret);
-        if (error) {
-          return error;
-        }
-      }
-      return null;
-    }
-    return createChainableTypeChecker(validate);
-  }
-
-  function createStrictShapeTypeChecker(shapeTypes) {
-    function validate(props, propName, componentName, location, propFullName) {
-      var propValue = props[propName];
-      var propType = getPropType(propValue);
-      if (propType !== 'object') {
-        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type `' + propType + '` ' + ('supplied to `' + componentName + '`, expected `object`.'));
-      }
-      // We need to check all keys in case some are required but missing from
-      // props.
-      var allKeys = assign({}, props[propName], shapeTypes);
-      for (var key in allKeys) {
-        var checker = shapeTypes[key];
-        if (!checker) {
-          return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` key `' + key + '` supplied to `' + componentName + '`.' + '\nBad object: ' + JSON.stringify(props[propName], null, '  ') + '\nValid keys: ' + JSON.stringify(Object.keys(shapeTypes), null, '  '));
-        }
-        var error = checker(propValue, key, componentName, location, propFullName + '.' + key, ReactPropTypesSecret);
-        if (error) {
-          return error;
-        }
-      }
-      return null;
-    }
-
-    return createChainableTypeChecker(validate);
-  }
-
-  function isNode(propValue) {
-    switch (typeof propValue === 'undefined' ? 'undefined' : _typeof(propValue)) {
-      case 'number':
-      case 'string':
-      case 'undefined':
-        return true;
-      case 'boolean':
-        return !propValue;
-      case 'object':
-        if (Array.isArray(propValue)) {
-          return propValue.every(isNode);
-        }
-        if (propValue === null || isValidElement(propValue)) {
-          return true;
-        }
-
-        var iteratorFn = getIteratorFn(propValue);
-        if (iteratorFn) {
-          var iterator = iteratorFn.call(propValue);
-          var step;
-          if (iteratorFn !== propValue.entries) {
-            while (!(step = iterator.next()).done) {
-              if (!isNode(step.value)) {
-                return false;
-              }
-            }
-          } else {
-            // Iterator will provide entry [k,v] tuples rather than values.
-            while (!(step = iterator.next()).done) {
-              var entry = step.value;
-              if (entry) {
-                if (!isNode(entry[1])) {
-                  return false;
-                }
-              }
-            }
-          }
-        } else {
-          return false;
-        }
-
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  function isSymbol(propType, propValue) {
-    // Native Symbol.
-    if (propType === 'symbol') {
-      return true;
-    }
-
-    // 19.4.3.5 Symbol.prototype[@@toStringTag] === 'Symbol'
-    if (propValue['@@toStringTag'] === 'Symbol') {
-      return true;
-    }
-
-    // Fallback for non-spec compliant Symbols which are polyfilled.
-    if (typeof Symbol === 'function' && propValue instanceof Symbol) {
-      return true;
-    }
-
-    return false;
-  }
-
-  // Equivalent of `typeof` but with special handling for array and regexp.
-  function getPropType(propValue) {
-    var propType = typeof propValue === 'undefined' ? 'undefined' : _typeof(propValue);
-    if (Array.isArray(propValue)) {
-      return 'array';
-    }
-    if (propValue instanceof RegExp) {
-      // Old webkits (at least until Android 4.0) return 'function' rather than
-      // 'object' for typeof a RegExp. We'll normalize this here so that /bla/
-      // passes PropTypes.object.
-      return 'object';
-    }
-    if (isSymbol(propType, propValue)) {
-      return 'symbol';
-    }
-    return propType;
-  }
-
-  // This handles more types than `getPropType`. Only used for error messages.
-  // See `createPrimitiveTypeChecker`.
-  function getPreciseType(propValue) {
-    if (typeof propValue === 'undefined' || propValue === null) {
-      return '' + propValue;
-    }
-    var propType = getPropType(propValue);
-    if (propType === 'object') {
-      if (propValue instanceof Date) {
-        return 'date';
-      } else if (propValue instanceof RegExp) {
-        return 'regexp';
-      }
-    }
-    return propType;
-  }
-
-  // Returns a string that is postfixed to a warning about an invalid type.
-  // For example, "undefined" or "of type array"
-  function getPostfixForTypeWarning(value) {
-    var type = getPreciseType(value);
-    switch (type) {
-      case 'array':
-      case 'object':
-        return 'an ' + type;
-      case 'boolean':
-      case 'date':
-      case 'regexp':
-        return 'a ' + type;
-      default:
-        return type;
-    }
-  }
-
-  // Returns class name of the object, if any.
-  function getClassName(propValue) {
-    if (!propValue.constructor || !propValue.constructor.name) {
-      return ANONYMOUS;
-    }
-    return propValue.constructor.name;
-  }
-
-  ReactPropTypes.checkPropTypes = checkPropTypes;
-  ReactPropTypes.PropTypes = ReactPropTypes;
-
-  return ReactPropTypes;
-};
-
-/***/ }),
-
-/***/ "../rili-public-library/react-components/node_modules/prop-types/index.js":
-/*!********************************************************************************!*\
-  !*** ../rili-public-library/react-components/node_modules/prop-types/index.js ***!
-  \********************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-if (true) {
-  var REACT_ELEMENT_TYPE = typeof Symbol === 'function' && Symbol.for && Symbol.for('react.element') || 0xeac7;
-
-  var isValidElement = function isValidElement(object) {
-    return (typeof object === 'undefined' ? 'undefined' : _typeof(object)) === 'object' && object !== null && object.$$typeof === REACT_ELEMENT_TYPE;
-  };
-
-  // By explicitly using `prop-types` you are opting into new development behavior.
-  // http://fb.me/prop-types-in-prod
-  var throwOnDirectAccess = true;
-  module.exports = __webpack_require__(/*! ./factoryWithTypeCheckers */ "../rili-public-library/react-components/node_modules/prop-types/factoryWithTypeCheckers.js")(isValidElement, throwOnDirectAccess);
-} else {}
-
-/***/ }),
-
-/***/ "../rili-public-library/react-components/node_modules/prop-types/lib/ReactPropTypesSecret.js":
-/*!***************************************************************************************************!*\
-  !*** ../rili-public-library/react-components/node_modules/prop-types/lib/ReactPropTypesSecret.js ***!
-  \***************************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-
-
-var ReactPropTypesSecret = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED';
-
-module.exports = ReactPropTypesSecret;
-
-/***/ }),
-
 /***/ "../rili-public-library/styles/lib/index.scss":
 /*!****************************************************!*\
   !*** ../rili-public-library/styles/lib/index.scss ***!
@@ -47624,6 +47672,18 @@ module.exports = "\"data:image/svg+xml,%3Csvg id='icon-stroke-medium-search' xml
 
 /***/ }),
 
+/***/ "../rili-public-library/utilities/lib/constants.js":
+/*!*********************************************************!*\
+  !*** ../rili-public-library/utilities/lib/constants.js ***!
+  \*********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(global) {!function(e,t){ true?module.exports=t():undefined}(global,function(){return function(e){var t={};function n(r){if(t[r])return t[r].exports;var o=t[r]={i:r,l:!1,exports:{}};return e[r].call(o.exports,o,o.exports,n),o.l=!0,o.exports}return n.m=e,n.c=t,n.d=function(e,t,r){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)n.d(r,o,function(t){return e[t]}.bind(null,o));return r},n.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="/",n(n.s="jxKE")}({"0sdN":function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.JOIN_ROOM="CLIENT:JOIN_ROOM",e.SEND_MESSAGE="CLIENT:SEND_MESSAGE"}(r||(r={})),t.default=r},jxKE:function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const r=n("0sdN");t.SocketClientActionTypes=r.default;const o=n("nwmR");t.SocketServerActionTypes=o.default,t.SERVER_PREFIX="SERVER",t.WEB_CLIENT_PREFIX="CLIENT"},nwmR:function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.DISCONNECT="SERVER:DISCONNECT",e.JOINED_ROOM="SERVER:JOINED_ROOM",e.SEND_ROOMS_LIST="SERVER:SEND_ROOMS_LIST",e.SEND_MESSAGE="SERVER:SEND_MESSAGE",e.SESSION_MESSAGE="SERVER:SESSION_MESSAGE"}(r||(r={})),t.default=r}})});
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../node_modules/webpack/buildin/global.js */ "../node_modules/webpack/buildin/global.js")))
+
+/***/ }),
+
 /***/ "../rili-public-library/utilities/lib/localization.js":
 /*!************************************************************!*\
   !*** ../rili-public-library/utilities/lib/localization.js ***!
@@ -47663,9 +47723,6 @@ const redux_1 = __webpack_require__(/*! redux */ "../node_modules/redux/es/redux
 const react_redux_1 = __webpack_require__(/*! react-redux */ "../node_modules/react-redux/es/index.js");
 const react_router_dom_1 = __webpack_require__(/*! react-router-dom */ "../node_modules/react-router-dom/es/index.js");
 const react_transition_group_1 = __webpack_require__(/*! react-transition-group */ "../node_modules/react-transition-group/index.js");
-// import * as ReactGA from 'react-ga';
-// import TopNav from './pieces/TopNav';
-// import { configureAuthRoute } from '../library/authentication';
 const redirect_with_status_1 = __webpack_require__(/*! rili-public-library/react-components/redirect-with-status */ "../rili-public-library/react-components/lib/redirect-with-status.js");
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
@@ -47684,11 +47741,9 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return redux_1.bindActionCreators({}, dispatch);
 };
-// interface ILayoutState {
-// }
 // TODO: Animation between view change is not working when wrapped around a Switch
 class Layout extends React.Component {
-    constructor(props) {
+    constructor(props, state) {
         super(props);
         this.state = {
             'clientHasLoaded': false
@@ -47721,7 +47776,7 @@ class Layout extends React.Component {
         if (this.state.clientHasLoaded) {
             return (React.createElement("div", null,
                 React.createElement("header", null, "Header"),
-                React.createElement(react_transition_group_1.TransitionGroup, { appear: true, enter: true, exit: true, timeout: 250, component: "div", className: "content-container view" },
+                React.createElement(react_transition_group_1.TransitionGroup, { appear: true, enter: true, exit: true, component: "div", className: "content-container view" },
                     React.createElement(react_router_dom_1.Switch, null,
                         routes_1.default.map((route, i) => {
                             if (route.access) {
@@ -47731,7 +47786,7 @@ class Layout extends React.Component {
                                 return (React.createElement(react_router_dom_1.Route, Object.assign({ location: this.props.location, key: i }, route)));
                             }
                         }),
-                        React.createElement(redirect_with_status_1.RedirectWithStatus, { from: "/redirect", to: "/" }))),
+                        React.createElement(redirect_with_status_1.default, { from: "/redirect", to: "/" }))),
                 React.createElement("footer", null, "This is the footer.")));
         }
         else {
@@ -47744,6 +47799,8 @@ class Layout extends React.Component {
         _viewListener();
     }
 }
+exports.Layout = Layout;
+// export default Layout;
 exports.default = react_router_dom_1.withRouter(react_redux_1.connect(mapStateToProps, mapDispatchToProps)(Layout));
 
 
@@ -47766,7 +47823,7 @@ const react_redux_1 = __webpack_require__(/*! react-redux */ "../node_modules/re
 const layout_1 = __webpack_require__(/*! ./components/layout */ "./src/components/layout.tsx");
 const store_1 = __webpack_require__(/*! ./store */ "./src/store.tsx");
 __webpack_require__(/*! ./styles/index.scss */ "./src/styles/index.scss");
-__webpack_require__(/*! rili-public-library/styles/index.scss */ "../rili-public-library/styles/lib/index.scss"); // tslint:disable-line no-implicit-dependencies
+__webpack_require__(/*! rili-public-library/styles/index.scss */ "../rili-public-library/styles/lib/index.scss");
 window.onload = () => {
     react_dom_1.render(React.createElement(react_redux_1.Provider, { store: store_1.default },
         React.createElement(react_router_dom_1.BrowserRouter, null,
@@ -47882,10 +47939,44 @@ exports.default = localesConfig;
 
 /***/ }),
 
-/***/ "./src/reducers/index.ts":
-/*!*******************************!*\
-  !*** ./src/reducers/index.ts ***!
-  \*******************************/
+/***/ "./src/redux/actions/socket.ts":
+/*!*************************************!*\
+  !*** ./src/redux/actions/socket.ts ***!
+  \*************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const constants_1 = __webpack_require__(/*! rili-public-library/utilities/constants */ "../rili-public-library/utilities/lib/constants.js");
+const SocketActions = {
+    joinRoom: (data) => {
+        return (dispatch) => {
+            dispatch({
+                'type': constants_1.SocketClientActionTypes.JOIN_ROOM,
+                'data': data
+            });
+        };
+    },
+    sendMessage: (data) => {
+        return (dispatch) => {
+            dispatch({
+                'type': constants_1.SocketClientActionTypes.SEND_MESSAGE,
+                'data': data
+            });
+        };
+    },
+};
+exports.default = SocketActions;
+
+
+/***/ }),
+
+/***/ "./src/redux/reducers/index.ts":
+/*!*************************************!*\
+  !*** ./src/redux/reducers/index.ts ***!
+  \*************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -47896,9 +47987,49 @@ const redux_1 = __webpack_require__(/*! redux */ "../node_modules/redux/es/redux
 const react_router_redux_1 = __webpack_require__(/*! react-router-redux */ "../node_modules/react-router-redux/lib/index.js");
 // import {user, users, isAuthenticated, redirectRoute} from '../library/authentication';
 // import {loader} from '../library/loader';
+const socket_1 = __webpack_require__(/*! ./socket */ "./src/redux/reducers/socket.ts");
 exports.default = redux_1.combineReducers({
     routing: react_router_redux_1.routerReducer,
+    socket: socket_1.default,
 });
+
+
+/***/ }),
+
+/***/ "./src/redux/reducers/socket.ts":
+/*!**************************************!*\
+  !*** ./src/redux/reducers/socket.ts ***!
+  \**************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const Immutable = __webpack_require__(/*! seamless-immutable */ "../node_modules/seamless-immutable/seamless-immutable.development.js");
+const constants_1 = __webpack_require__(/*! rili-public-library/utilities/constants */ "../rili-public-library/utilities/lib/constants.js");
+const initialState = Immutable.from({
+    currentRoom: '',
+    rooms: [],
+    messages: {}
+});
+const socket = (state = initialState, action) => {
+    console.log('ACTION', action); // tslint:disable-line
+    switch (action.type) {
+        // Any time this action is called, the data will be a full room list from the server
+        case constants_1.SocketServerActionTypes.SEND_ROOMS_LIST:
+            return initialState.setIn(['rooms'], action.data);
+        case constants_1.SocketServerActionTypes.JOINED_ROOM:
+        case constants_1.SocketServerActionTypes.SEND_MESSAGE:
+            const prevMessageList = state.messages[action.data.roomId] || [];
+            const incomingMessageList = [action.data].concat(prevMessageList);
+            const nextState = initialState.setIn(['currentRoom'], action.data.roomId);
+            return nextState.setIn(['messages', action.data.roomId], incomingMessageList);
+        default:
+            return state;
+    }
+};
+exports.default = socket;
 
 
 /***/ }),
@@ -47915,15 +48046,25 @@ exports.default = redux_1.combineReducers({
 Object.defineProperty(exports, "__esModule", { value: true });
 const React = __webpack_require__(/*! react */ "../node_modules/react/index.js");
 const react_router_dom_1 = __webpack_require__(/*! react-router-dom */ "../node_modules/react-router-dom/es/index.js");
-const io = __webpack_require__(/*! socket.io-client */ "../node_modules/socket.io-client/lib/index.js");
+const react_redux_1 = __webpack_require__(/*! react-redux */ "../node_modules/react-redux/es/index.js");
+const redux_1 = __webpack_require__(/*! redux */ "../node_modules/redux/es/redux.js");
+const socket_1 = __webpack_require__(/*! actions/socket */ "./src/redux/actions/socket.ts");
 const input_1 = __webpack_require__(/*! rili-public-library/react-components/input */ "../rili-public-library/react-components/lib/input.js");
-// import SelectBox from 'rili-public-library/react-components/select-box';
 const button_secondary_1 = __webpack_require__(/*! rili-public-library/react-components/button-secondary */ "../rili-public-library/react-components/lib/button-secondary.js");
 const scroll_to_1 = __webpack_require__(/*! rili-public-library/utilities/scroll-to */ "../rili-public-library/utilities/lib/scroll-to.js");
 const translator_1 = __webpack_require__(/*! ../services/translator */ "./src/services/translator.ts");
-const globalConfig = __webpack_require__(/*! ../../../global-config.js */ "../global-config.js");
 // Environment Variables
-const envVars = globalConfig["development"];
+// const envVars = globalConfig[process.env.NODE_ENV];
+const mapStateToProps = (state) => {
+    return {
+        socket: state.socket,
+    };
+};
+const mapDispatchToProps = (dispatch) => {
+    return redux_1.bindActionCreators({
+        sendMessage: socket_1.default.sendMessage,
+    }, dispatch);
+};
 const addLi = (message) => {
     const listEl = document.getElementById('list');
     const li = document.createElement('li');
@@ -47939,15 +48080,9 @@ class ChatRoomComponent extends React.Component {
         super(props);
         this.state = {
             inputs: {},
-            selectedRoomKey: '',
         };
         this.messageInputRef = React.createRef();
         // this.sessionToken = '';
-        this.socket = io(`${envVars.baseSocketUrl}`, {
-            secure: true,
-            transports: ['websocket'],
-            upgrade: false
-        });
         this.translate = (key, params) => translator_1.default('en-us', key, params);
         this.onInputChange = this.onInputChange.bind(this);
         this.onButtonClick = this.onButtonClick.bind(this);
@@ -47955,8 +48090,6 @@ class ChatRoomComponent extends React.Component {
     }
     componentDidMount() {
         document.title = 'Rili | Chat Room';
-        this.socket.on('event', addLi);
-        this.socket.on('message', addLi);
     }
     onInputChange(name, value) {
         const newInputChanges = {
@@ -47967,11 +48100,12 @@ class ChatRoomComponent extends React.Component {
         });
     }
     onButtonClick(event) {
+        event.preventDefault();
         switch (event.target.id) {
             case 'enter_message':
             case 'message':
-                this.socket.emit('event', {
-                    roomName: this.state.inputs.roomName,
+                this.props.sendMessage({
+                    roomId: this.props.socket.currentRoom,
                     message: this.state.inputs.message,
                     userName: this.state.inputs.userName
                 });
@@ -47993,12 +48127,12 @@ class ChatRoomComponent extends React.Component {
                     React.createElement(button_secondary_1.default, { id: "enter_message", text: "Send", onClick: this.onButtonClick, disabled: this.shouldDisableInput('sendMessage') }))),
             React.createElement("div", { id: "roomTitle" },
                 "Room Name: ",
-                this.state.inputs.roomName),
+                this.props.socket.currentRoom),
             React.createElement("ul", { id: "list" })));
     }
 }
 exports.ChatRoomComponent = ChatRoomComponent;
-exports.default = react_router_dom_1.withRouter(ChatRoomComponent);
+exports.default = react_router_dom_1.withRouter(react_redux_1.connect(mapStateToProps, mapDispatchToProps)(ChatRoomComponent));
 
 
 /***/ }),
@@ -48013,28 +48147,29 @@ exports.default = react_router_dom_1.withRouter(ChatRoomComponent);
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+const socket_1 = __webpack_require__(/*! actions/socket */ "./src/redux/actions/socket.ts");
 const React = __webpack_require__(/*! react */ "../node_modules/react/index.js");
+const react_redux_1 = __webpack_require__(/*! react-redux */ "../node_modules/react-redux/es/index.js");
+const redux_1 = __webpack_require__(/*! redux */ "../node_modules/redux/es/redux.js");
 const react_router_dom_1 = __webpack_require__(/*! react-router-dom */ "../node_modules/react-router-dom/es/index.js");
-const io = __webpack_require__(/*! socket.io-client */ "../node_modules/socket.io-client/lib/index.js");
 const input_1 = __webpack_require__(/*! rili-public-library/react-components/input */ "../rili-public-library/react-components/lib/input.js");
-// import SelectBox from 'rili-public-library/react-components/select-box';
 const button_secondary_1 = __webpack_require__(/*! rili-public-library/react-components/button-secondary */ "../rili-public-library/react-components/lib/button-secondary.js");
 const translator_1 = __webpack_require__(/*! ../services/translator */ "./src/services/translator.ts");
-const globalConfig = __webpack_require__(/*! ../../../global-config.js */ "../global-config.js");
 // Environment Variables
-const envVars = globalConfig["development"];
-const handleSessionUpdate = (message) => {
-    console.log('SESSION_UPDATE:', message); // tslint:disable-line no-console
+// const envVars = globalConfig[process.env.NODE_ENV];
+const mapStateToProps = (state) => {
+    return {
+        socketEvent: state.socketEvent,
+    };
 };
-const updateRoomsList = (message) => {
-    const roomsList = JSON.parse(message).map((room) => (room.roomKey));
-    if (roomsList.length > 0) {
-        document.getElementById('rooms_list').innerHTML = `Active Rooms: <i>${roomsList}</i>`;
-    }
-    else {
-        document.getElementById('rooms_list').innerHTML = `<i>No rooms are currently active. Click 'Join Room' to start a new one.</i>`;
-    }
+const mapDispatchToProps = (dispatch) => {
+    return redux_1.bindActionCreators({
+        joinRoom: socket_1.default.joinRoom,
+    }, dispatch);
 };
+// const handleSessionUpdate = (message: any) => {
+//     console.log('SESSION_UPDATE:', message); // tslint:disable-line no-console
+// };
 /**
  * Home
  */
@@ -48044,16 +48179,11 @@ class HomeComponent extends React.Component {
         this.state = {
             hasJoinedARoom: false,
             inputs: {
-                roomName: 'general-chat'
+                roomId: 'general-chat'
             },
             roomsList: [],
         };
         // this.sessionToken = '';
-        this.socket = io(`${envVars.baseSocketUrl}`, {
-            secure: true,
-            transports: ['websocket'],
-            upgrade: false
-        });
         this.translate = (key, params) => translator_1.default('en-us', key, params);
         this.onInputChange = this.onInputChange.bind(this);
         this.onButtonClick = this.onButtonClick.bind(this);
@@ -48061,8 +48191,6 @@ class HomeComponent extends React.Component {
     }
     componentDidMount() {
         document.title = 'Rili | Home';
-        this.socket.on('rooms:list', updateRoomsList);
-        this.socket.on('session:message', handleSessionUpdate);
     }
     onInputChange(name, value) {
         const newInputChanges = {
@@ -48078,8 +48206,8 @@ class HomeComponent extends React.Component {
             case 'room_name':
             case 'user_name':
                 if (!this.shouldDisableInput('room')) {
-                    this.socket.emit('room.join', {
-                        roomName: this.state.inputs.roomName,
+                    this.props.joinRoom({
+                        roomId: this.state.inputs.roomId,
                         userName: this.state.inputs.userName
                     });
                     this.props.history.push('/chat-room');
@@ -48089,28 +48217,30 @@ class HomeComponent extends React.Component {
     shouldDisableInput(buttonName) {
         switch (buttonName) {
             case 'room':
-                return !this.state.inputs.roomName || !this.state.inputs.userName;
-            case 'sayHello':
-                return !this.state.hasJoinedARoom || !this.state.inputs.userName;
-            case 'sendMessage':
-                return !this.state.hasJoinedARoom || !this.state.inputs.message;
+                return !this.state.inputs.roomId || !this.state.inputs.userName;
         }
     }
     render() {
+        const { socket } = this.props;
         return (React.createElement("div", null,
             React.createElement("hr", null),
             React.createElement("label", { htmlFor: "user_name" }, "Username:"),
             React.createElement(input_1.default, { type: "text", id: "user_name", name: "userName", onChange: this.onInputChange, onEnter: this.onButtonClick, translate: this.translate }),
             React.createElement("label", { htmlFor: "room_name" }, "Room:"),
-            React.createElement(input_1.default, { type: "text", id: "room_name", name: "roomName", value: this.state.inputs.roomName, onChange: this.onInputChange, onEnter: this.onButtonClick, translate: this.translate }),
-            React.createElement("span", { id: "rooms_list" }),
+            React.createElement(input_1.default, { type: "text", id: "room_name", name: "roomId", value: this.state.inputs.roomId, onChange: this.onInputChange, onEnter: this.onButtonClick, translate: this.translate }),
+            socket && socket.rooms &&
+                React.createElement("span", { id: "rooms_list" }, socket.rooms.length < 1
+                    ? React.createElement("i", null, "No rooms are currently active. Click 'Join Room' to start a new one.")
+                    : React.createElement("span", null,
+                        "Active Rooms: ",
+                        React.createElement("i", null, socket.rooms.toString()))),
             React.createElement("br", null),
             React.createElement("div", { className: "form-field" },
                 React.createElement(button_secondary_1.default, { id: "join_room", text: "Join Room", onClick: this.onButtonClick, disabled: this.shouldDisableInput('room') }))));
     }
 }
 exports.HomeComponent = HomeComponent;
-exports.default = react_router_dom_1.withRouter(HomeComponent);
+exports.default = react_router_dom_1.withRouter(react_redux_1.connect(mapStateToProps, mapDispatchToProps)(HomeComponent));
 
 
 /***/ }),
@@ -48218,6 +48348,34 @@ exports.default = translator;
 
 /***/ }),
 
+/***/ "./src/socket-io-middleware.ts":
+/*!*************************************!*\
+  !*** ./src/socket-io-middleware.ts ***!
+  \*************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const io = __webpack_require__(/*! socket.io-client */ "../node_modules/socket.io-client/lib/index.js");
+const redux_socket_io_1 = __webpack_require__(/*! redux-socket.io */ "../node_modules/redux-socket.io/dist/index.js");
+const constants_1 = __webpack_require__(/*! rili-public-library/utilities/constants */ "../rili-public-library/utilities/lib/constants.js");
+const globalConfig = __webpack_require__(/*! ../../global-config.js */ "../global-config.js");
+// Environment Variables
+const envVars = globalConfig["development"];
+// Socket IO Connection
+const socketIO = io(`${envVars.baseSocketUrl}`, {
+    secure: true,
+    transports: ['websocket'],
+    upgrade: false
+});
+// TODO: Find a was to send server connection evern after middleware instantiates
+exports.default = redux_socket_io_1.default(socketIO, `${constants_1.WEB_CLIENT_PREFIX}:`);
+
+
+/***/ }),
+
 /***/ "./src/store.tsx":
 /*!***********************!*\
   !*** ./src/store.tsx ***!
@@ -48231,7 +48389,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const redux_thunk_1 = __webpack_require__(/*! redux-thunk */ "../node_modules/redux-thunk/es/index.js");
 const redux_logger_1 = __webpack_require__(/*! redux-logger */ "../node_modules/redux-logger/dist/redux-logger.js");
 const redux_1 = __webpack_require__(/*! redux */ "../node_modules/redux/es/redux.js");
-const reducers_1 = __webpack_require__(/*! ./reducers */ "./src/reducers/index.ts");
+const reducers_1 = __webpack_require__(/*! ./redux/reducers */ "./src/redux/reducers/index.ts");
+const socket_io_middleware_1 = __webpack_require__(/*! ./socket-io-middleware */ "./src/socket-io-middleware.ts");
 const loggerMiddleware = redux_logger_1.createLogger();
 let store, preLoadedState;
 // let storedUser: any;
@@ -48260,9 +48419,8 @@ if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
 if (false) {}
 else {
     // Create Store - Redux Development (Chrome Only)
-    store = redux_1.createStore(reducers_1.default, preLoadedState, composeEnhancers(redux_1.applyMiddleware(redux_thunk_1.default, // let's us dispatch functions
-    loggerMiddleware // middleware that logs actions (development only)
-    )));
+    store = redux_1.createStore(reducers_1.default, preLoadedState, composeEnhancers(redux_1.applyMiddleware(loggerMiddleware, // middleware that logs actions (development only)
+    socket_io_middleware_1.default, redux_thunk_1.default)));
 }
 exports.default = store;
 

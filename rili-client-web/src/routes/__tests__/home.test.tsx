@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { HomeComponent } from '../home';
-import { mount } from 'enzyme'; // tslint:disable-line no-implicit-dependencies
+import { mount } from 'enzyme';
 
 describe('Rili App', () => {
     let wrapper: any = null;

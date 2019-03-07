@@ -32,7 +32,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "f625db5db3bc39a0906f";
+/******/ 	var hotCurrentHash = "fee8cb7a7bac02ea9592";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -4748,6 +4748,17 @@ if (false) {} else {
 
 /***/ }),
 
+/***/ "../rili-public-library/utilities/lib/constants.js":
+/*!*********************************************************!*\
+  !*** ../rili-public-library/utilities/lib/constants.js ***!
+  \*********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+!function(e,t){ true?module.exports=t():undefined}(global,function(){return function(e){var t={};function n(r){if(t[r])return t[r].exports;var o=t[r]={i:r,l:!1,exports:{}};return e[r].call(o.exports,o,o.exports,n),o.l=!0,o.exports}return n.m=e,n.c=t,n.d=function(e,t,r){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)n.d(r,o,function(t){return e[t]}.bind(null,o));return r},n.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="/",n(n.s="jxKE")}({"0sdN":function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.JOIN_ROOM="CLIENT:JOIN_ROOM",e.SEND_MESSAGE="CLIENT:SEND_MESSAGE"}(r||(r={})),t.default=r},jxKE:function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const r=n("0sdN");t.SocketClientActionTypes=r.default;const o=n("nwmR");t.SocketServerActionTypes=o.default,t.SERVER_PREFIX="SERVER",t.WEB_CLIENT_PREFIX="CLIENT"},nwmR:function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.DISCONNECT="SERVER:DISCONNECT",e.JOINED_ROOM="SERVER:JOINED_ROOM",e.SEND_ROOMS_LIST="SERVER:SEND_ROOMS_LIST",e.SEND_MESSAGE="SERVER:SEND_MESSAGE",e.SESSION_MESSAGE="SERVER:SESSION_MESSAGE"}(r||(r={})),t.default=r}})});
+
+/***/ }),
+
 /***/ "../rili-public-library/utilities/lib/localization.js":
 /*!************************************************************!*\
   !*** ../rili-public-library/utilities/lib/localization.js ***!
@@ -4796,9 +4807,6 @@ const redux_1 = __webpack_require__(/*! redux */ "redux");
 const react_redux_1 = __webpack_require__(/*! react-redux */ "react-redux");
 const react_router_dom_1 = __webpack_require__(/*! react-router-dom */ "react-router-dom");
 const react_transition_group_1 = __webpack_require__(/*! react-transition-group */ "react-transition-group");
-// import * as ReactGA from 'react-ga';
-// import TopNav from './pieces/TopNav';
-// import { configureAuthRoute } from '../library/authentication';
 const redirect_with_status_1 = __webpack_require__(/*! rili-public-library/react-components/redirect-with-status */ "../rili-public-library/react-components/lib/redirect-with-status.js");
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
@@ -4817,11 +4825,9 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return redux_1.bindActionCreators({}, dispatch);
 };
-// interface ILayoutState {
-// }
 // TODO: Animation between view change is not working when wrapped around a Switch
 class Layout extends React.Component {
-    constructor(props) {
+    constructor(props, state) {
         super(props);
         this.state = {
             'clientHasLoaded': false
@@ -4854,7 +4860,7 @@ class Layout extends React.Component {
         if (this.state.clientHasLoaded) {
             return (React.createElement("div", null,
                 React.createElement("header", null, "Header"),
-                React.createElement(react_transition_group_1.TransitionGroup, { appear: true, enter: true, exit: true, timeout: 250, component: "div", className: "content-container view" },
+                React.createElement(react_transition_group_1.TransitionGroup, { appear: true, enter: true, exit: true, component: "div", className: "content-container view" },
                     React.createElement(react_router_dom_1.Switch, null,
                         routes_1.default.map((route, i) => {
                             if (route.access) {
@@ -4864,7 +4870,7 @@ class Layout extends React.Component {
                                 return (React.createElement(react_router_dom_1.Route, Object.assign({ location: this.props.location, key: i }, route)));
                             }
                         }),
-                        React.createElement(redirect_with_status_1.RedirectWithStatus, { from: "/redirect", to: "/" }))),
+                        React.createElement(redirect_with_status_1.default, { from: "/redirect", to: "/" }))),
                 React.createElement("footer", null, "This is the footer.")));
         }
         else {
@@ -4877,6 +4883,8 @@ class Layout extends React.Component {
         _viewListener();
     }
 }
+exports.Layout = Layout;
+// export default Layout;
 exports.default = react_router_dom_1.withRouter(react_redux_1.connect(mapStateToProps, mapDispatchToProps)(Layout));
 
 
@@ -4988,10 +4996,44 @@ exports.default = localesConfig;
 
 /***/ }),
 
-/***/ "./src/reducers/index.ts":
-/*!*******************************!*\
-  !*** ./src/reducers/index.ts ***!
-  \*******************************/
+/***/ "./src/redux/actions/socket.ts":
+/*!*************************************!*\
+  !*** ./src/redux/actions/socket.ts ***!
+  \*************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const constants_1 = __webpack_require__(/*! rili-public-library/utilities/constants */ "../rili-public-library/utilities/lib/constants.js");
+const SocketActions = {
+    joinRoom: (data) => {
+        return (dispatch) => {
+            dispatch({
+                'type': constants_1.SocketClientActionTypes.JOIN_ROOM,
+                'data': data
+            });
+        };
+    },
+    sendMessage: (data) => {
+        return (dispatch) => {
+            dispatch({
+                'type': constants_1.SocketClientActionTypes.SEND_MESSAGE,
+                'data': data
+            });
+        };
+    },
+};
+exports.default = SocketActions;
+
+
+/***/ }),
+
+/***/ "./src/redux/reducers/index.ts":
+/*!*************************************!*\
+  !*** ./src/redux/reducers/index.ts ***!
+  \*************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -5002,9 +5044,49 @@ const redux_1 = __webpack_require__(/*! redux */ "redux");
 const react_router_redux_1 = __webpack_require__(/*! react-router-redux */ "react-router-redux");
 // import {user, users, isAuthenticated, redirectRoute} from '../library/authentication';
 // import {loader} from '../library/loader';
+const socket_1 = __webpack_require__(/*! ./socket */ "./src/redux/reducers/socket.ts");
 exports.default = redux_1.combineReducers({
     routing: react_router_redux_1.routerReducer,
+    socket: socket_1.default,
 });
+
+
+/***/ }),
+
+/***/ "./src/redux/reducers/socket.ts":
+/*!**************************************!*\
+  !*** ./src/redux/reducers/socket.ts ***!
+  \**************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const Immutable = __webpack_require__(/*! seamless-immutable */ "seamless-immutable");
+const constants_1 = __webpack_require__(/*! rili-public-library/utilities/constants */ "../rili-public-library/utilities/lib/constants.js");
+const initialState = Immutable.from({
+    currentRoom: '',
+    rooms: [],
+    messages: {}
+});
+const socket = (state = initialState, action) => {
+    console.log('ACTION', action); // tslint:disable-line
+    switch (action.type) {
+        // Any time this action is called, the data will be a full room list from the server
+        case constants_1.SocketServerActionTypes.SEND_ROOMS_LIST:
+            return initialState.setIn(['rooms'], action.data);
+        case constants_1.SocketServerActionTypes.JOINED_ROOM:
+        case constants_1.SocketServerActionTypes.SEND_MESSAGE:
+            const prevMessageList = state.messages[action.data.roomId] || [];
+            const incomingMessageList = [action.data].concat(prevMessageList);
+            const nextState = initialState.setIn(['currentRoom'], action.data.roomId);
+            return nextState.setIn(['messages', action.data.roomId], incomingMessageList);
+        default:
+            return state;
+    }
+};
+exports.default = socket;
 
 
 /***/ }),
@@ -5058,15 +5140,25 @@ exports.default = [
 Object.defineProperty(exports, "__esModule", { value: true });
 const React = __webpack_require__(/*! react */ "react");
 const react_router_dom_1 = __webpack_require__(/*! react-router-dom */ "react-router-dom");
-const io = __webpack_require__(/*! socket.io-client */ "socket.io-client");
+const react_redux_1 = __webpack_require__(/*! react-redux */ "react-redux");
+const redux_1 = __webpack_require__(/*! redux */ "redux");
+const socket_1 = __webpack_require__(/*! actions/socket */ "./src/redux/actions/socket.ts");
 const input_1 = __webpack_require__(/*! rili-public-library/react-components/input */ "../rili-public-library/react-components/lib/input.js");
-// import SelectBox from 'rili-public-library/react-components/select-box';
 const button_secondary_1 = __webpack_require__(/*! rili-public-library/react-components/button-secondary */ "../rili-public-library/react-components/lib/button-secondary.js");
 const scroll_to_1 = __webpack_require__(/*! rili-public-library/utilities/scroll-to */ "../rili-public-library/utilities/lib/scroll-to.js");
 const translator_1 = __webpack_require__(/*! ../services/translator */ "./src/services/translator.ts");
-const globalConfig = __webpack_require__(/*! ../../../global-config.js */ "../global-config.js");
 // Environment Variables
-const envVars = globalConfig["development"];
+// const envVars = globalConfig[process.env.NODE_ENV];
+const mapStateToProps = (state) => {
+    return {
+        socket: state.socket,
+    };
+};
+const mapDispatchToProps = (dispatch) => {
+    return redux_1.bindActionCreators({
+        sendMessage: socket_1.default.sendMessage,
+    }, dispatch);
+};
 const addLi = (message) => {
     const listEl = document.getElementById('list');
     const li = document.createElement('li');
@@ -5082,15 +5174,9 @@ class ChatRoomComponent extends React.Component {
         super(props);
         this.state = {
             inputs: {},
-            selectedRoomKey: '',
         };
         this.messageInputRef = React.createRef();
         // this.sessionToken = '';
-        this.socket = io(`${envVars.baseSocketUrl}`, {
-            secure: true,
-            transports: ['websocket'],
-            upgrade: false
-        });
         this.translate = (key, params) => translator_1.default('en-us', key, params);
         this.onInputChange = this.onInputChange.bind(this);
         this.onButtonClick = this.onButtonClick.bind(this);
@@ -5098,8 +5184,6 @@ class ChatRoomComponent extends React.Component {
     }
     componentDidMount() {
         document.title = 'Rili | Chat Room';
-        this.socket.on('event', addLi);
-        this.socket.on('message', addLi);
     }
     onInputChange(name, value) {
         const newInputChanges = {
@@ -5110,11 +5194,12 @@ class ChatRoomComponent extends React.Component {
         });
     }
     onButtonClick(event) {
+        event.preventDefault();
         switch (event.target.id) {
             case 'enter_message':
             case 'message':
-                this.socket.emit('event', {
-                    roomName: this.state.inputs.roomName,
+                this.props.sendMessage({
+                    roomId: this.props.socket.currentRoom,
                     message: this.state.inputs.message,
                     userName: this.state.inputs.userName
                 });
@@ -5136,12 +5221,12 @@ class ChatRoomComponent extends React.Component {
                     React.createElement(button_secondary_1.default, { id: "enter_message", text: "Send", onClick: this.onButtonClick, disabled: this.shouldDisableInput('sendMessage') }))),
             React.createElement("div", { id: "roomTitle" },
                 "Room Name: ",
-                this.state.inputs.roomName),
+                this.props.socket.currentRoom),
             React.createElement("ul", { id: "list" })));
     }
 }
 exports.ChatRoomComponent = ChatRoomComponent;
-exports.default = react_router_dom_1.withRouter(ChatRoomComponent);
+exports.default = react_router_dom_1.withRouter(react_redux_1.connect(mapStateToProps, mapDispatchToProps)(ChatRoomComponent));
 
 
 /***/ }),
@@ -5156,28 +5241,29 @@ exports.default = react_router_dom_1.withRouter(ChatRoomComponent);
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+const socket_1 = __webpack_require__(/*! actions/socket */ "./src/redux/actions/socket.ts");
 const React = __webpack_require__(/*! react */ "react");
+const react_redux_1 = __webpack_require__(/*! react-redux */ "react-redux");
+const redux_1 = __webpack_require__(/*! redux */ "redux");
 const react_router_dom_1 = __webpack_require__(/*! react-router-dom */ "react-router-dom");
-const io = __webpack_require__(/*! socket.io-client */ "socket.io-client");
 const input_1 = __webpack_require__(/*! rili-public-library/react-components/input */ "../rili-public-library/react-components/lib/input.js");
-// import SelectBox from 'rili-public-library/react-components/select-box';
 const button_secondary_1 = __webpack_require__(/*! rili-public-library/react-components/button-secondary */ "../rili-public-library/react-components/lib/button-secondary.js");
 const translator_1 = __webpack_require__(/*! ../services/translator */ "./src/services/translator.ts");
-const globalConfig = __webpack_require__(/*! ../../../global-config.js */ "../global-config.js");
 // Environment Variables
-const envVars = globalConfig["development"];
-const handleSessionUpdate = (message) => {
-    console.log('SESSION_UPDATE:', message); // tslint:disable-line no-console
+// const envVars = globalConfig[process.env.NODE_ENV];
+const mapStateToProps = (state) => {
+    return {
+        socketEvent: state.socketEvent,
+    };
 };
-const updateRoomsList = (message) => {
-    const roomsList = JSON.parse(message).map((room) => (room.roomKey));
-    if (roomsList.length > 0) {
-        document.getElementById('rooms_list').innerHTML = `Active Rooms: <i>${roomsList}</i>`;
-    }
-    else {
-        document.getElementById('rooms_list').innerHTML = `<i>No rooms are currently active. Click 'Join Room' to start a new one.</i>`;
-    }
+const mapDispatchToProps = (dispatch) => {
+    return redux_1.bindActionCreators({
+        joinRoom: socket_1.default.joinRoom,
+    }, dispatch);
 };
+// const handleSessionUpdate = (message: any) => {
+//     console.log('SESSION_UPDATE:', message); // tslint:disable-line no-console
+// };
 /**
  * Home
  */
@@ -5187,16 +5273,11 @@ class HomeComponent extends React.Component {
         this.state = {
             hasJoinedARoom: false,
             inputs: {
-                roomName: 'general-chat'
+                roomId: 'general-chat'
             },
             roomsList: [],
         };
         // this.sessionToken = '';
-        this.socket = io(`${envVars.baseSocketUrl}`, {
-            secure: true,
-            transports: ['websocket'],
-            upgrade: false
-        });
         this.translate = (key, params) => translator_1.default('en-us', key, params);
         this.onInputChange = this.onInputChange.bind(this);
         this.onButtonClick = this.onButtonClick.bind(this);
@@ -5204,8 +5285,6 @@ class HomeComponent extends React.Component {
     }
     componentDidMount() {
         document.title = 'Rili | Home';
-        this.socket.on('rooms:list', updateRoomsList);
-        this.socket.on('session:message', handleSessionUpdate);
     }
     onInputChange(name, value) {
         const newInputChanges = {
@@ -5221,8 +5300,8 @@ class HomeComponent extends React.Component {
             case 'room_name':
             case 'user_name':
                 if (!this.shouldDisableInput('room')) {
-                    this.socket.emit('room.join', {
-                        roomName: this.state.inputs.roomName,
+                    this.props.joinRoom({
+                        roomId: this.state.inputs.roomId,
                         userName: this.state.inputs.userName
                     });
                     this.props.history.push('/chat-room');
@@ -5232,28 +5311,30 @@ class HomeComponent extends React.Component {
     shouldDisableInput(buttonName) {
         switch (buttonName) {
             case 'room':
-                return !this.state.inputs.roomName || !this.state.inputs.userName;
-            case 'sayHello':
-                return !this.state.hasJoinedARoom || !this.state.inputs.userName;
-            case 'sendMessage':
-                return !this.state.hasJoinedARoom || !this.state.inputs.message;
+                return !this.state.inputs.roomId || !this.state.inputs.userName;
         }
     }
     render() {
+        const { socket } = this.props;
         return (React.createElement("div", null,
             React.createElement("hr", null),
             React.createElement("label", { htmlFor: "user_name" }, "Username:"),
             React.createElement(input_1.default, { type: "text", id: "user_name", name: "userName", onChange: this.onInputChange, onEnter: this.onButtonClick, translate: this.translate }),
             React.createElement("label", { htmlFor: "room_name" }, "Room:"),
-            React.createElement(input_1.default, { type: "text", id: "room_name", name: "roomName", value: this.state.inputs.roomName, onChange: this.onInputChange, onEnter: this.onButtonClick, translate: this.translate }),
-            React.createElement("span", { id: "rooms_list" }),
+            React.createElement(input_1.default, { type: "text", id: "room_name", name: "roomId", value: this.state.inputs.roomId, onChange: this.onInputChange, onEnter: this.onButtonClick, translate: this.translate }),
+            socket && socket.rooms &&
+                React.createElement("span", { id: "rooms_list" }, socket.rooms.length < 1
+                    ? React.createElement("i", null, "No rooms are currently active. Click 'Join Room' to start a new one.")
+                    : React.createElement("span", null,
+                        "Active Rooms: ",
+                        React.createElement("i", null, socket.rooms.toString()))),
             React.createElement("br", null),
             React.createElement("div", { className: "form-field" },
                 React.createElement(button_secondary_1.default, { id: "join_room", text: "Join Room", onClick: this.onButtonClick, disabled: this.shouldDisableInput('room') }))));
     }
 }
 exports.HomeComponent = HomeComponent;
-exports.default = react_router_dom_1.withRouter(HomeComponent);
+exports.default = react_router_dom_1.withRouter(react_redux_1.connect(mapStateToProps, mapDispatchToProps)(HomeComponent));
 
 
 /***/ }),
@@ -5358,9 +5439,6 @@ const https = __webpack_require__(/*! https */ "https");
 const path = __webpack_require__(/*! path */ "path");
 const express = __webpack_require__(/*! express */ "express");
 const fs = __webpack_require__(/*! fs */ "fs");
-if (!process.env.BROWSER) {
-    global.window = {}; // Temporarily define window for server-side
-}
 const React = __webpack_require__(/*! react */ "react");
 const ReactDOMServer = __webpack_require__(/*! react-dom/server */ "../node_modules/react-dom/server.js");
 const react_router_dom_1 = __webpack_require__(/*! react-router-dom */ "react-router-dom");
@@ -5370,7 +5448,11 @@ const redux_thunk_1 = __webpack_require__(/*! redux-thunk */ "redux-thunk");
 const print_logs_1 = __webpack_require__(/*! rili-public-library/utilities/print-logs */ "../rili-public-library/utilities/lib/print-logs.js"); // tslint:disable-line no-implicit-dependencies
 const globalConfig = __webpack_require__(/*! ../../global-config.js */ "../global-config.js");
 const routeConfig_1 = __webpack_require__(/*! ./routeConfig */ "./src/routeConfig.ts");
-const reducers_1 = __webpack_require__(/*! ./reducers */ "./src/reducers/index.ts");
+const reducers_1 = __webpack_require__(/*! ./redux/reducers */ "./src/redux/reducers/index.ts");
+const socket_io_middleware_1 = __webpack_require__(/*! ./socket-io-middleware */ "./src/socket-io-middleware.ts");
+if (!process.env.BROWSER) {
+    global.window = {}; // Temporarily define window for server-side
+}
 const layout_1 = __webpack_require__(/*! ./components/layout */ "./src/components/layout.tsx");
 const routes_1 = __webpack_require__(/*! ./routes */ "./src/routes/index.ts");
 // Initialize the server and configure support for handlebars templates
@@ -5400,7 +5482,7 @@ for (let i in routeConfig_1.default) {
         let promises = [];
         const staticContext = {};
         const initialState = {};
-        const store = redux_1.createStore(reducers_1.default, initialState, redux_1.applyMiddleware(redux_thunk_1.default));
+        const store = redux_1.createStore(reducers_1.default, initialState, redux_1.applyMiddleware(socket_io_middleware_1.default, redux_thunk_1.default));
         routes_1.default.some((route) => {
             const match = react_router_dom_1.matchPath(req.url, route);
             if (match && route.fetchData) {
@@ -5462,6 +5544,34 @@ exports.default = translator;
 
 /***/ }),
 
+/***/ "./src/socket-io-middleware.ts":
+/*!*************************************!*\
+  !*** ./src/socket-io-middleware.ts ***!
+  \*************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const io = __webpack_require__(/*! socket.io-client */ "socket.io-client");
+const redux_socket_io_1 = __webpack_require__(/*! redux-socket.io */ "redux-socket.io");
+const constants_1 = __webpack_require__(/*! rili-public-library/utilities/constants */ "../rili-public-library/utilities/lib/constants.js");
+const globalConfig = __webpack_require__(/*! ../../global-config.js */ "../global-config.js");
+// Environment Variables
+const envVars = globalConfig["development"];
+// Socket IO Connection
+const socketIO = io(`${envVars.baseSocketUrl}`, {
+    secure: true,
+    transports: ['websocket'],
+    upgrade: false
+});
+// TODO: Find a was to send server connection evern after middleware instantiates
+exports.default = redux_socket_io_1.default(socketIO, `${constants_1.WEB_CLIENT_PREFIX}:`);
+
+
+/***/ }),
+
 /***/ "./src/store.tsx":
 /*!***********************!*\
   !*** ./src/store.tsx ***!
@@ -5475,7 +5585,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const redux_thunk_1 = __webpack_require__(/*! redux-thunk */ "redux-thunk");
 const redux_logger_1 = __webpack_require__(/*! redux-logger */ "redux-logger");
 const redux_1 = __webpack_require__(/*! redux */ "redux");
-const reducers_1 = __webpack_require__(/*! ./reducers */ "./src/reducers/index.ts");
+const reducers_1 = __webpack_require__(/*! ./redux/reducers */ "./src/redux/reducers/index.ts");
+const socket_io_middleware_1 = __webpack_require__(/*! ./socket-io-middleware */ "./src/socket-io-middleware.ts");
 const loggerMiddleware = redux_logger_1.createLogger();
 let store, preLoadedState;
 // let storedUser: any;
@@ -5504,9 +5615,8 @@ if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
 if (false) {}
 else {
     // Create Store - Redux Development (Chrome Only)
-    store = redux_1.createStore(reducers_1.default, preLoadedState, composeEnhancers(redux_1.applyMiddleware(redux_thunk_1.default, // let's us dispatch functions
-    loggerMiddleware // middleware that logs actions (development only)
-    )));
+    store = redux_1.createStore(reducers_1.default, preLoadedState, composeEnhancers(redux_1.applyMiddleware(loggerMiddleware, // middleware that logs actions (development only)
+    socket_io_middleware_1.default, redux_thunk_1.default)));
 }
 exports.default = store;
 
@@ -5689,6 +5799,17 @@ module.exports = require("redux-logger");
 
 /***/ }),
 
+/***/ "redux-socket.io":
+/*!**********************************!*\
+  !*** external "redux-socket.io" ***!
+  \**********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("redux-socket.io");
+
+/***/ }),
+
 /***/ "redux-thunk":
 /*!******************************!*\
   !*** external "redux-thunk" ***!
@@ -5697,6 +5818,17 @@ module.exports = require("redux-logger");
 /***/ (function(module, exports) {
 
 module.exports = require("redux-thunk");
+
+/***/ }),
+
+/***/ "seamless-immutable":
+/*!*************************************!*\
+  !*** external "seamless-immutable" ***!
+  \*************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("seamless-immutable");
 
 /***/ }),
 
