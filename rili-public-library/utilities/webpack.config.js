@@ -17,8 +17,14 @@ const PATHS = {
 };
 
 const entry = {};
-utilities.forEach((utility) => {
-    entry[utility] = `${PATHS.app}/${utility}.ts`;
+utilities.forEach((utilityPath) => {
+    if (utilityPath === 'constants/index') {
+        entry.constants = `${PATHS.app}/${utilityPath}.ts`;
+    } else {
+        const pathSplit = utilityPath.split('/');
+        const name = pathSplit[pathSplit.length - 1];
+        entry[name] = `${PATHS.app}/${utilityPath}.ts`;
+    }
 });
 
 const common = merge([

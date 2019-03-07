@@ -5,18 +5,20 @@ import * as https from 'https';
 import * as Redis from 'ioredis';
 import * as socketio from 'socket.io';
 import * as socketioRedis from 'socket.io-redis';
-import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disable-line no-implicit-dependencies
+import * as socketHandlers from './handlers/socket';
+import { SocketServerActionTypes, SocketClientActionTypes } from 'rili-public-library/utilities/constants';
+import printLogs from 'rili-public-library/utilities/print-logs';
 import * as globalConfig from '../../global-config.js';
 import RedisSession from './services/redis-session';
 import getRoomsList from './utilities/get-socket-rooms-list';
 
-const rsAppName = 'riliChat';
+export const rsAppName = 'riliChat';
 // Session to attach socket.io details to username while logged in
-const shouldIncludeAllLogs = process.argv[2] === 'withAllLogs';
-const shouldIncludeLogs = process.argv[2] === 'withLogs';
-const shouldIncludeRedisLogs =  process.argv[2] === 'withRedisLogs'
+export const shouldIncludeAllLogs = process.argv[2] === 'withAllLogs';
+export const shouldIncludeLogs = process.argv[2] === 'withLogs';
+export const shouldIncludeRedisLogs =  process.argv[2] === 'withRedisLogs'
     || shouldIncludeAllLogs;
-const shouldIncludeSocketLogs = process.argv[2] === 'withSocketLogs'
+export const shouldIncludeSocketLogs = process.argv[2] === 'withSocketLogs'
     || shouldIncludeAllLogs
     || shouldIncludeRedisLogs;
 
@@ -124,67 +126,22 @@ const startExpressSocketIOServer = () => {
     });
 
     redisAdapter.subClient.on('message', (channel: any, message: any) => {
-        printLogs(shouldIncludeRedisLogs, 'REDIS_SUB_CLIENT', null, `Message from channel ${channel}: ${message}`); // tslint:disable-line
+        printLogs(shouldIncludeRedisLogs, 'REDIS_SUB_CLIENT', null, `Message from channel ${channel}: ${message}`);
     });
 
     io.on('connection', (socket: socketio.Socket) => {
         printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, 'NEW CONNECTION...');
         printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `All Rooms: ${JSON.stringify(getRoomsList(io.sockets.adapter.rooms))}`);
 
-        socket.emit('rooms:list', JSON.stringify(getRoomsList(io.sockets.adapter.rooms)));
+        socket.emit(SocketServerActionTypes.SEND_ROOMS_LIST, getRoomsList(io.sockets.adapter.rooms));
 
-        socket.on('room.join', (details: any) => {
-            // Leave all current rooms (except default room) before joining a new one
-            Object.keys(socket.rooms)
-                .filter((room) => room !== socket.id)
-                .forEach((room) => {
-                    socket.broadcast.to(room).emit('event', `${details.userName} left the room`);
-                    socket.leave(room);
-                });
-
-            // TODO: RSERV-4: Determine why this setTimeout exists
-            setTimeout(() => {
-                socket.join(details.roomName, () => {
-                    // TODO: After adding user login, this should be created after login rather then after joining a room
-                    if (socket.handshake && socket.handshake.headers && socket.handshake.headers.host) {
-                        redisSession.create({
-                            app: rsAppName,
-                            socketId: socket.id,
-                            ip: socket.handshake.headers.host.split(':')[0],
-                            // 30 minutes
-                            ttl: 60 * 1000 * 30,
-                            data: {
-                                userName: details.userName,
-                            },
-                        }).then((response: any) => {
-                            socket.emit('session:message', response);
-                        }).catch((err: any) => {
-                            printLogs(shouldIncludeRedisLogs, 'REDIS_SESSION_ERROR', null, err);
-                        });
-                    }
-
-                    printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `User, ${details.userName} with socketId ${socket.id}, joined room ${details.roomName}`);
-                    printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `${details.userName}'s Current Rooms: ${JSON.stringify(socket.rooms)}`);
-
-                    // Emits an event back to the client who joined
-                    socket.emit('event', `You joined room ${details.roomName}`);
-                    // Broadcasts an event back to the client for all users in the specified room (excluding the user who triggered it)
-                    socket.broadcast.to(details.roomName).emit('event', `${details.userName} joined room ${details.roomName}`);
-                });
-            }, 0);
-        });
-
-        socket.on('event', (event: any) => {
-            printLogs(shouldIncludeLogs, 'EVENT', null, event);
-            if (event.message) {
-                socket.emit('message', `You: ${event.message}`);
-                socket.broadcast.to(event.roomName).emit('message', `${event.userName}: ${event.message}`);
-                printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `${event.userName} said: ${event.message}`);
-            } else {
-                // Broadcasts an event back to the client for all users in the specified room (excluding the user who triggered it)
-                socket.emit('message', `You said hello.`);
-                socket.broadcast.to(event.roomName).emit('message', `${event.userName} says hello!`);
-                printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `${event.userName} says hello!`);
+        // Event sent from socket.io, redux store middleware
+        socket.on('action', (action: any) => {
+            if (action.type === SocketClientActionTypes.JOIN_ROOM) {
+                socketHandlers.joinRoom(socket, redisSession, action.data);
+            }
+            if (action.type === SocketClientActionTypes.SEND_MESSAGE) {
+                socketHandlers.sendMessage(socket, action.data);
             }
         });
 
@@ -205,7 +162,10 @@ const leaveAndNotifyRooms = (socket: SocketIO.Socket) => {
                 activeRooms.forEach((room) => {
                     const parsedResponse = JSON.parse(response);
                     if (parsedResponse && parsedResponse.userName) {
-                        socket.broadcast.to(room).emit('event', `${parsedResponse.userName} left the room`);
+                        socket.broadcast.to(room).emit('event', {
+                            type: SocketServerActionTypes.DISCONNECT,
+                            data: `${parsedResponse.userName} left the room`,
+                        });
                     }
                 });
             }).catch((err: any) => {

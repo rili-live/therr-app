@@ -33,6 +33,8 @@ const common = merge([
         resolve: {
             extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.scss', '.css'],
             alias: {
+                actions: path.join(__dirname, 'src/redux/actions/'),
+                enums: path.join(__dirname, 'src/constants/enums/'),
                 'rili-public-library/react-components': path.join(__dirname, '../rili-public-library/react-components/lib'),
                 'rili-public-library/styles': path.join(__dirname, '../rili-public-library/styles/lib'),
                 'rili-public-library/utilities': path.join(__dirname, '../rili-public-library/utilities/lib'),

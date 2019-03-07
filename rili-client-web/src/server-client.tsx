@@ -3,6 +3,17 @@ import * as https from 'https';
 import * as path from 'path';
 import * as express from 'express';
 import * as fs from 'fs';
+import * as React from 'react';
+import * as ReactDOMServer from 'react-dom/server';
+import { StaticRouter, matchPath } from 'react-router-dom';
+import { applyMiddleware, createStore } from 'redux';
+import { Provider } from 'react-redux';
+import thunkMiddleware from 'redux-thunk';
+import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disable-line no-implicit-dependencies
+import * as globalConfig from '../../global-config.js';
+import routeConfig from './routeConfig';
+import rootReducer from './redux/reducers';
+import socketIOMiddleWare from './socket-io-middleware';
 
 // TODO: RFRONT-9: Fix window is undefined hack
 declare global {
@@ -16,17 +27,6 @@ declare global {
 if (!process.env.BROWSER) {
     global.window = {}; // Temporarily define window for server-side
 }
-
-import * as React from 'react';
-import * as ReactDOMServer from 'react-dom/server';
-import { StaticRouter, matchPath } from 'react-router-dom';
-import { applyMiddleware, createStore } from 'redux';
-import { Provider } from 'react-redux';
-import thunkMiddleware from 'redux-thunk';
-import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disable-line no-implicit-dependencies
-import * as globalConfig from '../../global-config.js';
-import routeConfig from './routeConfig';
-import rootReducer from './reducers';
 import Layout from './components/layout';
 import routes, { IRoute } from './routes';
 
@@ -72,7 +72,8 @@ for (let i in routeConfig) {
             rootReducer,
             initialState,
             applyMiddleware(
-                thunkMiddleware
+                socketIOMiddleWare,
+                thunkMiddleware,
             )
         );
 

@@ -1,6 +1,6 @@
 
 import * as Redis from 'ioredis';
-import promiser from 'rili-public-library/utilities/promiser'; // tslint:disable-line no-implicit-dependencies
+import promiser from 'rili-public-library/utilities/promiser';
 import * as globalConfig from '../../../global-config.js';
 import { IUserSocketSession } from './redis-session';
 

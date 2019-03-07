@@ -1,32 +1,49 @@
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import * as io from 'socket.io-client';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import SocketActions from 'actions/socket';
 import Input from 'rili-public-library/react-components/input';
-// import SelectBox from 'rili-public-library/react-components/select-box';
 import ButtonSecondary from 'rili-public-library/react-components/button-secondary';
 import scrollTo from 'rili-public-library/utilities/scroll-to';
+import { ISocketState } from '../redux/reducers/socket';
 import translator from '../services/translator';
-import * as globalConfig from '../../../global-config.js';
+// import * as globalConfig from '../../../global-config.js';
 
 interface IChatRoomRouterProps {
 
 }
 
-interface IChatRoomProps extends RouteComponentProps<IChatRoomRouterProps> {
-// Add your regular properties here
+interface IChatRoomDispatchProps {
+    sendMessage: Function;
 }
 
-interface IChatRoomDispatchProps {
-// Add your dispatcher properties here
+interface IStoreProps extends IChatRoomDispatchProps {
+    socket: ISocketState;
+}
+
+// Regular component props
+interface IChatRoomProps extends RouteComponentProps<IChatRoomRouterProps>, IStoreProps {
 }
 
 interface IChatRoomState {
     inputs: any;
-    selectedRoomKey: string;
 }
 
 // Environment Variables
-const envVars = globalConfig[process.env.NODE_ENV];
+// const envVars = globalConfig[process.env.NODE_ENV];
+
+const mapStateToProps = (state: IChatRoomState | any) => {
+    return {
+        socket: state.socket,
+    };
+};
+
+const mapDispatchToProps = (dispatch: any) => {
+    return bindActionCreators({
+        sendMessage: SocketActions.sendMessage,
+    }, dispatch);
+};
 
 const addLi = (message: any) => {
     const listEl = document.getElementById('list');
@@ -39,27 +56,20 @@ const addLi = (message: any) => {
 /**
  * ChatRoom
  */
-export class ChatRoomComponent extends React.Component<IChatRoomProps & IChatRoomDispatchProps, IChatRoomState> {
+export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoomState> {
     private messageInputRef: any;
     // private sessionToken: string;
-    private socket: any;
     private translate: Function;
 
-    constructor(props: IChatRoomProps & IChatRoomDispatchProps) {
+    constructor(props: IChatRoomProps) {
         super(props);
 
         this.state = {
             inputs: {},
-            selectedRoomKey: '',
         };
 
         this.messageInputRef = React.createRef();
         // this.sessionToken = '';
-        this.socket = io(`${envVars.baseSocketUrl}`, {
-            secure: true,
-            transports: ['websocket'],
-            upgrade: false
-        });
         this.translate = (key: string, params: any) => translator('en-us', key, params);
 
         this.onInputChange = this.onInputChange.bind(this);
@@ -69,9 +79,6 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps & IChatRoo
 
     componentDidMount() {
         document.title = 'Rili | Chat Room';
-
-        this.socket.on('event', addLi);
-        this.socket.on('message', addLi);
     }
 
     onInputChange(name: string, value: string) {
@@ -87,11 +94,12 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps & IChatRoo
     }
 
     onButtonClick(event: any) {
+        event.preventDefault();
         switch (event.target.id) {
             case 'enter_message':
             case 'message':
-                this.socket.emit('event', {
-                    roomName: this.state.inputs.roomName,
+                this.props.sendMessage({
+                    roomId: this.props.socket.currentRoom,
                     message: this.state.inputs.message,
                     userName: this.state.inputs.userName
                 });
@@ -129,11 +137,11 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps & IChatRoo
                     </div>
                 </div>
 
-                <div id="roomTitle">Room Name: {this.state.inputs.roomName}</div>
+                <div id="roomTitle">Room Name: {this.props.socket.currentRoom}</div>
                 <ul id="list"></ul>
             </div>
         );
     }
 }
 
-export default withRouter(ChatRoomComponent);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ChatRoomComponent));
