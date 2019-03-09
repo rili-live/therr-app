@@ -186,6 +186,43 @@ module.exports = {
 
 /***/ }),
 
+/***/ "./src/constants/index.ts":
+/*!********************************!*\
+  !*** ./src/constants/index.ts ***!
+  \********************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const disconnect_reason_1 = __webpack_require__(/*! ./socket/disconnect-reason */ "./src/constants/socket/disconnect-reason.ts");
+exports.SocketDisconnectReason = disconnect_reason_1.default;
+exports.ACTION = 'action';
+
+
+/***/ }),
+
+/***/ "./src/constants/socket/disconnect-reason.ts":
+/*!***************************************************!*\
+  !*** ./src/constants/socket/disconnect-reason.ts ***!
+  \***************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var DisconnectReason;
+(function (DisconnectReason) {
+    DisconnectReason["transportClose"] = "transport close";
+    DisconnectReason["pingTimeout"] = "ping timeout";
+})(DisconnectReason || (DisconnectReason = {}));
+exports.default = DisconnectReason;
+
+
+/***/ }),
+
 /***/ "./src/handlers/socket/index.ts":
 /*!**************************************!*\
   !*** ./src/handlers/socket/index.ts ***!
@@ -216,6 +253,7 @@ exports.sendMessage = send_message_1.default;
 Object.defineProperty(exports, "__esModule", { value: true });
 const print_logs_1 = __webpack_require__(/*! rili-public-library/utilities/print-logs */ "../rili-public-library/utilities/lib/print-logs.js"); // tslint:disable-line no-implicit-dependencies
 const constants_1 = __webpack_require__(/*! rili-public-library/utilities/constants */ "../rili-public-library/utilities/lib/constants.js");
+const Constants = __webpack_require__(/*! ../../constants */ "./src/constants/index.ts");
 const server_socket_io_1 = __webpack_require__(/*! ../../server-socket-io */ "./src/server-socket-io.ts");
 const joinRoom = (socket, redisSession, data) => {
     // Leave all current rooms (except default room) before joining a new one
@@ -240,8 +278,8 @@ const joinRoom = (socket, redisSession, data) => {
                         userName: data.userName,
                     },
                 }).then((response) => {
-                    socket.emit('saction', {
-                        type: constants_1.SocketServerActionTypes.SessionMessage,
+                    socket.emit(Constants.ACTION, {
+                        type: constants_1.SocketServerActionTypes.SESSION_MESSAGE,
                         data: response,
                     });
                 }).catch((err) => {
@@ -251,7 +289,7 @@ const joinRoom = (socket, redisSession, data) => {
             print_logs_1.default(server_socket_io_1.shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `User, ${data.userName} with socketId ${socket.id}, joined room ${data.roomId}`);
             print_logs_1.default(server_socket_io_1.shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `${data.userName}'s Current Rooms: ${JSON.stringify(socket.rooms)}`);
             // Emits an event back to the client who joined
-            socket.emit('action', {
+            socket.emit(Constants.ACTION, {
                 type: constants_1.SocketServerActionTypes.JOINED_ROOM,
                 data: {
                     roomId: data.roomId,
@@ -259,7 +297,7 @@ const joinRoom = (socket, redisSession, data) => {
                 }
             });
             // Broadcasts an event back to the client for all users in the specified room (excluding the user who triggered it)
-            socket.broadcast.to(data.roomId).emit('action', {
+            socket.broadcast.to(data.roomId).emit(Constants.ACTION, {
                 type: constants_1.SocketServerActionTypes.JOINED_ROOM,
                 data: {
                     roomId: data.roomId,
@@ -286,6 +324,7 @@ exports.default = joinRoom;
 Object.defineProperty(exports, "__esModule", { value: true });
 const print_logs_1 = __webpack_require__(/*! rili-public-library/utilities/print-logs */ "../rili-public-library/utilities/lib/print-logs.js"); // tslint:disable-line no-implicit-dependencies
 const constants_1 = __webpack_require__(/*! rili-public-library/utilities/constants */ "../rili-public-library/utilities/lib/constants.js");
+const Constants = __webpack_require__(/*! ../../constants */ "./src/constants/index.ts");
 const server_socket_io_1 = __webpack_require__(/*! ../../server-socket-io */ "./src/server-socket-io.ts");
 const sendMessage = (socket, data) => {
     print_logs_1.default(server_socket_io_1.shouldIncludeLogs, constants_1.SocketClientActionTypes.SEND_MESSAGE, null, data);
@@ -294,7 +333,7 @@ const sendMessage = (socket, data) => {
         data: `You: ${data.message}`,
         roomId: data.roomId,
     });
-    socket.broadcast.to(data.roomName).emit('action', {
+    socket.broadcast.to(data.roomName).emit(Constants.ACTION, {
         type: constants_1.SocketServerActionTypes.SEND_MESSAGE,
         data: `${data.userName}: ${data.message}`,
         roomId: data.roomId,
@@ -325,6 +364,7 @@ const socketio = __webpack_require__(/*! socket.io */ "socket.io");
 const socketioRedis = __webpack_require__(/*! socket.io-redis */ "socket.io-redis");
 const socketHandlers = __webpack_require__(/*! ./handlers/socket */ "./src/handlers/socket/index.ts");
 const constants_1 = __webpack_require__(/*! rili-public-library/utilities/constants */ "../rili-public-library/utilities/lib/constants.js");
+const Constants = __webpack_require__(/*! ./constants */ "./src/constants/index.ts");
 const print_logs_1 = __webpack_require__(/*! rili-public-library/utilities/print-logs */ "../rili-public-library/utilities/lib/print-logs.js");
 const globalConfig = __webpack_require__(/*! ../../global-config.js */ "../global-config.js");
 const redis_session_1 = __webpack_require__(/*! ./services/redis-session */ "./src/services/redis-session.ts");
@@ -426,9 +466,13 @@ const startExpressSocketIOServer = () => {
     io.on('connection', (socket) => {
         print_logs_1.default(exports.shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, 'NEW CONNECTION...');
         print_logs_1.default(exports.shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `All Rooms: ${JSON.stringify(get_socket_rooms_list_1.default(io.sockets.adapter.rooms))}`);
-        socket.emit(constants_1.SocketServerActionTypes.SEND_ROOMS_LIST, get_socket_rooms_list_1.default(io.sockets.adapter.rooms));
+        // Send a list of the currently active chat rooms when user connects
+        socket.emit(Constants.ACTION, {
+            type: constants_1.SocketServerActionTypes.SEND_ROOMS_LIST,
+            data: get_socket_rooms_list_1.default(io.sockets.adapter.rooms)
+        });
         // Event sent from socket.io, redux store middleware
-        socket.on('action', (action) => {
+        socket.on(Constants.ACTION, (action) => {
             if (action.type === constants_1.SocketClientActionTypes.JOIN_ROOM) {
                 socketHandlers.joinRoom(socket, redisSession, action.data);
             }
