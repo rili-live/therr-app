@@ -33,9 +33,9 @@ interface IHomeState {
 // Environment Variables
 // const envVars = globalConfig[process.env.NODE_ENV];
 
-const mapStateToProps = (state: IHomeState | any) => {
+const mapStateToProps = (state: any) => {
     return {
-        socketEvent: state.socketEvent,
+        socket: state.socket,
     };
 };
 
@@ -131,7 +131,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
                         {
                             socket.rooms.length < 1
                                 ? <i>No rooms are currently active. Click 'Join Room' to start a new one.</i>
-                                : <span>Active Rooms: <i>{socket.rooms.toString()}</i></span>
+                                : <span>Active Rooms: <i>{socket.rooms.map(room => `${room.roomKey}, `).toString()}</i></span>
                         }
                     </span>
                 }

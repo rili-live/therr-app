@@ -1,7 +1,7 @@
 import * as Immutable from 'seamless-immutable';
 import { SocketServerActionTypes } from 'rili-public-library/utilities/constants';
 
-type IRoomsArray = Immutable.ImmutableArray<string>;
+type IRoomsArray = Immutable.ImmutableArray<any>;
 
 export interface ISocketState extends Immutable.ImmutableObject<any> {
     currentRoom: String;

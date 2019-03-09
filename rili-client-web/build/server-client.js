@@ -32,7 +32,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "fee8cb7a7bac02ea9592";
+/******/ 	var hotCurrentHash = "5e3cde9f363d334c65fa";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -5253,7 +5253,7 @@ const translator_1 = __webpack_require__(/*! ../services/translator */ "./src/se
 // const envVars = globalConfig[process.env.NODE_ENV];
 const mapStateToProps = (state) => {
     return {
-        socketEvent: state.socketEvent,
+        socket: state.socket,
     };
 };
 const mapDispatchToProps = (dispatch) => {
@@ -5315,6 +5315,7 @@ class HomeComponent extends React.Component {
         }
     }
     render() {
+        console.log('PROPS: ', this.props); //tslint:disable-line
         const { socket } = this.props;
         return (React.createElement("div", null,
             React.createElement("hr", null),
@@ -5327,7 +5328,7 @@ class HomeComponent extends React.Component {
                     ? React.createElement("i", null, "No rooms are currently active. Click 'Join Room' to start a new one.")
                     : React.createElement("span", null,
                         "Active Rooms: ",
-                        React.createElement("i", null, socket.rooms.toString()))),
+                        React.createElement("i", null, socket.rooms.map(room => `${room.roomKey}, `).toString()))),
             React.createElement("br", null),
             React.createElement("div", { className: "form-field" },
                 React.createElement(button_secondary_1.default, { id: "join_room", text: "Join Room", onClick: this.onButtonClick, disabled: this.shouldDisableInput('room') }))));

@@ -1,6 +1,7 @@
 import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disable-line no-implicit-dependencies
 import { SocketServerActionTypes } from 'rili-public-library/utilities/constants';
+import * as Constants from '../../constants';
 import { rsAppName, shouldIncludeRedisLogs, shouldIncludeSocketLogs } from '../../server-socket-io';
 
 const joinRoom = (socket: socketio.Socket, redisSession: any, data: any) => {
@@ -28,8 +29,8 @@ const joinRoom = (socket: socketio.Socket, redisSession: any, data: any) => {
                         userName: data.userName,
                     },
                 }).then((response: any) => {
-                    socket.emit('saction', {
-                        type: SocketServerActionTypes.SessionMessage,
+                    socket.emit(Constants.ACTION, {
+                        type: SocketServerActionTypes.SESSION_MESSAGE,
                         data: response,
                     });
                 }).catch((err: any) => {
@@ -41,7 +42,7 @@ const joinRoom = (socket: socketio.Socket, redisSession: any, data: any) => {
             printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `${data.userName}'s Current Rooms: ${JSON.stringify(socket.rooms)}`);
 
             // Emits an event back to the client who joined
-            socket.emit('action', {
+            socket.emit(Constants.ACTION, {
                 type: SocketServerActionTypes.JOINED_ROOM,
                 data: {
                     roomId: data.roomId,
@@ -49,7 +50,7 @@ const joinRoom = (socket: socketio.Socket, redisSession: any, data: any) => {
                 }
             });
             // Broadcasts an event back to the client for all users in the specified room (excluding the user who triggered it)
-            socket.broadcast.to(data.roomId).emit('action', {
+            socket.broadcast.to(data.roomId).emit(Constants.ACTION, {
                 type: SocketServerActionTypes.JOINED_ROOM,
                 data: {
                     roomId: data.roomId,

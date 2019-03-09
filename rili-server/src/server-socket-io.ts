@@ -7,6 +7,7 @@ import * as socketio from 'socket.io';
 import * as socketioRedis from 'socket.io-redis';
 import * as socketHandlers from './handlers/socket';
 import { SocketServerActionTypes, SocketClientActionTypes } from 'rili-public-library/utilities/constants';
+import * as Constants from './constants';
 import printLogs from 'rili-public-library/utilities/print-logs';
 import * as globalConfig from '../../global-config.js';
 import RedisSession from './services/redis-session';
@@ -133,10 +134,14 @@ const startExpressSocketIOServer = () => {
         printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, 'NEW CONNECTION...');
         printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `All Rooms: ${JSON.stringify(getRoomsList(io.sockets.adapter.rooms))}`);
 
-        socket.emit(SocketServerActionTypes.SEND_ROOMS_LIST, getRoomsList(io.sockets.adapter.rooms));
+        // Send a list of the currently active chat rooms when user connects
+        socket.emit(Constants.ACTION, {
+            type: SocketServerActionTypes.SEND_ROOMS_LIST,
+            data: getRoomsList(io.sockets.adapter.rooms)
+        });
 
         // Event sent from socket.io, redux store middleware
-        socket.on('action', (action: any) => {
+        socket.on(Constants.ACTION, (action: any) => {
             if (action.type === SocketClientActionTypes.JOIN_ROOM) {
                 socketHandlers.joinRoom(socket, redisSession, action.data);
             }
