@@ -15,6 +15,7 @@
 		"paths": {
 			"actions/*": ["./src/redux/actions/*"],
 			"enums/*": ["./src/constants/enums/*"],
+			"types/*": ["./src/redux/types/*"],
 			"react": ["../../node_modules/@types/react"],
 			"rili-public-library/react-components/*": ["../rili-public-library/react-components/lib/*"],
             "rili-public-library/styles/*": ["../rili-public-library/styles/lib/*"],

@@ -6,7 +6,7 @@ import SocketActions from 'actions/socket';
 import Input from 'rili-public-library/react-components/input';
 import ButtonSecondary from 'rili-public-library/react-components/button-secondary';
 import scrollTo from 'rili-public-library/utilities/scroll-to';
-import { ISocketState } from '../redux/reducers/socket';
+import { IMessage, ISocketState } from 'types/socket';
 import translator from '../services/translator';
 // import * as globalConfig from '../../../global-config.js';
 
@@ -45,14 +45,6 @@ const mapDispatchToProps = (dispatch: any) => {
     }, dispatch);
 };
 
-const addLi = (message: any) => {
-    const listEl = document.getElementById('list');
-    const li = document.createElement('li');
-    li.appendChild(document.createTextNode(message));
-    listEl.appendChild(li);
-    scrollTo(listEl.scrollHeight, 200);
-};
-
 /**
  * ChatRoom
  */
@@ -79,6 +71,20 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
 
     componentDidMount() {
         document.title = 'Rili | Chat Room';
+        this.messageInputRef.current.inputEl.focus();
+        setTimeout(() => {
+            if (!this.props.socket.user.currentRoom) {
+                this.props.history.push('/');
+            }
+        });
+    }
+
+    componentDidUpdate(prevProps: IChatRoomProps) {
+        const currentRoom = this.props.socket.user.currentRoom;
+        const messages = this.props.socket.messages[currentRoom];
+        if (messages && messages.length > 3 && messages.length > prevProps.socket.messages[currentRoom].length) {
+            window.scrollTo(0, document.body.scrollHeight);
+        }
     }
 
     onInputChange(name: string, value: string) {
@@ -99,9 +105,9 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
             case 'enter_message':
             case 'message':
                 this.props.sendMessage({
-                    roomId: this.props.socket.currentRoom,
+                    roomId: this.props.socket.user.currentRoom,
                     message: this.state.inputs.message,
-                    userName: this.state.inputs.userName
+                    userName: this.props.socket.user.userName,
                 });
                 return this.onInputChange('message', '');
         }
@@ -115,11 +121,14 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
     }
 
     render() {
+        const { socket } = this.props;
+        const messages = socket.messages[socket.user.currentRoom];
+
         return (
             <div>
                 <hr />
 
-                <div className="form-field-wrapper inline">
+                <div className="form-field-wrapper inline message-input">
                     <Input
                         ref={this.messageInputRef}
                         autoComplete="off"
@@ -137,8 +146,23 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
                     </div>
                 </div>
 
-                <div id="roomTitle">Room Name: {this.props.socket.currentRoom}</div>
-                <ul id="list"></ul>
+                <div id="roomTitle">Room Name: {socket.user.currentRoom}</div>
+                {
+                    socket && socket.rooms &&
+                    <span id="rooms_list">
+                        {
+                            messages && messages.length > 0 ?
+                            <span className="message-list">
+                                {
+                                    messages.map((message: IMessage) =>
+                                        <li key={message.key}>({message.time}) {message.text}</li>
+                                    )
+                                }
+                            </span> :
+                            <span>Welcome!</span>
+                        }
+                    </span>
+                }
             </div>
         );
     }

@@ -32,7 +32,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "5e3cde9f363d334c65fa";
+/******/ 	var hotCurrentHash = "57baee8430323ceea5b4";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -4755,7 +4755,7 @@ if (false) {} else {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-!function(e,t){ true?module.exports=t():undefined}(global,function(){return function(e){var t={};function n(r){if(t[r])return t[r].exports;var o=t[r]={i:r,l:!1,exports:{}};return e[r].call(o.exports,o,o.exports,n),o.l=!0,o.exports}return n.m=e,n.c=t,n.d=function(e,t,r){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)n.d(r,o,function(t){return e[t]}.bind(null,o));return r},n.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="/",n(n.s="jxKE")}({"0sdN":function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.JOIN_ROOM="CLIENT:JOIN_ROOM",e.SEND_MESSAGE="CLIENT:SEND_MESSAGE"}(r||(r={})),t.default=r},jxKE:function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const r=n("0sdN");t.SocketClientActionTypes=r.default;const o=n("nwmR");t.SocketServerActionTypes=o.default,t.SERVER_PREFIX="SERVER",t.WEB_CLIENT_PREFIX="CLIENT"},nwmR:function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.DISCONNECT="SERVER:DISCONNECT",e.JOINED_ROOM="SERVER:JOINED_ROOM",e.SEND_ROOMS_LIST="SERVER:SEND_ROOMS_LIST",e.SEND_MESSAGE="SERVER:SEND_MESSAGE",e.SESSION_MESSAGE="SERVER:SESSION_MESSAGE"}(r||(r={})),t.default=r}})});
+!function(e,t){ true?module.exports=t():undefined}(global,function(){return function(e){var t={};function n(r){if(t[r])return t[r].exports;var o=t[r]={i:r,l:!1,exports:{}};return e[r].call(o.exports,o,o.exports,n),o.l=!0,o.exports}return n.m=e,n.c=t,n.d=function(e,t,r){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)n.d(r,o,function(t){return e[t]}.bind(null,o));return r},n.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="/",n(n.s="jxKE")}({"0sdN":function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.JOIN_ROOM="CLIENT:JOIN_ROOM",e.SEND_MESSAGE="CLIENT:SEND_MESSAGE"}(r||(r={})),t.default=r},jxKE:function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const r=n("0sdN");t.SocketClientActionTypes=r.default;const o=n("nwmR");t.SocketServerActionTypes=o.default,t.SERVER_PREFIX="SERVER",t.WEB_CLIENT_PREFIX="CLIENT"},nwmR:function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.DISCONNECT="SERVER:DISCONNECT",e.JOINED_ROOM="SERVER:JOINED_ROOM",e.OTHER_JOINED_ROOM="SERVER:OTHER_JOINED_ROOM",e.SEND_ROOMS_LIST="SERVER:SEND_ROOMS_LIST",e.SEND_MESSAGE="SERVER:SEND_MESSAGE",e.SESSION_MESSAGE="SERVER:SESSION_MESSAGE"}(r||(r={})),t.default=r}})});
 
 /***/ }),
 
@@ -4859,7 +4859,7 @@ class Layout extends React.Component {
         // Cloak the view so it doesn't flash before client mounts
         if (this.state.clientHasLoaded) {
             return (React.createElement("div", null,
-                React.createElement("header", null, "Header"),
+                React.createElement("header", null),
                 React.createElement(react_transition_group_1.TransitionGroup, { appear: true, enter: true, exit: true, component: "div", className: "content-container view" },
                     React.createElement(react_router_dom_1.Switch, null,
                         routes_1.default.map((route, i) => {
@@ -4871,12 +4871,12 @@ class Layout extends React.Component {
                             }
                         }),
                         React.createElement(redirect_with_status_1.default, { from: "/redirect", to: "/" }))),
-                React.createElement("footer", null, "This is the footer.")));
+                React.createElement("footer", null)));
         }
         else {
             // Opportunity to add a loader of graphical display
             return (React.createElement("div", null,
-                React.createElement("header", null, "Header")));
+                React.createElement("header", null)));
         }
     }
     componentWillUnmount() {
@@ -5066,22 +5066,37 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Immutable = __webpack_require__(/*! seamless-immutable */ "seamless-immutable");
 const constants_1 = __webpack_require__(/*! rili-public-library/utilities/constants */ "../rili-public-library/utilities/lib/constants.js");
 const initialState = Immutable.from({
-    currentRoom: '',
+    user: {
+        userName: '',
+        currentRoom: ''
+    },
     rooms: [],
-    messages: {}
+    messages: Immutable({})
 });
 const socket = (state = initialState, action) => {
-    console.log('ACTION', action); // tslint:disable-line
+    // If state is initialize by server-side rendering, it may not be a proper immutable object yets
+    if (!state.setIn) {
+        state = initialState;
+    }
+    let prevMessageList = [];
+    if (action.data && action.data.message) {
+        prevMessageList = (state.messages[action.data.roomId] && state.messages[action.data.roomId].asMutable()) || [];
+        prevMessageList.push(action.data.message);
+        console.log('PUSHED ', prevMessageList); //tslint:disable-line
+    }
+    const updatedMessageList = Immutable(prevMessageList);
     switch (action.type) {
-        // Any time this action is called, the data will be a full room list from the server
         case constants_1.SocketServerActionTypes.SEND_ROOMS_LIST:
-            return initialState.setIn(['rooms'], action.data);
+            // Any time this action is called, the data will be a full room list from the server
+            return state.setIn(['rooms'], action.data);
         case constants_1.SocketServerActionTypes.JOINED_ROOM:
+            return state
+                .setIn(['user', 'userName'], action.data.userName)
+                .setIn(['user', 'currentRoom'], action.data.roomId)
+                .setIn(['messages', action.data.roomId], updatedMessageList);
+        case constants_1.SocketServerActionTypes.OTHER_JOINED_ROOM:
         case constants_1.SocketServerActionTypes.SEND_MESSAGE:
-            const prevMessageList = state.messages[action.data.roomId] || [];
-            const incomingMessageList = [action.data].concat(prevMessageList);
-            const nextState = initialState.setIn(['currentRoom'], action.data.roomId);
-            return nextState.setIn(['messages', action.data.roomId], incomingMessageList);
+            return state.setIn(['messages', action.data.roomId], updatedMessageList);
         default:
             return state;
     }
@@ -5145,7 +5160,6 @@ const redux_1 = __webpack_require__(/*! redux */ "redux");
 const socket_1 = __webpack_require__(/*! actions/socket */ "./src/redux/actions/socket.ts");
 const input_1 = __webpack_require__(/*! rili-public-library/react-components/input */ "../rili-public-library/react-components/lib/input.js");
 const button_secondary_1 = __webpack_require__(/*! rili-public-library/react-components/button-secondary */ "../rili-public-library/react-components/lib/button-secondary.js");
-const scroll_to_1 = __webpack_require__(/*! rili-public-library/utilities/scroll-to */ "../rili-public-library/utilities/lib/scroll-to.js");
 const translator_1 = __webpack_require__(/*! ../services/translator */ "./src/services/translator.ts");
 // Environment Variables
 // const envVars = globalConfig[process.env.NODE_ENV];
@@ -5158,13 +5172,6 @@ const mapDispatchToProps = (dispatch) => {
     return redux_1.bindActionCreators({
         sendMessage: socket_1.default.sendMessage,
     }, dispatch);
-};
-const addLi = (message) => {
-    const listEl = document.getElementById('list');
-    const li = document.createElement('li');
-    li.appendChild(document.createTextNode(message));
-    listEl.appendChild(li);
-    scroll_to_1.default(listEl.scrollHeight, 200);
 };
 /**
  * ChatRoom
@@ -5184,6 +5191,19 @@ class ChatRoomComponent extends React.Component {
     }
     componentDidMount() {
         document.title = 'Rili | Chat Room';
+        this.messageInputRef.current.inputEl.focus();
+        setTimeout(() => {
+            if (!this.props.socket.user.currentRoom) {
+                this.props.history.push('/');
+            }
+        });
+    }
+    componentDidUpdate(prevProps) {
+        const currentRoom = this.props.socket.user.currentRoom;
+        const messages = this.props.socket.messages[currentRoom];
+        if (messages && messages.length > 3 && messages.length > prevProps.socket.messages[currentRoom].length) {
+            window.scrollTo(0, document.body.scrollHeight);
+        }
     }
     onInputChange(name, value) {
         const newInputChanges = {
@@ -5199,9 +5219,9 @@ class ChatRoomComponent extends React.Component {
             case 'enter_message':
             case 'message':
                 this.props.sendMessage({
-                    roomId: this.props.socket.currentRoom,
+                    roomId: this.props.socket.user.currentRoom,
                     message: this.state.inputs.message,
-                    userName: this.state.inputs.userName
+                    userName: this.props.socket.user.userName,
                 });
                 return this.onInputChange('message', '');
         }
@@ -5213,16 +5233,25 @@ class ChatRoomComponent extends React.Component {
         }
     }
     render() {
+        const { socket } = this.props;
+        const messages = socket.messages[socket.user.currentRoom];
         return (React.createElement("div", null,
             React.createElement("hr", null),
-            React.createElement("div", { className: "form-field-wrapper inline" },
+            React.createElement("div", { className: "form-field-wrapper inline message-input" },
                 React.createElement(input_1.default, { ref: this.messageInputRef, autoComplete: "off", type: "text", id: "message", name: "message", value: this.state.inputs.message, onChange: this.onInputChange, onEnter: this.onButtonClick, placeholder: "Enter a message", translate: this.translate }),
                 React.createElement("div", { className: "form-field" },
                     React.createElement(button_secondary_1.default, { id: "enter_message", text: "Send", onClick: this.onButtonClick, disabled: this.shouldDisableInput('sendMessage') }))),
             React.createElement("div", { id: "roomTitle" },
                 "Room Name: ",
-                this.props.socket.currentRoom),
-            React.createElement("ul", { id: "list" })));
+                socket.user.currentRoom),
+            socket && socket.rooms &&
+                React.createElement("span", { id: "rooms_list" }, messages && messages.length > 0 ?
+                    React.createElement("span", { className: "message-list" }, messages.map((message) => React.createElement("li", { key: message.key },
+                        "(",
+                        message.time,
+                        ") ",
+                        message.text))) :
+                    React.createElement("span", null, "Welcome!"))));
     }
 }
 exports.ChatRoomComponent = ChatRoomComponent;
@@ -5315,8 +5344,8 @@ class HomeComponent extends React.Component {
         }
     }
     render() {
-        console.log('PROPS: ', this.props); //tslint:disable-line
         const { socket } = this.props;
+        let activeRooms = socket.rooms.length > 0 && socket.rooms.map(room => room.roomKey).toString();
         return (React.createElement("div", null,
             React.createElement("hr", null),
             React.createElement("label", { htmlFor: "user_name" }, "Username:"),
@@ -5324,11 +5353,11 @@ class HomeComponent extends React.Component {
             React.createElement("label", { htmlFor: "room_name" }, "Room:"),
             React.createElement(input_1.default, { type: "text", id: "room_name", name: "roomId", value: this.state.inputs.roomId, onChange: this.onInputChange, onEnter: this.onButtonClick, translate: this.translate }),
             socket && socket.rooms &&
-                React.createElement("span", { id: "rooms_list" }, socket.rooms.length < 1
+                React.createElement("span", { className: "rooms-list" }, socket.rooms.length < 1
                     ? React.createElement("i", null, "No rooms are currently active. Click 'Join Room' to start a new one.")
                     : React.createElement("span", null,
                         "Active Rooms: ",
-                        React.createElement("i", null, socket.rooms.map(room => `${room.roomKey}, `).toString()))),
+                        React.createElement("i", null, activeRooms))),
             React.createElement("br", null),
             React.createElement("div", { className: "form-field" },
                 React.createElement(button_secondary_1.default, { id: "join_room", text: "Join Room", onClick: this.onButtonClick, disabled: this.shouldDisableInput('room') }))));

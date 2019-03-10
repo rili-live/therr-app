@@ -6,7 +6,7 @@ import { TransitionGroup as Animation } from 'react-transition-group';
 // import * as ReactGA from 'react-ga';
 // import TopNav from './pieces/TopNav';
 // import { configureAuthRoute } from '../library/authentication';
-import { ISocketState } from '../redux/reducers/socket';
+import { ISocketState } from 'types/socket';
 import RedirectWithStatus from 'rili-public-library/react-components/redirect-with-status';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
@@ -93,10 +93,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         if (this.state.clientHasLoaded) {
             return (
                 <div>
-                    <header>
-                        Header
-                        {/* <TopNav/> */}
-                    </header>
+                    <header></header>
 
                     <Animation
                         appear={true}
@@ -126,17 +123,14 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     {/* <Alerts></Alerts> */}
                     {/* <Loader></Loader> */}
 
-                    <footer>This is the footer.</footer>
+                    <footer></footer>
                 </div>
             );
         } else {
             // Opportunity to add a loader of graphical display
             return (
                 <div>
-                    <header>
-                        Header
-                        {/* <TopNav/> */}
-                    </header>
+                    <header></header>
                 </div>
             );
         }
