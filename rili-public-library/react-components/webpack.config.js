@@ -95,7 +95,7 @@ const buildProd = () => merge([
             ...Object.keys(rootPkg.dependencies || {}),
         ],
     },
-    parts.analyzeBundle(),
+    // parts.analyzeBundle(),
     parts.lintJavaScript({
         paths: PATHS.app,
         options: {

@@ -89,7 +89,7 @@ const buildProd = () => merge([
             nodeModules,
         ],
     },
-    parts.analyzeBundle(),
+    // parts.analyzeBundle(),
     parts.setFreeVariable('process.env.NODE_ENV', 'production'),
     parts.minifyJavaScript({ useSourceMap: true }),
 ]);
