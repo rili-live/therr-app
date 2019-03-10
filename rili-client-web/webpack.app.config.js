@@ -1,7 +1,6 @@
 const path = require('path');
 const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-dependencies
 const merge = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
-const HtmlWebpackPlugin = require('html-webpack-plugin'); // eslint-disable-line import/no-extraneous-dependencies
 const parts = require('../webpack.parts');
 
 // For externals
@@ -57,20 +56,13 @@ const buildDev = () => merge([
             new webpack.WatchIgnorePlugin([
                 path.join(__dirname, 'node_modules'),
             ]),
-            new webpack.NamedModulesPlugin(),
-            new HtmlWebpackPlugin({
-                template: 'src/index.html',
-                inject: false,
-            }),
+            // new HtmlWebpackPlugin({
+            //     template: 'src/index.html',
+            //     inject: false,
+            // }),
         ],
     },
     parts.loadCSS(null, 'development'),
-    parts.devServer({
-        disableHostCheck: true,
-        host: process.env.HOST || 'localhost',
-        port: process.env.PORT || 7070,
-        publicPath: PATHS.public,
-    }),
 ]);
 
 const buildProd = () => merge([
@@ -88,9 +80,8 @@ const buildProd = () => merge([
             emitWarning: true,
         },
     }),
-    parts.setFreeVariable('process.env.NODE_ENV', 'production'),
     parts.loadCSS(null, 'production'),
-    parts.minifyJavaScript({ useSourceMap: true }),
+    parts.minifyJavaScript({ useSourceMap: false }),
 ]);
 
 const buildUmd = () => merge([
