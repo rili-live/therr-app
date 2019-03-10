@@ -81,7 +81,7 @@ const buildProd = () => merge([
             nodeModules,
         ],
     },
-    parts.analyzeBundle(),
+    // parts.analyzeBundle(),
     parts.lintJavaScript({
         paths: PATHS.app,
         options: {
