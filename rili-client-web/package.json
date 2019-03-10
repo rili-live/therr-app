@@ -4,8 +4,8 @@
   "description": "The web client side code for Rili",
   "main": "index.js",
   "scripts": {
-    "build": "npm run build:app && npm run build:server",
-    "build:dev": "npm run build:app:dev && npm run build:server:dev",
+    "build": "npm run build:app && npm run build:server && node ./update-views.js",
+    "build:dev": "npm run build:app:dev && npm run build:server:dev && node ./update-views.js",
     "build:app": "../node_modules/.bin/webpack --config webpack.app.config.js --env production",
     "build:app:dev": "../node_modules/.bin/webpack --config webpack.app.config.js --env development",
     "build:app:watch": "../node_modules/.bin/webpack --config webpack.app.config.js --watch --env development",
