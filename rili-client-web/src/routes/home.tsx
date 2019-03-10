@@ -115,7 +115,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
     public render(): JSX.Element | null {
         const { socket } = this.props;
-        let activeRooms = socket.rooms.length > 0 && socket.rooms.map(room => room.roomKey).toString();
+        let activeRooms = socket && socket.rooms.length > 0 && socket.rooms.map(room => room.roomKey).toString();
 
         return (
             <div>
