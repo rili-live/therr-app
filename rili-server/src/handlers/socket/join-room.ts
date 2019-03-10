@@ -1,3 +1,4 @@
+import * as moment from 'moment';
 import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disable-line no-implicit-dependencies
 import { SocketServerActionTypes } from 'rili-public-library/utilities/constants';
@@ -5,6 +6,7 @@ import * as Constants from '../../constants';
 import { rsAppName, shouldIncludeRedisLogs, shouldIncludeSocketLogs } from '../../server-socket-io';
 
 const joinRoom = (socket: socketio.Socket, redisSession: any, data: any) => {
+    const now = moment(Date.now()).format('MMMM D/YY, h:mma');
 
     // Leave all current rooms (except default room) before joining a new one
     Object.keys(socket.rooms)
@@ -46,15 +48,24 @@ const joinRoom = (socket: socketio.Socket, redisSession: any, data: any) => {
                 type: SocketServerActionTypes.JOINED_ROOM,
                 data: {
                     roomId: data.roomId,
-                    message: `You joined room ${data.roomId}`,
+                    message: {
+                        key: Date.now().toString(),
+                        time: now,
+                        text: `You joined room ${data.roomId}`,
+                    },
+                    userName: data.userName,
                 }
             });
             // Broadcasts an event back to the client for all users in the specified room (excluding the user who triggered it)
             socket.broadcast.to(data.roomId).emit(Constants.ACTION, {
-                type: SocketServerActionTypes.JOINED_ROOM,
+                type: SocketServerActionTypes.OTHER_JOINED_ROOM,
                 data: {
                     roomId: data.roomId,
-                    message: `${data.userName} joined room ${data.roomId}`,
+                    message: {
+                        key: Date.now().toString(),
+                        time: now,
+                        text: `${data.userName} joined room ${data.roomId}`,
+                    },
                 },
             });
         });

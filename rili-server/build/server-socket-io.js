@@ -160,7 +160,7 @@ module.exports = {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-!function(e,t){ true?module.exports=t():undefined}(global,function(){return function(e){var t={};function n(r){if(t[r])return t[r].exports;var o=t[r]={i:r,l:!1,exports:{}};return e[r].call(o.exports,o,o.exports,n),o.l=!0,o.exports}return n.m=e,n.c=t,n.d=function(e,t,r){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)n.d(r,o,function(t){return e[t]}.bind(null,o));return r},n.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="/",n(n.s="jxKE")}({"0sdN":function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.JOIN_ROOM="CLIENT:JOIN_ROOM",e.SEND_MESSAGE="CLIENT:SEND_MESSAGE"}(r||(r={})),t.default=r},jxKE:function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const r=n("0sdN");t.SocketClientActionTypes=r.default;const o=n("nwmR");t.SocketServerActionTypes=o.default,t.SERVER_PREFIX="SERVER",t.WEB_CLIENT_PREFIX="CLIENT"},nwmR:function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.DISCONNECT="SERVER:DISCONNECT",e.JOINED_ROOM="SERVER:JOINED_ROOM",e.SEND_ROOMS_LIST="SERVER:SEND_ROOMS_LIST",e.SEND_MESSAGE="SERVER:SEND_MESSAGE",e.SESSION_MESSAGE="SERVER:SESSION_MESSAGE"}(r||(r={})),t.default=r}})});
+!function(e,t){ true?module.exports=t():undefined}(global,function(){return function(e){var t={};function n(r){if(t[r])return t[r].exports;var o=t[r]={i:r,l:!1,exports:{}};return e[r].call(o.exports,o,o.exports,n),o.l=!0,o.exports}return n.m=e,n.c=t,n.d=function(e,t,r){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)n.d(r,o,function(t){return e[t]}.bind(null,o));return r},n.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="/",n(n.s="jxKE")}({"0sdN":function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.JOIN_ROOM="CLIENT:JOIN_ROOM",e.SEND_MESSAGE="CLIENT:SEND_MESSAGE"}(r||(r={})),t.default=r},jxKE:function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const r=n("0sdN");t.SocketClientActionTypes=r.default;const o=n("nwmR");t.SocketServerActionTypes=o.default,t.SERVER_PREFIX="SERVER",t.WEB_CLIENT_PREFIX="CLIENT"},nwmR:function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.DISCONNECT="SERVER:DISCONNECT",e.JOINED_ROOM="SERVER:JOINED_ROOM",e.OTHER_JOINED_ROOM="SERVER:OTHER_JOINED_ROOM",e.SEND_ROOMS_LIST="SERVER:SEND_ROOMS_LIST",e.SEND_MESSAGE="SERVER:SEND_MESSAGE",e.SESSION_MESSAGE="SERVER:SESSION_MESSAGE"}(r||(r={})),t.default=r}})});
 
 /***/ }),
 
@@ -251,11 +251,13 @@ exports.sendMessage = send_message_1.default;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+const moment = __webpack_require__(/*! moment */ "moment");
 const print_logs_1 = __webpack_require__(/*! rili-public-library/utilities/print-logs */ "../rili-public-library/utilities/lib/print-logs.js"); // tslint:disable-line no-implicit-dependencies
 const constants_1 = __webpack_require__(/*! rili-public-library/utilities/constants */ "../rili-public-library/utilities/lib/constants.js");
 const Constants = __webpack_require__(/*! ../../constants */ "./src/constants/index.ts");
 const server_socket_io_1 = __webpack_require__(/*! ../../server-socket-io */ "./src/server-socket-io.ts");
 const joinRoom = (socket, redisSession, data) => {
+    const now = moment(Date.now()).format('MMMM D/YY, h:mma');
     // Leave all current rooms (except default room) before joining a new one
     Object.keys(socket.rooms)
         .filter((room) => room !== socket.id)
@@ -293,15 +295,24 @@ const joinRoom = (socket, redisSession, data) => {
                 type: constants_1.SocketServerActionTypes.JOINED_ROOM,
                 data: {
                     roomId: data.roomId,
-                    message: `You joined room ${data.roomId}`,
+                    message: {
+                        key: Date.now().toString(),
+                        time: now,
+                        text: `You joined room ${data.roomId}`,
+                    },
+                    userName: data.userName,
                 }
             });
             // Broadcasts an event back to the client for all users in the specified room (excluding the user who triggered it)
             socket.broadcast.to(data.roomId).emit(Constants.ACTION, {
-                type: constants_1.SocketServerActionTypes.JOINED_ROOM,
+                type: constants_1.SocketServerActionTypes.OTHER_JOINED_ROOM,
                 data: {
                     roomId: data.roomId,
-                    message: `${data.userName} joined room ${data.roomId}`,
+                    message: {
+                        key: Date.now().toString(),
+                        time: now,
+                        text: `${data.userName} joined room ${data.roomId}`,
+                    },
                 },
             });
         });
@@ -323,20 +334,34 @@ exports.default = joinRoom;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const print_logs_1 = __webpack_require__(/*! rili-public-library/utilities/print-logs */ "../rili-public-library/utilities/lib/print-logs.js"); // tslint:disable-line no-implicit-dependencies
+const moment = __webpack_require__(/*! moment */ "moment");
 const constants_1 = __webpack_require__(/*! rili-public-library/utilities/constants */ "../rili-public-library/utilities/lib/constants.js");
 const Constants = __webpack_require__(/*! ../../constants */ "./src/constants/index.ts");
 const server_socket_io_1 = __webpack_require__(/*! ../../server-socket-io */ "./src/server-socket-io.ts");
 const sendMessage = (socket, data) => {
     print_logs_1.default(server_socket_io_1.shouldIncludeLogs, constants_1.SocketClientActionTypes.SEND_MESSAGE, null, data);
+    const now = moment(Date.now()).format('MMMM D/YY, h:mma');
     socket.emit('action', {
         type: constants_1.SocketServerActionTypes.SEND_MESSAGE,
-        data: `You: ${data.message}`,
-        roomId: data.roomId,
+        data: {
+            roomId: data.roomId,
+            message: {
+                key: Date.now().toString(),
+                time: now,
+                text: `You: ${data.message}`,
+            },
+        },
     });
-    socket.broadcast.to(data.roomName).emit(Constants.ACTION, {
+    socket.broadcast.to(data.roomId).emit(Constants.ACTION, {
         type: constants_1.SocketServerActionTypes.SEND_MESSAGE,
-        data: `${data.userName}: ${data.message}`,
-        roomId: data.roomId,
+        data: {
+            roomId: data.roomId,
+            message: {
+                key: Date.now().toString(),
+                time: now,
+                text: `${data.userName}: ${data.message}`,
+            }
+        },
     });
     print_logs_1.default(server_socket_io_1.shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `${data.userName} said: ${data.message}`);
 };
@@ -673,6 +698,17 @@ module.exports = require("https");
 /***/ (function(module, exports) {
 
 module.exports = require("ioredis");
+
+/***/ }),
+
+/***/ "moment":
+/*!*************************!*\
+  !*** external "moment" ***!
+  \*************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("moment");
 
 /***/ }),
 

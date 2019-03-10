@@ -5,7 +5,7 @@ import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Input from 'rili-public-library/react-components/input';
 import ButtonSecondary from 'rili-public-library/react-components/button-secondary';
-import { ISocketState } from '../redux/reducers/socket';
+import { ISocketState } from 'types/socket';
 import translator from '../services/translator';
 // import * as globalConfig from '../../../global-config.js';
 
@@ -115,6 +115,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
     public render(): JSX.Element | null {
         const { socket } = this.props;
+        let activeRooms = socket.rooms.length > 0 && socket.rooms.map(room => room.roomKey).toString();
 
         return (
             <div>
@@ -127,11 +128,11 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
                 <Input type="text" id="room_name" name="roomId" value={this.state.inputs.roomId} onChange={this.onInputChange} onEnter={this.onButtonClick} translate={this.translate} />
                 {
                     socket && socket.rooms &&
-                    <span id="rooms_list">
+                    <span className="rooms-list">
                         {
                             socket.rooms.length < 1
                                 ? <i>No rooms are currently active. Click 'Join Room' to start a new one.</i>
-                                : <span>Active Rooms: <i>{socket.rooms.map(room => `${room.roomKey}, `).toString()}</i></span>
+                                : <span>Active Rooms: <i>{activeRooms}</i></span>
                         }
                     </span>
                 }

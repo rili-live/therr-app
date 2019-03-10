@@ -1,33 +1,42 @@
 import * as Immutable from 'seamless-immutable';
 import { SocketServerActionTypes } from 'rili-public-library/utilities/constants';
-
-type IRoomsArray = Immutable.ImmutableArray<any>;
-
-export interface ISocketState extends Immutable.ImmutableObject<any> {
-    currentRoom: String;
-    rooms: IRoomsArray;
-    messages: any;
-}
+import { IMessageList, ISocketState } from 'types/socket';
 
 const initialState: ISocketState = Immutable.from({
-    currentRoom: '',
+    user: {
+        userName: '',
+        currentRoom: ''
+    },
     rooms: [],
-    messages: {}
+    messages: Immutable({})
 });
 
 const socket = (state: ISocketState = initialState, action: any) => {
-    console.log('ACTION', action); // tslint:disable-line
-    switch (action.type) {
-        // Any time this action is called, the data will be a full room list from the server
-        case SocketServerActionTypes.SEND_ROOMS_LIST:
-            return initialState.setIn(['rooms'], action.data);
-        case SocketServerActionTypes.JOINED_ROOM:
-        case SocketServerActionTypes.SEND_MESSAGE:
-            const prevMessageList = state.messages[action.data.roomId] || [];
-            const incomingMessageList = [action.data].concat(prevMessageList);
-            const nextState = initialState.setIn(['currentRoom'], action.data.roomId);
+    // If state is initialize by server-side rendering, it may not be a proper immutable object yets
+    if (!state.setIn) {
+        state = initialState;
+    }
 
-            return nextState.setIn(['messages', action.data.roomId], incomingMessageList);
+    let prevMessageList: any = [];
+
+    if (action.data && action.data.message) {
+        prevMessageList = (state.messages[action.data.roomId] && state.messages[action.data.roomId].asMutable()) || [];
+        prevMessageList.push(action.data.message);
+    }
+    const updatedMessageList: IMessageList = Immutable(prevMessageList);
+
+    switch (action.type) {
+        case SocketServerActionTypes.SEND_ROOMS_LIST:
+            // Any time this action is called, the data will be a full room list from the server
+            return state.setIn(['rooms'], action.data);
+        case SocketServerActionTypes.JOINED_ROOM:
+            return state
+                    .setIn(['user', 'userName'], action.data.userName)
+                    .setIn(['user', 'currentRoom'], action.data.roomId)
+                    .setIn(['messages', action.data.roomId], updatedMessageList);
+        case SocketServerActionTypes.OTHER_JOINED_ROOM:
+        case SocketServerActionTypes.SEND_MESSAGE:
+            return state.setIn(['messages', action.data.roomId], updatedMessageList);
         default:
             return state;
     }
