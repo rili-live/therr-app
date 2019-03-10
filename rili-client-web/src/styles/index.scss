@@ -1,15 +1,33 @@
 @import '../../../rili-public-library/styles/lib/variables';
 
+@function rem-calc($size) {
+    $remSize: $size / 16px;
+    @return #{$remSize}rem;
+}
+
 html, body {
     font-size: 16px;
     background: $rili-grey-default;
     font-family: sans-serif;
 }
 
+body {
+    border: rem-calc(4px) solid $rili-green;
+    border-radius: rem-calc(14px);
+    padding: 1rem;
+}
+
 hr {
     border-color: $rili-green;
     border-width: rem-calc(2px);
     border-style: solid;
+}
+
+footer {
+    bottom: 0;
+    position: fixed;
+    width: 100%;
+    text-align: center;
 }
 
 .form-field-wrapper {
@@ -37,10 +55,25 @@ hr {
     }
 }
 
-#rooms_list {
+.message-input {
+    padding: 0 1rem;
+    width: calc(100% - 2rem);
+}
+
+.message-list {
+    padding: 1rem .5rem;
+    display: block;
+    text-align: left;
+    font-size: rem-calc(20px);
+    list-style-type: none;
+    margin-bottom: 1.5rem;
+}
+
+.rooms-list {
     padding: 1rem .5rem;
     display: block;
     text-align: center;
+    font-size: rem-calc(20px);
 }
 
 ul {

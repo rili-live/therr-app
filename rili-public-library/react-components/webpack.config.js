@@ -1,8 +1,12 @@
 const path = require('path');
-const webpack = require('webpack');
-const merge = require('webpack-merge');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-dependencies
+const merge = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
+const HtmlWebpackPlugin = require('html-webpack-plugin'); // eslint-disable-line import/no-extraneous-dependencies
 const parts = require('../../webpack.parts');
+
+// For externals
+const localPkg = require('./package.json');
+const rootPkg = require('../../package.json');
 
 // List of utility filenames
 const components = require('./src');
@@ -86,7 +90,12 @@ const buildProd = () => merge([
                 inject: false,
             }),
         ],
+        externals: [
+            ...Object.keys(localPkg.peerDependencies || {}),
+            ...Object.keys(rootPkg.dependencies || {}),
+        ],
     },
+    // parts.analyzeBundle(),
     parts.lintJavaScript({
         paths: PATHS.app,
         options: {

@@ -14,4 +14,10 @@ const formComponents = [
     'forms/select-box',
 ];
 
-module.exports = componentList.concat(formComponents);
+// Routing
+const routingComponents = [
+    'routing/status',
+    'routing/redirect-with-status',
+];
+
+module.exports = componentList.concat(formComponents).concat(routingComponents);

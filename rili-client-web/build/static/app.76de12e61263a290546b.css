@@ -3,10 +3,21 @@ html, body {
   background: #fffffd;
   font-family: sans-serif; }
 
+body {
+  border: 0.25rem solid #105952;
+  border-radius: 0.875rem;
+  padding: 1rem; }
+
 hr {
   border-color: #105952;
-  border-width: rem-calc(2px);
+  border-width: 0.125rem;
   border-style: solid; }
+
+footer {
+  bottom: 0;
+  position: fixed;
+  width: 100%;
+  text-align: center; }
 
 .form-field-wrapper {
   position: fixed;
@@ -25,10 +36,23 @@ hr {
     .form-field-wrapper :nth-child(2).form-field button {
       width: 4rem; }
 
-#rooms_list {
+.message-input {
+  padding: 0 1rem;
+  width: calc(100% - 2rem); }
+
+.message-list {
   padding: 1rem .5rem;
   display: block;
-  text-align: center; }
+  text-align: left;
+  font-size: 1.25rem;
+  list-style-type: none;
+  margin-bottom: 1.5rem; }
+
+.rooms-list {
+  padding: 1rem .5rem;
+  display: block;
+  text-align: center;
+  font-size: 1.25rem; }
 
 ul#list {
   padding-bottom: 4rem; }
@@ -807,4 +831,4 @@ select,
     transform: rotate(360deg); } }
 
 
-/*# sourceMappingURL=app.d13d56568b01769e1c7d.css.map*/
+/*# sourceMappingURL=app.76de12e61263a290546b.css.map*/

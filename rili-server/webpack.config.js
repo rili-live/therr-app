@@ -1,8 +1,10 @@
-const path = require('path');
 const fs = require('fs');
-const webpack = require('webpack');
-const merge = require('webpack-merge');
+const path = require('path');
+const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-dependencies
+const merge = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
 const parts = require('../webpack.parts');
+
+const pkg = require('./package.json');
 
 // List of utility filenames
 const servers = require('./src');
@@ -19,9 +21,8 @@ servers.forEach((server) => {
 });
 
 const nodeModules = {};
-fs.readdirSync('node_modules').filter(x => ['.bin'].indexOf(x) === -1)
+fs.readdirSync('../node_modules').filter(x => ['.bin'].indexOf(x) === -1)
     .forEach((mod) => { nodeModules[mod] = `commonjs ${mod}`; });
-
 
 const common = merge([
     {
@@ -36,6 +37,7 @@ const common = merge([
             extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
             alias: {
                 'rili-public-library/utilities': path.join(__dirname, '../rili-public-library/utilities/lib'),
+                'rili-public-library/react-components': path.join(__dirname, '../rili-public-library/react-components/lib'),
             },
         },
         externals: nodeModules,
@@ -74,7 +76,12 @@ const buildProd = () => merge([
         plugins: [
             new webpack.HashedModuleIdsPlugin(),
         ],
+        externals: [
+            ...Object.keys(pkg.peerDependencies || {}),
+            nodeModules,
+        ],
     },
+    // parts.analyzeBundle(),
     parts.lintJavaScript({
         paths: PATHS.app,
         options: {

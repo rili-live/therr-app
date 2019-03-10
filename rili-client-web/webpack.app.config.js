@@ -1,12 +1,15 @@
 const path = require('path');
-const webpack = require('webpack');
-const merge = require('webpack-merge');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-dependencies
+const merge = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
+const HtmlWebpackPlugin = require('html-webpack-plugin'); // eslint-disable-line import/no-extraneous-dependencies
 const parts = require('../webpack.parts');
+
+// For externals
+const pkg = require('./package.json');
 
 const PATHS = {
     app: path.join(__dirname, 'src'),
-    build: path.join(__dirname, 'build'),
+    build: path.join(__dirname, 'build/static'),
     utils: path.join(__dirname, '../utilities'),
     reactComponents: path.join(__dirname, '../rili-public-library/react-components'),
     public: '/',
@@ -19,13 +22,16 @@ const common = merge([
         },
         output: {
             path: PATHS.build,
-            filename: 'index.js',
+            filename: 'app.js',
             publicPath: PATHS.public,
             libraryTarget: 'umd',
         },
         resolve: {
             extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.scss', '.css'],
             alias: {
+                actions: path.join(__dirname, 'src/redux/actions/'),
+                enums: path.join(__dirname, 'src/constants/enums/'),
+                types: path.join(__dirname, 'src/redux/types/'),
                 'rili-public-library/react-components': path.join(__dirname, '../rili-public-library/react-components/lib'),
                 'rili-public-library/styles': path.join(__dirname, '../rili-public-library/styles/lib'),
                 'rili-public-library/utilities': path.join(__dirname, '../rili-public-library/utilities/lib'),
@@ -44,7 +50,7 @@ const common = merge([
 
 const buildDev = () => merge([
     common,
-    parts.clean(PATHS.build, ['index.html']),
+    parts.clean(PATHS.build),
     {
         mode: 'development',
         plugins: [
@@ -54,7 +60,7 @@ const buildDev = () => merge([
             new webpack.NamedModulesPlugin(),
             new HtmlWebpackPlugin({
                 template: 'src/index.html',
-                inject: true,
+                inject: false,
             }),
         ],
     },
@@ -73,12 +79,9 @@ const buildProd = () => merge([
         mode: 'production',
         plugins: [
             new webpack.HashedModuleIdsPlugin(),
-            new HtmlWebpackPlugin({
-                template: 'src/index.html',
-                inject: true,
-            }),
         ],
     },
+    // parts.analyzeBundle(),
     parts.lintJavaScript({
         paths: PATHS.app,
         options: {
@@ -95,8 +98,9 @@ const buildUmd = () => merge([
     parts.clean(PATHS.build),
     {
         output: {
-            filename: 'bundle.js',
+            filename: 'app.js',
         },
+        externals: Object.keys(pkg.peerDependencies || {}),
     },
 ]);
 

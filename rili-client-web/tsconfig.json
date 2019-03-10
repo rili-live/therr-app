@@ -4,7 +4,7 @@
 		"target": "es6",
 		"baseUrl": ".",
 		"rootDir": "./src/",
-		"typeRoots": ["node_modules/@types", "typings"],
+		"typeRoots": ["../node_modules/@types", "typings"],
 		"declaration": false,
 		"removeComments": false,
 		"noLib": false,
@@ -13,7 +13,10 @@
 		"sourceMap": true,
 		"inlineSources": true,
 		"paths": {
-			"react": ["node_modules/@types/react"],
+			"actions/*": ["./src/redux/actions/*"],
+			"enums/*": ["./src/constants/enums/*"],
+			"types/*": ["./src/redux/types/*"],
+			"react": ["../../node_modules/@types/react"],
 			"rili-public-library/react-components/*": ["../rili-public-library/react-components/lib/*"],
             "rili-public-library/styles/*": ["../rili-public-library/styles/lib/*"],
             "rili-public-library/utilities/*": ["../rili-public-library/utilities/lib/*"]

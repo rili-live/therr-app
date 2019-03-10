@@ -13,6 +13,7 @@ module.exports = {
         'rili-public-library/utilities/(.*)': '<rootDir>../rili-public-library/utilities/lib/$1.js',
         'rili-public-library/styles/(.*)': '<rootDir>../rili-public-library/styles/$1.js',
     },
+    rootDir: './',
     setupFiles: [],
     setupTestFrameworkScriptFile: './test-setup.ts',
     testURL: 'https://www.example.com/',
@@ -20,5 +21,5 @@ module.exports = {
         '^.+\\.tsx?$': 'ts-jest',
         '^.+\\.jsx?$': 'babel-jest',
     },
-    testRegex: '/__tests__/.*\\.(tsx?|jsx?)$',
+    testRegex: 'src/.*/__tests__/.*\\.(tsx?|jsx?)$',
 };

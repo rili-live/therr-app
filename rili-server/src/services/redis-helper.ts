@@ -1,7 +1,7 @@
 
 import * as Redis from 'ioredis';
-import promiser from 'rili-public-library/utilities/promiser'; // tslint:disable-line no-implicit-dependencies
-import * as config from '../../config.js';
+import promiser from 'rili-public-library/utilities/promiser';
+import * as globalConfig from '../../../global-config.js';
 import { IUserSocketSession } from './redis-session';
 
 /**
@@ -20,7 +20,7 @@ export default class RedisHelper {
         return new Promise((resolve, reject) => {
             this.client.setex(
                 userSocketConfig.socketId,
-                userSocketConfig.ttl || config.socket.userSocketSessionExpire,
+                userSocketConfig.ttl || globalConfig[process.env.NODE_ENV].socket.userSocketSessionExpire,
                 userSocketConfig.data,
                 promiser(resolve, reject)
             );
