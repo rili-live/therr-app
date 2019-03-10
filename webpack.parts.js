@@ -1,5 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
 const webpack = require('webpack');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const DuplicatePackageCheckerPlugin = require("duplicate-package-checker-webpack-plugin");
 const HappyPack = require('happypack');
@@ -23,6 +24,12 @@ const createHappyLoader = (id, loaders, cache = true) => {
         cache: cache
     });
 }
+
+exports.analyzeBundle = (config = {}) => ({
+    plugins: [new BundleAnalyzerPlugin(Object.assign({
+        analyzerPort: 8888,
+    }, config))],
+});
 
 exports.deDupe = () => ({
     plugins: [new DuplicatePackageCheckerPlugin(
@@ -108,6 +115,23 @@ exports.lintJavaScript = ({ paths, options }) => ({
             },
         ],
     },
+});
+
+exports.lintTypeScript = ({ paths, options }) => ({
+    module: {
+        rules: [
+            {
+                test: /\.ts$/,
+                enforce: 'pre',
+                use: [
+                    {
+                        loader: 'tslint-loader',
+                        options: options || {},
+                    }
+                ]
+            }
+        ]
+    }
 });
 
 exports.loadCSS = (paths, env, dontHash) => {

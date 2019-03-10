@@ -9,6 +9,8 @@ popd
 
 is_pre_check_success()
 {
+    # TODO - Make sure css file in client server view file is correct before uncommenting build:all script
+    # npm run build:all
     npm run test:all
 }
 

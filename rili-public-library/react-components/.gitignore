@@ -62,3 +62,8 @@ typings/
 
 # next.js build output
 .next
+
+#######
+
+# Development build directory
+build/

@@ -4,11 +4,10 @@
   "description": "Multi-purpose code used in the Rili codebase and open-sourced to the developer community",
   "main": "index.js",
   "scripts": {
-    "build": "sass lib:lib",
-    "build:watch": "sass --watch lib:lib",
-    "lint:fix": "eslint --ext .jsx,.js --fix ./ && tslint --fix -p ./",
-    "lint": "sass-lint --config .sass-lint.yml '**/*.scss' --verbose --no-exit",
-    "preinstall": "rm -f package-lock.json*",
+    "build": "../../node_modules/.bin/sass lib:lib",
+    "build:watch": "../../node_modules/.bin/sass --watch lib:lib",
+    "lint:fix": "../../node_modules/.bin/eslint --ext .jsx,.js --fix ./ && ../../node_modules/.bin/tslint --fix -p ./",
+    "lint": "../../node_modules/.bin/sass-lint --config .sass-lint.yml '**/*.scss' --verbose --no-exit",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "keywords": [
@@ -18,21 +17,5 @@
   ],
   "author": "Rili, Inc.",
   "license": "MIT",
-  "devDependencies": {
-    "babel-eslint": "^8.2.6",
-    "eslint-config-airbnb": "^15.1.0",
-    "eslint-import-resolver-alias": "^1.1.2",
-    "eslint-loader": "^2.1.1",
-    "eslint-plugin-import": "^2.7.0",
-    "eslint-plugin-jsx-a11y": "^5.1.1",
-    "eslint-plugin-react": "^7.12.0",
-    "html-webpack-plugin": "^3.2.0",
-    "nodemon": "^1.18.9",
-    "sass": "^1.15.3",
-    "sass-lint": "^1.12.1",
-    "tslint": "^5.12.0",
-    "webpack": "^4.28.2",
-    "webpack-dev-server": "^3.1.14",
-    "webpack-merge": "^4.1.5"
-  }
+  "devDependencies": {}
 }
