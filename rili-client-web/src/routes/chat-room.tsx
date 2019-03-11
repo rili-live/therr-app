@@ -72,11 +72,12 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
     componentDidMount() {
         document.title = 'Rili | Chat Room';
         this.messageInputRef.current.inputEl.focus();
+        // TODO: RFRONT-15 - Fix this
         setTimeout(() => {
             if (!this.props.socket.user.currentRoom) {
                 this.props.history.push('/');
             }
-        });
+        }, 1000);
     }
 
     componentDidUpdate(prevProps: IChatRoomProps) {

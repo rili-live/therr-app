@@ -34,10 +34,10 @@ if (cluster.isMaster) {
         cluster.fork();
     });
 } else {
-    app.listen(globalConfig[process.env.NODE_ENV].serverPort, (err: string) => {
+    app.listen(globalConfig[process.env.NODE_ENV].apiPort, (err: string) => {
         if (err) {
             throw err;
         }
-        console.log(`Server running on port ${globalConfig[process.env.NODE_ENV].serverPort} with process id`, process.pid); // tslint:disable-line no-console
+        console.log(`Server running on port ${globalConfig[process.env.NODE_ENV].apiPort} with process id`, process.pid); // tslint:disable-line no-console
     });
 }
