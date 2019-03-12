@@ -9,6 +9,12 @@ module.exports = {
     extends: 'airbnb',
     parser: 'babel-eslint',
     rules: {
+        "jsx-a11y/label-has-associated-control": [ 2, {
+            "labelComponents": ["CustomInputLabel"],
+            "labelAttributes": ["label"],
+            "controlComponents": ["CustomInput"],
+            "depth": 3,
+        }],
         'react/jsx-indent': [2, 4],
         'react/jsx-indent-props': [2, 4],
         'react/sort-comp': [
