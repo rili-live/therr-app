@@ -1,4 +1,3 @@
-// jest.config.js
 module.exports = {
     globals: {
         window: {
@@ -15,7 +14,7 @@ module.exports = {
     },
     rootDir: './',
     setupFiles: [],
-    setupTestFrameworkScriptFile: './test-setup.ts',
+    setupFilesAfterEnv: ['./test-setup.ts'],
     testURL: 'https://www.example.com/',
     transform: {
         '^.+\\.tsx?$': 'ts-jest',
