@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Input from 'rili-public-library/react-components/input';
-import ButtonSecondary from 'rili-public-library/react-components/button-secondary';
+import ButtonPrimary from 'rili-public-library/react-components/button-primary';
 import { ISocketState } from 'types/socket';
 import translator from '../services/translator';
 // import * as globalConfig from '../../../global-config.js';
@@ -137,7 +137,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
                 <br />
 
                 <div className="form-field">
-                    <ButtonSecondary id="join_room" text="Join Room" onClick={this.onButtonClick} disabled={this.shouldDisableInput('room')} />
+                    <ButtonPrimary id="join_room" text="Join Room" onClick={this.onButtonClick} disabled={this.shouldDisableInput('room')} />
                 </div>
             </div>
         );
