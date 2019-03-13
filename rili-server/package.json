@@ -10,7 +10,6 @@
     "cleanup": "npm run stop:redis",
     "lint:fix": "../node_modules/.bin/eslint --ext .jsx,.js --fix ./ && ../node_modules/.bin/tslint --fix -p ./",
     "lint": "../node_modules/.bin/eslint --ext .jsx,.js ./ && ../node_modules/.bin/tslint -p ./",
-    "preinstall": "rm -f package-lock.json*",
     "start": "../node_modules/.bin/pm2 start pm2/ecosystem.config.js --watch",
     "start:server:api": "../node_modules/.bin/pm2 start pm2/ecosystem.config.js --only rili-server-api --env production",
     "start:server:api:dev": "npm run build:dev && ../node_modules/.bin/nodemon build/server-api.js",

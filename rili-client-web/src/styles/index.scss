@@ -1,5 +1,8 @@
 @import '../../../rili-public-library/styles/lib/variables';
 
+$header-height: 2.8rem;
+$footer-height: 2.8rem;
+
 @function rem-calc($size) {
     $remSize: $size / 16px;
     @return #{$remSize}rem;
@@ -7,14 +10,27 @@
 
 html, body {
     font-size: 16px;
-    background: $rili-grey-default;
+    background: $rili-black;
+    color: $rili-white;
     font-family: sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
-body {
-    border: rem-calc(4px) solid $rili-green;
-    border-radius: rem-calc(14px);
-    padding: 1rem;
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: $header-height;
+    background: $rili-green;
+}
+
+.content-container {
+    border-left: rem-calc(4px) double $rili-dark-blue;
+    border-right: rem-calc(4px) double $rili-dark-blue;
+    margin: ($header-height + 1rem) .5rem;
+    padding: .5rem 1.5rem;
 }
 
 hr {
@@ -24,10 +40,13 @@ hr {
 }
 
 footer {
-    bottom: 0;
     position: fixed;
+    bottom: 0;
+    left: 0;
     width: 100%;
+    height: $footer-height;
     text-align: center;
+    background: $rili-green;
 }
 
 .form-field-wrapper {
@@ -56,6 +75,7 @@ footer {
 }
 
 .message-input {
+    margin-bottom: 3rem;
     padding: 0 1rem;
     width: calc(100% - 2rem);
 }
@@ -64,7 +84,7 @@ footer {
     padding: 1rem .5rem;
     display: block;
     text-align: left;
-    font-size: rem-calc(20px);
+    font-size: rem-calc(17px);
     list-style-type: none;
     margin-bottom: 1.5rem;
 }
@@ -74,6 +94,10 @@ footer {
     display: block;
     text-align: center;
     font-size: rem-calc(20px);
+
+    li {
+        padding-bottom: .25rem;
+    }
 }
 
 ul {

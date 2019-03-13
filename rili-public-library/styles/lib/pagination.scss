@@ -68,12 +68,12 @@
       &:disabled {
         color: #ffffff;
         cursor: not-allowed;
-        background: transparentize($rili-grey-default, .5);
+        background: transparentize($rili-white, .5);
       }
 
       &.active {
         color: #ffffff;
-        background: $rili-magenta-b;
+        background: $rili-pink;
         font-weight: bold;
       }
     }
@@ -84,7 +84,7 @@
       background: transparent;
 
       &:disabled {
-        background: transparentize($rili-grey-default, .75);
+        background: transparentize($rili-white, .75);
       }
 
       &:hover,
