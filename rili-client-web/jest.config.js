@@ -1,4 +1,3 @@
-// jest.config.js
 module.exports = {
     globals: {
         window: {
@@ -18,7 +17,7 @@ module.exports = {
         '^types/(.*)': '<rootDir>/src/redux/types/$1.ts',
     },
     setupFiles: [],
-    setupTestFrameworkScriptFile: './test-setup.ts',
+    setupFilesAfterEnv: ['./test-setup.ts'],
     testURL: 'https://www.example.com/',
     transform: {
         '^.+\\.tsx?$': 'ts-jest',
