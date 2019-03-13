@@ -1,80 +1,3 @@
-html, body {
-  font-size: 16px;
-  background: #021010;
-  color: #ffffff;
-  font-family: sans-serif;
-  margin: 0;
-  padding: 0; }
-
-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2.8rem;
-  background: #075248; }
-
-.content-container {
-  border-left: 0.25rem double #1f2e3d;
-  border-right: 0.25rem double #1f2e3d;
-  margin: 3.8rem 0.5rem;
-  padding: .5rem 1.5rem; }
-
-hr {
-  border-color: #075248;
-  border-width: 0.125rem;
-  border-style: solid; }
-
-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 2.8rem;
-  text-align: center;
-  background: #075248; }
-
-.form-field-wrapper {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%; }
-  .form-field-wrapper.inline {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center; }
-  .form-field-wrapper :nth-child(1).form-field {
-    flex: 1;
-    margin: 0 .25rem 1rem .5rem; }
-  .form-field-wrapper :nth-child(2).form-field {
-    margin: 0 .5rem 1rem .25rem; }
-    .form-field-wrapper :nth-child(2).form-field button {
-      width: 4rem; }
-
-.message-input {
-  margin-bottom: 3rem;
-  padding: 0 1rem;
-  width: calc(100% - 2rem); }
-
-.message-list {
-  padding: 1rem .5rem;
-  display: block;
-  text-align: left;
-  font-size: 1.0625rem;
-  list-style-type: none;
-  margin-bottom: 1.5rem; }
-
-.rooms-list {
-  padding: 1rem .5rem;
-  display: block;
-  text-align: center;
-  font-size: 1.25rem; }
-  .rooms-list li {
-    padding-bottom: .25rem; }
-
-ul#list {
-  padding-bottom: 4rem; }
-
 a {
   color: #2c9ede; }
   a:visited {
@@ -269,6 +192,7 @@ textarea {
   color: #262626;
   display: block;
   font-family: inherit;
+  font-size: .8rem;
   height: 2.3125rem;
   margin: 0;
   padding: 0.5rem 0.75rem;
@@ -850,5 +774,8 @@ select,
   100% {
     transform: rotate(360deg); } }
 
+body {
+  background: #ff4081; }
 
-/*# sourceMappingURL=app.e6d504038e5416f582e7.css.map*/
+
+/*# sourceMappingURL=demo-page.a6d563046a4a6f330ffe.css.map*/
