@@ -3,19 +3,18 @@ $animation-duration-1: 250ms;
 $animation-duration-2: 500ms;
 
 // Rili Common Colors
-$rili-black: #262626;
-$rili-grey-default: #fffffd;
-$rili-grey-placeholder: #cdcdcd;
+$rili-black: #021010;
+$rili-white: #dee1e4;
+$rili-grey-placeholder: #c8cbce;
 $rili-pink-light: #e2c5cf;
 $rili-pink-shadow: rgba(162, 52, 181, .1);
 $rili-green-shadow: rgba(0, 125, 44, .1);
 
 // Rili Offical Primary Colors
-$rili-green: #105952;
-$rili-red-orange: #ff6600;
-$rili-purple: #ff4081;
-$rili-yellow: #ffe300;
-$rili-bright-blue: #26d7fd;
+$rili-green: #17654c;
+$rili-red: #391215;
+$rili-orange: #B14419;
+$rili-blue: #1B3777;
 
 // Rili Official Secondary Colors
 $rili-dark-blue: #2073A1;
@@ -24,18 +23,13 @@ $rili-blue-green: #14c6cc;
 $rili-teal: #85f3da;
 $rili-lime: #80f56b;
 $rili-pink: #ff5991;
-$rili-magenta: #cc14ae;
 
-// Secondary magenta color specified in UX review
-// TODO: Is it a part of the official palette?
-$rili-magenta-b: #a234b5;
-
-// Rili Grading Palette
+// Rili Alert Palette
 $rili-grades-green: #39e379;
 $rili-grades-yellow-green: #cdee4b;
 $rili-grades-yellow: #ffe300;
 $rili-grades-bright-orange: #ff9600;
-$rili-grades-red: #ff4a36;
+$rili-grades-red: #900804;
 
 // Rili Background Colors
 $rili-white: #ffffff;

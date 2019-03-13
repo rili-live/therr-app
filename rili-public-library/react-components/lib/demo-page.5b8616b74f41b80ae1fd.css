@@ -49,7 +49,7 @@ button {
         display: inline;
         background: #767676; }
       .radio-group .radio-option .psuedo-label:hover + label.selected::before {
-        background: #262626; }
+        background: #021010; }
   .radio-group .radio-option label {
     margin: .375rem .25rem .375rem 0;
     order: 1;
@@ -60,18 +60,18 @@ button {
     float: left;
     border-radius: 50%;
     cursor: pointer;
-    border: 1px solid #fffffd;
+    border: 1px solid #ffffff;
     box-sizing: content-box; }
     .radio-group .radio-option label.selected {
-      background: #105952; }
+      background: #17654c; }
       .radio-group .radio-option label.selected::before {
         display: inline;
-        background: #262626; }
+        background: #021010; }
     .radio-group .radio-option label:hover::before {
       display: inline;
       background: #767676; }
     .radio-group .radio-option label:hover.selected::before {
-      background: #262626; }
+      background: #021010; }
     .radio-group .radio-option label::before {
       display: none;
       content: '';
@@ -80,7 +80,7 @@ button {
       left: 4px;
       height: 8px;
       width: 8px;
-      background: #262626;
+      background: #021010;
       border-radius: 50%; }
 
 .search-box {
@@ -155,7 +155,7 @@ h1:focus {
 label {
   font-weight: 700;
   line-height: 2.5rem;
-  color: #262626;
+  color: #ffffff;
   margin-bottom: 0; }
   label.required::before {
     content: '*';
@@ -375,7 +375,7 @@ select,
     .select-box button::before {
       right: .5rem;
       top: .65rem;
-      color: #262626; }
+      color: #021010; }
   select .options-list,
   .select-box .options-list {
     z-index: 20;
@@ -415,7 +415,7 @@ select,
       .select-box .options-list .option-container:active,
       .select-box .options-list .option-container:active:hover {
         color: #ffffff;
-        background: #262626; }
+        background: #021010; }
       select .options-list .option-container.ax-active,
       .select-box .options-list .option-container.ax-active {
         box-shadow: 0 0 0 0.125rem #006dc7 inset; }
@@ -624,7 +624,7 @@ select,
   display: flex;
   flex-direction: column-reverse; }
   .pagination-controls .pages-info {
-    color: #262626;
+    color: #021010;
     font-weight: bold;
     margin: .3125rem .3125rem .3125rem 0;
     flex: 1;
@@ -698,14 +698,14 @@ select,
       .pagination-controls .controls-list .page-button-forward:disabled {
         color: #ffffff;
         cursor: not-allowed;
-        background: rgba(255, 255, 253, 0.5); }
+        background: rgba(255, 255, 255, 0.5); }
       .pagination-controls .controls-list .page-button.active,
       .pagination-controls .controls-list .page-button-start.active,
       .pagination-controls .controls-list .page-button-end.active,
       .pagination-controls .controls-list .page-button-back.active,
       .pagination-controls .controls-list .page-button-forward.active {
         color: #ffffff;
-        background: #a234b5;
+        background: #ff5991;
         font-weight: bold; }
     .pagination-controls .controls-list .page-button-back,
     .pagination-controls .controls-list .page-button-forward {
@@ -713,7 +713,7 @@ select,
       background: transparent; }
       .pagination-controls .controls-list .page-button-back:disabled,
       .pagination-controls .controls-list .page-button-forward:disabled {
-        background: rgba(255, 255, 253, 0.25); }
+        background: rgba(255, 255, 255, 0.25); }
       .pagination-controls .controls-list .page-button-back:hover, .pagination-controls .controls-list .page-button-back:active,
       .pagination-controls .controls-list .page-button-forward:hover,
       .pagination-controls .controls-list .page-button-forward:active {
@@ -739,7 +739,7 @@ select,
   width: 100%;
   height: 100%;
   border: 1.5px solid #f8f8f8;
-  border-top-color: #ff4081;
+  border-top-color: #ff5991;
   animation: spinAnimation 1.3s infinite cubic-bezier(0.53, 0.21, 0.29, 0.67); }
   .spinner .circle.xsmall {
     height: .75rem;
@@ -775,4 +775,4 @@ body {
   background: #ff4081; }
 
 
-/*# sourceMappingURL=demo-page.733c3079947fb1b3239a.css.map*/
+/*# sourceMappingURL=demo-page.5b8616b74f41b80ae1fd.css.map*/

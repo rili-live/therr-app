@@ -127,8 +127,6 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
 
         return (
             <div>
-                <hr />
-
                 <div className="form-field-wrapper inline message-input">
                     <Input
                         ref={this.messageInputRef}

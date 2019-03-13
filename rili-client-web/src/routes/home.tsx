@@ -119,8 +119,6 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
         return (
             <div>
-                <hr />
-
                 <label htmlFor="user_name">Username:</label>
                 <Input type="text" id="user_name" name="userName" onChange={this.onInputChange} onEnter={this.onButtonClick} translate={this.translate} />
 
