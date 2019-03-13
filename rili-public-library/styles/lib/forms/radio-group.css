@@ -37,7 +37,7 @@
   box-sizing: content-box;
 }
 .radio-group .radio-option label.selected {
-  background: #17654c;
+  background: #075248;
 }
 .radio-group .radio-option label.selected::before {
   display: inline;

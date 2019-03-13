@@ -37,7 +37,7 @@
   box-sizing: content-box;
 }
 .radio-group .radio-option label.selected {
-  background: #17654c;
+  background: #075248;
 }
 .radio-group .radio-option label.selected::before {
   display: inline;
@@ -180,14 +180,14 @@ textarea {
   -webkit-appearance: none;
   background-color: #ffffff;
   border: 1px solid #cdcdcd;
-  border-radius: 2px;
+  border-radius: 1.1875rem;
   box-shadow: none;
   color: #262626;
   display: block;
   font-family: inherit;
   height: 2.3125rem;
   margin: 0;
-  padding: 0.5rem;
+  padding: 0.5rem 0.75rem;
   width: 100%;
   box-sizing: border-box;
   -webkit-transition: border-color 0.15s linear, background 0.15s linear;
@@ -211,7 +211,7 @@ select:focus,
 .select-box:focus,
 textarea:focus {
   background-color: #ffffff;
-  border-color: #ff5991;
+  border-color: #f96e6f;
   outline: none;
   border-color: #e2c5cf;
   box-shadow: inset 0 0 0 0.25rem rgba(162, 52, 181, 0.1);
