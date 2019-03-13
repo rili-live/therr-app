@@ -21,7 +21,7 @@
   background: #767676;
 }
 .radio-group .radio-option .psuedo-label:hover + label.selected::before {
-  background: #262626;
+  background: #021010;
 }
 .radio-group .radio-option label {
   margin: 0.375rem 0.25rem 0.375rem 0;
@@ -33,22 +33,22 @@
   float: left;
   border-radius: 50%;
   cursor: pointer;
-  border: 1px solid #fffffd;
+  border: 1px solid #ffffff;
   box-sizing: content-box;
 }
 .radio-group .radio-option label.selected {
-  background: #105952;
+  background: #17654c;
 }
 .radio-group .radio-option label.selected::before {
   display: inline;
-  background: #262626;
+  background: #021010;
 }
 .radio-group .radio-option label:hover::before {
   display: inline;
   background: #767676;
 }
 .radio-group .radio-option label:hover.selected::before {
-  background: #262626;
+  background: #021010;
 }
 .radio-group .radio-option label::before {
   display: none;
@@ -58,7 +58,7 @@
   left: 4px;
   height: 8px;
   width: 8px;
-  background: #262626;
+  background: #021010;
   border-radius: 50%;
 }
 
