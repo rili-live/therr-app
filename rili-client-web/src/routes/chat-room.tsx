@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import SocketActions from 'actions/socket';
 import Input from 'rili-public-library/react-components/input';
-import ButtonSecondary from 'rili-public-library/react-components/button-secondary';
+import ButtonPrimary from 'rili-public-library/react-components/button-primary';
 import scrollTo from 'rili-public-library/utilities/scroll-to';
 import { IMessage, ISocketState } from 'types/socket';
 import translator from '../services/translator';
@@ -141,7 +141,7 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
                         translate={this.translate}
                     />
                     <div className="form-field">
-                        <ButtonSecondary id="enter_message" text="Send" onClick={this.onButtonClick} disabled={this.shouldDisableInput('sendMessage')} />
+                        <ButtonPrimary id="enter_message" text="Send" onClick={this.onButtonClick} disabled={this.shouldDisableInput('sendMessage')} />
                     </div>
                 </div>
 

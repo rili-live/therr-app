@@ -2,7 +2,7 @@ button,
 [type=button],
 [type=reset],
 [type=submit] {
-  border-radius: 0.1875rem;
+  border-radius: 1.1875rem;
 }
 
 button {
@@ -10,7 +10,7 @@ button {
 }
 button:disabled {
   cursor: not-allowed;
-  opacity: 0.75;
+  opacity: 0.8;
 }
 button.anchor {
   text-decoration: none;
@@ -24,16 +24,18 @@ button.anchor:visited {
   color: #2073a1;
 }
 button.secondary {
-  background: #cdcdcd;
+  background: #d5d8da;
 }
 button.secondary:hover {
-  background: #e5e5e5;
+  background: #ffffff;
 }
 button.primary {
-  background: #262626;
+  border-color: transparent;
+  background: #076d5f;
+  color: #ffffff;
 }
 button.primary:hover {
-  background: #404040;
+  background: #075248;
 }
 
 /*# sourceMappingURL=buttons.css.map */
