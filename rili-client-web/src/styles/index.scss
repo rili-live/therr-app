@@ -41,6 +41,10 @@ hr {
 
 footer {
     position: fixed;
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     bottom: 0;
     left: 0;
     width: 100%;

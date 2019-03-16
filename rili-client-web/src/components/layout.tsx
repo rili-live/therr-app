@@ -8,6 +8,7 @@ import { TransitionGroup as Animation } from 'react-transition-group';
 // import { configureAuthRoute } from '../library/authentication';
 import { ISocketState } from 'types/socket';
 import RedirectWithStatus from 'rili-public-library/react-components/redirect-with-status';
+import ButtonPrimary from 'rili-public-library/react-components/button-primary';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
 import scrollTo from 'rili-public-library/utilities/scroll-to';
@@ -61,6 +62,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
             'clientHasLoaded': false
         };
 
+        this.goHome = this.goHome.bind(this);
         this.onViewChange = this.onViewChange.bind(this);
     }
 
@@ -86,6 +88,10 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         //     ReactGA.set({ 'page': window.location.pathname });
         //     ReactGA.pageview(window.location.pathname);
         // }
+    }
+
+    goHome() {
+        this.props.history.push('/');
     }
 
     public render(): JSX.Element | null {
@@ -123,7 +129,11 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     {/* <Alerts></Alerts> */}
                     {/* <Loader></Loader> */}
 
-                    <footer></footer>
+                    <footer>
+                        <ButtonPrimary id="home" onClick={this.goHome}>
+                            <span className="icon-medium home"></span>
+                        </ButtonPrimary>
+                    </footer>
                 </div>
             );
         } else {
