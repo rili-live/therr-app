@@ -15,9 +15,16 @@
     back-arrow,
     check,
     forward-arrow,
+    home,
     search
   ) {
     .icon-#{$size} {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      width: 2rem;
+
       &.#{$name} {
         &::before {
           content: url('./svg-icons/#{$name}.svg');
