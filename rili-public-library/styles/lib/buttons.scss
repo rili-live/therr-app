@@ -40,7 +40,9 @@ button {
     border-color: transparent;
     background: $rili-green-alt;
     color: $rili-white;
+
     &:hover {
+      cursor: pointer;
       background: $rili-green;
     }
   }

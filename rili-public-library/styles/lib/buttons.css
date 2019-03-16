@@ -35,6 +35,7 @@ button.primary {
   color: #ffffff;
 }
 button.primary:hover {
+  cursor: pointer;
   background: #075248;
 }
 
