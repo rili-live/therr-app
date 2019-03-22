@@ -109,3 +109,17 @@ ul {
         padding-bottom: 4rem;
     }
 }
+
+button {
+    &#home {
+        width: 2.5rem;
+    }
+}
+
+.inline-svg {
+    &.home-button {
+        svg {
+            fill: $rili-white;
+        }
+    }
+}

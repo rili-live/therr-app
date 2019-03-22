@@ -13,7 +13,7 @@
     "lint:fix": "../node_modules/.bin/eslint --ext .jsx,.js --fix ./ && ../node_modules/.bin/tslint --fix -p ./",
     "lint": "../node_modules/.bin/eslint --ext .jsx,.js ./ && ../node_modules/.bin/tslint -p ./",
     "start": "../node_modules/.bin/pm2 start pm2/ecosystem.config.js --only rili-server-client --env production --watch",
-    "start:dev": "../node_modules/.bin/nodemon ./build/server-client.js",
+    "start:dev": "npm run build:server:dev && ../node_modules/.bin/nodemon ./build/server-client.js",
     "test": "npm run lint:fix && ../node_modules/.bin/jest --no-cache",
     "test:update": "../node_modules/.bin/jest -u",
     "test:watch": "../node_modules/.bin/jest --watch",
