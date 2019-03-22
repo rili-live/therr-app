@@ -61,9 +61,6 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.state = {
             'clientHasLoaded': false
         };
-
-        this.goHome = this.goHome.bind(this);
-        this.onViewChange = this.onViewChange.bind(this);
     }
 
     componentWillMount() {
@@ -82,7 +79,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         });
     }
 
-    onViewChange(location: Location) {
+    onViewChange = (location: Location) => {
         scrollTo(0, 100);
         // if (typeof(window) !== 'undefined') {
         //     ReactGA.set({ 'page': window.location.pathname });
@@ -90,7 +87,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         // }
     }
 
-    goHome() {
+    goHome = () => {
         this.props.history.push('/');
     }
 

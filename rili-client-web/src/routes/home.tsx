@@ -69,17 +69,13 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
         // this.sessionToken = '';
         this.translate = (key: string, params: any) => translator('en-us', key, params);
-
-        this.onInputChange = this.onInputChange.bind(this);
-        this.onButtonClick = this.onButtonClick.bind(this);
-        this.shouldDisableInput = this.shouldDisableInput.bind(this);
     }
 
     componentDidMount() {
         document.title = 'Rili | Home';
     }
 
-    onInputChange(name: string, value: string) {
+    onInputChange = (name: string, value: string) => {
         const newInputChanges = {
             [name]: value,
         };
@@ -91,7 +87,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
         });
     }
 
-    onButtonClick(event: any) {
+    onButtonClick = (event: any) => {
         switch (event.target.id) {
             case 'join_room':
             case 'room_name':
@@ -106,7 +102,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
         }
     }
 
-    shouldDisableInput(buttonName: string) {
+    shouldDisableInput = (buttonName: string) => {
         switch (buttonName) {
             case 'room':
                 return !this.state.inputs.roomId || !this.state.inputs.userName;
