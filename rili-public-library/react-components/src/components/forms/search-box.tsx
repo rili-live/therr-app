@@ -26,9 +26,6 @@ class SearchBox extends React.Component<any, any> {
         validations: [],
     };
 
-    private onBlur: any;
-    private onFocus: any;
-
     constructor(props: any) {
         super(props);
 
@@ -37,21 +34,6 @@ class SearchBox extends React.Component<any, any> {
             isDirty: !!props.value,
             isActive: false,
         };
-
-        this.onBlur = () => {
-            this.setState({
-                isActive: false,
-            });
-        };
-
-        this.onFocus = () => {
-            this.setState({
-                isActive: true,
-            });
-        };
-
-        this.handleInputChange = this.handleInputChange.bind(this);
-        this.handleSearch = this.handleSearch.bind(this);
     }
 
     componentWillReceiveProps(nextProps: any) {
@@ -60,7 +42,7 @@ class SearchBox extends React.Component<any, any> {
         });
     }
 
-    handleInputChange(key: any, value: any) {
+    handleInputChange = (key: any, value: any) => {
         this.setState({
             inputValue: value,
             isDirty: !!value.length,
@@ -68,9 +50,21 @@ class SearchBox extends React.Component<any, any> {
         this.props.onChange(key, value);
     }
 
-    handleSearch(event: any) {
+    handleSearch = (event: any) => {
         this.props.onSearch(event, this.state.inputValue);
     }
+
+    onBlur = () => {
+        this.setState({
+            isActive: false,
+        });
+    };
+
+    onFocus = () => {
+        this.setState({
+            isActive: true,
+        });
+    };
 
     render() {
         const { autoComplete, disabled, id, labelText, name, translate, validations } = this.props;

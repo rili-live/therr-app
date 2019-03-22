@@ -63,10 +63,6 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
         this.messageInputRef = React.createRef();
         // this.sessionToken = '';
         this.translate = (key: string, params: any) => translator('en-us', key, params);
-
-        this.onInputChange = this.onInputChange.bind(this);
-        this.onButtonClick = this.onButtonClick.bind(this);
-        this.shouldDisableInput = this.shouldDisableInput.bind(this);
     }
 
     componentDidMount() {
@@ -88,7 +84,7 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
         }
     }
 
-    onInputChange(name: string, value: string) {
+    onInputChange = (name: string, value: string) => {
         const newInputChanges = {
             [name]: value,
         };
@@ -100,7 +96,7 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
         });
     }
 
-    onButtonClick(event: any) {
+    onButtonClick = (event: any) => {
         event.preventDefault();
         switch (event.target.id) {
             case 'enter_message':
@@ -114,7 +110,7 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
         }
     }
 
-    shouldDisableInput(buttonName: string) {
+    shouldDisableInput = (buttonName: string) => {
         switch (buttonName) {
             case 'sendMessage':
                 return !this.state.inputs.message;

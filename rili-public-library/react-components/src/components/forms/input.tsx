@@ -59,11 +59,6 @@ class Input extends React.Component<any, any> {
             inputValue: props.value,
             validationErrors: [],
         };
-
-        this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.handleInputChange = this.handleInputChange.bind(this);
-        this.onFocus = this.onFocus.bind(this);
-        this.updateValidations = this.updateValidations.bind(this);
     }
 
     componentDidMount() {
@@ -86,7 +81,7 @@ class Input extends React.Component<any, any> {
         }
     }
 
-    handleInputChange(event: any) {
+    handleInputChange = (event: any) => {
         const name = event.target.name;
         const value = event.target.value;
 
@@ -98,13 +93,13 @@ class Input extends React.Component<any, any> {
         this.props.onChange(name, value);
     }
 
-    handleKeyDown(event: any) {
+    handleKeyDown = (event: any) => {
         if (this.props.onEnter && event.keyCode === KeyCode.Enter) {
             this.props.onEnter(event);
         }
     }
 
-    onFocus() {
+    onFocus = () => {
         this.setState({
             isTouched: true,
         });
@@ -113,7 +108,7 @@ class Input extends React.Component<any, any> {
         }
     }
 
-    updateValidations(props: any) {
+    updateValidations = (props: any) => {
         const { onValidate, translate } = this.props;
         const validationErrors: any = [];
 
