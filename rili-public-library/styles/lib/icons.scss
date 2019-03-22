@@ -1,48 +1,12 @@
-// An .icon-small, .icon-medium, or .icon-small with a class className
-// of the respective icon in svg-icons folder will add a background image
-// to the applied element
-// TODO: Add icons on a per need basis
-// TODO: Include icons from the color folder
-
-// Configurable icons
-@each $size, $value in (xsmall: .75rem, small: 1rem, medium: 2rem, large: 3rem, xlarge: 4rem) {
-  @each $name in
-  (
-    attention,
-    attention-alert,
-    arrow-down,
-    arrow-up,
-    back-arrow,
-    check,
-    forward-arrow,
-    home,
-    search
-  ) {
-    .#{$name} {
-      &.icon-#{$size} {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100%;
-        width: 2rem;
-
-        &::before {
-          content: url('./svg-icons/#{$name}.svg');
-          position: absolute;
-          width: $value;
-        }
-      }
-    }
-
-    .#{$name}-icon {
-      color: blue;
-      background-image: url('./svg-icons/#{$name}.svg');
-    }
-  }
-}
+@import './variables';
 
 .inline-svg {
-  height: 1rem;
-  width: 1rem;
-  display: flex;
+    height: 1.25rem;
+    width: 1.25rem;
+
+    svg {
+        fill: $rili-white;
+        height: 100%;
+        width: 100%;
+    }
 }

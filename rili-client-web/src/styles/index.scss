@@ -110,15 +110,13 @@ ul {
     }
 }
 
-.inline-svg {
-    height: 1.25rem;
-    width: 1.25rem;
-
-    svg {
-        height: 100%;
-        width: 100%;
+button {
+    &#home {
+        width: 2.5rem;
     }
+}
 
+.inline-svg {
     &.home-button {
         svg {
             fill: $rili-white;
