@@ -20,7 +20,6 @@
         "no-switch-case-fall-through": true,
         "no-unused-expression": true,
         "no-use-before-declare": false,
-        "no-var-requires": true,
         "one-line": [
             true,
             "check-open-brace",

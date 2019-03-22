@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 
-interface IBaseButtonProps {
+export interface IBaseButtonProps {
     id?: string;
     children?: any;
     className?: string;
@@ -14,7 +14,6 @@ class BaseButton extends React.Component<IBaseButtonProps> {
     static propTypes: any = {
         id: PropTypes.string,
         onClick: PropTypes.func.isRequired,
-        children: PropTypes.string,
         className: PropTypes.string,
         disabled: PropTypes.bool,
     };

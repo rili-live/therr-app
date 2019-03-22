@@ -479,589 +479,820 @@ select .options-list .option-container.ax-active,
   box-shadow: 0 0 0 0.125rem #006dc7 inset;
 }
 
-.icon-xsmall {
+.attention.icon-xsmall {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-xsmall.attention::before {
+.attention.icon-xsmall::before {
   content: url("./svg-icons/attention.svg");
   position: absolute;
   width: 0.75rem;
 }
 
-.icon-xsmall {
+.attention-icon {
+  color: blue;
+  background-image: url("./svg-icons/attention.svg");
+}
+
+.attention-alert.icon-xsmall {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-xsmall.attention-alert::before {
+.attention-alert.icon-xsmall::before {
   content: url("./svg-icons/attention-alert.svg");
   position: absolute;
   width: 0.75rem;
 }
 
-.icon-xsmall {
+.attention-alert-icon {
+  color: blue;
+  background-image: url("./svg-icons/attention-alert.svg");
+}
+
+.arrow-down.icon-xsmall {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-xsmall.arrow-down::before {
+.arrow-down.icon-xsmall::before {
   content: url("./svg-icons/arrow-down.svg");
   position: absolute;
   width: 0.75rem;
 }
 
-.icon-xsmall {
+.arrow-down-icon {
+  color: blue;
+  background-image: url("./svg-icons/arrow-down.svg");
+}
+
+.arrow-up.icon-xsmall {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-xsmall.arrow-up::before {
+.arrow-up.icon-xsmall::before {
   content: url("./svg-icons/arrow-up.svg");
   position: absolute;
   width: 0.75rem;
 }
 
-.icon-xsmall {
+.arrow-up-icon {
+  color: blue;
+  background-image: url("./svg-icons/arrow-up.svg");
+}
+
+.back-arrow.icon-xsmall {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-xsmall.back-arrow::before {
+.back-arrow.icon-xsmall::before {
   content: url("./svg-icons/back-arrow.svg");
   position: absolute;
   width: 0.75rem;
 }
 
-.icon-xsmall {
+.back-arrow-icon {
+  color: blue;
+  background-image: url("./svg-icons/back-arrow.svg");
+}
+
+.check.icon-xsmall {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-xsmall.check::before {
+.check.icon-xsmall::before {
   content: url("./svg-icons/check.svg");
   position: absolute;
   width: 0.75rem;
 }
 
-.icon-xsmall {
+.check-icon {
+  color: blue;
+  background-image: url("./svg-icons/check.svg");
+}
+
+.forward-arrow.icon-xsmall {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-xsmall.forward-arrow::before {
+.forward-arrow.icon-xsmall::before {
   content: url("./svg-icons/forward-arrow.svg");
   position: absolute;
   width: 0.75rem;
 }
 
-.icon-xsmall {
+.forward-arrow-icon {
+  color: blue;
+  background-image: url("./svg-icons/forward-arrow.svg");
+}
+
+.home.icon-xsmall {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-xsmall.home::before {
+.home.icon-xsmall::before {
   content: url("./svg-icons/home.svg");
   position: absolute;
   width: 0.75rem;
 }
 
-.icon-xsmall {
+.home-icon {
+  color: blue;
+  background-image: url("./svg-icons/home.svg");
+}
+
+.search.icon-xsmall {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-xsmall.search::before {
+.search.icon-xsmall::before {
   content: url("./svg-icons/search.svg");
   position: absolute;
   width: 0.75rem;
 }
 
-.icon-small {
+.search-icon {
+  color: blue;
+  background-image: url("./svg-icons/search.svg");
+}
+
+.attention.icon-small {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-small.attention::before {
+.attention.icon-small::before {
   content: url("./svg-icons/attention.svg");
   position: absolute;
   width: 1rem;
 }
 
-.icon-small {
+.attention-icon {
+  color: blue;
+  background-image: url("./svg-icons/attention.svg");
+}
+
+.attention-alert.icon-small {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-small.attention-alert::before {
+.attention-alert.icon-small::before {
   content: url("./svg-icons/attention-alert.svg");
   position: absolute;
   width: 1rem;
 }
 
-.icon-small {
+.attention-alert-icon {
+  color: blue;
+  background-image: url("./svg-icons/attention-alert.svg");
+}
+
+.arrow-down.icon-small {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-small.arrow-down::before {
+.arrow-down.icon-small::before {
   content: url("./svg-icons/arrow-down.svg");
   position: absolute;
   width: 1rem;
 }
 
-.icon-small {
+.arrow-down-icon {
+  color: blue;
+  background-image: url("./svg-icons/arrow-down.svg");
+}
+
+.arrow-up.icon-small {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-small.arrow-up::before {
+.arrow-up.icon-small::before {
   content: url("./svg-icons/arrow-up.svg");
   position: absolute;
   width: 1rem;
 }
 
-.icon-small {
+.arrow-up-icon {
+  color: blue;
+  background-image: url("./svg-icons/arrow-up.svg");
+}
+
+.back-arrow.icon-small {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-small.back-arrow::before {
+.back-arrow.icon-small::before {
   content: url("./svg-icons/back-arrow.svg");
   position: absolute;
   width: 1rem;
 }
 
-.icon-small {
+.back-arrow-icon {
+  color: blue;
+  background-image: url("./svg-icons/back-arrow.svg");
+}
+
+.check.icon-small {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-small.check::before {
+.check.icon-small::before {
   content: url("./svg-icons/check.svg");
   position: absolute;
   width: 1rem;
 }
 
-.icon-small {
+.check-icon {
+  color: blue;
+  background-image: url("./svg-icons/check.svg");
+}
+
+.forward-arrow.icon-small {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-small.forward-arrow::before {
+.forward-arrow.icon-small::before {
   content: url("./svg-icons/forward-arrow.svg");
   position: absolute;
   width: 1rem;
 }
 
-.icon-small {
+.forward-arrow-icon {
+  color: blue;
+  background-image: url("./svg-icons/forward-arrow.svg");
+}
+
+.home.icon-small {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-small.home::before {
+.home.icon-small::before {
   content: url("./svg-icons/home.svg");
   position: absolute;
   width: 1rem;
 }
 
-.icon-small {
+.home-icon {
+  color: blue;
+  background-image: url("./svg-icons/home.svg");
+}
+
+.search.icon-small {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-small.search::before {
+.search.icon-small::before {
   content: url("./svg-icons/search.svg");
   position: absolute;
   width: 1rem;
 }
 
-.icon-medium {
+.search-icon {
+  color: blue;
+  background-image: url("./svg-icons/search.svg");
+}
+
+.attention.icon-medium {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-medium.attention::before {
+.attention.icon-medium::before {
   content: url("./svg-icons/attention.svg");
   position: absolute;
   width: 2rem;
 }
 
-.icon-medium {
+.attention-icon {
+  color: blue;
+  background-image: url("./svg-icons/attention.svg");
+}
+
+.attention-alert.icon-medium {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-medium.attention-alert::before {
+.attention-alert.icon-medium::before {
   content: url("./svg-icons/attention-alert.svg");
   position: absolute;
   width: 2rem;
 }
 
-.icon-medium {
+.attention-alert-icon {
+  color: blue;
+  background-image: url("./svg-icons/attention-alert.svg");
+}
+
+.arrow-down.icon-medium {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-medium.arrow-down::before {
+.arrow-down.icon-medium::before {
   content: url("./svg-icons/arrow-down.svg");
   position: absolute;
   width: 2rem;
 }
 
-.icon-medium {
+.arrow-down-icon {
+  color: blue;
+  background-image: url("./svg-icons/arrow-down.svg");
+}
+
+.arrow-up.icon-medium {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-medium.arrow-up::before {
+.arrow-up.icon-medium::before {
   content: url("./svg-icons/arrow-up.svg");
   position: absolute;
   width: 2rem;
 }
 
-.icon-medium {
+.arrow-up-icon {
+  color: blue;
+  background-image: url("./svg-icons/arrow-up.svg");
+}
+
+.back-arrow.icon-medium {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-medium.back-arrow::before {
+.back-arrow.icon-medium::before {
   content: url("./svg-icons/back-arrow.svg");
   position: absolute;
   width: 2rem;
 }
 
-.icon-medium {
+.back-arrow-icon {
+  color: blue;
+  background-image: url("./svg-icons/back-arrow.svg");
+}
+
+.check.icon-medium {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-medium.check::before {
+.check.icon-medium::before {
   content: url("./svg-icons/check.svg");
   position: absolute;
   width: 2rem;
 }
 
-.icon-medium {
+.check-icon {
+  color: blue;
+  background-image: url("./svg-icons/check.svg");
+}
+
+.forward-arrow.icon-medium {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-medium.forward-arrow::before {
+.forward-arrow.icon-medium::before {
   content: url("./svg-icons/forward-arrow.svg");
   position: absolute;
   width: 2rem;
 }
 
-.icon-medium {
+.forward-arrow-icon {
+  color: blue;
+  background-image: url("./svg-icons/forward-arrow.svg");
+}
+
+.home.icon-medium {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-medium.home::before {
+.home.icon-medium::before {
   content: url("./svg-icons/home.svg");
   position: absolute;
   width: 2rem;
 }
 
-.icon-medium {
+.home-icon {
+  color: blue;
+  background-image: url("./svg-icons/home.svg");
+}
+
+.search.icon-medium {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-medium.search::before {
+.search.icon-medium::before {
   content: url("./svg-icons/search.svg");
   position: absolute;
   width: 2rem;
 }
 
-.icon-large {
+.search-icon {
+  color: blue;
+  background-image: url("./svg-icons/search.svg");
+}
+
+.attention.icon-large {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-large.attention::before {
+.attention.icon-large::before {
   content: url("./svg-icons/attention.svg");
   position: absolute;
   width: 3rem;
 }
 
-.icon-large {
+.attention-icon {
+  color: blue;
+  background-image: url("./svg-icons/attention.svg");
+}
+
+.attention-alert.icon-large {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-large.attention-alert::before {
+.attention-alert.icon-large::before {
   content: url("./svg-icons/attention-alert.svg");
   position: absolute;
   width: 3rem;
 }
 
-.icon-large {
+.attention-alert-icon {
+  color: blue;
+  background-image: url("./svg-icons/attention-alert.svg");
+}
+
+.arrow-down.icon-large {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-large.arrow-down::before {
+.arrow-down.icon-large::before {
   content: url("./svg-icons/arrow-down.svg");
   position: absolute;
   width: 3rem;
 }
 
-.icon-large {
+.arrow-down-icon {
+  color: blue;
+  background-image: url("./svg-icons/arrow-down.svg");
+}
+
+.arrow-up.icon-large {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-large.arrow-up::before {
+.arrow-up.icon-large::before {
   content: url("./svg-icons/arrow-up.svg");
   position: absolute;
   width: 3rem;
 }
 
-.icon-large {
+.arrow-up-icon {
+  color: blue;
+  background-image: url("./svg-icons/arrow-up.svg");
+}
+
+.back-arrow.icon-large {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-large.back-arrow::before {
+.back-arrow.icon-large::before {
   content: url("./svg-icons/back-arrow.svg");
   position: absolute;
   width: 3rem;
 }
 
-.icon-large {
+.back-arrow-icon {
+  color: blue;
+  background-image: url("./svg-icons/back-arrow.svg");
+}
+
+.check.icon-large {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-large.check::before {
+.check.icon-large::before {
   content: url("./svg-icons/check.svg");
   position: absolute;
   width: 3rem;
 }
 
-.icon-large {
+.check-icon {
+  color: blue;
+  background-image: url("./svg-icons/check.svg");
+}
+
+.forward-arrow.icon-large {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-large.forward-arrow::before {
+.forward-arrow.icon-large::before {
   content: url("./svg-icons/forward-arrow.svg");
   position: absolute;
   width: 3rem;
 }
 
-.icon-large {
+.forward-arrow-icon {
+  color: blue;
+  background-image: url("./svg-icons/forward-arrow.svg");
+}
+
+.home.icon-large {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-large.home::before {
+.home.icon-large::before {
   content: url("./svg-icons/home.svg");
   position: absolute;
   width: 3rem;
 }
 
-.icon-large {
+.home-icon {
+  color: blue;
+  background-image: url("./svg-icons/home.svg");
+}
+
+.search.icon-large {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-large.search::before {
+.search.icon-large::before {
   content: url("./svg-icons/search.svg");
   position: absolute;
   width: 3rem;
 }
 
-.icon-xlarge {
+.search-icon {
+  color: blue;
+  background-image: url("./svg-icons/search.svg");
+}
+
+.attention.icon-xlarge {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-xlarge.attention::before {
+.attention.icon-xlarge::before {
   content: url("./svg-icons/attention.svg");
   position: absolute;
   width: 4rem;
 }
 
-.icon-xlarge {
+.attention-icon {
+  color: blue;
+  background-image: url("./svg-icons/attention.svg");
+}
+
+.attention-alert.icon-xlarge {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-xlarge.attention-alert::before {
+.attention-alert.icon-xlarge::before {
   content: url("./svg-icons/attention-alert.svg");
   position: absolute;
   width: 4rem;
 }
 
-.icon-xlarge {
+.attention-alert-icon {
+  color: blue;
+  background-image: url("./svg-icons/attention-alert.svg");
+}
+
+.arrow-down.icon-xlarge {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-xlarge.arrow-down::before {
+.arrow-down.icon-xlarge::before {
   content: url("./svg-icons/arrow-down.svg");
   position: absolute;
   width: 4rem;
 }
 
-.icon-xlarge {
+.arrow-down-icon {
+  color: blue;
+  background-image: url("./svg-icons/arrow-down.svg");
+}
+
+.arrow-up.icon-xlarge {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-xlarge.arrow-up::before {
+.arrow-up.icon-xlarge::before {
   content: url("./svg-icons/arrow-up.svg");
   position: absolute;
   width: 4rem;
 }
 
-.icon-xlarge {
+.arrow-up-icon {
+  color: blue;
+  background-image: url("./svg-icons/arrow-up.svg");
+}
+
+.back-arrow.icon-xlarge {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-xlarge.back-arrow::before {
+.back-arrow.icon-xlarge::before {
   content: url("./svg-icons/back-arrow.svg");
   position: absolute;
   width: 4rem;
 }
 
-.icon-xlarge {
+.back-arrow-icon {
+  color: blue;
+  background-image: url("./svg-icons/back-arrow.svg");
+}
+
+.check.icon-xlarge {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-xlarge.check::before {
+.check.icon-xlarge::before {
   content: url("./svg-icons/check.svg");
   position: absolute;
   width: 4rem;
 }
 
-.icon-xlarge {
+.check-icon {
+  color: blue;
+  background-image: url("./svg-icons/check.svg");
+}
+
+.forward-arrow.icon-xlarge {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-xlarge.forward-arrow::before {
+.forward-arrow.icon-xlarge::before {
   content: url("./svg-icons/forward-arrow.svg");
   position: absolute;
   width: 4rem;
 }
 
-.icon-xlarge {
+.forward-arrow-icon {
+  color: blue;
+  background-image: url("./svg-icons/forward-arrow.svg");
+}
+
+.home.icon-xlarge {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-xlarge.home::before {
+.home.icon-xlarge::before {
   content: url("./svg-icons/home.svg");
   position: absolute;
   width: 4rem;
 }
 
-.icon-xlarge {
+.home-icon {
+  color: blue;
+  background-image: url("./svg-icons/home.svg");
+}
+
+.search.icon-xlarge {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
   width: 2rem;
 }
-.icon-xlarge.search::before {
+.search.icon-xlarge::before {
   content: url("./svg-icons/search.svg");
   position: absolute;
   width: 4rem;
+}
+
+.search-icon {
+  color: blue;
+  background-image: url("./svg-icons/search.svg");
+}
+
+.inline-svg {
+  height: 1rem;
+  width: 1rem;
+  display: flex;
 }
 
 .pagination-controls {
