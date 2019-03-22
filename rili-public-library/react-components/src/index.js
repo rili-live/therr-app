@@ -2,12 +2,13 @@
 // This allows tree-shaking
 
 // Root level components
-const componentList = ['demo-page', 'example-component'];
+const componentList = ['demo-page', 'example-component', 'inline-svg'];
 
 // Forms
 const formComponents = [
     'forms/button-primary',
     'forms/button-secondary',
+    'forms/svg-button',
     'forms/input',
     'forms/radio-group',
     'forms/search-box',
