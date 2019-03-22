@@ -8,7 +8,7 @@ import { TransitionGroup as Animation } from 'react-transition-group';
 // import { configureAuthRoute } from '../library/authentication';
 import { ISocketState } from 'types/socket';
 import RedirectWithStatus from 'rili-public-library/react-components/redirect-with-status';
-import ButtonPrimary from 'rili-public-library/react-components/button-primary';
+import SvgButton from 'rili-public-library/react-components/svg-button';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
 import scrollTo from 'rili-public-library/utilities/scroll-to';
@@ -130,9 +130,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     {/* <Loader></Loader> */}
 
                     <footer>
-                        <ButtonPrimary id="home" onClick={this.goHome}>
-                            <span className="icon-medium home"></span>
-                        </ButtonPrimary>
+                        <SvgButton id="home" name="home" className="home-button" onClick={this.goHome} buttonType="primary" />
                     </footer>
                 </div>
             );
