@@ -43,14 +43,6 @@ class SelectBox extends React.Component<any, any> {
             isInValid: true,
             isTouched: false,
         };
-
-        this.handleArrowKey = this.handleArrowKey.bind(this);
-        this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.handlePageClick = this.handlePageClick.bind(this);
-        this.handleSelectionChange = this.handleSelectionChange.bind(this);
-        this.onFocus = this.onFocus.bind(this);
-        this.toggleSelectionVisibility = this.toggleSelectionVisibility.bind(this);
-        this.updateValidations = this.updateValidations.bind(this);
     }
 
     componentWillMount() {
@@ -71,7 +63,7 @@ class SelectBox extends React.Component<any, any> {
         document.removeEventListener('click', this.handlePageClick);
     }
 
-    handleArrowKey(change: any) {
+    handleArrowKey = (change: any) => {
         const { options } = this.props;
         const prevAxIndex = this.state.axIndex;
         let axIndex = 0;
@@ -87,7 +79,7 @@ class SelectBox extends React.Component<any, any> {
         });
     }
 
-    handleKeyDown(event: any) {
+    handleKeyDown = (event: any) => {
         if (!this.props.disabled) {
             const pressedKey = event.keyCode;
             if (pressedKey === KeyCode.Tab) {
@@ -117,7 +109,7 @@ class SelectBox extends React.Component<any, any> {
         }
     }
 
-    handlePageClick(event: any) {
+    handlePageClick = (event: any) => {
         if (event.target !== this.buttonElement) {
             this.setState({
                 optionsAreVisible: false,
@@ -125,7 +117,7 @@ class SelectBox extends React.Component<any, any> {
         }
     }
 
-    handleSelectionChange(event: any) {
+    handleSelectionChange = (event: any) => {
         event.preventDefault();
         if (!this.props.disabled) {
             const selection = this.props.options[event.target.dataset.index];
@@ -133,13 +125,13 @@ class SelectBox extends React.Component<any, any> {
         }
     }
 
-    onFocus() {
+    onFocus = () => {
         this.setState({
             isTouched: true,
         });
     }
 
-    toggleSelectionVisibility() {
+    toggleSelectionVisibility = () => {
         const { disabled, options, value } = this.props;
 
         if (!disabled) {
@@ -153,7 +145,7 @@ class SelectBox extends React.Component<any, any> {
         }
     }
 
-    updateValidations(props: any) {
+    updateValidations = (props: any) => {
         const { onValidate, translate } = this.props;
 
         this.setState({

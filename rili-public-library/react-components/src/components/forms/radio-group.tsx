@@ -14,11 +14,9 @@ class RadioGroup extends React.Component<any, any> {
 
     constructor(props: any) {
         super(props);
-
-        this.selectOption = this.selectOption.bind(this);
     }
 
-    selectOption(event: any) {
+    selectOption = (event: any) => {
         event.preventDefault();
         const key = this.props.name;
         const value = event.target.dataset.value;
