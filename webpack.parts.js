@@ -135,6 +135,13 @@ exports.lintTypeScript = ({ paths, options }) => ({
 });
 
 exports.loadCSS = (paths, env, dontHash) => {
+    const miniCssExtractPlugin = new MiniCssExtractPlugin({
+        // Options similar to the same options in webpackOptions.output
+        // both options are optional
+        filename: (env === 'development' || dontHash) ? '[name].css' : '[name].[hash].css',
+        chunkFilename: (env === 'development' || dontHash) ? '[id].css' : '[id].[hash].css',
+    });
+
     const response = {
         module: {
             rules: [
@@ -153,12 +160,7 @@ exports.loadCSS = (paths, env, dontHash) => {
             ],
         },
         plugins: [
-            new MiniCssExtractPlugin({
-                // Options similar to the same options in webpackOptions.output
-                // both options are optional
-                filename: (env === 'development' || dontHash) ? '[name].css' : '[name].[hash].css',
-                chunkFilename: (env === 'development' || dontHash) ? '[id].css' : '[id].[hash].css',
-            })
+            miniCssExtractPlugin,
         ],
     };
 
