@@ -1,0 +1,91 @@
+@import './nav-menu';
+@import './footer';
+
+html,
+body {
+    background: $rili-black;
+    color: $rili-white;
+    font-family: sans-serif;
+    font-size: 16px;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: $header-height;
+    background: $rili-primary-1;
+}
+
+.content-container {
+    border-left: rem-calc(4px) double $rili-primary-2;
+    border-right: rem-calc(4px) double $rili-primary-2;
+    margin: ($header-height + 1rem) .5rem;
+    padding: .5rem 1.5rem;
+}
+
+hr {
+    border-color: $rili-primary-1;
+    border-width: rem-calc(2px);
+    border-style: solid;
+}
+
+.form-field-wrapper {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+
+    &.inline {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    :nth-child(1).form-field {
+        flex: 1;
+        margin: 0 .25rem 1rem .5rem;
+    }
+
+    :nth-child(2).form-field {
+        margin: 0 .5rem 1rem .25rem;
+        button {
+            width: 4rem;
+        }
+    }
+}
+
+.message-input {
+    margin-bottom: 3rem;
+    padding: 0 1rem;
+    width: calc(100% - 2rem);
+}
+
+.message-list {
+    padding: 1rem .5rem;
+    display: block;
+    text-align: left;
+    font-size: rem-calc(17px);
+    list-style-type: none;
+    margin-bottom: 1.5rem;
+}
+
+.rooms-list {
+    padding: 1rem .5rem;
+    display: block;
+    text-align: center;
+    font-size: rem-calc(20px);
+
+    li {
+        padding-bottom: .25rem;
+    }
+}
+
+ul {
+    &#list {
+        padding-bottom: 4rem;
+    }
+}
