@@ -50,7 +50,7 @@
       box-sizing: content-box;
 
       &.selected {
-        background: $rili-green;
+        background: $rili-primary-1;
         &::before {
           display: inline;
           background: $rili-black;

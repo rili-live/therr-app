@@ -25,11 +25,11 @@ button {
   button.secondary {
     background: #d5d8da; }
     button.secondary:hover {
-      background: #ffffff; }
+      background: #dee1e4; }
   button.primary {
     border-color: transparent;
     background: #076d5f;
-    color: #ffffff; }
+    color: #dee1e4; }
     button.primary:hover {
       cursor: pointer;
       background: #075248; }
@@ -59,11 +59,11 @@ button {
     position: relative;
     height: 1rem;
     width: 1rem;
-    background: #ffffff;
+    background: #dee1e4;
     float: left;
     border-radius: 50%;
     cursor: pointer;
-    border: 1px solid #ffffff;
+    border: 1px solid #dee1e4;
     box-sizing: content-box; }
     .radio-group .radio-option label.selected {
       background: #075248; }
@@ -158,7 +158,7 @@ h1:focus {
 label {
   font-weight: 700;
   line-height: 2.5rem;
-  color: #ffffff;
+  color: #dee1e4;
   margin-bottom: 0; }
   label.required::before {
     content: '*';
@@ -186,7 +186,7 @@ select,
 .select-box,
 textarea {
   -webkit-appearance: none;
-  background-color: #ffffff;
+  background-color: #dee1e4;
   border: 1px solid #cdcdcd;
   border-radius: 1.1875rem;
   box-shadow: none;
@@ -218,7 +218,7 @@ textarea {
   select:focus,
   .select-box:focus,
   textarea:focus {
-    background-color: #ffffff;
+    background-color: #dee1e4;
     border-color: #f96e6f;
     outline: none;
     border-color: #e2c5cf;
@@ -352,7 +352,7 @@ select,
 .select-box {
   position: relative;
   -webkit-appearance: none !important;
-  background-color: #ffffff;
+  background-color: #dee1e4;
   background-position: 95%;
   background-repeat: no-repeat;
   background-size: .75rem;
@@ -393,7 +393,7 @@ select,
     border-radius: .125rem;
     text-align: left;
     box-shadow: 0 0 0 0.25rem rgba(38, 38, 38, 0.075);
-    background: #ffffff;
+    background: #dee1e4;
     border: 1px solid #ccc; }
     select .options-list .option-container,
     .select-box .options-list .option-container {
@@ -418,7 +418,7 @@ select,
       .select-box .options-list .option-container.selected,
       .select-box .options-list .option-container:active,
       .select-box .options-list .option-container:active:hover {
-        color: #ffffff;
+        color: #dee1e4;
         background: #021010; }
       select .options-list .option-container.ax-active,
       .select-box .options-list .option-container.ax-active {
@@ -428,7 +428,7 @@ select,
   height: 1.25rem;
   width: 1.25rem; }
   .inline-svg svg {
-    fill: #ffffff;
+    fill: #dee1e4;
     height: 100%;
     width: 100%; }
 
@@ -510,7 +510,7 @@ select,
       .pagination-controls .controls-list .page-button-forward:disabled {
         color: #ffffff;
         cursor: not-allowed;
-        background: rgba(255, 255, 255, 0.5); }
+        background: rgba(222, 225, 228, 0.5); }
       .pagination-controls .controls-list .page-button.active,
       .pagination-controls .controls-list .page-button-start.active,
       .pagination-controls .controls-list .page-button-end.active,
@@ -525,7 +525,7 @@ select,
       background: transparent; }
       .pagination-controls .controls-list .page-button-back:disabled,
       .pagination-controls .controls-list .page-button-forward:disabled {
-        background: rgba(255, 255, 255, 0.25); }
+        background: rgba(222, 225, 228, 0.25); }
       .pagination-controls .controls-list .page-button-back:hover, .pagination-controls .controls-list .page-button-back:active,
       .pagination-controls .controls-list .page-button-forward:hover,
       .pagination-controls .controls-list .page-button-forward:active {
@@ -587,4 +587,4 @@ body {
   background: #ff4081; }
 
 
-/*# sourceMappingURL=demo-page.dda6e74a87c5f5467c46.css.map*/
+/*# sourceMappingURL=demo-page.eae1721f91c0f21fe5c7.css.map*/

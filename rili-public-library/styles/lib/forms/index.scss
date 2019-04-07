@@ -29,7 +29,7 @@ label {
   &.required {
     &::before {
       content: '*';
-      color: $rili-ax-red;
+      color: $rili-ax-negative;
       padding-right: .25rem;
     }
   }
@@ -75,9 +75,9 @@ textarea {
 
   &:focus {
     background-color: $rili-white;
-    border-color: $rili-pink;
+    border-color: $rili-secondary-3;
     outline: none;
-    border-color: $rili-pink-light;
+    border-color: $rili-input-focus-color;
     box-shadow: $rili-input-shadow;
     outline: none !important;
   }
@@ -85,13 +85,13 @@ textarea {
   &.is-dirty,
   &.is-touched {
     &.is-invalid {
-      border-color: $rili-ax-red;
+      border-color: $rili-ax-negative;
     }
   }
 
   &.is-touched {
     &.is-valid {
-      border-color: $rili-ax-green;
+      border-color: $rili-ax-positive;
 
       &:focus {
         box-shadow: $rili-input-shadow-valid;
