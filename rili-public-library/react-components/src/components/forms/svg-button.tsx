@@ -22,7 +22,7 @@ class SvgButton extends React.Component<ISvgButtonProps & IInlineSvgProps> {
     }
 
     render() {
-        const { buttonType, className } = this.props;
+        const { buttonType, className, name } = this.props;
         const buttonProps = { ...this.props };
         delete buttonProps.buttonType;
         delete buttonProps.className;
@@ -31,14 +31,14 @@ class SvgButton extends React.Component<ISvgButtonProps & IInlineSvgProps> {
         if (buttonType && buttonType === 'primary') {
             return (
                 <ButtonPrimary { ...buttonProps }>
-                    <InlineSvg name="home" className={className} />
+                    <InlineSvg name={name} className={className} />
                 </ButtonPrimary>
             );
         }
 
         return (
             <ButtonSecondary { ...buttonProps }>
-                <InlineSvg name="home" className={className} />
+                <InlineSvg name={name} className={className} />
             </ButtonSecondary>
         );
     }

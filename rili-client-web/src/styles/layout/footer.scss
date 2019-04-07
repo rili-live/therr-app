@@ -1,0 +1,52 @@
+footer {
+    position: fixed;
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: $footer-height;
+    text-align: center;
+    background: $rili-primary-1;
+
+    .footer-menu-item {
+        display: flex;
+        flex: 1;
+        justify-content: center;
+
+        &:last-child {
+            justify-content: flex-end;
+        }
+    }
+}
+
+button {
+    &#close,
+    &#home,
+    &#messages {
+        width: 2.5rem;
+    }
+
+    &#close,
+    &#messages {
+        margin-right: 1rem;
+        padding: rem-calc(7px);
+        background: transparent;
+    }
+}
+
+.inline-svg {
+    &.close-button {
+        svg {
+            fill: $rili-black;
+        }
+    }
+
+    &.home-button {
+        svg {
+            fill: $rili-white;
+        }
+    }
+}

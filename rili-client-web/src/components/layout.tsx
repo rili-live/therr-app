@@ -1,3 +1,4 @@
+import classnames from 'classnames';
 import * as React from 'react';
 import { bindActionCreators, Dispatch } from 'redux';
 import { connect } from 'react-redux';
@@ -34,11 +35,12 @@ interface IStoreProps extends ILayoutDispatchProps {
 }
 
 interface ILayoutProps extends RouteComponentProps<ILayoutRouterProps>, IStoreProps {
-// Add your regular properties here
+    // Add your regular properties here
 }
 
 interface ILayoutState {
     clientHasLoaded: boolean;
+    isNavMenuOpen: boolean;
 }
 
 const mapStateToProps = (state: any) => {
@@ -59,7 +61,8 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         super(props);
 
         this.state = {
-            'clientHasLoaded': false
+            clientHasLoaded: false,
+            isNavMenuOpen: false,
         };
     }
 
@@ -74,9 +77,20 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
     componentDidMount() {
         // ReactGA.initialize(globalConfig[process.env.NODE_ENV].googleAnalyticsKey);
+        document.addEventListener('click', this.handleClick);
         this.setState({
             'clientHasLoaded': true
         });
+    }
+
+    handleClick = (event: any) => {
+        if (this.state.isNavMenuOpen) {
+            const isClickInsideNavMenu = document.getElementById('navMenu').contains(event.target);
+
+            if (!isClickInsideNavMenu) {
+                this.toggleNavMenu();
+            }
+        }
     }
 
     onViewChange = (location: Location) => {
@@ -87,16 +101,33 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         // }
     }
 
+    toggleNavMenu = () => {
+        this.setState({
+            isNavMenuOpen: !this.state.isNavMenuOpen,
+        });
+    }
+
     goHome = () => {
         this.props.history.push('/');
     }
 
     public render(): JSX.Element | null {
+        const navMenuClassNames = classnames({
+            'is-open': this.state.isNavMenuOpen,
+        });
         // Cloak the view so it doesn't flash before client mounts
         if (this.state.clientHasLoaded) {
             return (
                 <div>
                     <header></header>
+                    <div id="navMenu" className={navMenuClassNames}>
+                        <p>Rili Inc.</p>
+                        <p>Under Construction</p>
+                        <p>Check back soon for updates</p>
+                        <div className="nav-menu-footer">
+                            <SvgButton id="close" name="close" className="close-button" onClick={this.toggleNavMenu} buttonType="primary" />
+                        </div>
+                    </div>
 
                     <Animation
                         appear={true}
@@ -127,7 +158,14 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     {/* <Loader></Loader> */}
 
                     <footer>
-                        <SvgButton id="home" name="home" className="home-button" onClick={this.goHome} buttonType="primary" />
+                        <div className="footer-menu-item">
+                        </div>
+                        <div className="footer-menu-item">
+                            <SvgButton id="home" name="home" className="home-button" onClick={this.goHome} buttonType="primary" />
+                        </div>
+                        <div className="footer-menu-item">
+                            <SvgButton id="messages" name="messages" className="messages-button" onClick={this.toggleNavMenu} buttonType="primary" />
+                        </div>
                     </footer>
                 </div>
             );
