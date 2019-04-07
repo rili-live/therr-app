@@ -29,11 +29,11 @@
   position: relative;
   height: 1rem;
   width: 1rem;
-  background: #ffffff;
+  background: #dee1e4;
   float: left;
   border-radius: 50%;
   cursor: pointer;
-  border: 1px solid #ffffff;
+  border: 1px solid #dee1e4;
   box-sizing: content-box;
 }
 .radio-group .radio-option label.selected {

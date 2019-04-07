@@ -27,12 +27,12 @@ button.secondary {
   background: #d5d8da;
 }
 button.secondary:hover {
-  background: #ffffff;
+  background: #dee1e4;
 }
 button.primary {
   border-color: transparent;
   background: #076d5f;
-  color: #ffffff;
+  color: #dee1e4;
 }
 button.primary:hover {
   cursor: pointer;
