@@ -17,7 +17,7 @@ button {
 
   &.anchor {
     text-decoration: none;
-    color: $rili-link-blue-a;
+    color: $rili-link-1;
 
     &:hover {
       color: $rili-link-hover;
@@ -25,12 +25,12 @@ button {
     }
 
     &:visited {
-      color: $rili-link-blue-a;
+      color: $rili-link-1;
     }
   }
 
   &.secondary {
-    background: lighten($rili-grey, 5%);
+    background: lighten($rili-off-white, 5%);
     &:hover {
       background: $rili-white;
     }
@@ -38,12 +38,12 @@ button {
 
   &.primary {
     border-color: transparent;
-    background: $rili-green-alt;
+    background: $rili-secondary-1;
     color: $rili-white;
 
     &:hover {
       cursor: pointer;
-      background: $rili-green;
+      background: $rili-primary-1;
     }
   }
 }
