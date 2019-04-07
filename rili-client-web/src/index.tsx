@@ -4,7 +4,10 @@ import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import Layout from './components/layout';
 import store from './store';
-import './styles/index.scss';
+// Change the following import to alter theme
+// TODO: RFRONT-: Configure webpack to compile all themes and allow client
+// to select the css file that gets loaded
+import './styles/themes/primary/index.scss';
 
 window.onload = () => {
     render(

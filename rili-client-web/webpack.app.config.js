@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-dependencies
 const merge = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
@@ -9,19 +10,26 @@ const pkg = require('./package.json');
 const PATHS = {
     app: path.join(__dirname, 'src'),
     build: path.join(__dirname, 'build/static'),
+    themes: path.join(__dirname, 'src/styles/themes'),
     utils: path.join(__dirname, '../utilities'),
     reactComponents: path.join(__dirname, '../rili-public-library/react-components'),
     public: '/',
 };
 
+const entry = {
+    app: path.join(PATHS.app, 'index.tsx'),
+};
+
+fs.readdirSync(PATHS.themes).forEach((pathName) => {
+    entry[`theme-${pathName}`] = `${PATHS.themes}/${pathName}/index.ts`;
+});
+
 const common = merge([
     {
-        entry: {
-            app: path.join(PATHS.app, 'index.tsx'),
-        },
+        entry,
         output: {
             path: PATHS.build,
-            filename: 'app.js',
+            filename: '[name].js',
             publicPath: PATHS.public,
             libraryTarget: 'umd',
         },
@@ -89,7 +97,7 @@ const buildUmd = () => merge([
     parts.clean(PATHS.build),
     {
         output: {
-            filename: 'app.js',
+            filename: '[name].js',
         },
         externals: Object.keys(pkg.peerDependencies || {}),
     },
