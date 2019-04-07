@@ -20,6 +20,7 @@ const entry = {
     app: path.join(PATHS.app, 'index.tsx'),
 };
 
+// This allows us to output multiple css theme files
 fs.readdirSync(PATHS.themes).forEach((pathName) => {
     entry[`theme-${pathName}`] = `${PATHS.themes}/${pathName}/index.ts`;
 });

@@ -24,9 +24,19 @@ const replaceInFile = (fileToUpdate, replacementString) => {
 
 // We need to keep the css file path up to date becuase we use hashing in the build compilation
 fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
-    const fileNameRegex = new RegExp(/^app.*.css$/);
+    const fileNameRegex = new RegExp(/^app.*\.css$/);
+    const scrapJsRegex = new RegExp(/^theme-.*\.js$/);
 
     files.forEach(file => {
+        // Delete the scrop javascript files that were used to bundle theme specific css files
+        if (scrapJsRegex.test(file)) {
+            console.log('FILE', file);
+            fs.unlink(path.join(__dirname, `build/static/${file}`), (err) => {
+                if (err) throw err;
+            });
+        }
+
+        // Update view templates with the latest, hashed css file link
         if (fileNameRegex.test(file)) {
             const cssFileName = file.toString();
             const fileToUpdate = path.join(__dirname, 'src/views/index.hbs');
