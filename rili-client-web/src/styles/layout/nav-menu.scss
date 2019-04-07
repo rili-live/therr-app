@@ -1,0 +1,26 @@
+#navMenu {
+    background: white;
+    border-left: 1px solid rgba(0, 0, 0, .12);
+    box-sizing: border-box;
+    color: #5f6368;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: rem-calc(24px);
+    position: fixed;
+    right: -100%;
+    top: 0;
+    transition: right .15s cubic-bezier(.4,0,.2,1);
+    width: rem-calc(280px);
+    z-index: 100;
+
+    &.is-open {
+        right: 0;
+    }
+
+    .nav-menu-footer {
+        bottom: 0;
+        position: absolute;
+        right: 0;
+    }
+}
