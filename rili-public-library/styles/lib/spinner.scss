@@ -11,7 +11,7 @@ $spin-duration: 1.3s;
     width: 100%;
     height: 100%;
     border: $border-size solid $rili-bg-grey;
-    border-top-color: $rili-pink;
+    border-top-color: $rili-secondary-3;
     animation: spinAnimation $spin-duration infinite cubic-bezier(.53,.21,.29,.67);
 
     &.xsmall {

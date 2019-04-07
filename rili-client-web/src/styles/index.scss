@@ -1,4 +1,6 @@
-@import '../../../rili-public-library/styles/lib/variables';
+@import './themes/primary';
+@import '../../../rili-public-library/styles/lib';
+
 
 $header-height: 2.8rem;
 $footer-height: 2.8rem;
@@ -23,18 +25,18 @@ header {
     left: 0;
     width: 100%;
     height: $header-height;
-    background: $rili-green;
+    background: $rili-primary-1;
 }
 
 .content-container {
-    border-left: rem-calc(4px) double $rili-blue;
-    border-right: rem-calc(4px) double $rili-blue;
+    border-left: rem-calc(4px) double $rili-primary-2;
+    border-right: rem-calc(4px) double $rili-primary-2;
     margin: ($header-height + 1rem) .5rem;
     padding: .5rem 1.5rem;
 }
 
 hr {
-    border-color: $rili-green;
+    border-color: $rili-primary-1;
     border-width: rem-calc(2px);
     border-style: solid;
 }
@@ -50,7 +52,7 @@ footer {
     width: 100%;
     height: $footer-height;
     text-align: center;
-    background: $rili-green;
+    background: $rili-primary-1;
 }
 
 .form-field-wrapper {

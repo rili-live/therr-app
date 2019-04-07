@@ -84,7 +84,7 @@
 .pagination-controls .controls-list .page-button-forward:disabled {
   color: #ffffff;
   cursor: not-allowed;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(222, 225, 228, 0.5);
 }
 .pagination-controls .controls-list .page-button.active,
 .pagination-controls .controls-list .page-button-start.active,
@@ -102,7 +102,7 @@
 }
 .pagination-controls .controls-list .page-button-back:disabled,
 .pagination-controls .controls-list .page-button-forward:disabled {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(222, 225, 228, 0.25);
 }
 .pagination-controls .controls-list .page-button-back:hover, .pagination-controls .controls-list .page-button-back:active,
 .pagination-controls .controls-list .page-button-forward:hover,
