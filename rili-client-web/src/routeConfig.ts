@@ -14,6 +14,13 @@ export default [
         view: 'index'
     },
     {
+        route: '/login',
+        head: {
+            title: 'Login'
+        },
+        view: 'index'
+    },
+    {
         route: '*',
         head: {
             title: 'Not Found'

@@ -116,7 +116,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
         return (
             <div>
                 <label htmlFor="user_name">Username:</label>
-                <Input type="text" id="user_name" name="userName" onChange={this.onInputChange} onEnter={this.onButtonClick} translate={this.translate} />
+                <Input type="text" id="user_name" name="userName" value={this.state.inputs.userName} onChange={this.onInputChange} onEnter={this.onButtonClick} translate={this.translate} />
 
                 <label htmlFor="room_name">Room:</label>
                 <Input type="text" id="room_name" name="roomId" value={this.state.inputs.roomId} onChange={this.onInputChange} onEnter={this.onButtonClick} translate={this.translate} />
@@ -130,9 +130,8 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
                         }
                     </span>
                 }
-                <br />
 
-                <div className="form-field">
+                <div className="form-field text-right">
                     <ButtonPrimary id="join_room" text="Join Room" onClick={this.onButtonClick} disabled={this.shouldDisableInput('room')} />
                 </div>
             </div>

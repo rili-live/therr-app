@@ -37,6 +37,10 @@ label {
 
 .form-field {
   margin: 0 0 1rem;
+
+  &.text-right {
+    text-align: right;
+  }
 }
 
 input[type=color],
