@@ -2,7 +2,7 @@ import ChatRoom from './ChatRoom';
 import Home from './Home';
 import PageNotFound from './PageNotFound';
 import { RouteProps } from 'react-router-dom';
-// import Login from './login';
+import Login from './Login';
 
 export interface IRoute extends RouteProps {
     access?: any;
@@ -23,11 +23,11 @@ let routes: IRoute[] = [
         component: ChatRoom,
         exact: true
     },
-    // {
-    //     'path': '/login',
-    //     'component': Login,
-    //     'exact': true
-    // },
+    {
+        'path': '/login',
+        'component': Login,
+        'exact': true
+    },
     // {
     // 	'path': '/register',
     // 	'component': Register,

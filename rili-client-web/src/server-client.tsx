@@ -27,7 +27,7 @@ declare global {
 if (!process.env.BROWSER) {
     global.window = {}; // Temporarily define window for server-side
 }
-import Layout from './components/layout';
+import Layout from './components/Layout';
 import routes, { IRoute } from './routes';
 
 // Initialize the server and configure support for handlebars templates
