@@ -119,7 +119,9 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         if (this.state.clientHasLoaded) {
             return (
                 <div>
-                    <header></header>
+                    <header>
+                        <div className="login-link"><a href="/login">Login</a></div>
+                    </header>
                     <div id="navMenu" className={navMenuClassNames}>
                         <p>Rili Inc.</p>
                         <p>Under Construction</p>

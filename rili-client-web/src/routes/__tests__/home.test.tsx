@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { HomeComponent } from '../home';
+import { HomeComponent } from '../Home';
 import { mount } from 'enzyme';
 
 describe('Rili App', () => {
