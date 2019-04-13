@@ -167,6 +167,8 @@ label {
 
 .form-field {
   margin: 0 0 1rem; }
+  .form-field.text-right {
+    text-align: right; }
 
 input[type=color],
 input[type=date],
@@ -605,6 +607,22 @@ select,
     position: absolute;
     right: 0; }
 
+header {
+  align-items: center;
+  background: #075248;
+  display: flex;
+  height: 2.8rem;
+  left: 0;
+  position: fixed;
+  top: 0;
+  width: 100%; }
+  header .login-link {
+    position: absolute;
+    right: 1rem; }
+    header .login-link a {
+      color: #dee1e4;
+      text-decoration: none; }
+
 footer {
   position: fixed;
   position: fixed;
@@ -646,14 +664,6 @@ body {
   font-size: 16px;
   margin: 0;
   padding: 0; }
-
-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2.8rem;
-  background: #075248; }
 
 .content-container {
   border-left: 0.25rem double #1f2e3d;
@@ -708,4 +718,4 @@ ul#list {
   padding-bottom: 4rem; }
 
 
-/*# sourceMappingURL=app.da7359537611715cda29.css.map*/
+/*# sourceMappingURL=app.f0df764e560b9a043f20.css.map*/

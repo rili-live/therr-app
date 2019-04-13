@@ -1,0 +1,21 @@
+header {
+    align-items: center;
+    background: $rili-primary-1;
+    display: flex;
+    height: $header-height;
+    left: 0;
+    position: fixed;
+    top: 0;
+    width: 100%;
+
+    .login-link {
+        position: absolute;
+        right: 1rem;
+
+        a {
+            color: $rili-white;
+            text-decoration: none;
+        }
+    }
+}
+
