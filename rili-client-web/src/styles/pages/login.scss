@@ -1,7 +1,13 @@
 .login-container {
-    max-width: rem-calc(540px);
-    margin-top: 4%;
-    padding: 1rem;
-    border: 1rem solid $rili-primary-1;
+    border: .5rem solid $rili-primary-1;
     border-radius: 1rem;
+    margin-top: 4%;
+    max-width: rem-calc(540px);
+    padding: 1rem;
+}
+
+@media only screen and (min-width: rem-calc(540px)) {
+    .login-container {
+        border: .9rem solid $rili-primary-1;
+    }
 }
