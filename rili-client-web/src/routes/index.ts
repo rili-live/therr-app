@@ -1,10 +1,8 @@
-import ChatRoom from './chat-room';
-import Home from './home';
-import PageNotFound from './page-not-found';
+import ChatRoom from './ChatRoom';
+import Home from './Home';
+import PageNotFound from './PageNotFound';
 import { RouteProps } from 'react-router-dom';
-// import Login from './components/pages/Login';
-// import NotFound from './components/pages/NotFound';
-// import Register from './components/pages/Register';
+// import Login from './login';
 
 export interface IRoute extends RouteProps {
     access?: any;
@@ -26,9 +24,9 @@ let routes: IRoute[] = [
         exact: true
     },
     // {
-    // 	'path': '/login',
-    // 	'component': Login,
-    // 	'exact': true
+    //     'path': '/login',
+    //     'component': Login,
+    //     'exact': true
     // },
     // {
     // 	'path': '/register',
