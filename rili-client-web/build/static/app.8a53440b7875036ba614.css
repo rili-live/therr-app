@@ -661,11 +661,15 @@ button#close, button#messages {
   fill: #dee1e4; }
 
 .login-container {
-  max-width: 33.75rem;
+  border: 0.5rem solid #075248;
+  border-radius: 1rem;
   margin-top: 4%;
-  padding: 1rem;
-  border: 1rem solid #075248;
-  border-radius: 1rem; }
+  max-width: 33.75rem;
+  padding: 1rem; }
+
+@media only screen and (min-width: 33.75rem) {
+  .login-container {
+    border: 0.9rem solid #075248; } }
 
 html,
 body {
@@ -736,4 +740,4 @@ ul#list {
   justify-content: center; }
 
 
-/*# sourceMappingURL=theme-primary.3e2ad009d707f1cd30a9.css.map*/
+/*# sourceMappingURL=app.8a53440b7875036ba614.css.map*/
