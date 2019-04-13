@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { HomeComponent } from '../Home';
+import { JoinRoomComponent } from '../JoinRoom';
 import { mount } from 'enzyme';
 
 describe('Rili App', () => {
     let wrapper: any = null;
 
     function mountWithProps(props = {}) {
-        const Home = HomeComponent as any;
+        const Home = JoinRoomComponent as any;
         if (wrapper) {
             wrapper.unmount();
             wrapper = null;
