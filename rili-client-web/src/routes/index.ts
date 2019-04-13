@@ -1,5 +1,5 @@
 import ChatRoom from './ChatRoom';
-import Home from './Home';
+import JoinRoom from './JoinRoom';
 import PageNotFound from './PageNotFound';
 import { RouteProps } from 'react-router-dom';
 import Login from './Login';
@@ -14,8 +14,13 @@ export interface IRoute extends RouteProps {
 
 let routes: IRoute[] = [
     {
-        path: '/',
-        component: Home,
+        'path': '/',
+        'component': Login,
+        'exact': true
+    },
+    {
+        path: '/join-room',
+        component: JoinRoom,
         exact: true
     },
     {
