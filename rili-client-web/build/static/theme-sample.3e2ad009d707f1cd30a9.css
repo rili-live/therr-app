@@ -28,11 +28,11 @@ button {
       background: #dee1e4; }
   button.primary {
     border-color: transparent;
-    background: #076d5f;
+    background: #DF3275;
     color: #dee1e4; }
     button.primary:hover {
       cursor: pointer;
-      background: #075248; }
+      background: #DC0055; }
 
 .radio-group .radio-option {
   display: flex;
@@ -66,7 +66,7 @@ button {
     border: 1px solid #dee1e4;
     box-sizing: content-box; }
     .radio-group .radio-option label.selected {
-      background: #075248; }
+      background: #DC0055; }
       .radio-group .radio-option label.selected::before {
         display: inline;
         background: #021010; }
@@ -167,8 +167,6 @@ label {
 
 .form-field {
   margin: 0 0 1rem; }
-  .form-field.text-right {
-    text-align: right; }
 
 input[type=color],
 input[type=date],
@@ -221,7 +219,7 @@ textarea {
   .select-box:focus,
   textarea:focus {
     background-color: #dee1e4;
-    border-color: #f96e6f;
+    border-color: #95E934;
     outline: none;
     border-color: #e2c5cf;
     box-shadow: inset 0 0 0 0.25rem rgba(162, 52, 181, 0.1);
@@ -519,7 +517,7 @@ select,
       .pagination-controls .controls-list .page-button-back.active,
       .pagination-controls .controls-list .page-button-forward.active {
         color: #ffffff;
-        background: #f96e6f;
+        background: #95E934;
         font-weight: bold; }
     .pagination-controls .controls-list .page-button-back,
     .pagination-controls .controls-list .page-button-forward {
@@ -553,7 +551,7 @@ select,
   width: 100%;
   height: 100%;
   border: 1.5px solid #f8f8f8;
-  border-top-color: #f96e6f;
+  border-top-color: #95E934;
   animation: spinAnimation 1.3s infinite cubic-bezier(0.53, 0.21, 0.29, 0.67); }
   .spinner .circle.xsmall {
     height: .75rem;
@@ -585,6 +583,12 @@ select,
   100% {
     transform: rotate(360deg); } }
 
+.text-center {
+  text-align: center; }
+
+.text-right {
+  text-align: right; }
+
 #navMenu {
   background: white;
   border-left: 1px solid rgba(0, 0, 0, 0.12);
@@ -609,7 +613,7 @@ select,
 
 header {
   align-items: center;
-  background: #075248;
+  background: #DC0055;
   display: flex;
   height: 2.8rem;
   left: 0;
@@ -634,7 +638,7 @@ footer {
   width: 100%;
   height: 2.8rem;
   text-align: center;
-  background: #075248; }
+  background: #DC0055; }
   footer .footer-menu-item {
     display: flex;
     flex: 1;
@@ -656,6 +660,13 @@ button#close, button#messages {
 .inline-svg.home-button svg {
   fill: #dee1e4; }
 
+.login-container {
+  max-width: 33.75rem;
+  margin-top: 4%;
+  padding: 1rem;
+  border: 1rem solid #DC0055;
+  border-radius: 1rem; }
+
 html,
 body {
   background: #021010;
@@ -665,14 +676,17 @@ body {
   margin: 0;
   padding: 0; }
 
+h1 {
+  margin: .9rem 0; }
+
 .content-container {
-  border-left: 0.25rem double #1f2e3d;
-  border-right: 0.25rem double #1f2e3d;
+  border-left: 0.25rem double #FF3500;
+  border-right: 0.25rem double #FF3500;
   margin: 3.8rem 0.5rem;
   padding: .5rem 1.5rem; }
 
 hr {
-  border-color: #075248;
+  border-color: #DC0055;
   border-width: 0.125rem;
   border-style: solid; }
 
@@ -717,5 +731,9 @@ hr {
 ul#list {
   padding-bottom: 4rem; }
 
+.flex-box {
+  display: flex;
+  justify-content: center; }
 
-/*# sourceMappingURL=app.f0df764e560b9a043f20.css.map*/
+
+/*# sourceMappingURL=theme-sample.3e2ad009d707f1cd30a9.css.map*/

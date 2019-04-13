@@ -9,22 +9,22 @@ import { ISocketState } from 'types/socket';
 import translator from '../services/translator';
 // import * as globalConfig from '../../../global-config.js';
 
-interface IHomeRouterProps {
+interface IJoinRoomRouterProps {
 }
 
-interface IHomeDispatchProps {
+interface IJoinRoomDispatchProps {
     joinRoom: Function;
 }
 
-interface IStoreProps extends IHomeDispatchProps {
+interface IStoreProps extends IJoinRoomDispatchProps {
     socket: ISocketState;
 }
 
 // Regular component props
-interface IHomeProps extends RouteComponentProps<IHomeRouterProps>, IStoreProps {
+interface IJoinRoomProps extends RouteComponentProps<IJoinRoomRouterProps>, IStoreProps {
 }
 
-interface IHomeState {
+interface IJoinRoomState {
     hasJoinedARoom: boolean;
     inputs: any;
     roomsList: any;
@@ -50,13 +50,13 @@ const mapDispatchToProps = (dispatch: any) => {
 // };
 
 /**
- * Home
+ * JoinRoom
  */
-export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
+export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoomState> {
     // private sessionToken: string;
     private translate: Function;
 
-    constructor(props: IHomeProps) {
+    constructor(props: IJoinRoomProps) {
         super(props);
 
         this.state = {
@@ -72,7 +72,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
     }
 
     componentDidMount() {
-        document.title = 'Rili | Home';
+        document.title = 'Rili | Join a Room';
     }
 
     onInputChange = (name: string, value: string) => {
@@ -115,6 +115,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
         return (
             <div>
+                <h1 className="center">Join a Room</h1>
                 <label htmlFor="user_name">Username:</label>
                 <Input type="text" id="user_name" name="userName" value={this.state.inputs.userName} onChange={this.onInputChange} onEnter={this.onButtonClick} translate={this.translate} />
 
@@ -139,4 +140,4 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(HomeComponent));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(JoinRoomComponent));
