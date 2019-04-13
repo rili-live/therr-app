@@ -207,9 +207,6 @@ label.required::before {
 .form-field {
   margin: 0 0 1rem;
 }
-.form-field.text-right {
-  text-align: right;
-}
 
 input[type=color],
 input[type=date],
@@ -670,6 +667,13 @@ select .options-list .option-container.ax-active,
   100% {
     transform: rotate(360deg);
   }
+}
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
 }
 
 /*# sourceMappingURL=index.css.map */

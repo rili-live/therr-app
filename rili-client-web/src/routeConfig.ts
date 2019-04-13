@@ -14,6 +14,13 @@ export default [
         view: 'index'
     },
     {
+        route: '/join-room',
+        head: {
+            title: 'Join a Room'
+        },
+        view: 'index'
+    },
+    {
         route: '/login',
         head: {
             title: 'Login'
