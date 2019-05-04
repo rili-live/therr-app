@@ -10,11 +10,13 @@ import { IMessage, ISocketState } from 'types/socket';
 import translator from '../services/translator';
 // import * as globalConfig from '../../../global-config.js';
 
+// router params
 interface IChatRoomRouterProps {
-
+    roomId: string;
 }
 
 interface IChatRoomDispatchProps {
+    joinRoom: Function;
     sendMessage: Function;
 }
 
@@ -41,10 +43,16 @@ const mapStateToProps = (state: IChatRoomState | any) => {
 
 const mapDispatchToProps = (dispatch: any) => {
     return bindActionCreators({
+        joinRoom: SocketActions.joinRoom,
         sendMessage: SocketActions.sendMessage,
     }, dispatch);
 };
 
+const shouldRender = (props: IChatRoomProps) => {
+    return !!props.socket.user.userName;
+};
+
+// TODO: Leaving a roome should emit an event to the server and leave the current room
 /**
  * ChatRoom
  */
@@ -52,6 +60,15 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
     private messageInputRef: any;
     // private sessionToken: string;
     private translate: Function;
+
+    static getDerivedStateFromProps(nextProps: IChatRoomProps) {
+        if (!shouldRender(nextProps)) {
+            nextProps.history.push('/login');
+            return null;
+        } else {
+            return {};
+        }
+    }
 
     constructor(props: IChatRoomProps) {
         super(props);
@@ -67,20 +84,20 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
 
     componentDidMount() {
         document.title = 'Rili | Chat Room';
-        this.messageInputRef.current.inputEl.focus();
-        // TODO: RFRONT-15 - Fix this
-        setTimeout(() => {
-            if (!this.props.socket.user.currentRoom) {
-                this.props.history.push('/');
-            }
-        }, 1000);
+        if (shouldRender(this.props)) {
+            this.messageInputRef.current.inputEl.focus();
+            this.props.joinRoom({
+                roomId: this.props.match.params.roomId,
+                userName: this.props.socket.user.userName,
+            });
+        }
     }
 
     componentDidUpdate(prevProps: IChatRoomProps) {
         const currentRoom = this.props.socket.user.currentRoom;
         const messages = this.props.socket.messages[currentRoom];
         if (messages && messages.length > 3 && messages.length > prevProps.socket.messages[currentRoom].length) {
-            window.scrollTo(0, document.body.scrollHeight);
+            scrollTo(0, document.body.scrollHeight);
         }
     }
 
@@ -120,6 +137,10 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
     render() {
         const { socket } = this.props;
         const messages = socket.messages[socket.user.currentRoom];
+
+        if (!shouldRender(this.props)) {
+            return null;
+        }
 
         return (
             <div>

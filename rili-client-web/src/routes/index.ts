@@ -24,7 +24,7 @@ let routes: IRoute[] = [
         exact: true
     },
     {
-        path: '/chat-room',
+        path: '/chat-room/:roomId',
         component: ChatRoom,
         exact: true
     },

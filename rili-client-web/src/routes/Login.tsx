@@ -5,12 +5,14 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import ButtonPrimary from 'rili-public-library/react-components/button-primary';
 import Input from 'rili-public-library/react-components/input';
 import translator from '../services/translator';
+import SocketActions from 'actions/socket';
 // import * as globalConfig from '../../../global-config.js';
 
 interface ILoginRouterProps {
 }
 
 interface ILoginDispatchProps {
+    login: Function;
 }
 
 interface IStoreProps extends ILoginDispatchProps {
@@ -34,6 +36,7 @@ const mapStateToProps = (state: any) => {
 
 const mapDispatchToProps = (dispatch: any) => {
     return bindActionCreators({
+        login: SocketActions.login,
     }, dispatch);
 };
 
@@ -66,7 +69,12 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
             case 'password':
             case 'user_name':
             case 'login':
-                return !this.isLoginDisabled() && this.props.history.push('/join-room');
+                if (!this.isLoginDisabled()) {
+                    this.props.login({
+                        userName: this.state.inputs.userName,
+                    });
+                    this.props.history.push('/join-room');
+                }
         }
     }
 
