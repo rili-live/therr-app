@@ -12,7 +12,7 @@ const initialState: ISocketState = Immutable.from({
 });
 
 const socket = (state: ISocketState = initialState, action: any) => {
-    // If state is initialize by server-side rendering, it may not be a proper immutable object yets
+    // If state is initialized by server-side rendering, it may not be a proper immutable object yet
     if (!state.setIn) {
         state = initialState;
     }
@@ -34,9 +34,15 @@ const socket = (state: ISocketState = initialState, action: any) => {
                     .setIn(['user', 'userName'], action.data.userName)
                     .setIn(['user', 'currentRoom'], action.data.roomId)
                     .setIn(['messages', action.data.roomId], updatedMessageList);
+        case SocketServerActionTypes.USER_LOGIN_SUCCESS:
+            return state.setIn(['user', 'userName'], action.data.userName);
         case SocketServerActionTypes.OTHER_JOINED_ROOM:
         case SocketServerActionTypes.SEND_MESSAGE:
             return state.setIn(['messages', action.data.roomId], updatedMessageList);
+        case SocketServerActionTypes.SESSION_MESSAGE:
+            const actionData = action.data;
+            actionData.data = JSON.parse(actionData.data);
+            return state.setIn(['user', 'session'], actionData);
         default:
             return state;
     }

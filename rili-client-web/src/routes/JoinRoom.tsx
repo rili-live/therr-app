@@ -1,4 +1,3 @@
-import SocketActions from 'actions/socket';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -41,7 +40,6 @@ const mapStateToProps = (state: any) => {
 
 const mapDispatchToProps = (dispatch: any) => {
     return bindActionCreators({
-        joinRoom: SocketActions.joinRoom,
     }, dispatch);
 };
 
@@ -55,6 +53,19 @@ const mapDispatchToProps = (dispatch: any) => {
 export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoomState> {
     // private sessionToken: string;
     private translate: Function;
+
+    // static getDerivedStateFromProps(nextProps: IJoinRoomProps, nextState: IJoinRoomState) {
+    //     if (!!nextProps.socket.user.userName && !nextState.inputs.userName) {
+    //         return {
+    //             inputs: {
+    //                 userName: nextProps.socket.user.userName,
+    //                 roomId: 'general-chat'
+    //             }
+    //         };
+    //     } else {
+    //         return {};
+    //     }
+    // }
 
     constructor(props: IJoinRoomProps) {
         super(props);
@@ -93,11 +104,7 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
             case 'room_name':
             case 'user_name':
             if (!this.shouldDisableInput('room')) {
-                this.props.joinRoom({
-                    roomId: this.state.inputs.roomId,
-                    userName: this.state.inputs.userName
-                });
-                this.props.history.push('/chat-room');
+                this.props.history.push(`/chat-room/${this.state.inputs.roomId}`);
             }
         }
     }
@@ -105,7 +112,7 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
     shouldDisableInput = (buttonName: string) => {
         switch (buttonName) {
             case 'room':
-                return !this.state.inputs.roomId || !this.state.inputs.userName;
+                return !this.state.inputs.roomId /* || !this.state.inputs.userName */;
         }
     }
 
@@ -116,8 +123,17 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
         return (
             <div>
                 <h1 className="center">Join a Room</h1>
-                <label htmlFor="user_name">Username:</label>
-                <Input type="text" id="user_name" name="userName" value={this.state.inputs.userName} onChange={this.onInputChange} onEnter={this.onButtonClick} translate={this.translate} />
+                {/* <label htmlFor="user_name">Username:</label>
+                <Input
+                    type="text"
+                    id="user_name"
+                    name="userName"
+                    value={this.state.inputs.userName}
+                    onChange={this.onInputChange}
+                    onEnter={this.onButtonClick}
+                    translate={this.translate}
+                    disabled={true}
+                /> */}
 
                 <label htmlFor="room_name">Room:</label>
                 <Input type="text" id="room_name" name="roomId" value={this.state.inputs.roomId} onChange={this.onInputChange} onEnter={this.onButtonClick} translate={this.translate} />

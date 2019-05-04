@@ -9,6 +9,14 @@ const SocketActions = {
             });
         };
     },
+    login: (data: any) => {
+        return (dispatch: any) => {
+            dispatch({
+                'type': SocketClientActionTypes.LOGIN,
+                'data': data
+            });
+        };
+    },
     sendMessage: (data: any) => {
         return (dispatch: any) => {
             dispatch({

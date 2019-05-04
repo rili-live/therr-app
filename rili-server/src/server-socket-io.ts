@@ -145,6 +145,9 @@ const startExpressSocketIOServer = () => {
             if (action.type === SocketClientActionTypes.JOIN_ROOM) {
                 socketHandlers.joinRoom(socket, redisSession, action.data);
             }
+            if (action.type === SocketClientActionTypes.LOGIN) {
+                socketHandlers.login(socket, redisSession, action.data);
+            }
             if (action.type === SocketClientActionTypes.SEND_MESSAGE) {
                 socketHandlers.sendMessage(socket, action.data);
             }
