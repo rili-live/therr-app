@@ -16,8 +16,8 @@ const printLogs = (args: IPrintLogsArgs) => {
     if (args.shouldPrintLogs) {
         const includeTime = args.time !== 0;
         const currentTime = includeTime ? `<at:${args.time || new Date()}>` : '';
-        let messageList = Array.isArray(args.messages) ? args.messages : [args.messages];
-        for (let i = 0; i < messageList.length; i++) {
+        const messageList = Array.isArray(args.messages) ? args.messages : [args.messages];
+        for (let i = 0; i < messageList.length; i += 1) {
             if (args.messageOrigin) {
                 console.info(`${args.messageOrigin}${currentTime}:`, messageList[i]); // tslint:disable-line no-console
             } else {
