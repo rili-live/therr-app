@@ -1,8 +1,8 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import classNames from 'classnames';
+import classnames from 'classnames';
 import { Key as KeyCode } from 'ts-keycode-enum';
-import VALIDATIONS from '../../constants/validations';
+import VALIDATIONS from '../../constants/VALIDATIONS';
 
 // interface IInputProps {
 
@@ -69,7 +69,7 @@ class Input extends React.Component<any, any> {
         if (this.props.value !== nextProps.value) {
             this.setState({
                 inputValue: nextProps.value,
-            }, () => this.updateValidations(nextProps));
+            },            () => this.updateValidations(nextProps));
         } else {
             nextProps.validations.some((validation: any) => {
                 if (!this.props.validations.includes(validation)) {
@@ -141,7 +141,7 @@ class Input extends React.Component<any, any> {
     render() {
         const { autoComplete, className, disabled, formClassName, id, name, placeholder, type, onBlur, validations } = this.props;
         const { inputValue, isDirty, isTouched, validationErrors } = this.state;
-        const additionalClasses = classNames({
+        const additionalClasses = classnames({
             'is-dirty': isDirty,
             'is-invalid': validationErrors.length > 0,
             'is-touched': isTouched,

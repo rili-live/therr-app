@@ -1,7 +1,7 @@
-import SocketDisconnectReason from './socket/disconnect-reason';
+import DisconnectReason from './socket/DisconnectReason';
 
 export const ACTION = 'action';
 
 export {
-    SocketDisconnectReason
+    DisconnectReason,
 };
