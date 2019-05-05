@@ -6,7 +6,11 @@ import * as Constants from '../../constants';
 import { shouldIncludeLogs, shouldIncludeSocketLogs } from '../../server-socket-io';
 
 const sendMessage = (socket: socketio.Socket, data: any) => {
-    printLogs(shouldIncludeLogs, SocketClientActionTypes.SEND_MESSAGE, null, data);
+    printLogs({
+        shouldPrintLogs: shouldIncludeLogs,
+        messageOrigin: SocketClientActionTypes.SEND_MESSAGE,
+        messages: data.toString(),
+    });
     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
     socket.emit('action', {
         type: SocketServerActionTypes.SEND_MESSAGE,
@@ -27,10 +31,14 @@ const sendMessage = (socket: socketio.Socket, data: any) => {
                 key: Date.now().toString(),
                 time: now,
                 text: `${data.userName}: ${data.message}`,
-            }
+            },
         },
     });
-    printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `${data.userName} said: ${data.message}`);
+    printLogs({
+        shouldPrintLogs: shouldIncludeSocketLogs,
+        messageOrigin: 'SOCKET_IO_LOGS',
+        messages: `${data.userName} said: ${data.message}`,
+    });
 };
 
 export default sendMessage;

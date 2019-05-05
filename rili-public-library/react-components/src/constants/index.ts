@@ -1,5 +1,5 @@
-import VALIDATIONS from './validations';
+import VALIDATIONS from './VALIDATIONS';
 
 export {
-    VALIDATIONS
+    VALIDATIONS,
 };

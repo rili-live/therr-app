@@ -15,15 +15,23 @@ const joinRoom = (socket: socketio.Socket, redisSession: any, data: IJoinRoomDat
 
     // Leave all current rooms (except default room) before joining a new one
     Object.keys(socket.rooms)
-        .filter((room) => room !== socket.id)
+        .filter(room => room !== socket.id)
         .forEach((room) => {
             socket.broadcast.to(room).emit('event', `${data.userName} left the room`);
             socket.leave(room);
         });
 
     socket.join(data.roomId, () => {
-        printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `User, ${data.userName} with socketId ${socket.id}, joined room ${data.roomId}`);
-        printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `${data.userName}'s Current Rooms: ${JSON.stringify(socket.rooms)}`);
+        printLogs({
+            shouldPrintLogs: shouldIncludeSocketLogs,
+            messageOrigin: 'SOCKET_IO_LOGS',
+            messages: `User, ${data.userName} with socketId ${socket.id}, joined room ${data.roomId}`,
+        });
+        printLogs({
+            shouldPrintLogs: shouldIncludeSocketLogs,
+            messageOrigin: 'SOCKET_IO_LOGS',
+            messages: `${data.userName}'s Current Rooms: ${JSON.stringify(socket.rooms)}`,
+        });
 
         // Emits an event back to the client who joined
         socket.emit(Constants.ACTION, {
@@ -36,7 +44,7 @@ const joinRoom = (socket: socketio.Socket, redisSession: any, data: IJoinRoomDat
                     text: `You joined room ${data.roomId}`,
                 },
                 userName: data.userName,
-            }
+            },
         });
         // Broadcasts an event back to the client for all users in the specified room (excluding the user who triggered it)
         socket.broadcast.to(data.roomId).emit(Constants.ACTION, {

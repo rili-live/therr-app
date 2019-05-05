@@ -28,11 +28,19 @@ const login = (socket: socketio.Socket, redisSession: any, data: ILoginData) => 
                 data: response,
             });
         }).catch((err: any) => {
-            printLogs(shouldIncludeRedisLogs, 'REDIS_SESSION_ERROR', null, err);
+            printLogs({
+                shouldPrintLogs: shouldIncludeRedisLogs,
+                messageOrigin: 'REDIS_SESSION_ERROR',
+                messages: err.toString(),
+            });
         });
     }
 
-    printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `User, ${data.userName} with socketId ${socket.id}, has logged in.`);
+    printLogs({
+        shouldPrintLogs: shouldIncludeSocketLogs,
+        messageOrigin: 'SOCKET_IO_LOGS',
+        messages: `User, ${data.userName} with socketId ${socket.id}, has logged in.`,
+    });
 
     // Emits an event back to the client who logged in
     socket.emit(Constants.ACTION, {
@@ -44,7 +52,7 @@ const login = (socket: socketio.Socket, redisSession: any, data: ILoginData) => 
                 text: `You have been logged in successfully.`,
             },
             userName: data.userName,
-        }
+        },
     });
 };
 

@@ -8,8 +8,8 @@ import { TransitionGroup as Animation } from 'react-transition-group';
 // import TopNav from './pieces/TopNav';
 // import { configureAuthRoute } from '../library/authentication';
 import { ISocketState } from 'types/socket';
-import RedirectWithStatus from 'rili-public-library/react-components/redirect-with-status';
-import SvgButton from 'rili-public-library/react-components/svg-button';
+import RedirectWithStatus from 'rili-public-library/react-components/RedirectWithStatus';
+import SvgButton from 'rili-public-library/react-components/SvgButton';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
 import scrollTo from 'rili-public-library/utilities/scroll-to';

@@ -103,7 +103,11 @@ for (let i in routeConfig) {
             const state = JSON.stringify(initialState);
 
             if (staticContext.url) {
-                printLogs(true, 'SERVER_CLIENT', null, 'Somewhere a <Redirect> was rendered');
+                printLogs({
+                    shouldPrintLogs: true,
+                    messageOrigin: 'SERVER_CLIENT',
+                    messages: 'Somewhere a <Redirect> was rendered'
+                });
                 res.writeHead(staticContext.statusCode, {
                     'Location': staticContext.url
                 });
@@ -122,5 +126,9 @@ server.listen(port, (err: any) => {
     if (err) {
         return console.error(err);
     }
-    printLogs(true, 'SERVER_CLIENT', null, `Server running on port, ${port}, with process id ${process.pid}`);
+    printLogs({
+        shouldPrintLogs: true,
+        messageOrigin: 'SERVER_CLIENT',
+        messages: `Server running on port, ${port}, with process id ${process.pid}`,
+    });
 });
