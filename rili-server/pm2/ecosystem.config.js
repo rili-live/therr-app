@@ -10,6 +10,10 @@ module.exports = {
             NODE_ENV: 'production',
         },
         args: 'withAllLogs',
+        // output: '~/.pm2/logs/rili-server-socket-io-out.log',
+        // error: '~/.pm2/logs/rili-server-socket-io-error.log',
+        // log: '~/.pm2/logs/rili-server-socket-io-outerr-combined.log',
+        // merge_logs: true,
     }, {
         name: 'rili-server-api',
         script: './build/server-api.js',
@@ -19,5 +23,9 @@ module.exports = {
         env_production: {
             NODE_ENV: 'production',
         },
+        // output: '~/.pm2/logs/rili-server-api-out.log',
+        // error: '~/.pm2/logs/rili-server-api-error.log',
+        // log: '~/.pm2/logs/rili-server-api-outerr-combined.log',
+        // merge_logs: true,
     }],
 };

@@ -1,8 +1,10 @@
 {
+    "extends": "tslint-config-airbnb",
     "rules": {
         "class-name": true,
         "curly": true,
         "indent": [true, "spaces"],
+        "ter-indent": [true],
         "interface-name": true,
         "jsdoc-format": true,
         "label-position": true,
@@ -38,6 +40,7 @@
                 "index-signature": "nospace"
             }
         ],
+        "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore", "allow-pascal-case"],
         "whitespace": [
             true,
             "check-branch",

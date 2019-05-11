@@ -10,13 +10,12 @@ import { SocketServerActionTypes, SocketClientActionTypes } from 'rili-public-li
 import * as Constants from './constants';
 import printLogs from 'rili-public-library/utilities/print-logs';
 import * as globalConfig from '../../global-config.js';
-import RedisSession from './services/redis-session';
-import getRoomsList from './utilities/get-socket-rooms-list';
+import RedisSession from './services/RedisSession';
+import getSocketRoomsList from './utilities/get-socket-rooms-list';
 
 export const rsAppName = 'riliChat';
 // Session to attach socket.io details to username while logged in
 export const shouldIncludeAllLogs = process.argv[2] === 'withAllLogs';
-export const shouldIncludeLogs = process.argv[2] === 'withLogs';
 export const shouldIncludeRedisLogs =  process.argv[2] === 'withRedisLogs'
     || shouldIncludeAllLogs;
 export const shouldIncludeSocketLogs = process.argv[2] === 'withSocketLogs'
@@ -27,12 +26,12 @@ const nodes = [
     // Pub
     {
         host: globalConfig[process.env.NODE_ENV].redisHost,
-        port: globalConfig[process.env.NODE_ENV].redisPubPort
+        port: globalConfig[process.env.NODE_ENV].redisPubPort,
     },
     // Sub
     {
         host: globalConfig[process.env.NODE_ENV].redisHost,
-        port: globalConfig[process.env.NODE_ENV].redisSubPort
+        port: globalConfig[process.env.NODE_ENV].redisSubPort,
     },
 ];
 
@@ -63,9 +62,14 @@ const redisConnectPromises = [redisPub.connect(), redisSub.connect()];
 Promise.all(redisConnectPromises).then((responses: any[]) => {
     // connection ready
     if (shouldIncludeRedisLogs) {
-        redisPub.monitor().then(function (monitor) {
-            monitor.on('monitor', function (time, args, source, database) {
-                printLogs(true, `REDIS_PUB_LOG`, time, `Source: ${source}, Database: ${database}`, ...args);
+        redisPub.monitor().then((monitor) => {
+            monitor.on('monitor', (time, args, source, database) => {
+                printLogs({
+                    time,
+                    shouldPrintLogs: true,
+                    messageOrigin: `REDIS_PUB_LOG`,
+                    messages: [`Source: ${source}, Database: ${database}`, ...args],
+                });
             });
         });
     }
@@ -75,23 +79,27 @@ Promise.all(redisConnectPromises).then((responses: any[]) => {
 });
 
 const startExpressSocketIOServer = () => {
-    let app = express();
+    const app = express();
     let httpsServer;
     if (process.env.NODE_ENV === 'development') {
         httpsServer = http.createServer(app);
     } else if (process.env.NODE_ENV === 'production') {
-        let httpsCredentials = {
+        const httpsCredentials = {
             key: fs.readFileSync(globalConfig[process.env.NODE_ENV].security.keyLocation),
             cert: fs.readFileSync(globalConfig[process.env.NODE_ENV].security.certLocation),
         };
         httpsServer = https.createServer(httpsCredentials, app);
     }
-    let server = httpsServer.listen(globalConfig[process.env.NODE_ENV].socketPort, (err: string) => {
+    const server = httpsServer.listen(globalConfig[process.env.NODE_ENV].socketPort, (err: string) => {
         const port = globalConfig[process.env.NODE_ENV].socketPort;
-        printLogs(true, 'SOCKET_IO_LOGS', null, `Server running on port, ${port}, with process id ${process.pid}`);
+        printLogs({
+            shouldPrintLogs: true,
+            messageOrigin: 'SOCKET_IO_LOGS',
+            messages: `Server running on port, ${port}, with process id ${process.pid}`,
+        });
     });
     // NOTE: engine.io config options https://github.com/socketio/engine.io#methods-1
-    let io = socketio(server, {
+    const io = socketio(server, {
         // how many ms before sending a new ping packet
         pingInterval: globalConfig[process.env.NODE_ENV].socket.pingInterval,
         // how many ms without a pong packet to consider the connection closed
@@ -109,35 +117,67 @@ const startExpressSocketIOServer = () => {
 
     // Redis Error handling
     // redisPubCluster.on('error', (error: string) => {
-    //     printLogs(shouldIncludeRedisLogs, 'REDIS_PUB_CLUSTER_CONNECTION_ERROR:', null, error);
+        // printLogs({
+        //     shouldPrintLogs: shouldIncludeRedisLogs,
+        //     messageOrigin: 'REDIS_PUB_CLUSTER_CONNECTION_ERROR',
+        //     messages: error.toString(),
+        // });
     // });
     // redisSubCluster.on('error', (error: string) => {
-    //     printLogs(shouldIncludeRedisLogs, 'REDIS_SUB_CLUSTER_CONNECTION_ERROR:', null, error);
+        // printLogs({
+        //     shouldPrintLogs: shouldIncludeRedisLogs,
+        //     messageOrigin: 'REDIS_SUB_CLUSTER_CONNECTION_ERROR:',
+        //     messages: error.toString(),
+        // });
     // });
 
     redisAdapter.pubClient.on('error', (err: string) => {
-        printLogs(shouldIncludeRedisLogs, 'REDIS_PUB_CLIENT_ERROR', null, err);
+        printLogs({
+            shouldPrintLogs: shouldIncludeRedisLogs,
+            messageOrigin: 'REDIS_PUB_CLIENT_ERROR',
+            messages: err.toString(),
+        });
     });
     redisAdapter.subClient.on('error', (err: string) => {
-        printLogs(shouldIncludeRedisLogs, 'REDIS_SUB_CLIENT_ERROR', null, err);
+        printLogs({
+            shouldPrintLogs: shouldIncludeRedisLogs,
+            messageOrigin: 'REDIS_SUB_CLIENT_ERROR',
+            messages: err.toString(),
+        });
     });
 
     redisAdapter.subClient.on('subscribe', (channel: any, count: any) => {
-        printLogs(shouldIncludeRedisLogs, 'REDIS_SUB_CLIENT', null, `Subscribed to ${channel}. Now subscribed to ${count} channel(s).`);
+        printLogs({
+            shouldPrintLogs: shouldIncludeRedisLogs,
+            messageOrigin: 'REDIS_SUB_CLIENT',
+            messages: `Subscribed to ${channel}. Now subscribed to ${count} channel(s).`,
+        });
     });
 
     redisAdapter.subClient.on('message', (channel: any, message: any) => {
-        printLogs(shouldIncludeRedisLogs, 'REDIS_SUB_CLIENT', null, `Message from channel ${channel}: ${message}`);
+        printLogs({
+            shouldPrintLogs: shouldIncludeRedisLogs,
+            messageOrigin: 'REDIS_SUB_CLIENT',
+            messages: `Message from channel ${channel}: ${message}`,
+        });
     });
 
     io.on('connection', (socket: socketio.Socket) => {
-        printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, 'NEW CONNECTION...');
-        printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `All Rooms: ${JSON.stringify(getRoomsList(io.sockets.adapter.rooms))}`);
+        printLogs({
+            shouldPrintLogs: shouldIncludeSocketLogs,
+            messageOrigin: 'SOCKET_IO_LOGS',
+            messages: 'NEW CONNECTION...',
+        });
+        printLogs({
+            shouldPrintLogs: shouldIncludeSocketLogs,
+            messageOrigin: 'SOCKET_IO_LOGS',
+            messages: `All Rooms: ${JSON.stringify(getSocketRoomsList(io.sockets.adapter.rooms))}`,
+        });
 
         // Send a list of the currently active chat rooms when user connects
         socket.emit(Constants.ACTION, {
             type: SocketServerActionTypes.SEND_ROOMS_LIST,
-            data: getRoomsList(io.sockets.adapter.rooms)
+            data: getSocketRoomsList(io.sockets.adapter.rooms),
         });
 
         // Event sent from socket.io, redux store middleware
@@ -155,7 +195,11 @@ const startExpressSocketIOServer = () => {
 
         socket.on('disconnecting', (reason: string) => {
             // TODO: Use constants to mitigate disconnect reasons
-            printLogs(shouldIncludeSocketLogs, 'SOCKET_IO_LOGS', null, `DISCONNECTING... ${reason}`);
+            printLogs({
+                shouldPrintLogs: shouldIncludeSocketLogs,
+                messageOrigin: 'SOCKET_IO_LOGS',
+                messages: `DISCONNECTING... ${reason}`,
+            });
             leaveAndNotifyRooms(socket);
         });
     });
@@ -163,21 +207,25 @@ const startExpressSocketIOServer = () => {
 
 const leaveAndNotifyRooms = (socket: SocketIO.Socket) => {
     const activeRooms = Object.keys(socket.rooms)
-        .filter((room) => room !== socket.id);
+        .filter(room => room !== socket.id);
 
-        if (activeRooms.length) {
-            redisSession.get(socket.id).then((response: any) => {
-                activeRooms.forEach((room) => {
-                    const parsedResponse = JSON.parse(response);
-                    if (parsedResponse && parsedResponse.userName) {
-                        socket.broadcast.to(room).emit('event', {
-                            type: SocketServerActionTypes.DISCONNECT,
-                            data: `${parsedResponse.userName} left the room`,
-                        });
-                    }
-                });
-            }).catch((err: any) => {
-                printLogs(shouldIncludeRedisLogs, 'REDIS_SESSION_ERROR', null, err);
+    if (activeRooms.length) {
+        redisSession.get(socket.id).then((response: any) => {
+            activeRooms.forEach((room) => {
+                const parsedResponse = JSON.parse(response);
+                if (parsedResponse && parsedResponse.userName) {
+                    socket.broadcast.to(room).emit('event', {
+                        type: SocketServerActionTypes.DISCONNECT,
+                        data: `${parsedResponse.userName} left the room`,
+                    });
+                }
             });
-        }
+        }).catch((err: any) => {
+            printLogs({
+                shouldPrintLogs: shouldIncludeRedisLogs,
+                messageOrigin: 'REDIS_SESSION_ERROR',
+                messages: err,
+            });
+        });
+    }
 };

@@ -1,5 +1,5 @@
-import SocketClientActionTypes from './enums/socket-client-action-types';
-import SocketServerActionTypes from './enums/socket-server-action-types';
+import SocketClientActionTypes from './enums/SocketClientActionTypes';
+import SocketServerActionTypes from './enums/SocketServerActionTypes';
 
 // If you change these string values, be sure to update the relative enums
 // Enumers cannot be build from string concatenation so much be input manually
