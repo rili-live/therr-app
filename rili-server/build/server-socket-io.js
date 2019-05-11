@@ -114,8 +114,11 @@ module.exports = {
         baseSocketUrl: `http://localhost:${socketPortDev}`,
         clientPort: 7070,
         googleAnalyticsKey: '',
+        postgresDatabase: 'rili_db_main_dev',
         postgresHost: '127.0.0.1',
+        postgresPassword: 'secret',
         postgresPort: 7432,
+        postgresUser: 'riliAdmin',
         redisHost: '127.0.0.1',
         redisPubPort: 17771,
         redisSubPort: 17772,
@@ -136,8 +139,11 @@ module.exports = {
         baseSocketUrl: `https://rili.live:${socketPortProd}`,
         clientPort: 7070,
         googleAnalyticsKey: '',
+        postgresDatabase: 'rili_db_main_prod',
         postgresHost: '127.0.0.1',
+        postgresPassword: 'secret',
         postgresPort: 7432,
+        postgresUser: 'riliAdmin',
         redisHost: '127.0.0.1',
         redisPubPort: 17771,
         redisSubPort: 17772,
@@ -394,9 +400,9 @@ const Constants = __webpack_require__(/*! ../../constants */ "./src/constants/in
 const server_socket_io_1 = __webpack_require__(/*! ../../server-socket-io */ "./src/server-socket-io.ts");
 const sendMessage = (socket, data) => {
     print_logs_1.default({
-        shouldPrintLogs: server_socket_io_1.shouldIncludeLogs,
-        messageOrigin: constants_1.SocketClientActionTypes.SEND_MESSAGE,
-        messages: data.toString(),
+        shouldPrintLogs: server_socket_io_1.shouldIncludeSocketLogs,
+        messageOrigin: 'SOCKET_IO_LOGS',
+        messages: `${constants_1.SocketClientActionTypes.SEND_MESSAGE}: ${data.toString()}`,
     });
     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
     socket.emit('action', {
@@ -459,7 +465,6 @@ const get_socket_rooms_list_1 = __webpack_require__(/*! ./utilities/get-socket-r
 exports.rsAppName = 'riliChat';
 // Session to attach socket.io details to username while logged in
 exports.shouldIncludeAllLogs = process.argv[2] === 'withAllLogs';
-exports.shouldIncludeLogs = process.argv[2] === 'withLogs';
 exports.shouldIncludeRedisLogs = process.argv[2] === 'withRedisLogs'
     || exports.shouldIncludeAllLogs;
 exports.shouldIncludeSocketLogs = process.argv[2] === 'withSocketLogs'
@@ -503,7 +508,7 @@ Promise.all(redisConnectPromises).then((responses) => {
             monitor.on('monitor', (time, args, source, database) => {
                 print_logs_1.default({
                     time,
-                    shoulwShowLogs: true,
+                    shouldPrintLogs: true,
                     messageOrigin: `REDIS_PUB_LOG`,
                     messages: [`Source: ${source}, Database: ${database}`, ...args],
                 });
