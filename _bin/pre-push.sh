@@ -1,4 +1,5 @@
 #!/bin/bash
+# This script runs before pushing a commit with git
 
 set -e
 
