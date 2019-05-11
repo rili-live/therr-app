@@ -1,4 +1,7 @@
 #!/bin/bash
+# This script runs before making a commit with git
+
+set -e
 
 # Get color variables for output messages
 pushd _bin

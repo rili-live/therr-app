@@ -4,13 +4,14 @@
   "description": "The main Rili app root",
   "main": "index.js",
   "scripts": {
-    "build:all": "sh _bin/apply-to-all.sh 'npm run build'",
+    "build:all": "npm run prepare && sh _bin/apply-to-all.sh 'npm run build'",
     "clean:all": "rm -rf node_modules && sh _bin/apply-to-all.sh 'rm -rf node_modules'",
     "lint:all": "npm install && sh _bin/apply-to-all.sh 'npm run lint'",
     "lint:fix:all": "npm install && sh _bin/apply-to-all.sh 'npm run lint:fix'",
-    "install:root": "npm install && sh _bin/apply-to-all.sh 'npm install' rootOnly",
-    "install:all": "npm install && sh _bin/apply-to-all.sh 'npm install'",
-    "start": "sh _bin/start.sh",
+    "install:root": "npm run prepare && npm install && sh _bin/apply-to-all.sh 'npm install' rootOnly",
+    "install:all": "npm run prepare && npm install && sh _bin/apply-to-all.sh 'npm install'",
+    "prepare": "sh _bin/prepare.sh",
+    "start": "npm run prepare && sh _bin/start.sh",
     "test:all": "sh _bin/apply-to-all.sh 'npm test'",
     "test:coverage:all": "sh _bin/apply-to-all.sh 'npm run test:coverage'"
   },
