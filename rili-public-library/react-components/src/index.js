@@ -2,23 +2,23 @@
 // This allows tree-shaking
 
 // Root level components
-const componentList = ['demo-page', 'example-component', 'inline-svg'];
+const componentList = ['demo-page', 'ExampleComponent', 'InlineSvg'];
 
 // Forms
 const formComponents = [
-    'forms/button-primary',
-    'forms/button-secondary',
-    'forms/svg-button',
-    'forms/input',
-    'forms/radio-group',
-    'forms/search-box',
-    'forms/select-box',
+    'forms/ButtonPrimary',
+    'forms/ButtonSecondary',
+    'forms/SvgButton',
+    'forms/Input',
+    'forms/RadioGroup',
+    'forms/SearchBox',
+    'forms/SelectBox',
 ];
 
 // Routing
 const routingComponents = [
-    'routing/status',
-    'routing/redirect-with-status',
+    'routing/Status',
+    'routing/RedirectWithStatus',
 ];
 
 module.exports = componentList.concat(formComponents).concat(routingComponents);

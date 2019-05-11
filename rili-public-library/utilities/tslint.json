@@ -1,9 +1,11 @@
 {
+    "extends": "tslint-config-airbnb",
     "rules": {
         "class-name": true,
         "curly": true,
         "eofline": true,
         "indent": [true, "spaces"],
+        "ter-indent": [true],
         "interface-name": true,
         "jsdoc-format": true,
         "label-position": true,
@@ -17,7 +19,6 @@
         "no-duplicate-variable": true,
         "no-empty": true,
         "no-eval": true,
-        "no-implicit-dependencies": true,
         "no-string-literal": true,
         "no-switch-case-fall-through": true,
         "no-unused-expression": true,

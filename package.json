@@ -4,12 +4,14 @@
   "description": "The main Rili app root",
   "main": "index.js",
   "scripts": {
-    "build:all": "sh _bin/apply-to-all.sh 'npm run build'",
+    "build:all": "npm run prepare && sh _bin/apply-to-all.sh 'npm run build'",
     "clean:all": "rm -rf node_modules && sh _bin/apply-to-all.sh 'rm -rf node_modules'",
     "lint:all": "npm install && sh _bin/apply-to-all.sh 'npm run lint'",
-    "install:root": "npm install && sh _bin/apply-to-all.sh 'npm install' rootOnly",
-    "install:all": "npm install && sh _bin/apply-to-all.sh 'npm install'",
-    "start": "sh _bin/start.sh",
+    "lint:fix:all": "npm install && sh _bin/apply-to-all.sh 'npm run lint:fix'",
+    "install:root": "npm run prepare && npm install && sh _bin/apply-to-all.sh 'npm install' rootOnly",
+    "install:all": "npm run prepare && npm install && sh _bin/apply-to-all.sh 'npm install'",
+    "prepare": "sh _bin/prepare.sh",
+    "start": "npm run prepare && sh _bin/start.sh",
     "test:all": "sh _bin/apply-to-all.sh 'npm test'",
     "test:coverage:all": "sh _bin/apply-to-all.sh 'npm run test:coverage'"
   },
@@ -93,6 +95,7 @@
     "ts-keycode-enum": "^1.0.6",
     "ts-loader": "^4.4.2",
     "tslint": "^5.16.0",
+    "tslint-config-airbnb": "^5.11.1",
     "tslint-loader": "^3.5.4",
     "typescript": "^3.4.5",
     "uglifyjs-webpack-plugin": "^1.2.7",
@@ -104,6 +107,7 @@
   },
   "dependencies": {
     "@babel/preset-react": "^7.0.0",
+    "@types/pg": "^7.4.14",
     "axios": "^0.18.0",
     "classnames": "^2.2.6",
     "express": "^4.16.4",
@@ -111,6 +115,7 @@
     "history": "^4.9.0",
     "ioredis": "^4.9.0",
     "moment": "^2.24.0",
+    "pg": "^7.11.0",
     "prop-types": "^15.7.2",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
@@ -127,6 +132,7 @@
     "socket.io": "^2.2.0",
     "socket.io-client": "^2.2.0",
     "socket.io-emitter": "^3.1.1",
-    "socket.io-redis": "^5.2.0"
+    "socket.io-redis": "^5.2.0",
+    "yargs": "^13.2.2"
   }
 }

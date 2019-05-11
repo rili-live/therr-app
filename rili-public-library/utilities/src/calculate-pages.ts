@@ -46,8 +46,8 @@ const calculatePages = ({ totalItems, itemsPerPage, pageNumber }: IItemsConfig, 
     const pageListSlice = pageList.slice(startPage - 1, endPage);
 
     return {
-        pagesList: pageListSlice,
         totalPages,
+        pagesList: pageListSlice,
     };
 };
 

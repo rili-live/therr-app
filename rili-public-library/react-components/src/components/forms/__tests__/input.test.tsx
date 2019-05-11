@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { mount } from 'enzyme'; // tslint:disable-line no-implicit-dependencies
-import Input from '../input';
-import VALIDATIONS from '../../../constants/validations';
+import Input from '../Input';
+import VALIDATIONS from '../../../constants/VALIDATIONS';
 
 describe('Input', () => {
     let wrapper: any;

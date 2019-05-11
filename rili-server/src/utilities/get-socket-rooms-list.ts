@@ -1,6 +1,6 @@
 import * as socketio from 'socket.io';
 
-const getRoomsList = (rooms: socketio.Rooms) => {
+const getSocketRoomsList = (rooms: socketio.Rooms) => {
     const roomsArray: any[] = [];
 
     const roomKeys: any = Object.keys(rooms).filter((roomKey: string) => {
@@ -13,10 +13,10 @@ const getRoomsList = (rooms: socketio.Rooms) => {
         sockets: Object.keys(rooms[roomKey].sockets).map((socketId: any) => ({
             socketId,
             active: rooms[roomKey].sockets[socketId],
-        }))
+        })),
     }));
 
     return roomsArray;
 };
 
-export default getRoomsList;
+export default getSocketRoomsList;
