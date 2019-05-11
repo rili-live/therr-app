@@ -3,13 +3,13 @@ import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disa
 import * as moment from 'moment';
 import { SocketServerActionTypes, SocketClientActionTypes } from 'rili-public-library/utilities/constants';
 import * as Constants from '../../constants';
-import { shouldIncludeLogs, shouldIncludeSocketLogs } from '../../server-socket-io';
+import { shouldIncludeSocketLogs } from '../../server-socket-io';
 
 const sendMessage = (socket: socketio.Socket, data: any) => {
     printLogs({
-        shouldPrintLogs: shouldIncludeLogs,
-        messageOrigin: SocketClientActionTypes.SEND_MESSAGE,
-        messages: data.toString(),
+        shouldPrintLogs: shouldIncludeSocketLogs,
+        messageOrigin: 'SOCKET_IO_LOGS',
+        messages: `${SocketClientActionTypes.SEND_MESSAGE}: ${data.toString()}`,
     });
     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
     socket.emit('action', {

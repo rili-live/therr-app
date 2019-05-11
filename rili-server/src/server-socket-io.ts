@@ -16,7 +16,6 @@ import getSocketRoomsList from './utilities/get-socket-rooms-list';
 export const rsAppName = 'riliChat';
 // Session to attach socket.io details to username while logged in
 export const shouldIncludeAllLogs = process.argv[2] === 'withAllLogs';
-export const shouldIncludeLogs = process.argv[2] === 'withLogs';
 export const shouldIncludeRedisLogs =  process.argv[2] === 'withRedisLogs'
     || shouldIncludeAllLogs;
 export const shouldIncludeSocketLogs = process.argv[2] === 'withSocketLogs'
@@ -67,7 +66,7 @@ Promise.all(redisConnectPromises).then((responses: any[]) => {
             monitor.on('monitor', (time, args, source, database) => {
                 printLogs({
                     time,
-                    shoulwShowLogs: true,
+                    shouldPrintLogs: true,
                     messageOrigin: `REDIS_PUB_LOG`,
                     messages: [`Source: ${source}, Database: ${database}`, ...args],
                 });
