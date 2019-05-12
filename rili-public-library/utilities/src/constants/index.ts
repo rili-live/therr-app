@@ -1,3 +1,4 @@
+// Enums
 import SocketClientActionTypes from './enums/SocketClientActionTypes';
 import SocketServerActionTypes from './enums/SocketServerActionTypes';
 
