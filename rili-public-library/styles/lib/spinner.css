@@ -1,12 +1,12 @@
 .spinner .circle {
-  margin: auto;
-  box-sizing: border-box;
-  border-radius: 50%;
-  width: 100%;
-  height: 100%;
-  border: 1.5px solid #f8f8f8;
-  border-top-color: #f96e6f;
   animation: spinAnimation 1.3s infinite cubic-bezier(0.53, 0.21, 0.29, 0.67);
+  border: 1.5px solid #f8f8f8;
+  border-radius: 50%;
+  border-top-color: #f96e6f;
+  box-sizing: border-box;
+  height: 100%;
+  margin: auto;
+  width: 100%;
 }
 .spinner .circle.xsmall {
   height: 0.75rem;
@@ -25,14 +25,14 @@
   width: 1.75rem;
 }
 .spinner .circle.xlarge {
+  border-width: 2px;
   height: 2.5rem;
   width: 2.5rem;
-  border-width: 2px;
 }
 .spinner .circle.xxlarge {
+  border-width: 2.5px;
   height: 5.75rem;
   width: 5.75rem;
-  border-width: 2.5px;
 }
 .spinner .status-message {
   padding-top: 0.625rem;

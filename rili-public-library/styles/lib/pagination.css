@@ -4,40 +4,40 @@
 }
 .pagination-controls .pages-info {
   color: #021010;
+  flex: 1;
   font-weight: bold;
   margin: 0.3125rem 0.3125rem 0.3125rem 0;
-  flex: 1;
   text-align: center;
 }
 .pagination-controls .controls-list {
+  align-items: center;
+  display: flex;
+  justify-content: center;
   list-style-type: none;
   margin: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 .pagination-controls .controls-list .page-button,
 .pagination-controls .controls-list .page-button-start,
 .pagination-controls .controls-list .page-button-end,
 .pagination-controls .controls-list .page-button-back,
 .pagination-controls .controls-list .page-button-forward {
-  height: 2.125rem;
-  width: auto;
-  padding: 0.1875rem;
-  background: #f8f8f8;
-  color: #666666;
-  display: inline-block;
-  justify-content: center;
   align-items: center;
-  transition: all 500ms;
-  outline: none;
-  margin: 0 0.0625rem;
+  background: #f8f8f8;
+  border-radius: 0;
+  color: #666;
   cursor: pointer;
+  display: inline-block;
+  height: 2.125rem;
+  justify-content: center;
+  margin: 0 0.0625rem;
   min-width: 2.125rem;
-  border-radius: 0px;
-  white-space: nowrap;
+  outline: none;
   overflow: hidden;
+  padding: 0.1875rem;
   text-overflow: ellipsis;
+  transition: all 500ms;
+  white-space: nowrap;
+  width: auto;
 }
 .pagination-controls .controls-list .page-button:nth-child(1) .fa, .pagination-controls .controls-list .page-button:nth-child(2) .fa,
 .pagination-controls .controls-list .page-button-start:nth-child(1) .fa,
@@ -59,16 +59,16 @@
 .pagination-controls .controls-list .page-button-back:nth-last-child(2) .fa,
 .pagination-controls .controls-list .page-button-forward:nth-last-child(1) .fa,
 .pagination-controls .controls-list .page-button-forward:nth-last-child(2) .fa {
-  margin-top: -0.125rem;
   margin-right: -0.125rem;
+  margin-top: -0.125rem;
 }
 .pagination-controls .controls-list .page-button:hover,
 .pagination-controls .controls-list .page-button-start:hover,
 .pagination-controls .controls-list .page-button-end:hover,
 .pagination-controls .controls-list .page-button-back:hover,
 .pagination-controls .controls-list .page-button-forward:hover {
-  text-decoration: underline;
   background: #e5e5e5;
+  text-decoration: underline;
 }
 .pagination-controls .controls-list .page-button:hover:active,
 .pagination-controls .controls-list .page-button-start:hover:active,
@@ -82,23 +82,23 @@
 .pagination-controls .controls-list .page-button-end:disabled,
 .pagination-controls .controls-list .page-button-back:disabled,
 .pagination-controls .controls-list .page-button-forward:disabled {
-  color: #ffffff;
-  cursor: not-allowed;
   background: rgba(222, 225, 228, 0.5);
+  color: #fff;
+  cursor: not-allowed;
 }
 .pagination-controls .controls-list .page-button.active,
 .pagination-controls .controls-list .page-button-start.active,
 .pagination-controls .controls-list .page-button-end.active,
 .pagination-controls .controls-list .page-button-back.active,
 .pagination-controls .controls-list .page-button-forward.active {
-  color: #ffffff;
   background: #f96e6f;
+  color: #fff;
   font-weight: bold;
 }
 .pagination-controls .controls-list .page-button-back,
 .pagination-controls .controls-list .page-button-forward {
-  position: relative;
   background: transparent;
+  position: relative;
 }
 .pagination-controls .controls-list .page-button-back:disabled,
 .pagination-controls .controls-list .page-button-forward:disabled {
