@@ -1,5 +1,6 @@
 import * as express from 'express';
 import { Client, Pool } from 'pg';
+import * as httpResponse from 'rili-public-library/utilities/http-response';
 import printLogs from 'rili-public-library/utilities/print-logs';
 import { shouldPrintSQLLogs } from '../server-api';
 const router = express.Router();
@@ -11,6 +12,7 @@ class UserRoutes {
     constructor(connection: Pool | Client) {
         // TODO: Determine if should end connection after each request
         this.connection = connection;
+
         // middleware to log time of a user route request
         router.use((req, res, next) => {
             printLogs({
@@ -34,8 +36,7 @@ class UserRoutes {
                             return;
                         }
 
-                        res.send(results.rows);
-                        connection.end();
+                        res.status(200).send(httpResponse.success(results.rows));
                     },
                 );
             })
@@ -53,7 +54,7 @@ class UserRoutes {
                             return;
                         }
 
-                        res.send(results.rows[0]);
+                        res.status(201).send(httpResponse.success(results.rows[0]));
                     },
                 );
             });
@@ -63,11 +64,10 @@ class UserRoutes {
                 this.getUser(req.params.id).then((user) => {
                     res.send(user);
                 }).catch((err) => {
-                    this.handleError(err, res);
                     if (err === 404) {
-                        res.sendStatus(404);
+                        res.status(404).send(httpResponse.error(404, `No user found with id, ${req.params.id}.`));
                     } else {
-                        res.sendStatus(err.toString());
+                        this.handleError(err, res);
                     }
                 });
             })
@@ -92,7 +92,7 @@ class UserRoutes {
 
                         // TODO: Handle case where user already exists
                         this.getUser(req.params.id).then((user) => {
-                            res.send(user);
+                            res.status(200).send(httpResponse.success(user));
                         });
                     },
                 );
@@ -113,9 +113,9 @@ class UserRoutes {
                         }
 
                         if (results.rowCount > 0) {
-                            res.send(`Customer with id, ${req.params.id}, was successfully deleted`);
+                            res.status(200).send(httpResponse.success(`Customer with id, ${req.params.id}, was successfully deleted`));
                         } else {
-                            res.sendStatus(404);
+                            res.status(404).send(httpResponse.error(404, `No user found with id, ${req.params.id}.`));
                         }
                     },
                 );
@@ -152,6 +152,7 @@ class UserRoutes {
             messageOrigin: `SQL:USER_ROUTES:ERROR`,
             messages: [err.toString()],
         });
+        res.status(500).end(httpResponse.error(500, err.toString()));
     }
 }
 
