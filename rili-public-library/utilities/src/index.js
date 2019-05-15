@@ -7,6 +7,7 @@ const utilities = [
 
     // Utilities
     'calculate-pages',
+    'http-response',
     'localization',
     'promiser',
     'scroll-to',
