@@ -5,113 +5,115 @@
 
 a,
 button {
-  box-sizing: border-box;
+    box-sizing: border-box;
 
-  &:focus {
-    outline: none;
-  }
+    &:focus {
+        outline: none;
+    }
 }
 
 :focus {
-  box-shadow: $box-shadow-ax;
+    box-shadow: $box-shadow-ax;
 }
 
-h1:focus {
-  box-shadow: none;
+h1 {
+    &:focus {
+        box-shadow: none;
+    }
 }
 
 label {
-  font-weight: 700;
-  line-height: 2.5rem;
-  color: $rili-white;
-  margin-bottom: 0;
+    color: $rili-white;
+    font-weight: 700;
+    line-height: 2.5rem;
+    margin-bottom: 0;
 
-  &.required {
-    &::before {
-      content: '*';
-      color: $rili-ax-negative;
-      padding-right: .25rem;
+    &.required {
+        &::before {
+            color: $rili-ax-negative;
+            content: '*';
+            padding-right: .25rem;
+        }
     }
-  }
 }
 
 .form-field {
-  margin: 0 0 1rem;
+    margin: 0 0 1rem;
 }
 
-input[type=color],
-input[type=date],
-input[type=datetime-local],
-input[type=datetime],
-input[type=email],
-input[type=month],
-input[type=number],
-input[type=password],
-input[type=search],
-input[type=tel],
-input[type=text],
-input[type=time],
-input[type=url],
-input[type=week],
+input[type='color'],
+input[type='date'],
+input[type='datetime-local'],
+input[type='datetime'],
+input[type='email'],
+input[type='month'],
+input[type='number'],
+input[type='password'],
+input[type='search'],
+input[type='tel'],
+input[type='text'],
+input[type='time'],
+input[type='url'],
+input[type='week'],
 select,
 .select-box,
 textarea {
-  -webkit-appearance: none;
-  background-color: $rili-white;
-  border: 1px solid #cdcdcd;
-  border-radius: (2.375rem/2);
-  box-shadow: none;
-  color: #262626;
-  display: block;
-  font-family: inherit;
-  font-size: .8rem;
-  height: 2.3125rem;
-  margin: 0;
-  padding: 0.5rem 0.75rem;
-  width: 100%;
-  box-sizing: border-box;
-  -webkit-transition: border-color 0.15s linear, background 0.15s linear;
-  transition: border-color 0.15s linear, background 0.15s linear;
-
-  &:focus {
     background-color: $rili-white;
-    border-color: $rili-secondary-3;
-    outline: none;
-    border-color: $rili-input-focus-color;
-    box-shadow: $rili-input-shadow;
-    outline: none !important;
-  }
+    border: 1px solid #cdcdcd;
+    border-radius: (2.375rem/2);
+    box-shadow: none;
+    box-sizing: border-box;
+    color: #262626;
+    display: block;
+    font-family: inherit;
+    font-size: .8rem;
+    height: 2.3125rem;
+    margin: 0;
+    padding: .5rem .75rem;
+    transition: border-color .15s linear, background .15s linear;
+    width: 100%;
 
-  &.is-dirty,
-  &.is-touched {
-    &.is-invalid {
-      border-color: $rili-ax-negative;
+    &:focus {
+        background-color: $rili-white;
+        border-color: $rili-input-focus-color;
+        box-shadow: $rili-input-shadow;
+        outline: none !important;
     }
-  }
 
-  &.is-touched {
-    &.is-valid {
-      border-color: $rili-ax-positive;
-
-      &:focus {
-        box-shadow: $rili-input-shadow-valid;
-      }
+    &.is-dirty,
+    &.is-touched {
+        &.is-invalid {
+            border-color: $rili-ax-negative;
+        }
     }
-  }
 
-  &:disabled,
-  &.disabled,
-  &.disabled button {
-    cursor: not-allowed;
-    color: $rili-middle-grey;
-    background: $rili-hover-grey;
-  }
+    &.is-touched {
+        &.is-valid {
+            border-color: $rili-ax-positive;
+
+            &:focus {
+                box-shadow: $rili-input-shadow-valid;
+            }
+        }
+    }
+
+    &:disabled,
+    &.disabled,
+    &.disabled {
+        background: $rili-hover-grey;
+        color: $rili-middle-grey;
+        cursor: not-allowed;
+
+        button {
+            background: $rili-hover-grey;
+            color: $rili-middle-grey;
+            cursor: not-allowed;
+        }
+    }
 }
 
 select,
 .select-box {
-    position: relative;
-    -webkit-appearance: none !important;
     background-color: $rili-white;
     background-position: 95%;
     background-repeat: no-repeat;
@@ -119,79 +121,85 @@ select,
     border: 1px solid #cdcdcd;
     color: #262626;
     font-family: inherit;
+    height: 2.3125rem;
     line-height: normal;
     padding: 0;
-    height: 2.3125rem;
+    position: relative;
 
     &.active {
-      button {
-        box-shadow: none;
-      }
+        button {
+            box-shadow: none;
+        }
     }
 
     button {
-      text-align: left;
-      padding: .5rem 1.5rem .5rem .5rem;
-      height: 100%;
-      width: 100%;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      outline: none;
+        height: 100%;
+        outline: none;
+        overflow: hidden;
+        padding: .5rem 1.5rem .5rem .5rem;
+        text-align: left;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 100%;
 
-      &::before {
-        right: .5rem;
-        top: .65rem;
-        color: $rili-black;
-      }
+        &::before {
+            color: $rili-black;
+            right: .5rem;
+            top: .65rem;
+        }
     }
 
     .options-list {
-      z-index: 20;
-      position: absolute;
-      width: 100%;
-      left: -.125rem;
-      top: 2rem;
-      list-style: none;
-      padding: 0;
-      border: 1px solid;
-      border-radius: .125rem;
-      text-align: left;
-      box-shadow: 0 0 0 0.25rem rgba(38,38,38,.075);
-      background: $rili-white;
-      border: 1px solid #ccc;
+        background: $rili-white;
+        border: 1px solid #ccc;
+        border-radius: .125rem;
+        box-shadow: 0 0 0 .25rem rgba(38, 38, 38, .075);
+        left: -.125rem;
+        list-style: none;
+        padding: 0;
+        position: absolute;
+        text-align: left;
+        top: 2rem;
+        width: 100%;
+        z-index: 20;
 
-      .option-container {
-        white-space: nowrap;
-        float: none;
-        display: block;
-        cursor: pointer;
-        line-height: 1.125rem;
-        margin: 0;
+        .option-container {
+            cursor: pointer;
+            display: block;
+            float: none;
+            line-height: 1.125rem;
+            margin: 0;
+            white-space: nowrap;
 
-        a {
-          display: block;
-          padding: .5rem 1rem;
-          text-overflow: ellipsis;
-          overflow: hidden;
-          color: inherit;
+            a {
+                color: inherit;
+                display: block;
+                overflow: hidden;
+                padding: .5rem 1rem;
+                text-overflow: ellipsis;
+            }
+
+            &:hover {
+                &:not(.selected) {
+                    background: $rili-hover-grey;
+                    text-decoration: underline;
+                }
+            }
+
+            &.selected,
+            &:active  {
+                background: $rili-black;
+                color: $rili-white;
+
+                &:hover {
+                    background: $rili-black;
+                    color: $rili-white;
+                }
+            }
+
+            &.ax-active {
+                box-shadow: $box-shadow-ax;
+            }
         }
-
-        &:hover:not(.selected) {
-          text-decoration: underline;
-          background: $rili-hover-grey;
-        }
-
-        &.selected,
-        &:active,
-        &:active:hover {
-          color: $rili-white;
-          background: $rili-black;
-        }
-
-        &.ax-active {
-          box-shadow: $box-shadow-ax;
-        }
-      }
     }
 }

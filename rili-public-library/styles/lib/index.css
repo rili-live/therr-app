@@ -20,8 +20,8 @@ button:disabled {
   opacity: 0.8;
 }
 button.anchor {
-  text-decoration: none;
   color: #2073a1;
+  text-decoration: none;
 }
 button.anchor:hover {
   color: #004270;
@@ -37,124 +37,124 @@ button.secondary:hover {
   background: #dee1e4;
 }
 button.primary {
-  border-color: transparent;
   background: #076d5f;
+  border-color: transparent;
   color: #dee1e4;
 }
 button.primary:hover {
-  cursor: pointer;
   background: #075248;
+  cursor: pointer;
 }
 
 .radio-group .radio-option {
+  align-items: center;
   display: flex;
   flex-direction: row;
-  align-items: center;
 }
 .radio-group .radio-option input[type=radio] {
   display: none;
 }
 .radio-group .radio-option .psuedo-label {
-  text-align: left;
   flex: 1;
-  order: 2;
   font-weight: 400;
+  order: 2;
   padding: 0.375rem 0 0.375rem 0.25rem;
+  text-align: left;
 }
 .radio-group .radio-option .psuedo-label:hover {
   cursor: pointer;
 }
 .radio-group .radio-option .psuedo-label:hover + label::before {
-  display: inline;
   background: #767676;
+  display: inline;
 }
 .radio-group .radio-option .psuedo-label:hover + label.selected::before {
   background: #021010;
 }
 .radio-group .radio-option label {
+  background: #dee1e4;
+  border: 1px solid #dee1e4;
+  border-radius: 50%;
+  box-sizing: content-box;
+  cursor: pointer;
+  float: left;
+  height: 1rem;
   margin: 0.375rem 0.25rem 0.375rem 0;
   order: 1;
   position: relative;
-  height: 1rem;
   width: 1rem;
-  background: #dee1e4;
-  float: left;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 1px solid #dee1e4;
-  box-sizing: content-box;
 }
 .radio-group .radio-option label.selected {
   background: #075248;
 }
 .radio-group .radio-option label.selected::before {
-  display: inline;
   background: #021010;
+  display: inline;
 }
 .radio-group .radio-option label:hover::before {
-  display: inline;
   background: #767676;
+  display: inline;
 }
 .radio-group .radio-option label:hover.selected::before {
   background: #021010;
 }
 .radio-group .radio-option label::before {
-  display: none;
-  content: "";
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  height: 8px;
-  width: 8px;
   background: #021010;
   border-radius: 50%;
+  content: "";
+  display: none;
+  height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  width: 8px;
 }
 
 .search-box {
-  position: relative;
-  width: 100%;
   flex: 1;
   margin-right: 0.625rem;
-  padding-top: 0.625rem;
   overflow: hidden;
+  padding-top: 0.625rem;
+  position: relative;
   white-space: nowrap;
+  width: 100%;
 }
 .search-box #contentSearchInput {
   height: 2.375rem;
   margin-top: 0.5rem;
 }
 .search-box::before {
-  opacity: 1;
-  padding: 0.5rem 0.4rem 0.3rem 0.4rem;
   left: 0;
+  opacity: 1;
+  padding: 0.5rem 0.4rem 0.3rem;
   top: 1.25rem;
   transition: left 250ms, opacity 250ms;
 }
 .search-box label {
-  max-width: calc(100% - 2.125rem);
-  top: 2px;
-  left: 0;
-  z-index: 1;
-  color: #767676;
   background: transparent;
+  color: #767676;
   cursor: text;
   font-weight: 400;
-  padding: 0;
+  left: 0;
   line-height: 2.25rem;
+  max-width: calc(100% - 2.125rem);
+  padding: 0;
   position: absolute;
   text-align: left;
-  transition: transform 250ms cubic-bezier(0.55, 0, 0.1, 1), color 250ms, background 350ms, font-weight 250ms, line-height 250ms, padding 250ms;
+  text-overflow: ellipsis;
+  top: 2px;
   transform: translate(2.125rem, 1.0625rem) scale(1);
   transform-origin: bottom;
-  text-overflow: ellipsis;
+  transition: transform 250ms cubic-bezier(0.55, 0, 0.1, 1), color 250ms, background 350ms, font-weight 250ms, line-height 250ms, padding 250ms;
+  z-index: 1;
 }
 .search-box.is-active label, .search-box.is-dirty label {
-  padding: 0 0.1875rem;
-  line-height: 0.875rem;
-  transform: translate(0.5rem, 0.5rem) scale(0.85);
-  background-color: #ffffff;
-  font-weight: 600;
+  background-color: #fff;
   font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 0.875rem;
+  padding: 0 0.1875rem;
+  transform: translate(0.5rem, 0.5rem) scale(0.85);
 }
 .search-box.is-active::before, .search-box.is-dirty::before {
   left: -1.25rem;
@@ -193,14 +193,14 @@ h1:focus {
 }
 
 label {
+  color: #dee1e4;
   font-weight: 700;
   line-height: 2.5rem;
-  color: #dee1e4;
   margin-bottom: 0;
 }
 label.required::before {
-  content: "*";
   color: #c23e37;
+  content: "*";
   padding-right: 0.25rem;
 }
 
@@ -225,11 +225,11 @@ input[type=week],
 select,
 .select-box,
 textarea {
-  -webkit-appearance: none;
   background-color: #dee1e4;
   border: 1px solid #cdcdcd;
   border-radius: 1.1875rem;
   box-shadow: none;
+  box-sizing: border-box;
   color: #262626;
   display: block;
   font-family: inherit;
@@ -237,10 +237,8 @@ textarea {
   height: 2.3125rem;
   margin: 0;
   padding: 0.5rem 0.75rem;
-  width: 100%;
-  box-sizing: border-box;
-  -webkit-transition: border-color 0.15s linear, background 0.15s linear;
   transition: border-color 0.15s linear, background 0.15s linear;
+  width: 100%;
 }
 input[type=color]:focus,
 input[type=date]:focus,
@@ -260,8 +258,6 @@ select:focus,
 .select-box:focus,
 textarea:focus {
   background-color: #dee1e4;
-  border-color: #f96e6f;
-  outline: none;
   border-color: #e2c5cf;
   box-shadow: inset 0 0 0 0.25rem rgba(162, 52, 181, 0.1);
   outline: none !important;
@@ -339,64 +335,115 @@ select.is-touched.is-valid:focus,
 textarea.is-touched.is-valid:focus {
   box-shadow: inset 0 0 0 0.25rem rgba(0, 125, 44, 0.1);
 }
-input[type=color]:disabled, input[type=color].disabled, input[type=color].disabled button,
+input[type=color]:disabled, input[type=color].disabled, input[type=color].disabled,
 input[type=date]:disabled,
 input[type=date].disabled,
-input[type=date].disabled button,
+input[type=date].disabled,
 input[type=datetime-local]:disabled,
 input[type=datetime-local].disabled,
-input[type=datetime-local].disabled button,
+input[type=datetime-local].disabled,
 input[type=datetime]:disabled,
 input[type=datetime].disabled,
-input[type=datetime].disabled button,
+input[type=datetime].disabled,
 input[type=email]:disabled,
 input[type=email].disabled,
-input[type=email].disabled button,
+input[type=email].disabled,
 input[type=month]:disabled,
 input[type=month].disabled,
-input[type=month].disabled button,
+input[type=month].disabled,
 input[type=number]:disabled,
 input[type=number].disabled,
-input[type=number].disabled button,
+input[type=number].disabled,
 input[type=password]:disabled,
 input[type=password].disabled,
-input[type=password].disabled button,
+input[type=password].disabled,
 input[type=search]:disabled,
 input[type=search].disabled,
-input[type=search].disabled button,
+input[type=search].disabled,
 input[type=tel]:disabled,
 input[type=tel].disabled,
-input[type=tel].disabled button,
+input[type=tel].disabled,
 input[type=text]:disabled,
 input[type=text].disabled,
-input[type=text].disabled button,
+input[type=text].disabled,
 input[type=time]:disabled,
 input[type=time].disabled,
-input[type=time].disabled button,
+input[type=time].disabled,
 input[type=url]:disabled,
 input[type=url].disabled,
-input[type=url].disabled button,
+input[type=url].disabled,
 input[type=week]:disabled,
 input[type=week].disabled,
-input[type=week].disabled button,
+input[type=week].disabled,
 select:disabled,
 select.disabled,
-select.disabled button,
+select.disabled,
 .select-box:disabled,
 .select-box.disabled,
-.select-box.disabled button,
+.select-box.disabled,
 textarea:disabled,
 textarea.disabled,
-textarea.disabled button {
-  cursor: not-allowed;
-  color: #666666;
+textarea.disabled {
   background: #f0f0f0;
+  color: #666;
+  cursor: not-allowed;
+}
+input[type=color]:disabled button, input[type=color].disabled button, input[type=color].disabled button,
+input[type=date]:disabled button,
+input[type=date].disabled button,
+input[type=date].disabled button,
+input[type=datetime-local]:disabled button,
+input[type=datetime-local].disabled button,
+input[type=datetime-local].disabled button,
+input[type=datetime]:disabled button,
+input[type=datetime].disabled button,
+input[type=datetime].disabled button,
+input[type=email]:disabled button,
+input[type=email].disabled button,
+input[type=email].disabled button,
+input[type=month]:disabled button,
+input[type=month].disabled button,
+input[type=month].disabled button,
+input[type=number]:disabled button,
+input[type=number].disabled button,
+input[type=number].disabled button,
+input[type=password]:disabled button,
+input[type=password].disabled button,
+input[type=password].disabled button,
+input[type=search]:disabled button,
+input[type=search].disabled button,
+input[type=search].disabled button,
+input[type=tel]:disabled button,
+input[type=tel].disabled button,
+input[type=tel].disabled button,
+input[type=text]:disabled button,
+input[type=text].disabled button,
+input[type=text].disabled button,
+input[type=time]:disabled button,
+input[type=time].disabled button,
+input[type=time].disabled button,
+input[type=url]:disabled button,
+input[type=url].disabled button,
+input[type=url].disabled button,
+input[type=week]:disabled button,
+input[type=week].disabled button,
+input[type=week].disabled button,
+select:disabled button,
+select.disabled button,
+select.disabled button,
+.select-box:disabled button,
+.select-box.disabled button,
+.select-box.disabled button,
+textarea:disabled button,
+textarea.disabled button,
+textarea.disabled button {
+  background: #f0f0f0;
+  color: #666;
+  cursor: not-allowed;
 }
 
 select,
 .select-box {
-  position: relative;
-  -webkit-appearance: none !important;
   background-color: #dee1e4;
   background-position: 95%;
   background-repeat: no-repeat;
@@ -404,9 +451,10 @@ select,
   border: 1px solid #cdcdcd;
   color: #262626;
   font-family: inherit;
+  height: 2.3125rem;
   line-height: normal;
   padding: 0;
-  height: 2.3125rem;
+  position: relative;
 }
 select.active button,
 .select-box.active button {
@@ -414,65 +462,69 @@ select.active button,
 }
 select button,
 .select-box button {
-  text-align: left;
-  padding: 0.5rem 1.5rem 0.5rem 0.5rem;
   height: 100%;
-  width: 100%;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
   outline: none;
+  overflow: hidden;
+  padding: 0.5rem 1.5rem 0.5rem 0.5rem;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
 }
 select button::before,
 .select-box button::before {
+  color: #021010;
   right: 0.5rem;
   top: 0.65rem;
-  color: #021010;
 }
 select .options-list,
 .select-box .options-list {
-  z-index: 20;
-  position: absolute;
-  width: 100%;
-  left: -0.125rem;
-  top: 2rem;
-  list-style: none;
-  padding: 0;
-  border: 1px solid;
-  border-radius: 0.125rem;
-  text-align: left;
-  box-shadow: 0 0 0 0.25rem rgba(38, 38, 38, 0.075);
   background: #dee1e4;
   border: 1px solid #ccc;
+  border-radius: 0.125rem;
+  box-shadow: 0 0 0 0.25rem rgba(38, 38, 38, 0.075);
+  left: -0.125rem;
+  list-style: none;
+  padding: 0;
+  position: absolute;
+  text-align: left;
+  top: 2rem;
+  width: 100%;
+  z-index: 20;
 }
 select .options-list .option-container,
 .select-box .options-list .option-container {
-  white-space: nowrap;
-  float: none;
-  display: block;
   cursor: pointer;
+  display: block;
+  float: none;
   line-height: 1.125rem;
   margin: 0;
+  white-space: nowrap;
 }
 select .options-list .option-container a,
 .select-box .options-list .option-container a {
+  color: inherit;
   display: block;
+  overflow: hidden;
   padding: 0.5rem 1rem;
   text-overflow: ellipsis;
-  overflow: hidden;
-  color: inherit;
 }
 select .options-list .option-container:hover:not(.selected),
 .select-box .options-list .option-container:hover:not(.selected) {
-  text-decoration: underline;
   background: #f0f0f0;
+  text-decoration: underline;
 }
-select .options-list .option-container.selected, select .options-list .option-container:active, select .options-list .option-container:active:hover,
+select .options-list .option-container.selected, select .options-list .option-container:active,
 .select-box .options-list .option-container.selected,
-.select-box .options-list .option-container:active,
-.select-box .options-list .option-container:active:hover {
-  color: #dee1e4;
+.select-box .options-list .option-container:active {
   background: #021010;
+  color: #dee1e4;
+}
+select .options-list .option-container.selected:hover, select .options-list .option-container:active:hover,
+.select-box .options-list .option-container.selected:hover,
+.select-box .options-list .option-container:active:hover {
+  background: #021010;
+  color: #dee1e4;
 }
 select .options-list .option-container.ax-active,
 .select-box .options-list .option-container.ax-active {
@@ -495,40 +547,40 @@ select .options-list .option-container.ax-active,
 }
 .pagination-controls .pages-info {
   color: #021010;
+  flex: 1;
   font-weight: bold;
   margin: 0.3125rem 0.3125rem 0.3125rem 0;
-  flex: 1;
   text-align: center;
 }
 .pagination-controls .controls-list {
+  align-items: center;
+  display: flex;
+  justify-content: center;
   list-style-type: none;
   margin: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 .pagination-controls .controls-list .page-button,
 .pagination-controls .controls-list .page-button-start,
 .pagination-controls .controls-list .page-button-end,
 .pagination-controls .controls-list .page-button-back,
 .pagination-controls .controls-list .page-button-forward {
-  height: 2.125rem;
-  width: auto;
-  padding: 0.1875rem;
-  background: #f8f8f8;
-  color: #666666;
-  display: inline-block;
-  justify-content: center;
   align-items: center;
-  transition: all 500ms;
-  outline: none;
-  margin: 0 0.0625rem;
+  background: #f8f8f8;
+  border-radius: 0;
+  color: #666;
   cursor: pointer;
+  display: inline-block;
+  height: 2.125rem;
+  justify-content: center;
+  margin: 0 0.0625rem;
   min-width: 2.125rem;
-  border-radius: 0px;
-  white-space: nowrap;
+  outline: none;
   overflow: hidden;
+  padding: 0.1875rem;
   text-overflow: ellipsis;
+  transition: all 500ms;
+  white-space: nowrap;
+  width: auto;
 }
 .pagination-controls .controls-list .page-button:nth-child(1) .fa, .pagination-controls .controls-list .page-button:nth-child(2) .fa,
 .pagination-controls .controls-list .page-button-start:nth-child(1) .fa,
@@ -550,16 +602,16 @@ select .options-list .option-container.ax-active,
 .pagination-controls .controls-list .page-button-back:nth-last-child(2) .fa,
 .pagination-controls .controls-list .page-button-forward:nth-last-child(1) .fa,
 .pagination-controls .controls-list .page-button-forward:nth-last-child(2) .fa {
-  margin-top: -0.125rem;
   margin-right: -0.125rem;
+  margin-top: -0.125rem;
 }
 .pagination-controls .controls-list .page-button:hover,
 .pagination-controls .controls-list .page-button-start:hover,
 .pagination-controls .controls-list .page-button-end:hover,
 .pagination-controls .controls-list .page-button-back:hover,
 .pagination-controls .controls-list .page-button-forward:hover {
-  text-decoration: underline;
   background: #e5e5e5;
+  text-decoration: underline;
 }
 .pagination-controls .controls-list .page-button:hover:active,
 .pagination-controls .controls-list .page-button-start:hover:active,
@@ -573,23 +625,23 @@ select .options-list .option-container.ax-active,
 .pagination-controls .controls-list .page-button-end:disabled,
 .pagination-controls .controls-list .page-button-back:disabled,
 .pagination-controls .controls-list .page-button-forward:disabled {
-  color: #ffffff;
-  cursor: not-allowed;
   background: rgba(222, 225, 228, 0.5);
+  color: #fff;
+  cursor: not-allowed;
 }
 .pagination-controls .controls-list .page-button.active,
 .pagination-controls .controls-list .page-button-start.active,
 .pagination-controls .controls-list .page-button-end.active,
 .pagination-controls .controls-list .page-button-back.active,
 .pagination-controls .controls-list .page-button-forward.active {
-  color: #ffffff;
   background: #f96e6f;
+  color: #fff;
   font-weight: bold;
 }
 .pagination-controls .controls-list .page-button-back,
 .pagination-controls .controls-list .page-button-forward {
-  position: relative;
   background: transparent;
+  position: relative;
 }
 .pagination-controls .controls-list .page-button-back:disabled,
 .pagination-controls .controls-list .page-button-forward:disabled {
@@ -621,14 +673,14 @@ select .options-list .option-container.ax-active,
 }
 
 .spinner .circle {
-  margin: auto;
-  box-sizing: border-box;
-  border-radius: 50%;
-  width: 100%;
-  height: 100%;
-  border: 1.5px solid #f8f8f8;
-  border-top-color: #f96e6f;
   animation: spinAnimation 1.3s infinite cubic-bezier(0.53, 0.21, 0.29, 0.67);
+  border: 1.5px solid #f8f8f8;
+  border-radius: 50%;
+  border-top-color: #f96e6f;
+  box-sizing: border-box;
+  height: 100%;
+  margin: auto;
+  width: 100%;
 }
 .spinner .circle.xsmall {
   height: 0.75rem;
@@ -647,14 +699,14 @@ select .options-list .option-container.ax-active,
   width: 1.75rem;
 }
 .spinner .circle.xlarge {
+  border-width: 2px;
   height: 2.5rem;
   width: 2.5rem;
-  border-width: 2px;
 }
 .spinner .circle.xxlarge {
+  border-width: 2.5px;
   height: 5.75rem;
   width: 5.75rem;
-  border-width: 2.5px;
 }
 .spinner .status-message {
   padding-top: 0.625rem;

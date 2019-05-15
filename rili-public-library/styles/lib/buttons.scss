@@ -1,49 +1,50 @@
 @import './variables';
 
 button,
-[type="button"],
-[type="reset"],
-[type="submit"] {
-  border-radius: (2.375rem/2);
+[type='button'],
+[type='reset'],
+[type='submit'] {
+    border-radius: (2.375rem/2);
 }
 
 button {
-  height: 2.375rem;
+    height: 2.375rem;
 
-  &:disabled {
-    cursor: not-allowed;
-    opacity: .80;
-  }
-
-  &.anchor {
-    text-decoration: none;
-    color: $rili-link-1;
-
-    &:hover {
-      color: $rili-link-hover;
-      text-decoration: underline;
+    &:disabled {
+        cursor: not-allowed;
+        opacity: .8;
     }
 
-    &:visited {
-      color: $rili-link-1;
-    }
-  }
+    &.anchor {
+        color: $rili-link-1;
+        text-decoration: none;
 
-  &.secondary {
-    background: lighten($rili-off-white, 5%);
-    &:hover {
-      background: $rili-white;
-    }
-  }
+        &:hover {
+            color: $rili-link-hover;
+            text-decoration: underline;
+        }
 
-  &.primary {
-    border-color: transparent;
-    background: $rili-secondary-1;
-    color: $rili-white;
-
-    &:hover {
-      cursor: pointer;
-      background: $rili-primary-1;
+        &:visited {
+            color: $rili-link-1;
+        }
     }
-  }
+
+    &.secondary {
+        background: lighten($rili-off-white, 5%);
+
+        &:hover {
+            background: $rili-white;
+        }
+    }
+
+    &.primary {
+        background: $rili-secondary-1;
+        border-color: transparent;
+        color: $rili-white;
+
+        &:hover {
+            background: $rili-primary-1;
+            cursor: pointer;
+        }
+    }
 }
