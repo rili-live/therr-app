@@ -1,17 +1,17 @@
 @import '../variables';
 
 .validation-errors {
-  color: $rili-ax-negative;
-  margin: .375rem;
-  margin-bottom: 0;
+    color: $rili-ax-negative;
+    margin: .375rem;
+    margin-bottom: 0;
 
-  .message-container {
-    position: relative;
+    .message-container {
+        position: relative;
 
-    .message {
-      display: block;
-      line-height: 1rem;
-      margin-left: 1.25rem;
+        .message {
+            display: block;
+            line-height: 1rem;
+            margin-left: 1.25rem;
+        }
     }
-  }
 }

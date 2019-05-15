@@ -6,8 +6,8 @@
   "scripts": {
     "build": "../../node_modules/.bin/sass lib:lib",
     "build:watch": "../../node_modules/.bin/sass --watch lib:lib",
-    "lint:fix": "../../node_modules/.bin/sass-lint --config .sass-lint.yml '**/*.scss' --verbose --no-exit",
-    "lint": "../../node_modules/.bin/sass-lint --config .sass-lint.yml '**/*.scss' --verbose --no-exit",
+    "lint:fix": "../../node_modules/.bin/sass-lint --verbose --no-exit",
+    "lint": "../../node_modules/.bin/sass-lint --verbose --no-exit",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "keywords": [

@@ -13,8 +13,8 @@ button:disabled {
   opacity: 0.8;
 }
 button.anchor {
-  text-decoration: none;
   color: #2073a1;
+  text-decoration: none;
 }
 button.anchor:hover {
   color: #004270;
@@ -30,13 +30,13 @@ button.secondary:hover {
   background: #dee1e4;
 }
 button.primary {
-  border-color: transparent;
   background: #076d5f;
+  border-color: transparent;
   color: #dee1e4;
 }
 button.primary:hover {
-  cursor: pointer;
   background: #075248;
+  cursor: pointer;
 }
 
 /*# sourceMappingURL=buttons.css.map */
