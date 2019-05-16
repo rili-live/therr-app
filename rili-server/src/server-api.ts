@@ -3,9 +3,8 @@ import * as bodyParser from 'body-parser';
 import * as express from 'express';
 import * as os from 'os';
 import * as path from 'path';
-import { Pool, Client } from 'pg';
 import { argv } from 'yargs';
-import printLogs from 'rili-public-library/utilities/print-logs';
+import * as Knex from 'knex';
 import * as globalConfig from '../../global-config.js';
 import createTables from './db/create-tables';
 import UserRoutes from './routes/UserRoutes';
@@ -22,7 +21,7 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'static')));
 
 // Databse Connection
-const postgressConfig = {
+const dbConnectionConfig = {
     user: globalConfig[process.env.NODE_ENV].postgresUser,
     host: globalConfig[process.env.NODE_ENV].postgresHost,
     database: globalConfig[process.env.NODE_ENV].postgresDatabase,
@@ -30,46 +29,20 @@ const postgressConfig = {
     port: globalConfig[process.env.NODE_ENV].postgresPort,
 };
 
-// Db Pool
-const pool = new Pool(postgressConfig);
-pool.on('error', (err, client) => {
-    printLogs({
-        shouldPrintLogs: shouldPrintSQLLogs,
-        messageOrigin: `SQL:POOL:ERROR`,
-        messages: [client.toString(), err.toString()],
-    });
+const knex = Knex({
+    client: 'pg',
+    connection: dbConnectionConfig,
+    pool: {
+        min: 2,
+        max: 10,
+        log: true,
+    },
+    acquireConnectionTimeout: 60000,
 });
 
-// Db Client
-const client = new Client(postgressConfig);
-client.connect((err) => {
-    if (err) {
-        printLogs({
-            shouldPrintLogs: shouldPrintSQLLogs,
-            messageOrigin: `SQL:CLIENT:CONNECTION_ERROR`,
-            messages: [err.toString()],
-        });
-    } else {
-        printLogs({
-            shouldPrintLogs: shouldPrintSQLLogs,
-            messageOrigin: `SQL:CLIENT:CONNECTION_SUCCESS`,
-            messages: ['Client connected to PostgreSQL'],
-        });
-        // Create or update database tables (if they don't yet exist)
-        createTables(client);
-    }
+createTables(knex).then(() => {
+    app.use('/users', (new UserRoutes(knex)).router);
 });
-
-client.on('error', (err) => {
-    printLogs({
-        shouldPrintLogs: shouldPrintSQLLogs,
-        messageOrigin: `SQL:CLIENT:ERROR`,
-        messages: [err.toString()],
-    });
-});
-
-// Routes
-app.use('/users', (new UserRoutes(pool)).router);
 
 // Cluster config and server start
 if (cluster.isMaster && argv.shouldCluster) {
