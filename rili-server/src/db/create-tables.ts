@@ -14,25 +14,20 @@ const createTables = (connection: Client) => {
             PRIMARY KEY (id)
         );
     `;
-    connection.query(
-        sql,
-        (err, results) => {
-            if (err) {
-                printLogs({
-                    shouldPrintLogs: shouldPrintSQLLogs,
-                    messageOrigin: `SQL:CREATE_TABLE:USERS`,
-                    messages: ['Users table failed to create', err.toString()],
-                });
-            } else {
-                printLogs({
-                    shouldPrintLogs: shouldPrintSQLLogs,
-                    messageOrigin: `SQL:CREATE_TABLE:USERS`,
-                    messages: ['Users table created successfully'],
-                });
-            }
-            connection.end();
-        },
-    );
+    return connection.query(sql)
+        .then((results) => {
+            printLogs({
+                shouldPrintLogs: shouldPrintSQLLogs,
+                messageOrigin: `SQL:CREATE_TABLE:USERS`,
+                messages: ['Users table created successfully', results],
+            });
+        }).catch((err) => {
+            printLogs({
+                shouldPrintLogs: shouldPrintSQLLogs,
+                messageOrigin: `SQL:CREATE_TABLE:USERS`,
+                messages: ['Users table failed to create', err.toString()],
+            });
+        });
 };
 
 export default createTables;
