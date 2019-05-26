@@ -1,1 +1,533 @@
-!function(e,t){if("object"==typeof exports&&"object"==typeof module)module.exports=t();else if("function"==typeof define&&define.amd)define([],t);else{var r=t();for(var o in r)("object"==typeof exports?exports:e)[o]=r[o]}}(global,function(){return function(e){var t={};function r(o){if(t[o])return t[o].exports;var s=t[o]={i:o,l:!1,exports:{}};return e[o].call(s.exports,s,s.exports,r),s.l=!0,s.exports}return r.m=e,r.c=t,r.d=function(e,t,o){r.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:o})},r.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},r.t=function(e,t){if(1&t&&(e=r(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var o=Object.create(null);if(r.r(o),Object.defineProperty(o,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var s in e)r.d(o,s,function(t){return e[t]}.bind(null,s));return o},r.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return r.d(t,"a",t),t},r.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},r.p="/",r(r.s="dbOV")}({"1hBF":function(e,t,r){global,e.exports=function(e){var t={};function r(o){if(t[o])return t[o].exports;var s=t[o]={i:o,l:!1,exports:{}};return e[o].call(s.exports,s,s.exports,r),s.l=!0,s.exports}return r.m=e,r.c=t,r.d=function(e,t,o){r.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:o})},r.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},r.t=function(e,t){if(1&t&&(e=r(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var o=Object.create(null);if(r.r(o),Object.defineProperty(o,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var s in e)r.d(o,s,function(t){return e[t]}.bind(null,s));return o},r.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return r.d(t,"a",t),t},r.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},r.p="/",r(r.s="Sxyf")}({Sxyf:function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default=(e=>{if(e.shouldPrintLogs){const t=0!==e.time?`<at:${e.time||new Date}>`:"",r=Array.isArray(e.messages)?e.messages:[e.messages];for(let o=0;o<r.length;o+=1)e.messageOrigin?console.info(`${e.messageOrigin}${t}:`,r[o]):console.info(`LOG${t}:`,r[o])}})}})},"7wKX":function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const o=r("ZEFf"),s=r("EixS"),n=r("1hBF"),i=r("dbOV"),u=o.Router(),a=!1;t.default=class{constructor(e){this.router=u,this.getUser=(e=>this.knex.select("*").from("users").where({id:e}).debug(a).then(e=>{if(e&&e.length>0)return e[0];throw 404})),this.handleError=((e,t)=>{n.default({shouldPrintLogs:i.shouldPrintSQLLogs,messageOrigin:"SQL:USER_ROUTES:ERROR",messages:[e.toString()]}),t.status(500).end(s.error(500,e.toString()))}),this.knex=e,u.use((e,t,r)=>{n.default({shouldPrintLogs:i.shouldPrintSQLLogs,messageOrigin:`SQL:USER_ROUTES:${e.method}`,messages:[e.baseUrl]}),r()}),u.route("/").get((t,r)=>{e.select("*").from("users").orderBy("id").debug(a).then(e=>{r.status(200).send(s.success(e))}).catch(e=>{this.handleError(e,r)})}).post((t,r)=>{e("users").insert({first_name:t.body.firstName,last_name:t.body.lastName,phone_number:t.body.phoneNumber,user_name:t.body.userName}).returning("id").debug(a).then(e=>{r.status(201).send(s.success({id:e[0]}))}).catch(e=>{this.handleError(e,r)})}),u.route("/:id").get((e,t)=>this.getUser(e.params.id).then(e=>{t.send(s.success(e))}).catch(r=>{404===r?t.status(404).send(s.error(404,`No user found with id, ${e.params.id}.`)):this.handleError(r,t)})).put((t,r)=>{e("users").update({first_name:t.body.firstName,last_name:t.body.lastName,phone_number:t.body.phoneNumber,user_name:t.body.userName}).where({id:t.params.id}).returning("*").debug(a).then(e=>this.getUser(t.params.id).then(e=>{r.status(200).send(s.success(e))})).catch(e=>{this.handleError(e,r)})}).delete((t,r)=>{e.delete().from("users").where({id:t.params.id}).then(e=>{e>0?r.status(200).send(s.success(`Customer with id, ${t.params.id}, was successfully deleted`)):r.status(404).send(s.error(404,`No user found with id, ${t.params.id}.`))}).catch(e=>{this.handleError(e,r)})})}}},"9Dq1":function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const o=r("1hBF"),s=r("dbOV");t.default=(e=>e.schema.hasTable("users").then(t=>{if(!t)return e.schema.createTable("users",e=>{e.increments("id"),e.string("user_name"),e.string("first_name"),e.string("last_name"),e.string("phone_number"),e.timestamps()}).debug(!1).then(()=>{o.default({shouldPrintLogs:s.shouldPrintSQLLogs,messageOrigin:"SQL:CREATE_TABLE:USERS",messages:["Users table created successfully"]})}).catch(e=>{o.default({shouldPrintLogs:s.shouldPrintSQLLogs,messageOrigin:"SQL:CREATE_TABLE:USERS",messages:["Users table failed to create",e.toString()]})})}))},AtKU:function(e,t){e.exports={development:{apiPort:7770,baseApiRoute:"http://localhost:7770/api/",baseSocketUrl:"http://localhost:7771",clientPort:7070,googleAnalyticsKey:"",postgresDatabase:"rili_db_main_dev",postgresHost:"127.0.0.1",postgresPassword:"secret",postgresPort:7432,postgresUser:"riliAdmin",redisHost:"127.0.0.1",redisPubPort:17771,redisSubPort:17772,socketPort:7771,security:{certLocation:"/etc/letsencrypt/live/rili.live/fullchain.pem",keyLocation:"/etc/letsencrypt/live/rili.live/privkey.pem"},socket:{pingInterval:1e4,pingTimeout:5e3,userSocketSessionExpire:36e5}},production:{apiPort:7770,baseApiRoute:"http://rili.live:7770/api/",baseSocketUrl:"https://rili.live:7743",clientPort:7070,googleAnalyticsKey:"",postgresDatabase:"rili_db_main_prod",postgresHost:"127.0.0.1",postgresPassword:"secret",postgresPort:7432,postgresUser:"riliAdmin",redisHost:"127.0.0.1",redisPubPort:17771,redisSubPort:17772,socketPort:7743,security:{certLocation:"/etc/letsencrypt/live/rili.live/fullchain.pem",keyLocation:"/etc/letsencrypt/live/rili.live/privkey.pem"},socket:{pingInterval:1e4,pingTimeout:5e3,userSocketSessionExpire:36e5}}}},EixS:function(e,t,r){var o;global,e.exports=(o=r("Os7e"),function(e){var t={};function r(o){if(t[o])return t[o].exports;var s=t[o]={i:o,l:!1,exports:{}};return e[o].call(s.exports,s,s.exports,r),s.l=!0,s.exports}return r.m=e,r.c=t,r.d=function(e,t,o){r.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:o})},r.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},r.t=function(e,t){if(1&t&&(e=r(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var o=Object.create(null);if(r.r(o),Object.defineProperty(o,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var s in e)r.d(o,s,function(t){return e[t]}.bind(null,s));return o},r.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return r.d(t,"a",t),t},r.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},r.p="/",r(r.s="rPjh")}({Os7e:function(e,t){e.exports=o},rPjh:function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const o=r("Os7e");t.error=((e,t)=>({error:t,statusCode:e,status:o[e]})),t.success=(e=>({data:e}))}}))},Os7e:function(e,t){e.exports=require("http-status")},SWt3:function(e,t){e.exports=require("body-parser")},SfJF:function(e,t){e.exports=require("knex")},ZEFf:function(e,t){e.exports=require("express")},dbOV:function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const o=r("u/k4"),s=r("SWt3"),n=r("ZEFf"),i=r("jle/"),u=r("oyvS"),a=r("h5LZ"),l=r("SfJF"),c=r("AtKU"),d=r("9Dq1"),p=r("7wKX");t.shouldPrintAllLogs=a.argv.withAllLogs,t.shouldPrintSQLLogs=a.argv.withSQLLogs||t.shouldPrintAllLogs;const f=n();f.use(s.json()),f.use(n.static(u.join(__dirname,"static")));const g=l({client:"pg",connection:{user:c.production.postgresUser,host:c.production.postgresHost,database:c.production.postgresDatabase,password:c.production.postgresPassword,port:c.production.postgresPort},pool:{min:2,max:10,log:!0},acquireConnectionTimeout:6e4});if(d.default(g).then(()=>{f.use("/users",new p.default(g).router)}),o.isMaster&&a.argv.shouldCluster){const e=i.cpus().length;console.log(`Master cluster setting up ${e} workers...`);for(let t=0;t<e;t+=1)o.fork();o.on("online",e=>{console.log(`Worker ${e.process.pid} is online`)}),o.on("exit",(e,t,r)=>{console.log(`Worker ${e.process.pid} died with code: ${t}, and signal: ${r}`),console.log("Starting a new worker"),o.fork()})}else f.listen(c.production.apiPort,e=>{if(e)throw e;console.log(`Server running on port ${c.production.apiPort} with process id`,process.pid)})},h5LZ:function(e,t){e.exports=require("yargs")},"jle/":function(e,t){e.exports=require("os")},oyvS:function(e,t){e.exports=require("path")},"u/k4":function(e,t){e.exports=require("cluster")}})});
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define([], factory);
+	else {
+		var a = factory();
+		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
+	}
+})(global, function() {
+return /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "/";
+/******/
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = "./src/server-api.ts");
+/******/ })
+/************************************************************************/
+/******/ ({
+
+/***/ "../global-config.js":
+/*!***************************!*\
+  !*** ../global-config.js ***!
+  \***************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+const apiPort = 7770;
+const socketPortDev = 7771;
+const socketPortProd = 7743;
+
+module.exports = {
+    development: {
+        apiPort,
+        baseApiRoute: `http://localhost:${apiPort}/api/`,
+        baseSocketUrl: `http://localhost:${socketPortDev}`,
+        clientPort: 7070,
+        googleAnalyticsKey: '',
+        postgresDatabase: 'rili_db_main_dev',
+        postgresHost: '127.0.0.1',
+        postgresPassword: 'secret',
+        postgresPort: 7432,
+        postgresUser: 'riliAdmin',
+        redisHost: '127.0.0.1',
+        redisPubPort: 17771,
+        redisSubPort: 17772,
+        socketPort: socketPortDev,
+        security: {
+            certLocation: '/etc/letsencrypt/live/rili.live/fullchain.pem',
+            keyLocation: '/etc/letsencrypt/live/rili.live/privkey.pem',
+        },
+        socket: {
+            pingInterval: 1000 * 10,
+            pingTimeout: 1000 * 5,
+            userSocketSessionExpire: 1000 * 60 * 60,
+        },
+    },
+    production: {
+        apiPort,
+        baseApiRoute: `http://rili.live:${apiPort}/api/`,
+        baseSocketUrl: `https://rili.live:${socketPortProd}`,
+        clientPort: 7070,
+        googleAnalyticsKey: '',
+        postgresDatabase: 'rili_db_main_prod',
+        postgresHost: '127.0.0.1',
+        postgresPassword: 'secret',
+        postgresPort: 7432,
+        postgresUser: 'riliAdmin',
+        redisHost: '127.0.0.1',
+        redisPubPort: 17771,
+        redisSubPort: 17772,
+        socketPort: socketPortProd,
+        security: {
+            certLocation: '/etc/letsencrypt/live/rili.live/fullchain.pem',
+            keyLocation: '/etc/letsencrypt/live/rili.live/privkey.pem',
+        },
+        socket: {
+            pingInterval: 1000 * 10,
+            pingTimeout: 1000 * 5,
+            userSocketSessionExpire: 1000 * 60 * 60,
+        },
+    },
+};
+
+
+/***/ }),
+
+/***/ "../rili-public-library/utilities/lib/http-response.js":
+/*!*************************************************************!*\
+  !*** ../rili-public-library/utilities/lib/http-response.js ***!
+  \*************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+!function(e,t){ true?module.exports=t(__webpack_require__(/*! http-status */ "http-status")):undefined}(global,function(e){return function(e){var t={};function r(n){if(t[n])return t[n].exports;var o=t[n]={i:n,l:!1,exports:{}};return e[n].call(o.exports,o,o.exports,r),o.l=!0,o.exports}return r.m=e,r.c=t,r.d=function(e,t,n){r.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:n})},r.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},r.t=function(e,t){if(1&t&&(e=r(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var n=Object.create(null);if(r.r(n),Object.defineProperty(n,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)r.d(n,o,function(t){return e[t]}.bind(null,o));return n},r.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return r.d(t,"a",t),t},r.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},r.p="/",r(r.s="rPjh")}({Os7e:function(t,r){t.exports=e},rPjh:function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const n=r("Os7e");t.error=((e,t)=>({error:t,statusCode:e,status:n[e]}));t.success=(e=>({data:e}))}})});
+
+/***/ }),
+
+/***/ "../rili-public-library/utilities/lib/print-logs.js":
+/*!**********************************************************!*\
+  !*** ../rili-public-library/utilities/lib/print-logs.js ***!
+  \**********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+!function(e,t){ true?module.exports=t():undefined}(global,function(){return function(e){var t={};function r(n){if(t[n])return t[n].exports;var o=t[n]={i:n,l:!1,exports:{}};return e[n].call(o.exports,o,o.exports,r),o.l=!0,o.exports}return r.m=e,r.c=t,r.d=function(e,t,n){r.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:n})},r.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},r.t=function(e,t){if(1&t&&(e=r(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var n=Object.create(null);if(r.r(n),Object.defineProperty(n,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)r.d(n,o,function(t){return e[t]}.bind(null,o));return n},r.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return r.d(t,"a",t),t},r.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},r.p="/",r(r.s="Sxyf")}({Sxyf:function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0});t.default=(e=>{if(e.shouldPrintLogs){const t=0!==e.time?`<at:${e.time||new Date}>`:"",r=Array.isArray(e.messages)?e.messages:[e.messages];for(let n=0;n<r.length;n+=1)e.messageOrigin?console.info(`${e.messageOrigin}${t}:`,r[n]):console.info(`LOG${t}:`,r[n])}})}})});
+
+/***/ }),
+
+/***/ "./src/db/create-tables.ts":
+/*!*********************************!*\
+  !*** ./src/db/create-tables.ts ***!
+  \*********************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const print_logs_1 = __webpack_require__(/*! rili-public-library/utilities/print-logs */ "../rili-public-library/utilities/lib/print-logs.js");
+const server_api_1 = __webpack_require__(/*! ../server-api */ "./src/server-api.ts");
+const notProd = "development" !== 'production';
+// TODO: Configure to maintain migrations
+const createTables = (knex) => {
+    // Users
+    return knex.schema.hasTable('users').then((exists) => {
+        if (!exists) {
+            return knex.schema.createTable('users', (table) => {
+                table.increments('id');
+                table.string('user_name');
+                table.string('first_name');
+                table.string('last_name');
+                table.string('phone_number');
+                table.timestamps();
+            }).debug(notProd).then(() => {
+                print_logs_1.default({
+                    shouldPrintLogs: server_api_1.shouldPrintSQLLogs,
+                    messageOrigin: `SQL:CREATE_TABLE:USERS`,
+                    messages: ['Users table created successfully'],
+                });
+            }).catch((err) => {
+                print_logs_1.default({
+                    shouldPrintLogs: server_api_1.shouldPrintSQLLogs,
+                    messageOrigin: `SQL:CREATE_TABLE:USERS`,
+                    messages: ['Users table failed to create', err.toString()],
+                });
+            });
+        }
+        return;
+    });
+};
+exports.default = createTables;
+
+
+/***/ }),
+
+/***/ "./src/routes/UserRoutes.ts":
+/*!**********************************!*\
+  !*** ./src/routes/UserRoutes.ts ***!
+  \**********************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const express = __webpack_require__(/*! express */ "express");
+const httpResponse = __webpack_require__(/*! rili-public-library/utilities/http-response */ "../rili-public-library/utilities/lib/http-response.js");
+const print_logs_1 = __webpack_require__(/*! rili-public-library/utilities/print-logs */ "../rili-public-library/utilities/lib/print-logs.js");
+const server_api_1 = __webpack_require__(/*! ../server-api */ "./src/server-api.ts");
+const router = express.Router();
+const notProd = "development" !== 'production';
+class UserRoutes {
+    constructor(knex) {
+        this.router = router;
+        this.getUser = (userId) => {
+            return this.knex.select('*').from('users').where({ id: userId }).debug(notProd)
+                .then((results) => {
+                if (results && results.length > 0) {
+                    return results[0];
+                }
+                throw 404;
+            });
+        };
+        this.handleError = (err, res) => {
+            // TODO: Handle various error status codes
+            print_logs_1.default({
+                shouldPrintLogs: server_api_1.shouldPrintSQLLogs,
+                messageOrigin: `SQL:USER_ROUTES:ERROR`,
+                messages: [err.toString()],
+            });
+            res.status(500).end(httpResponse.error(500, err.toString()));
+        };
+        // TODO: Determine if should end connection after each request
+        this.knex = knex;
+        // middleware to log time of a user route request
+        router.use((req, res, next) => {
+            print_logs_1.default({
+                shouldPrintLogs: server_api_1.shouldPrintSQLLogs,
+                messageOrigin: `SQL:USER_ROUTES:${req.method}`,
+                messages: [req.baseUrl],
+            });
+            next();
+        });
+        router.route('/')
+            .get((req, res) => {
+            knex.select('*').from('users').orderBy('id').debug(notProd)
+                .then((results) => {
+                res.status(200).send(httpResponse.success(results));
+            })
+                .catch((err) => {
+                this.handleError(err, res);
+                return;
+            });
+        })
+            .post((req, res) => {
+            knex('users').insert({
+                first_name: req.body.firstName,
+                last_name: req.body.lastName,
+                phone_number: req.body.phoneNumber,
+                user_name: req.body.userName,
+            }).returning('id').debug(notProd)
+                .then((results) => {
+                res.status(201).send(httpResponse.success({
+                    id: results[0],
+                }));
+                return;
+            })
+                .catch((err) => {
+                this.handleError(err, res);
+                return;
+            });
+        });
+        router.route('/:id')
+            .get((req, res) => {
+            return this.getUser(req.params.id).then((user) => {
+                res.send(httpResponse.success(user));
+            }).catch((err) => {
+                if (err === 404) {
+                    res.status(404).send(httpResponse.error(404, `No user found with id, ${req.params.id}.`));
+                }
+                else {
+                    this.handleError(err, res);
+                }
+            });
+        })
+            .put((req, res) => {
+            knex('users')
+                .update({
+                first_name: req.body.firstName,
+                last_name: req.body.lastName,
+                phone_number: req.body.phoneNumber,
+                user_name: req.body.userName,
+            })
+                .where({ id: req.params.id }).returning('*').debug(notProd)
+                .then((results) => {
+                // TODO: Handle case where user already exists
+                return this.getUser(req.params.id).then((user) => {
+                    res.status(200).send(httpResponse.success(user));
+                });
+            })
+                .catch((err) => {
+                this.handleError(err, res);
+                return;
+            });
+        })
+            .delete((req, res) => {
+            knex.delete().from('users').where({ id: req.params.id })
+                .then((results) => {
+                if (results > 0) {
+                    res.status(200).send(httpResponse.success(`Customer with id, ${req.params.id}, was successfully deleted`));
+                }
+                else {
+                    res.status(404).send(httpResponse.error(404, `No user found with id, ${req.params.id}.`));
+                }
+            })
+                .catch((err) => {
+                this.handleError(err, res);
+                return;
+            });
+        });
+    }
+}
+exports.default = UserRoutes;
+
+
+/***/ }),
+
+/***/ "./src/server-api.ts":
+/*!***************************!*\
+  !*** ./src/server-api.ts ***!
+  \***************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const cluster = __webpack_require__(/*! cluster */ "cluster");
+const bodyParser = __webpack_require__(/*! body-parser */ "body-parser");
+const express = __webpack_require__(/*! express */ "express");
+const os = __webpack_require__(/*! os */ "os");
+const path = __webpack_require__(/*! path */ "path");
+const yargs_1 = __webpack_require__(/*! yargs */ "yargs");
+const Knex = __webpack_require__(/*! knex */ "knex");
+const globalConfig = __webpack_require__(/*! ../../global-config.js */ "../global-config.js");
+const create_tables_1 = __webpack_require__(/*! ./db/create-tables */ "./src/db/create-tables.ts");
+const UserRoutes_1 = __webpack_require__(/*! ./routes/UserRoutes */ "./src/routes/UserRoutes.ts");
+exports.shouldPrintAllLogs = yargs_1.argv.withAllLogs;
+exports.shouldPrintSQLLogs = yargs_1.argv.withSQLLogs || exports.shouldPrintAllLogs;
+const app = express();
+// Parse JSON
+app.use(bodyParser.json());
+// Serves static files in the /build/static directory
+app.use(express.static(path.join(__dirname, 'static')));
+// Databse Connection
+const dbConnectionConfig = {
+    user: globalConfig["development"].postgresUser,
+    host: globalConfig["development"].postgresHost,
+    database: globalConfig["development"].postgresDatabase,
+    password: globalConfig["development"].postgresPassword,
+    port: globalConfig["development"].postgresPort,
+};
+const knex = Knex({
+    client: 'pg',
+    connection: dbConnectionConfig,
+    pool: {
+        min: 2,
+        max: 10,
+        log: true,
+    },
+    acquireConnectionTimeout: 60000,
+});
+create_tables_1.default(knex).then(() => {
+    app.use('/users', (new UserRoutes_1.default(knex)).router);
+});
+// Cluster config and server start
+if (cluster.isMaster && yargs_1.argv.shouldCluster) {
+    const numWorkers = os.cpus().length;
+    console.log(`Master cluster setting up ${numWorkers} workers...`); // tslint:disable-line no-console
+    for (let i = 0; i < numWorkers; i += 1) {
+        cluster.fork();
+    }
+    cluster.on('online', (worker) => {
+        console.log(`Worker ${worker.process.pid} is online`); // tslint:disable-line no-console
+    });
+    cluster.on('exit', (worker, code, signal) => {
+        console.log(`Worker ${worker.process.pid} died with code: ${code}, and signal: ${signal}`); // tslint:disable-line no-console
+        console.log('Starting a new worker'); // tslint:disable-line no-console
+        cluster.fork();
+    });
+}
+else {
+    app.listen(globalConfig["development"].apiPort, (err) => {
+        if (err) {
+            throw err;
+        }
+        console.log(`Server running on port ${globalConfig["development"].apiPort} with process id`, process.pid); // tslint:disable-line no-console
+    });
+}
+
+
+/***/ }),
+
+/***/ "body-parser":
+/*!******************************!*\
+  !*** external "body-parser" ***!
+  \******************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("body-parser");
+
+/***/ }),
+
+/***/ "cluster":
+/*!**************************!*\
+  !*** external "cluster" ***!
+  \**************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("cluster");
+
+/***/ }),
+
+/***/ "express":
+/*!**************************!*\
+  !*** external "express" ***!
+  \**************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("express");
+
+/***/ }),
+
+/***/ "http-status":
+/*!******************************!*\
+  !*** external "http-status" ***!
+  \******************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("http-status");
+
+/***/ }),
+
+/***/ "knex":
+/*!***********************!*\
+  !*** external "knex" ***!
+  \***********************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("knex");
+
+/***/ }),
+
+/***/ "os":
+/*!*********************!*\
+  !*** external "os" ***!
+  \*********************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("os");
+
+/***/ }),
+
+/***/ "path":
+/*!***********************!*\
+  !*** external "path" ***!
+  \***********************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("path");
+
+/***/ }),
+
+/***/ "yargs":
+/*!************************!*\
+  !*** external "yargs" ***!
+  \************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("yargs");
+
+/***/ })
+
+/******/ });
+});
+//# sourceMappingURL=server-api.js.map
