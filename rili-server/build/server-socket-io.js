@@ -114,19 +114,10 @@ module.exports = {
         baseSocketUrl: `http://localhost:${socketPortDev}`,
         clientPort: 7070,
         googleAnalyticsKey: '',
-        postgresDatabase: 'rili_db_main_dev',
-        postgresHost: '127.0.0.1',
-        postgresPassword: 'secret',
-        postgresPort: 7432,
-        postgresUser: 'riliAdmin',
         redisHost: '127.0.0.1',
         redisPubPort: 17771,
         redisSubPort: 17772,
         socketPort: socketPortDev,
-        security: {
-            certLocation: '/etc/letsencrypt/live/rili.live/fullchain.pem',
-            keyLocation: '/etc/letsencrypt/live/rili.live/privkey.pem',
-        },
         socket: {
             pingInterval: 1000 * 10,
             pingTimeout: 1000 * 5,
@@ -139,19 +130,10 @@ module.exports = {
         baseSocketUrl: `https://rili.live:${socketPortProd}`,
         clientPort: 7070,
         googleAnalyticsKey: '',
-        postgresDatabase: 'rili_db_main_prod',
-        postgresHost: '127.0.0.1',
-        postgresPassword: 'secret',
-        postgresPort: 7432,
-        postgresUser: 'riliAdmin',
         redisHost: '127.0.0.1',
         redisPubPort: 17771,
         redisSubPort: 17772,
         socketPort: socketPortProd,
-        security: {
-            certLocation: '/etc/letsencrypt/live/rili.live/fullchain.pem',
-            keyLocation: '/etc/letsencrypt/live/rili.live/privkey.pem',
-        },
         socket: {
             pingInterval: 1000 * 10,
             pingTimeout: 1000 * 5,
@@ -463,9 +445,7 @@ const print_logs_1 = __webpack_require__(/*! rili-public-library/utilities/print
 const globalConfig = __webpack_require__(/*! ../../global-config.js */ "../global-config.js");
 const RedisSession_1 = __webpack_require__(/*! ./services/RedisSession */ "./src/services/RedisSession.ts");
 const get_socket_rooms_list_1 = __webpack_require__(/*! ./utilities/get-socket-rooms-list */ "./src/utilities/get-socket-rooms-list.ts");
-console.log('ENV: ', yargs_1.argv.withAllLogs);
 exports.rsAppName = 'riliChat';
-// Session to attach socket.io details to username while logged in
 exports.shouldPrintAllLogs = yargs_1.argv.withAllLogs;
 exports.shouldPrintRedisLogs = yargs_1.argv.withRedisLogs || exports.shouldPrintAllLogs;
 exports.shouldPrintSocketLogs = yargs_1.argv.withSocketLogs || exports.shouldPrintAllLogs || exports.shouldPrintRedisLogs;

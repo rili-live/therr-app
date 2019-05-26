@@ -22,11 +22,11 @@ app.use(express.static(path.join(__dirname, 'static')));
 
 // Databse Connection
 const dbConnectionConfig = {
-    user: globalConfig[process.env.NODE_ENV].postgresUser,
-    host: globalConfig[process.env.NODE_ENV].postgresHost,
-    database: globalConfig[process.env.NODE_ENV].postgresDatabase,
-    password: globalConfig[process.env.NODE_ENV].postgresPassword,
-    port: globalConfig[process.env.NODE_ENV].postgresPort,
+    user: process.env.PG_USER,
+    host: process.env.PG_HOST,
+    database: process.env.PG_DATABASE,
+    password: process.env.PG_PASSWORD,
+    port: process.env.PG_PORT,
 };
 
 const knex = Knex({

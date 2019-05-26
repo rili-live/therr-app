@@ -114,19 +114,10 @@ module.exports = {
         baseSocketUrl: `http://localhost:${socketPortDev}`,
         clientPort: 7070,
         googleAnalyticsKey: '',
-        postgresDatabase: 'rili_db_main_dev',
-        postgresHost: '127.0.0.1',
-        postgresPassword: 'secret',
-        postgresPort: 7432,
-        postgresUser: 'riliAdmin',
         redisHost: '127.0.0.1',
         redisPubPort: 17771,
         redisSubPort: 17772,
         socketPort: socketPortDev,
-        security: {
-            certLocation: '/etc/letsencrypt/live/rili.live/fullchain.pem',
-            keyLocation: '/etc/letsencrypt/live/rili.live/privkey.pem',
-        },
         socket: {
             pingInterval: 1000 * 10,
             pingTimeout: 1000 * 5,
@@ -139,19 +130,10 @@ module.exports = {
         baseSocketUrl: `https://rili.live:${socketPortProd}`,
         clientPort: 7070,
         googleAnalyticsKey: '',
-        postgresDatabase: 'rili_db_main_prod',
-        postgresHost: '127.0.0.1',
-        postgresPassword: 'secret',
-        postgresPort: 7432,
-        postgresUser: 'riliAdmin',
         redisHost: '127.0.0.1',
         redisPubPort: 17771,
         redisSubPort: 17772,
         socketPort: socketPortProd,
-        security: {
-            certLocation: '/etc/letsencrypt/live/rili.live/fullchain.pem',
-            keyLocation: '/etc/letsencrypt/live/rili.live/privkey.pem',
-        },
         socket: {
             pingInterval: 1000 * 10,
             pingTimeout: 1000 * 5,
@@ -393,11 +375,11 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'static')));
 // Databse Connection
 const dbConnectionConfig = {
-    user: globalConfig["development"].postgresUser,
-    host: globalConfig["development"].postgresHost,
-    database: globalConfig["development"].postgresDatabase,
-    password: globalConfig["development"].postgresPassword,
-    port: globalConfig["development"].postgresPort,
+    user: process.env.PG_USER,
+    host: process.env.PG_HOST,
+    database: process.env.PG_DATABASE,
+    password: process.env.PG_PASSWORD,
+    port: process.env.PG_PORT,
 };
 const knex = Knex({
     client: 'pg',

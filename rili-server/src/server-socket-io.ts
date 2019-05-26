@@ -82,8 +82,8 @@ const startExpressSocketIOServer = () => {
         httpsServer = http.createServer(app);
     } else if (process.env.NODE_ENV === 'production') {
         const httpsCredentials = {
-            key: fs.readFileSync(globalConfig[process.env.NODE_ENV].security.keyLocation),
-            cert: fs.readFileSync(globalConfig[process.env.NODE_ENV].security.certLocation),
+            key: fs.readFileSync(process.env.DOMAIN_KEY_LOCATION),
+            cert: fs.readFileSync(process.env.DOMAIN_CERT_LOCATION),
         };
         httpsServer = https.createServer(httpsCredentials, app);
     }
