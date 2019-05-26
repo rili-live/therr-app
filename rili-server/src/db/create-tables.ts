@@ -7,9 +7,9 @@ const notProd = process.env.NODE_ENV !== 'production';
 // TODO: Configure to maintain migrations
 const createTables = (knex: Knex) => {
     // Users
-    return knex.schema.hasTable('users').then((exists) => {
+    return knex.schema.hasTable('main.users').then((exists) => {
         if (!exists) {
-            return knex.schema.createTable('users', (table) => {
+            return knex.schema.createTable('main.users', (table) => {
                 table.increments('id');
                 table.string('user_name');
                 table.string('first_name');

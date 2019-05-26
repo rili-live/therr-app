@@ -77,17 +77,17 @@ Promise.all(redisConnectPromises).then((responses: any[]) => {
 
 const startExpressSocketIOServer = () => {
     const app = express();
-    let httpsServer;
-    if (process.env.NODE_ENV === 'development') {
-        httpsServer = http.createServer(app);
-    } else if (process.env.NODE_ENV === 'production') {
+    let appServer;
+    if (process.env.NODE_ENV !== 'development') {
         const httpsCredentials = {
             key: fs.readFileSync(process.env.DOMAIN_KEY_LOCATION),
             cert: fs.readFileSync(process.env.DOMAIN_CERT_LOCATION),
         };
-        httpsServer = https.createServer(httpsCredentials, app);
+        appServer = https.createServer(httpsCredentials, app);
+    } else {
+        appServer = http.createServer(app);
     }
-    const server = httpsServer.listen(globalConfig[process.env.NODE_ENV].socketPort, (err: string) => {
+    const server = appServer.listen(globalConfig[process.env.NODE_ENV].socketPort, (err: string) => {
         const port = globalConfig[process.env.NODE_ENV].socketPort;
         printLogs({
             shouldPrintLogs: true,

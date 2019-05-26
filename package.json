@@ -86,6 +86,7 @@
     "path": "^0.12.7",
     "pm2": "^3.5.0",
     "postcss-loader": "^2.1.6",
+    "psql": "0.0.1",
     "react-test-renderer": "^16.8.6",
     "sass": "^1.20.1",
     "sass-lint": "^1.13.1",
