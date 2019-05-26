@@ -13,7 +13,7 @@
     "lint": "../node_modules/.bin/eslint --ext .jsx,.js ./ && ../node_modules/.bin/tslint -p ./",
     "start": "../node_modules/.bin/pm2 start pm2/ecosystem.config.js --watch --env production",
     "start:server:api": "npm run start:postgres && ../node_modules/.bin/pm2 start pm2/ecosystem.config.js --only rili-server-api --env production",
-    "start:server:api:dev": "npm run start:postgres:dev && npm run build:dev && ../node_modules/.bin/nodemon build/server-api.js --withSQLLogs",
+    "start:server:api:dev": "npm run start:postgres:dev && npm run build:dev && ../node_modules/.bin/nodemon --require ../node_modules/dotenv/config build/server-api.js dotenv_config_path=../.env --withSQLLogs",
     "start:server:socketio": "npm run start:redis && ../node_modules/.bin/pm2 start pm2/ecosystem.config.js --only rili-server-socket-io --env production",
     "start:server:socketio:dev": "npm run start:redis:dev && npm run build:dev && ../node_modules/.bin/nodemon --require ../node_modules/dotenv/config build/server-socket-io.js dotenv_config_path=../.env --withAllLogs",
     "run:postgres": "docker run --name rili-postgres -d -p 127.0.0.1:7432:5432 -e POSTGRES_USER=riliAdmin -e POSTGRES_PASSWORD=secret -d postgres:latest",
