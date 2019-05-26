@@ -3,7 +3,7 @@ import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disable-line no-implicit-dependencies
 import { SocketServerActionTypes } from 'rili-public-library/utilities/constants';
 import * as Constants from '../../constants';
-import { shouldIncludeSocketLogs } from '../../server-socket-io';
+import { shouldPrintSocketLogs } from '../../server-socket-io';
 
 interface IJoinRoomData {
     roomId: string;
@@ -23,12 +23,12 @@ const joinRoom = (socket: socketio.Socket, redisSession: any, data: IJoinRoomDat
 
     socket.join(data.roomId, () => {
         printLogs({
-            shouldPrintLogs: shouldIncludeSocketLogs,
+            shouldPrintLogs: shouldPrintSocketLogs,
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: `User, ${data.userName} with socketId ${socket.id}, joined room ${data.roomId}`,
         });
         printLogs({
-            shouldPrintLogs: shouldIncludeSocketLogs,
+            shouldPrintLogs: shouldPrintSocketLogs,
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: `${data.userName}'s Current Rooms: ${JSON.stringify(socket.rooms)}`,
         });
