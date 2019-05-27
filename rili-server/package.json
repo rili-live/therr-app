@@ -21,6 +21,8 @@
     "run:redis": "docker run --name rili-redis-pub -d -p 17771:6379 redis:latest && docker run --name rili-redis-sub -d -p 17772:6379 redis:latest",
     "run:redis:dev": "docker run --name rili-redis-pub-dev -d -p 17771:6379 redis:latest && docker run --name rili-redis-sub-dev -d -p 17772:6379 redis:latest",
     "run:redis:cli": "docker run -it --link rili-redis-dev:redis --name rili-redis-cli --rm redis redis-cli -h redis -p 16379:6379",
+    "setup": "npm run run:postgres && npm run run:redis",
+    "setup:dev": "npm run run:postgres:dev && npm run run:redis:dev",
     "start:postgres": "docker start rili-postgres",
     "start:postgres:dev": "docker start rili-postgres-dev",
     "start:redis": "docker start rili-redis-pub && docker start rili-redis-sub",
