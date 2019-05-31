@@ -25,14 +25,14 @@
     "setup:dev": "npm run run:postgres:dev && npm run run:redis:dev",
     "start:postgres": "docker start rili-postgres",
     "start:postgres:dev": "docker start rili-postgres-dev",
-    "start:redis": "docker start rili-redis-pub && docker start rili-redis-sub",
+    "start:redis": "docker start rili-redis-pub rili-redis-sub",
     "start:redis:cli": "docker start rili-redis-cli",
-    "start:redis:dev": "docker start rili-redis-pub-dev && docker start rili-redis-sub-dev",
+    "start:redis:dev": "docker start rili-redis-pub-dev rili-redis-sub-dev",
     "stop:postgres": "docker stop rili-postgres",
     "stop:postgres:dev": "docker stop rili-postgres-dev",
-    "stop:redis": "docker stop rili-redis-pub && docker stop rili-redis-sub",
+    "stop:redis": "docker stop rili-redis-pub rili-redis-sub",
     "stop:redis:cli": "docker stop rili-redis-cli",
-    "stop:redis:dev": "docker stop rili-redis-pub-dev && docker stop rili-redis-sub-dev",
+    "stop:redis:dev": "docker stop rili-redis-pub-dev rili-redis-sub-dev",
     "test": "npm run lint:fix && echo \"Error: no test specified\" && exit 0"
   },
   "keywords": [
