@@ -25,9 +25,9 @@ class UserRoutes {
             next();
         });
 
-        router.route('/')
+        router.route('/users')
             .get((req, res) => {
-                knex.select('*').from('users').orderBy('id').debug(notProd)
+                knex.select('*').from('main.users').orderBy('id').debug(notProd)
                     .then((results) => {
                         res.status(200).send(httpResponse.success(results));
                     })
@@ -37,12 +37,12 @@ class UserRoutes {
                     });
             })
             .post((req, res) => {
-                knex('users').insert({
+                knex().insert({
                     first_name: req.body.firstName,
                     last_name: req.body.lastName,
                     phone_number: req.body.phoneNumber,
                     user_name: req.body.userName,
-                }).returning('id').debug(notProd)
+                }).into('main.users').returning('id').debug(notProd)
                     .then((results) => {
                         res.status(201).send(httpResponse.success({
                             id: results[0],
@@ -55,7 +55,7 @@ class UserRoutes {
                     });
             });
 
-        router.route('/:id')
+        router.route('/users/:id')
             .get((req, res) => {
                 return this.getUser(req.params.id).then((user) => {
                     res.send(httpResponse.success(user));
@@ -68,13 +68,14 @@ class UserRoutes {
                 });
             })
             .put((req, res) => {
-                knex('users')
+                knex()
                     .update({
                         first_name: req.body.firstName,
                         last_name: req.body.lastName,
                         phone_number: req.body.phoneNumber,
                         user_name: req.body.userName,
                     })
+                    .into('main.users')
                     .where({ id: req.params.id }).returning('*').debug(notProd)
                     .then((results) => {
                         // TODO: Handle case where user already exists
@@ -88,7 +89,7 @@ class UserRoutes {
                     });
             })
             .delete((req, res) => {
-                knex.delete().from('users').where({ id: req.params.id })
+                knex.delete().from('main.users').where({ id: req.params.id })
                     .then((results) => {
                         if (results > 0) {
                             res.status(200).send(httpResponse.success(`Customer with id, ${req.params.id}, was successfully deleted`));
@@ -104,7 +105,7 @@ class UserRoutes {
     }
 
     getUser = (userId: string) => {
-        return this.knex.select('*').from('users').where({ id: userId }).debug(notProd)
+        return this.knex.select('*').from('main.users').where({ id: userId }).debug(notProd)
             .then((results) => {
                 if (results && results.length > 0) {
                     return results[0];
