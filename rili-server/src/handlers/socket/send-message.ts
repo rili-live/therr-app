@@ -3,11 +3,11 @@ import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disa
 import * as moment from 'moment';
 import { SocketServerActionTypes, SocketClientActionTypes } from 'rili-public-library/utilities/constants';
 import * as Constants from '../../constants';
-import { shouldIncludeSocketLogs } from '../../server-socket-io';
+import { shouldPrintSocketLogs } from '../../server-socket-io';
 
 const sendMessage = (socket: socketio.Socket, data: any) => {
     printLogs({
-        shouldPrintLogs: shouldIncludeSocketLogs,
+        shouldPrintLogs: shouldPrintSocketLogs,
         messageOrigin: 'SOCKET_IO_LOGS',
         messages: `${SocketClientActionTypes.SEND_MESSAGE}: ${data.toString()}`,
     });
@@ -35,7 +35,7 @@ const sendMessage = (socket: socketio.Socket, data: any) => {
         },
     });
     printLogs({
-        shouldPrintLogs: shouldIncludeSocketLogs,
+        shouldPrintLogs: shouldPrintSocketLogs,
         messageOrigin: 'SOCKET_IO_LOGS',
         messages: `${data.userName} said: ${data.message}`,
     });

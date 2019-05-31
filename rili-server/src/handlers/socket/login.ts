@@ -3,7 +3,7 @@ import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disable-line no-implicit-dependencies
 import { SocketServerActionTypes } from 'rili-public-library/utilities/constants';
 import * as Constants from '../../constants';
-import { rsAppName, shouldIncludeRedisLogs, shouldIncludeSocketLogs } from '../../server-socket-io';
+import { rsAppName, shouldPrintRedisLogs, shouldPrintSocketLogs } from '../../server-socket-io';
 
 interface ILoginData {
     userName: string;
@@ -29,7 +29,7 @@ const login = (socket: socketio.Socket, redisSession: any, data: ILoginData) => 
             });
         }).catch((err: any) => {
             printLogs({
-                shouldPrintLogs: shouldIncludeRedisLogs,
+                shouldPrintLogs: shouldPrintRedisLogs,
                 messageOrigin: 'REDIS_SESSION_ERROR',
                 messages: err.toString(),
             });
@@ -37,7 +37,7 @@ const login = (socket: socketio.Socket, redisSession: any, data: ILoginData) => 
     }
 
     printLogs({
-        shouldPrintLogs: shouldIncludeSocketLogs,
+        shouldPrintLogs: shouldPrintSocketLogs,
         messageOrigin: 'SOCKET_IO_LOGS',
         messages: `User, ${data.userName} with socketId ${socket.id}, has logged in.`,
     });

@@ -5,6 +5,7 @@ import * as https from 'https';
 import * as Redis from 'ioredis';
 import * as socketio from 'socket.io';
 import * as socketioRedis from 'socket.io-redis';
+import { argv } from 'yargs';
 import * as socketHandlers from './handlers/socket';
 import { SocketServerActionTypes, SocketClientActionTypes } from 'rili-public-library/utilities/constants';
 import * as Constants from './constants';
@@ -14,13 +15,9 @@ import RedisSession from './services/RedisSession';
 import getSocketRoomsList from './utilities/get-socket-rooms-list';
 
 export const rsAppName = 'riliChat';
-// Session to attach socket.io details to username while logged in
-export const shouldIncludeAllLogs = process.argv[2] === 'withAllLogs';
-export const shouldIncludeRedisLogs =  process.argv[2] === 'withRedisLogs'
-    || shouldIncludeAllLogs;
-export const shouldIncludeSocketLogs = process.argv[2] === 'withSocketLogs'
-    || shouldIncludeAllLogs
-    || shouldIncludeRedisLogs;
+export const shouldPrintAllLogs = argv.withAllLogs;
+export const shouldPrintRedisLogs =  argv.withRedisLogs || shouldPrintAllLogs;
+export const shouldPrintSocketLogs = argv.withSocketLogs || shouldPrintAllLogs || shouldPrintRedisLogs;
 
 const nodes = [
     // Pub
@@ -61,7 +58,7 @@ const redisConnectPromises = [redisPub.connect(), redisSub.connect()];
 
 Promise.all(redisConnectPromises).then((responses: any[]) => {
     // connection ready
-    if (shouldIncludeRedisLogs) {
+    if (shouldPrintRedisLogs) {
         redisPub.monitor().then((monitor) => {
             monitor.on('monitor', (time, args, source, database) => {
                 printLogs({
@@ -80,17 +77,17 @@ Promise.all(redisConnectPromises).then((responses: any[]) => {
 
 const startExpressSocketIOServer = () => {
     const app = express();
-    let httpsServer;
-    if (process.env.NODE_ENV === 'development') {
-        httpsServer = http.createServer(app);
-    } else if (process.env.NODE_ENV === 'production') {
+    let appServer;
+    if (process.env.NODE_ENV !== 'development') {
         const httpsCredentials = {
-            key: fs.readFileSync(globalConfig[process.env.NODE_ENV].security.keyLocation),
-            cert: fs.readFileSync(globalConfig[process.env.NODE_ENV].security.certLocation),
+            key: fs.readFileSync(process.env.DOMAIN_KEY_LOCATION),
+            cert: fs.readFileSync(process.env.DOMAIN_CERT_LOCATION),
         };
-        httpsServer = https.createServer(httpsCredentials, app);
+        appServer = https.createServer(httpsCredentials, app);
+    } else {
+        appServer = http.createServer(app);
     }
-    const server = httpsServer.listen(globalConfig[process.env.NODE_ENV].socketPort, (err: string) => {
+    const server = appServer.listen(globalConfig[process.env.NODE_ENV].socketPort, (err: string) => {
         const port = globalConfig[process.env.NODE_ENV].socketPort;
         printLogs({
             shouldPrintLogs: true,
@@ -118,14 +115,14 @@ const startExpressSocketIOServer = () => {
     // Redis Error handling
     // redisPubCluster.on('error', (error: string) => {
         // printLogs({
-        //     shouldPrintLogs: shouldIncludeRedisLogs,
+        //     shouldPrintLogs: shouldPrintRedisLogs,
         //     messageOrigin: 'REDIS_PUB_CLUSTER_CONNECTION_ERROR',
         //     messages: error.toString(),
         // });
     // });
     // redisSubCluster.on('error', (error: string) => {
         // printLogs({
-        //     shouldPrintLogs: shouldIncludeRedisLogs,
+        //     shouldPrintLogs: shouldPrintRedisLogs,
         //     messageOrigin: 'REDIS_SUB_CLUSTER_CONNECTION_ERROR:',
         //     messages: error.toString(),
         // });
@@ -133,14 +130,14 @@ const startExpressSocketIOServer = () => {
 
     redisAdapter.pubClient.on('error', (err: string) => {
         printLogs({
-            shouldPrintLogs: shouldIncludeRedisLogs,
+            shouldPrintLogs: shouldPrintRedisLogs,
             messageOrigin: 'REDIS_PUB_CLIENT_ERROR',
             messages: err.toString(),
         });
     });
     redisAdapter.subClient.on('error', (err: string) => {
         printLogs({
-            shouldPrintLogs: shouldIncludeRedisLogs,
+            shouldPrintLogs: shouldPrintRedisLogs,
             messageOrigin: 'REDIS_SUB_CLIENT_ERROR',
             messages: err.toString(),
         });
@@ -148,7 +145,7 @@ const startExpressSocketIOServer = () => {
 
     redisAdapter.subClient.on('subscribe', (channel: any, count: any) => {
         printLogs({
-            shouldPrintLogs: shouldIncludeRedisLogs,
+            shouldPrintLogs: shouldPrintRedisLogs,
             messageOrigin: 'REDIS_SUB_CLIENT',
             messages: `Subscribed to ${channel}. Now subscribed to ${count} channel(s).`,
         });
@@ -156,7 +153,7 @@ const startExpressSocketIOServer = () => {
 
     redisAdapter.subClient.on('message', (channel: any, message: any) => {
         printLogs({
-            shouldPrintLogs: shouldIncludeRedisLogs,
+            shouldPrintLogs: shouldPrintRedisLogs,
             messageOrigin: 'REDIS_SUB_CLIENT',
             messages: `Message from channel ${channel}: ${message}`,
         });
@@ -164,12 +161,12 @@ const startExpressSocketIOServer = () => {
 
     io.on('connection', (socket: socketio.Socket) => {
         printLogs({
-            shouldPrintLogs: shouldIncludeSocketLogs,
+            shouldPrintLogs: shouldPrintSocketLogs,
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: 'NEW CONNECTION...',
         });
         printLogs({
-            shouldPrintLogs: shouldIncludeSocketLogs,
+            shouldPrintLogs: shouldPrintSocketLogs,
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: `All Rooms: ${JSON.stringify(getSocketRoomsList(io.sockets.adapter.rooms))}`,
         });
@@ -196,7 +193,7 @@ const startExpressSocketIOServer = () => {
         socket.on('disconnecting', (reason: string) => {
             // TODO: Use constants to mitigate disconnect reasons
             printLogs({
-                shouldPrintLogs: shouldIncludeSocketLogs,
+                shouldPrintLogs: shouldPrintSocketLogs,
                 messageOrigin: 'SOCKET_IO_LOGS',
                 messages: `DISCONNECTING... ${reason}`,
             });
@@ -222,7 +219,7 @@ const leaveAndNotifyRooms = (socket: SocketIO.Socket) => {
             });
         }).catch((err: any) => {
             printLogs({
-                shouldPrintLogs: shouldIncludeRedisLogs,
+                shouldPrintLogs: shouldPrintRedisLogs,
                 messageOrigin: 'REDIS_SESSION_ERROR',
                 messages: err,
             });
