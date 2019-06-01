@@ -36,6 +36,8 @@ const socket = (state: ISocketState = initialState, action: any) => {
                     .setIn(['messages', action.data.roomId], updatedMessageList);
         case SocketServerActionTypes.USER_LOGIN_SUCCESS:
             return state.setIn(['user', 'userName'], action.data.userName);
+        case SocketServerActionTypes.LEFT_ROOM:
+            return state.setIn(['messages', action.data.roomId], updatedMessageList);
         case SocketServerActionTypes.OTHER_JOINED_ROOM:
         case SocketServerActionTypes.SEND_MESSAGE:
             return state.setIn(['messages', action.data.roomId], updatedMessageList);
