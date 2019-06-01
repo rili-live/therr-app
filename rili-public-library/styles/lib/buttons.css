@@ -16,7 +16,7 @@ button.anchor {
   color: #2073a1;
   text-decoration: none;
 }
-button.anchor:hover {
+button.anchor:hover:not([disabled]) {
   color: #004270;
   text-decoration: underline;
 }
@@ -26,7 +26,7 @@ button.anchor:visited {
 button.secondary {
   background: #d5d8da;
 }
-button.secondary:hover {
+button.secondary:hover:not([disabled]) {
   background: #dee1e4;
 }
 button.primary {
@@ -34,7 +34,7 @@ button.primary {
   border-color: transparent;
   color: #dee1e4;
 }
-button.primary:hover {
+button.primary:hover:not([disabled]) {
   background: #075248;
   cursor: pointer;
 }
