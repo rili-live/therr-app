@@ -34,14 +34,14 @@ import routes, { IRoute } from './routes';
 const createAppServer = () => {
     let app = express();
     let server;
-    if (process.env.NODE_ENV === 'development') {
-        server = http.createServer(app);
-    } else if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV !== 'development') {
         let httpsCredentials = {
             key: fs.readFileSync(globalConfig[process.env.NODE_ENV].security.keyLocation),
             cert: fs.readFileSync(globalConfig[process.env.NODE_ENV].security.certLocation),
         };
         server = https.createServer(httpsCredentials, app);
+    } else if (process.env.NODE_ENV === 'development') {
+        server = http.createServer(app);
     }
 
     return {

@@ -19,7 +19,7 @@ button {
         color: $rili-link-1;
         text-decoration: none;
 
-        &:hover {
+        &:hover:not([disabled]) {
             color: $rili-link-hover;
             text-decoration: underline;
         }
@@ -32,7 +32,7 @@ button {
     &.secondary {
         background: lighten($rili-off-white, 5%);
 
-        &:hover {
+        &:hover:not([disabled]) {
             background: $rili-white;
         }
     }
@@ -42,7 +42,7 @@ button {
         border-color: transparent;
         color: $rili-white;
 
-        &:hover {
+        &:hover:not([disabled]) {
             background: $rili-primary-1;
             cursor: pointer;
         }

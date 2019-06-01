@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { Route, Switch, withRouter, RouteComponentProps } from 'react-router-dom';
 import { TransitionGroup as Animation } from 'react-transition-group';
 // import * as ReactGA from 'react-ga';
-// import TopNav from './pieces/TopNav';
+import Header from './Header';
 // import { configureAuthRoute } from '../library/authentication';
 import { ISocketState } from 'types/socket';
 import RedirectWithStatus from 'rili-public-library/react-components/RedirectWithStatus';
@@ -119,9 +119,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         if (this.state.clientHasLoaded) {
             return (
                 <div>
-                    <header>
-                        <div className="login-link"><a href="/login">Login</a></div>
-                    </header>
+                    <Header showLogin />
                     <div id="navMenu" className={navMenuClassNames}>
                         <p>Rili Inc.</p>
                         <p>Under Construction</p>
@@ -175,7 +173,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
             // Opportunity to add a loader of graphical display
             return (
                 <div>
-                    <header></header>
+                    <Header />
                 </div>
             );
         }

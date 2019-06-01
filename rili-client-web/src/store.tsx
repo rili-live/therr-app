@@ -39,7 +39,7 @@ if (typeof(Storage) !== 'undefined' && typeof(window) !== 'undefined') {
     preLoadedState = safelyParse(window.__PRELOADED_STATE__);
 }
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV !== 'development') {
     // Create Store (Production)
     store = createStore(
         rootReducer,
