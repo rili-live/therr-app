@@ -17,20 +17,20 @@ button {
   button.anchor {
     color: #2073a1;
     text-decoration: none; }
-    button.anchor:hover {
+    button.anchor:hover:not([disabled]) {
       color: #004270;
       text-decoration: underline; }
     button.anchor:visited {
       color: #2073a1; }
   button.secondary {
     background: #d5d8da; }
-    button.secondary:hover {
+    button.secondary:hover:not([disabled]) {
       background: #dee1e4; }
   button.primary {
     background: #076d5f;
     border-color: transparent;
     color: #dee1e4; }
-    button.primary:hover {
+    button.primary:hover:not([disabled]) {
       background: #075248;
       cursor: pointer; }
 
@@ -709,6 +709,9 @@ button#close, button#messages {
 .inline-svg.home-button svg {
   fill: #dee1e4; }
 
+.text-center {
+  text-align: center; }
+
 .login-container {
   border: 0.5rem solid #075248;
   border-radius: 1rem;
@@ -789,4 +792,4 @@ ul#list {
   justify-content: center; }
 
 
-/*# sourceMappingURL=theme-primary.e330d7c43d5b38185204.css.map*/
+/*# sourceMappingURL=theme-primary.57c51fcb0d7fad79a10a.css.map*/
