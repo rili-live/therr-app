@@ -8,21 +8,21 @@ import translator from '../services/translator';
 import SocketActions from 'actions/socket';
 // import * as globalConfig from '../../../global-config.js';
 
-interface ILoginRouterProps {
+interface IHomeRouterProps {
 }
 
-interface ILoginDispatchProps {
+interface IHomeDispatchProps {
     login: Function;
 }
 
-interface IStoreProps extends ILoginDispatchProps {
+interface IStoreProps extends IHomeDispatchProps {
 }
 
 // Regular component props
-interface ILoginProps extends RouteComponentProps<ILoginRouterProps>, IStoreProps {
+interface IHomeProps extends RouteComponentProps<IHomeRouterProps>, IStoreProps {
 }
 
-interface ILoginState {
+interface IHomeState {
     inputs: any;
 }
 
@@ -41,12 +41,12 @@ const mapDispatchToProps = (dispatch: any) => {
 };
 
 /**
- * Login
+ * Home
  */
-export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
+export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
     private translate: Function;
 
-    constructor(props: ILoginProps) {
+    constructor(props: IHomeProps) {
         super(props);
 
         this.state = {
@@ -94,7 +94,8 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         return (
             <div className="flex-box">
                 <div className="login-container">
-                    <h1 className="text-center">Login</h1>
+                    <h1 className="text-center">Home</h1>
+                    <p>Welcome to Rili, where everything is real-time, or at least really close to it.</p>
                     <label htmlFor="user_name">Username:</label>
                     <Input type="text" id="user_name" name="userName" value={this.state.inputs.userName} onChange={this.onInputChange} onEnter={this.onButtonClick} translate={this.translate} />
 
@@ -111,4 +112,4 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(LoginComponent));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(HomeComponent));
