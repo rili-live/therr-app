@@ -2,6 +2,7 @@ import * as express from 'express';
 import * as fs from 'fs';
 import * as http from 'http';
 import * as https from 'https';
+import * as moment from 'moment';
 import * as Redis from 'ioredis';
 import * as socketio from 'socket.io';
 import * as socketioRedis from 'socket.io-redis';
@@ -179,14 +180,18 @@ const startExpressSocketIOServer = () => {
 
         // Event sent from socket.io, redux store middleware
         socket.on(Constants.ACTION, (action: any) => {
-            if (action.type === SocketClientActionTypes.JOIN_ROOM) {
+            switch (action.type) {
+            case SocketClientActionTypes.JOIN_ROOM:
                 socketHandlers.joinRoom(socket, redisSession, action.data);
-            }
-            if (action.type === SocketClientActionTypes.LOGIN) {
+                break;
+            case SocketClientActionTypes.LOGIN:
                 socketHandlers.login(socket, redisSession, action.data);
-            }
-            if (action.type === SocketClientActionTypes.SEND_MESSAGE) {
+                break;
+            case SocketClientActionTypes.SEND_MESSAGE:
                 socketHandlers.sendMessage(socket, action.data);
+                break;
+            default:
+                break;
             }
         });
 
@@ -211,9 +216,17 @@ const leaveAndNotifyRooms = (socket: SocketIO.Socket) => {
             activeRooms.forEach((room) => {
                 const parsedResponse = JSON.parse(response);
                 if (parsedResponse && parsedResponse.userName) {
-                    socket.broadcast.to(room).emit('event', {
-                        type: SocketServerActionTypes.DISCONNECT,
-                        data: `${parsedResponse.userName} left the room`,
+                    const now = moment(Date.now()).format('MMMM D/YY, h:mma');
+                    socket.broadcast.to(room).emit(Constants.ACTION, {
+                        type: SocketServerActionTypes.LEFT_ROOM,
+                        data: {
+                            roomId: room,
+                            message: {
+                                key: Date.now().toString(),
+                                time: now,
+                                text: `${parsedResponse.userName} left the room`,
+                            },
+                        },
                     });
                 }
             });
