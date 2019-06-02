@@ -14,6 +14,7 @@ const createTables = (knex: Knex) => {
                 table.string('user_name');
                 table.string('first_name');
                 table.string('last_name');
+                table.string('password');
                 table.string('phone_number').unique();
                 table.timestamps();
             }).debug(notProd).then((table) => {

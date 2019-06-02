@@ -9,7 +9,7 @@ import { argv } from 'yargs';
 import * as Knex from 'knex';
 import * as globalConfig from '../../global-config.js';
 import printLogs from 'rili-public-library/utilities/print-logs';
-import createTables from './constants/db/create-tables';
+import createTables from './api/db/create-tables';
 import UserRoutes from './api/routes/UserRoutes';
 
 export const shouldPrintAllLogs = argv.withAllLogs;
