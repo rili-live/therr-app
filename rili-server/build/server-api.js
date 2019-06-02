@@ -841,6 +841,17 @@ function toString(value) {
 
 /***/ }),
 
+/***/ "./package.json":
+/*!**********************!*\
+  !*** ./package.json ***!
+  \**********************/
+/*! exports provided: name, version, description, main, scripts, keywords, author, license, dependencies, devDependencies, default */
+/***/ (function(module) {
+
+module.exports = {"name":"rili-server","version":"1.0.0","description":"The server side code for Rili","main":"build/index.js","scripts":{"build":"../node_modules/.bin/webpack --env production","build:dev":"../node_modules/.bin/webpack --env development","build:watch":"../node_modules/.bin/webpack --watch --env development","cleanup":"npm run stop:redis","connect:postgres":"docker container exec -it rili-postgres bash","connect:postgres:dev":"docker container exec -it rili-postgres-dev bash","lint:fix":"../node_modules/.bin/eslint --ext .jsx,.js --fix ./ && ../node_modules/.bin/tslint --fix -p ./","lint":"../node_modules/.bin/eslint --ext .jsx,.js ./ && ../node_modules/.bin/tslint -p ./","run:postgres:dev":"docker container run --name rili-postgres-dev -d -p 127.0.0.1:7432:5432 -e POSTGRES_USER=riliAdmin -e POSTGRES_PASSWORD=secret postgres:latest","run:redis:dev":"docker container run --name rili-redis-pub-dev -d -p 17771:6379 redis:latest && docker container run --name rili-redis-sub-dev -d -p 17772:6379 redis:latest","setup:dev":"npm run run:postgres:dev && npm run run:redis:dev","start":"../node_modules/.bin/pm2 start pm2/ecosystem.config.js --watch --env production","start:server:api":"npm run start:postgres && ../node_modules/.bin/pm2 start pm2/ecosystem.config.js --only rili-server-api --env production","start:server:api:dev":"npm run start:postgres:dev && npm run build:dev && ../node_modules/.bin/nodemon --require=../node_modules/dotenv/config build/server-api.js dotenv_config_path=../.env --withSQLLogs","start:server:socketio":"npm run start:redis && ../node_modules/.bin/pm2 start pm2/ecosystem.config.js --only rili-server-socket-io --env production","start:server:socketio:dev":"npm run start:redis:dev && npm run build:dev && ../node_modules/.bin/nodemon --require=../node_modules/dotenv/config build/server-socket-io.js dotenv_config_path=../.env --withAllLogs","start:docker":"npm run start:postgres && npm run start:redis","start:docker:dev":"npm run start:postgres:dev && npm run start:redis:dev","start:postgres":"docker container start rili-postgres","start:postgres:dev":"docker container start rili-postgres-dev","start:redis":"docker container start rili-redis-pub rili-redis-sub","start:redis:dev":"docker container start rili-redis-pub-dev rili-redis-sub-dev","stop:postgres":"docker container stop rili-postgres","stop:postgres:dev":"docker container stop rili-postgres-dev","stop:redis":"docker container stop rili-redis-pub rili-redis-sub","stop:redis:dev":"docker container stop rili-redis-pub-dev rili-redis-sub-dev","test":"npm run lint:fix && echo \"Error: no test specified\" && exit 0"},"keywords":["rili","server"],"author":"Rili, Inc.","license":"MIT","dependencies":{},"devDependencies":{}};
+
+/***/ }),
+
 /***/ "./src/api/db/create-tables.ts":
 /*!*************************************!*\
   !*** ./src/api/db/create-tables.ts ***!
@@ -866,7 +877,7 @@ const createTables = (knex) => {
                 table.string('last_name');
                 table.string('password');
                 table.string('phone_number').unique();
-                table.timestamps();
+                table.timestamps(true, true);
             }).debug(notProd).then((table) => {
                 print_logs_1.default({
                     shouldPrintLogs: server_api_1.shouldPrintSQLLogs,
@@ -905,6 +916,7 @@ const print_logs_1 = __webpack_require__(/*! rili-public-library/utilities/print
 const server_api_1 = __webpack_require__(/*! ../../server-api */ "./src/server-api.ts");
 const users_1 = __webpack_require__(/*! ../validation/users */ "./src/api/validation/users.ts");
 const validation_1 = __webpack_require__(/*! ../validation */ "./src/api/validation/index.ts");
+const userHelpers_1 = __webpack_require__(/*! ../../utilities/userHelpers */ "./src/utilities/userHelpers.ts");
 const router = express.Router();
 const notProd = "development" !== 'production';
 class UserRoutes {
@@ -926,7 +938,7 @@ class UserRoutes {
                 messageOrigin: `SQL:USER_ROUTES:ERROR`,
                 messages: [err.toString()],
             });
-            res.status(500).end(httpResponse.error(500, err.toString()));
+            res.status(500).send(httpResponse.error(500, err.toString()));
         };
         // TODO: Determine if should end connection after each request
         this.knex = knex;
@@ -946,26 +958,28 @@ class UserRoutes {
                 res.status(200).send(httpResponse.success(results));
             })
                 .catch((err) => {
-                this.handleError(err, res);
-                return;
+                return this.handleError(err, res);
             });
         })
             .post(users_1.createUserValidation, validation_1.validate, (req, res) => {
-            knex().insert({
-                first_name: req.body.firstName,
-                last_name: req.body.lastName,
-                phone_number: req.body.phoneNumber,
-                user_name: req.body.userName,
-            }).into('main.users').returning('id').debug(notProd)
-                .then((results) => {
-                res.status(201).send(httpResponse.success({
-                    id: results[0],
-                }));
-                return;
-            })
-                .catch((err) => {
-                this.handleError(err, res);
-                return;
+            userHelpers_1.hashPassword(req.body.password).then((hash) => {
+                knex().insert({
+                    first_name: req.body.firstName,
+                    last_name: req.body.lastName,
+                    password: hash,
+                    phone_number: req.body.phoneNumber,
+                    user_name: req.body.userName,
+                }).into('main.users').returning('id').debug(notProd)
+                    .then((results) => {
+                    return res.status(201).send(httpResponse.success({
+                        id: results[0],
+                    }));
+                })
+                    .catch((err) => {
+                    return this.handleError(err.toString(), res);
+                });
+            }).catch((err) => {
+                return this.handleError(err.toString(), res);
             });
         });
         router.route('/users/:id')
@@ -998,8 +1012,7 @@ class UserRoutes {
                 });
             })
                 .catch((err) => {
-                this.handleError(err, res);
-                return;
+                return this.handleError(err, res);
             });
         })
             .delete((req, res) => {
@@ -1013,8 +1026,7 @@ class UserRoutes {
                 }
             })
                 .catch((err) => {
-                this.handleError(err, res);
-                return;
+                return this.handleError(err, res);
             });
         });
     }
@@ -1064,7 +1076,7 @@ exports.createUserValidation = [
     check_1.body('phoneNumber').exists().isMobilePhone('any'),
     check_1.body('firstName').exists().isString(),
     check_1.body('password').exists().isString().isLength({ min: 8 }),
-    check_1.body('lastLame').exists().isString(),
+    check_1.body('lastName').exists().isString(),
     check_1.body('userName').exists().isString(),
 ];
 
@@ -1097,7 +1109,8 @@ const UserRoutes_1 = __webpack_require__(/*! ./api/routes/UserRoutes */ "./src/a
 exports.shouldPrintAllLogs = yargs_1.argv.withAllLogs;
 exports.shouldPrintSQLLogs = yargs_1.argv.withSQLLogs || exports.shouldPrintAllLogs;
 exports.shouldPrintServerLogs = yargs_1.argv.withServerLogs || exports.shouldPrintAllLogs;
-const API_BASE_ROUTE = '/api';
+const package_json_1 = __webpack_require__(/*! ../package.json */ "./package.json");
+const API_BASE_ROUTE = `/api/v${package_json_1.version.split('.')[0]}`;
 const app = express();
 // Parse JSON
 app.use(bodyParser.json());
@@ -1173,6 +1186,36 @@ else {
     }
 }
 
+
+/***/ }),
+
+/***/ "./src/utilities/userHelpers.ts":
+/*!**************************************!*\
+  !*** ./src/utilities/userHelpers.ts ***!
+  \**************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const bcrypt = __webpack_require__(/*! bcrypt */ "bcrypt");
+const saltRounds = 10;
+exports.hashPassword = (password) => {
+    return bcrypt.hash(password, saltRounds);
+};
+
+
+/***/ }),
+
+/***/ "bcrypt":
+/*!*************************!*\
+  !*** external "bcrypt" ***!
+  \*************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("bcrypt");
 
 /***/ }),
 

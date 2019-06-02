@@ -16,7 +16,8 @@ export const shouldPrintAllLogs = argv.withAllLogs;
 export const shouldPrintSQLLogs =  argv.withSQLLogs || shouldPrintAllLogs;
 export const shouldPrintServerLogs = argv.withServerLogs || shouldPrintAllLogs;
 
-const API_BASE_ROUTE = '/api';
+import { version as packageVersion } from '../package.json';
+const API_BASE_ROUTE = `/api/v${packageVersion.split('.')[0]}`;
 
 const app = express();
 
