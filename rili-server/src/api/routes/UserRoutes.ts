@@ -2,7 +2,13 @@ import * as express from 'express';
 import * as Knex from 'knex';
 import * as httpResponse from 'rili-public-library/utilities/http-response';
 import printLogs from 'rili-public-library/utilities/print-logs';
-import { shouldPrintSQLLogs } from '../server-api';
+import { shouldPrintSQLLogs } from '../../server-api';
+import {
+    createUserValidation,
+} from '../validation/users';
+import {
+    validate,
+} from '../validation';
 const router = express.Router();
 
 const notProd = process.env.NODE_ENV !== 'production';
@@ -26,7 +32,7 @@ class UserRoutes {
         });
 
         router.route('/users')
-            .get((req, res) => {
+            .get((req: any, res: any) => {
                 knex.select('*').from('main.users').orderBy('id').debug(notProd)
                     .then((results) => {
                         res.status(200).send(httpResponse.success(results));
@@ -36,7 +42,7 @@ class UserRoutes {
                         return;
                     });
             })
-            .post((req, res) => {
+            .post(createUserValidation, validate, (req: any, res: any) => {
                 knex().insert({
                     first_name: req.body.firstName,
                     last_name: req.body.lastName,
