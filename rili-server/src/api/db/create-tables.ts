@@ -16,7 +16,7 @@ const createTables = (knex: Knex) => {
                 table.string('last_name');
                 table.string('password');
                 table.string('phone_number').unique();
-                table.timestamps();
+                table.timestamps(true, true);
             }).debug(notProd).then((table) => {
                 printLogs({
                     shouldPrintLogs: shouldPrintSQLLogs,

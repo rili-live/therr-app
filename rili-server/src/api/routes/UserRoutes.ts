@@ -9,8 +9,10 @@ import {
 import {
     validate,
 } from '../validation';
-const router = express.Router();
+import { hashPassword } from '../../utilities/userHelpers';
+import { hash } from 'bcrypt';
 
+const router = express.Router();
 const notProd = process.env.NODE_ENV !== 'production';
 
 class UserRoutes {
@@ -38,27 +40,29 @@ class UserRoutes {
                         res.status(200).send(httpResponse.success(results));
                     })
                     .catch((err) => {
-                        this.handleError(err, res);
-                        return;
+                        return this.handleError(err, res);
                     });
             })
             .post(createUserValidation, validate, (req: any, res: any) => {
-                knex().insert({
-                    first_name: req.body.firstName,
-                    last_name: req.body.lastName,
-                    phone_number: req.body.phoneNumber,
-                    user_name: req.body.userName,
-                }).into('main.users').returning('id').debug(notProd)
-                    .then((results) => {
-                        res.status(201).send(httpResponse.success({
-                            id: results[0],
-                        }));
-                        return;
-                    })
-                    .catch((err) => {
-                        this.handleError(err, res);
-                        return;
-                    });
+                hashPassword(req.body.password).then((hash) => {
+                    knex().insert({
+                        first_name: req.body.firstName,
+                        last_name: req.body.lastName,
+                        password: hash,
+                        phone_number: req.body.phoneNumber,
+                        user_name: req.body.userName,
+                    }).into('main.users').returning('id').debug(notProd)
+                        .then((results) => {
+                            return res.status(201).send(httpResponse.success({
+                                id: results[0],
+                            }));
+                        })
+                        .catch((err) => {
+                            return this.handleError(err.toString(), res);
+                        });
+                }).catch((err) => {
+                    return this.handleError(err.toString(), res);
+                });
             });
 
         router.route('/users/:id')
@@ -90,8 +94,7 @@ class UserRoutes {
                         });
                     })
                     .catch((err) => {
-                        this.handleError(err, res);
-                        return;
+                        return this.handleError(err, res);
                     });
             })
             .delete((req, res) => {
@@ -104,8 +107,7 @@ class UserRoutes {
                         }
                     })
                     .catch((err) => {
-                        this.handleError(err, res);
-                        return;
+                        return this.handleError(err, res);
                     });
             });
     }
@@ -128,7 +130,7 @@ class UserRoutes {
             messageOrigin: `SQL:USER_ROUTES:ERROR`,
             messages: [err.toString()],
         });
-        res.status(500).end(httpResponse.error(500, err.toString()));
+        res.status(500).send(httpResponse.error(500, err.toString()));
     }
 }
 
