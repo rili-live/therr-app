@@ -1,6 +1,6 @@
 import * as Knex from 'knex';
 import printLogs from 'rili-public-library/utilities/print-logs';
-import { shouldPrintSQLLogs } from '../server-api';
+import { shouldPrintSQLLogs } from '../../server-api';
 
 const notProd = process.env.NODE_ENV !== 'production';
 
@@ -14,9 +14,9 @@ const createTables = (knex: Knex) => {
                 table.string('user_name');
                 table.string('first_name');
                 table.string('last_name');
-                table.string('phone_number');
+                table.string('phone_number').unique();
                 table.timestamps();
-            }).debug(notProd).then(() => {
+            }).debug(notProd).then((table) => {
                 printLogs({
                     shouldPrintLogs: shouldPrintSQLLogs,
                     messageOrigin: `SQL:CREATE_TABLE:USERS`,
