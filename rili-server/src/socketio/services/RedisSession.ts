@@ -1,5 +1,5 @@
 import * as Redis from 'ioredis';
-import * as globalConfig from '../../../global-config.js';
+import * as globalConfig from '../../../../global-config.js';
 import RedisHelper from './RedisHelper';
 
 interface IRedisSessionArgs {
