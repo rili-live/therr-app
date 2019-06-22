@@ -9,7 +9,6 @@ import { argv } from 'yargs';
 import * as Knex from 'knex';
 import * as globalConfig from '../../global-config.js';
 import printLogs from 'rili-public-library/utilities/print-logs';
-import createTables from './api/db/create-tables';
 import UserRoutes from './api/routes/UserRoutes';
 
 export const shouldPrintAllLogs = argv.withAllLogs;
@@ -47,10 +46,8 @@ const knex = Knex({
     acquireConnectionTimeout: 60000,
 });
 
-// Update database and configure routes
-createTables(knex).then(() => {
-    app.use(API_BASE_ROUTE, (new UserRoutes(knex)).router);
-});
+// Configure routes
+app.use(API_BASE_ROUTE, (new UserRoutes(knex)).router);
 
 // Cluster config and server start
 if (cluster.isMaster && argv.shouldCluster) {

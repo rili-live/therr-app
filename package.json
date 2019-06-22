@@ -6,12 +6,15 @@
   "scripts": {
     "build:all": "npm run prepare && _bin/apply-to-all.sh 'npm run build'",
     "clean:all": "rm -rf node_modules && _bin/apply-to-all.sh 'rm -rf node_modules'",
+    "connect:postgres": "docker container exec -it docker_rili-postgres_1 bash",
+    "connect:postgres:dev": "docker container exec -it docker_rili-postgres-dev_1 bash",
     "lint:all": "npm install && _bin/apply-to-all.sh 'npm run lint'",
     "lint:fix:all": "npm install && _bin/apply-to-all.sh 'npm run lint:fix'",
     "install:root": "npm run prepare && npm install && _bin/apply-to-all.sh 'npm install' rootOnly",
     "install:all": "npm run prepare && npm install && _bin/apply-to-all.sh 'npm install'",
     "prepare": "_bin/prepare.sh",
     "start": "npm run prepare && _bin/start.sh",
+    "start:dev": "npm run prepare && _bin/start.sh dev",
     "test:all": "_bin/apply-to-all.sh 'npm test'",
     "test:coverage:all": "_bin/apply-to-all.sh 'npm run test:coverage'"
   },
@@ -42,6 +45,7 @@
     "@types/http-status": "^0.2.30",
     "@types/ioredis": "^4.0.10",
     "@types/jest": "^23.3.14",
+    "@types/jsonwebtoken": "^8.3.2",
     "@types/pg-pool": "0.0.3",
     "@types/prop-types": "^15.7.1",
     "@types/react": "^16.8.16",
@@ -111,7 +115,7 @@
   "dependencies": {
     "@babel/preset-react": "^7.0.0",
     "@types/pg": "^7.4.14",
-    "axios": "^0.18.0",
+    "axios": "^0.19.0",
     "bcrypt": "^3.0.6",
     "classnames": "^2.2.6",
     "dotenv": "^8.0.0",
