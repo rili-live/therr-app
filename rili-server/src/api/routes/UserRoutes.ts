@@ -9,8 +9,8 @@ import {
 import {
     validate,
 } from '../validation';
+import handleError from '../../utilities/handleError';
 import { hashPassword } from '../../utilities/userHelpers';
-import { hash } from 'bcrypt';
 
 const router = express.Router();
 const notProd = process.env.NODE_ENV !== 'production';
@@ -40,7 +40,7 @@ class UserRoutes {
                         res.status(200).send(httpResponse.success(results));
                     })
                     .catch((err) => {
-                        return this.handleError(err, res);
+                        return handleError(err, res);
                     });
             })
             .post(createUserValidation, validate, (req: any, res: any) => {
@@ -58,10 +58,10 @@ class UserRoutes {
                             }));
                         })
                         .catch((err) => {
-                            return this.handleError(err.toString(), res);
+                            return handleError(err, res);
                         });
                 }).catch((err) => {
-                    return this.handleError(err.toString(), res);
+                    return handleError(err.toString(), res);
                 });
             });
 
@@ -73,7 +73,7 @@ class UserRoutes {
                     if (err === 404) {
                         res.status(404).send(httpResponse.error(404, `No user found with id, ${req.params.id}.`));
                     } else {
-                        this.handleError(err, res);
+                        handleError(err, res);
                     }
                 });
             })
@@ -94,7 +94,7 @@ class UserRoutes {
                         });
                     })
                     .catch((err) => {
-                        return this.handleError(err, res);
+                        return handleError(err, res);
                     });
             })
             .delete((req, res) => {
@@ -107,7 +107,7 @@ class UserRoutes {
                         }
                     })
                     .catch((err) => {
-                        return this.handleError(err, res);
+                        return handleError(err, res);
                     });
             });
     }
@@ -121,16 +121,6 @@ class UserRoutes {
 
                 throw 404;
             });
-    }
-
-    handleError = (err: Error, res: express.Response) => {
-        // TODO: Handle various error status codes
-        printLogs({
-            shouldPrintLogs: shouldPrintSQLLogs,
-            messageOrigin: `SQL:USER_ROUTES:ERROR`,
-            messages: [err.toString()],
-        });
-        res.status(500).send(httpResponse.error(500, err.toString()));
     }
 }
 
