@@ -7,12 +7,12 @@ import * as Redis from 'ioredis';
 import * as socketio from 'socket.io';
 import * as socketioRedis from 'socket.io-redis';
 import { argv } from 'yargs';
-import * as socketHandlers from './handlers/socket';
+import * as socketHandlers from './socketio/handlers';
 import { SocketServerActionTypes, SocketClientActionTypes } from 'rili-public-library/utilities/constants';
 import * as Constants from './constants';
 import printLogs from 'rili-public-library/utilities/print-logs';
 import * as globalConfig from '../../global-config.js';
-import RedisSession from './services/RedisSession';
+import RedisSession from './socketio/services/RedisSession';
 import getSocketRoomsList from './utilities/get-socket-rooms-list';
 
 export const rsAppName = 'riliChat';

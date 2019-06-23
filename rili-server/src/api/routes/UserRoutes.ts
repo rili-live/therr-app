@@ -2,9 +2,17 @@ import * as express from 'express';
 import * as Knex from 'knex';
 import * as httpResponse from 'rili-public-library/utilities/http-response';
 import printLogs from 'rili-public-library/utilities/print-logs';
-import { shouldPrintSQLLogs } from '../server-api';
-const router = express.Router();
+import { shouldPrintSQLLogs } from '../../server-api';
+import {
+    createUserValidation,
+} from '../validation/users';
+import {
+    validate,
+} from '../validation';
+import handleError from '../../utilities/handleError';
+import { hashPassword } from '../../utilities/userHelpers';
 
+const router = express.Router();
 const notProd = process.env.NODE_ENV !== 'production';
 
 class UserRoutes {
@@ -26,33 +34,37 @@ class UserRoutes {
         });
 
         router.route('/users')
-            .get((req, res) => {
+            .get((req: any, res: any) => {
                 knex.select('*').from('main.users').orderBy('id').debug(notProd)
                     .then((results) => {
                         res.status(200).send(httpResponse.success(results));
                     })
                     .catch((err) => {
-                        this.handleError(err, res);
-                        return;
+                        return handleError(err, res);
                     });
             })
-            .post((req, res) => {
-                knex().insert({
-                    first_name: req.body.firstName,
-                    last_name: req.body.lastName,
-                    phone_number: req.body.phoneNumber,
-                    user_name: req.body.userName,
-                }).into('main.users').returning('id').debug(notProd)
-                    .then((results) => {
-                        res.status(201).send(httpResponse.success({
-                            id: results[0],
-                        }));
-                        return;
-                    })
-                    .catch((err) => {
-                        this.handleError(err, res);
-                        return;
-                    });
+            .post(createUserValidation, validate, (req: any, res: any) => {
+                // TODO: Make sure user does not already exist
+                hashPassword(req.body.password).then((hash) => {
+                    knex.queryBuilder().insert({
+                        email: req.body.email,
+                        firstName: req.body.firstName,
+                        lastName: req.body.lastName,
+                        password: hash,
+                        phoneNumber: req.body.phoneNumber,
+                        userName: req.body.userName,
+                    }).into('main.users').returning('id').debug(notProd)
+                        .then((results) => {
+                            return res.status(201).send(httpResponse.success({
+                                id: results[0],
+                            }));
+                        })
+                        .catch((err) => {
+                            return handleError(err, res);
+                        });
+                }).catch((err) => {
+                    return handleError(err.toString(), res);
+                });
             });
 
         router.route('/users/:id')
@@ -63,17 +75,17 @@ class UserRoutes {
                     if (err === 404) {
                         res.status(404).send(httpResponse.error(404, `No user found with id, ${req.params.id}.`));
                     } else {
-                        this.handleError(err, res);
+                        handleError(err, res);
                     }
                 });
             })
             .put((req, res) => {
                 knex()
                     .update({
-                        first_name: req.body.firstName,
-                        last_name: req.body.lastName,
-                        phone_number: req.body.phoneNumber,
-                        user_name: req.body.userName,
+                        firstName: req.body.firstName,
+                        lastName: req.body.lastName,
+                        phoneNumber: req.body.phoneNumber,
+                        userName: req.body.userName,
                     })
                     .into('main.users')
                     .where({ id: req.params.id }).returning('*').debug(notProd)
@@ -84,8 +96,7 @@ class UserRoutes {
                         });
                     })
                     .catch((err) => {
-                        this.handleError(err, res);
-                        return;
+                        return handleError(err, res);
                     });
             })
             .delete((req, res) => {
@@ -98,8 +109,7 @@ class UserRoutes {
                         }
                     })
                     .catch((err) => {
-                        this.handleError(err, res);
-                        return;
+                        return handleError(err, res);
                     });
             });
     }
@@ -113,16 +123,6 @@ class UserRoutes {
 
                 throw 404;
             });
-    }
-
-    handleError = (err: Error, res: express.Response) => {
-        // TODO: Handle various error status codes
-        printLogs({
-            shouldPrintLogs: shouldPrintSQLLogs,
-            messageOrigin: `SQL:USER_ROUTES:ERROR`,
-            messages: [err.toString()],
-        });
-        res.status(500).end(httpResponse.error(500, err.toString()));
     }
 }
 
