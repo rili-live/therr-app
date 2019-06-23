@@ -1,10 +1,12 @@
 import * as bcrypt from 'bcrypt';
 import * as express from 'express';
 import * as Knex from 'knex';
+import * as jwt from 'jsonwebtoken';
 import * as httpResponse from 'rili-public-library/utilities/http-response';
 import printLogs from 'rili-public-library/utilities/print-logs';
 import { shouldPrintSQLLogs } from '../../server-api';
 import {
+    authenticateUserTokenValidation,
     authenticateUserValidation,
 } from '../validation/auth';
 import {
@@ -15,6 +17,8 @@ import { createUserToken } from '../../utilities/userHelpers';
 
 const router = express.Router();
 const notProd = process.env.NODE_ENV !== 'production';
+
+const invalidUserNameOrPassword = httpResponse.error(401, 'Incorrect username or password');
 
 class AuthRoutes {
     knex: Knex;
@@ -34,9 +38,9 @@ class AuthRoutes {
             next();
         });
 
+        // Login user
         router.route('/auth')
             .post(authenticateUserValidation, validate, (req: any, res: any) => {
-                const invalidUserNameOrPassword = httpResponse.error(401, 'Incorrect username or password');
                 this.getUser(req.body.userName).then((user) => {
                     bcrypt.compare(req.body.password, user.password).then((isValid) => {
                         if (isValid) {
@@ -55,27 +59,24 @@ class AuthRoutes {
                     if (error === 404) {
                         return res.status(401).send(invalidUserNameOrPassword);
                     }
+                    return res.status(500).send('something went wrong');
                 });
             });
 
-        // router.route('/auth/token/:token')
-        //     .post((req, res) => {
-        //         this.getUser(req.body.userName).then((user) => {
-        //             bcrypt.compare(req.body.password, user.password).then((isValid) => {
-        //                 if (isValid) {
-        //                     return res.status(200).send(httpResponse.success(user));
-        //                 }
+        // Validate user token (after login)
+        router.route('/auth/user-token/validate')
+            .post(authenticateUserTokenValidation, validate, (req: any, res: any) => {
+                try {
+                    const decodedToken = jwt.verify(req.body.idToken, process.env.SECRET);
+                    return res.status(200).send(decodedToken);
+                } catch (error) {
+                    if (error.name === 'TokenExpiredError') {
+                        return res.status(401).send(error.message);
+                    }
 
-        //                 return res.status(401).send(invalidUserNameOrPassword);
-        //             }).catch((err: any) => {
-        //                 return handleError(err, res);
-        //             });
-        //         }).catch((error) => {
-        //             if (error === 404) {
-        //                 return res.status(401).send(invalidUserNameOrPassword);
-        //             }
-        //         });
-        //     });
+                    return res.status(500).send('something went wrong');
+                }
+            });
     }
 
     getUser = (userName: string) => {
