@@ -8,11 +8,14 @@ export const hashPassword = (password: string) => {
 };
 
 export const createUserToken = (user: any, rememberMe?: boolean) => {
+    const { id, userName, email, phoneNumber } = user;
     // Sign the JWT
     return jwt.sign(
         {
-            id: user.id,
-            userName: user.userName,
+            id,
+            userName,
+            email,
+            phoneNumber,
         },
         process.env.SECRET,
         {

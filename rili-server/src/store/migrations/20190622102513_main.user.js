@@ -1,10 +1,11 @@
 exports.up = knex => knex.schema.createTable('main.users', (table) => {
     table.increments('id');
-    table.string('user_name');
-    table.string('first_name');
-    table.string('last_name');
-    table.string('password');
-    table.string('phone_number').unique();
+    table.string('userName').unique().notNullable();
+    table.string('email').unique().notNullable();
+    table.string('firstName');
+    table.string('lastName');
+    table.string('password').notNullable();
+    table.string('phoneNumber').unique().notNullable();
     table.timestamps(true, true);
 });
 

@@ -9,6 +9,7 @@ import { argv } from 'yargs';
 import * as Knex from 'knex';
 import * as globalConfig from '../../global-config.js';
 import printLogs from 'rili-public-library/utilities/print-logs';
+import AuthRoutes from './api/routes/AuthRoutes';
 import UserRoutes from './api/routes/UserRoutes';
 
 export const shouldPrintAllLogs = argv.withAllLogs;
@@ -47,6 +48,7 @@ const knex = Knex({
 });
 
 // Configure routes
+app.use(API_BASE_ROUTE, (new AuthRoutes(knex)).router);
 app.use(API_BASE_ROUTE, (new UserRoutes(knex)).router);
 
 // Cluster config and server start

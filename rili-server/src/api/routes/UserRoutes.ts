@@ -44,13 +44,15 @@ class UserRoutes {
                     });
             })
             .post(createUserValidation, validate, (req: any, res: any) => {
+                // TODO: Make sure user does not already exist
                 hashPassword(req.body.password).then((hash) => {
-                    knex().insert({
-                        first_name: req.body.firstName,
-                        last_name: req.body.lastName,
+                    knex.queryBuilder().insert({
+                        email: req.body.email,
+                        firstName: req.body.firstName,
+                        lastName: req.body.lastName,
                         password: hash,
-                        phone_number: req.body.phoneNumber,
-                        user_name: req.body.userName,
+                        phoneNumber: req.body.phoneNumber,
+                        userName: req.body.userName,
                     }).into('main.users').returning('id').debug(notProd)
                         .then((results) => {
                             return res.status(201).send(httpResponse.success({
@@ -80,10 +82,10 @@ class UserRoutes {
             .put((req, res) => {
                 knex()
                     .update({
-                        first_name: req.body.firstName,
-                        last_name: req.body.lastName,
-                        phone_number: req.body.phoneNumber,
-                        user_name: req.body.userName,
+                        firstName: req.body.firstName,
+                        lastName: req.body.lastName,
+                        phoneNumber: req.body.phoneNumber,
+                        userName: req.body.userName,
                     })
                     .into('main.users')
                     .where({ id: req.params.id }).returning('*').debug(notProd)
