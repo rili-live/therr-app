@@ -45,7 +45,7 @@ interface ILayoutState {
 
 const mapStateToProps = (state: any) => {
     return {
-        'redirectRoute': state.redirectRoute
+        'redirectRoute': state.redirectRoute,
     };
 };
 
@@ -79,7 +79,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         // ReactGA.initialize(globalConfig[process.env.NODE_ENV].googleAnalyticsKey);
         document.addEventListener('click', this.handleClick);
         this.setState({
-            'clientHasLoaded': true
+            'clientHasLoaded': true,
         });
     }
 

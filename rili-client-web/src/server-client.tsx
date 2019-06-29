@@ -10,7 +10,6 @@ import { applyMiddleware, createStore } from 'redux';
 import { Provider } from 'react-redux';
 import thunkMiddleware from 'redux-thunk';
 import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disable-line no-implicit-dependencies
-import * as globalConfig from '../../global-config.js';
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
@@ -46,7 +45,7 @@ const createAppServer = () => {
 
     return {
         app,
-        server
+        server,
     };
 };
 
@@ -106,10 +105,10 @@ for (let i in routeConfig) {
                 printLogs({
                     shouldPrintLogs: true,
                     messageOrigin: 'SERVER_CLIENT',
-                    messages: 'Somewhere a <Redirect> was rendered'
+                    messages: 'Somewhere a <Redirect> was rendered',
                 });
                 res.writeHead(staticContext.statusCode, {
-                    'Location': staticContext.url
+                    'Location': staticContext.url,
                 });
                 res.end();
             } else {
@@ -121,7 +120,7 @@ for (let i in routeConfig) {
 }
 
 // Start the server
-const port = globalConfig[process.env.NODE_ENV].clientPort;
+const port = process.env.CLIENT_PORT;
 server.listen(port, (err: any) => {
     if (err) {
         return console.error(err);

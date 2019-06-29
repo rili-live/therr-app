@@ -73,7 +73,7 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
         this.state = {
             hasJoinedARoom: false,
             inputs: {
-                roomId: 'general-chat'
+                roomId: 'general-chat',
             },
             roomsList: [],
         };
@@ -93,8 +93,8 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
         this.setState({
             inputs: {
                 ...this.state.inputs,
-                ...newInputChanges
-            }
+                ...newInputChanges,
+            },
         });
     }
 

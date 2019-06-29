@@ -33,7 +33,7 @@ export const configureTranslator = (translations: any) => {
             });
         }
 
-        return translatedValue;
+        return translatedValue || key;
     };
 
     return (locale: string, key: string, params: any) => {

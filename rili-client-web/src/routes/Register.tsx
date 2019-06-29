@@ -4,23 +4,23 @@ import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import translator from '../services/translator';
 import SocketActions from 'actions/socket';
-import LoginForm from '../components/LoginForm';
+import RegisterForm from '../components/RegisterForm';
 
-interface ILoginRouterProps {
+interface IRegisterRouterProps {
 }
 
-interface ILoginDispatchProps {
-    login: Function;
+interface IRegisterDispatchProps {
+    register: Function;
 }
 
-interface IStoreProps extends ILoginDispatchProps {
+interface IStoreProps extends IRegisterDispatchProps {
 }
 
 // Regular component props
-interface ILoginProps extends RouteComponentProps<ILoginRouterProps>, IStoreProps {
+interface IRegisterProps extends RouteComponentProps<IRegisterRouterProps>, IStoreProps {
 }
 
-interface ILoginState {
+interface IRegisterState {
     inputs: any;
 }
 
@@ -31,17 +31,17 @@ const mapStateToProps = (state: any) => {
 
 const mapDispatchToProps = (dispatch: any) => {
     return bindActionCreators({
-        login: SocketActions.login,
+        register: SocketActions.register,
     }, dispatch);
 };
 
 /**
  * Login
  */
-export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
+export class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> {
     private translate: Function;
 
-    constructor(props: ILoginProps) {
+    constructor(props: IRegisterProps) {
         super(props);
 
         this.state = {
@@ -52,24 +52,24 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     }
 
     componentDidMount() {
-        document.title = 'Rili | Login';
+        document.title = 'Rili | Register';
     }
 
-    login = (credentials: any) => {
-        this.props.login(credentials).then(() => {
-            this.props.history.push('/join-room');
+    register = (credentials: any) => {
+        this.props.register(credentials).then(() => {
+            this.props.history.push('/login');
         }).catch((error: any) => {
-            // console.log('LOGIN_ERROR: ', error);
+            // console.log('REGISTRATION_ERROR: ', error);
         });
     }
 
     public render(): JSX.Element | null {
         return (
             <div className="flex-box">
-                <LoginForm login={this.login} />
+                <RegisterForm register={this.register} />
             </div>
         );
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(LoginComponent));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(RegisterComponent));

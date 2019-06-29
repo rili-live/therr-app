@@ -207,6 +207,9 @@ label.required::before {
 .form-field {
   margin: 0 0 1rem;
 }
+.form-field label {
+  padding-left: 1rem;
+}
 
 input[type=color],
 input[type=date],

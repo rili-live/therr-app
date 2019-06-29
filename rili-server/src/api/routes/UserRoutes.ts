@@ -80,6 +80,7 @@ class UserRoutes {
                 });
             })
             .put((req, res) => {
+                // TODO: Make sure user does not already exist
                 knex()
                     .update({
                         firstName: req.body.firstName,
@@ -114,8 +115,8 @@ class UserRoutes {
             });
     }
 
-    getUser = (userId: string) => {
-        return this.knex.select('*').from('main.users').where({ id: userId }).debug(notProd)
+    getUser = (value: string, key = 'id') => {
+        return this.knex.select('*').from('main.users').where({ [key]: value }).debug(notProd)
             .then((results) => {
                 if (results && results.length > 0) {
                     return results[0];

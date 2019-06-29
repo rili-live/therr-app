@@ -103,38 +103,47 @@ class Input extends React.Component<any, any> {
         this.setState({
             isTouched: true,
         });
-        if (this.props.onFocus) {
-            this.props.onFocus();
-        }
+
+        return this.props.onFocus && this.props.onFocus();
+    }
+
+    onBlur = () => {
+        this.updateValidations(this.props);
+
+        return this.props.onBlur && this.props.onBlur();
     }
 
     updateValidations = (props: any) => {
-        const { onValidate, translate } = this.props;
-        const validationErrors: any = [];
+        const { isDirty, isTouched } = this.state;
 
-        if (props.validations.length === 0) {
-            return;
-        }
+        if (isDirty || isTouched) {
+            const { onValidate, translate } = this.props;
+            const validationErrors: any = [];
 
-        props.validations.forEach((key: any) => {
-            if (!VALIDATIONS[key].regex.test(props.value)) {
-                validationErrors.push({
-                    key,
-                    message: translate(VALIDATIONS[key].errorMessageLocalizationKey, {
-                        value: props.value,
-                    }),
+            if (props.validations.length === 0) {
+                return;
+            }
+
+            props.validations.forEach((key: any) => {
+                if (!VALIDATIONS[key].regex.test(props.value)) {
+                    validationErrors.push({
+                        key,
+                        message: translate(VALIDATIONS[key].errorMessageLocalizationKey, {
+                            value: props.value,
+                        }),
+                    });
+                }
+            });
+
+            this.setState({
+                validationErrors,
+            });
+
+            if (onValidate) {
+                onValidate({
+                    [props.id]: validationErrors,
                 });
             }
-        });
-
-        this.setState({
-            validationErrors,
-        });
-
-        if (onValidate) {
-            onValidate({
-                [props.id]: validationErrors,
-            });
         }
     }
 
@@ -160,7 +169,7 @@ class Input extends React.Component<any, any> {
                     type={type}
                     value={inputValue}
                     onChange={this.handleInputChange}
-                    onBlur={onBlur}
+                    onBlur={this.onBlur}
                     onFocus={this.onFocus}
                     onKeyDown={this.handleKeyDown}
                     placeholder={placeholder}
