@@ -159,7 +159,8 @@ label {
   color: #dee1e4;
   font-weight: 700;
   line-height: 2.5rem;
-  margin-bottom: 0; }
+  margin-bottom: 0;
+  padding-left: 1rem; }
   label.required::before {
     color: #c23e37;
     content: '*';
@@ -642,4 +643,4 @@ body {
   background: #ff4081; }
 
 
-/*# sourceMappingURL=demo-page.1cd2d6051774d663f17f.css.map*/
+/*# sourceMappingURL=demo-page.68b7c80dbbb293a4830e.css.map*/

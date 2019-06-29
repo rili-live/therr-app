@@ -9,9 +9,7 @@ const error = (statusCode: number, error: string) => {
 };
 
 const success = (data: any) => {
-    return {
-        data,
-    };
+    return data;
 };
 
 export {

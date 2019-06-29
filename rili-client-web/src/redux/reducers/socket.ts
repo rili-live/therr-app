@@ -5,10 +5,10 @@ import { IMessageList, ISocketState } from 'types/socket';
 const initialState: ISocketState = Immutable.from({
     user: {
         userName: '',
-        currentRoom: ''
+        currentRoom: '',
     },
     rooms: [],
-    messages: Immutable({})
+    messages: Immutable({}),
 });
 
 const socket = (state: ISocketState = initialState, action: any) => {

@@ -15,10 +15,10 @@
     "seeds:create": "node --require=../node_modules/dotenv/config ../node_modules/.bin/knex --require @babel/register --knexfile ./src/store/knexfile.js seed:make $1 dotenv_config_path=../.env",
     "seeds:run": "node --require=../node_modules/dotenv/config ../node_modules/.bin/babel-node ../node_modules/.bin/knex --knexfile ./src/store/knexfile.js seed:run dotenv_config_path=../.env",
     "start": "../node_modules/.bin/pm2 start pm2/ecosystem.config.js --watch --env production",
-    "start:server:api": "../node_modules/.bin/pm2 start pm2/ecosystem.config.js --only rili-server-api --env production",
-    "start:server:api:dev": "npm run build:dev && ../node_modules/.bin/nodemon --require=../node_modules/dotenv/config build/server-api.js dotenv_config_path=../.env --withSQLLogs",
-    "start:server:socketio": "../node_modules/.bin/pm2 start pm2/ecosystem.config.js --only rili-server-socket-io --env production",
-    "start:server:socketio:dev": "npm run build:dev && ../node_modules/.bin/nodemon --require=../node_modules/dotenv/config build/server-socket-io.js dotenv_config_path=../.env --withAllLogs",
+    "start:api": "../node_modules/.bin/pm2 start pm2/ecosystem.config.js --only rili-server-api --env production",
+    "start:api:dev": "npm run build:dev && ../node_modules/.bin/nodemon --require=../node_modules/dotenv/config build/server-api.js dotenv_config_path=../.env --withSQLLogs",
+    "start:socket": "../node_modules/.bin/pm2 start pm2/ecosystem.config.js --only rili-server-socket-io --env production",
+    "start:socket:dev": "npm run build:dev && ../node_modules/.bin/nodemon --require=../node_modules/dotenv/config build/server-socket-io.js dotenv_config_path=../.env --withAllLogs",
     "test": "npm run lint:fix && echo \"Error: no test specified\" && exit 0"
   },
   "keywords": [

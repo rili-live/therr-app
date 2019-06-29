@@ -1,0 +1,11 @@
+.register-container {
+    max-width: rem-calc(540px);
+    width: 100%;
+    padding: 1rem;
+}
+
+@media only screen and (min-width: rem-calc(540px)) {
+    .register-container {
+        width: rem-calc(360px);
+    }
+}

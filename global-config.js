@@ -5,9 +5,8 @@ const socketPortProd = 7743;
 module.exports = {
     development: {
         apiPort,
-        baseApiRoute: `http://localhost:${apiPort}/api/`,
+        baseApiRoute: `http://localhost:${apiPort}/api/v1`,
         baseSocketUrl: `http://localhost:${socketPortDev}`,
-        clientPort: 7070,
         googleAnalyticsKey: '',
         redisHost: '127.0.0.1',
         redisPubPort: 17771,
@@ -21,9 +20,8 @@ module.exports = {
     },
     production: {
         apiPort,
-        baseApiRoute: `http://rili.live:${apiPort}/api/`,
+        baseApiRoute: `http://rili.live:${apiPort}/api/v1`,
         baseSocketUrl: `https://rili.live:${socketPortProd}`,
-        clientPort: 7070,
         googleAnalyticsKey: '',
         redisHost: '127.0.0.1',
         redisPubPort: 17771,

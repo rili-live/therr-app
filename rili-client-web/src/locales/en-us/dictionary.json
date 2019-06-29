@@ -1,1 +1,5 @@
-{}
+{
+  "validations": {
+    "isRequired": "This is a required field"
+  }
+}

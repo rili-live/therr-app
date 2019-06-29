@@ -21,7 +21,7 @@ const initInterceptors = (
     // Global axios interceptor
     axios.interceptors.request.use((config) => {
 
-        let token = store.getState().user.id_token;
+        let token = store.getState().user && store.getState().user.idToken;
 
         if (token) {
             config.headers.authorization = 'Bearer ' + token;
@@ -63,7 +63,7 @@ const initInterceptors = (
         }
 
         if (numLoadings === 0) {
-            return Promise.reject(error.response.data);
+            return Promise.reject(error && error.response && error.response.data);
         }
 
         if (numLoadings < 2) {

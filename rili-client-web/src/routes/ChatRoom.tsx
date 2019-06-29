@@ -108,8 +108,8 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
         this.setState({
             inputs: {
                 ...this.state.inputs,
-                ...newInputChanges
-            }
+                ...newInputChanges,
+            },
         });
     }
 
