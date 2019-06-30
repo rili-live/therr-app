@@ -7,6 +7,7 @@ import SocketActions from 'actions/socket';
 import RegisterForm from '../components/RegisterForm';
 
 interface IRegisterRouterProps {
+    history: any;
 }
 
 interface IRegisterDispatchProps {
@@ -21,6 +22,7 @@ interface IRegisterProps extends RouteComponentProps<IRegisterRouterProps>, ISto
 }
 
 interface IRegisterState {
+    errorMessage: String;
     inputs: any;
 }
 
@@ -45,6 +47,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
         super(props);
 
         this.state = {
+            errorMessage: '',
             inputs: {},
         };
 
@@ -56,18 +59,40 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
     }
 
     register = (credentials: any) => {
-        this.props.register(credentials).then(() => {
-            this.props.history.push('/login');
+        this.props.register(credentials).then((response: any) => {
+            this.props.history.push({
+                pathname: '/login',
+                state: {
+                    successMessage: 'Registration success! Login to continue.',
+                },
+            });
         }).catch((error: any) => {
-            // console.log('REGISTRATION_ERROR: ', error);
+            if (error.id === 'userExists') {
+                this.setState({
+                    errorMessage: error.message,
+                });
+            } else {
+                this.setState({
+                    errorMessage: 'Oops, something went wrong',
+                });
+            }
         });
     }
 
     public render(): JSX.Element | null {
+        const { errorMessage } = this.state;
+
         return (
-            <div className="flex-box">
-                <RegisterForm register={this.register} />
-            </div>
+            <>
+                <div className="flex-box">
+                    <RegisterForm register={this.register} />
+                    
+                </div>
+                {
+                    errorMessage &&
+                    <div className="alert-error text-center">{errorMessage}</div>
+                }
+            </>
         );
     }
 }

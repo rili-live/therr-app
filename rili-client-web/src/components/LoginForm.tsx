@@ -6,8 +6,9 @@ import translator from '../services/translator';
 
 // Regular component props
 interface ILoginFormProps {
-  login: Function;
-  title?: String;
+    alert?: String;
+    login: Function;
+    title?: String;
 }
 
 interface ILoginFormState {
@@ -61,11 +62,15 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
     }
 
     public render(): JSX.Element | null {
-        const { title } = this.props;
+        const { alert, title } = this.props;
 
         return (
           <div className="login-container">
           <h1 className="text-center">{ title || 'Login' }</h1>
+          {
+              alert &&
+              <div className="text-center alert-success">{alert}</div>
+          }
           <label htmlFor="user_name">Username:</label>
           <Input type="text" id="user_name" name="userName" value={this.state.inputs.userName} onChange={this.onInputChange} onEnter={this.onSubmit} translate={this.translate} />
 

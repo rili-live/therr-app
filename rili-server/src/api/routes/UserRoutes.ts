@@ -11,6 +11,7 @@ import {
 } from '../validation';
 import handleError from '../../utilities/handleError';
 import { hashPassword } from '../../utilities/userHelpers';
+import { HttpErrors } from '../../constants';
 
 const router = express.Router();
 const notProd = process.env.NODE_ENV !== 'production';
@@ -44,24 +45,31 @@ class UserRoutes {
                     });
             })
             .post(createUserValidation, validate, (req: any, res: any) => {
-                // TODO: Make sure user does not already exist
-                hashPassword(req.body.password).then((hash) => {
-                    knex.queryBuilder().insert({
-                        email: req.body.email,
-                        firstName: req.body.firstName,
-                        lastName: req.body.lastName,
-                        password: hash,
-                        phoneNumber: req.body.phoneNumber,
-                        userName: req.body.userName,
-                    }).into('main.users').returning('id').debug(notProd)
-                        .then((results) => {
-                            return res.status(201).send(httpResponse.success({
-                                id: results[0],
-                            }));
-                        })
-                        .catch((err) => {
-                            return handleError(err, res);
-                        });
+                this.checkIfUserExists(req.body).then((exists) => {
+                    if (exists) {
+                        return res.status(400).send(httpResponse.error({
+                            id: HttpErrors.USER_EXISTS,
+                            message: 'Username, e-mail, and phone number must be unique. A user already exists.',
+                            statusCode: 400,
+                        }));
+                    }
+
+                    return hashPassword(req.body.password).then((hash) => {
+                        knex.queryBuilder().insert({
+                            email: req.body.email,
+                            firstName: req.body.firstName,
+                            lastName: req.body.lastName,
+                            password: hash,
+                            phoneNumber: req.body.phoneNumber,
+                            userName: req.body.userName,
+                        }).into('main.users').returning(['email', 'id', 'userName']).debug(notProd)
+                            .then((results) => {
+                                return res.status(201).send(httpResponse.success(results[0]));
+                            })
+                            .catch((err) => {
+                                return handleError(err, res);
+                            });
+                    });
                 }).catch((err) => {
                     return handleError(err.toString(), res);
                 });
@@ -73,14 +81,18 @@ class UserRoutes {
                     res.send(httpResponse.success(user));
                 }).catch((err) => {
                     if (err === 404) {
-                        res.status(404).send(httpResponse.error(404, `No user found with id, ${req.params.id}.`));
+                        res.status(404).send(httpResponse.error({
+                            message: `No user found with id, ${req.params.id}.`,
+                            statusCode: 404,
+                        }));
                     } else {
                         handleError(err, res);
                     }
                 });
             })
             .put((req, res) => {
-                // TODO: Make sure user does not already exist
+                // TODO: Check if (other) users exist with unique properties
+                // Throw error
                 knex()
                     .update({
                         firstName: req.body.firstName,
@@ -106,7 +118,10 @@ class UserRoutes {
                         if (results > 0) {
                             res.status(200).send(httpResponse.success(`Customer with id, ${req.params.id}, was successfully deleted`));
                         } else {
-                            res.status(404).send(httpResponse.error(404, `No user found with id, ${req.params.id}.`));
+                            res.status(404).send(httpResponse.error({
+                                message: `No user found with id, ${req.params.id}.`,
+                                statusCode: 404,
+                            }));
                         }
                     })
                     .catch((err) => {
@@ -115,11 +130,29 @@ class UserRoutes {
             });
     }
 
+    checkIfUserExists = (body: any) => {
+        const { id, email, userName, phoneNumber } = body;
+        return this.knex.select('*').from('main.users')
+            .where(function () {
+                return id ? this.where({ id }) : this;
+            })
+            .orWhere({ email })
+            .orWhere({ userName })
+            .orWhere({ phoneNumber }).debug(notProd)
+            .then((results) => {
+                if (results && results.length > 0) {
+                    return results[0];
+                }
+
+                return false;
+            });
+    }
+
     getUser = (value: string, key = 'id') => {
         return this.knex.select('*').from('main.users').where({ [key]: value }).debug(notProd)
             .then((results) => {
                 if (results && results.length > 0) {
-                    return results[0];
+                    return !!results[0];
                 }
 
                 throw 404;

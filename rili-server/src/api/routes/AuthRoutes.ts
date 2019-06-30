@@ -18,7 +18,10 @@ import { createUserToken } from '../../utilities/userHelpers';
 const router = express.Router();
 const notProd = process.env.NODE_ENV !== 'production';
 
-const invalidUserNameOrPassword = httpResponse.error(401, 'Incorrect username or password');
+const invalidUserNameOrPassword = httpResponse.error({
+    message: 'Incorrect username or password',
+    statusCode: 401,
+});
 
 class AuthRoutes {
     knex: Knex;

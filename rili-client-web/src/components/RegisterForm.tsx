@@ -44,7 +44,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                 if (!this.isFormDisabled()) {
                     const creds = { ...this.state.inputs };
                     delete creds.repeatPassword;
-                    // this.props.register(creds);
+                    this.props.register(creds);
                 }
         }
     }
