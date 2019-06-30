@@ -32,7 +32,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "731c33a9c256c1bdda6b";
+/******/ 	var hotCurrentHash = "0101463fda0f56b0fdec";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -316,7 +316,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 			var outdatedModules = [updateModuleId];
 /******/ 			var outdatedDependencies = {};
 /******/
-/******/ 			var queue = outdatedModules.slice().map(function(id) {
+/******/ 			var queue = outdatedModules.map(function(id) {
 /******/ 				return {
 /******/ 					chain: [id],
 /******/ 					id: id
@@ -493,12 +493,15 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 			moduleId = outdatedModules[i];
 /******/ 			if (
 /******/ 				installedModules[moduleId] &&
-/******/ 				installedModules[moduleId].hot._selfAccepted
-/******/ 			)
+/******/ 				installedModules[moduleId].hot._selfAccepted &&
+/******/ 				// removed self-accepted modules should not be required
+/******/ 				appliedUpdate[moduleId] !== warnUnexpectedRequire
+/******/ 			) {
 /******/ 				outdatedSelfAcceptedModules.push({
 /******/ 					module: moduleId,
 /******/ 					errorHandler: installedModules[moduleId].hot._selfAccepted
 /******/ 				});
+/******/ 			}
 /******/ 		}
 /******/
 /******/ 		// Now in "dispose" phase
@@ -565,7 +568,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 			}
 /******/ 		}
 /******/
-/******/ 		// Not in "apply" phase
+/******/ 		// Now in "apply" phase
 /******/ 		hotSetStatus("apply");
 /******/
 /******/ 		hotCurrentHash = hotUpdateNewHash;
@@ -4757,7 +4760,7 @@ if (false) {} else {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-!function(e,t){ true?module.exports=t(__webpack_require__(/*! classnames */ "classnames"),__webpack_require__(/*! react */ "react"),__webpack_require__(/*! prop-types */ "prop-types")):undefined}(window,function(e,t,a){return function(e){var t={};function a(r){if(t[r])return t[r].exports;var n=t[r]={i:r,l:!1,exports:{}};return e[r].call(n.exports,n,n.exports,a),n.l=!0,n.exports}return a.m=e,a.c=t,a.d=function(e,t,r){a.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},a.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},a.t=function(e,t){if(1&t&&(e=a(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var r=Object.create(null);if(a.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var n in e)a.d(r,n,function(t){return e[t]}.bind(null,n));return r},a.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return a.d(t,"a",t),t},a.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},a.p="/",a(a.s="QLoG")}({"8ky+":function(e,t,a){"use strict";Object.defineProperty(t,"__esModule",{value:!0});t.default={isRequired:{errorMessageLocalizationKey:"validations.isRequired",regex:/^(?!\s*$).+/},lettersOnly:{errorMessageLocalizationKey:"validations.lettersOnly",regex:/^$|^[a-zA-Z]*$/},numbersOnly:{errorMessageLocalizationKey:"validations.numbersOnly",regex:/^$|^[0-9]*$/}}},K2gz:function(t,a){t.exports=e},QLoG:function(e,t,a){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const r=a("cDcd"),n=a("rf6O"),o=a("K2gz"),i=a("oPNX"),s=a("8ky+");class l extends r.Component{constructor(e){super(e),this.handleInputChange=(e=>{const t=e.target.name,a=e.target.value;this.setState({isDirty:a&&!1!==a,inputValue:a}),this.props.onChange(t,a)}),this.handleKeyDown=(e=>{this.props.onEnter&&e.keyCode===i.Key.Enter&&this.props.onEnter(e)}),this.onFocus=(()=>{this.setState({isTouched:!0}),this.props.onFocus&&this.props.onFocus()}),this.updateValidations=(e=>{const{onValidate:t,translate:a}=this.props,r=[];0!==e.validations.length&&(e.validations.forEach(t=>{s.default[t].regex.test(e.value)||r.push({key:t,message:a(s.default[t].errorMessageLocalizationKey,{value:e.value})})}),this.setState({validationErrors:r}),t&&t({[e.id]:r}))}),this.state={isDirty:!1,isTouched:!1,inputValue:e.value,validationErrors:[]}}componentDidMount(){this.updateValidations(this.props)}componentWillReceiveProps(e){this.props.value!==e.value?this.setState({inputValue:e.value},()=>this.updateValidations(e)):e.validations.some(t=>!this.props.validations.includes(t)&&(this.updateValidations(e),!0))}render(){const{autoComplete:e,className:t,disabled:a,formClassName:n,id:i,name:s,placeholder:l,type:u,onBlur:d,validations:c}=this.props,{inputValue:p,isDirty:m,isTouched:f,validationErrors:h}=this.state,y=o.default({"is-dirty":m,"is-invalid":h.length>0,"is-touched":f,"is-valid":0===h.length&&c.length>0});return r.createElement("div",{className:`form-field ${n}`},r.createElement("input",{ref:e=>{this.inputEl=e},autoComplete:e,className:`${t} ${y}`,disabled:a,id:i,name:s,type:u,value:p,onChange:this.handleInputChange,onBlur:d,onFocus:this.onFocus,onKeyDown:this.handleKeyDown,placeholder:l}),h.length>0&&(f||m)&&r.createElement("div",{className:"validation-errors"},h.map(e=>r.createElement("div",{key:e.key,className:"message-container icon-small attention-alert"},r.createElement("em",{className:"message"},e.message)))))}}l.propTypes={autoComplete:n.oneOf(["off","on"]),className:n.string,formClassName:n.string,disabled:n.bool,id:n.string.isRequired,name:n.string.isRequired,onChange:n.func.isRequired,onBlur:n.func,onFocus:n.func,onEnter:n.func,onValidate:n.func,placeholder:n.string,translate:n.func.isRequired,type:n.oneOf(["number","password","search","text","url"]),validations:n.arrayOf(n.oneOf(Object.keys(s.default))),value:n.string},l.defaultProps={autoComplete:"on",className:"appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter py-3 px-4",disabled:!1,formClassName:"",isRequired:!1,onBlur:null,onFocus:null,onEnter:null,onValidate:null,placeholder:"",type:"text",validations:[],value:""},t.default=l},cDcd:function(e,a){e.exports=t},oPNX:function(e,t,a){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),function(e){e[e.Backspace=8]="Backspace",e[e.Tab=9]="Tab",e[e.Enter=13]="Enter",e[e.Shift=16]="Shift",e[e.Ctrl=17]="Ctrl",e[e.Alt=18]="Alt",e[e.PauseBreak=19]="PauseBreak",e[e.CapsLock=20]="CapsLock",e[e.Escape=27]="Escape",e[e.Space=32]="Space",e[e.PageUp=33]="PageUp",e[e.PageDown=34]="PageDown",e[e.End=35]="End",e[e.Home=36]="Home",e[e.LeftArrow=37]="LeftArrow",e[e.UpArrow=38]="UpArrow",e[e.RightArrow=39]="RightArrow",e[e.DownArrow=40]="DownArrow",e[e.Insert=45]="Insert",e[e.Delete=46]="Delete",e[e.Zero=48]="Zero",e[e.ClosedParen=48]="ClosedParen",e[e.One=49]="One",e[e.ExclamationMark=49]="ExclamationMark",e[e.Two=50]="Two",e[e.AtSign=50]="AtSign",e[e.Three=51]="Three",e[e.PoundSign=51]="PoundSign",e[e.Hash=51]="Hash",e[e.Four=52]="Four",e[e.DollarSign=52]="DollarSign",e[e.Five=53]="Five",e[e.PercentSign=53]="PercentSign",e[e.Six=54]="Six",e[e.Caret=54]="Caret",e[e.Hat=54]="Hat",e[e.Seven=55]="Seven",e[e.Ampersand=55]="Ampersand",e[e.Eight=56]="Eight",e[e.Star=56]="Star",e[e.Asterik=56]="Asterik",e[e.Nine=57]="Nine",e[e.OpenParen=57]="OpenParen",e[e.A=65]="A",e[e.B=66]="B",e[e.C=67]="C",e[e.D=68]="D",e[e.E=69]="E",e[e.F=70]="F",e[e.G=71]="G",e[e.H=72]="H",e[e.I=73]="I",e[e.J=74]="J",e[e.K=75]="K",e[e.L=76]="L",e[e.M=77]="M",e[e.N=78]="N",e[e.O=79]="O",e[e.P=80]="P",e[e.Q=81]="Q",e[e.R=82]="R",e[e.S=83]="S",e[e.T=84]="T",e[e.U=85]="U",e[e.V=86]="V",e[e.W=87]="W",e[e.X=88]="X",e[e.Y=89]="Y",e[e.Z=90]="Z",e[e.LeftWindowKey=91]="LeftWindowKey",e[e.RightWindowKey=92]="RightWindowKey",e[e.SelectKey=93]="SelectKey",e[e.Numpad0=96]="Numpad0",e[e.Numpad1=97]="Numpad1",e[e.Numpad2=98]="Numpad2",e[e.Numpad3=99]="Numpad3",e[e.Numpad4=100]="Numpad4",e[e.Numpad5=101]="Numpad5",e[e.Numpad6=102]="Numpad6",e[e.Numpad7=103]="Numpad7",e[e.Numpad8=104]="Numpad8",e[e.Numpad9=105]="Numpad9",e[e.Multiply=106]="Multiply",e[e.Add=107]="Add",e[e.Subtract=109]="Subtract",e[e.DecimalPoint=110]="DecimalPoint",e[e.Divide=111]="Divide",e[e.F1=112]="F1",e[e.F2=113]="F2",e[e.F3=114]="F3",e[e.F4=115]="F4",e[e.F5=116]="F5",e[e.F6=117]="F6",e[e.F7=118]="F7",e[e.F8=119]="F8",e[e.F9=120]="F9",e[e.F10=121]="F10",e[e.F11=122]="F11",e[e.F12=123]="F12",e[e.NumLock=144]="NumLock",e[e.ScrollLock=145]="ScrollLock",e[e.SemiColon=186]="SemiColon",e[e.Equals=187]="Equals",e[e.Comma=188]="Comma",e[e.Dash=189]="Dash",e[e.Period=190]="Period",e[e.UnderScore=189]="UnderScore",e[e.PlusSign=187]="PlusSign",e[e.ForwardSlash=191]="ForwardSlash",e[e.Tilde=192]="Tilde",e[e.GraveAccent=192]="GraveAccent",e[e.OpenBracket=219]="OpenBracket",e[e.ClosedBracket=221]="ClosedBracket",e[e.Quote=222]="Quote"}(t.Key||(t.Key={}))},rf6O:function(e,t){e.exports=a}})});
+!function(e,t){ true?module.exports=t(__webpack_require__(/*! classnames */ "classnames"),__webpack_require__(/*! react */ "react"),__webpack_require__(/*! prop-types */ "prop-types")):undefined}(window,function(e,t,a){return function(e){var t={};function a(r){if(t[r])return t[r].exports;var n=t[r]={i:r,l:!1,exports:{}};return e[r].call(n.exports,n,n.exports,a),n.l=!0,n.exports}return a.m=e,a.c=t,a.d=function(e,t,r){a.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},a.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},a.t=function(e,t){if(1&t&&(e=a(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var r=Object.create(null);if(a.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var n in e)a.d(r,n,function(t){return e[t]}.bind(null,n));return r},a.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return a.d(t,"a",t),t},a.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},a.p="/",a(a.s="QLoG")}({"8ky+":function(e,t,a){"use strict";Object.defineProperty(t,"__esModule",{value:!0});t.default={isRequired:{errorMessageLocalizationKey:"validations.isRequired",regex:/^(?!\s*$).+/},lettersOnly:{errorMessageLocalizationKey:"validations.lettersOnly",regex:/^$|^[a-zA-Z]*$/},numbersOnly:{errorMessageLocalizationKey:"validations.numbersOnly",regex:/^$|^[0-9]*$/}}},K2gz:function(t,a){t.exports=e},QLoG:function(e,t,a){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const r=a("cDcd"),n=a("rf6O"),o=a("K2gz"),i=a("oPNX"),s=a("8ky+");class l extends r.Component{constructor(e){super(e),this.handleInputChange=(e=>{const t=e.target.name,a=e.target.value;this.setState({isDirty:a&&!1!==a,inputValue:a}),this.props.onChange(t,a)}),this.handleKeyDown=(e=>{this.props.onEnter&&e.keyCode===i.Key.Enter&&this.props.onEnter(e)}),this.onFocus=(()=>{this.setState({isTouched:!0}),this.props.onFocus&&this.props.onFocus()}),this.onBlur=(()=>{this.updateValidations(this.props),this.props.onBlur&&this.props.onBlur()}),this.updateValidations=(e=>{const{isDirty:t,isTouched:a}=this.state;if(t||a){const{onValidate:t,translate:a}=this.props,r=[];if(0===e.validations.length)return;e.validations.forEach(t=>{s.default[t].regex.test(e.value)||r.push({key:t,message:a(s.default[t].errorMessageLocalizationKey,{value:e.value})})}),this.setState({validationErrors:r}),t&&t({[e.id]:r})}}),this.state={isDirty:!1,isTouched:!1,inputValue:e.value,validationErrors:[]}}componentDidMount(){this.updateValidations(this.props)}componentWillReceiveProps(e){this.props.value!==e.value?this.setState({inputValue:e.value},()=>this.updateValidations(e)):e.validations.some(t=>!this.props.validations.includes(t)&&(this.updateValidations(e),!0))}render(){const{autoComplete:e,className:t,disabled:a,formClassName:n,id:i,name:s,placeholder:l,type:u,onBlur:d,validations:p}=this.props,{inputValue:c,isDirty:m,isTouched:f,validationErrors:h}=this.state,y=o.default({"is-dirty":m,"is-invalid":h.length>0,"is-touched":f,"is-valid":0===h.length&&p.length>0});return r.createElement("div",{className:`form-field ${n}`},r.createElement("input",{ref:e=>{this.inputEl=e},autoComplete:e,className:`${t} ${y}`,disabled:a,id:i,name:s,type:u,value:c,onChange:this.handleInputChange,onBlur:this.onBlur,onFocus:this.onFocus,onKeyDown:this.handleKeyDown,placeholder:l}),h.length>0&&(f||m)&&r.createElement("div",{className:"validation-errors"},h.map(e=>r.createElement("div",{key:e.key,className:"message-container icon-small attention-alert"},r.createElement("em",{className:"message"},e.message)))))}}l.propTypes={autoComplete:n.oneOf(["off","on"]),className:n.string,formClassName:n.string,disabled:n.bool,id:n.string.isRequired,name:n.string.isRequired,onChange:n.func.isRequired,onBlur:n.func,onFocus:n.func,onEnter:n.func,onValidate:n.func,placeholder:n.string,translate:n.func.isRequired,type:n.oneOf(["number","password","search","text","url"]),validations:n.arrayOf(n.oneOf(Object.keys(s.default))),value:n.string},l.defaultProps={autoComplete:"on",className:"appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter py-3 px-4",disabled:!1,formClassName:"",isRequired:!1,onBlur:null,onFocus:null,onEnter:null,onValidate:null,placeholder:"",type:"text",validations:[],value:""},t.default=l},cDcd:function(e,a){e.exports=t},oPNX:function(e,t,a){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),function(e){e[e.Backspace=8]="Backspace",e[e.Tab=9]="Tab",e[e.Enter=13]="Enter",e[e.Shift=16]="Shift",e[e.Ctrl=17]="Ctrl",e[e.Alt=18]="Alt",e[e.PauseBreak=19]="PauseBreak",e[e.CapsLock=20]="CapsLock",e[e.Escape=27]="Escape",e[e.Space=32]="Space",e[e.PageUp=33]="PageUp",e[e.PageDown=34]="PageDown",e[e.End=35]="End",e[e.Home=36]="Home",e[e.LeftArrow=37]="LeftArrow",e[e.UpArrow=38]="UpArrow",e[e.RightArrow=39]="RightArrow",e[e.DownArrow=40]="DownArrow",e[e.Insert=45]="Insert",e[e.Delete=46]="Delete",e[e.Zero=48]="Zero",e[e.ClosedParen=48]="ClosedParen",e[e.One=49]="One",e[e.ExclamationMark=49]="ExclamationMark",e[e.Two=50]="Two",e[e.AtSign=50]="AtSign",e[e.Three=51]="Three",e[e.PoundSign=51]="PoundSign",e[e.Hash=51]="Hash",e[e.Four=52]="Four",e[e.DollarSign=52]="DollarSign",e[e.Five=53]="Five",e[e.PercentSign=53]="PercentSign",e[e.Six=54]="Six",e[e.Caret=54]="Caret",e[e.Hat=54]="Hat",e[e.Seven=55]="Seven",e[e.Ampersand=55]="Ampersand",e[e.Eight=56]="Eight",e[e.Star=56]="Star",e[e.Asterik=56]="Asterik",e[e.Nine=57]="Nine",e[e.OpenParen=57]="OpenParen",e[e.A=65]="A",e[e.B=66]="B",e[e.C=67]="C",e[e.D=68]="D",e[e.E=69]="E",e[e.F=70]="F",e[e.G=71]="G",e[e.H=72]="H",e[e.I=73]="I",e[e.J=74]="J",e[e.K=75]="K",e[e.L=76]="L",e[e.M=77]="M",e[e.N=78]="N",e[e.O=79]="O",e[e.P=80]="P",e[e.Q=81]="Q",e[e.R=82]="R",e[e.S=83]="S",e[e.T=84]="T",e[e.U=85]="U",e[e.V=86]="V",e[e.W=87]="W",e[e.X=88]="X",e[e.Y=89]="Y",e[e.Z=90]="Z",e[e.LeftWindowKey=91]="LeftWindowKey",e[e.RightWindowKey=92]="RightWindowKey",e[e.SelectKey=93]="SelectKey",e[e.Numpad0=96]="Numpad0",e[e.Numpad1=97]="Numpad1",e[e.Numpad2=98]="Numpad2",e[e.Numpad3=99]="Numpad3",e[e.Numpad4=100]="Numpad4",e[e.Numpad5=101]="Numpad5",e[e.Numpad6=102]="Numpad6",e[e.Numpad7=103]="Numpad7",e[e.Numpad8=104]="Numpad8",e[e.Numpad9=105]="Numpad9",e[e.Multiply=106]="Multiply",e[e.Add=107]="Add",e[e.Subtract=109]="Subtract",e[e.DecimalPoint=110]="DecimalPoint",e[e.Divide=111]="Divide",e[e.F1=112]="F1",e[e.F2=113]="F2",e[e.F3=114]="F3",e[e.F4=115]="F4",e[e.F5=116]="F5",e[e.F6=117]="F6",e[e.F7=118]="F7",e[e.F8=119]="F8",e[e.F9=120]="F9",e[e.F10=121]="F10",e[e.F11=122]="F11",e[e.F12=123]="F12",e[e.NumLock=144]="NumLock",e[e.ScrollLock=145]="ScrollLock",e[e.SemiColon=186]="SemiColon",e[e.Equals=187]="Equals",e[e.Comma=188]="Comma",e[e.Dash=189]="Dash",e[e.Period=190]="Period",e[e.UnderScore=189]="UnderScore",e[e.PlusSign=187]="PlusSign",e[e.ForwardSlash=191]="ForwardSlash",e[e.Tilde=192]="Tilde",e[e.GraveAccent=192]="GraveAccent",e[e.OpenBracket=219]="OpenBracket",e[e.ClosedBracket=221]="ClosedBracket",e[e.Quote=222]="Quote"}(t.Key||(t.Key={}))},rf6O:function(e,t){e.exports=a}})});
 //# sourceMappingURL=Input.js.map
 
 /***/ }),
@@ -4805,7 +4808,7 @@ if (false) {} else {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-!function(e,t){ true?module.exports=t():undefined}(global,function(){return function(e){var t={};function n(r){if(t[r])return t[r].exports;var o=t[r]={i:r,l:!1,exports:{}};return e[r].call(o.exports,o,o.exports,n),o.l=!0,o.exports}return n.m=e,n.c=t,n.d=function(e,t,r){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)n.d(r,o,function(t){return e[t]}.bind(null,o));return r},n.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="/",n(n.s="jxKE")}({"2onj":function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.JOIN_ROOM="CLIENT:JOIN_ROOM",e.LOGIN="CLIENT:LOGIN",e.SEND_MESSAGE="CLIENT:SEND_MESSAGE"}(r||(r={})),t.default=r},"8chb":function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.DISCONNECT="SERVER:DISCONNECT",e.JOINED_ROOM="SERVER:JOINED_ROOM",e.LEFT_ROOM="SERVER:LEFT_ROOM",e.OTHER_JOINED_ROOM="SERVER:OTHER_JOINED_ROOM",e.SEND_ROOMS_LIST="SERVER:SEND_ROOMS_LIST",e.SEND_MESSAGE="SERVER:SEND_MESSAGE",e.SESSION_MESSAGE="SERVER:SESSION_MESSAGE",e.USER_LOGIN_SUCCESS="SERVER:USER_LOGIN_SUCCESS"}(r||(r={})),t.default=r},jxKE:function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const r=n("2onj");t.SocketClientActionTypes=r.default;const o=n("8chb");t.SocketServerActionTypes=o.default,t.SERVER_PREFIX="SERVER",t.WEB_CLIENT_PREFIX="CLIENT"}})});
+!function(e,t){ true?module.exports=t():undefined}(global,function(){return function(e){var t={};function n(r){if(t[r])return t[r].exports;var o=t[r]={i:r,l:!1,exports:{}};return e[r].call(o.exports,o,o.exports,n),o.l=!0,o.exports}return n.m=e,n.c=t,n.d=function(e,t,r){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)n.d(r,o,function(t){return e[t]}.bind(null,o));return r},n.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="/",n(n.s="jxKE")}({"2onj":function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.JOIN_ROOM="CLIENT:JOIN_ROOM",e.LOGIN="CLIENT:LOGIN",e.REGISTER="CLIENT:REGISTER",e.SEND_MESSAGE="CLIENT:SEND_MESSAGE"}(r||(r={})),t.default=r},"8chb":function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.DISCONNECT="SERVER:DISCONNECT",e.JOINED_ROOM="SERVER:JOINED_ROOM",e.LEFT_ROOM="SERVER:LEFT_ROOM",e.OTHER_JOINED_ROOM="SERVER:OTHER_JOINED_ROOM",e.SEND_ROOMS_LIST="SERVER:SEND_ROOMS_LIST",e.SEND_MESSAGE="SERVER:SEND_MESSAGE",e.SESSION_MESSAGE="SERVER:SESSION_MESSAGE",e.USER_LOGIN_SUCCESS="SERVER:USER_LOGIN_SUCCESS"}(r||(r={})),t.default=r},jxKE:function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const r=n("2onj");t.SocketClientActionTypes=r.default;const o=n("8chb");t.SocketServerActionTypes=o.default,t.SERVER_PREFIX="SERVER",t.WEB_CLIENT_PREFIX="CLIENT"}})});
 
 /***/ }),
 
@@ -4816,7 +4819,7 @@ if (false) {} else {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-!function(e,t){ true?module.exports=t():undefined}(global,function(){return function(e){var t={};function r(o){if(t[o])return t[o].exports;var n=t[o]={i:o,l:!1,exports:{}};return e[o].call(n.exports,n,n.exports,r),n.l=!0,n.exports}return r.m=e,r.c=t,r.d=function(e,t,o){r.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:o})},r.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},r.t=function(e,t){if(1&t&&(e=r(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var o=Object.create(null);if(r.r(o),Object.defineProperty(o,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var n in e)r.d(o,n,function(t){return e[t]}.bind(null,n));return o},r.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return r.d(t,"a",t),t},r.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},r.p="/",r(r.s="Z+f3")}({"Z+f3":function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.normalizeLocale=(e=>e.toLowerCase().replace("_","-")),t.fallbackToLocale=(e=>e.includes("-")?e.split("-")[0]:"en"!==e?"en":null),t.configureTranslator=(e=>{console.log("TRANSLATIONS: ",e);const r=(t,r,o)=>{if(!e[t])return null;const n=r.split(".");let l=e[t];return n.forEach(e=>{l=l&&l[e]?l[e]:null}),l&&"object"==typeof o&&Object.keys(o).forEach(e=>{l=l.replace(`{${e}}`,o[e])}),l||r};return(e,o,n)=>{let l=t.normalizeLocale(e),u=r(l,o,n);for(;!u&&(l=t.fallbackToLocale(l));)u=r(l,o,n);return u}})}})});
+!function(e,t){ true?module.exports=t():undefined}(global,function(){return function(e){var t={};function r(n){if(t[n])return t[n].exports;var o=t[n]={i:n,l:!1,exports:{}};return e[n].call(o.exports,o,o.exports,r),o.l=!0,o.exports}return r.m=e,r.c=t,r.d=function(e,t,n){r.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:n})},r.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},r.t=function(e,t){if(1&t&&(e=r(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var n=Object.create(null);if(r.r(n),Object.defineProperty(n,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)r.d(n,o,function(t){return e[t]}.bind(null,o));return n},r.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return r.d(t,"a",t),t},r.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},r.p="/",r(r.s="Z+f3")}({"Z+f3":function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.normalizeLocale=(e=>e.toLowerCase().replace("_","-")),t.fallbackToLocale=(e=>e.includes("-")?e.split("-")[0]:"en"!==e?"en":null),t.configureTranslator=(e=>{const r=(t,r,n)=>{if(!e[t])return null;const o=r.split(".");let l=e[t];return o.forEach(e=>{l=l&&l[e]?l[e]:null}),l&&"object"==typeof n&&Object.keys(n).forEach(e=>{l=l.replace(`{${e}}`,n[e])}),l||r};return(e,n,o)=>{let l=t.normalizeLocale(e),u=r(l,n,o);for(;!u&&(l=t.fallbackToLocale(l));)u=r(l,n,o);return u}})}})});
 
 /***/ }),
 
@@ -4892,7 +4895,7 @@ const routes_1 = __webpack_require__(/*! ../routes */ "./src/routes/index.ts");
 let _viewListener;
 const mapStateToProps = (state) => {
     return {
-        'redirectRoute': state.redirectRoute
+        'redirectRoute': state.redirectRoute,
     };
 };
 const mapDispatchToProps = (dispatch) => {
@@ -4942,7 +4945,7 @@ class Layout extends React.Component {
         // ReactGA.initialize(globalConfig[process.env.NODE_ENV].googleAnalyticsKey);
         document.addEventListener('click', this.handleClick);
         this.setState({
-            'clientHasLoaded': true
+            'clientHasLoaded': true,
         });
     }
     render() {
@@ -5033,7 +5036,7 @@ class LoginFormComponent extends React.Component {
                 [name]: value,
             };
             this.setState({
-                inputs: Object.assign({}, this.state.inputs, newInputChanges)
+                inputs: Object.assign({}, this.state.inputs, newInputChanges),
             });
         };
         this.state = {
@@ -5045,9 +5048,11 @@ class LoginFormComponent extends React.Component {
         return !this.state.inputs.userName || !this.state.inputs.password;
     }
     render() {
-        const { title } = this.props;
+        const { alert, title } = this.props;
         return (React.createElement("div", { className: "login-container" },
             React.createElement("h1", { className: "text-center" }, title || 'Login'),
+            alert &&
+                React.createElement("div", { className: "text-center alert-success" }, alert),
             React.createElement("label", { htmlFor: "user_name" }, "Username:"),
             React.createElement(Input_1.default, { type: "text", id: "user_name", name: "userName", value: this.state.inputs.userName, onChange: this.onInputChange, onEnter: this.onSubmit, translate: this.translate }),
             React.createElement("label", { htmlFor: "passwork" }, "Password:"),
@@ -5090,10 +5095,9 @@ class RegisterFormComponent extends React.Component {
                 case 'user_name':
                 case 'register':
                     if (!this.isFormDisabled()) {
-                        console.log(this.state.inputs);
                         const creds = Object.assign({}, this.state.inputs);
                         delete creds.repeatPassword;
-                        // this.props.register(creds);
+                        this.props.register(creds);
                     }
             }
         };
@@ -5102,7 +5106,7 @@ class RegisterFormComponent extends React.Component {
                 [name]: value,
             };
             this.setState({
-                inputs: Object.assign({}, this.state.inputs, newInputChanges)
+                inputs: Object.assign({}, this.state.inputs, newInputChanges),
             });
         };
         this.state = {
@@ -5119,20 +5123,20 @@ class RegisterFormComponent extends React.Component {
     render() {
         return (React.createElement("div", { className: "register-container" },
             React.createElement("h1", { className: "text-center" }, "Register"),
-            React.createElement("label", { htmlFor: "first_name" }, "First Name:"),
-            React.createElement(Input_1.default, { type: "text", id: "first_name", name: "firstName", value: this.state.inputs.firstName, onChange: this.onInputChange, onEnter: this.onSubmit, translate: this.translate }),
-            React.createElement("label", { htmlFor: "last_name" }, "Last Name:"),
-            React.createElement(Input_1.default, { type: "text", id: "last_name", name: "lastName", value: this.state.inputs.lastName, onChange: this.onInputChange, onEnter: this.onSubmit, translate: this.translate }),
-            React.createElement("label", { htmlFor: "e_mail" }, "E-mail:"),
+            React.createElement("label", { className: "required", htmlFor: "first_name" }, "First Name:"),
+            React.createElement(Input_1.default, { type: "text", id: "first_name", name: "firstName", value: this.state.inputs.firstName, onChange: this.onInputChange, onEnter: this.onSubmit, translate: this.translate, validations: ['isRequired'] }),
+            React.createElement("label", { className: "required", htmlFor: "last_name" }, "Last Name:"),
+            React.createElement(Input_1.default, { type: "text", id: "last_name", name: "lastName", value: this.state.inputs.lastName, onChange: this.onInputChange, onEnter: this.onSubmit, translate: this.translate, validations: ['isRequired'] }),
+            React.createElement("label", { className: "required", htmlFor: "e_mail" }, "E-mail:"),
             React.createElement(Input_1.default, { type: "text", id: "e_mail", name: "email", value: this.state.inputs.email, onChange: this.onInputChange, onEnter: this.onSubmit, translate: this.translate, validations: ['isRequired'] }),
-            React.createElement("label", { htmlFor: "phone_number" }, "Mobile Phone #:"),
-            React.createElement(Input_1.default, { type: "text", id: "phone_number", name: "phoneNumber", value: this.state.inputs.phoneNumber, onChange: this.onInputChange, onEnter: this.onSubmit, translate: this.translate }),
-            React.createElement("label", { htmlFor: "user_name" }, "Username:"),
-            React.createElement(Input_1.default, { type: "text", id: "user_name", name: "userName", value: this.state.inputs.userName, onChange: this.onInputChange, onEnter: this.onSubmit, translate: this.translate }),
-            React.createElement("label", { htmlFor: "password" }, "Password:"),
-            React.createElement(Input_1.default, { type: "password", id: "password", name: "password", value: this.state.inputs.password, onChange: this.onInputChange, onEnter: this.onSubmit, translate: this.translate }),
-            React.createElement("label", { htmlFor: "repeat_password" }, "Repeat Password:"),
-            React.createElement(Input_1.default, { type: "password", id: "repeat_password", name: "repeatPassword", value: this.state.inputs.repeatPassword, onChange: this.onInputChange, onEnter: this.onSubmit, translate: this.translate }),
+            React.createElement("label", { className: "required", htmlFor: "phone_number" }, "Mobile Phone #:"),
+            React.createElement(Input_1.default, { type: "text", id: "phone_number", name: "phoneNumber", value: this.state.inputs.phoneNumber, onChange: this.onInputChange, onEnter: this.onSubmit, translate: this.translate, validations: ['isRequired'] }),
+            React.createElement("label", { className: "required", htmlFor: "user_name" }, "Username:"),
+            React.createElement(Input_1.default, { type: "text", id: "user_name", name: "userName", value: this.state.inputs.userName, onChange: this.onInputChange, onEnter: this.onSubmit, translate: this.translate, validations: ['isRequired'] }),
+            React.createElement("label", { className: "required", htmlFor: "password" }, "Password:"),
+            React.createElement(Input_1.default, { type: "password", id: "password", name: "password", value: this.state.inputs.password, onChange: this.onInputChange, onEnter: this.onSubmit, translate: this.translate, validations: ['isRequired'] }),
+            React.createElement("label", { className: "required", htmlFor: "repeat_password" }, "Repeat Password:"),
+            React.createElement(Input_1.default, { type: "password", id: "repeat_password", name: "repeatPassword", value: this.state.inputs.repeatPassword, onChange: this.onInputChange, onEnter: this.onSubmit, translate: this.translate, validations: ['isRequired'] }),
             React.createElement("div", { className: "form-field text-right" },
                 React.createElement(ButtonPrimary_1.default, { id: "register", text: "Register", onClick: this.onSubmit, disabled: this.isFormDisabled() }))));
     }
@@ -5240,9 +5244,9 @@ module.exports = {"validations":{"isRequired":"This is a required field"}};
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const dictionary_json_1 = __webpack_require__(/*! ./en-us/dictionary.json */ "./src/locales/en-us/dictionary.json");
+const enUs = __webpack_require__(/*! ./en-us/dictionary.json */ "./src/locales/en-us/dictionary.json");
 const localesConfig = {
-    'en-us': dictionary_json_1.default,
+    'en-us': enUs,
 };
 exports.default = localesConfig;
 
@@ -5266,7 +5270,7 @@ const SocketActions = {
         return (dispatch) => {
             dispatch({
                 'type': constants_1.SocketClientActionTypes.JOIN_ROOM,
-                'data': data
+                'data': data,
             });
         };
     },
@@ -5279,22 +5283,26 @@ const SocketActions = {
                     'data': {
                         idToken,
                         userName,
-                    }
+                    },
                 });
             });
         };
     },
     register: (data) => {
         return (dispatch) => {
-            return UserService_1.default.authenticate(data).then((response) => {
-                const { idToken, userName } = response && response.data;
+            return UserService_1.default.create(data).then((response) => {
+                const { email, id, userName } = response && response.data;
+                // TODO: Determine if it is necessary to dispatch anything after user registers
+                // set current user? 
                 dispatch({
-                    'type': constants_1.SocketClientActionTypes.LOGIN,
+                    'type': constants_1.SocketClientActionTypes.REGISTER,
                     'data': {
-                        idToken,
+                        email,
+                        id,
                         userName,
-                    }
+                    },
                 });
+                return { email, id, userName };
             });
         };
     },
@@ -5302,7 +5310,7 @@ const SocketActions = {
         return (dispatch) => {
             dispatch({
                 'type': constants_1.SocketClientActionTypes.SEND_MESSAGE,
-                'data': data
+                'data': data,
             });
         };
     },
@@ -5350,10 +5358,10 @@ const constants_1 = __webpack_require__(/*! rili-public-library/utilities/consta
 const initialState = Immutable.from({
     user: {
         userName: '',
-        currentRoom: ''
+        currentRoom: '',
     },
     rooms: [],
-    messages: Immutable({})
+    messages: Immutable({}),
 });
 const socket = (state = initialState, action) => {
     // If state is initialized by server-side rendering, it may not be a proper immutable object yet
@@ -5409,38 +5417,38 @@ exports.default = [
     {
         route: '/',
         head: {
-            title: 'Home'
+            title: 'Home',
         },
-        view: 'index'
+        view: 'index',
     },
     {
         route: '/chat-room',
         head: {
-            title: 'Chat Room'
+            title: 'Chat Room',
         },
-        view: 'index'
+        view: 'index',
     },
     {
         route: '/join-room',
         head: {
-            title: 'Join a Room'
+            title: 'Join a Room',
         },
-        view: 'index'
+        view: 'index',
     },
     {
         route: '/login',
         head: {
-            title: 'Login'
+            title: 'Login',
         },
-        view: 'index'
+        view: 'index',
     },
     {
         route: '*',
         head: {
-            title: 'Not Found'
+            title: 'Not Found',
         },
-        view: 'index'
-    }
+        view: 'index',
+    },
 ];
 
 
@@ -5493,7 +5501,7 @@ class ChatRoomComponent extends React.Component {
                 [name]: value,
             };
             this.setState({
-                inputs: Object.assign({}, this.state.inputs, newInputChanges)
+                inputs: Object.assign({}, this.state.inputs, newInputChanges),
             });
         };
         this.onButtonClick = (event) => {
@@ -5613,7 +5621,7 @@ class HomeComponent extends React.Component {
             this.props.login(credentials).then(() => {
                 this.props.history.push('/join-room');
             }).catch((error) => {
-                console.log('HOME_LOGIN_ERROR: ', error);
+                // console.log('HOME_LOGIN_ERROR: ', error);
             });
         };
         this.translate = (key, params) => translator_1.default('en-us', key, params);
@@ -5685,7 +5693,7 @@ class JoinRoomComponent extends React.Component {
                 [name]: value,
             };
             this.setState({
-                inputs: Object.assign({}, this.state.inputs, newInputChanges)
+                inputs: Object.assign({}, this.state.inputs, newInputChanges),
             });
         };
         this.onButtonClick = (event) => {
@@ -5707,7 +5715,7 @@ class JoinRoomComponent extends React.Component {
         this.state = {
             hasJoinedARoom: false,
             inputs: {
-                roomId: 'general-chat'
+                roomId: 'general-chat',
             },
             roomsList: [],
         };
@@ -5775,7 +5783,7 @@ class LoginComponent extends React.Component {
             this.props.login(credentials).then(() => {
                 this.props.history.push('/join-room');
             }).catch((error) => {
-                console.log('LOGIN_ERROR: ', error);
+                // console.log('LOGIN_ERROR: ', error);
             });
         };
         this.state = {
@@ -5787,8 +5795,10 @@ class LoginComponent extends React.Component {
         document.title = 'Rili | Login';
     }
     render() {
-        return (React.createElement("div", { className: "flex-box" },
-            React.createElement(LoginForm_1.default, { login: this.login })));
+        const { location } = this.props;
+        return (React.createElement(React.Fragment, null,
+            React.createElement("div", { className: "flex-box" },
+                React.createElement(LoginForm_1.default, { login: this.login, alert: location.state && location.state.successMessage }))));
     }
 }
 exports.LoginComponent = LoginComponent;
@@ -5870,13 +5880,28 @@ class RegisterComponent extends React.Component {
     constructor(props) {
         super(props);
         this.register = (credentials) => {
-            this.props.register(credentials).then(() => {
-                this.props.history.push('/login');
+            this.props.register(credentials).then((response) => {
+                this.props.history.push({
+                    pathname: '/login',
+                    state: {
+                        successMessage: 'Registration success! Login to continue.',
+                    },
+                });
             }).catch((error) => {
-                console.log('REGISTRATION_ERROR: ', error);
+                if (error.id === 'userExists') {
+                    this.setState({
+                        errorMessage: error.message,
+                    });
+                }
+                else {
+                    this.setState({
+                        errorMessage: 'Oops, something went wrong',
+                    });
+                }
             });
         };
         this.state = {
+            errorMessage: '',
             inputs: {},
         };
         this.translate = (key, params) => translator_1.default('en-us', key, params);
@@ -5885,8 +5910,12 @@ class RegisterComponent extends React.Component {
         document.title = 'Rili | Register';
     }
     render() {
-        return (React.createElement("div", { className: "flex-box" },
-            React.createElement(RegisterForm_1.default, { register: this.register })));
+        const { errorMessage } = this.state;
+        return (React.createElement(React.Fragment, null,
+            React.createElement("div", { className: "flex-box" },
+                React.createElement(RegisterForm_1.default, { register: this.register })),
+            errorMessage &&
+                React.createElement("div", { className: "alert-error text-center" }, errorMessage)));
     }
 }
 exports.RegisterComponent = RegisterComponent;
@@ -5940,7 +5969,7 @@ let routes = [
     // If no route matches, return NotFound component
     {
         'component': PageNotFound_1.default,
-    }
+    },
 ];
 exports.default = routes;
 
@@ -5987,7 +6016,7 @@ const createAppServer = () => {
     }
     return {
         app,
-        server
+        server,
     };
 };
 const { app, server } = createAppServer();
@@ -6026,10 +6055,10 @@ for (let i in routeConfig_1.default) {
                 print_logs_1.default({
                     shouldPrintLogs: true,
                     messageOrigin: 'SERVER_CLIENT',
-                    messages: 'Somewhere a <Redirect> was rendered'
+                    messages: 'Somewhere a <Redirect> was rendered',
                 });
                 res.writeHead(staticContext.statusCode, {
-                    'Location': staticContext.url
+                    'Location': staticContext.url,
                 });
                 res.end();
             }
@@ -6073,6 +6102,13 @@ class UserService {
             return axios_1.default({
                 method: 'post',
                 url: '/auth',
+                data,
+            });
+        };
+        this.create = (data) => {
+            return axios_1.default({
+                method: 'post',
+                url: '/users',
                 data,
             });
         };
@@ -6121,7 +6157,7 @@ const envVars = globalConfig["development"];
 const socketIO = io(`${envVars.baseSocketUrl}`, {
     secure: true,
     transports: ['websocket'],
-    upgrade: false
+    upgrade: false,
 });
 // TODO: Find a was to send server connection evern after middleware instantiates
 exports.default = redux_socket_io_1.default(socketIO, `${constants_1.WEB_CLIENT_PREFIX}:`);
