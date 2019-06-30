@@ -824,7 +824,7 @@ function toString(value) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-!function(e,t){ true?module.exports=t(__webpack_require__(/*! http-status */ "http-status")):undefined}(global,function(e){return function(e){var t={};function r(n){if(t[n])return t[n].exports;var o=t[n]={i:n,l:!1,exports:{}};return e[n].call(o.exports,o,o.exports,r),o.l=!0,o.exports}return r.m=e,r.c=t,r.d=function(e,t,n){r.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:n})},r.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},r.t=function(e,t){if(1&t&&(e=r(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var n=Object.create(null);if(r.r(n),Object.defineProperty(n,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)r.d(n,o,function(t){return e[t]}.bind(null,o));return n},r.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return r.d(t,"a",t),t},r.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},r.p="/",r(r.s="rPjh")}({Os7e:function(t,r){t.exports=e},rPjh:function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const n=r("Os7e");t.error=((e,t)=>({error:t,statusCode:e,status:n[e]}));t.success=(e=>e)}})});
+!function(e,t){ true?module.exports=t(__webpack_require__(/*! http-status */ "http-status")):undefined}(global,function(e){return function(e){var t={};function r(n){if(t[n])return t[n].exports;var o=t[n]={i:n,l:!1,exports:{}};return e[n].call(o.exports,o,o.exports,r),o.l=!0,o.exports}return r.m=e,r.c=t,r.d=function(e,t,n){r.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:n})},r.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},r.t=function(e,t){if(1&t&&(e=r(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var n=Object.create(null);if(r.r(n),Object.defineProperty(n,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)r.d(n,o,function(t){return e[t]}.bind(null,o));return n},r.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return r.d(t,"a",t),t},r.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},r.p="/",r(r.s="rPjh")}({Os7e:function(t,r){t.exports=e},rPjh:function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const n=r("Os7e");t.error=(e=>({id:e.id||"notDefined",message:e.message,statusCode:e.statusCode,status:n[e.statusCode]}));t.success=(e=>e)}})});
 
 /***/ }),
 
@@ -872,7 +872,10 @@ const handleError_1 = __webpack_require__(/*! ../../utilities/handleError */ "./
 const userHelpers_1 = __webpack_require__(/*! ../../utilities/userHelpers */ "./src/utilities/userHelpers.ts");
 const router = express.Router();
 const notProd = "development" !== 'production';
-const invalidUserNameOrPassword = httpResponse.error(401, 'Incorrect username or password');
+const invalidUserNameOrPassword = httpResponse.error({
+    message: 'Incorrect username or password',
+    statusCode: 401,
+});
 class AuthRoutes {
     constructor(knex) {
         this.router = router;
@@ -955,16 +958,33 @@ const users_1 = __webpack_require__(/*! ../validation/users */ "./src/api/valida
 const validation_1 = __webpack_require__(/*! ../validation */ "./src/api/validation/index.ts");
 const handleError_1 = __webpack_require__(/*! ../../utilities/handleError */ "./src/utilities/handleError.ts");
 const userHelpers_1 = __webpack_require__(/*! ../../utilities/userHelpers */ "./src/utilities/userHelpers.ts");
+const constants_1 = __webpack_require__(/*! ../../constants */ "./src/constants/index.ts");
 const router = express.Router();
 const notProd = "development" !== 'production';
 class UserRoutes {
     constructor(knex) {
         this.router = router;
+        this.checkIfUserExists = (body) => {
+            const { id, email, userName, phoneNumber } = body;
+            return this.knex.select('*').from('main.users')
+                .where(function () {
+                return id ? this.where({ id }) : this;
+            })
+                .orWhere({ email })
+                .orWhere({ userName })
+                .orWhere({ phoneNumber }).debug(notProd)
+                .then((results) => {
+                if (results && results.length > 0) {
+                    return results[0];
+                }
+                return false;
+            });
+        };
         this.getUser = (value, key = 'id') => {
             return this.knex.select('*').from('main.users').where({ [key]: value }).debug(notProd)
                 .then((results) => {
                 if (results && results.length > 0) {
-                    return results[0];
+                    return !!results[0];
                 }
                 throw 404;
             });
@@ -991,23 +1011,29 @@ class UserRoutes {
             });
         })
             .post(users_1.createUserValidation, validation_1.validate, (req, res) => {
-            // TODO: Make sure user does not already exist
-            userHelpers_1.hashPassword(req.body.password).then((hash) => {
-                knex.queryBuilder().insert({
-                    email: req.body.email,
-                    firstName: req.body.firstName,
-                    lastName: req.body.lastName,
-                    password: hash,
-                    phoneNumber: req.body.phoneNumber,
-                    userName: req.body.userName,
-                }).into('main.users').returning('id').debug(notProd)
-                    .then((results) => {
-                    return res.status(201).send(httpResponse.success({
-                        id: results[0],
+            this.checkIfUserExists(req.body).then((exists) => {
+                if (exists) {
+                    return res.status(400).send(httpResponse.error({
+                        id: constants_1.HttpErrors.USER_EXISTS,
+                        message: 'Username, e-mail, and phone number must be unique. A user already exists.',
+                        statusCode: 400,
                     }));
-                })
-                    .catch((err) => {
-                    return handleError_1.default(err, res);
+                }
+                return userHelpers_1.hashPassword(req.body.password).then((hash) => {
+                    knex.queryBuilder().insert({
+                        email: req.body.email,
+                        firstName: req.body.firstName,
+                        lastName: req.body.lastName,
+                        password: hash,
+                        phoneNumber: req.body.phoneNumber,
+                        userName: req.body.userName,
+                    }).into('main.users').returning(['email', 'id', 'userName']).debug(notProd)
+                        .then((results) => {
+                        return res.status(201).send(httpResponse.success(results[0]));
+                    })
+                        .catch((err) => {
+                        return handleError_1.default(err, res);
+                    });
                 });
             }).catch((err) => {
                 return handleError_1.default(err.toString(), res);
@@ -1019,7 +1045,10 @@ class UserRoutes {
                 res.send(httpResponse.success(user));
             }).catch((err) => {
                 if (err === 404) {
-                    res.status(404).send(httpResponse.error(404, `No user found with id, ${req.params.id}.`));
+                    res.status(404).send(httpResponse.error({
+                        message: `No user found with id, ${req.params.id}.`,
+                        statusCode: 404,
+                    }));
                 }
                 else {
                     handleError_1.default(err, res);
@@ -1027,7 +1056,8 @@ class UserRoutes {
             });
         })
             .put((req, res) => {
-            // TODO: Make sure user does not already exist
+            // TODO: Check if (other) users exist with unique properties
+            // Throw error
             knex()
                 .update({
                 firstName: req.body.firstName,
@@ -1054,7 +1084,10 @@ class UserRoutes {
                     res.status(200).send(httpResponse.success(`Customer with id, ${req.params.id}, was successfully deleted`));
                 }
                 else {
-                    res.status(404).send(httpResponse.error(404, `No user found with id, ${req.params.id}.`));
+                    res.status(404).send(httpResponse.error({
+                        message: `No user found with id, ${req.params.id}.`,
+                        statusCode: 404,
+                    }));
                 }
             })
                 .catch((err) => {
@@ -1135,6 +1168,64 @@ exports.createUserValidation = [
     check_1.body('lastName').exists().isString(),
     check_1.body('userName').exists().isString(),
 ];
+
+
+/***/ }),
+
+/***/ "./src/constants/HttpErrors.ts":
+/*!*************************************!*\
+  !*** ./src/constants/HttpErrors.ts ***!
+  \*************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var HttpErrors;
+(function (HttpErrors) {
+    HttpErrors["USER_EXISTS"] = "userExists";
+})(HttpErrors || (HttpErrors = {}));
+exports.default = HttpErrors;
+
+
+/***/ }),
+
+/***/ "./src/constants/index.ts":
+/*!********************************!*\
+  !*** ./src/constants/index.ts ***!
+  \********************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const DisconnectReason_1 = __webpack_require__(/*! ./socket/DisconnectReason */ "./src/constants/socket/DisconnectReason.ts");
+exports.DisconnectReason = DisconnectReason_1.default;
+const HttpErrors_1 = __webpack_require__(/*! ./HttpErrors */ "./src/constants/HttpErrors.ts");
+exports.HttpErrors = HttpErrors_1.default;
+exports.ACTION = 'action';
+
+
+/***/ }),
+
+/***/ "./src/constants/socket/DisconnectReason.ts":
+/*!**************************************************!*\
+  !*** ./src/constants/socket/DisconnectReason.ts ***!
+  \**************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var DisconnectReason;
+(function (DisconnectReason) {
+    DisconnectReason["transportClose"] = "transport close";
+    DisconnectReason["pingTimeout"] = "ping timeout";
+})(DisconnectReason || (DisconnectReason = {}));
+exports.default = DisconnectReason;
 
 
 /***/ }),
@@ -1280,7 +1371,10 @@ const handleError = (err, res) => {
         messageOrigin: `SQL:USER_ROUTES:ERROR`,
         messages: [err.toString()],
     });
-    res.status(500).send(httpResponse.error(500, err.toString()));
+    res.status(500).send(httpResponse.error({
+        message: err.toString(),
+        statusCode: 500,
+    }));
 };
 exports.default = handleError;
 

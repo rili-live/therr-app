@@ -7,6 +7,8 @@ import SocketActions from 'actions/socket';
 import LoginForm from '../components/LoginForm';
 
 interface ILoginRouterProps {
+    history: any;
+    location: any;
 }
 
 interface ILoginDispatchProps {
@@ -64,10 +66,14 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     }
 
     public render(): JSX.Element | null {
+        const { location } = this.props;
+
         return (
-            <div className="flex-box">
-                <LoginForm login={this.login} />
-            </div>
+            <>
+                <div className="flex-box">
+                    <LoginForm login={this.login} alert={location.state && location.state.successMessage}/>
+                </div>
+            </>
         );
     }
 }

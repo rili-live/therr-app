@@ -26,15 +26,19 @@ const SocketActions = {
     },
     register: (data: any) => {
         return (dispatch: any) => {
-            return UserService.authenticate(data).then((response) => {
-                const { idToken, userName } = response && response.data;
+            return UserService.create(data).then((response) => {
+                const { email, id, userName } = response && response.data;
+                    // TODO: Determine if it is necessary to dispatch anything after user registers
+                    // set current user? 
                     dispatch({
-                        'type': SocketClientActionTypes.LOGIN,
+                        'type': SocketClientActionTypes.REGISTER,
                         'data': {
-                            idToken,
+                            email,
+                            id,
                             userName,
                         },
                     });
+                    return { email, id, userName };
             });
         };
     },
