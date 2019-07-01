@@ -115,6 +115,7 @@
 
 .validation-errors {
   color: #c23e37;
+  font-size: 0.875rem;
   margin: 0.375rem;
   margin-bottom: 0;
 }
@@ -149,6 +150,7 @@ label {
   font-weight: 700;
   line-height: 2.5rem;
   margin-bottom: 0;
+  padding-left: 1rem;
 }
 label.required::before {
   color: #c23e37;
@@ -158,9 +160,6 @@ label.required::before {
 
 .form-field {
   margin: 0 0 1rem;
-}
-.form-field label {
-  padding-left: 1rem;
 }
 
 input[type=color],

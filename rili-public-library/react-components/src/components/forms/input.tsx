@@ -114,36 +114,32 @@ class Input extends React.Component<any, any> {
     }
 
     updateValidations = (props: any) => {
-        const { isDirty, isTouched } = this.state;
+        const { onValidate, translate } = this.props;
+        const validationErrors: any = [];
 
-        if (isDirty || isTouched) {
-            const { onValidate, translate } = this.props;
-            const validationErrors: any = [];
+        if (props.validations.length === 0) {
+            return;
+        }
 
-            if (props.validations.length === 0) {
-                return;
-            }
-
-            props.validations.forEach((key: any) => {
-                if (!VALIDATIONS[key].regex.test(props.value)) {
-                    validationErrors.push({
-                        key,
-                        message: translate(VALIDATIONS[key].errorMessageLocalizationKey, {
-                            value: props.value,
-                        }),
-                    });
-                }
-            });
-
-            this.setState({
-                validationErrors,
-            });
-
-            if (onValidate) {
-                onValidate({
-                    [props.id]: validationErrors,
+        props.validations.forEach((key: any) => {
+            if (!VALIDATIONS[key].regex.test(props.value)) {
+                validationErrors.push({
+                    key,
+                    message: translate(VALIDATIONS[key].errorMessageLocalizationKey, {
+                        value: props.value,
+                    }),
                 });
             }
+        });
+
+        this.setState({
+            validationErrors,
+        });
+
+        if (onValidate) {
+            onValidate({
+                [props.id]: validationErrors,
+            });
         }
     }
 
