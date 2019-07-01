@@ -6,18 +6,17 @@ import { Route, Switch, withRouter, RouteComponentProps } from 'react-router-dom
 import { TransitionGroup as Animation } from 'react-transition-group';
 // import * as ReactGA from 'react-ga';
 import Header from './Header';
-// import { configureAuthRoute } from '../library/authentication';
 import { ISocketState } from 'types/socket';
+import { IUserState } from 'types/user';
+import AuthRoute from 'rili-public-library/react-components/AuthRoute';
 import RedirectWithStatus from 'rili-public-library/react-components/RedirectWithStatus';
 import SvgButton from 'rili-public-library/react-components/SvgButton';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
 import scrollTo from 'rili-public-library/utilities/scroll-to';
 import initInterceptors from '../interceptors';
-// import roleConfig from '../../roleConfig';
 import * as globalConfig from '../../../global-config.js';
-// const AuthRoute = configureAuthRoute(roleConfig);
-import routes from '../routes';
+import routes, { IAccess, AccessCheckType } from '../routes';
 import { Location } from 'history';
 
 let _viewListener: any;
@@ -31,6 +30,7 @@ interface ILayoutDispatchProps {
 }
 
 interface IStoreProps extends ILayoutDispatchProps {
+    user?: IUserState;
     socket?: ISocketState;
 }
 
@@ -45,7 +45,8 @@ interface ILayoutState {
 
 const mapStateToProps = (state: any) => {
     return {
-        'redirectRoute': state.redirectRoute,
+        redirectRoute: state.redirectRoute,
+        user: state.user,
     };
 };
 
@@ -93,6 +94,27 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
     }
 
+    isAuthorized = (access: IAccess) => {
+        const { user } = this.props;
+
+        if (user && user.details && user.details.accessLevels) {
+            if (access.type === AccessCheckType.NONE) {
+                // User does not have any of the access levels from the check
+                return !access.levels.some(lvl => user.details.accessLevels.includes(lvl));
+            }
+            if (access.type === AccessCheckType.ANY) {
+                // User has at least one of the access levels from the check
+                return access.levels.some(lvl => user.details.accessLevels.includes(lvl));
+            }
+            if (access.type === AccessCheckType.ALL) {
+                // User has all of the access levels from the check
+                return !access.levels.some(lvl => !user.details.accessLevels.includes(lvl));
+            }
+        }
+
+        return false;
+    }
+
     onViewChange = (location: Location) => {
         scrollTo(0, 100);
         // if (typeof(window) !== 'undefined') {
@@ -112,6 +134,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
     }
 
     public render(): JSX.Element | null {
+        const { location } = this.props;
         const navMenuClassNames = classnames({
             'is-open': this.state.isNavMenuOpen,
         });
@@ -141,11 +164,11 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 routes.map((route, i) => {
                                     if (route.access) {
                                         return (
-                                            <Route location={this.props.location} key={i} {...route} />
+                                            <AuthRoute isAuthorized={this.isAuthorized(route.access)} location={location} key={i} {...route} />
                                         );
                                     } else {
                                         return (
-                                            <Route location={this.props.location} key={i} {...route} />
+                                            <Route location={location} key={i} {...route} />
                                         );
                                     }
                                 })

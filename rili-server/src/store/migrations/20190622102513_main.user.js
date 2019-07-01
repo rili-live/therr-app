@@ -1,5 +1,6 @@
 exports.up = knex => knex.schema.createTable('main.users', (table) => {
     table.increments('id');
+    table.jsonb('accessLevels').defaultTo(JSON.stringify(['user.default']));
     table.string('userName').unique().notNullable();
     table.string('email').unique().notNullable();
     table.string('firstName');

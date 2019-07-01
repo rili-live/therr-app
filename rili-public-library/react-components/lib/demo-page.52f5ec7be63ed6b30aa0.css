@@ -10,6 +10,7 @@ button,
   border-radius: 1.1875rem; }
 
 button {
+  font-size: .75rem;
   height: 2.375rem; }
   button:disabled {
     cursor: not-allowed;
@@ -133,6 +134,7 @@ button {
 
 .validation-errors {
   color: #c23e37;
+  font-size: .875rem;
   margin: .375rem;
   margin-bottom: 0; }
   .validation-errors .message-container {
@@ -643,4 +645,4 @@ body {
   background: #ff4081; }
 
 
-/*# sourceMappingURL=demo-page.68b7c80dbbb293a4830e.css.map*/
+/*# sourceMappingURL=demo-page.52f5ec7be63ed6b30aa0.css.map*/

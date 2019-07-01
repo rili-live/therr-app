@@ -62,7 +62,7 @@ class UserRoutes {
                             password: hash,
                             phoneNumber: req.body.phoneNumber,
                             userName: req.body.userName,
-                        }).into('main.users').returning(['email', 'id', 'userName']).debug(notProd)
+                        }).into('main.users').returning(['email', 'id', 'userName', 'accessLevels']).debug(notProd)
                             .then((results) => {
                                 return res.status(201).send(httpResponse.success(results[0]));
                             })

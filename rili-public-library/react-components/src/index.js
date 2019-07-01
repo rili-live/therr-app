@@ -17,6 +17,7 @@ const formComponents = [
 
 // Routing
 const routingComponents = [
+    'routing/AuthRoute',
     'routing/Status',
     'routing/RedirectWithStatus',
 ];
