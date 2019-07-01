@@ -131,6 +131,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     id="password"
                     name="password"
                     value={this.state.inputs.password}
+                    minLength="8"
                     onChange={this.onInputChange}
                     onEnter={this.onSubmit}
                     translate={this.translate}
@@ -143,6 +144,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     id="repeat_password"
                     name="repeatPassword"
                     value={this.state.inputs.repeatPassword}
+                    minLength="8"
                     onChange={this.onInputChange}
                     onEnter={this.onSubmit}
                     translate={this.translate}

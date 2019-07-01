@@ -27,12 +27,13 @@ const SocketActions = {
     register: (data: any) => {
         return (dispatch: any) => {
             return UserService.create(data).then((response) => {
-                const { email, id, userName } = response && response.data;
+                const { accessLevels, email, id, userName } = response && response.data;
                     // TODO: Determine if it is necessary to dispatch anything after user registers
                     // set current user? 
                     dispatch({
                         'type': SocketClientActionTypes.REGISTER,
                         'data': {
+                            accessLevels,
                             email,
                             id,
                             userName,

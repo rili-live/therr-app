@@ -46760,6 +46760,156 @@ module.exports = yeast;
 
 /***/ }),
 
+/***/ "../rili-public-library/react-components/lib/AuthRoute.js":
+/*!****************************************************************!*\
+  !*** ../rili-public-library/react-components/lib/AuthRoute.js ***!
+  \****************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+!function (e, t) {
+   true ? module.exports = t(__webpack_require__(/*! react */ "../node_modules/react/index.js"), __webpack_require__(/*! react-redux */ "../node_modules/react-redux/es/index.js"), __webpack_require__(/*! react-router-dom */ "../node_modules/react-router-dom/es/index.js"), __webpack_require__(/*! redux */ "../node_modules/redux/es/redux.js")) : undefined;
+}(window, function (e, t, r, o) {
+  return function (e) {
+    var t = {};
+
+    function r(o) {
+      if (t[o]) return t[o].exports;
+      var n = t[o] = {
+        i: o,
+        l: !1,
+        exports: {}
+      };
+      return e[o].call(n.exports, n, n.exports, r), n.l = !0, n.exports;
+    }
+
+    return r.m = e, r.c = t, r.d = function (e, t, o) {
+      r.o(e, t) || Object.defineProperty(e, t, {
+        enumerable: !0,
+        get: o
+      });
+    }, r.r = function (e) {
+      "undefined" != typeof Symbol && Symbol.toStringTag && Object.defineProperty(e, Symbol.toStringTag, {
+        value: "Module"
+      }), Object.defineProperty(e, "__esModule", {
+        value: !0
+      });
+    }, r.t = function (e, t) {
+      if (1 & t && (e = r(e)), 8 & t) return e;
+      if (4 & t && "object" == typeof e && e && e.__esModule) return e;
+      var o = Object.create(null);
+      if (r.r(o), Object.defineProperty(o, "default", {
+        enumerable: !0,
+        value: e
+      }), 2 & t && "string" != typeof e) for (var n in e) r.d(o, n, function (t) {
+        return e[t];
+      }.bind(null, n));
+      return o;
+    }, r.n = function (e) {
+      var t = e && e.__esModule ? function () {
+        return e.default;
+      } : function () {
+        return e;
+      };
+      return r.d(t, "a", t), t;
+    }, r.o = function (e, t) {
+      return Object.prototype.hasOwnProperty.call(e, t);
+    }, r.p = "/", r(r.s = "PD4M");
+  }({
+    PD4M: function (e, t, r) {
+      "use strict";
+
+      Object.defineProperty(t, "__esModule", {
+        value: !0
+      });
+      const o = r("cDcd"),
+            n = r("oncg"),
+            c = r("h74D"),
+            u = r("rKB8"),
+            i = r("jqod");
+      t.default = n.withRouter(c.connect(e => ({}), e => u.bindActionCreators({}, e))(class extends o.Component {
+        constructor(e) {
+          super(e), this.redirectPath = "/login";
+          const {
+            redirectPath: t
+          } = this.props;
+          t && (this.redirectPath = t);
+        }
+
+        render() {
+          const {
+            exact: e,
+            isAuthorized: t,
+            location: r,
+            path: c
+          } = this.props,
+                u = Object.assign({}, this.props);
+          return delete u.access, delete u.component, o.createElement(n.Route, {
+            location: r,
+            path: c,
+            exact: e,
+            render: e => t ? o.createElement(this.props.component, Object.assign({}, e)) : o.createElement(i.default, {
+              statusCode: 307,
+              to: {
+                pathname: this.redirectPath,
+                state: {
+                  from: e.location
+                }
+              }
+            })
+          });
+        }
+
+      }));
+    },
+    cDcd: function (t, r) {
+      t.exports = e;
+    },
+    h74D: function (e, r) {
+      e.exports = t;
+    },
+    jqod: function (e, t, r) {
+      "use strict";
+
+      Object.defineProperty(t, "__esModule", {
+        value: !0
+      });
+      const o = r("cDcd"),
+            n = r("oncg");
+      t.default = class extends o.Component {
+        constructor(e) {
+          super(e);
+        }
+
+        render() {
+          const {
+            from: e,
+            statusCode: t,
+            to: r
+          } = this.props;
+          return o.createElement(n.Route, {
+            render: ({
+              staticContext: c
+            }) => (c && (c.statusCode = t), o.createElement(n.Redirect, {
+              from: e,
+              to: r
+            }))
+          });
+        }
+
+      };
+    },
+    oncg: function (e, t) {
+      e.exports = r;
+    },
+    rKB8: function (e, t) {
+      e.exports = o;
+    }
+  });
+});
+
+/***/ }),
+
 /***/ "../rili-public-library/react-components/lib/ButtonPrimary.js":
 /*!********************************************************************!*\
   !*** ../rili-public-library/react-components/lib/ButtonPrimary.js ***!
@@ -46987,13 +47137,9 @@ module.exports = yeast;
             }), this.props.onChange(t, a);
           }, this.handleKeyDown = e => {
             this.props.onEnter && e.keyCode === i.Key.Enter && this.props.onEnter(e);
-          }, this.onFocus = () => {
-            this.setState({
-              isTouched: !0
-            }), this.props.onFocus && this.props.onFocus();
-          }, this.onBlur = () => {
-            this.updateValidations(this.props), this.props.onBlur && this.props.onBlur();
-          }, this.updateValidations = e => {
+          }, this.onFocus = () => (this.setState({
+            isTouched: !0
+          }), this.props.onFocus && this.props.onFocus()), this.onBlur = () => (this.updateValidations(this.props), this.props.onBlur && this.props.onBlur()), this.updateValidations = e => {
             const {
               isDirty: t,
               isTouched: a
@@ -47623,20 +47769,20 @@ const react_router_dom_1 = __webpack_require__(/*! react-router-dom */ "../node_
 const react_transition_group_1 = __webpack_require__(/*! react-transition-group */ "../node_modules/react-transition-group/index.js");
 // import * as ReactGA from 'react-ga';
 const Header_1 = __webpack_require__(/*! ./Header */ "./src/components/Header.tsx");
+const AuthRoute_1 = __webpack_require__(/*! rili-public-library/react-components/AuthRoute */ "../rili-public-library/react-components/lib/AuthRoute.js");
 const RedirectWithStatus_1 = __webpack_require__(/*! rili-public-library/react-components/RedirectWithStatus */ "../rili-public-library/react-components/lib/RedirectWithStatus.js");
 const SvgButton_1 = __webpack_require__(/*! rili-public-library/react-components/SvgButton */ "../rili-public-library/react-components/lib/SvgButton.js");
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
 const scroll_to_1 = __webpack_require__(/*! rili-public-library/utilities/scroll-to */ "../rili-public-library/utilities/lib/scroll-to.js");
 const interceptors_1 = __webpack_require__(/*! ../interceptors */ "./src/interceptors.ts");
-// import roleConfig from '../../roleConfig';
 const globalConfig = __webpack_require__(/*! ../../../global-config.js */ "../global-config.js");
-// const AuthRoute = configureAuthRoute(roleConfig);
 const routes_1 = __webpack_require__(/*! ../routes */ "./src/routes/index.ts");
 let _viewListener;
 const mapStateToProps = (state) => {
     return {
-        'redirectRoute': state.redirectRoute,
+        redirectRoute: state.redirectRoute,
+        user: state.user,
     };
 };
 const mapDispatchToProps = (dispatch) => {
@@ -47653,6 +47799,24 @@ class Layout extends React.Component {
                     this.toggleNavMenu();
                 }
             }
+        };
+        this.isAuthorized = (access) => {
+            const { user } = this.props;
+            if (user && user.details && user.details.accessLevels) {
+                if (access.type === routes_1.AccessCheckType.NONE) {
+                    // User does not have any of the access levels from the check
+                    return !access.levels.some(lvl => user.details.accessLevels.includes(lvl));
+                }
+                if (access.type === routes_1.AccessCheckType.ANY) {
+                    // User has at least one of the access levels from the check
+                    return access.levels.some(lvl => user.details.accessLevels.includes(lvl));
+                }
+                if (access.type === routes_1.AccessCheckType.ALL) {
+                    // User has all of the access levels from the check
+                    return !access.levels.some(lvl => !user.details.accessLevels.includes(lvl));
+                }
+            }
+            return false;
         };
         this.onViewChange = (location) => {
             scroll_to_1.default(0, 100);
@@ -47690,6 +47854,7 @@ class Layout extends React.Component {
         });
     }
     render() {
+        const { location } = this.props;
         const navMenuClassNames = classnames_1.default({
             'is-open': this.state.isNavMenuOpen,
         });
@@ -47707,10 +47872,10 @@ class Layout extends React.Component {
                     React.createElement(react_router_dom_1.Switch, null,
                         routes_1.default.map((route, i) => {
                             if (route.access) {
-                                return (React.createElement(react_router_dom_1.Route, Object.assign({ location: this.props.location, key: i }, route)));
+                                return (React.createElement(AuthRoute_1.default, Object.assign({ isAuthorized: this.isAuthorized(route.access), location: location, key: i }, route)));
                             }
                             else {
-                                return (React.createElement(react_router_dom_1.Route, Object.assign({ location: this.props.location, key: i }, route)));
+                                return (React.createElement(react_router_dom_1.Route, Object.assign({ location: location, key: i }, route)));
                             }
                         }),
                         React.createElement(RedirectWithStatus_1.default, { from: "/redirect", to: "/" }))),
@@ -47875,9 +48040,9 @@ class RegisterFormComponent extends React.Component {
             React.createElement("label", { className: "required", htmlFor: "user_name" }, "Username:"),
             React.createElement(Input_1.default, { type: "text", id: "user_name", name: "userName", value: this.state.inputs.userName, onChange: this.onInputChange, onEnter: this.onSubmit, translate: this.translate, validations: ['isRequired'] }),
             React.createElement("label", { className: "required", htmlFor: "password" }, "Password:"),
-            React.createElement(Input_1.default, { type: "password", id: "password", name: "password", value: this.state.inputs.password, onChange: this.onInputChange, onEnter: this.onSubmit, translate: this.translate, validations: ['isRequired'] }),
+            React.createElement(Input_1.default, { type: "password", id: "password", name: "password", value: this.state.inputs.password, minLength: "8", onChange: this.onInputChange, onEnter: this.onSubmit, translate: this.translate, validations: ['isRequired'] }),
             React.createElement("label", { className: "required", htmlFor: "repeat_password" }, "Repeat Password:"),
-            React.createElement(Input_1.default, { type: "password", id: "repeat_password", name: "repeatPassword", value: this.state.inputs.repeatPassword, onChange: this.onInputChange, onEnter: this.onSubmit, translate: this.translate, validations: ['isRequired'] }),
+            React.createElement(Input_1.default, { type: "password", id: "repeat_password", name: "repeatPassword", value: this.state.inputs.repeatPassword, minLength: "8", onChange: this.onInputChange, onEnter: this.onSubmit, translate: this.translate, validations: ['isRequired'] }),
             React.createElement("div", { className: "form-field text-right" },
                 React.createElement(ButtonPrimary_1.default, { id: "register", text: "Register", onClick: this.onSubmit, disabled: this.isFormDisabled() }))));
     }
@@ -48060,12 +48225,13 @@ const SocketActions = {
     register: (data) => {
         return (dispatch) => {
             return UserService_1.default.create(data).then((response) => {
-                const { email, id, userName } = response && response.data;
+                const { accessLevels, email, id, userName } = response && response.data;
                 // TODO: Determine if it is necessary to dispatch anything after user registers
                 // set current user? 
                 dispatch({
                     'type': constants_1.SocketClientActionTypes.REGISTER,
                     'data': {
+                        accessLevels,
                         email,
                         id,
                         userName,
@@ -48104,9 +48270,15 @@ const react_router_redux_1 = __webpack_require__(/*! react-router-redux */ "../n
 // import {user, users, isAuthenticated, redirectRoute} from '../library/authentication';
 // import {loader} from '../library/loader';
 const socket_1 = __webpack_require__(/*! ./socket */ "./src/redux/reducers/socket.ts");
+const user_1 = __webpack_require__(/*! ./user */ "./src/redux/reducers/user.ts");
 exports.default = redux_1.combineReducers({
     routing: react_router_redux_1.routerReducer,
     socket: socket_1.default,
+    // library
+    // isAuthenticated,
+    // loader,
+    // redirectRoute,
+    user: user_1.default,
 });
 
 
@@ -48168,6 +48340,38 @@ const socket = (state = initialState, action) => {
     }
 };
 exports.default = socket;
+
+
+/***/ }),
+
+/***/ "./src/redux/reducers/user.ts":
+/*!************************************!*\
+  !*** ./src/redux/reducers/user.ts ***!
+  \************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const Immutable = __webpack_require__(/*! seamless-immutable */ "../node_modules/seamless-immutable/seamless-immutable.development.js");
+const constants_1 = __webpack_require__(/*! rili-public-library/utilities/constants */ "../rili-public-library/utilities/lib/constants.js");
+const initialState = Immutable.from({
+    details: null,
+});
+const user = (state = initialState, action) => {
+    // If state is initialized by server-side rendering, it may not be a proper immutable object yet
+    if (!state.setIn) {
+        state = initialState;
+    }
+    switch (action.type) {
+        case constants_1.SocketClientActionTypes.REGISTER:
+            return state.setIn(['details'], action.data);
+        default:
+            return state;
+    }
+};
+exports.default = user;
 
 
 /***/ }),
@@ -48658,31 +48862,45 @@ const PageNotFound_1 = __webpack_require__(/*! ./PageNotFound */ "./src/routes/P
 const Register_1 = __webpack_require__(/*! ./Register */ "./src/routes/Register.tsx");
 const Home_1 = __webpack_require__(/*! ./Home */ "./src/routes/Home.tsx");
 const Login_1 = __webpack_require__(/*! ./Login */ "./src/routes/Login.tsx");
+var AccessCheckType;
+(function (AccessCheckType) {
+    AccessCheckType["ALL"] = "all";
+    AccessCheckType["ANY"] = "any";
+    AccessCheckType["NONE"] = "none";
+})(AccessCheckType = exports.AccessCheckType || (exports.AccessCheckType = {}));
 let routes = [
     {
-        'path': '/',
-        'component': Home_1.default,
-        'exact': true,
+        path: '/',
+        component: Home_1.default,
+        exact: true,
     },
     {
         path: '/chat-room/:roomId',
         component: ChatRoom_1.default,
         exact: true,
+        access: {
+            type: AccessCheckType.ALL,
+            levels: ['user.default'],
+        },
     },
     {
         path: '/join-room',
         component: JoinRoom_1.default,
         exact: true,
+        access: {
+            type: AccessCheckType.ALL,
+            levels: ['user.default'],
+        },
     },
     {
-        'path': '/login',
-        'component': Login_1.default,
-        'exact': true,
+        path: '/login',
+        component: Login_1.default,
+        exact: true,
     },
     {
-        'path': '/register',
-        'component': Register_1.default,
-        'exact': true,
+        path: '/register',
+        component: Register_1.default,
+        exact: true,
     },
     // If no route matches, return NotFound component
     {
