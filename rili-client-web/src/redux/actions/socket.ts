@@ -1,5 +1,6 @@
 import { SocketClientActionTypes } from 'rili-public-library/utilities/constants';
 import UserService from '../../services/UserService';
+import { IUser } from 'types/user';
 
 const SocketActions = {
     joinRoom: (data: any) => {
@@ -13,14 +14,34 @@ const SocketActions = {
     login: (data: any) => {
         return (dispatch: any) => {
             return UserService.authenticate(data).then((response) => {
-                const { idToken, userName } = response && response.data;
-                    dispatch({
-                        'type': SocketClientActionTypes.LOGIN,
-                        'data': {
-                            idToken,
-                            userName,
-                        },
-                    });
+                const {
+                    accessLevels,
+                    id,
+                    idToken,
+                    email,
+                    firstName,
+                    lastName,
+                    phoneNumber,
+                    userName,
+                } = response.data;
+                const userData: IUser = {
+                    accessLevels,
+                    id,
+                    idToken,
+                    email,
+                    firstName,
+                    lastName,
+                    phoneNumber,
+                    userName,
+                };
+                sessionStorage.setItem('user', JSON.stringify(userData));
+                if (data.rememberMe) {
+                    localStorage.setItem('user', JSON.stringify(userData));
+                }
+                dispatch({
+                    'type': SocketClientActionTypes.LOGIN,
+                    'data': userData,
+                });
             });
         };
     },

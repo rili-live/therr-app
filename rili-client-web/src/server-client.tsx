@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import * as React from 'react';
 import * as ReactDOMServer from 'react-dom/server';
 import { StaticRouter, matchPath } from 'react-router-dom';
-import { applyMiddleware, createStore } from 'redux';
+import { applyMiddleware, createStore, DeepPartial } from 'redux';
 import { Provider } from 'react-redux';
 import thunkMiddleware from 'redux-thunk';
 import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disable-line no-implicit-dependencies
@@ -66,7 +66,11 @@ for (let i in routeConfig) {
     app.get(routePath, (req, res) => {
         let promises: any = [];
         const staticContext: any = {};
-        const initialState = {};
+        const initialState = {
+            user: {
+                details: {},
+            },
+        };
         const store = createStore(
             rootReducer,
             initialState,
@@ -99,7 +103,7 @@ for (let i in routeConfig) {
             // This gets the initial state created after all dispatches are called in fetchData
             Object.assign(initialState, store.getState());
 
-            const state = JSON.stringify(initialState);
+            const state = JSON.stringify(initialState).replace(/</g, '\\u003c');
 
             if (staticContext.url) {
                 printLogs({
