@@ -36,14 +36,16 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
     }
 
     onSubmit = (event: any) => {
+        const { password, rememberMe, userName } = this.state.inputs;
         switch (event.target.id) {
             case 'password':
             case 'user_name':
             case 'login':
                 if (!this.isLoginFormDisabled()) {
                     this.props.login({
-                        userName: this.state.inputs.userName,
-                        password: this.state.inputs.password,
+                        userName: userName,
+                        password: password,
+                        rememberMe: rememberMe,
                     });
                 }
         }

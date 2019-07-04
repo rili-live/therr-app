@@ -14,7 +14,7 @@ const initialState: ISocketState = Immutable.from({
 const socket = (state: ISocketState = initialState, action: any) => {
     // If state is initialized by server-side rendering, it may not be a proper immutable object yet
     if (!state.setIn) {
-        state = initialState;
+        state = state ? Immutable.from(state) : initialState;
     }
 
     let prevMessageList: any = [];

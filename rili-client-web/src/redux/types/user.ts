@@ -15,4 +15,5 @@ export interface IUser {
 
 export interface IUserState extends Immutable.ImmutableObject<any> {
   details: IUser;
+  isAuthenticated: boolean;
 }
