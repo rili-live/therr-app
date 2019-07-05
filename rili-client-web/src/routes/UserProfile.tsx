@@ -64,6 +64,10 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
     public render(): JSX.Element | null {
         const { user } = this.props;
 
+        if (!user.details) {
+            return null;
+        }
+
         return (
             <div className="flex-box">
                 <h1>User Profile</h1>

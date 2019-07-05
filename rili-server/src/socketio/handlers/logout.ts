@@ -14,19 +14,9 @@ const login = (socket: socketio.Socket, redisSession: any, data: ILoginData) => 
     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
 
     if (socket.handshake && socket.handshake.headers && socket.handshake.headers.host) {
-        redisSession.create({
-            app: rsAppName,
-            socketId: socket.id,
-            ip: socket.handshake.headers.host.split(':')[0],
-            // 30 minutes
-            ttl: 60 * 1000 * 30,
-            data: {
-                idToken: data.idToken,
-                userName: data.userName,
-            },
-        }).then((response: any) => {
+        redisSession.remove(socket.id).then((response: any) => {
             socket.emit(Constants.ACTION, {
-                type: SocketServerActionTypes.SESSION_CREATED_MESSAGE,
+                type: SocketServerActionTypes.SESSION_CLOSED_MESSAGE,
                 data: response,
             });
         }).catch((err: any) => {
@@ -41,12 +31,12 @@ const login = (socket: socketio.Socket, redisSession: any, data: ILoginData) => 
     printLogs({
         shouldPrintLogs: shouldPrintSocketLogs,
         messageOrigin: 'SOCKET_IO_LOGS',
-        messages: `User, ${data.userName} with socketId ${socket.id}, has logged in.`,
+        messages: `User, ${data.userName} with socketId ${socket.id}, has LOGGED OUT.`,
     });
 
-    // Emits an event back to the client who logged in
+    // Emits an event back to the client who logged OUT
     socket.emit(Constants.ACTION, {
-        type: SocketServerActionTypes.USER_LOGIN_SUCCESS,
+        type: SocketServerActionTypes.USER_LOGOUT_SUCCESS,
         data: {
             message: {
                 key: Date.now().toString(),

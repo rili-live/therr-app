@@ -16,6 +16,8 @@ const user = (state: IUserState = initialState, action: any) => {
     switch (action.type) {
         case SocketClientActionTypes.LOGIN:
             return state.setIn(['isAuthenticated'], true).setIn(['details'], action.data);
+        case SocketClientActionTypes.LOGOUT:
+            return state.setIn(['isAuthenticated'], null).setIn(['details'], null);
         default:
             return state;
     }

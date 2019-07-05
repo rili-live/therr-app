@@ -15,3 +15,7 @@ export const authenticateUserValidation = [
     body('userName').exists().isString(),
     body('rememberMe').optional().isString(),
 ];
+
+export const logoutUserValidation = [
+    body('userName').exists().isString(),
+];

@@ -45,6 +45,20 @@ const SocketActions = {
             });
         };
     },
+    logout: (data: any) => {
+        return (dispatch: any) => {
+            return UserService.logout(data).then(() => {
+                sessionStorage.setItem('user', null);
+                localStorage.setItem('user', null);
+                dispatch({
+                    'type': SocketClientActionTypes.LOGOUT,
+                    'data': {
+                        userName: data.userName,
+                    },
+                });
+            });
+        };
+    },
     register: (data: any) => {
         return (dispatch: any) => {
             return UserService.create(data).then((response) => {
