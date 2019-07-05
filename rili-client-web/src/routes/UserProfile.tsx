@@ -1,32 +1,27 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { RouteComponentProps, withRouter, Link } from 'react-router-dom';
 import translator from '../services/translator';
 import SocketActions from 'actions/socket';
-import LoginForm from '../components/LoginForm';
 import { IUserState } from 'types/user';
 
-const shouldRender = (props: IHomeProps) => {
-    return !props.user;
-};
-
-interface IHomeRouterProps {
+interface IUserProfileRouterProps {
 }
 
-interface IHomeDispatchProps {
+interface IUserProfileDispatchProps {
     login: Function;
 }
 
-interface IStoreProps extends IHomeDispatchProps {
+interface IStoreProps extends IUserProfileDispatchProps {
     user: IUserState;
 }
 
 // Regular component props
-interface IHomeProps extends RouteComponentProps<IHomeRouterProps>, IStoreProps {
+interface IUserProfileProps extends RouteComponentProps<IUserProfileRouterProps>, IStoreProps {
 }
 
-interface IHomeState {
+interface IUserProfileState {
     inputs: any;
 }
 
@@ -43,32 +38,19 @@ const mapDispatchToProps = (dispatch: any) => {
 };
 
 /**
- * Home
+ * UserProfile
  */
-export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
+export class UserProfileComponent extends React.Component<IUserProfileProps, IUserProfileState> {
     private translate: Function;
 
-    static getDerivedStateFromProps(nextProps: IHomeProps) {
-        if (!shouldRender(nextProps)) {
-            nextProps.history.push('/user/profile');
-            return null;
-        } else {
-            return {};
-        }
-    }
-
-    constructor(props: IHomeProps) {
+    constructor(props: IUserProfileProps) {
         super(props);
-
-        this.state = {
-            inputs: {},
-        };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() {
-        document.title = 'Rili | Home';
+        document.title = 'Rili | User Profile';
     }
 
     login = (credentials: any) => {
@@ -80,12 +62,23 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
     }
 
     public render(): JSX.Element | null {
+        const { user } = this.props;
+
         return (
             <div className="flex-box">
-                <LoginForm login={this.login} title="Home" />
+                <h1>User Profile</h1>
+                <div>
+                    <h3><b>Firstname:</b> {user.details.firstName}</h3>
+                    <h3><b>Lastname:</b> {user.details.lastName}</h3>
+                    <h3><b>Username:</b> {user.details.userName}</h3>
+                    <h3><b>E-mail:</b> {user.details.email}</h3>
+                    <h3><b>Phone:</b> {user.details.phoneNumber}</h3>
+
+                    <Link to="/join-room">Join a room</Link>
+                </div>
             </div>
         );
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(HomeComponent));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(UserProfileComponent));
