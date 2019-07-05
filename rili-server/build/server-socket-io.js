@@ -150,7 +150,7 @@ module.exports = {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-!function(e,t){ true?module.exports=t():undefined}(global,function(){return function(e){var t={};function n(r){if(t[r])return t[r].exports;var o=t[r]={i:r,l:!1,exports:{}};return e[r].call(o.exports,o,o.exports,n),o.l=!0,o.exports}return n.m=e,n.c=t,n.d=function(e,t,r){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)n.d(r,o,function(t){return e[t]}.bind(null,o));return r},n.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="/",n(n.s="jxKE")}({"2onj":function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.JOIN_ROOM="CLIENT:JOIN_ROOM",e.LOGIN="CLIENT:LOGIN",e.REGISTER="CLIENT:REGISTER",e.SEND_MESSAGE="CLIENT:SEND_MESSAGE"}(r||(r={})),t.default=r},"8chb":function(e,t,n){"use strict";var r;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.DISCONNECT="SERVER:DISCONNECT",e.JOINED_ROOM="SERVER:JOINED_ROOM",e.LEFT_ROOM="SERVER:LEFT_ROOM",e.OTHER_JOINED_ROOM="SERVER:OTHER_JOINED_ROOM",e.SEND_ROOMS_LIST="SERVER:SEND_ROOMS_LIST",e.SEND_MESSAGE="SERVER:SEND_MESSAGE",e.SESSION_MESSAGE="SERVER:SESSION_MESSAGE",e.USER_LOGIN_SUCCESS="SERVER:USER_LOGIN_SUCCESS"}(r||(r={})),t.default=r},jxKE:function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const r=n("2onj");t.SocketClientActionTypes=r.default;const o=n("8chb");t.SocketServerActionTypes=o.default,t.SERVER_PREFIX="SERVER",t.WEB_CLIENT_PREFIX="CLIENT"}})});
+!function(e,t){ true?module.exports=t():undefined}(global,function(){return function(e){var t={};function E(S){if(t[S])return t[S].exports;var n=t[S]={i:S,l:!1,exports:{}};return e[S].call(n.exports,n,n.exports,E),n.l=!0,n.exports}return E.m=e,E.c=t,E.d=function(e,t,S){E.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:S})},E.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},E.t=function(e,t){if(1&t&&(e=E(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var S=Object.create(null);if(E.r(S),Object.defineProperty(S,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var n in e)E.d(S,n,function(t){return e[t]}.bind(null,n));return S},E.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return E.d(t,"a",t),t},E.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},E.p="/",E(E.s="jxKE")}({"2onj":function(e,t,E){"use strict";var S;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.JOIN_ROOM="CLIENT:JOIN_ROOM",e.LOGIN="CLIENT:LOGIN",e.LOGOUT="CLIENT:LOGOUT",e.REGISTER="CLIENT:REGISTER",e.SEND_MESSAGE="CLIENT:SEND_MESSAGE"}(S||(S={})),t.default=S},"8chb":function(e,t,E){"use strict";var S;Object.defineProperty(t,"__esModule",{value:!0}),function(e){e.DISCONNECT="SERVER:DISCONNECT",e.JOINED_ROOM="SERVER:JOINED_ROOM",e.LEFT_ROOM="SERVER:LEFT_ROOM",e.OTHER_JOINED_ROOM="SERVER:OTHER_JOINED_ROOM",e.SEND_ROOMS_LIST="SERVER:SEND_ROOMS_LIST",e.SEND_MESSAGE="SERVER:SEND_MESSAGE",e.SESSION_CREATED_MESSAGE="SERVER:SESSION_CREATED_MESSAGE",e.SESSION_CLOSED_MESSAGE="SERVER:SESSION_CLOSED_MESSAGE",e.USER_LOGIN_SUCCESS="SERVER:USER_LOGIN_SUCCESS",e.USER_LOGOUT_SUCCESS="SERVER:USER_LOGOUT_SUCCESS"}(S||(S={})),t.default=S},jxKE:function(e,t,E){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const S=E("2onj");t.SocketClientActionTypes=S.default;const n=E("8chb");t.SocketServerActionTypes=n.default,t.SERVER_PREFIX="SERVER",t.WEB_CLIENT_PREFIX="CLIENT"}})});
 
 /***/ }),
 
@@ -407,6 +407,9 @@ const startExpressSocketIOServer = () => {
                 case constants_1.SocketClientActionTypes.LOGIN:
                     socketHandlers.login(socket, redisSession, action.data);
                     break;
+                case constants_1.SocketClientActionTypes.LOGOUT:
+                    socketHandlers.logout(socket, redisSession, action.data);
+                    break;
                 case constants_1.SocketClientActionTypes.SEND_MESSAGE:
                     socketHandlers.sendMessage(socket, action.data);
                     break;
@@ -474,6 +477,8 @@ const join_room_1 = __webpack_require__(/*! ./join-room */ "./src/socketio/handl
 exports.joinRoom = join_room_1.default;
 const login_1 = __webpack_require__(/*! ./login */ "./src/socketio/handlers/login.ts");
 exports.login = login_1.default;
+const logout_1 = __webpack_require__(/*! ./logout */ "./src/socketio/handlers/logout.ts");
+exports.logout = logout_1.default;
 const send_message_1 = __webpack_require__(/*! ./send-message */ "./src/socketio/handlers/send-message.ts");
 exports.sendMessage = send_message_1.default;
 
@@ -577,7 +582,7 @@ const login = (socket, redisSession, data) => {
             },
         }).then((response) => {
             socket.emit(Constants.ACTION, {
-                type: constants_1.SocketServerActionTypes.SESSION_MESSAGE,
+                type: constants_1.SocketServerActionTypes.SESSION_CREATED_MESSAGE,
                 data: response,
             });
         }).catch((err) => {
@@ -596,6 +601,60 @@ const login = (socket, redisSession, data) => {
     // Emits an event back to the client who logged in
     socket.emit(Constants.ACTION, {
         type: constants_1.SocketServerActionTypes.USER_LOGIN_SUCCESS,
+        data: {
+            message: {
+                key: Date.now().toString(),
+                time: now,
+                text: `You have been logged in successfully.`,
+            },
+            userName: data.userName,
+        },
+    });
+};
+exports.default = login;
+
+
+/***/ }),
+
+/***/ "./src/socketio/handlers/logout.ts":
+/*!*****************************************!*\
+  !*** ./src/socketio/handlers/logout.ts ***!
+  \*****************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const moment = __webpack_require__(/*! moment */ "moment");
+const print_logs_1 = __webpack_require__(/*! rili-public-library/utilities/print-logs */ "../rili-public-library/utilities/lib/print-logs.js"); // tslint:disable-line no-implicit-dependencies
+const constants_1 = __webpack_require__(/*! rili-public-library/utilities/constants */ "../rili-public-library/utilities/lib/constants.js");
+const Constants = __webpack_require__(/*! ../../constants */ "./src/constants/index.ts");
+const server_socket_io_1 = __webpack_require__(/*! ../../server-socket-io */ "./src/server-socket-io.ts");
+const login = (socket, redisSession, data) => {
+    const now = moment(Date.now()).format('MMMM D/YY, h:mma');
+    if (socket.handshake && socket.handshake.headers && socket.handshake.headers.host) {
+        redisSession.remove(socket.id).then((response) => {
+            socket.emit(Constants.ACTION, {
+                type: constants_1.SocketServerActionTypes.SESSION_CLOSED_MESSAGE,
+                data: response,
+            });
+        }).catch((err) => {
+            print_logs_1.default({
+                shouldPrintLogs: server_socket_io_1.shouldPrintRedisLogs,
+                messageOrigin: 'REDIS_SESSION_ERROR',
+                messages: err.toString(),
+            });
+        });
+    }
+    print_logs_1.default({
+        shouldPrintLogs: server_socket_io_1.shouldPrintSocketLogs,
+        messageOrigin: 'SOCKET_IO_LOGS',
+        messages: `User, ${data.userName} with socketId ${socket.id}, has LOGGED OUT.`,
+    });
+    // Emits an event back to the client who logged OUT
+    socket.emit(Constants.ACTION, {
+        type: constants_1.SocketServerActionTypes.USER_LOGOUT_SUCCESS,
         data: {
             message: {
                 key: Date.now().toString(),
@@ -689,6 +748,11 @@ class RedisHelper {
                 this.client.setex(userSocketConfig.socketId, userSocketConfig.ttl || globalConfig["development"].socket.userSocketSessionExpire, userSocketConfig.data, promiser_1.default(resolve, reject));
             });
         };
+        this.removeUser = (socketId) => {
+            return new Promise((resolve, reject) => {
+                this.client.del(socketId);
+            });
+        };
         this.getUser = (socketId) => {
             return new Promise((resolve, reject) => {
                 this.client.get(socketId, promiser_1.default(resolve, reject));
@@ -737,6 +801,9 @@ class RedisSession {
         return this.redisHelper.storeUser(configuredArgs).then(() => {
             return configuredArgs;
         });
+    }
+    remove(socketId) {
+        return this.redisHelper.removeUser(socketId);
     }
     get(socketId) {
         return this.redisHelper.getUser(socketId);

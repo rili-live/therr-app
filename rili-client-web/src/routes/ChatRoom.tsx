@@ -91,7 +91,7 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
             this.messageInputRef.current.inputEl.focus();
             this.props.joinRoom({
                 roomId: this.props.match.params.roomId,
-                userName: this.props.socket.user.userName,
+                userName: this.props.user.details.userName,
             });
         }
     }

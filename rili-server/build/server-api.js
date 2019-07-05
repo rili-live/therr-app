@@ -919,6 +919,15 @@ class AuthRoutes {
                 return res.status(500).send('something went wrong');
             });
         });
+        // Logout user
+        router.route('/auth/logout')
+            .post(auth_1.logoutUserValidation, validation_1.validate, (req, res) => {
+            this.getUser(req.body.userName).then(() => {
+                return res.status(204).send();
+            }).catch((error) => {
+                return res.status(500).send('something went wrong');
+            });
+        });
         // Validate user token (after login)
         router.route('/auth/user-token/validate')
             .post(auth_1.authenticateUserTokenValidation, validation_1.validate, (req, res) => {
@@ -1119,6 +1128,9 @@ exports.authenticateUserValidation = [
     check_1.body('password').exists().isString().isLength({ min: 8 }),
     check_1.body('userName').exists().isString(),
     check_1.body('rememberMe').optional().isString(),
+];
+exports.logoutUserValidation = [
+    check_1.body('userName').exists().isString(),
 ];
 
 

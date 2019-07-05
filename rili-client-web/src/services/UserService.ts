@@ -7,6 +7,10 @@ interface ILoginCredentials {
   password: String;
 }
 
+interface ILogoutCredentials {
+  userName: String;
+}
+
 interface IRegisterCredentials {
   firstName: String;
   lastName: String;
@@ -50,7 +54,15 @@ class UserService {
     }
 
     return false;
-}
+  }
+  
+  logout = (data: ILogoutCredentials) => {
+    return axios({
+      method: 'post',
+      url: '/auth/logout',
+      data,
+    });
+  }
 }
 
 export default new UserService();

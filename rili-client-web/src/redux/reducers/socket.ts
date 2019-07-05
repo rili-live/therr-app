@@ -6,6 +6,7 @@ const initialState: ISocketState = Immutable.from({
     user: {
         userName: '',
         currentRoom: '',
+        session: {},
     },
     rooms: [],
     messages: Immutable({}),
@@ -36,15 +37,20 @@ const socket = (state: ISocketState = initialState, action: any) => {
                     .setIn(['messages', action.data.roomId], updatedMessageList);
         case SocketServerActionTypes.USER_LOGIN_SUCCESS:
             return state.setIn(['user', 'userName'], action.data.userName);
+        case SocketServerActionTypes.USER_LOGOUT_SUCCESS:
+            return state.setIn(['user', 'userName'], null);
         case SocketServerActionTypes.LEFT_ROOM:
             return state.setIn(['messages', action.data.roomId], updatedMessageList);
         case SocketServerActionTypes.OTHER_JOINED_ROOM:
         case SocketServerActionTypes.SEND_MESSAGE:
             return state.setIn(['messages', action.data.roomId], updatedMessageList);
-        case SocketServerActionTypes.SESSION_MESSAGE:
+        case SocketServerActionTypes.SESSION_CREATED_MESSAGE:
             const actionData = action.data;
             actionData.data = JSON.parse(actionData.data);
             return state.setIn(['user', 'session'], actionData);
+        case SocketServerActionTypes.SESSION_CLOSED_MESSAGE:
+            actionData.data = JSON.parse(actionData.data);
+            return state.setIn(['user', 'session'], {});
         default:
             return state;
     }

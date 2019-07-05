@@ -27,6 +27,12 @@ export default class RedisHelper {
         });
     };
 
+    public removeUser = (socketId: Redis.KeyType) => {
+        return new Promise((resolve, reject) => {
+            this.client.del(socketId);
+        });
+    }
+
     public getUser = (socketId: any): Promise<any> => {
         return new Promise((resolve, reject) => {
             this.client.get(socketId, promiser(resolve, reject));

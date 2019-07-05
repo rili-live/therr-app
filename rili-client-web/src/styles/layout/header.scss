@@ -8,9 +8,11 @@ header {
     top: 0;
     width: 100%;
 
-    .login-link {
+    .login-link,
+    .logout-button {
         position: absolute;
         right: 1rem;
+        cursor: pointer;
 
         a {
             color: $rili-white;

@@ -116,6 +116,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
     renderHeader = () => {
         return (
             <Header
+                goHome={this.goHome}
                 isAuthorized={
                     UserService.isAuthorized(
                         {
