@@ -5,6 +5,7 @@ import Register from './Register';
 import { RouteProps } from 'react-router-dom';
 import Home from './Home';
 import Login from './Login';
+import UserProfile from './UserProfile';
 
 export enum AccessCheckType {
     ALL = 'all', // User has all of the access levels from the check
@@ -57,6 +58,11 @@ let routes: IRoute[] = [
     {
         path: '/register',
         component: Register,
+        exact: true,
+    },
+    {
+        path: '/user/profile',
+        component: UserProfile,
         exact: true,
     },
 

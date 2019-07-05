@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { IAccess, AccessCheckType } from '../routes';
+import { IUserState } from 'types/user';
 
 interface ILoginCredentials {
   userName: String;
@@ -22,6 +24,7 @@ class UserService {
       data,
     });
   }
+
   create = (data: IRegisterCredentials) => {
     return axios({
       method: 'post',
@@ -29,6 +32,25 @@ class UserService {
       data,
     });
   }
+
+  isAuthorized = (access: IAccess, user: IUserState) => {
+    if (user && user.details && user.details.accessLevels) {
+        if (access.type === AccessCheckType.NONE) {
+            // User does not have any of the access levels from the check
+            return !access.levels.some(lvl => user.details.accessLevels.includes(lvl));
+        }
+        if (access.type === AccessCheckType.ANY) {
+            // User has at least one of the access levels from the check
+            return access.levels.some(lvl => user.details.accessLevels.includes(lvl));
+        }
+        if (access.type === AccessCheckType.ALL) {
+            // User has all of the access levels from the check
+            return !access.levels.some(lvl => !user.details.accessLevels.includes(lvl));
+        }
+    }
+
+    return false;
+}
 }
 
 export default new UserService();

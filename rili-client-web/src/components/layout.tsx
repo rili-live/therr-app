@@ -4,8 +4,8 @@ import { bindActionCreators, Dispatch } from 'redux';
 import { connect } from 'react-redux';
 import { Route, Switch, withRouter, RouteComponentProps } from 'react-router-dom';
 import { TransitionGroup as Animation } from 'react-transition-group';
+import { Location } from 'history';
 // import * as ReactGA from 'react-ga';
-import Header from './Header';
 import { ISocketState } from 'types/socket';
 import { IUserState } from 'types/user';
 import AuthRoute from 'rili-public-library/react-components/AuthRoute';
@@ -14,10 +14,11 @@ import SvgButton from 'rili-public-library/react-components/SvgButton';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
 import scrollTo from 'rili-public-library/utilities/scroll-to';
+import Header from './Header';
 import initInterceptors from '../interceptors';
 import * as globalConfig from '../../../global-config.js';
 import routes, { IAccess, AccessCheckType } from '../routes';
-import { Location } from 'history';
+import UserService from '../services/UserService';
 
 let _viewListener: any;
 
@@ -94,27 +95,6 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         }
     }
 
-    isAuthorized = (access: IAccess) => {
-        const { user } = this.props;
-
-        if (user && user.details && user.details.accessLevels) {
-            if (access.type === AccessCheckType.NONE) {
-                // User does not have any of the access levels from the check
-                return !access.levels.some(lvl => user.details.accessLevels.includes(lvl));
-            }
-            if (access.type === AccessCheckType.ANY) {
-                // User has at least one of the access levels from the check
-                return access.levels.some(lvl => user.details.accessLevels.includes(lvl));
-            }
-            if (access.type === AccessCheckType.ALL) {
-                // User has all of the access levels from the check
-                return !access.levels.some(lvl => !user.details.accessLevels.includes(lvl));
-            }
-        }
-
-        return false;
-    }
-
     onViewChange = (location: Location) => {
         scrollTo(0, 100);
         // if (typeof(window) !== 'undefined') {
@@ -133,8 +113,24 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.props.history.push('/');
     }
 
+    renderHeader = () => {
+        return (
+            <Header
+                isAuthorized={
+                    UserService.isAuthorized(
+                        {
+                            type: AccessCheckType.ALL,
+                            levels: ['user.default'],
+                        },
+                        this.props.user,
+                    )
+                }
+            />
+        );
+    }
+
     public render(): JSX.Element | null {
-        const { location } = this.props;
+        const { location, user } = this.props;
         const navMenuClassNames = classnames({
             'is-open': this.state.isNavMenuOpen,
         });
@@ -142,7 +138,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         if (this.state.clientHasLoaded) {
             return (
                 <div>
-                    <Header showLogin />
+                    {this.renderHeader()}
                     <div id="navMenu" className={navMenuClassNames}>
                         <p>Rili Inc.</p>
                         <p>Under Construction</p>
@@ -164,7 +160,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 routes.map((route, i) => {
                                     if (route.access) {
                                         return (
-                                            <AuthRoute isAuthorized={this.isAuthorized(route.access)} location={location} key={i} {...route} />
+                                            <AuthRoute isAuthorized={UserService.isAuthorized(route.access, user)} location={location} key={i} {...route} />
                                         );
                                     } else {
                                         return (
@@ -196,7 +192,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
             // Opportunity to add a loader of graphical display
             return (
                 <div>
-                    <Header />
+                    {this.renderHeader()}
                 </div>
             );
         }
