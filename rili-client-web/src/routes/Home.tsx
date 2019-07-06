@@ -8,7 +8,7 @@ import LoginForm from '../components/LoginForm';
 import { IUserState } from 'types/user';
 
 const shouldRender = (props: IHomeProps) => {
-    return !props.user.details;
+    return !props.user.isAuthenticated;
 };
 
 interface IHomeRouterProps {
