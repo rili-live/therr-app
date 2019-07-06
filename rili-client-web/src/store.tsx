@@ -37,7 +37,7 @@ if (typeof(Storage) !== 'undefined' && typeof(window) !== 'undefined') {
     const reloadedState: any = {
         user: {
             details: storedUser,
-            isAuthenticated: !!storedUser,
+            isAuthenticated: storedUser && storedUser.isAuthenticated,
         },
     };
     preLoadedState = Object.assign(safelyParse(window.__PRELOADED_STATE__), reloadedState);
