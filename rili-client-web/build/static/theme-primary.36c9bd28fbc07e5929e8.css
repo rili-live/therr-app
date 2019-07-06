@@ -28,11 +28,11 @@ button {
     button.secondary:hover:not([disabled]) {
       background: #dee1e4; }
   button.primary {
-    background: #DF3275;
+    background: #076d5f;
     border-color: transparent;
     color: #dee1e4; }
     button.primary:hover:not([disabled]) {
-      background: #DC0055;
+      background: #075248;
       cursor: pointer; }
 
 .radio-group .radio-option {
@@ -67,7 +67,7 @@ button {
     position: relative;
     width: 1rem; }
     .radio-group .radio-option label.selected {
-      background: #DC0055; }
+      background: #075248; }
       .radio-group .radio-option label.selected::before {
         background: #021010;
         display: inline; }
@@ -568,7 +568,7 @@ select,
       .pagination-controls .controls-list .page-button-end.active,
       .pagination-controls .controls-list .page-button-back.active,
       .pagination-controls .controls-list .page-button-forward.active {
-        background: #95E934;
+        background: #f96e6f;
         color: #fff;
         font-weight: bold; }
     .pagination-controls .controls-list .page-button-back,
@@ -600,7 +600,7 @@ select,
   animation: spinAnimation 1.3s infinite cubic-bezier(0.53, 0.21, 0.29, 0.67);
   border: 1.5px solid #f8f8f8;
   border-radius: 50%;
-  border-top-color: #95E934;
+  border-top-color: #f96e6f;
   box-sizing: border-box;
   height: 100%;
   margin: auto;
@@ -665,7 +665,7 @@ select,
 
 header {
   align-items: center;
-  background: #DC0055;
+  background: #075248;
   display: flex;
   height: 2.8rem;
   left: 0;
@@ -693,7 +693,7 @@ footer {
   width: 100%;
   height: 2.8rem;
   text-align: center;
-  background: #DC0055; }
+  background: #075248; }
   footer .footer-menu-item {
     display: flex;
     flex: 1;
@@ -719,13 +719,13 @@ button#close, button#messages {
   text-align: center; }
 
 .alert-error {
-  color: #AA0042; }
+  color: #d72c4b; }
 
 .alert-success {
-  color: #008C3D; }
+  color: #60796e; }
 
 .login-container {
-  border: 0.5rem solid #DC0055;
+  border: 0.5rem solid #075248;
   border-radius: 1rem;
   margin-top: 4%;
   max-width: 33.75rem;
@@ -734,7 +734,7 @@ button#close, button#messages {
 
 @media only screen and (min-width: 33.75rem) {
   .login-container {
-    border: 0.9rem solid #DC0055;
+    border: 0.9rem solid #075248;
     min-width: 22.5rem; } }
 
 .register-container {
@@ -759,13 +759,13 @@ h1 {
   margin: .9rem 0; }
 
 .content-container {
-  border-left: 0.25rem double #FF3500;
-  border-right: 0.25rem double #FF3500;
+  border-left: 0.25rem double #1f2e3d;
+  border-right: 0.25rem double #1f2e3d;
   margin: 3.8rem 0.5rem;
   padding: .5rem 1.5rem; }
 
 hr {
-  border-color: #DC0055;
+  border-color: #075248;
   border-width: 0.125rem;
   border-style: solid; }
 
@@ -817,4 +817,4 @@ ul#list {
   align-items: center; }
 
 
-/*# sourceMappingURL=theme-sample.1183b0d7a4cac9b8ca6f.css.map*/
+/*# sourceMappingURL=theme-primary.36c9bd28fbc07e5929e8.css.map*/
