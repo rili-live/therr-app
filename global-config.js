@@ -20,7 +20,7 @@ module.exports = {
     },
     production: {
         apiPort,
-        baseApiRoute: `http://rili.live:${apiPort}/api/v1`,
+        baseApiRoute: `https://rili.live:${apiPort}/api/v1`,
         baseSocketUrl: `https://rili.live:${socketPortProd}`,
         googleAnalyticsKey: '',
         redisHost: '127.0.0.1',
