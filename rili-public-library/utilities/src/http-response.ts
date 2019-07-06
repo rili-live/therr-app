@@ -1,17 +1,22 @@
 import * as httpStatus from 'http-status';
 
-const error = (statusCode: number, error: string) => {
+interface IErrorArgs {
+    id?: String;
+    statusCode: number;
+    message: String;
+}
+
+const error = (args: IErrorArgs) => {
     return {
-        error,
-        statusCode,
-        status: (httpStatus as any)[statusCode],
+        id: args.id || 'notDefined',
+        message: args.message,
+        statusCode: args.statusCode,
+        status: (httpStatus as any)[args.statusCode],
     };
 };
 
 const success = (data: any) => {
-    return {
-        data,
-    };
+    return data;
 };
 
 export {

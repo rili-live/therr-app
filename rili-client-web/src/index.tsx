@@ -5,9 +5,8 @@ import { Provider } from 'react-redux';
 import Layout from './components/Layout';
 import store from './store';
 // Change the following import to alter theme
-// TODO: RFRONT-: Configure webpack to compile all themes and allow client
-// to select the css file that gets loaded
-import './styles/themes/primary/index.scss';
+// TODO: RSERV-8-: Use themes endpoint to dynamically load theme styles
+import './styles/themes/mothers-day/index.scss';
 
 window.onload = () => {
     render(

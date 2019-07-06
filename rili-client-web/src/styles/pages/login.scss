@@ -3,11 +3,13 @@
     border-radius: 1rem;
     margin-top: 4%;
     max-width: rem-calc(540px);
+    min-width: 0;
     padding: 1rem;
 }
 
 @media only screen and (min-width: rem-calc(540px)) {
     .login-container {
         border: .9rem solid $rili-primary-1;
+        min-width: rem-calc(360px);
     }
 }

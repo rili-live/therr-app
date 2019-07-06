@@ -2,7 +2,8 @@
 @import './header';
 @import './footer';
 @import './formatting';
-@import '../pages/login';
+@import './alerts';
+@import '../pages';
 
 html,
 body {
@@ -91,4 +92,6 @@ ul {
 .flex-box {
     display: flex;
     justify-content: center;
+    flex-direction: column;
+    align-items: center;
 }

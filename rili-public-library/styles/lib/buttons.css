@@ -6,6 +6,7 @@ button,
 }
 
 button {
+  font-size: 0.75rem;
   height: 2.375rem;
 }
 button:disabled {

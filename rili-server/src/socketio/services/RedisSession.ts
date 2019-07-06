@@ -43,6 +43,10 @@ export default class RedisSession {
         });
     }
 
+    public remove(socketId: Redis.KeyType) {
+        return this.redisHelper.removeUser(socketId);
+    }
+
     public get(socketId: Redis.KeyType): any {
         return this.redisHelper.getUser(socketId);
     }

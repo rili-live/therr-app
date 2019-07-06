@@ -4,21 +4,21 @@ import { bindActionCreators, Dispatch } from 'redux';
 import { connect } from 'react-redux';
 import { Route, Switch, withRouter, RouteComponentProps } from 'react-router-dom';
 import { TransitionGroup as Animation } from 'react-transition-group';
+import { Location } from 'history';
 // import * as ReactGA from 'react-ga';
-import Header from './Header';
-// import { configureAuthRoute } from '../library/authentication';
 import { ISocketState } from 'types/socket';
+import { IUserState } from 'types/user';
+import AuthRoute from 'rili-public-library/react-components/AuthRoute';
 import RedirectWithStatus from 'rili-public-library/react-components/RedirectWithStatus';
 import SvgButton from 'rili-public-library/react-components/SvgButton';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
 import scrollTo from 'rili-public-library/utilities/scroll-to';
+import Header from './Header';
 import initInterceptors from '../interceptors';
-// import roleConfig from '../../roleConfig';
 import * as globalConfig from '../../../global-config.js';
-// const AuthRoute = configureAuthRoute(roleConfig);
-import routes from '../routes';
-import { Location } from 'history';
+import routes, { IAccess, AccessCheckType } from '../routes';
+import UserService from '../services/UserService';
 
 let _viewListener: any;
 
@@ -31,6 +31,7 @@ interface ILayoutDispatchProps {
 }
 
 interface IStoreProps extends ILayoutDispatchProps {
+    user?: IUserState;
     socket?: ISocketState;
 }
 
@@ -45,7 +46,8 @@ interface ILayoutState {
 
 const mapStateToProps = (state: any) => {
     return {
-        'redirectRoute': state.redirectRoute
+        redirectRoute: state.redirectRoute,
+        user: state.user,
     };
 };
 
@@ -79,7 +81,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         // ReactGA.initialize(globalConfig[process.env.NODE_ENV].googleAnalyticsKey);
         document.addEventListener('click', this.handleClick);
         this.setState({
-            'clientHasLoaded': true
+            'clientHasLoaded': true,
         });
     }
 
@@ -111,7 +113,25 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.props.history.push('/');
     }
 
+    renderHeader = () => {
+        return (
+            <Header
+                goHome={this.goHome}
+                isAuthorized={
+                    UserService.isAuthorized(
+                        {
+                            type: AccessCheckType.ALL,
+                            levels: ['user.default'],
+                        },
+                        this.props.user,
+                    )
+                }
+            />
+        );
+    }
+
     public render(): JSX.Element | null {
+        const { location, user } = this.props;
         const navMenuClassNames = classnames({
             'is-open': this.state.isNavMenuOpen,
         });
@@ -119,7 +139,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         if (this.state.clientHasLoaded) {
             return (
                 <div>
-                    <Header showLogin />
+                    {this.renderHeader()}
                     <div id="navMenu" className={navMenuClassNames}>
                         <p>Rili Inc.</p>
                         <p>Under Construction</p>
@@ -141,11 +161,11 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 routes.map((route, i) => {
                                     if (route.access) {
                                         return (
-                                            <Route location={this.props.location} key={i} {...route} />
+                                            <AuthRoute isAuthorized={UserService.isAuthorized(route.access, user)} location={location} key={i} {...route} />
                                         );
                                     } else {
                                         return (
-                                            <Route location={this.props.location} key={i} {...route} />
+                                            <Route location={location} key={i} {...route} />
                                         );
                                     }
                                 })
@@ -173,7 +193,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
             // Opportunity to add a loader of graphical display
             return (
                 <div>
-                    <Header />
+                    {this.renderHeader()}
                 </div>
             );
         }

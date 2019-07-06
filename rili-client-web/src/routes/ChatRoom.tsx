@@ -8,6 +8,7 @@ import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary';
 import scrollTo from 'rili-public-library/utilities/scroll-to';
 import { IMessage, ISocketState } from 'types/socket';
 import translator from '../services/translator';
+import { IUserState } from 'types/user';
 // import * as globalConfig from '../../../global-config.js';
 
 // router params
@@ -22,6 +23,7 @@ interface IChatRoomDispatchProps {
 
 interface IStoreProps extends IChatRoomDispatchProps {
     socket: ISocketState;
+    user: IUserState;
 }
 
 // Regular component props
@@ -38,6 +40,7 @@ interface IChatRoomState {
 const mapStateToProps = (state: IChatRoomState | any) => {
     return {
         socket: state.socket,
+        user: state.user,
     };
 };
 
@@ -49,7 +52,7 @@ const mapDispatchToProps = (dispatch: any) => {
 };
 
 const shouldRender = (props: IChatRoomProps) => {
-    return !!props.socket.user.userName;
+    return !!props.user;
 };
 
 // TODO: Leaving a roome should emit an event to the server and leave the current room
@@ -88,7 +91,7 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
             this.messageInputRef.current.inputEl.focus();
             this.props.joinRoom({
                 roomId: this.props.match.params.roomId,
-                userName: this.props.socket.user.userName,
+                userName: this.props.user.details.userName,
             });
         }
     }
@@ -108,8 +111,8 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
         this.setState({
             inputs: {
                 ...this.state.inputs,
-                ...newInputChanges
-            }
+                ...newInputChanges,
+            },
         });
     }
 

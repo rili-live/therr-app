@@ -16,13 +16,14 @@ export interface IMessage {
 export type IMessageList = Immutable.ImmutableArray<IMessage>;
 export type IMessages = Immutable.ImmutableObject<{[index: string]: IMessageList}>;
 
-export interface IUser {
+export interface ISocketUser {
     userName: string;
     currentRoom: string;
+    session: any;
 }
 
 export interface ISocketState extends Immutable.ImmutableObject<any> {
-    user: IUser;
+    user: ISocketUser;
     rooms: IRoomsArray;
     messages: IMessages;
 }

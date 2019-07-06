@@ -13,7 +13,6 @@ declare global {
 
 const loggerMiddleware = createLogger();
 let store: any, preLoadedState;
-// let storedUser: any;
 
 const composeEnhancers = typeof window === 'object' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ ?
     window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
@@ -33,10 +32,15 @@ function safelyParse(input: any) {
 
 // Get stored user details from session storage if they are already logged in
 if (typeof(Storage) !== 'undefined' && typeof(window) !== 'undefined') {
-    // storedUser = JSON.parse(sessionStorage.getItem('user'));
-    // storedUser = storedUser ? storedUser : {};
-    // preLoadedState = Object.assign(safelyParse(window.__PRELOADED_STATE__), {'user': storedUser, 'isAuthenticated': !!storedUser.roleConfig});
-    preLoadedState = safelyParse(window.__PRELOADED_STATE__);
+    let storedUser = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user'));
+    storedUser = storedUser || {};
+    const reloadedState: any = {
+        user: {
+            details: storedUser,
+            isAuthenticated: !!storedUser,
+        },
+    };
+    preLoadedState = Object.assign(safelyParse(window.__PRELOADED_STATE__), reloadedState);
 }
 
 if (process.env.NODE_ENV !== 'development') {
@@ -54,11 +58,13 @@ if (process.env.NODE_ENV !== 'development') {
     store = createStore(
         rootReducer,
         preLoadedState,
-        composeEnhancers(applyMiddleware(
-            loggerMiddleware, // middleware that logs actions (development only)
-            socketIOMiddleWare,
-            thunkMiddleware, // let's us dispatch functions
-        ))
+        composeEnhancers(
+            applyMiddleware(
+                loggerMiddleware, // middleware that logs actions (development only)
+                socketIOMiddleWare,
+                thunkMiddleware, // let's us dispatch functions
+            )
+        )
     );
 }
 

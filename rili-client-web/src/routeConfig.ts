@@ -2,36 +2,36 @@ export default [
     {
         route: '/',
         head: {
-            title: 'Home'
+            title: 'Home',
         },
-        view: 'index'
+        view: 'index',
     },
     {
         route: '/chat-room',
         head: {
-            title: 'Chat Room'
+            title: 'Chat Room',
         },
-        view: 'index'
+        view: 'index',
     },
     {
         route: '/join-room',
         head: {
-            title: 'Join a Room'
+            title: 'Join a Room',
         },
-        view: 'index'
+        view: 'index',
     },
     {
         route: '/login',
         head: {
-            title: 'Login'
+            title: 'Login',
         },
-        view: 'index'
+        view: 'index',
     },
     {
         route: '*',
         head: {
-            title: 'Not Found'
+            title: 'Not Found',
         },
-        view: 'index'
-    }
+        view: 'index',
+    },
 ];
