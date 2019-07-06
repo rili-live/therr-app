@@ -1,4 +1,4 @@
-import enUs from './en-us/dictionary.json';
+import * as enUs from './en-us/dictionary.json';
 
 const localesConfig = {
     'en-us': enUs,

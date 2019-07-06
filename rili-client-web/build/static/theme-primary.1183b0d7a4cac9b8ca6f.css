@@ -1,7 +1,7 @@
 a {
   color: #2c9ede; }
   a:visited {
-    color: #2073a1; }
+    color: #3488b7; }
 
 button,
 [type='button'],
@@ -10,18 +10,19 @@ button,
   border-radius: 1.1875rem; }
 
 button {
+  font-size: .75rem;
   height: 2.375rem; }
   button:disabled {
     cursor: not-allowed;
     opacity: .8; }
   button.anchor {
-    color: #2073a1;
+    color: #3488b7;
     text-decoration: none; }
     button.anchor:hover:not([disabled]) {
       color: #004270;
       text-decoration: underline; }
     button.anchor:visited {
-      color: #2073a1; }
+      color: #3488b7; }
   button.secondary {
     background: #d5d8da; }
     button.secondary:hover:not([disabled]) {
@@ -133,6 +134,7 @@ button {
 
 .validation-errors {
   color: #c23e37;
+  font-size: .875rem;
   margin: .375rem;
   margin-bottom: 0; }
   .validation-errors .message-container {
@@ -159,7 +161,8 @@ label {
   color: #dee1e4;
   font-weight: 700;
   line-height: 2.5rem;
-  margin-bottom: 0; }
+  margin-bottom: 0;
+  padding-left: 1rem; }
   label.required::before {
     color: #c23e37;
     content: '*';
@@ -669,10 +672,13 @@ header {
   position: fixed;
   top: 0;
   width: 100%; }
-  header .login-link {
+  header .login-link,
+  header .logout-button {
     position: absolute;
-    right: 1rem; }
-    header .login-link a {
+    right: 1rem;
+    cursor: pointer; }
+    header .login-link a,
+    header .logout-button a {
       color: #dee1e4;
       text-decoration: none; }
 
@@ -712,16 +718,33 @@ button#close, button#messages {
 .text-center {
   text-align: center; }
 
+.alert-error {
+  color: #d72c4b; }
+
+.alert-success {
+  color: #60796e; }
+
 .login-container {
   border: 0.5rem solid #075248;
   border-radius: 1rem;
   margin-top: 4%;
   max-width: 33.75rem;
+  min-width: 0;
   padding: 1rem; }
 
 @media only screen and (min-width: 33.75rem) {
   .login-container {
-    border: 0.9rem solid #075248; } }
+    border: 0.9rem solid #075248;
+    min-width: 22.5rem; } }
+
+.register-container {
+  max-width: 33.75rem;
+  width: 100%;
+  padding: 1rem; }
+
+@media only screen and (min-width: 33.75rem) {
+  .register-container {
+    width: 22.5rem; } }
 
 html,
 body {
@@ -789,7 +812,9 @@ ul#list {
 
 .flex-box {
   display: flex;
-  justify-content: center; }
+  justify-content: center;
+  flex-direction: column;
+  align-items: center; }
 
 
-/*# sourceMappingURL=theme-primary.9f73098b64a36d5d10dd.css.map*/
+/*# sourceMappingURL=theme-primary.1183b0d7a4cac9b8ca6f.css.map*/

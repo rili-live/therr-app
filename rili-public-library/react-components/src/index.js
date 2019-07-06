@@ -2,7 +2,7 @@
 // This allows tree-shaking
 
 // Root level components
-const componentList = ['demo-page', 'ExampleComponent', 'InlineSvg'];
+const componentList = ['demo-page', 'AccessControl', 'ExampleComponent', 'InlineSvg'];
 
 // Forms
 const formComponents = [
@@ -17,6 +17,7 @@ const formComponents = [
 
 // Routing
 const routingComponents = [
+    'routing/AuthRoute',
     'routing/Status',
     'routing/RedirectWithStatus',
 ];

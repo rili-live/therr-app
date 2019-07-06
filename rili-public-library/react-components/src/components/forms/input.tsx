@@ -103,9 +103,14 @@ class Input extends React.Component<any, any> {
         this.setState({
             isTouched: true,
         });
-        if (this.props.onFocus) {
-            this.props.onFocus();
-        }
+
+        return this.props.onFocus && this.props.onFocus();
+    }
+
+    onBlur = () => {
+        this.updateValidations(this.props);
+
+        return this.props.onBlur && this.props.onBlur();
     }
 
     updateValidations = (props: any) => {
@@ -160,7 +165,7 @@ class Input extends React.Component<any, any> {
                     type={type}
                     value={inputValue}
                     onChange={this.handleInputChange}
-                    onBlur={onBlur}
+                    onBlur={this.onBlur}
                     onFocus={this.onFocus}
                     onKeyDown={this.handleKeyDown}
                     placeholder={placeholder}

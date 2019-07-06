@@ -187,6 +187,9 @@ const startExpressSocketIOServer = () => {
             case SocketClientActionTypes.LOGIN:
                 socketHandlers.login(socket, redisSession, action.data);
                 break;
+            case SocketClientActionTypes.LOGOUT:
+                socketHandlers.logout(socket, redisSession, action.data);
+                break;
             case SocketClientActionTypes.SEND_MESSAGE:
                 socketHandlers.sendMessage(socket, action.data);
                 break;

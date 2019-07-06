@@ -6,6 +6,7 @@ import * as Constants from '../../constants';
 import { rsAppName, shouldPrintRedisLogs, shouldPrintSocketLogs } from '../../server-socket-io';
 
 interface ILoginData {
+    idToken: string;
     userName: string;
 }
 
@@ -20,11 +21,12 @@ const login = (socket: socketio.Socket, redisSession: any, data: ILoginData) => 
             // 30 minutes
             ttl: 60 * 1000 * 30,
             data: {
+                idToken: data.idToken,
                 userName: data.userName,
             },
         }).then((response: any) => {
             socket.emit(Constants.ACTION, {
-                type: SocketServerActionTypes.SESSION_MESSAGE,
+                type: SocketServerActionTypes.SESSION_CREATED_MESSAGE,
                 data: response,
             });
         }).catch((err: any) => {

@@ -6,11 +6,10 @@ import * as fs from 'fs';
 import * as React from 'react';
 import * as ReactDOMServer from 'react-dom/server';
 import { StaticRouter, matchPath } from 'react-router-dom';
-import { applyMiddleware, createStore } from 'redux';
+import { applyMiddleware, createStore, DeepPartial } from 'redux';
 import { Provider } from 'react-redux';
 import thunkMiddleware from 'redux-thunk';
 import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disable-line no-implicit-dependencies
-import * as globalConfig from '../../global-config.js';
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
@@ -46,7 +45,7 @@ const createAppServer = () => {
 
     return {
         app,
-        server
+        server,
     };
 };
 
@@ -67,7 +66,11 @@ for (let i in routeConfig) {
     app.get(routePath, (req, res) => {
         let promises: any = [];
         const staticContext: any = {};
-        const initialState = {};
+        const initialState = {
+            user: {
+                details: {},
+            },
+        };
         const store = createStore(
             rootReducer,
             initialState,
@@ -100,16 +103,16 @@ for (let i in routeConfig) {
             // This gets the initial state created after all dispatches are called in fetchData
             Object.assign(initialState, store.getState());
 
-            const state = JSON.stringify(initialState);
+            const state = JSON.stringify(initialState).replace(/</g, '\\u003c');
 
             if (staticContext.url) {
                 printLogs({
                     shouldPrintLogs: true,
                     messageOrigin: 'SERVER_CLIENT',
-                    messages: 'Somewhere a <Redirect> was rendered'
+                    messages: 'Somewhere a <Redirect> was rendered',
                 });
                 res.writeHead(staticContext.statusCode, {
-                    'Location': staticContext.url
+                    'Location': staticContext.url,
                 });
                 res.end();
             } else {
@@ -121,7 +124,7 @@ for (let i in routeConfig) {
 }
 
 // Start the server
-const port = globalConfig[process.env.NODE_ENV].clientPort;
+const port = process.env.CLIENT_PORT;
 server.listen(port, (err: any) => {
     if (err) {
         return console.error(err);

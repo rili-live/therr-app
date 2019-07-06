@@ -1,6 +1,7 @@
 import * as cluster from 'cluster';
 import * as bodyParser from 'body-parser';
 import * as express from 'express';
+import * as cors from 'cors';
 import * as fs from 'fs';
 import * as https from 'https';
 import * as os from 'os';
@@ -16,13 +17,30 @@ export const shouldPrintAllLogs = argv.withAllLogs;
 export const shouldPrintSQLLogs =  argv.withSQLLogs || shouldPrintAllLogs;
 export const shouldPrintServerLogs = argv.withServerLogs || shouldPrintAllLogs;
 
+const originWhitelist = [process.env.CLIENT_URI];
+const corsOptions = {
+    origin(origin: any, callback: any) {
+        if (originWhitelist.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+};
+
 import { version as packageVersion } from '../package.json';
 const API_BASE_ROUTE = `/api/v${packageVersion.split('.')[0]}`;
 
 const app = express();
 
-// Parse JSON
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+if (process.env.NODE_ENV !== 'production') {
+    app.use(cors());
+} else {
+    app.use(cors(corsOptions));
+}
 
 // Serves static files in the /build/static directory
 app.use(express.static(path.join(__dirname, 'static')));

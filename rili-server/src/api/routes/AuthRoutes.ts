@@ -8,6 +8,7 @@ import { shouldPrintSQLLogs } from '../../server-api';
 import {
     authenticateUserTokenValidation,
     authenticateUserValidation,
+    logoutUserValidation,
 } from '../validation/auth';
 import {
     validate,
@@ -18,7 +19,10 @@ import { createUserToken } from '../../utilities/userHelpers';
 const router = express.Router();
 const notProd = process.env.NODE_ENV !== 'production';
 
-const invalidUserNameOrPassword = httpResponse.error(401, 'Incorrect username or password');
+const invalidUserNameOrPassword = httpResponse.error({
+    message: 'Incorrect username or password',
+    statusCode: 401,
+});
 
 class AuthRoutes {
     knex: Knex;
@@ -59,6 +63,16 @@ class AuthRoutes {
                     if (error === 404) {
                         return res.status(401).send(invalidUserNameOrPassword);
                     }
+                    return res.status(500).send('something went wrong');
+                });
+            });
+
+        // Logout user
+        router.route('/auth/logout')
+            .post(logoutUserValidation, validate, (req: any, res: any) => {
+                this.getUser(req.body.userName).then(() => {
+                    return res.status(204).send();
+                }).catch((error) => {
                     return res.status(500).send('something went wrong');
                 });
             });
