@@ -12,4 +12,5 @@ after_success:
   - git status
   - echo -e ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
   - git remote set-url origin https://${GH_TOKEN}@github.com/rili-live/rili-app.git > /dev/null 2>&1
-  - git push -u origin ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
+  - git show-ref
+  - git push origin HEAD:${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
