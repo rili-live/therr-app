@@ -1,6 +1,6 @@
 language: node_js
 install:
-  - npm run install:all
+  - npm run install:all:ci
 script:
   - npm run build:all
   - npm run test:all
