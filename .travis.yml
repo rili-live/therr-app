@@ -9,8 +9,6 @@ after_success:
   - git config --global user.name "Travis CI"
   - git add -A
   - git commit -a -m "Committed by Travis-CI build number, $((TRAVIS_JOB_ID - 1))" --no-verify
-  - git status
   - echo -e ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
   - git remote set-url origin https://${GH_TOKEN}@github.com/rili-live/rili-app.git > /dev/null 2>&1
-  - git show-ref
   - git push origin HEAD:${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
