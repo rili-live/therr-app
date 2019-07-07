@@ -8,7 +8,12 @@ after_success:
   - git config --global user.email "travis@travis-ci.org"
   - git config --global user.name "Travis CI"
   - git checkout -b feature/test-travis
+  - git add -A
   - git commit -a -m "Committed by Travis-CI build number, $((TRAVIS_JOB_ID - 1))" --no-verify
   - git status
-  - echo -e "Current Branch is, $(TRAVIS_BRANCH) OR $({TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH})"
-  - git push origin feature/RAUTO-4-add-basic-travis-yml-file
+  - echo -e $TRAVIS_BRANCH
+  - echo -e ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
+  - git remote -v
+  - git remote set-url origin https://${GH_TOKEN}@github.com/rili-live/rili-app.git > /dev/null 2>&1
+  - git remote -v
+  - git push -u origin test-travis
