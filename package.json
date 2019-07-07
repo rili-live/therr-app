@@ -12,6 +12,7 @@
     "lint:fix:all": "npm install && _bin/apply-to-all.sh 'npm run lint:fix'",
     "install:root": "npm run prepare && npm install && _bin/apply-to-all.sh 'npm install' rootOnly",
     "install:all": "npm run prepare && npm install && _bin/apply-to-all.sh 'npm install'",
+    "install:all:ci": "npm run prepare && npm ci && _bin/apply-to-all.sh 'npm ci'",
     "migrations:create": "node --require=./node_modules/dotenv/config ./node_modules/.bin/knex --knexfile ./rili-server/src/store/knexfile.js migrate:make $1 dotenv_config_path=./.env",
     "migrations:rollback": "node --require=./node_modules/dotenv/config ./node_modules/.bin/knex --knexfile ./rili-server/src/store/knexfile.js migrate:rollback $1 dotenv_config_path=./.env",
     "migrations:run": "node --require=./node_modules/dotenv/config ./node_modules/.bin/knex --knexfile ./rili-server/src/store/knexfile.js migrate:latest dotenv_config_path=./.env",
