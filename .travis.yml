@@ -6,4 +6,5 @@ script:
   - npm run test:all
 after_success:
   - git commit -a -m "Committed by Travis-CI build number, $((TRAVIS_JOB_ID - 1))" --no-verify
-  - git push origin HEAD
+  - echo -e "Current Branch is, $TRAVIS_BRANCH OR ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}"
+  - git push origin feature/RAUTO-4-add-basic-travis-yml-file
