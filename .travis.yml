@@ -6,3 +6,4 @@ script:
   - npm run test:all
 after_success:
   - git commit -a -m "Committed by Travis-CI build number, $((TRAVIS_JOB_ID - 1))" --no-verify
+  - git push origin HEAD
