@@ -6,14 +6,4 @@ script:
   - npm run test:all
 after_success:
   - _bin/travis/post-build.sh
-  # - GIT_AUTHOR_TRAVIS="Travis CI"
-  # - LAST_COMMIT_AUTHOR="$(git log -1 --pretty=format:'%an')"
-  # - echo "$LAST_COMMIT_AUTHOR"
-  # - echo "Committing build changes as, $GIT_AUTHOR_TRAVIS..."
-  # - git config --global user.email "travis@travis-ci.org"
-  # - git config --global user.name "$GIT_AUTHOR_TRAVIS"
-  # - git add -A
-  # - git commit -a -m "Committed by Travis-CI build number, $((TRAVIS_JOB_ID - 1))" --no-verify
-  # - git remote set-url origin https://${GH_TOKEN}@github.com/rili-live/rili-app.git >/dev/null 2>&1
-  # - git push origin HEAD:${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
   
