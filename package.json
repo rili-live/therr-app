@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "The main Rili app root",
   "main": "index.js",
+  "engines": {
+    "npm": ">=6.10.0"
+  },
   "scripts": {
     "build:all": "npm run prepare && _bin/apply-to-all.sh 'npm run build'",
     "clean:all": "rm -rf node_modules && _bin/apply-to-all.sh 'rm -rf node_modules'",
