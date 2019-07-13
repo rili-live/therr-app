@@ -13,3 +13,4 @@ jobs:
     - stage: "Deploy"
       name: "Commit and push build changes"
       script: _bin/travis/post-build.sh
+      if: branch = master
