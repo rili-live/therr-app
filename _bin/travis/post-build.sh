@@ -3,6 +3,10 @@
 set -e
 
 source _bin/travis/git.sh
+if [ "${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}" != "master" ]; then
+  echo "Skipping post build stage."
+  exit 0
+fi
 
 if [ "$LAST_COMMIT_AUTHOR" = "$GIT_AUTHOR_TRAVIS" ]; then
   echo "Previous build committed by git author, $GIT_AUTHOR_TRAVIS. No build changes to commit. Exiting"
