@@ -9,6 +9,8 @@ popd
 
 printMessageNeutral "Copying environment variables..."
 
+touch .env
+
 if
   [[ -z ${CLIENT_PORT+x} || 
     -z ${CLIENT_URI+x} ||
