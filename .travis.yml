@@ -10,5 +10,6 @@ jobs:
     - stage: "Test"
       name: "Test app services"
       script: _bin/travis/test.sh
-after_success:
-  - _bin/travis/post-build.sh
+    - stage: "Deploy"
+      name: "Commit and push build changes"
+      script: _bin/travis/post-build.sh
