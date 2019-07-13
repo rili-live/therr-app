@@ -1,9 +1,16 @@
 language: node_js
-install:
-  - npm run install:all:ci
-script:
-  - npm run build:all
-  - npm run test:all
-after_success:
-  - _bin/travis/post-build.sh
-  
+jobs:
+  include:
+    - stage: "Install"
+      name: "Install app dependencies"
+      script: _bin/travis/install.sh
+    - stage: "Build"
+      name: "Build app services"
+      script: _bin/travis/build.sh
+    - stage: "Test"
+      name: "Test app services"
+      script: _bin/travis/test.sh
+    - stage: "Deploy"
+      name: "Commit and push build changes"
+      script: _bin/travis/post-build.sh
+      if: branch = master
