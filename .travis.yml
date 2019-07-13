@@ -1,9 +1,8 @@
 language: node_js
+install: _bin/travis/install.sh
+cache: npm
 jobs:
   include:
-    - stage: "Install"
-      name: "Install app dependencies"
-      script: _bin/travis/install.sh
     - stage: "Build"
       name: "Build app services"
       script: _bin/travis/build.sh
