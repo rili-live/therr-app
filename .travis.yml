@@ -3,11 +3,8 @@ install: _bin/travis/install.sh
 cache: npm
 jobs:
   include:
-    - stage: "Build"
-      name: "Build app services"
-      script: _bin/travis/build.sh
-    - stage: "Test"
-      name: "Test app services"
-      script: _bin/travis/test.sh
+    - stage: "Build and test"
+      name: "Build and test app services"
+      script: _bin/travis/build.sh && _bin/travis/test.sh
 after_success:
   - _bin/travis/post-build.sh
