@@ -2,8 +2,7 @@
 
 set -e
 
-GIT_AUTHOR_TRAVIS="Travis CI"
-LAST_COMMIT_AUTHOR="$(git log -1 --pretty=format:'%an')"
+source _bin/lib/git.sh
 
 if [ "$LAST_COMMIT_AUTHOR" = "$GIT_AUTHOR_TRAVIS" ]; then
   echo "Previous build committed by git author, $GIT_AUTHOR_TRAVIS. No build changes to commit. Exiting"
