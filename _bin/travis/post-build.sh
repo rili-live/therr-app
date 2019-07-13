@@ -19,3 +19,4 @@ else
   git tag $PACKAGE_VERSION
   git push --tags
 fi
+exit 0
