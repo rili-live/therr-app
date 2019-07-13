@@ -11,6 +11,7 @@
     "clean:all": "rm -rf node_modules && _bin/apply-to-all.sh 'rm -rf node_modules'",
     "connect:postgres": "docker container exec -it docker_rili-postgres_1 bash",
     "connect:postgres:dev": "docker container exec -it docker_rili-postgres-dev_1 bash",
+    "copy:env": "_bin/copy-env.sh",
     "lint:all": "npm install && _bin/apply-to-all.sh 'npm run lint'",
     "lint:fix:all": "npm install && _bin/apply-to-all.sh 'npm run lint:fix'",
     "install:root": "npm run prepare && npm install && _bin/apply-to-all.sh 'npm install' rootOnly",
