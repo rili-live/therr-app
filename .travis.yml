@@ -1,8 +1,12 @@
 language: node_js
-install:
-  - _bin/travis/install.sh
 jobs:
   include:
+    - stage: "Pre-Check"
+      name: "Check if running the full build is necessary"
+      script: _bin/travis/pre-check.sh
+    - stage: "Install"
+      name: "Install app dependencies"
+      script: _bin/travis/install.sh
     - stage: "Build"
       name: "Build app services"
       script: _bin/travis/build.sh
