@@ -5,7 +5,7 @@ set -e
 source _bin/travis/git.sh
 
 echo "Destination branch is $TRAVIS_BRANCH"
-if [ ("$TRAVIS_BRANCH" != "master") && ("$TRAVIS_BRANCH" != "stage") ]; then
+if [ ["$TRAVIS_BRANCH" != "master"] && ["$TRAVIS_BRANCH" != "stage"] ]; then
   echo "Skipping post build stage."
   exit 0
 fi
