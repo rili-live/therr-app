@@ -2,6 +2,13 @@
 
 set -e
 
+# Get color variables for output messages
+pushd _bin
+source ./lib/colorize.sh
+popd
+
+printMessageNeutral "Copying environment variables..."
+
 if
   [ [-z ${CLIENT_PORT+x}] || 
     [-z ${CLIENT_URI+x}] ||
@@ -13,7 +20,7 @@ if
     [-z ${DOMAIN_CERT_LOCATION+x}] ||
     [-z ${DOMAIN_KEY_LOCATION+x}] ||
     [-z ${SECRET+x}] ]; then
-  echo "Missing environment variables. copy-env failed."
+  printMessageWarning "Missing environment variables. copy-env failed."
   exit 0
 else
   cp .env.template .env
@@ -27,6 +34,7 @@ else
   sed -i '' -e "s/DOMAIN_CERT_LOCATION=/DOMAIN_CERT_LOCATION=$DOMAIN_CERT_LOCATION/g" ".env"
   sed -i '' -e "s/DOMAIN_KEY_LOCATION=/DOMAIN_KEY_LOCATION=$DOMAIN_KEY_LOCATION/g" ".env"
   sed -i '' -e "s/SECRET=/SECRET=$SECRET/g" ".env"
+  printMessageSuccess "Successfully copied environment variables"
 fi
 
 
