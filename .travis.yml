@@ -1,9 +1,13 @@
 language: node_js
-install:
-  - npm run install:all:ci
-script:
-  - npm run build:all
-  - npm run test:all
+install: _bin/travis/install.sh
+cache: npm
+jobs:
+  include:
+    - stage: "Build"
+      name: "Build app services"
+      script: _bin/travis/build.sh
+    - stage: "Test"
+      name: "Test app services"
+      script: _bin/travis/test.sh
 after_success:
   - _bin/travis/post-build.sh
-  
