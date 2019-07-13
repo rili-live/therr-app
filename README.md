@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/rili-live/rili-app.svg?branch=master)](https://travis-ci.org/rili-live/rili-app)
+
 # rili-app
 
 # Further Documentation
