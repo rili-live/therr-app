@@ -3,6 +3,7 @@
 set -e
 
 source _bin/travis/git.sh
+echo "Destination branch is ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}"
 if [ "${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}" != "master" ]; then
   echo "Skipping post build stage."
   exit 0
