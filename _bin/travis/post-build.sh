@@ -6,7 +6,7 @@ GIT_AUTHOR_TRAVIS="Travis CI"
 LAST_COMMIT_AUTHOR="$(git log -1 --pretty=format:'%an')"
 
 if [ "$LAST_COMMIT_AUTHOR" = "$GIT_AUTHOR_TRAVIS" ]; then
-  echo "Previous build committed by git author, $GIT_AUTHOR_TRAVIS. Exiting"
+  echo "Previous build committed by git author, $GIT_AUTHOR_TRAVIS. No build changes to commit. Exiting"
 else
   echo "Committing build changes as, $GIT_AUTHOR_TRAVIS..."
   git config --global user.email "travis@travis-ci.org"
