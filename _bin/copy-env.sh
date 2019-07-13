@@ -10,16 +10,16 @@ popd
 printMessageNeutral "Copying environment variables..."
 
 if
-  [ [-z ${CLIENT_PORT+x}] || 
-    [-z ${CLIENT_URI+x}] ||
-    [-z ${PG_HOST+x}] ||
-    [-z ${PG_USER+x}] ||
-    [-z ${PG_DATABASE+x}] ||
-    [-z ${PG_PASSWORD+x}] ||
-    [-z ${PG_PORT+x}] ||
-    [-z ${DOMAIN_CERT_LOCATION+x}] ||
-    [-z ${DOMAIN_KEY_LOCATION+x}] ||
-    [-z ${SECRET+x}] ]; then
+  [[ -z ${CLIENT_PORT+x} || 
+    -z ${CLIENT_URI+x} ||
+    -z ${PG_HOST+x} ||
+    -z ${PG_USER+x} ||
+    -z ${PG_DATABASE+x} ||
+    -z ${PG_PASSWORD+x} ||
+    -z ${PG_PORT+x} ||
+    -z ${DOMAIN_CERT_LOCATION+x} ||
+    -z ${DOMAIN_KEY_LOCATION+x} ||
+    -z ${SECRET+x} ]]; then
   printMessageWarning "Missing environment variables. copy-env failed."
   exit 0
 else
