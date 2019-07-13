@@ -808,7 +808,8 @@ hr {
     padding-bottom: .25rem; }
 
 ul#list {
-  padding-bottom: 4rem; }
+  padding-bottom: 4rem;
+  background: none; }
 
 .flex-box {
   display: flex;
@@ -817,4 +818,4 @@ ul#list {
   align-items: center; }
 
 
-/*# sourceMappingURL=app.e0ef20888f16ade0cb4f.css.map*/
+/*# sourceMappingURL=app.df13c61374a517dae755.css.map*/
