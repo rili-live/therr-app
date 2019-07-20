@@ -94,7 +94,7 @@ class AuthRoutes {
     }
 
     getUser = (userName: string) => {
-        return this.knex.select('*').from('main.users').where({ userName }).debug(notProd)
+        return this.knex.select('*').from('main.users').where({ userName }).orWhere({ email: userName }).debug(notProd)
             .then((results) => {
                 if (results && results.length > 0) {
                     return results[0];
