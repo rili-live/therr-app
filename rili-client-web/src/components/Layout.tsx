@@ -87,7 +87,8 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
     handleClick = (event: any) => {
         if (this.state.isNavMenuOpen) {
-            const isClickInsideNavMenu = document.getElementById('navMenu').contains(event.target);
+            const isClickInsideNavMenu = document.getElementById('navMenu').contains(event.target)
+                || document.getElementById('messages').contains(event.target);
 
             if (!isClickInsideNavMenu) {
                 this.toggleNavMenu();
