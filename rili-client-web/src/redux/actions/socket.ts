@@ -34,9 +34,9 @@ const SocketActions = {
                     phoneNumber,
                     userName,
                 };
-                sessionStorage.setItem('user', JSON.stringify(userData));
+                sessionStorage.setItem('riliUser', JSON.stringify(userData));
                 if (data.rememberMe) {
-                    localStorage.setItem('user', JSON.stringify(userData));
+                    localStorage.setItem('riliUser', JSON.stringify(userData));
                 }
                 dispatch({
                     'type': SocketClientActionTypes.LOGIN,
@@ -48,8 +48,8 @@ const SocketActions = {
     logout: (data: any) => {
         return (dispatch: any) => {
             return UserService.logout(data).then(() => {
-                sessionStorage.setItem('user', null);
-                localStorage.setItem('user', null);
+                sessionStorage.removeItem('riliUser');
+                localStorage.removeItem('riliUser');
                 dispatch({
                     'type': SocketClientActionTypes.LOGOUT,
                     'data': {
