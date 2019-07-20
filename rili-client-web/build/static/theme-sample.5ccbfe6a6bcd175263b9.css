@@ -695,7 +695,8 @@ footer {
   width: 100%;
   height: 2.8rem;
   text-align: center;
-  background: #DC0055; }
+  background: #DC0055;
+  box-shadow: 0px 2px 4px 1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12); }
   footer .footer-menu-item {
     display: flex;
     flex: 1;
@@ -821,4 +822,4 @@ ul#list {
   align-items: center; }
 
 
-/*# sourceMappingURL=theme-sample.35bbe47baf72f2d1575f.css.map*/
+/*# sourceMappingURL=theme-sample.5ccbfe6a6bcd175263b9.css.map*/
