@@ -5,6 +5,11 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import translator from '../services/translator';
 import SocketActions from 'actions/socket';
 import LoginForm from '../components/LoginForm';
+import { IUserState } from 'types/user';
+
+const shouldRender = (props: ILoginProps) => {
+    return !props.user || !props.user.isAuthenticated;
+};
 
 interface ILoginRouterProps {
     history: any;
@@ -16,6 +21,7 @@ interface ILoginDispatchProps {
 }
 
 interface IStoreProps extends ILoginDispatchProps {
+    user: IUserState;
 }
 
 // Regular component props
@@ -28,6 +34,7 @@ interface ILoginState {
 
 const mapStateToProps = (state: any) => {
     return {
+        user: state.user,
     };
 };
 
@@ -42,6 +49,15 @@ const mapDispatchToProps = (dispatch: any) => {
  */
 export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     private translate: Function;
+
+    static getDerivedStateFromProps(nextProps: ILoginProps) {
+        if (!shouldRender(nextProps)) {
+            nextProps.history.push('/user/profile');
+            return null;
+        } else {
+            return {};
+        }
+    }
 
     constructor(props: ILoginProps) {
         super(props);

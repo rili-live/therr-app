@@ -10,6 +10,7 @@ footer {
     height: $footer-height;
     text-align: center;
     background: $rili-primary-1;
+    box-shadow: $box-shadow-fixed-bot;
 
     .footer-menu-item {
         display: flex;

@@ -38,8 +38,10 @@ export class Header extends React.Component<IHeaderProps> {
   }
 
   handleLogout = () => {
-    const { logout, user } = this.props;
-    logout(user.details);
+    const { logout, user, goHome } = this.props;
+    logout(user.details).then(() => {
+      goHome();
+    });
   }
 
   render() {
