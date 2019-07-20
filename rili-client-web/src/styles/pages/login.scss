@@ -2,14 +2,15 @@
     border: .5rem solid $rili-primary-1;
     border-radius: 1rem;
     margin-top: 4%;
-    max-width: rem-calc(540px);
-    min-width: 0;
+    max-width: 100%;
+    min-width: 80%;
     padding: 1rem;
+    box-shadow: $box-shadow-1;
 }
 
 @media only screen and (min-width: rem-calc(540px)) {
     .login-container {
-        border: .9rem solid $rili-primary-1;
+        border: .75rem solid $rili-primary-1;
         min-width: rem-calc(360px);
     }
 }
