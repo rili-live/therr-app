@@ -671,7 +671,8 @@ header {
   left: 0;
   position: fixed;
   top: 0;
-  width: 100%; }
+  width: 100%;
+  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12); }
   header .login-link,
   header .logout-button {
     position: absolute;
@@ -680,7 +681,8 @@ header {
     header .login-link a,
     header .logout-button a {
       color: #dee1e4;
-      text-decoration: none; }
+      text-decoration: none;
+      font-weight: bold; }
 
 footer {
   position: fixed;
@@ -728,13 +730,14 @@ button#close, button#messages {
   border: 0.5rem solid #DC0055;
   border-radius: 1rem;
   margin-top: 4%;
-  max-width: 33.75rem;
-  min-width: 0;
-  padding: 1rem; }
+  max-width: 100%;
+  min-width: 80%;
+  padding: 1rem;
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 3px 0px, rgba(0, 0, 0, 0.14) 0px 1px 1px 0px, rgba(0, 0, 0, 0.12) 0px 2px 1px -1px; }
 
 @media only screen and (min-width: 33.75rem) {
   .login-container {
-    border: 0.9rem solid #DC0055;
+    border: 0.75rem solid #DC0055;
     min-width: 22.5rem; } }
 
 .register-container {
@@ -818,4 +821,4 @@ ul#list {
   align-items: center; }
 
 
-/*# sourceMappingURL=theme-sample.df13c61374a517dae755.css.map*/
+/*# sourceMappingURL=theme-sample.35bbe47baf72f2d1575f.css.map*/

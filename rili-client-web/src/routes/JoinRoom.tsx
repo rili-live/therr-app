@@ -88,7 +88,7 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
 
     onInputChange = (name: string, value: string) => {
         const newInputChanges = {
-            [name]: value,
+            [name]: value.toLowerCase(),
         };
         this.setState({
             inputs: {
@@ -123,18 +123,6 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
         return (
             <div>
                 <h1 className="center">Join a Room</h1>
-                {/* <label htmlFor="user_name">Username:</label>
-                <Input
-                    type="text"
-                    id="user_name"
-                    name="userName"
-                    value={this.state.inputs.userName}
-                    onChange={this.onInputChange}
-                    onEnter={this.onButtonClick}
-                    translate={this.translate}
-                    disabled={true}
-                /> */}
-
                 <label htmlFor="room_name">Room:</label>
                 <Input type="text" id="room_name" name="roomId" value={this.state.inputs.roomId} onChange={this.onInputChange} onEnter={this.onButtonClick} translate={this.translate} />
                 {
