@@ -64,6 +64,10 @@ let routes: IRoute[] = [
         path: '/user/profile',
         component: UserProfile,
         exact: true,
+        access: {
+            type: AccessCheckType.ALL,
+            levels: ['user.default'],
+        },
     },
 
     // If no route matches, return NotFound component
