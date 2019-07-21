@@ -1,6 +1,20 @@
 version: '3'
 
 services:
+  rili-nginx:
+    build:
+      context: ../
+      dockerfile: docker/dev.nginx.Dockerfile
+    image: rili-nginx
+    ports:
+      - 80:80
+    environment:
+      - NGINX_HOST=rili.live
+      - NGINX_PORT=80
+  web-dev:
+    image: httpd
+    volumes:
+      - ../rili-client-web/build:/usr/local/apache2/htdocs/
   rili-postgres-dev:
     image: postgres:latest
     ports:

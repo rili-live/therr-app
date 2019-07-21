@@ -12,10 +12,10 @@ popd
 pushd docker
 if [ "$1" = "dev" ]; then
   printMessageNeutral "Running 'docker compose up' in DEV..."
-  docker-compose -f docker-compose.dev.yml up
+  docker-compose -f dev.docker-compose.yml up --build
 else
   printMessageNeutral "Running 'docker compose up' in PROD..."
-  docker-compose up -d
+  docker-compose -f prod.docker-compose.yml up -d --build
 fi
 popd
 
