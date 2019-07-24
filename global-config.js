@@ -1,5 +1,5 @@
 const apiPort = 7770;
-const socketPortDev = 7771;
+const socketPortDev = 7743;
 const socketPortProd = 7743;
 
 module.exports = {
@@ -8,9 +8,10 @@ module.exports = {
         baseApiRoute: `http://localhost:${apiPort}/api/v1`,
         baseSocketUrl: `http://localhost:${socketPortDev}`,
         googleAnalyticsKey: '',
-        redisHost: '127.0.0.1',
-        redisPubPort: 17771,
-        redisSubPort: 17772,
+        redisPubHost: 'rili-redis-pub',
+        redisSubHost: 'rili-redis-sub',
+        redisPubPort: 6379,
+        redisSubPort: 6379,
         socketPort: socketPortDev,
         socket: {
             pingInterval: 1000 * 10,

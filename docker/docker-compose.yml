@@ -1,0 +1,81 @@
+version: '3'
+
+services:
+  rili-nginx:
+    build:
+      context: ../
+      dockerfile: docker/nginx.dev.Dockerfile
+    ports:
+      - 80:80
+    environment:
+      - NGINX_HOST=rili.live
+      - NGINX_PORT=80
+    networks:
+      - rili-network
+  web-dev:
+    image: httpd
+    volumes:
+      - ../rili-client-web/build:/usr/local/apache2/htdocs/
+    networks:
+      - rili-network
+  rili-client-web:
+    build:
+      context: ../
+      dockerfile: docker/rili-client-web.Dockerfile
+    ports:
+      - 7070:7070
+    volumes:
+      - ../rili-client-web/build:/usr/src/app/build/
+      - ../rili-client-web/src/views:/usr/src/app/src/views/
+      - ../.env:/usr/src/app/.env
+    networks:
+      - rili-network
+  rili-server-api:
+    build:
+      context: ../
+      dockerfile: docker/rili-server-api.Dockerfile
+    ports:
+      - 7770:7770
+    volumes:
+      - ../rili-server/build:/usr/src/app/build/
+      - ../.env:/usr/src/app/.env
+    networks:
+      - rili-network
+  rili-server-socket:
+    build:
+      context: ../
+      dockerfile: docker/rili-server-socket.Dockerfile
+    ports:
+      - 7743:7743
+    volumes:
+      - ../rili-server/build:/usr/src/app/build/
+      - ../.env:/usr/src/app/.env
+    networks:
+      - rili-network
+  rili-postgres:
+    image: postgres:latest
+    ports:
+      - 7432:5432
+    environment:
+      - POSTGRES_USER=riliAdmin
+      - POSTGRES_PASSWORD=secret
+    volumes:
+      - ./volumes/postgres-data:/var/lib/postgresql/data
+    networks:
+      - rili-network
+  rili-redis-pub:
+    image: redis:latest
+    ports:
+      - 17771:6379
+    networks:
+      - rili-network
+  rili-redis-sub:
+    image: redis:latest
+    ports:
+      - 17772:6379
+    networks:
+      - rili-network
+
+networks:
+  rili-network:
+    driver: bridge
