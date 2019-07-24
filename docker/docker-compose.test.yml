@@ -5,7 +5,6 @@ services:
     build:
       context: ../
       dockerfile: docker/dev.nginx.Dockerfile
-    image: rili-nginx
     ports:
       - 80:80
     environment:
@@ -15,6 +14,24 @@ services:
     image: httpd
     volumes:
       - ../rili-client-web/build:/usr/local/apache2/htdocs/
+  rili-client-web:
+    build:
+      context: ../
+      dockerfile: docker/rili-client-web.Dockerfile
+    ports:
+      - 7070:7070
+  rili-server-api:
+    build:
+      context: ../
+      dockerfile: docker/rili-server-api.Dockerfile
+    ports:
+      - 7770:7770
+  rili-server-socket:
+    build:
+      context: ../
+      dockerfile: docker/rili-server-socket.Dockerfile
+    ports:
+      - 7743:7743
   rili-postgres-dev:
     image: postgres:latest
     ports:
@@ -23,7 +40,7 @@ services:
       - POSTGRES_USER=riliAdmin
       - POSTGRES_PASSWORD=secret
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+      - ./volumes/postgres-data:/var/lib/postgresql/data
   rili-redis-pub-dev:
     image: redis:latest
     ports:

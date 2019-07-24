@@ -66,4 +66,4 @@ typings/
 .next
 
 # docker
-docker/postgres-data
+docker/volumes/postgres-data

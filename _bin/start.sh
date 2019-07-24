@@ -12,23 +12,23 @@ popd
 pushd docker
 if [ "$1" = "dev" ]; then
   printMessageNeutral "Running 'docker compose up' in DEV..."
-  docker-compose -f dev.docker-compose.yml up --build
+  docker-compose up --build
 else
   printMessageNeutral "Running 'docker compose up' in PROD..."
-  docker-compose -f prod.docker-compose.yml up -d --build
+  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 fi
 popd
 
-if [ "$1" != "dev" ]; then
-  # Start server
-  pushd rili-server
-  printMessageNeutral "Starting Rili Server..."
-  npm run start
-  popd
+# if [ "$1" != "dev" ]; then
+#   # Start server
+#   pushd rili-server
+#   printMessageNeutral "Starting Rili Server..."
+#   npm run start
+#   popd
 
-  # Start client
-  pushd rili-client-web
-  printMessageNeutral "Starting Rili Client..."
-  npm run start
-  popd
-fi
+#   # Start client
+#   pushd rili-client-web
+#   printMessageNeutral "Starting Rili Client..."
+#   npm run start
+#   popd
+# fi
