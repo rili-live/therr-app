@@ -65,6 +65,10 @@ typings/
 # next.js build output
 .next
 
+# build files
+build/
+lib/
+
 # docker
 docker/volumes/postgres-data
 docker/docker-compose.compiled.yml
