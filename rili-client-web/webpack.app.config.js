@@ -47,8 +47,11 @@ const common = merge([
         },
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
+            new webpack.HashedModuleIdsPlugin(),
         ],
+        externals: Object.keys(pkg.peerDependencies || {}),
     },
+    parts.clean(PATHS.build),
     parts.loadSvg(),
     parts.processReact([PATHS.app, PATHS.reactComponents, PATHS.utils], false),
     parts.processTypescript([PATHS.app], false),
@@ -58,18 +61,8 @@ const common = merge([
 
 const buildDev = () => merge([
     common,
-    parts.clean(PATHS.build),
     {
         mode: 'development',
-        plugins: [
-            new webpack.WatchIgnorePlugin([
-                path.join(__dirname, 'node_modules'),
-            ]),
-            // new HtmlWebpackPlugin({
-            //     template: 'src/index.html',
-            //     inject: false,
-            // }),
-        ],
     },
     parts.loadCSS(null, 'development'),
 ]);
@@ -78,9 +71,6 @@ const buildProd = () => merge([
     common,
     {
         mode: 'production',
-        plugins: [
-            new webpack.HashedModuleIdsPlugin(),
-        ],
     },
     // parts.analyzeBundle(),
     parts.lintJavaScript({
@@ -93,22 +83,11 @@ const buildProd = () => merge([
     parts.minifyJavaScript({ useSourceMap: false }),
 ]);
 
-const buildUmd = () => merge([
-    buildProd(),
-    parts.clean(PATHS.build),
-    {
-        output: {
-            filename: '[name].js',
-        },
-        externals: Object.keys(pkg.peerDependencies || {}),
-    },
-]);
-
 module.exports = (env) => {
     process.env.BABEL_ENV = env;
 
     if (env === 'production') {
-        return [buildUmd()];
+        return [buildProd()];
     }
 
     return [buildDev()];

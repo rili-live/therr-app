@@ -46,8 +46,20 @@ const common = merge([
         },
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
+            new webpack.HashedModuleIdsPlugin(),
+        ],
+        externals: [
+            ...Object.keys(localPkg.peerDependencies || {}),
+            ...Object.keys(rootPkg.dependencies || {}),
         ],
     },
+    parts.lintJavaScript({
+        paths: PATHS.app,
+        options: {
+            emitWarning: true,
+        },
+    }),
+    parts.clean(PATHS.lib),
     parts.processTypescript([PATHS.app], false),
     parts.generateSourcemaps('source-map'),
     parts.deDupe(),
@@ -57,17 +69,7 @@ const buildDev = () => merge([
     common,
     {
         mode: 'development',
-        plugins: [
-            new webpack.HashedModuleIdsPlugin(),
-        ],
     },
-    parts.lintJavaScript({
-        paths: PATHS.app,
-        options: {
-            emitWarning: true,
-        },
-    }),
-    parts.setFreeVariable('process.env.NODE_ENV', 'development'),
     parts.minifyJavaScript({ useSourceMap: true }),
 ]);
 
@@ -75,40 +77,16 @@ const buildProd = () => merge([
     common,
     {
         mode: 'production',
-        plugins: [
-            new webpack.HashedModuleIdsPlugin(),
-        ],
-        externals: [
-            ...Object.keys(localPkg.peerDependencies || {}),
-            ...Object.keys(rootPkg.dependencies || {}),
-        ],
     },
     // parts.analyzeBundle(),
-    parts.lintJavaScript({
-        paths: PATHS.app,
-        options: {
-            emitWarning: true,
-        },
-    }),
-    parts.setFreeVariable('process.env.NODE_ENV', 'production'),
     parts.minifyJavaScript({ useSourceMap: false }),
-]);
-
-const buildUmd = () => merge([
-    buildProd(),
-    parts.clean(PATHS.lib),
-    {
-        output: {
-            filename: '[name].js',
-        },
-    },
 ]);
 
 module.exports = (env) => {
     process.env.BABEL_ENV = env;
 
     if (env === 'production') {
-        return [buildUmd()];
+        return [buildProd()];
     }
 
     return [buildDev()];
