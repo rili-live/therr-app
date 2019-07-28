@@ -3,24 +3,24 @@ version: '3.7'
 services:
   rili-nginx:
     environment:
-      - NGINX_HOST=rest.rili.live
+      - NGINX_HOST=stage.rili.live
     volumes:
-      - ./volumes/nginx.test.conf:/etc/nginx/nginx.conf
+      - ./volumes/nginx.stage.conf:/etc/nginx/nginx.conf
   rili-client-web:
     build:
       args:
-        - NODE_ENV=test
+        - NODE_ENV=stage
     environment:
-      - NODE_ENV=test
+      - NODE_ENV=stage
   rili-server-api:
     build:
       args:
-        - NODE_ENV=test
+        - NODE_ENV=stage
     environment:
-      - NODE_ENV=test
+      - NODE_ENV=stage
   rili-server-socket:
     build:
       args:
-        - NODE_ENV=test
+        - NODE_ENV=stage
     environment:
-      - NODE_ENV=test
+      - NODE_ENV=stage
