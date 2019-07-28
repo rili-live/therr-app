@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "../../node_modules/.bin/sass lib:lib",
+    "build:dev": "../../node_modules/.bin/sass lib:lib",
     "build:watch": "../../node_modules/.bin/sass --watch lib:lib",
     "lint:fix": "../../node_modules/.bin/sass-lint --verbose --no-exit",
     "lint": "../../node_modules/.bin/sass-lint --verbose --no-exit",

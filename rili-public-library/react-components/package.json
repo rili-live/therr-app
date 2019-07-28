@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "../../node_modules/.bin/webpack --env production",
+    "build:dev": "../../node_modules/.bin/webpack --env production",
     "build:watch": "../../node_modules/.bin/webpack --watch --env development",
     "lint:fix": "../../node_modules/.bin/eslint --ext .jsx,.js --fix ./ && ../../node_modules/.bin/tslint --fix -p ./",
     "lint": "../../node_modules/.bin/eslint --ext .jsx,.js ./ && ../../node_modules/.bin/tslint -p ./",
