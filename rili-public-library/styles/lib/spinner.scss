@@ -1,0 +1,63 @@
+@import './variables';
+
+$border-size: 1.5px;
+$spin-duration: 1.3s;
+
+.spinner {
+    .circle {
+        animation: spinAnimation $spin-duration infinite cubic-bezier(.53, .21, .29, .67);
+        border: $border-size solid $rili-bg-grey;
+        border-radius: 50%;
+        border-top-color: $rili-secondary-3;
+        box-sizing: border-box;
+        height: 100%;
+        margin: auto;
+        width: 100%;
+
+        &.xsmall {
+            height: .75rem;
+            width: .75rem;
+        }
+
+        &.small {
+            height: 1rem;
+            width: 1rem;
+        }
+
+        &.medium {
+            height: 1.25rem;
+            width: 1.25rem;
+        }
+
+        &.large {
+            height: 1.75rem;
+            width: 1.75rem;
+        }
+
+        &.xlarge {
+            border-width: 2px;
+            height: 2.5rem;
+            width: 2.5rem;
+        }
+
+        &.xxlarge {
+            border-width: 2.5px;
+            height: 5.75rem;
+            width: 5.75rem;
+        }
+    }
+
+    .status-message {
+        padding-top: .625rem;
+    }
+}
+
+@keyframes spinAnimation {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

@@ -1,0 +1,12 @@
+@import './variables';
+
+.inline-svg {
+    height: 1.25rem;
+    width: 1.25rem;
+
+    svg {
+        fill: $rili-white;
+        height: 100%;
+        width: 100%;
+    }
+}

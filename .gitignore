@@ -67,7 +67,6 @@ typings/
 
 # build files
 build/
-lib/
 
 # docker
 docker/volumes/postgres-data
