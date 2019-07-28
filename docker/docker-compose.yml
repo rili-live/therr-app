@@ -65,7 +65,7 @@ services:
     networks:
       - rili-network
   rili-postgres:
-    image: postgres:latest
+    image: postgres:11
     deploy:
       placement:
         constraints: [node.role == manager]
@@ -79,7 +79,7 @@ services:
     networks:
       - rili-network
   rili-redis-pub:
-    image: redis:latest
+    image: redis:5
     deploy:
       replicas: 1
       update_config:
@@ -91,7 +91,7 @@ services:
     networks:
       - rili-network
   rili-redis-sub:
-    image: redis:latest
+    image: redis:5
     deploy:
       replicas: 1
       update_config:

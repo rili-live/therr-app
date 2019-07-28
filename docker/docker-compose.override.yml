@@ -2,23 +2,27 @@ version: '3.7'
 
 services:
   rili-nginx:
+    image: riliadmin/rili-nginx:dev
     environment:
         - NGINX_HOST=dev.rili.live
     volumes:
       - ./volumes/nginx.dev.conf:/etc/nginx/nginx.conf
   rili-client-web:
+    image: riliadmin/rili-client-web:dev
     build:
       args:
         - NODE_ENV=development
     environment:
       - NODE_ENV=development
   rili-server-api:
+    image: riliadmin/rili-server-api:dev
     build:
       args:
         - NODE_ENV=development
     environment:
       - NODE_ENV=development
   rili-server-socket:
+    image: riliadmin/rili-server-socket:dev
     build:
       args:
         - NODE_ENV=development
