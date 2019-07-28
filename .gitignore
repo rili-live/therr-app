@@ -66,4 +66,5 @@ typings/
 .next
 
 # docker
-docker/postgres-data
+docker/volumes/postgres-data
+docker/docker-compose.compiled.yml

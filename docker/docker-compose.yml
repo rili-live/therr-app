@@ -1,20 +1,109 @@
-version: '3'
+version: '3.7'
 
 services:
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./volumes/certbot/conf:/etc/letsencrypt
+      - ./volumes/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - rili-network
+  rili-nginx:
+    build:
+      context: ../
+      dockerfile: docker/nginx.Dockerfile
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      - NGINX_PORT=80
+    volumes:
+      - ./volumes/certbot/conf:/etc/letsencrypt
+      - ./volumes/certbot/www:/var/www/certbot
+    networks:
+      - rili-network
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+  rili-client-web:
+    build:
+      context: ../
+      dockerfile: docker/rili-client-web.Dockerfile
+      args:
+        - NODE_VERSION=${NODE_VERSION}
+    ports:
+      - 7070:7070
+    volumes:
+      - ../rili-client-web/build:/usr/src/app/build/
+      - ../rili-client-web/src/views:/usr/src/app/src/views/
+      - ../.env:/usr/src/app/.env
+    networks:
+      - rili-network
+  rili-server-api:
+    build:
+      context: ../
+      dockerfile: docker/rili-server-api.Dockerfile
+      args:
+        - NODE_VERSION=${NODE_VERSION}
+    ports:
+      - 7770:7770
+    volumes:
+      - ../rili-server/build:/usr/src/app/build/
+      - ../.env:/usr/src/app/.env
+    networks:
+      - rili-network
+  rili-server-socket:
+    build:
+      context: ../
+      dockerfile: docker/rili-server-socket.Dockerfile
+      args:
+        - NODE_VERSION=${NODE_VERSION}
+    ports:
+      - 7743:7743
+    volumes:
+      - ../rili-server/build:/usr/src/app/build/
+      - ../.env:/usr/src/app/.env
+    networks:
+      - rili-network
   rili-postgres:
-    image: postgres:latest
+    image: postgres:11
+    deploy:
+      placement:
+        constraints: [node.role == manager]
     ports:
       - 7432:5432
     environment:
-      - POSTGRES_USER=riliAdmin
-      - POSTGRES_PASSWORD=secret
+      - POSTGRES_USER=${PG_USER}
+      - POSTGRES_PASSWORD=${PG_PASSWORD}
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+      - ./volumes/postgres-data:/var/lib/postgresql/data
+    networks:
+      - rili-network
   rili-redis-pub:
-    image: redis:latest
+    image: redis:5
+    deploy:
+      replicas: 1
+      update_config:
+        delay: 10s
+      restart_policy:
+        condition: on-failure
     ports:
       - 17771:6379
+    networks:
+      - rili-network
   rili-redis-sub:
-    image: redis:latest
+    image: redis:5
+    deploy:
+      replicas: 1
+      update_config:
+        delay: 10s
+      restart_policy:
+        condition: on-failure
     ports:
       - 17772:6379
+    networks:
+      - rili-network
+
+networks:
+  rili-network:
+    driver: overlay
+    attachable: true

@@ -1,17 +1,40 @@
 const apiPort = 7770;
-const socketPortDev = 7771;
+const socketPortDev = 7743;
+const socketPortStage = 7743;
 const socketPortProd = 7743;
+const hostDev = 'localhost';
+const hostStage = 'stage.rili.live';
+const hostProd = 'rili.live';
 
 module.exports = {
     development: {
         apiPort,
-        baseApiRoute: `http://localhost:${apiPort}/api/v1`,
-        baseSocketUrl: `http://localhost:${socketPortDev}`,
+        baseApiRoute: `http://${hostDev}:${apiPort}/api/v1`,
+        baseSocketUrl: `http://${hostDev}:${socketPortDev}`,
         googleAnalyticsKey: '',
-        redisHost: '127.0.0.1',
-        redisPubPort: 17771,
-        redisSubPort: 17772,
+        host: hostDev,
+        redisPubHost: 'rili-redis-pub',
+        redisSubHost: 'rili-redis-sub',
+        redisPubPort: 6379,
+        redisSubPort: 6379,
         socketPort: socketPortDev,
+        socket: {
+            pingInterval: 1000 * 10,
+            pingTimeout: 1000 * 5,
+            userSocketSessionExpire: 1000 * 60 * 60,
+        },
+    },
+    stage: {
+        apiPort,
+        baseApiRoute: `http://${hostStage}:${apiPort}/api/v1`,
+        baseSocketUrl: `http://${hostStage}:${socketPortStage}`,
+        googleAnalyticsKey: '',
+        host: hostStage,
+        redisPubHost: 'rili-redis-pub',
+        redisSubHost: 'rili-redis-sub',
+        redisPubPort: 6379,
+        redisSubPort: 6379,
+        socketPort: socketPortStage,
         socket: {
             pingInterval: 1000 * 10,
             pingTimeout: 1000 * 5,
@@ -20,10 +43,12 @@ module.exports = {
     },
     production: {
         apiPort,
-        baseApiRoute: `https://rili.live:${apiPort}/api/v1`,
-        baseSocketUrl: `https://rili.live:${socketPortProd}`,
+        baseApiRoute: `https://${hostProd}:${apiPort}/api/v1`,
+        baseSocketUrl: `https://${hostProd}:${socketPortProd}`,
         googleAnalyticsKey: '',
-        redisHost: '127.0.0.1',
+        host: hostProd,
+        redisPubHost: 'rili-redis-pub',
+        redisSubHost: 'rili-redis-sub',
         redisPubPort: 17771,
         redisSubPort: 17772,
         socketPort: socketPortProd,
