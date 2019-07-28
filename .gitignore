@@ -67,3 +67,4 @@ typings/
 
 # docker
 docker/volumes/postgres-data
+docker/docker-compose.compiled.yml
