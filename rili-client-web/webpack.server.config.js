@@ -41,7 +41,10 @@ const common = merge([
                 'rili-public-library/utilities': path.join(__dirname, '../rili-public-library/utilities/lib'),
             },
         },
-        externals: nodeModules,
+        externals: [
+            ...Object.keys(pkg.peerDependencies || {}),
+            nodeModules,
+        ],
         target: 'node',
         node: {
             __dirname: true,
@@ -49,8 +52,10 @@ const common = merge([
         },
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
+            new webpack.HashedModuleIdsPlugin(),
         ],
     },
+    parts.clean(PATHS.build, ['static']),
     parts.loadSvg(),
     parts.processTypescript([PATHS.src], false),
     parts.generateSourcemaps('source-map'),
@@ -59,55 +64,26 @@ const common = merge([
 
 const buildDev = () => merge([
     common,
-    parts.clean(PATHS.build, ['static']),
     {
         mode: 'development',
-        plugins: [
-            new webpack.WatchIgnorePlugin([
-                path.join(__dirname, 'node_modules'),
-            ]),
-            new webpack.NamedModulesPlugin(),
-        ],
     },
-    parts.devServer({
-        disableHostCheck: true,
-        host: process.env.HOST || 'localhost',
-        port: process.env.PORT || 7070,
-        publicPath: PATHS.public,
-    }),
+    parts.minifyJavaScript({ useSourceMap: false }),
 ]);
 
 const buildProd = () => merge([
     common,
     {
         mode: 'production',
-        plugins: [
-            new webpack.HashedModuleIdsPlugin(),
-        ],
-        externals: [
-            ...Object.keys(pkg.peerDependencies || {}),
-            nodeModules,
-        ],
     },
     // parts.analyzeBundle(),
     parts.minifyJavaScript({ useSourceMap: true }),
-]);
-
-const buildUmd = () => merge([
-    buildProd(),
-    parts.clean(PATHS.build, ['static']),
-    {
-        output: {
-            filename: 'server-client.js',
-        },
-    },
 ]);
 
 module.exports = (env) => {
     process.env.BABEL_ENV = env;
 
     if (env === 'production') {
-        return [buildUmd()];
+        return [buildProd()];
     }
 
     return [buildDev()];

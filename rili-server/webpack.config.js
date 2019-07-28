@@ -40,7 +40,10 @@ const common = merge([
                 'rili-public-library/react-components': path.join(__dirname, '../rili-public-library/react-components/lib'),
             },
         },
-        externals: nodeModules,
+        externals: [
+            ...Object.keys(pkg.peerDependencies || {}),
+            nodeModules,
+        ],
         target: 'node',
         node: {
             __dirname: false,
@@ -49,6 +52,13 @@ const common = merge([
             new webpack.NoEmitOnErrorsPlugin(),
         ],
     },
+    parts.clean(PATHS.build, ['static']),
+    parts.lintJavaScript({
+        paths: PATHS.app,
+        options: {
+            emitWarning: true,
+        },
+    }),
     parts.processTypescript([PATHS.app], false),
     parts.generateSourcemaps('source-map'),
     parts.deDupe(),
@@ -59,13 +69,6 @@ const buildDev = () => merge([
     {
         mode: 'development',
     },
-    parts.setFreeVariable('process.env.NODE_ENV', 'development'),
-    parts.lintJavaScript({
-        paths: PATHS.app,
-        options: {
-            emitWarning: true,
-        },
-    }),
     parts.minifyJavaScript({ useSourceMap: true }),
 ]);
 
@@ -76,32 +79,16 @@ const buildProd = () => merge([
         plugins: [
             new webpack.HashedModuleIdsPlugin(),
         ],
-        externals: [
-            ...Object.keys(pkg.peerDependencies || {}),
-            nodeModules,
-        ],
     },
     // parts.analyzeBundle(),
-    parts.lintJavaScript({
-        paths: PATHS.app,
-        options: {
-            emitWarning: true,
-        },
-    }),
-    parts.setFreeVariable('process.env.NODE_ENV', 'production'),
     parts.minifyJavaScript({ useSourceMap: false }),
-]);
-
-const buildUmd = () => merge([
-    buildProd(),
-    parts.clean(PATHS.build, ['static']),
 ]);
 
 module.exports = (env) => {
     process.env.BABEL_ENV = env;
 
     if (env === 'production') {
-        return [buildUmd()];
+        return [buildProd()];
     }
 
     return [buildDev()];
