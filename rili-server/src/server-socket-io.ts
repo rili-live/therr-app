@@ -88,7 +88,7 @@ const startExpressSocketIOServer = () => {
     } else {
         appServer = http.createServer(app);
     }
-    const server = appServer.listen(globalConfig[process.env.NODE_ENV].socketPort, 'localhost', (err: string) => {
+    const server = appServer.listen(globalConfig[process.env.NODE_ENV].socketPort, (err: string) => {
         const port = globalConfig[process.env.NODE_ENV].socketPort;
         printLogs({
             shouldPrintLogs: true,

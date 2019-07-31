@@ -11,7 +11,7 @@ EXPOSE 7743
 RUN npm i npm@latest -g
 
 # Create app directory
-RUN mkdir /usr/src/app && chown node:node /usr/src/app
+RUN mkdir /usr/src/app && mkdir /usr/src/app/server-socket && chown -R node:node /usr/src/app
 WORKDIR /usr/src/app
 
 # the official node image provides an unprivileged user as a security best practice
@@ -22,14 +22,30 @@ USER node
 
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
-# Note: This is the root package.json
+# Note: This is the root mono-repo directory
+COPY .babelrc ./
 COPY package*.json ./
+COPY global-config.js ./
+COPY webpack.parts.js ./
+COPY rili-public-library/ ./rili-public-library/
 
 # RUN npm install
 # If you are building your code for production
-RUN npm ci --only=production
+RUN npm ci && npm cache clean --force
+ENV PATH /usr/src/app/node_modules/.bin:$PATH
 
-# Note: This is the socket service package.json
-COPY ./rili-server/package*.json ./
+# check every 30s to ensure this service returns HTTP 200
+# HEALTHCHECK --interval=30s CMD node healthcheck.js
 
-CMD [ "node", "--require=./node_modules/dotenv/config", "./build/server-socket-io.js", "dotenv_config_path=./.env", "--withAllLogs" ]
+# copy in our source code last, as it changes the most
+WORKDIR /usr/src/app/server-socket
+COPY ./rili-server ./
+RUN if [ "$NODE_ENV" = "development" ]; then \
+      echo "Building in $NODE_ENV environment" \
+      && npm run build:dev; \
+    else \
+      echo "Building in $NODE_ENV environment" \
+      && npm run build;\
+    fi
+
+CMD [ "node", "--require=../node_modules/dotenv/config", "./build/server-socket-io.js", "dotenv_config_path=../.env", "--withAllLogs" ]
