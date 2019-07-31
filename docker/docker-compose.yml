@@ -33,8 +33,6 @@ services:
     ports:
       - 7070:7070
     volumes:
-      - ../rili-client-web/build:/usr/src/app/build/
-      - ../rili-client-web/src/views:/usr/src/app/src/views/
       - ../.env:/usr/src/app/.env
     networks:
       - rili-network
@@ -47,7 +45,6 @@ services:
     ports:
       - 7770:7770
     volumes:
-      - ../rili-server/build:/usr/src/app/build/
       - ../.env:/usr/src/app/.env
     networks:
       - rili-network
@@ -60,10 +57,12 @@ services:
     ports:
       - 7743:7743
     volumes:
-      - ../rili-server/build:/usr/src/app/build/
       - ../.env:/usr/src/app/.env
     networks:
       - rili-network
+    depends_on:
+      - rili-redis-pub
+      - rili-redis-sub
   rili-postgres:
     image: postgres:11
     deploy:
