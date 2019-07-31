@@ -4,6 +4,7 @@ const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-
 const merge = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
 const parts = require('../webpack.parts');
 
+// For externals
 const pkg = require('./package.json');
 
 const PATHS = {

@@ -39,7 +39,7 @@ const createAppServer = () => {
             cert: fs.readFileSync(process.env.DOMAIN_CERT_LOCATION),
         };
         server = https.createServer(httpsCredentials, app);
-    } else if (process.env.NODE_ENV === 'development') {
+    } else {
         server = http.createServer(app);
     }
 
