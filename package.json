@@ -29,6 +29,8 @@
     "seeds:run": "node --require=./node_modules/dotenv/config ./node_modules/.bin/babel-node ./node_modules/.bin/knex --knexfile ./rili-server/src/store/knexfile.js seed:run dotenv_config_path=./.env",
     "update:all": "npm run prep && npm update && _bin/apply-to-all.sh 'npm update'",
     "prep": "_bin/prep.sh",
+    "restart": "npm run prep && _bin/restart.sh prod",
+    "restart:dev": "npm run prep && _bin/restart.sh dev",
     "start": "npm run prep && _bin/start.sh",
     "start:dev": "npm run prep && _bin/start.sh dev",
     "start:stage": "npm run prep && _bin/start.sh stage",
