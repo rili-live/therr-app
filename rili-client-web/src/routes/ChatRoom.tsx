@@ -100,7 +100,7 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
         const currentRoom = this.props.socket.user.currentRoom;
         const messages = this.props.socket.messages[currentRoom];
         if (messages && messages.length > 3 && messages.length > prevProps.socket.messages[currentRoom].length) {
-            scrollTo(0, document.body.scrollHeight);
+            scrollTo(document.body.scrollHeight, 100);
         }
     }
 
