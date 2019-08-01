@@ -12,6 +12,7 @@ services:
     build:
       args:
         - NODE_ENV=development
+        - NODE_RUNNER=nodemon
     environment:
       - NODE_ENV=development
   rili-server-api:
@@ -19,6 +20,7 @@ services:
     build:
       args:
         - NODE_ENV=development
+        - NODE_RUNNER=nodemon
     environment:
       - NODE_ENV=development
   rili-server-socket:
@@ -26,5 +28,6 @@ services:
     build:
       args:
         - NODE_ENV=development
+        - NODE_RUNNER=nodemon
     environment:
       - NODE_ENV=development
