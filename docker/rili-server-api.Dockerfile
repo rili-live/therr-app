@@ -5,6 +5,8 @@ FROM node:$NODE_VERSION
 # defaults to production, compose overrides this to development on build and run
 ARG NODE_ENV=production
 ENV NODE_ENV $NODE_ENV
+ARG NODE_RUNNER=node
+ENV NODE_RUNNER $NODE_RUNNER
 
 EXPOSE 7770
 
@@ -47,5 +49,6 @@ RUN if [ "$NODE_ENV" = "development" ]; then \
       echo "Building in $NODE_ENV environment" \
       && npm run build;\
     fi
+RUN echo "Starting node with $NODE_RUNNER"
 
-CMD [ "node", "--require=../node_modules/dotenv/config", "./build/server-api.js", "dotenv_config_path=../.env", "--withAllLogs" ]
+CMD npx $NODE_RUNNER --require=../node_modules/dotenv/config ./build/server-api.js dotenv_config_path=../.env --withAllLogs

@@ -32,8 +32,6 @@ services:
         - NODE_VERSION=${NODE_VERSION}
     ports:
       - 7070:7070
-    volumes:
-      - ../.env:/usr/src/app/.env
     networks:
       - rili-network
   rili-server-api:
@@ -44,8 +42,6 @@ services:
         - NODE_VERSION=${NODE_VERSION}
     ports:
       - 7770:7770
-    volumes:
-      - ../.env:/usr/src/app/.env
     networks:
       - rili-network
   rili-server-socket:
@@ -56,8 +52,6 @@ services:
         - NODE_VERSION=${NODE_VERSION}
     ports:
       - 7743:7743
-    volumes:
-      - ../.env:/usr/src/app/.env
     networks:
       - rili-network
     depends_on:
