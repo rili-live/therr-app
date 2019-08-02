@@ -28,6 +28,8 @@
   ],
   "author": "Rili, Inc.",
   "license": "MIT",
-  "devDependencies": {},
+  "devDependencies": {
+    "webpack-cli": "^3.3.6"
+  },
   "dependencies": {}
 }
