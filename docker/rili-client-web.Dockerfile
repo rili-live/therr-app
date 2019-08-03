@@ -53,7 +53,7 @@ RUN if [ "$NODE_ENV" = "development" ]; then \
       && npm run build:dev; \
     else \
       echo "Building in $NODE_ENV environment" \
-      && npm run build;\
+      && npm run build:deploy;\
     fi
 RUN echo "Starting node with $NODE_RUNNER"
 
