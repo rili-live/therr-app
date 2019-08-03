@@ -1,4 +1,4 @@
-ARG NODE_VERSION=12.2.0
+ARG NODE_VERSION=10.15.3
 FROM node:$NODE_VERSION
 
 # set our node environment, either development or production
