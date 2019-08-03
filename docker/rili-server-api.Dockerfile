@@ -43,7 +43,8 @@ ENV PATH /usr/src/app/node_modules/.bin:/usr/src/app/server-api/node_modules/.bi
 # copy in our source code last, as it changes the most
 WORKDIR /usr/src/app/server-api
 COPY ./rili-server ./
-RUN npm install webpack webpack-cli --save-dev && npm link webpack
+RUN npm install webpack webpack-cli --save-dev
+RUN ls -la ..
 RUN if [ "$NODE_ENV" = "development" ]; then \
       echo "Building in $NODE_ENV environment" \
       && npm run build:dev; \
