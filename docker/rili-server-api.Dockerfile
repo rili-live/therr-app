@@ -44,13 +44,12 @@ ENV PATH /usr/src/app/node_modules/.bin:/usr/src/app/server-api/node_modules/.bi
 WORKDIR /usr/src/app/server-api
 COPY ./rili-server ./
 RUN npm install webpack webpack-cli --save-dev
-RUN ls -la ..
 RUN if [ "$NODE_ENV" = "development" ]; then \
       echo "Building in $NODE_ENV environment" \
       && npm run build:dev; \
     else \
       echo "Building in $NODE_ENV environment" \
-      && npm run build;\
+      && npm run build:deploy;\
     fi
 RUN echo "Starting node with $NODE_RUNNER"
 
