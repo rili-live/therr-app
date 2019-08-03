@@ -43,6 +43,7 @@ ENV PATH /usr/src/app/node_modules/.bin:/usr/src/app/server-socket/node_modules/
 WORKDIR /usr/src/app/server-socket
 COPY ./rili-server ./
 RUN npm install webpack webpack-cli --save-dev && npm link webpack
+RUN ls -la ..
 RUN if [ "$NODE_ENV" = "development" ]; then \
       echo "Building in $NODE_ENV environment" \
       && npm run build:dev; \
