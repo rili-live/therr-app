@@ -29,6 +29,7 @@
   "author": "Rili, Inc.",
   "license": "MIT",
   "devDependencies": {
+    "webpack": "^4.39.1",
     "webpack-cli": "^3.3.6"
   },
   "dependencies": {}

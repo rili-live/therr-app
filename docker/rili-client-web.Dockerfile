@@ -43,6 +43,7 @@ ENV PATH /usr/src/app/node_modules/.bin:$PATH
 # copy in our source code last, as it changes the most
 WORKDIR /usr/src/app/client-web
 COPY ./rili-client-web ./
+RUN npm install webpack webpack-cli --save-dev
 USER root
 RUN chown -R node:node /usr/src/app
 USER node
