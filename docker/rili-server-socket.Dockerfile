@@ -34,7 +34,7 @@ COPY rili-public-library/ ./rili-public-library/
 # RUN npm install
 # If you are building your code for production
 RUN npm ci && npm cache clean --force
-ENV PATH /usr/src/app/node_modules/.bin:$PATH
+ENV PATH /usr/src/app/node_modules/.bin:/usr/src/app/server-socket/node_modules/.bin:$PATH
 
 # check every 30s to ensure this service returns HTTP 200
 # HEALTHCHECK --interval=30s CMD node healthcheck.js
@@ -42,7 +42,8 @@ ENV PATH /usr/src/app/node_modules/.bin:$PATH
 # copy in our source code last, as it changes the most
 WORKDIR /usr/src/app/server-socket
 COPY ./rili-server ./
-RUN npm install webpack webpack-cli --save-dev
+RUN npm install webpack webpack-cli --save-dev && npm link webpack
+RUN ls -la ..
 RUN if [ "$NODE_ENV" = "development" ]; then \
       echo "Building in $NODE_ENV environment" \
       && npm run build:dev; \
