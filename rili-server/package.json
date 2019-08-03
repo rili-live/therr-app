@@ -4,7 +4,8 @@
   "description": "The server side code for Rili",
   "main": "build/index.js",
   "scripts": {
-    "build": "/usr/src/app/node_modules/.bin/webpack --env production",
+    "build": "npx webpack --env production",
+    "build:deploy": "/usr/src/app/node_modules/.bin/webpack --env production",
     "build:dev": "npx webpack --env development",
     "build:watch": "npx webpack --watch --env development",
     "lint:fix": "npx eslint --ext .jsx,.js --fix ./ && npx tslint --fix -p ./",
