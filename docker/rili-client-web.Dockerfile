@@ -27,23 +27,23 @@ USER node
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 # Note: This is the root mono-repo directory
 COPY .babelrc ./
-COPY package*.json ./
 COPY global-config.js ./
 COPY webpack.parts.js ./
 COPY rili-public-library/ ./rili-public-library/
-
-# RUN npm install
-# If you are building your code for production
-RUN npm ci && npm cache clean --force
-ENV PATH /usr/src/app/node_modules/.bin:/usr/src/app/client-web/node_modules/.bin:$PATH
 
 # check every 30s to ensure this service returns HTTP 200
 # HEALTHCHECK --interval=30s CMD node healthcheck.js
 
 # copy in our source code last, as it changes the most
 WORKDIR /usr/src/app/client-web
+
+# Install dependencies and set PATH variable
+COPY package*.json ./
+RUN npm ci && npm cache clean --force
+ENV PATH /usr/src/app/client-web/node_modules/.bin:$PATH
+
 COPY ./rili-client-web ./
-RUN npm install webpack webpack-cli --save-dev
+
 USER root
 RUN chown -R node:node /usr/src/app
 USER node
@@ -53,7 +53,7 @@ RUN if [ "$NODE_ENV" = "development" ]; then \
       && npm run build:dev; \
     else \
       echo "Building in $NODE_ENV environment" \
-      && npm run build:deploy;\
+      && npm run build;\
     fi
 RUN echo "Starting node with $NODE_RUNNER"
 
