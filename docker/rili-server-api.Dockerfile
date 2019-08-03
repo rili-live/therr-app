@@ -48,7 +48,7 @@ RUN if [ "$NODE_ENV" = "development" ]; then \
       && npm run build:dev; \
     else \
       echo "Building in $NODE_ENV environment" \
-      && npx webpack --env production;\
+      && npm run build;\
     fi
 RUN echo "Starting node with $NODE_RUNNER"
 

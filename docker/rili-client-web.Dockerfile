@@ -1,4 +1,4 @@
-ARG NODE_VERSION=12.2.0
+ARG NODE_VERSION=10.15.3
 FROM node:$NODE_VERSION
 
 # set our node environment, either development or production
@@ -47,14 +47,12 @@ COPY ./rili-client-web ./
 USER root
 RUN chown -R node:node /usr/src/app
 USER node
-RUN yes yes | npm i webpack webpack-cli --save-dev
-RUN ls -la node_modules/.bin || exit 0
 RUN if [ "$NODE_ENV" = "development" ]; then \
       echo "Building in $NODE_ENV environment" \
       && npm run build:dev; \
     else \
       echo "Building in $NODE_ENV environment" \
-      && yes yes | npx webpack --config webpack.app.config.js --env production && npx webpack --config webpack.server.config.js --env production;\
+      && npm run build;\
     fi
 RUN echo "Starting node with $NODE_RUNNER"
 
