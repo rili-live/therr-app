@@ -47,7 +47,7 @@ COPY ./rili-client-web ./
 USER root
 RUN chown -R node:node /usr/src/app
 USER node
-RUN ls -la ./node_modules
+RUN ls -la node_modules || exit 0
 RUN if [ "$NODE_ENV" = "development" ]; then \
       echo "Building in $NODE_ENV environment" \
       && npm run build:dev; \
