@@ -47,7 +47,7 @@ RUN npm install webpack webpack-cli --save-dev
 USER root
 RUN chown -R node:node /usr/src/app
 USER node
-RUN ls -la ..
+RUN ls -la ./node_modules
 RUN if [ "$NODE_ENV" = "development" ]; then \
       echo "Building in $NODE_ENV environment" \
       && npm run build:dev; \
