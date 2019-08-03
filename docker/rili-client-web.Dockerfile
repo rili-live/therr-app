@@ -48,13 +48,13 @@ USER root
 RUN chown -R node:node /usr/src/app
 USER node
 RUN yes yes | npm i webpack webpack-cli --save-dev
-RUN ls -la node_modules || exit 0
+RUN ls -la node_modules/.bin || exit 0
 RUN if [ "$NODE_ENV" = "development" ]; then \
       echo "Building in $NODE_ENV environment" \
       && npm run build:dev; \
     else \
       echo "Building in $NODE_ENV environment" \
-      && npm run build;\
+      && yes yes | npx webpack --config webpack.app.config.js --env production && npx webpack --config webpack.server.config.js --env production;\
     fi
 RUN echo "Starting node with $NODE_RUNNER"
 
