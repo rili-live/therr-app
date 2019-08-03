@@ -39,7 +39,7 @@ WORKDIR /usr/src/app/client-web
 
 # Install dependencies and set PATH variable
 COPY package*.json ./
-RUN npm ci && npm cache clean --force
+RUN npm install && npm cache clean --force
 ENV PATH /usr/src/app/client-web/node_modules/.bin:$PATH
 
 COPY ./rili-client-web ./
@@ -47,6 +47,7 @@ COPY ./rili-client-web ./
 USER root
 RUN chown -R node:node /usr/src/app
 USER node
+RUN yes yes | npm i webpack webpack-cli --save-dev
 RUN ls -la node_modules || exit 0
 RUN if [ "$NODE_ENV" = "development" ]; then \
       echo "Building in $NODE_ENV environment" \
