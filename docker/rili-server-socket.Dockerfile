@@ -42,6 +42,8 @@ RUN npm ci && npm cache clean --force
 ENV PATH /usr/src/app/node_modules/.bin:/usr/src/app/server-socket/node_modules/.bin:$PATH
 
 COPY ./rili-server ./
+RUN npm install webpack webpack-cli -g && npm list | grep webpack
+
 RUN if [ "$NODE_ENV" = "development" ]; then \
       echo "Building in $NODE_ENV environment" \
       && npm run build:dev; \
