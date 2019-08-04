@@ -43,6 +43,7 @@ RUN npm install && npm cache clean --force
 ENV PATH /usr/src/app/client-web/node_modules/.bin:$PATH
 
 COPY ./rili-client-web ./
+RUN npm install webpack webpack-cli -g && npm list | grep webpack
 
 USER root
 RUN chown -R node:node /usr/src/app
