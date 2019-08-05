@@ -1,13 +1,10 @@
-ARG NODE_VERSION=10.15.3
+ARG NODE_VERSION=12.2.0
 FROM node:$NODE_VERSION
 
-# set our node environment, either development or production
-# defaults to production, compose overrides this to development on build and run
 ARG NODE_ENV=production
 ENV NODE_ENV $NODE_ENV
 ARG NODE_RUNNER=node
 ENV NODE_RUNNER $NODE_RUNNER
-
 
 EXPOSE 7070
 
@@ -26,6 +23,7 @@ USER node
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 # Note: This is the root mono-repo directory
+COPY package*.json ./
 COPY .babelrc ./
 COPY global-config.js ./
 COPY webpack.parts.js ./
@@ -34,20 +32,18 @@ COPY rili-public-library/ ./rili-public-library/
 # check every 30s to ensure this service returns HTTP 200
 # HEALTHCHECK --interval=30s CMD node healthcheck.js
 
-# copy in our source code last, as it changes the most
-WORKDIR /usr/src/app/client-web
-
 # Install dependencies and set PATH variable
-COPY package*.json ./
-RUN npm install && npm cache clean --force
-ENV PATH /usr/src/app/client-web/node_modules/.bin:$PATH
+# Even in production, set NODE_ENV to development so that all dependencies are installed
+RUN NODE_ENV=development && npm ci && NODE_ENV=$NODE_ENV
+ENV PATH $PATH:/usr/src/app/node_modules/.bin:$PATH
 
-COPY ./rili-client-web ./
-RUN npm install webpack webpack-cli -g && npm list | grep webpack
+COPY ./rili-client-web rili-client-web
+WORKDIR /usr/src/app/rili-client-web
 
 USER root
 RUN chown -R node:node /usr/src/app
 USER node
+
 RUN if [ "$NODE_ENV" = "development" ]; then \
       echo "Building in $NODE_ENV environment" \
       && npm run build:dev; \
