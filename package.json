@@ -131,9 +131,9 @@
     "tslint-loader": "^3.5.4",
     "typescript": "^3.5.3",
     "uglifyjs-webpack-plugin": "^1.2.7",
-    "webpack": "^4.39.1",
+    "webpack": "4.35.3",
     "webpack-bundle-analyzer": "^3.3.2",
-    "webpack-cli": "^3.3.6",
+    "webpack-cli": "3.3.5",
     "webpack-dev-server": "^3.7.2",
     "webpack-merge": "^4.1.5"
   },
