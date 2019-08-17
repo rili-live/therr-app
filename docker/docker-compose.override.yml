@@ -20,6 +20,20 @@ services:
       - ../.env:/usr/src/app/.env
       - ../rili-client-web/build:/usr/src/app/build/
       - ../rili-client-web/src/views:/usr/src/app/src/views/
+  rili-postgres:
+    image: postgres:11
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+    ports:
+      - 7432:5432
+    environment:
+      - POSTGRES_USER=${PG_USER}
+      - POSTGRES_PASSWORD=${PG_PASSWORD}
+    volumes:
+      - ./volumes/postgres-data:/var/lib/postgresql/data
+    networks:
+      - rili-network
   rili-server-api:
     image: riliadmin/rili-server-api:dev
     build:

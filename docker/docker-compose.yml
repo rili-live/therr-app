@@ -57,20 +57,6 @@ services:
     depends_on:
       - rili-redis-pub
       - rili-redis-sub
-  rili-postgres:
-    image: postgres:11
-    deploy:
-      placement:
-        constraints: [node.role == manager]
-    ports:
-      - 7432:5432
-    environment:
-      - POSTGRES_USER=${PG_USER}
-      - POSTGRES_PASSWORD=${PG_PASSWORD}
-    volumes:
-      - ./volumes/postgres-data:/var/lib/postgresql/data
-    networks:
-      - rili-network
   rili-redis-pub:
     image: redis:5
     deploy:
