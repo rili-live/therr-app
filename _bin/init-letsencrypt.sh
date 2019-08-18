@@ -65,7 +65,7 @@ if [ "$1" = "dev" ]; then
   echo
 elif [ "$1" = "stage" ]; then
   echo "### Starting nginx ..."
-  docker service update --force rili-nginx
+  docker service update --force rili-app_rili-nginx
   echo
 
   echo "### Deleting dummy certificate for $domains ..."
@@ -76,7 +76,7 @@ elif [ "$1" = "stage" ]; then
   echo
 else
   echo "### Starting nginx ..."
-  docker service update --force rili-nginx
+  docker service update --force rili-app_rili-nginx
   echo
 
   echo "### Deleting dummy certificate for $domains ..."
@@ -128,7 +128,7 @@ elif [ "$1" = "stage" ]; then
   echo
 
   echo "### Reloading nginx ..."
-  docker service update --force rili-nginx
+  docker service update --force rili-app_rili-nginx
 else
   docker service update --entrypoint "\
     certbot certonly --webroot -w /var/www/certbot \
@@ -141,5 +141,5 @@ else
   echo
 
   echo "### Reloading nginx ..."
-  docker service update --force rili-nginx
+  docker service update --force rili-app_rili-nginx
 fi
