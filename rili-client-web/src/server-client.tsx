@@ -14,7 +14,7 @@ import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
 
-console.log('DOMAIN_CERT_LOCATION: ', process.env.DOMAIN_CERT_LOCATION);
+console.log('DOMAIN_CERT_LOCATION: ', process.env.DOMAIN_CERT_LOCATION); // tslint:disable-line
 
 // TODO: RFRONT-9: Fix window is undefined hack
 declare global {
