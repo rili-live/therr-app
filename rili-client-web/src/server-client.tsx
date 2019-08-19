@@ -14,6 +14,8 @@ import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
 
+console.log('DOMAIN_CERT_LOCATION: ', process.env.DOMAIN_CERT_LOCATION);
+
 // TODO: RFRONT-9: Fix window is undefined hack
 declare global {
     namespace NodeJS {
