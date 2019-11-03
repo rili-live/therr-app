@@ -38,8 +38,6 @@ RUN NODE_ENV=development && npm ci && NODE_ENV=$NODE_ENV
 ENV PATH $PATH:/usr/src/app/node_modules/.bin:$PATH
 
 COPY ./rili-client-web rili-client-web
-WORKDIR /usr/src/app/rili-client-web
-
 USER root
 RUN chown -R node:node /usr/src/app
 USER node
@@ -51,7 +49,7 @@ WORKDIR /usr/src/app/rili-public-library/utilities
 RUN npm run build
 WORKDIR /usr/src/app/rili-public-library/react-components
 RUN npm run build
-WORKDIR /usr/src/app
+WORKDIR /usr/src/app/rili-client-web
 
 RUN if [ "$NODE_ENV" = "development" ]; then \
       echo "Building in $NODE_ENV environment" \
