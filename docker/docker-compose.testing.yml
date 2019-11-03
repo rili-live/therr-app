@@ -2,27 +2,27 @@ version: '3.6'
 
 services:
   rili-nginx:
-    image: riliadmin/rili-nginx:test
+    image: rili/rili-nginx-testing
     environment:
       - NGINX_HOST=rest.rili.live
     volumes:
       - ./volumes/nginx.test.conf:/etc/nginx/nginx.conf
   rili-client-web:
-    image: riliadmin/rili-client-web:test
+    image: rili/rili-client-web-testing
     build:
       args:
         - NODE_ENV=test
     environment:
       - NODE_ENV=test
   rili-server-api:
-    image: riliadmin/rili-server-api:test
+    image: rili/rili-server-api-testing
     build:
       args:
         - NODE_ENV=test
     environment:
       - NODE_ENV=test
   rili-server-socket:
-    image: riliadmin/rili-server-socket:test
+    image: rili/rili-server-socket-testing
     build:
       args:
         - NODE_ENV=test
