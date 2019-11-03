@@ -37,6 +37,15 @@ COPY rili-public-library/ ./rili-public-library/
 RUN NODE_ENV=development && npm ci && NODE_ENV=$NODE_ENV
 ENV PATH $PATH:/usr/src/app/node_modules/.bin:$PATH
 
+# Install and build libraries
+WORKDIR /usr/src/app/rili-public-library/styles
+RUN npm run build
+WORKDIR /usr/src/app/rili-public-library/utilities
+RUN npm run build
+WORKDIR /usr/src/app/rili-public-library/react-components
+RUN npm run build
+WORKDIR /usr/src/app
+
 COPY ./rili-client-web rili-client-web
 WORKDIR /usr/src/app/rili-client-web
 
