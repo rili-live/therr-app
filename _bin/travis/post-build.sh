@@ -1,4 +1,6 @@
 #!/bin/bash
+# Determine if these steps are necessary since build files will be containerized in docker
+# This might be a good place to update the github build status badges (per branch/environment)
 
 set -e
 
