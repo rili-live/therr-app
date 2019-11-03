@@ -67,6 +67,8 @@ typings/
 
 # build files
 build/
+rili-public-library/react-components/lib/
+rili-public-library/utilities/lib/
 
 # docker
 docker/volumes/postgres-data
