@@ -23,11 +23,11 @@ USER node
 # Copy parent app config
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 # Note: This is the root mono-repo directory
-COPY ../package*.json ./
-COPY ../.babelrc ./
-COPY ../global-config.js ./
-COPY ../webpack.parts.js ./
-COPY ../rili-public-library/ ./rili-public-library/
+COPY ./package*.json ./
+COPY ./.babelrc ./
+COPY ./global-config.js ./
+COPY ./webpack.parts.js ./
+COPY ./rili-public-library/ ./rili-public-library/
 
 # Install (shared) parent app dependencies and set PATH variable
 # Even in production, set NODE_ENV to development so that all devDependencies are installed
@@ -44,7 +44,7 @@ RUN npm run build
 WORKDIR /usr/src/app/rili-client-web
 
 # Copy main app files and set directory permissions
-COPY ./ ./rili-client-web
+COPY ./rili-client-web ./rili-client-web
 USER root
 RUN chown -R node:node /usr/src/app
 USER node

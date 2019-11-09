@@ -29,8 +29,8 @@ services:
   rili-client-web:
     restart: unless-stopped
     build:
-      context: ../rili-client-web/
-      dockerfile: ./Dockerfile
+      context: ../
+      dockerfile: ./rili-client-web/Dockerfile
       args:
         - NODE_VERSION=${NODE_VERSION}
     ports:
