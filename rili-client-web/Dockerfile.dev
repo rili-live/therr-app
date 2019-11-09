@@ -41,13 +41,14 @@ WORKDIR /usr/src/app/rili-public-library/utilities
 RUN npm run build
 WORKDIR /usr/src/app/rili-public-library/react-components
 RUN npm run build
-WORKDIR /usr/src/app/rili-client-web
+WORKDIR /usr/src/app
 
 # Copy main app files and set directory permissions
 COPY ./rili-client-web ./rili-client-web
 USER root
 RUN chown -R node:node /usr/src/app
 USER node
+WORKDIR /usr/src/app/rili-client-web
 
 RUN if [ "$NODE_ENV" = "development" ]; then \
       echo "Building in $NODE_ENV environment" \
