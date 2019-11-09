@@ -1,7 +1,7 @@
 ARG NODE_VERSION=12.2.0
 FROM node:$NODE_VERSION
 
-ARG NODE_ENV=production
+ARG NODE_ENV=development
 ENV NODE_ENV $NODE_ENV
 ARG NODE_RUNNER=nodemon
 ENV NODE_RUNNER $NODE_RUNNER
@@ -27,11 +27,11 @@ COPY ./package*.json ./
 COPY ./.babelrc ./
 COPY ./global-config.js ./
 COPY ./webpack.parts.js ./
-COPY ./rili-public-library/ ./rili-public-library/
+COPY ./rili-public-library ./rili-public-library
 
 # Install (shared) parent app dependencies and set PATH variable
 # Even in production, set NODE_ENV to development so that all devDependencies are installed
-RUN NODE_ENV=development && npm i --no-optional && npm cache clean --force && NODE_ENV=$NODE_ENV
+RUN npm i --no-optional && npm cache clean --force
 ENV PATH $PATH:/usr/src/app/node_modules/.bin:$PATH
 
 # Install and build libraries
