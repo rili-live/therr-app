@@ -65,5 +65,11 @@ typings/
 # next.js build output
 .next
 
+# build files
+build/
+rili-public-library/react-components/lib/
+rili-public-library/utilities/lib/
+
 # docker
-docker/postgres-data
+docker/volumes/postgres-data
+docker/docker-compose.compiled.yml

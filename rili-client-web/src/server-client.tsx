@@ -14,6 +14,9 @@ import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
 
+console.log('DOMAIN_CERT_LOCATION: ', process.env.DOMAIN_CERT_LOCATION); // tslint:disable-line
+console.log('DOMAIN_KEY_LOCATION: ', process.env.DOMAIN_KEY_LOCATION); // tslint:disable-line
+
 // TODO: RFRONT-9: Fix window is undefined hack
 declare global {
     namespace NodeJS {
@@ -39,7 +42,7 @@ const createAppServer = () => {
             cert: fs.readFileSync(process.env.DOMAIN_CERT_LOCATION),
         };
         server = https.createServer(httpsCredentials, app);
-    } else if (process.env.NODE_ENV === 'development') {
+    } else {
         server = http.createServer(app);
     }
 

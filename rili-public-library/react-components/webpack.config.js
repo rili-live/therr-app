@@ -30,7 +30,7 @@ const common = merge([
     {
         entry,
         output: {
-            path: PATHS.build,
+            path: PATHS.lib,
             filename: '[name].js',
             publicPath: PATHS.public,
             libraryTarget: 'umd',
@@ -45,13 +45,24 @@ const common = merge([
         },
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
+            new HtmlWebpackPlugin({
+                template: 'src/index.html',
+                inject: false,
+            }),
         ],
     },
+    parts.clean(PATHS.lib),
     parts.loadSvg(),
     parts.processReact([PATHS.app, PATHS.utils], false),
     parts.processTypescript([PATHS.app], false),
     parts.generateSourcemaps('source-map'),
     parts.deDupe(),
+    {
+        output: {
+            filename: '[name].js',
+            path: PATHS.lib,
+        },
+    },
 ]);
 
 const buildDev = () => merge([
@@ -60,23 +71,10 @@ const buildDev = () => merge([
     {
         mode: 'development',
         plugins: [
-            new webpack.WatchIgnorePlugin([
-                path.join(__dirname, 'node_modules'),
-            ]),
             new webpack.NamedModulesPlugin(),
-            new HtmlWebpackPlugin({
-                template: 'src/index.html',
-                inject: false,
-            }),
         ],
     },
     parts.loadCSS(null, 'development'),
-    parts.devServer({
-        disableHostCheck: true,
-        host: process.env.HOST || 'localhost',
-        port: process.env.PORT || 7700,
-        publicPath: PATHS.public,
-    }),
 ]);
 
 const buildProd = () => merge([
@@ -85,10 +83,6 @@ const buildProd = () => merge([
         mode: 'production',
         plugins: [
             new webpack.HashedModuleIdsPlugin(),
-            new HtmlWebpackPlugin({
-                template: 'src/index.html',
-                inject: false,
-            }),
         ],
         externals: [
             ...Object.keys(localPkg.peerDependencies || {}),
@@ -102,27 +96,15 @@ const buildProd = () => merge([
             emitWarning: true,
         },
     }),
-    parts.setFreeVariable('process.env.NODE_ENV', 'production'),
     parts.loadCSS(null, 'production'),
     parts.minifyJavaScript({ useSourceMap: true }),
-]);
-
-const buildUmd = () => merge([
-    buildProd(),
-    parts.clean(PATHS.lib),
-    {
-        output: {
-            filename: '[name].js',
-            path: PATHS.lib,
-        },
-    },
 ]);
 
 module.exports = (env) => {
     process.env.BABEL_ENV = env;
 
     if (env === 'production') {
-        return [buildUmd()];
+        return [buildProd()];
     }
 
     return [buildDev()];
