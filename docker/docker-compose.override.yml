@@ -10,7 +10,7 @@ services:
   rili-client-web:
     image: rili/rili-client-web-dev
     build:
-      dockerfile: ./Dockerfile.dev
+      dockerfile: ./rili-client-web/Dockerfile.dev
       args:
         - NODE_ENV=development
         - NODE_RUNNER=nodemon
@@ -37,7 +37,7 @@ services:
   rili-server-api:
     image: rili/rili-server-api-dev
     build:
-      dockerfile: ./Dockerfile.api.dev
+      dockerfile: ./rili-server/Dockerfile.api.dev
       args:
         - NODE_ENV=development
         - NODE_RUNNER=nodemon
@@ -49,7 +49,7 @@ services:
   rili-server-socket:
     image: rili/rili-server-socket-dev
     build:
-      dockerfile: ./Dockerfile.socket.dev
+      dockerfile: ./rili-server/Dockerfile.socket.dev
       args:
         - NODE_ENV=development
         - NODE_RUNNER=nodemon
