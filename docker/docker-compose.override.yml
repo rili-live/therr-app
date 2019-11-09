@@ -10,7 +10,7 @@ services:
   rili-client-web:
     image: rili/rili-client-web-dev
     build:
-      dockerfile: docker/rili-client-web.dev.Dockerfile
+      dockerfile: ./rili-client-web/Dockerfile.dev
       args:
         - NODE_ENV=development
         - NODE_RUNNER=nodemon
