@@ -23,12 +23,12 @@ export const shouldPrintSocketLogs = argv.withSocketLogs || shouldPrintAllLogs |
 const nodes = [
     // Pub
     {
-        host: globalConfig[process.env.NODE_ENV].redisHost,
+        host: globalConfig[process.env.NODE_ENV].redisPubHost,
         port: globalConfig[process.env.NODE_ENV].redisPubPort,
     },
     // Sub
     {
-        host: globalConfig[process.env.NODE_ENV].redisHost,
+        host: globalConfig[process.env.NODE_ENV].redisSubHost,
         port: globalConfig[process.env.NODE_ENV].redisSubPort,
     },
 ];

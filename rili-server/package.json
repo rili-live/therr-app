@@ -4,17 +4,16 @@
   "description": "The server side code for Rili",
   "main": "build/index.js",
   "scripts": {
-    "build": "../node_modules/.bin/webpack --env production",
-    "build:dev": "../node_modules/.bin/webpack --env development",
-    "build:watch": "../node_modules/.bin/webpack --watch --env development",
-    "lint:fix": "../node_modules/.bin/eslint --ext .jsx,.js --fix ./ && ../node_modules/.bin/tslint --fix -p ./",
-    "lint": "../node_modules/.bin/eslint --ext .jsx,.js ./ && ../node_modules/.bin/tslint -p ./",
-    "start": "../node_modules/.bin/pm2 start pm2/ecosystem.config.js --watch --env production",
-    "start:api": "../node_modules/.bin/pm2 start pm2/ecosystem.config.js --only rili-server-api --env production",
-    "start:api:dev": "npm run build:dev && ../node_modules/.bin/nodemon --require=../node_modules/dotenv/config build/server-api.js dotenv_config_path=../.env --withSQLLogs",
-    "start:socket": "../node_modules/.bin/pm2 start pm2/ecosystem.config.js --only rili-server-socket-io --env production",
-    "start:socket:dev": "npm run build:dev && ../node_modules/.bin/nodemon --require=../node_modules/dotenv/config build/server-socket-io.js dotenv_config_path=../.env --withAllLogs",
-    "test": "npm run lint:fix && echo \"Error: no test specified\" && exit 0"
+    "build": "npx webpack --env production",
+    "build:dev": "npx webpack --env development",
+    "build:watch": "npx webpack --watch --env development",
+    "lint:fix": "npx eslint --ext .jsx,.js --fix ./ && npx tslint --fix -p ./",
+    "lint": "npx eslint --ext .jsx,.js ./ && npx tslint -p ./",
+    "start:api": "pm run build:dev && npx node --require=../node_modules/dotenv/config build/server-api.js dotenv_config_path=../.env --withSQLLogs",
+    "start:api:dev": "npm run build:dev && npx nodemon --require=../node_modules/dotenv/config build/server-api.js dotenv_config_path=../.env --withSQLLogs",
+    "start:socket": "pm run build:dev && npx node --require=../node_modules/dotenv/config build/server-api.js dotenv_config_path=../.env --withSQLLogs",
+    "start:socket:dev": "npm run build:dev && npx nodemon --require=../node_modules/dotenv/config build/server-socket-io.js dotenv_config_path=../.env --withAllLogs",
+    "test": "npx npm run lint:fix && echo \"Error: no test specified\" && exit 0"
   },
   "keywords": [
     "rili",
