@@ -3,6 +3,7 @@ version: '3.6'
 services:
   certbot:
     image: certbot/certbot
+    restart: unless-stopped
     volumes:
       - ./volumes/certbot/conf:/etc/letsencrypt
       - ./volumes/certbot/www:/var/www/certbot
@@ -10,6 +11,7 @@ services:
     networks:
       - rili-network
   rili-nginx:
+    restart: always
     build:
       context: ../
       dockerfile: docker/nginx.Dockerfile
@@ -25,9 +27,10 @@ services:
       - rili-network
     command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
   rili-client-web:
+    restart: unless-stopped
     build:
-      context: ../
-      dockerfile: docker/rili-client-web.Dockerfile
+      context: ../rili-client-web/
+      dockerfile: ./Dockerfile
       args:
         - NODE_VERSION=${NODE_VERSION}
     ports:
@@ -50,6 +53,7 @@ services:
     networks:
       - rili-network
   rili-server-api:
+    restart: unless-stopped
     build:
       context: ../
       dockerfile: docker/rili-server-api.Dockerfile
@@ -75,6 +79,7 @@ services:
     networks:
       - rili-network
   rili-server-socket:
+    restart: unless-stopped
     build:
       context: ../
       dockerfile: docker/rili-server-socket.Dockerfile
@@ -101,6 +106,7 @@ services:
       - rili-redis-sub
   rili-redis-pub:
     image: redis:5
+    restart: unless-stopped
     deploy:
       replicas: 1
       update_config:
@@ -113,6 +119,7 @@ services:
       - rili-network
   rili-redis-sub:
     image: redis:5
+    restart: unless-stopped
     deploy:
       replicas: 1
       update_config:
