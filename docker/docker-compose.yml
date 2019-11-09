@@ -14,7 +14,7 @@ services:
     restart: always
     build:
       context: ../
-      dockerfile: docker/nginx.Dockerfile
+      dockerfile: docker/Dockerfile.nginx
     ports:
       - 80:80
       - 443:443
@@ -56,7 +56,7 @@ services:
     restart: unless-stopped
     build:
       context: ../
-      dockerfile: docker/rili-server-api.Dockerfile
+      dockerfile: ./rili-server-api/Dockerfile.api
       args:
         - NODE_VERSION=${NODE_VERSION}
     ports:
@@ -82,7 +82,7 @@ services:
     restart: unless-stopped
     build:
       context: ../
-      dockerfile: docker/rili-server-socket.Dockerfile
+      dockerfile: ./rili-server-socket/Dockerfile.socket
       args:
         - NODE_VERSION=${NODE_VERSION}
     ports:
