@@ -5,6 +5,8 @@ set -e
 
 source _bin/travis/git.sh
 
+CURRENT_BRANCH=${TRAVIS_PULL_REQUEST_BRANCH:-TRAVIS_BRANCH}
+echo "Current branch is $CURRENT_BRANCH"
 echo "Destination branch is $TRAVIS_BRANCH"
 if [ "$TRAVIS_BRANCH" == "master" ]; then
   docker build -t rili/nginx -f ./docker/Dockerfile.nginx .
