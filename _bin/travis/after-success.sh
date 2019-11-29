@@ -9,14 +9,14 @@ echo "Destination branch is $TRAVIS_BRANCH"
 if [ "$TRAVIS_BRANCH" == "master" ]; then
   docker build -t rili/nginx -f ./docker/Dockerfile.nginx
   docker build -t rili/server-api -f ./rili-server/Dockerfile.api \
-    --build-arg NODE_ENV=production
-    --build-arg NODE_VERSION=${NODE_VERSION}
+    --build-arg NODE_ENV=production \
+    --build-arg NODE_VERSION=${NODE_VERSION} .
   docker build -t rili/server-socket -f ./rili-server/Dockerfile.socket \
-    --build-arg NODE_ENV=production
-    --build-arg NODE_VERSION=${NODE_VERSION}
+    --build-arg NODE_ENV=production \
+    --build-arg NODE_VERSION=${NODE_VERSION} .
   docker build -t rili/client-web -f ./rili-client-web/Dockerfile \
-    --build-arg NODE_ENV=production
-    --build-arg NODE_VERSION=${NODE_VERSION}
+    --build-arg NODE_ENV=production \
+    --build-arg NODE_VERSION=${NODE_VERSION} .
   echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
   docker build -t rili/nginx
   docker build -t rili/server-api
@@ -25,14 +25,14 @@ if [ "$TRAVIS_BRANCH" == "master" ]; then
 elif [ "$TRAVIS_BRANCH" == "stage" ]; then
   docker build -t rili/nginx-stage -f ./docker/Dockerfile.nginx
   docker build -t rili/server-api-stage -f ./rili-server/Dockerfile.api \
-    --build-arg NODE_ENV=stage
-    --build-arg NODE_VERSION=${NODE_VERSION}
+    --build-arg NODE_ENV=stage \
+    --build-arg NODE_VERSION=${NODE_VERSION} .
   docker build -t rili/server-socket-stage -f ./rili-server/Dockerfile.socket \
-    --build-arg NODE_ENV=stage
-    --build-arg NODE_VERSION=${NODE_VERSION}
+    --build-arg NODE_ENV=stage \
+    --build-arg NODE_VERSION=${NODE_VERSION} .
   docker build -t rili/client-web-stage -f ./rili-client-web/Dockerfile \
-    --build-arg NODE_ENV=stage
-    --build-arg NODE_VERSION=${NODE_VERSION}
+    --build-arg NODE_ENV=stage \
+    --build-arg NODE_VERSION=${NODE_VERSION} .
   echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
   docker push rili/nginx-stage
   docker push rili/server-api-stage
