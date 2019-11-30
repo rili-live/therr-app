@@ -7,7 +7,12 @@ source _bin/travis/git.sh
 
 CURRENT_BRANCH=${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
 echo "Current branch is $CURRENT_BRANCH"
-echo "Destination branch is $TRAVIS_BRANCH"
+
+# TRAVIS_BRANCH represents the destination branch for PR builds
+if [ -z "$TRAVIS_PULL_REQUEST_BRANCH" ] ; then
+  echo "Destination branch is $TRAVIS_BRANCH"
+fi
+
 
 if [[ ("$CURRENT_BRANCH" != "master") && ("$CURRENT_BRANCH" != "stage") ]]; then
   echo "Skipping post build stage."
