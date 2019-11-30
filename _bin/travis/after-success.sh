@@ -5,7 +5,7 @@ set -e
 
 source _bin/travis/git.sh
 
-CURRENT_BRANCH=${TRAVIS_PULL_REQUEST_BRANCH:-TRAVIS_BRANCH}
+CURRENT_BRANCH=${$TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
 echo "Current branch is $CURRENT_BRANCH"
 echo "Destination branch is $TRAVIS_BRANCH"
 
