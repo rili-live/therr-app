@@ -1,5 +1,11 @@
+sudo: required
+services:
+  - docker
 language: node_js
-install: _bin/travis/install.sh
+# before_install:
+#   - _bin/travis/before-install.sh
+install:
+  - _bin/travis/install.sh
 cache: npm
 jobs:
   include:
@@ -7,4 +13,4 @@ jobs:
       name: "Build and test app services"
       script: _bin/travis/build.sh && _bin/travis/test.sh
 after_success:
-  - _bin/travis/post-build.sh
+  - _bin/travis/after-success.sh
