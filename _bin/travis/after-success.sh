@@ -9,7 +9,7 @@ CURRENT_BRANCH=${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
 echo "Current branch is $CURRENT_BRANCH"
 
 # TRAVIS_BRANCH represents the destination branch for PR builds
-if [ -z "$TRAVIS_PULL_REQUEST_BRANCH" ] ; then
+if [ ! -z "$TRAVIS_PULL_REQUEST_BRANCH" ]; then
   echo "Destination branch is $TRAVIS_BRANCH"
 fi
 
