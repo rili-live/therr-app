@@ -1,0 +1,35 @@
+{
+  "AWSEBDockerrunVersion": 2,
+  "containerDefinitions": [
+    {
+      "name": "certbot",
+      "image": "certbot/certbot",
+      "hostname": "certbot"
+    },
+    {
+      "name": "rili-client-web",
+      "image": "rili/client-web",
+      "hostname": "rili-client-web"
+    },
+    {
+      "name": "rili-server-api",
+      "image": "rili/server-api",
+      "hostname": "rili-server-api"
+    },
+    {
+      "name": "rili-server-socket",
+      "image": "rili/server-socket",
+      "hostname": "rili-server-socket"
+    },
+    {
+      "name": "rili-redis-pub",
+      "image": "redis:5",
+      "hostname": "rili-redis-pub"
+    },
+    {
+      "name": "rili-redis-sub",
+      "image": "redis:5",
+      "hostname": "rili-redis-sub"
+    }
+  ]
+}

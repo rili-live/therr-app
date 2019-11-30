@@ -19,7 +19,7 @@ if [[ ("$CURRENT_BRANCH" != "master") && ("$CURRENT_BRANCH" != "stage") ]]; then
   exit 0
 fi
 
-[[ "$CURRENT_BRANCH" == "stage" ]] && SUFFIX="-stage" || SUFFIX=""
+[[ "$CURRENT_BRANCH" = "stage" ]] && SUFFIX="-stage" || SUFFIX=""
 
 docker build -t rili/nginx$SUFFIX -f ./docker/Dockerfile.nginx .
 docker build -t rili/server-api$SUFFIX -f ./rili-server/Dockerfile.api \

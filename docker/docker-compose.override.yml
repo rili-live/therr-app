@@ -2,13 +2,13 @@ version: '3.6'
 
 services:
   rili-nginx:
-    image: rili/rili-nginx-dev
+    image: rili/nginx-dev
     environment:
         - NGINX_HOST=dev.rili.live
     volumes:
       - ./volumes/nginx.dev.conf:/etc/nginx/nginx.conf
   rili-client-web:
-    image: rili/rili-client-web-dev
+    image: rili/client-web-dev
     build:
       dockerfile: ./rili-client-web/Dockerfile.dev
       args:
@@ -35,7 +35,7 @@ services:
     networks:
       - rili-network
   rili-server-api:
-    image: rili/rili-server-api-dev
+    image: rili/server-api-dev
     build:
       dockerfile: ./rili-server/Dockerfile.api.dev
       args:
@@ -47,7 +47,7 @@ services:
       - ../.env:/usr/src/app/.env
       - ../rili-server/build:/usr/src/app/build/
   rili-server-socket:
-    image: rili/rili-server-socket-dev
+    image: rili/server-socket-dev
     build:
       dockerfile: ./rili-server/Dockerfile.socket.dev
       args:
