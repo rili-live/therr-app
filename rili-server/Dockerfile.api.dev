@@ -11,7 +11,8 @@ EXPOSE 7770
 RUN npm i npm@latest -g
 
 # Create app directory
-RUN mkdir /usr/src/app && mkdir /usr/src/app/rili-server && chown -R node:node /usr/src/app
+RUN mkdir -p /usr/src/app/rili-server \
+    && chown -R node:node /usr/src/app
 WORKDIR /usr/src/app
 
 # the official node image provides an unprivileged user as a security best practice
@@ -20,37 +21,30 @@ WORKDIR /usr/src/app
 # https://github.com/nodejs/docker-node/blob/master/docs/BestPractices.md#non-root-user
 USER node
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# Copy parent app config
 # Note: This is the root mono-repo directory
 COPY ./package*.json ./
 COPY ./.babelrc ./
 COPY ./global-config.js ./
 COPY ./webpack.parts.js ./
-COPY ./rili-public-library ./rili-public-library
 
 # Install dependencies and set PATH variable
-# Even in production, set NODE_ENV to development so that all dependencies are installed
 RUN npm i --no-optional && npm cache clean --force
 ENV PATH $PATH:/usr/src/app/node_modules/.bin:$PATH
 
+COPY ./rili-public-library ./rili-public-library
 COPY ./rili-server ./rili-server
 USER root
-RUN chown -R node:node /usr/src/app
+RUN chown -R node:node /usr/src/app/rili-server/build
 USER node
-
-# Install and build libraries
-WORKDIR /usr/src/app/rili-public-library/styles
-RUN npm run build
-WORKDIR /usr/src/app/rili-public-library/utilities
-RUN npm run build
-WORKDIR /usr/src/app/rili-public-library/react-components
-RUN npm run build
 WORKDIR /usr/src/app/rili-server
 
-RUN echo "Starting node with $NODE_RUNNER"
+RUN echo "Building in $NODE_ENV environment" \
+    && npm run build:dev;
 
 # check every 30s to ensure this service returns HTTP 200
 # HEALTHCHECK --interval=30s CMD node healthcheck.js
+
+RUN echo "Starting node with $NODE_RUNNER"
 
 CMD npx $NODE_RUNNER --require=../node_modules/dotenv/config ./build/server-api.js dotenv_config_path=../.env --withAllLogs

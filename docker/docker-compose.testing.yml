@@ -1,11 +1,22 @@
 version: '3.6'
 
 services:
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - ./volumes/certbot/conf:/etc/letsencrypt
+      - ./volumes/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - rili-network
   rili-nginx:
     image: rili/nginx-testing
     environment:
       - NGINX_HOST=rest.rili.live
     volumes:
+      - ./volumes/certbot/conf:/etc/letsencrypt
+      - ./volumes/certbot/www:/var/www/certbot
       - ./volumes/nginx.test.conf:/etc/nginx/nginx.conf
   rili-client-web:
     image: rili/client-web-testing
@@ -14,6 +25,9 @@ services:
         - NODE_ENV=test
     environment:
       - NODE_ENV=test
+    volumes:
+      - ./volumes/certbot/conf:/etc/letsencrypt
+      - ./volumes/certbot/www:/var/www/certbot
   rili-server-api:
     image: rili/server-api-testing
     build:
@@ -21,6 +35,9 @@ services:
         - NODE_ENV=test
     environment:
       - NODE_ENV=test
+    volumes:
+      - ./volumes/certbot/conf:/etc/letsencrypt
+      - ./volumes/certbot/www:/var/www/certbot
   rili-server-socket:
     image: rili/server-socket-testing
     build:
