@@ -39,10 +39,7 @@ class UserRoutes {
                 .then((result) => {
                     return res.status(200).send(httpResponse.success(result.rows[0]));
                 })
-                .catch((err) => {
-                    return handleError(err, res);
-                })
-            )
+                .catch(err => handleError(err, res)))
             .post(createUserValidation, validate, (req: any, res: any) => {
                 return this.checkIfUserExists(req.body).then((exists) => {
                     if (exists) {

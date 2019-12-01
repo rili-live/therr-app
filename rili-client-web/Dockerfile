@@ -61,4 +61,4 @@ RUN echo "Starting node with $NODE_RUNNER"
 # check every 30s to ensure this service returns HTTP 200
 # HEALTHCHECK --interval=30s CMD node healthcheck.js
 
-CMD npx $NODE_RUNNER ./build/server-client.js --withAllLogs
+CMD npx $NODE_RUNNER ./build/server-client.js

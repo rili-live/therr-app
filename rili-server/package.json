@@ -9,6 +9,7 @@
     "build:watch": "npx webpack --watch --env development",
     "lint:fix": "npx eslint --ext .jsx,.js --fix ./ && npx tslint --fix -p ./",
     "lint": "npx eslint --ext .jsx,.js ./ && npx tslint -p ./",
+    "rebuild": "../node_modules/.bin/webpack --env development",
     "start:api": "pm run build:dev && npx node --require=../node_modules/dotenv/config build/server-api.js dotenv_config_path=../.env --withSQLLogs",
     "start:api:dev": "npm run build:dev && npx nodemon --require=../node_modules/dotenv/config build/server-api.js dotenv_config_path=../.env --withSQLLogs",
     "start:socket": "pm run build:dev && npx node --require=../node_modules/dotenv/config build/server-api.js dotenv_config_path=../.env --withSQLLogs",
@@ -22,5 +23,7 @@
   "author": "Rili, Inc.",
   "license": "MIT",
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "webpack-cli": "^3.3.10"
+  }
 }

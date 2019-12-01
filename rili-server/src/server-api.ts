@@ -1,4 +1,3 @@
-import * as cluster from 'cluster';
 import * as bodyParser from 'body-parser';
 import * as express from 'express';
 import * as cors from 'cors';
