@@ -15,9 +15,11 @@ import {
 } from '../validation';
 import handleError from '../../utilities/handleError';
 import { createUserToken } from '../../utilities/userHelpers';
+import { IConnection } from 'src/store/connection';
 
 const router = express.Router();
 const notProd = process.env.NODE_ENV !== 'production';
+const knex: Knex = Knex({ client: 'pg' });
 
 const invalidUserNameOrPassword = httpResponse.error({
     message: 'Incorrect username or password',
@@ -25,12 +27,11 @@ const invalidUserNameOrPassword = httpResponse.error({
 });
 
 class AuthRoutes {
-    knex: Knex;
+    connection: IConnection;
     router: express.Router = router;
 
-    constructor(knex: Knex) {
-        // TODO: Determine if should end connection after each request
-        this.knex = knex;
+    constructor(connection: any) {
+        this.connection = connection;
 
         // middleware to log time of a user route request
         router.use((req, res, next) => {
@@ -45,7 +46,7 @@ class AuthRoutes {
         // Login user
         router.route('/auth')
             .post(authenticateUserValidation, validate, (req: any, res: any) => {
-                this.getUser(req.body.userName).then((user) => {
+                return this.getUser(req.body.userName).then((user) => {
                     bcrypt.compare(req.body.password, user.password).then((isValid) => {
                         if (isValid) {
                             const idToken = createUserToken(user, req.body.rememberMe);
@@ -70,7 +71,7 @@ class AuthRoutes {
         // Logout user
         router.route('/auth/logout')
             .post(logoutUserValidation, validate, (req: any, res: any) => {
-                this.getUser(req.body.userName).then(() => {
+                return this.getUser(req.body.userName).then(() => {
                     return res.status(204).send();
                 }).catch((error) => {
                     return res.status(500).send('something went wrong');
@@ -94,10 +95,10 @@ class AuthRoutes {
     }
 
     getUser = (userName: string) => {
-        return this.knex.select('*').from('main.users').where({ userName }).orWhere({ email: userName }).debug(notProd)
-            .then((results) => {
-                if (results && results.length > 0) {
-                    return results[0];
+        return this.connection.read.query(knex.select('*').from('main.users').where({ userName }).orWhere({ email: userName }).toString())
+            .then((result) => {
+                if (result.rows.length > 0) {
+                    return result.rows[0];
                 }
 
                 throw 404;
