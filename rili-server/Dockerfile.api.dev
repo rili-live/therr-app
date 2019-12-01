@@ -53,4 +53,4 @@ RUN echo "Starting node with $NODE_RUNNER"
 # check every 30s to ensure this service returns HTTP 200
 # HEALTHCHECK --interval=30s CMD node healthcheck.js
 
-CMD npx $NODE_RUNNER --require=./node_modules/dotenv/config ./build/server-api.js dotenv_config_path=./.env --withAllLogs
+CMD npx $NODE_RUNNER --require=../node_modules/dotenv/config ./build/server-api.js dotenv_config_path=../.env --withAllLogs
