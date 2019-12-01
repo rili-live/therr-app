@@ -69,59 +69,22 @@ const knex = Knex({
 app.use(API_BASE_ROUTE, (new AuthRoutes(knex)).router);
 app.use(API_BASE_ROUTE, (new UserRoutes(knex)).router);
 
-// Cluster config and server start
-if (cluster.isMaster && argv.shouldCluster) {
-    const numWorkers = os.cpus().length;
+if (process.env.NODE_ENV !== 'development') {
+    const httpsCredentials = {
+        key: fs.readFileSync(process.env.DOMAIN_KEY_LOCATION),
+        cert: fs.readFileSync(process.env.DOMAIN_CERT_LOCATION),
+    };
 
-    printLogs({
-        shouldPrintLogs: shouldPrintServerLogs,
-        messageOrigin: 'API_SERVER',
-        messages: `Master cluster setting up ${numWorkers} workers...`,
-    });
-
-    for (let i = 0; i < numWorkers; i += 1) {
-        cluster.fork();
-    }
-
-    cluster.on('online', (worker) => {
-        printLogs({
-            shouldPrintLogs: shouldPrintServerLogs,
-            messageOrigin: 'API_SERVER',
-            messages: `Worker ${worker.process.pid} is online`,
-        });
-    });
-
-    cluster.on('exit', (worker, code, signal) => {
-        printLogs({
-            shouldPrintLogs: shouldPrintServerLogs,
-            messageOrigin: 'API_SERVER',
-            messages: `Worker ${worker.process.pid} died with code: ${code}, and signal: ${signal}`,
-        });
-        printLogs({
-            shouldPrintLogs: shouldPrintServerLogs,
-            messageOrigin: 'API_SERVER',
-            messages: 'Starting a new worker',
-        });
-        cluster.fork();
-    });
+    https.createServer(httpsCredentials, app).listen(globalConfig[process.env.NODE_ENV].apiPort);
 } else {
-    if (process.env.NODE_ENV !== 'development') {
-        const httpsCredentials = {
-            key: fs.readFileSync(process.env.DOMAIN_KEY_LOCATION),
-            cert: fs.readFileSync(process.env.DOMAIN_CERT_LOCATION),
-        };
-
-        https.createServer(httpsCredentials, app).listen(globalConfig[process.env.NODE_ENV].apiPort);
-    } else {
-        app.listen(globalConfig[process.env.NODE_ENV].apiPort, (err: string) => {
-            if (err) {
-                throw err;
-            }
-            printLogs({
-                shouldPrintLogs: shouldPrintServerLogs,
-                messageOrigin: 'API_SERVER',
-                messages: [`Server running on port ${globalConfig[process.env.NODE_ENV].apiPort} with process id`, process.pid],
-            });
+    app.listen(globalConfig[process.env.NODE_ENV].apiPort, (err: string) => {
+        if (err) {
+            throw err;
+        }
+        printLogs({
+            shouldPrintLogs: shouldPrintServerLogs,
+            messageOrigin: 'API_SERVER',
+            messages: [`Server running on port ${globalConfig[process.env.NODE_ENV].apiPort} with process id`, process.pid],
         });
-    }
+    });
 }
