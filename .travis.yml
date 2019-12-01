@@ -14,14 +14,14 @@ jobs:
       script: _bin/travis/build.sh && _bin/travis/test.sh
 after_success:
   - _bin/travis/after-success.sh
-# deploy:
-#   provider: elasticbeanstalk
-#   region: "us-east-2"
-#   app: "rili-app"
-#   env: "RiliApp-env"
-#   bucket_name: "elasticbeanstalk-us-east-2-014278409774"
-#   bucket_path: "rili-app"
-#   on:
-#     branch: master
-#   access_key_id: $AWS_ACCESS_KEY
-#   secret_access_key: $AWS_SECRET_KEY
+deploy:
+  provider: elasticbeanstalk
+  region: "us-east-2"
+  app: "rili-app"
+  env: "RiliApp-env"
+  bucket_name: "elasticbeanstalk-us-east-2-014278409774"
+  bucket_path: "rili-app"
+  on:
+    branch: master
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key: $AWS_SECRET_KEY
