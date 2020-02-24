@@ -3,8 +3,6 @@ FROM node:$NODE_VERSION
 
 ARG NODE_ENV=development
 ENV NODE_ENV $NODE_ENV
-ARG NODE_RUNNER=nodemon
-ENV NODE_RUNNER $NODE_RUNNER
 
 EXPOSE 7070
 
@@ -45,6 +43,5 @@ RUN echo "Building in $NODE_ENV environment" \
 # check every 30s to ensure this service returns HTTP 200
 # HEALTHCHECK --interval=30s CMD node healthcheck.js
 
-RUN echo "Starting node with $NODE_RUNNER"
+CMD ["npx", "nodemon", "--require=../node_modules/dotenv/config", "./build/server-client.js", "dotenv_config_path=../.env", "--withAllLogs"]
 
-CMD npx $NODE_RUNNER --require=../node_modules/dotenv/config ./build/server-client.js dotenv_config_path=../.env --withAllLogs

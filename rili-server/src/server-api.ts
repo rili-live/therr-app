@@ -53,16 +53,16 @@ if (process.env.NODE_ENV !== 'development') {
         cert: fs.readFileSync(process.env.DOMAIN_CERT_LOCATION),
     };
 
-    https.createServer(httpsCredentials, app).listen(globalConfig[process.env.NODE_ENV].apiPort);
+    https.createServer(httpsCredentials, app).listen(process.env.API_PORT);
 } else {
-    app.listen(globalConfig[process.env.NODE_ENV].apiPort, (err: string) => {
+    app.listen(process.env.API_PORT, (err: string) => {
         if (err) {
             throw err;
         }
         printLogs({
             shouldPrintLogs: shouldPrintServerLogs,
             messageOrigin: 'API_SERVER',
-            messages: [`Server running on port ${globalConfig[process.env.NODE_ENV].apiPort} with process id`, process.pid],
+            messages: [`Server running on port ${process.env.API_PORT} with process id`, process.pid],
         });
     });
 }
