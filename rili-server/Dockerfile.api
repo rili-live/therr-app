@@ -3,8 +3,6 @@ FROM node:$NODE_VERSION
 
 ARG NODE_ENV=production
 ENV NODE_ENV $NODE_ENV
-ARG NODE_RUNNER=node
-ENV NODE_RUNNER $NODE_RUNNER
 
 EXPOSE 7770
 
@@ -30,8 +28,8 @@ COPY ./webpack.parts.js ./
 COPY ./rili-public-library ./rili-public-library
 
 # Install dependencies and set PATH variable
-# Even in production, set NODE_ENV to development so that all dependencies are installed
-RUN NODE_ENV=development && npm ci && NODE_ENV=$NODE_ENV
+# Even in production, install devDependencies
+RUN npm ci --only=development --no-optional && npm ci --only=production --no-optional
 ENV PATH $PATH:/usr/src/app/node_modules/.bin:$PATH
 
 COPY ./rili-server ./rili-server
@@ -55,9 +53,8 @@ RUN if [ "$NODE_ENV" = "development" ]; then \
       echo "Building in $NODE_ENV environment" \
       && npm run build;\
     fi
-RUN echo "Starting node with $NODE_RUNNER"
 
 # check every 30s to ensure this service returns HTTP 200
 # HEALTHCHECK --interval=30s CMD node healthcheck.js
 
-CMD npx $NODE_RUNNER ./build/server-api.js
+CMD ["npx", "node", "./build/server-api.js"]

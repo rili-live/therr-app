@@ -13,7 +13,6 @@ services:
       dockerfile: ./rili-client-web/Dockerfile.dev
       args:
         - NODE_ENV=development
-        - NODE_RUNNER=nodemon
     environment:
       - NODE_ENV=development
     volumes:
@@ -26,7 +25,7 @@ services:
       placement:
         constraints: [node.role == manager]
     ports:
-      - 7432:5432
+      - 5432:5432
     environment:
       - POSTGRES_USER=${PG_USER}
       - POSTGRES_PASSWORD=${PG_PASSWORD}
@@ -41,7 +40,6 @@ services:
       dockerfile: ./rili-server/Dockerfile.api.dev
       args:
         - NODE_ENV=development
-        - NODE_RUNNER=nodemon
     environment:
       - NODE_ENV=development
     volumes:
@@ -53,7 +51,6 @@ services:
       dockerfile: ./rili-server/Dockerfile.socket.dev
       args:
         - NODE_ENV=development
-        - NODE_RUNNER=nodemon
     environment:
       - NODE_ENV=development
     volumes:

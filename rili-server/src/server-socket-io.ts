@@ -23,13 +23,13 @@ export const shouldPrintSocketLogs = argv.withSocketLogs || shouldPrintAllLogs |
 const nodes = [
     // Pub
     {
-        host: globalConfig[process.env.NODE_ENV].redisPubHost,
-        port: globalConfig[process.env.NODE_ENV].redisPubPort,
+        host: process.env.REDIS_PUB_HOST,
+        port: Number(process.env.REDIS_PUB_PORT),
     },
     // Sub
     {
-        host: globalConfig[process.env.NODE_ENV].redisSubHost,
-        port: globalConfig[process.env.NODE_ENV].redisSubPort,
+        host: process.env.REDIS_SUB_HOST,
+        port: Number(process.env.REDIS_PUB_PORT),
     },
 ];
 
@@ -88,8 +88,8 @@ const startExpressSocketIOServer = () => {
     } else {
         appServer = http.createServer(app);
     }
-    const server = appServer.listen(globalConfig[process.env.NODE_ENV].socketPort, (err: string) => {
-        const port = globalConfig[process.env.NODE_ENV].socketPort;
+    const server = appServer.listen(process.env.SOCKET_PORT, (err: string) => {
+        const port = process.env.SOCKET_PORT;
         printLogs({
             shouldPrintLogs: true,
             messageOrigin: 'SOCKET_IO_LOGS',
