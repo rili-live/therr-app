@@ -10,29 +10,37 @@ metadata:
 spec:
   tls:
     - hosts:
-        - rili.world
-        - www.rili.world
-      secretName: rili-world
+        - rili.live
+        - www.rili.live
+      secretName: rili-live
   rules:
-    - host: rili.world
+    - host: rili.live
       http:
         paths:
         - path: /?(.*)
           backend:
             serviceName: client-cluster-ip-service
-            servicePort: 3000
-        - path: /api/?(.*)
+            servicePort: 7070
+        - path: /?(.*)
           backend:
-            serviceName: server-cluster-ip-service
-            servicePort: 5000
-    - host: www.rili.world
+            serviceName: server-api-cluster-ip-service
+            servicePort: 7770
+        - path: /?(.*)
+          backend:
+            serviceName: server-socket-cluster-ip-service
+            servicePort: 7743
+    - host: www.rili.live
       http:
         paths:
         - path: /?(.*)
           backend:
             serviceName: client-cluster-ip-service
-            servicePort: 3000
-        - path: /api/?(.*)
+            servicePort: 7070
+        - path: /?(.*)
           backend:
-            serviceName: server-cluster-ip-service
-            servicePort: 5000
+            serviceName: server-socket-cluster-ip-service
+            servicePort: 7770
+        - path: /?(.*)
+          backend:
+            serviceName: server-socket-cluster-ip-service
+            servicePort: 7743

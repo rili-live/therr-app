@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: server-deployment
+  name: server-api-deployment
 spec:
   replicas: 3
   selector:
@@ -14,23 +14,23 @@ spec:
     spec:
       containers:
       - name: server
-        image: rilizack/multi-server
+        image: riliadmin/rili-server-api
         ports:
-        - containerPort: 5000
+        - containerPort: 7770
         env:
         - name: REDIS_HOST
           value: "redis-cluster-ip-service"
         - name: REDIS_PORT
           value: "6379"
-        - name: PGUSER
+        - name: PG_USER
           value: "postgres"
-        - name: PGHOST
+        - name: PG_HOST
           value: "postgres-cluster-ip-service"
-        - name: PGPORT
+        - name: PG_PORT
           value: "5432"
-        - name: PGDATABASE
+        - name: PG_DATABASE
           value: "postgres"
-        - name: PGPASSWORD
+        - name: PG_PASSWORD
           valueFrom:
             secretKeyRef:
               name: pgpassword
