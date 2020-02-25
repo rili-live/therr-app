@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: client
-        image: rilizack/multi-client
+        image: riliadmin/rili-client-web
         ports:
-        - containerPort: 3000
+        - containerPort: 7070
