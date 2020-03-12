@@ -1,15 +1,21 @@
 import * as React from 'react';
-import { Route, withRouter, RouteProps } from 'react-router-dom';
+import { Route, withRouter, RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
 import RedirectWithStatus from './RedirectWithStatus';
 
-interface IAuthRouteProps extends RouteProps {
+interface IAuthRouteRouterProps {
+}
+interface IAuthRouteProps extends RouteComponentProps<IAuthRouteRouterProps> {
     access: any;
     component: any;
     exact: boolean;
     isAuthorized: boolean;
     redirectPath: string;
+    path: any;
+}
+
+interface IHomeProps extends RouteComponentProps<IAuthRouteRouterProps> {
 }
 
 const mapStateToProps = (state: any) => {
@@ -20,8 +26,7 @@ const mapStateToProps = (state: any) => {
 const mapDispatchToProps = (dispatch: Dispatch) => {
     return bindActionCreators(
         {},
-        dispatch,
-    );
+        dispatch);
 };
 
 class AuthRoute extends React.Component<IAuthRouteProps, any> {

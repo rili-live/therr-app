@@ -1,0 +1,36 @@
+apiVersion: skaffold/v1beta2
+kind: Config
+build:
+  local:
+    push: false
+  artifacts:
+    - image: riliadmin/rili-client-web
+      context: client
+      docker:
+        dockerfile: ./rili-client-web/Dockerfile.dev
+      sync:
+        '**/*.js': .
+        '**/*.css': .
+        '**/*.html': .
+    - image: riliadmin/rili-server-api
+      context: api
+      docker:
+        dockerfile: ./rili-server/Dockerfile.dev
+      sync:
+        '**/*.js': .
+        '**/*.css': .
+        '**/*.html': .
+    - image: riliadmin/rili-server-socket
+      context: api
+      docker:
+        dockerfile: ./rili-server/Dockerfile.dev
+      sync:
+        '**/*.js': .
+        '**/*.css': .
+        '**/*.html': .
+deploy:
+  kubectl:
+    manifests:
+      - k8s/client-deployment.yaml
+      - k8s/server-api-deployment.yaml
+      - k8s/server-socket-deployment.yaml
