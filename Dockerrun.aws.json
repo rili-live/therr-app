@@ -5,12 +5,14 @@
       "name": "certbot",
       "image": "certbot/certbot",
       "hostname": "certbot",
-      "essential": false
+      "essential": false,
+      "memory": 128
     },
     {
       "name": "rili-nginx",
       "image": "rili/nginx",
       "essential": true,
+      "memory": 128,
       "portMappings": [
         {
           "hostPort": 80,
@@ -31,31 +33,36 @@
       "name": "rili-client-web",
       "image": "rili/client-web",
       "hostname": "rili-client-web",
-      "essential": false
+      "essential": false,
+      "memory": 128
     },
     {
       "name": "rili-server-api",
       "image": "rili/server-api",
       "hostname": "rili-server-api",
-      "essential": false
+      "essential": false,
+      "memory": 128
     },
     {
       "name": "rili-server-socket",
       "image": "rili/server-socket",
       "hostname": "rili-server-socket",
-      "essential": false
+      "essential": false,
+      "memory": 128
     },
     {
       "name": "rili-redis-pub",
       "image": "redis:5",
       "hostname": "rili-redis-pub",
-      "essential": false
+      "essential": false,
+      "memory": 128
     },
     {
       "name": "rili-redis-sub",
       "image": "redis:5",
       "hostname": "rili-redis-sub",
-      "essential": false
+      "essential": false,
+      "memory": 128
     }
   ]
 }

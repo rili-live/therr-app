@@ -1,0 +1,20 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: rili-live-tls
+spec:
+  secretName: rili-live
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: rili.live
+  dnsNames:
+    - rili.live
+    - www.rili.live
+  acme:
+    config:
+      - http01:
+          ingressClass: nginx
+        domains:
+          - rili.live
+          - www.rili.live

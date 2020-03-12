@@ -1,7 +1,5 @@
 import * as express from 'express';
-import * as fs from 'fs';
 import * as http from 'http';
-import * as https from 'https';
 import * as moment from 'moment';
 import * as Redis from 'ioredis';
 import * as socketio from 'socket.io';
@@ -23,13 +21,13 @@ export const shouldPrintSocketLogs = argv.withSocketLogs || shouldPrintAllLogs |
 const nodes = [
     // Pub
     {
-        host: globalConfig[process.env.NODE_ENV].redisPubHost,
-        port: globalConfig[process.env.NODE_ENV].redisPubPort,
+        host: process.env.REDIS_PUB_HOST,
+        port: Number(process.env.REDIS_PUB_PORT),
     },
     // Sub
     {
-        host: globalConfig[process.env.NODE_ENV].redisSubHost,
-        port: globalConfig[process.env.NODE_ENV].redisSubPort,
+        host: process.env.REDIS_SUB_HOST,
+        port: Number(process.env.REDIS_PUB_PORT),
     },
 ];
 
@@ -78,18 +76,9 @@ Promise.all(redisConnectPromises).then((responses: any[]) => {
 
 const startExpressSocketIOServer = () => {
     const app = express();
-    let appServer;
-    if (process.env.NODE_ENV !== 'development') {
-        const httpsCredentials = {
-            key: fs.readFileSync(process.env.DOMAIN_KEY_LOCATION),
-            cert: fs.readFileSync(process.env.DOMAIN_CERT_LOCATION),
-        };
-        appServer = https.createServer(httpsCredentials, app);
-    } else {
-        appServer = http.createServer(app);
-    }
-    const server = appServer.listen(globalConfig[process.env.NODE_ENV].socketPort, (err: string) => {
-        const port = globalConfig[process.env.NODE_ENV].socketPort;
+    const appServer = http.createServer(app);
+    const server = appServer.listen(process.env.SOCKET_PORT, () => {
+        const port = process.env.SOCKET_PORT;
         printLogs({
             shouldPrintLogs: true,
             messageOrigin: 'SOCKET_IO_LOGS',

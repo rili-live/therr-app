@@ -2,26 +2,24 @@ sudo: required
 services:
   - docker
 language: node_js
-# before_install:
-#   - _bin/travis/before-install.sh
-install:
-  - _bin/travis/install.sh
 cache: npm
-jobs:
-  include:
-    - stage: "Build and test"
-      name: "Build and test app services"
-      script: _bin/travis/build.sh && _bin/travis/test.sh
-after_success:
-  - _bin/travis/after-success.sh
+env:
+  global:
+    - GIT_SHA=$(git rev-parse HEAD)
+    - CLOUDSDK_CORE_DISABLE_PROMPTS=1
+before_install:
+  - _bin/travis/before-install.sh
+# install:
+#   - _bin/travis/install.sh
+# jobs:
+#   include:
+#     - stage: "Build and test"
+#       name: "Build and test app services"
+#       script: docker run -e CI=true riliadmin/testing npm run test
+# after_success:
+#   - _bin/travis/after-success.sh
 deploy:
-  provider: elasticbeanstalk
-  region: "us-east-2"
-  app: "rili-app"
-  env: "RiliApp-env"
-  bucket_name: "elasticbeanstalk-us-east-2-014278409774"
-  bucket_path: "rili-app"
+  provider: script
+  script: bash _bin/travis/deploy.sh
   on:
     branch: master
-  access_key_id: $AWS_ACCESS_KEY
-  secret_access_key: $AWS_SECRET_KEY

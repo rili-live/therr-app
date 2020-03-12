@@ -83,11 +83,12 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
 
     public render(): JSX.Element | null {
         const { location } = this.props;
+        const alertSuccessMessage = location.state && (location.state as any).successMessage;
 
         return (
             <>
                 <div className="flex-box">
-                    <LoginForm login={this.login} alert={location.state && location.state.successMessage}/>
+                    <LoginForm login={this.login} alert={alertSuccessMessage}/>
                 </div>
             </>
         );
