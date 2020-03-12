@@ -10,5 +10,5 @@ set -e
 # gcloud config set project kubernetes-multi-261618
 # gcloud config set compute/zone us-central1-a
 # gcloud container clusters get-credentials multi-cluster
-echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
 docker build -t riliadmin/testing -f ./client/Dockerfile.dev ./client
