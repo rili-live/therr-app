@@ -23,7 +23,7 @@ export interface ISocketUser {
 }
 
 export interface ISocketState extends Immutable.ImmutableObject<any> {
-    user: ISocketUser;
-    rooms: IRoomsArray;
-    messages: IMessages;
+    user: any;
+    rooms: any;
+    messages: any;
 }

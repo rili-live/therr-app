@@ -118,7 +118,7 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
 
     public render(): JSX.Element | null {
         const { socket } = this.props;
-        let activeRooms = socket && socket.rooms.length > 0 && socket.rooms.map(room => room.roomKey).toString();
+        let activeRooms = socket && socket.rooms.length > 0 && socket.rooms.map((room: any) => room.roomKey).toString();
 
         return (
             <div>
