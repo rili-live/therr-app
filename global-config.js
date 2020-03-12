@@ -1,5 +1,5 @@
 const apiPort = process.env.API_PORT;
-const hostDev = 'localhost';
+const hostDev = 'dev.rili.live';
 const hostStage = 'stage.rili.live';
 const hostProd = 'rili.live';
 
@@ -18,8 +18,8 @@ module.exports = {
     },
     stage: {
         apiPort,
-        baseApiRoute: `http://${hostStage}:${apiPort}/api/v1`,
-        baseSocketUrl: `http://${hostStage}:${process.env.SOCKET_PORT}`,
+        baseApiRoute: `https://${hostStage}:${apiPort}/api/v1`,
+        baseSocketUrl: `https://${hostStage}:${process.env.SOCKET_PORT}`,
         googleAnalyticsKey: '',
         host: hostStage,
         socket: {

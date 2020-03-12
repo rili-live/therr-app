@@ -1,10 +1,11 @@
-ARG NODE_VERSION=12.2.0
-FROM node:$NODE_VERSION
+ARG NODE_VERSION=12.16.0
+FROM node:$NODE_VERSION as builder
 
-ARG NODE_ENV=production
-ENV NODE_ENV $NODE_ENV
+# Build in development allow devDependencies/dependencies to be installed correctly
+ENV NODE_ENV development
 
-EXPOSE 7070
+ARG BUILD_MODE=production
+ENV BUILD_MODE $BUILD_MODE
 
 RUN npm i npm@latest -g
 
@@ -27,16 +28,16 @@ COPY ./global-config.js ./
 COPY ./webpack.parts.js ./
 COPY ./rili-public-library ./rili-public-library
 
-# Install (shared) parent app dependencies and set PATH variable
-# Even in production, install devDependencies
-RUN npm ci --only=development --no-optional && npm ci --only=production --no-optional
-ENV PATH $PATH:/usr/src/app/node_modules/.bin:$PATH
-
 # Copy main app files and set directory permissions
 COPY ./rili-client-web ./rili-client-web
 USER root
 RUN chown -R node:node /usr/src/app
 USER node
+
+# Install (shared) parent app dependencies and set PATH variable
+# Even in production, install devDependencies
+RUN npm ci --no-optional
+ENV PATH $PATH:/usr/src/app/node_modules/.bin:$PATH
 
 # Install and build libraries
 WORKDIR /usr/src/app/rili-public-library/styles
@@ -45,17 +46,35 @@ WORKDIR /usr/src/app/rili-public-library/utilities
 RUN npm run build
 WORKDIR /usr/src/app/rili-public-library/react-components
 RUN npm run build
+
 WORKDIR /usr/src/app/rili-client-web
 
-RUN if [ "$NODE_ENV" = "development" ]; then \
-      echo "Building in $NODE_ENV environment" \
+RUN if [ "$BUILD_MODE" = "development" ]; then \
+      echo "Building in $BUILD_MODE mode" \
       && npm run build:dev; \
     else \
-      echo "Building in $NODE_ENV environment" \
+      echo "Building in $BUILD_MODE mode" \
       && npm run build;\
     fi
 
 # check every 30s to ensure this service returns HTTP 200
 # HEALTHCHECK --interval=30s CMD node healthcheck.js
 
-CMD ["npx", "$NODE_RUNNER", "./build/server-client.js"]
+################################
+## Final image to run the app ##
+################################
+FROM node:$NODE_VERSION
+
+# Run app with an environment equal to the mode that it was built
+ARG BUILD_MODE=production
+ENV BUILD_MODE $BUILD_MODE
+ENV NODE_ENV $BUILD_MODE
+RUN echo "Running app in $NODE_ENV"
+
+EXPOSE 7070
+
+RUN mkdir /usr/src/app
+WORKDIR /usr/src/app
+COPY --from=builder /usr/src/app .
+WORKDIR /usr/src/app/rili-client-web
+CMD ["npx", "node", "./build/server-client.js"]
