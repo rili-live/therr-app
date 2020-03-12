@@ -8,8 +8,8 @@ const initialState: ISocketState = Immutable.from({
         currentRoom: '',
         session: {},
     },
-    rooms: [],
-    messages: Immutable({}),
+    rooms: Immutable.from([]),
+    messages: {},
 });
 
 const socket = (state: ISocketState = initialState, action: any) => {

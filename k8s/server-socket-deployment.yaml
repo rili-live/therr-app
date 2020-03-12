@@ -14,13 +14,13 @@ spec:
     spec:
       containers:
       - name: server
-        image: riliadmin/rili-server-socket
+        image: riliadmin/server-socket
         ports:
         - containerPort: 7743
         env:
-        - name: REDIS_HOST
+        - name: REDIS_PUB_HOST
           value: "redis-cluster-ip-service"
-        - name: REDIS_PORT
+        - name: REDIS_PUB_PORT
           value: "6379"
         - name: PG_USER
           value: "postgres"

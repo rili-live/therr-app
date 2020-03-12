@@ -1,11 +1,8 @@
 import * as bodyParser from 'body-parser';
 import * as express from 'express';
 import * as cors from 'cors';
-import * as fs from 'fs';
-import * as https from 'https';
 import * as path from 'path';
 import { argv } from 'yargs';
-import * as globalConfig from '../../global-config.js';
 import connection from './store/connection';
 import printLogs from 'rili-public-library/utilities/print-logs';
 import AuthRoutes from './api/routes/AuthRoutes';
@@ -47,22 +44,13 @@ app.use(express.static(path.join(__dirname, 'static')));
 app.use(API_BASE_ROUTE, (new AuthRoutes(connection)).router);
 app.use(API_BASE_ROUTE, (new UserRoutes(connection)).router);
 
-if (process.env.NODE_ENV !== 'development') {
-    const httpsCredentials = {
-        key: fs.readFileSync(process.env.DOMAIN_KEY_LOCATION),
-        cert: fs.readFileSync(process.env.DOMAIN_CERT_LOCATION),
-    };
-
-    https.createServer(httpsCredentials, app).listen(process.env.API_PORT);
-} else {
-    app.listen(process.env.API_PORT, (err: string) => {
-        if (err) {
-            throw err;
-        }
-        printLogs({
-            shouldPrintLogs: shouldPrintServerLogs,
-            messageOrigin: 'API_SERVER',
-            messages: [`Server running on port ${process.env.API_PORT} with process id`, process.pid],
-        });
+app.listen(process.env.API_PORT, (err: string) => {
+    if (err) {
+        throw err;
+    }
+    printLogs({
+        shouldPrintLogs: shouldPrintServerLogs,
+        messageOrigin: 'API_SERVER',
+        messages: [`Server running on port ${process.env.API_PORT} with process id`, process.pid],
     });
-}
+});
