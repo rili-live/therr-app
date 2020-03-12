@@ -1,21 +1,15 @@
-import * as http from 'http';
-import * as https from 'https';
 import * as path from 'path';
 import * as express from 'express';
-import * as fs from 'fs';
 import * as React from 'react';
 import * as ReactDOMServer from 'react-dom/server';
 import { StaticRouter, matchPath } from 'react-router-dom';
-import { applyMiddleware, createStore, DeepPartial } from 'redux';
+import { applyMiddleware, createStore } from 'redux';
 import { Provider } from 'react-redux';
 import thunkMiddleware from 'redux-thunk';
 import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disable-line no-implicit-dependencies
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
-
-console.log('DOMAIN_CERT_LOCATION: ', process.env.DOMAIN_CERT_LOCATION); // tslint:disable-line
-console.log('DOMAIN_KEY_LOCATION: ', process.env.DOMAIN_KEY_LOCATION); // tslint:disable-line
 
 // TODO: RFRONT-9: Fix window is undefined hack
 declare global {
@@ -33,26 +27,7 @@ import Layout from './components/Layout';
 import routes, { IRoute } from './routes';
 
 // Initialize the server and configure support for handlebars templates
-const createAppServer = () => {
-    let app = express();
-    let server;
-    if (process.env.NODE_ENV !== 'development') {
-        let httpsCredentials = {
-            key: fs.readFileSync(process.env.DOMAIN_KEY_LOCATION),
-            cert: fs.readFileSync(process.env.DOMAIN_CERT_LOCATION),
-        };
-        server = https.createServer(httpsCredentials, app);
-    } else {
-        server = http.createServer(app);
-    }
-
-    return {
-        app,
-        server,
-    };
-};
-
-const { app, server } = createAppServer();
+const app = express();
 
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
@@ -122,16 +97,12 @@ for (let i in routeConfig) {
                 return res.render(routeView, {title, markup, state});
             }
         });
-
     });
 }
 
 // Start the server
 const port = process.env.CLIENT_PORT;
-server.listen(port, (err: any) => {
-    if (err) {
-        return console.error(err);
-    }
+app.listen(port, () => {
     printLogs({
         shouldPrintLogs: true,
         messageOrigin: 'SERVER_CLIENT',

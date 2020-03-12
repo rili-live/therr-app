@@ -68,16 +68,14 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         };
     }
 
-    componentWillMount() {
+    componentDidMount() {
         // TODO: Check if this should be initialized in index with history passed as argument
         // Initialize global interceptors such as 401, 403
         initInterceptors(this.props.history, globalConfig.baseApiRoute, 300);
         _viewListener = this.props.history.listen((location: Location, action: any) => {
             this.onViewChange(location);
         });
-    }
 
-    componentDidMount() {
         // ReactGA.initialize(globalConfig[process.env.NODE_ENV].googleAnalyticsKey);
         document.addEventListener('click', this.handleClick);
         this.setState({

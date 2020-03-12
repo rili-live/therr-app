@@ -1,17 +1,13 @@
 // Update with your config settings.
 module.exports = {
     development: {
-        client: 'postgresql',
+        client: 'pg',
         connection: {
             database: process.env.PG_DATABASE,
             host: process.env.PG_HOST,
             user: process.env.PG_USER,
             password: process.env.PG_PASSWORD,
-            port: process.env.PG_PORT,
-        },
-        pool: {
-            min: 2,
-            max: 10,
+            port: Number(process.env.PG_PORT),
         },
         migrations: {
             directory: './migrations',
