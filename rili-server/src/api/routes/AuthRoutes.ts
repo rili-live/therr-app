@@ -64,7 +64,7 @@ class AuthRoutes {
                     if (error === 404) {
                         return res.status(401).send(invalidUserNameOrPassword);
                     }
-                    return res.status(500).send('something went wrong', error.stack);
+                    return res.status(500).send('something went wrong');
                 });
             });
 
