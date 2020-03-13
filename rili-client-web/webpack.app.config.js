@@ -84,9 +84,10 @@ const buildProd = () => merge([
 ]);
 
 module.exports = (env) => {
-    process.env.BABEL_ENV = env;
+    console.log('Frontend Environment Variables', env);
+    process.env.BABEL_ENV = env.production ? 'production' : 'development';
 
-    if (env === 'production') {
+    if (env.production) {
         return [buildProd()];
     }
 
