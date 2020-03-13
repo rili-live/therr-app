@@ -21,11 +21,11 @@ spec:
           backend:
             serviceName: client-cluster-ip-service
             servicePort: 7070
-        - path: /?(.*)
+        - path: /api/?(.*)
           backend:
             serviceName: server-api-cluster-ip-service
             servicePort: 7770
-        - path: /?(.*)
+        - path: /socket.io/?(.*)
           backend:
             serviceName: server-socket-cluster-ip-service
             servicePort: 7743
@@ -36,11 +36,11 @@ spec:
           backend:
             serviceName: client-cluster-ip-service
             servicePort: 7070
-        - path: /?(.*)
+        - path: /api/?(.*)
           backend:
-            serviceName: server-socket-cluster-ip-service
+            serviceName: server-api-cluster-ip-service
             servicePort: 7770
-        - path: /?(.*)
+        - path: /socket.io/?(.*)
           backend:
             serviceName: server-socket-cluster-ip-service
             servicePort: 7743
