@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: server
-        image: riliadmin/server-socket
+        image: riliadmin/server-socket:latest
         ports:
         - containerPort: 7743
         env:
@@ -37,4 +37,3 @@ spec:
           value: "6379"
         - name: SOCKET_PORT
           value: "7743"
-        
