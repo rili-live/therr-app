@@ -1,5 +1,4 @@
 import * as express from 'express';
-import * as http from 'http';
 import * as moment from 'moment';
 import * as Redis from 'ioredis';
 import * as socketio from 'socket.io';
@@ -76,13 +75,16 @@ Promise.all(redisConnectPromises).then((responses: any[]) => {
 
 const startExpressSocketIOServer = () => {
     const app = express();
-    const appServer = http.createServer(app);
-    const server = appServer.listen(process.env.SOCKET_PORT, () => {
-        const port = process.env.SOCKET_PORT;
+    const { SOCKET_PORT } = process.env;
+
+    const server = app.listen(SOCKET_PORT, (err: string) => {
+        if (err) {
+            throw err;
+        }
         printLogs({
             shouldPrintLogs: true,
             messageOrigin: 'SOCKET_IO_LOGS',
-            messages: `Server running on port, ${port}, with process id ${process.pid}`,
+            messages: `Server running on port, ${SOCKET_PORT}, with process id ${process.pid}`,
         });
     });
     // NOTE: engine.io config options https://github.com/socketio/engine.io#methods-1
