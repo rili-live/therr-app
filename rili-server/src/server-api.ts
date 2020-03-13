@@ -44,13 +44,15 @@ app.use(express.static(path.join(__dirname, 'static')));
 app.use(API_BASE_ROUTE, (new AuthRoutes(connection)).router);
 app.use(API_BASE_ROUTE, (new UserRoutes(connection)).router);
 
-app.listen(process.env.API_PORT, (err: string) => {
+const { API_PORT } = process.env;
+
+app.listen(API_PORT, (err: string) => {
     if (err) {
         throw err;
     }
     printLogs({
-        shouldPrintLogs: shouldPrintServerLogs,
+        shouldPrintLogs: true,
         messageOrigin: 'API_SERVER',
-        messages: [`Server running on port ${process.env.API_PORT} with process id`, process.pid],
+        messages: [`Server running on port ${API_PORT} with process id`, process.pid],
     });
 });
