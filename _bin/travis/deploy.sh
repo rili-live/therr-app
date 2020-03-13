@@ -24,7 +24,8 @@ docker build -t riliadmin/server-api$SUFFIX:latest -t riliadmin/server-api$SUFFI
 docker build -t riliadmin/server-socket$SUFFIX:latest -t riliadmin/server-socket$SUFFIX:$GIT_SHA -f ./rili-server/Dockerfile.socket \
   --build-arg NODE_VERSION=${NODE_VERSION} .
 docker build -t riliadmin/client-web$SUFFIX:latest -t riliadmin/client-web$SUFFIX:$GIT_SHA -f ./rili-client-web/Dockerfile \
-  --build-arg NODE_VERSION=${NODE_VERSION} .
+  --build-arg NODE_VERSION=${NODE_VERSION} \
+  --build-arg API_PORT=${API_PORT} .
 docker push riliadmin/server-api$SUFFIX:latest
 docker push riliadmin/server-socket$SUFFIX:latest
 docker push riliadmin/client-web$SUFFIX:latest
