@@ -24,7 +24,7 @@ const corsOptions = {
 };
 
 import { version as packageVersion } from '../package.json';
-const API_BASE_ROUTE = `/api/v${packageVersion.split('.')[0]}`;
+const API_BASE_ROUTE = `/v${packageVersion.split('.')[0]}`;
 
 const app = express();
 
