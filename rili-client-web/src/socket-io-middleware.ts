@@ -13,5 +13,7 @@ const socketIO = io(`${envVars.baseSocketUrl}`, {
     upgrade: false,
 });
 
+console.log('SOCKET_BASE_URL: ', envVars.baseSocketUrl); // tslint:disable-line no-console
+
 // TODO: Find a was to send server connection evern after middleware instantiates
 export default createSocketIoMiddleware(socketIO, `${WEB_CLIENT_PREFIX}:`);
