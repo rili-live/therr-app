@@ -4,6 +4,8 @@ FROM node:$NODE_VERSION as builder
 # Build in development allow devDependencies/dependencies to be installed correctly
 ENV NODE_ENV development
 
+ARG API_PORT=8888
+ENV API_PORT $API_PORT
 ARG BUILD_MODE=production
 ENV BUILD_MODE $BUILD_MODE
 
