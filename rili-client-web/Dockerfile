@@ -4,8 +4,6 @@ FROM node:$NODE_VERSION as builder
 # Build in development allow devDependencies/dependencies to be installed correctly
 ENV NODE_ENV development
 
-ARG API_PORT=8888
-ENV API_PORT $API_PORT
 ARG BUILD_MODE=production
 ENV BUILD_MODE $BUILD_MODE
 
@@ -30,8 +28,7 @@ COPY ./global-config.js ./
 COPY ./webpack.parts.js ./
 COPY ./rili-public-library ./rili-public-library
 
-# Copy main app files and set directory permissions
-COPY ./rili-client-web ./rili-client-web
+# Set libary directory permissions
 USER root
 RUN chown -R node:node /usr/src/app
 USER node
@@ -49,6 +46,12 @@ RUN npm run build
 WORKDIR /usr/src/app/rili-public-library/react-components
 RUN npm run build
 
+# Copy main app files
+WORKDIR /usr/src/app
+COPY ./rili-client-web ./rili-client-web
+USER root
+RUN chown -R node:node /usr/src/app/rili-client-web
+USER node
 WORKDIR /usr/src/app/rili-client-web
 
 RUN if [ "$BUILD_MODE" = "development" ]; then \
@@ -79,4 +82,4 @@ RUN mkdir /usr/src/app
 WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app .
 WORKDIR /usr/src/app/rili-client-web
-CMD ["npx", "node", "./build/server-client.js"]
+CMD ["node", "./build/server-client.js"]

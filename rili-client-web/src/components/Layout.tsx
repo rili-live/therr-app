@@ -20,8 +20,6 @@ import * as globalConfig from '../../../global-config.js';
 import routes, { IAccess, AccessCheckType } from '../routes';
 import UserService from '../services/UserService';
 
-const envVars = globalConfig[process.env.NODE_ENV];
-
 let _viewListener: any;
 
 interface ILayoutRouterProps {
@@ -132,9 +130,6 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
     }
 
     public render(): JSX.Element | null {
-        console.log('SOCKET_BASE_URL: ', envVars.baseSocketUrl); // tslint:disable-line no-console
-        console.log('API_PORT: ', process.env.API_PORT); // tslint:disable-line no-console
-
         const { location, user } = this.props;
         const navMenuClassNames = classnames({
             'is-open': this.state.isNavMenuOpen,
