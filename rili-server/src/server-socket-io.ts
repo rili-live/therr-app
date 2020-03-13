@@ -91,9 +91,9 @@ const startExpressSocketIOServer = () => {
     const io = socketio(server, {
         path: '/ws',
         // how many ms before sending a new ping packet
-        pingInterval: globalConfig[process.env.NODE_ENV].socket.pingInterval,
+        pingInterval: Number(globalConfig[process.env.NODE_ENV].socket.pingInterval),
         // how many ms without a pong packet to consider the connection closed
-        pingTimeout: globalConfig[process.env.NODE_ENV].socket.pingTimeout,
+        pingTimeout: Number(globalConfig[process.env.NODE_ENV].socket.pingTimeout),
     });
 
     const redisAdapter = socketioRedis({
