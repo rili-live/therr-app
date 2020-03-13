@@ -133,6 +133,8 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
     public render(): JSX.Element | null {
         console.log('SOCKET_BASE_URL: ', envVars.baseSocketUrl); // tslint:disable-line no-console
+        console.log('SOCKET_PORT: ', process.env.SOCKET_PORT); // tslint:disable-line no-console
+        console.log('API_PORT: ', process.env.API_PORT); // tslint:disable-line no-console
 
         const { location, user } = this.props;
         const navMenuClassNames = classnames({

@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: client-deployment
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       component: web
@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: client
-        image: riliadmin/client-web-test
+        image: riliadmin/client-web:latest
         ports:
         - containerPort: 7070
         env:
