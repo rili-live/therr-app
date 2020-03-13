@@ -28,8 +28,7 @@ COPY ./global-config.js ./
 COPY ./webpack.parts.js ./
 COPY ./rili-public-library ./rili-public-library
 
-# Main service
-COPY ./rili-server ./rili-server
+# Set libary directory permissions
 USER root
 RUN chown -R node:node /usr/src/app
 USER node
@@ -43,6 +42,12 @@ ENV PATH $PATH:/usr/src/app/node_modules/.bin:$PATH
 WORKDIR /usr/src/app/rili-public-library/utilities
 RUN npm run build
 
+# Copy main app files
+WORKDIR /usr/src/app
+COPY ./rili-server ./rili-server
+USER root
+RUN chown -R node:node /usr/src/app/rili-server
+USER node
 WORKDIR /usr/src/app/rili-server
 
 RUN if [ "$BUILD_MODE" = "development" ]; then \
