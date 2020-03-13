@@ -74,7 +74,7 @@ class UserRoutes {
         router.route('/users/:id')
             .get((req, res) => {
                 return this.getUser(req.params.id).then((user) => {
-                    return res.send(httpResponse.success(user));
+                    return res.status(200).send(httpResponse.success(user));
                 }).catch((err) => {
                     if (err === 404) {
                         return res.status(404).send(httpResponse.error({
