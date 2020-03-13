@@ -9,3 +9,4 @@ spec:
   ports:
   - port: 7743
     targetPort: 7743
+    protocol: TCP
