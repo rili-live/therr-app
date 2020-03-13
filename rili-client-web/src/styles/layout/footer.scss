@@ -9,7 +9,7 @@ footer {
     width: 100%;
     height: $footer-height;
     text-align: center;
-    background: $rili-primary-1;
+    background: rgba($rili-primary-1, .75);
     box-shadow: $box-shadow-fixed-bot;
 
     .footer-menu-item {
