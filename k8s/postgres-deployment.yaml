@@ -35,3 +35,7 @@ spec:
               secretKeyRef:
                 name: pgpassword
                 key: PGPASSWORD
+          - name: POSTGRES_USERNAME
+            value: "postgres"
+          - name: POSTGRES_DB
+            value: "postgres"
