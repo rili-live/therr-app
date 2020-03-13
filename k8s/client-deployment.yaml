@@ -18,5 +18,9 @@ spec:
         ports:
         - containerPort: 7070
         env:
+          - name: API_PORT
+            value: "7770"
           - name: CLIENT_PORT
             value: "7070"
+          - name: SOCKET_PORT
+            value: "7743"

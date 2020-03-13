@@ -18,10 +18,10 @@ spec:
         ports:
         - containerPort: 7770
         env:
-        - name: REDIS_PUB_HOST
-          value: "redis-cluster-ip-service"
-        - name: REDIS_PUB_PORT
-          value: "6379"
+        - name: API_PORT
+          value: "7770"
+        - name: CLIENT_URI
+          value: "https://rili.live"
         - name: PG_USER
           value: "postgres"
         - name: PG_HOST
@@ -35,3 +35,9 @@ spec:
             secretKeyRef:
               name: pgpassword
               key: PGPASSWORD
+        - name: REDIS_PUB_HOST
+          value: "redis-cluster-ip-service"
+        - name: REDIS_PUB_PORT
+          value: "6379"
+        - name: SECRET
+          value: "this-should-be-an-actual-secret"
