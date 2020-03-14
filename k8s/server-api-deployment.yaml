@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: server-api-deployment
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       component: server
@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: server
-        image: riliadmin/server-api:c71594d27ceb24592b04e5bd81ad4201e3f8ce1b
+        image: riliadmin/server-api:a847474ce904540a77aa47c7dbeb298ebfb960fd
         ports:
         - containerPort: 7770
         env:
