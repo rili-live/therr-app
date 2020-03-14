@@ -11,7 +11,8 @@ const socketIO = io(`${envVars.baseSocketUrl}`, {
     secure: true,
     transports: ['websocket'],
     upgrade: false,
-    path: '/ws/',
+    path: '/ws',
+    // rejectUnauthorized: false,
 });
 
 // TODO: Find a was to send server connection evern after middleware instantiates
