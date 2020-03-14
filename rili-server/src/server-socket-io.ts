@@ -88,7 +88,6 @@ const startExpressSocketIOServer = () => {
     });
     // NOTE: engine.io config options https://github.com/socketio/engine.io#methods-1
     const io = socketio(server, {
-        path: '/ws/',
         // how many ms before sending a new ping packet
         pingInterval: Number(globalConfig[process.env.NODE_ENV].socket.pingInterval),
         // how many ms without a pong packet to consider the connection closed
