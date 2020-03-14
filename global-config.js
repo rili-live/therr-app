@@ -7,7 +7,7 @@ module.exports = {
     development: {
         apiPort,
         baseApiRoute: `http://${hostDev}:${apiPort}/api/v1`,
-        baseSocketUrl: `http://${hostDev}/`,
+        baseSocketUrl: hostDev,
         googleAnalyticsKey: '',
         host: hostDev,
         socket: {
