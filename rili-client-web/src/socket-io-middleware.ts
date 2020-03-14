@@ -11,7 +11,7 @@ const socketIO = io(`${envVars.baseSocketUrl}`, {
     secure: true,
     transports: ['websocket'],
     upgrade: false,
-    path: '/ws',
+    path: '/ws/socketio',
     // rejectUnauthorized: false,
 });
 
