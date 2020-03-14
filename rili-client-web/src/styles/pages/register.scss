@@ -2,10 +2,17 @@
     max-width: rem-calc(540px);
     width: 100%;
     padding: 1rem;
+    background-color: rgba($rili-primary-1, .75);
+    border: rem-calc(4px) solid $rili-primary-1;
+    border-radius: 1rem;
+    margin-top: 4%;
+    box-shadow: $box-shadow-1;
 }
 
 @media only screen and (min-width: rem-calc(540px)) {
     .register-container {
         width: rem-calc(360px);
+        border: rem-calc(6px) solid $rili-primary-1;
+        border: .75rem solid $rili-primary-1;
     }
 }
