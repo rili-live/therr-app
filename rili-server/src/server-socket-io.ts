@@ -79,7 +79,7 @@ const startExpressSocketIOServer = () => {
     const { SOCKET_PORT } = process.env;
 
     const server = http.createServer(app);
-    server.listen(SOCKET_PORT, () => {
+    server.listen(Number(SOCKET_PORT), () => {
         printLogs({
             shouldPrintLogs: true,
             messageOrigin: 'SOCKET_IO_LOGS',
@@ -88,11 +88,15 @@ const startExpressSocketIOServer = () => {
     });
     // NOTE: engine.io config options https://github.com/socketio/engine.io#methods-1
     const io = socketio(server, {
-        path: '/',
+        path: '/ws',
         // how many ms before sending a new ping packet
         pingInterval: Number(globalConfig[process.env.NODE_ENV].socket.pingInterval),
         // how many ms without a pong packet to consider the connection closed
         pingTimeout: Number(globalConfig[process.env.NODE_ENV].socket.pingTimeout),
+    });
+
+    io.on('error', (error: string) => {
+        console.log(error); // tslint:disable-line no-console
     });
 
     const redisAdapter = socketioRedis({
