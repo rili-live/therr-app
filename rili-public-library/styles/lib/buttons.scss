@@ -4,12 +4,13 @@ button,
 [type='button'],
 [type='reset'],
 [type='submit'] {
-    border-radius: (2.375rem/2);
+    border-radius: (2.125rem/2);
 }
 
 button {
-    font-size: .75rem;
-    height: 2.375rem;
+    font-size: .8rem;
+    height: 2.125rem;
+    padding: 1px 5px 2px;
 
     &:disabled {
         cursor: not-allowed;
