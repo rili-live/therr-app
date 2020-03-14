@@ -11,7 +11,7 @@ const handleError = (err: Error, res: express.Response) => {
         messageOrigin: `SQL:USER_ROUTES:ERROR`,
         messages: [err.toString()],
     });
-    res.status(500).send(httpResponse.error({
+    return res.status(500).send(httpResponse.error({
         message: err.toString(),
         statusCode: 500,
     }));
