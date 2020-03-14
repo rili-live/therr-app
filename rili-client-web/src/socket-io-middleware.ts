@@ -8,10 +8,10 @@ const envVars = globalConfig[process.env.NODE_ENV];
 
 // Socket IO Connection
 const socketIO = io(`${envVars.baseSocketUrl}`, {
-    secure: false,
+    secure: true,
     transports: ['websocket'],
     upgrade: false,
-    path: '/ws',
+    path: '/ws/',
 });
 
 // TODO: Find a was to send server connection evern after middleware instantiates

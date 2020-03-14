@@ -19,7 +19,7 @@ module.exports = {
     stage: {
         apiPort,
         baseApiRoute: `https://${hostStage}/api/v1`,
-        baseSocketUrl: `https://${hostStage}/`,
+        baseSocketUrl: `http://${hostStage}/`,
         googleAnalyticsKey: '',
         host: hostStage,
         socket: {
@@ -31,7 +31,7 @@ module.exports = {
     production: {
         apiPort,
         baseApiRoute: `https://${hostProd}/api/v1`,
-        baseSocketUrl: `https://${hostProd}/`,
+        baseSocketUrl: `http://${hostProd}/`,
         googleAnalyticsKey: '',
         host: hostProd,
         socket: {
