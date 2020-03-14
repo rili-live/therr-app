@@ -15,11 +15,6 @@ export const shouldPrintServerLogs = argv.withServerLogs || shouldPrintAllLogs;
 const originWhitelist = [process.env.CLIENT_URI];
 const corsOptions = {
     origin(origin: any, callback: any) {
-        printLogs({
-            shouldPrintLogs: true,
-            messageOrigin: 'ORIGIN',
-            messages: [origin, `whitelist: originWhitelist`],
-        });
         if (originWhitelist.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
