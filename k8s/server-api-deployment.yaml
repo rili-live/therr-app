@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: server
-        image: riliadmin/server-api:8eaf599df80550d1501976627d29399f17f1d89d
+        image: riliadmin/server-api:c71594d27ceb24592b04e5bd81ad4201e3f8ce1b
         ports:
         - containerPort: 7770
         env:
