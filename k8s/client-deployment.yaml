@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: client
-        image: riliadmin/client-web:a847474ce904540a77aa47c7dbeb298ebfb960fd
+        image: riliadmin/client-web:0d8c3892631b4600a2c87f73624d8b792c97dc4b
         ports:
         - containerPort: 7070
         env:
