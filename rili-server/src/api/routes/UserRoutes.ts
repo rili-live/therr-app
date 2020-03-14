@@ -101,7 +101,7 @@ class UserRoutes {
                     .then((result) => {
                         // TODO: Handle case where user already exists
                         return this.getUser(req.params.id).then((user) => {
-                            res.status(200).send(httpResponse.success(user));
+                            return res.status(200).send(httpResponse.success(user));
                         });
                     })
                     .catch((err) => {
@@ -112,13 +112,13 @@ class UserRoutes {
                 return this.connection.write.query(knex.delete().from('main.users').where({ id: req.params.id }).toString())
                     .then((result) => {
                         if (result.rows.length > 0) {
-                            res.status(200).send(httpResponse.success(`User with id, ${req.params.id}, was successfully deleted`));
-                        } else {
-                            res.status(404).send(httpResponse.error({
-                                message: `No user found with id, ${req.params.id}.`,
-                                statusCode: 404,
-                            }));
+                            return res.status(200).send(httpResponse.success(`User with id, ${req.params.id}, was successfully deleted`));
                         }
+
+                        return res.status(404).send(httpResponse.error({
+                            message: `No user found with id, ${req.params.id}.`,
+                            statusCode: 404,
+                        }));
                     })
                     .catch((err) => {
                         return handleError(err, res);
