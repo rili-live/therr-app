@@ -1,4 +1,5 @@
 import * as express from 'express';
+import * as http from 'http';
 import * as moment from 'moment';
 import * as Redis from 'ioredis';
 import * as socketio from 'socket.io';
@@ -77,10 +78,8 @@ const startExpressSocketIOServer = () => {
     const app = express();
     const { SOCKET_PORT } = process.env;
 
-    const server = app.listen(SOCKET_PORT, (err: string) => {
-        if (err) {
-            throw err;
-        }
+    const server = http.createServer(app);
+    server.listen(SOCKET_PORT, () => {
         printLogs({
             shouldPrintLogs: true,
             messageOrigin: 'SOCKET_IO_LOGS',
