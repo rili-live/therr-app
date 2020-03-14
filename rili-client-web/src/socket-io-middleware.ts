@@ -8,7 +8,7 @@ const envVars = globalConfig[process.env.NODE_ENV];
 
 // Socket IO Connection
 const socketIO = io(`${envVars.baseSocketUrl}`, {
-    secure: true,
+    secure: false,
     transports: ['websocket'],
     upgrade: false,
     path: '/ws',
