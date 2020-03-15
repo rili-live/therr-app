@@ -3,7 +3,7 @@
 		"module": "commonjs",
 		"target": "es6",
 		"baseUrl": ".",
-		"rootDir": "./src/",
+		"rootDir": ".",
 		"typeRoots": ["../node_modules/@types", "typings"],
 		"declaration": false,
 		"removeComments": false,
