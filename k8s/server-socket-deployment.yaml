@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server-socket-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: server
+  template:
+    metadata:
+      labels:
+        component: server
+    spec:
+      containers:
+      - name: server
+        image: riliadmin/server-socket:latest
+        ports:
+        - containerPort: 7743
+        env:
+        - name: PG_USER
+          value: "postgres"
+        - name: PG_HOST
+          value: "postgres-cluster-ip-service"
+        - name: PG_PORT
+          value: "5432"
+        - name: PG_DATABASE
+          value: "postgres"
+        - name: PG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pgpassword
+              key: PGPASSWORD
+        - name: REDIS_PUB_HOST
+          value: "redis-cluster-ip-service"
+        - name: REDIS_PUB_PORT
+          value: "6379"
+        - name: SOCKET_PORT
+          value: "7743"
