@@ -112,7 +112,7 @@ exports.lintJavaScript = ({ paths, options }) => ({
                 enforce: 'pre',
                 loader: 'eslint-loader',
                 include: paths,
-                options: potions || {},
+                options: options || {},
             },
         ],
     },
