@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcrypt';
 import * as express from 'express';
-import * as Knex from 'knex';
+import Knex from 'knex';
 import * as jwt from 'jsonwebtoken';
 import * as httpResponse from 'rili-public-library/utilities/http-response';
 import printLogs from 'rili-public-library/utilities/print-logs';
@@ -82,7 +82,7 @@ class AuthRoutes {
         router.route('/auth/user-token/validate')
             .post(authenticateUserTokenValidation, validate, (req: any, res: any) => {
                 try {
-                    const decodedToken = jwt.verify(req.body.idToken, process.env.SECRET);
+                    const decodedToken = jwt.verify(req.body.idToken, process.env.SECRET || '');
                     return res.status(200).send(decodedToken);
                 } catch (error) {
                     if (error.name === 'TokenExpiredError') {

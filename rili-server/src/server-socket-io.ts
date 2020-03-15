@@ -1,13 +1,13 @@
-import * as express from 'express';
+import express from 'express';
 import * as http from 'http';
-import * as moment from 'moment';
-import * as Redis from 'ioredis';
-import * as socketio from 'socket.io';
-import * as socketioRedis from 'socket.io-redis';
+import moment from 'moment';
+import Redis from 'ioredis';
+import socketio from 'socket.io';
+import socketioRedis from 'socket.io-redis';
 import { argv } from 'yargs';
 import * as socketHandlers from './socketio/handlers';
 import { SocketServerActionTypes, SocketClientActionTypes } from 'rili-public-library/utilities/constants';
-import * as Constants from './constants';
+import * as Constants from './constants/index';
 import printLogs from 'rili-public-library/utilities/print-logs';
 import * as globalConfig from '../../global-config.js';
 import RedisSession from './socketio/services/RedisSession';
@@ -92,9 +92,9 @@ const startExpressSocketIOServer = () => {
     const io = socketio(server, {
         path: '/socketio',
         // how many ms before sending a new ping packet
-        pingInterval: Number(globalConfig[process.env.NODE_ENV].socket.pingInterval),
+        pingInterval: Number(globalConfig[process.env.NODE_ENV || 'development'].socket.pingInterval),
         // how many ms without a pong packet to consider the connection closed
-        pingTimeout: Number(globalConfig[process.env.NODE_ENV].socket.pingTimeout),
+        pingTimeout: Number(globalConfig[process.env.NODE_ENV || 'development'].socket.pingTimeout),
     });
 
     io.on('error', (error: string) => {
