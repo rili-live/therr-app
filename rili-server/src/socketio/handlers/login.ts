@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 import * as socketio from 'socket.io';
-import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disable-line no-implicit-dependencies
+import printLogs from 'rili-public-library/utilities/print-logs'; // eslint-disable-line no-implicit-dependencies
 import { SocketServerActionTypes } from 'rili-public-library/utilities/constants';
 import * as Constants from '../../constants';
 import { rsAppName, shouldPrintRedisLogs, shouldPrintSocketLogs } from '../../server-socket-io';

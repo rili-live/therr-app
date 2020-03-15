@@ -44,7 +44,7 @@ const mapDispatchToProps = (dispatch: any) => {
 };
 
 // const handleSessionUpdate = (message: any) => {
-//     console.log('SESSION_UPDATE:', message); // tslint:disable-line no-console
+//     console.log('SESSION_UPDATE:', message); // eslint-disable-line no-console
 // };
 
 /**
