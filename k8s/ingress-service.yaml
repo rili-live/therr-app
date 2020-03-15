@@ -1,0 +1,48 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-service
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  tls:
+    - hosts:
+        - rili.live
+        - www.rili.live
+      secretName: rili-live
+  rules:
+    - host: rili.live
+      http:
+        paths:
+        - path: /?(.*)
+          backend:
+            serviceName: client-cluster-ip-service
+            servicePort: 7070
+        - path: /api/?(.*)
+          backend:
+            serviceName: server-api-cluster-ip-service
+            servicePort: 7770
+        - path: /ws/?(.*)
+          backend:
+            serviceName: server-socket-cluster-ip-service
+            servicePort: 7743
+    - host: www.rili.live
+      http:
+        paths:
+        - path: /?(.*)
+          backend:
+            serviceName: client-cluster-ip-service
+            servicePort: 7070
+        - path: /api/?(.*)
+          backend:
+            serviceName: server-api-cluster-ip-service
+            servicePort: 7770
+        - path: /ws/?(.*)
+          backend:
+            serviceName: server-socket-cluster-ip-service
+            servicePort: 7743
