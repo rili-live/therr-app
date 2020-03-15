@@ -8,16 +8,16 @@ const replaceInFile = (fileToUpdate, replacementString) => {
 
     fs.readFile(fileToUpdate, 'utf8', function (err, data) {
         if (err) {
-            return console.log(err); // tslint:disable-line
+            return console.log(err); // eslint-disable-line
         }
 
         const result = data.replace(fileNameToReplaceRegex, replacementString);
 
         fs.writeFile(fileToUpdate, result, 'utf8', function (err) {
             if (err) {
-                return console.log(err); // tslint:disable-line
+                return console.log(err); // eslint-disable-line
             }
-            console.log('Success: String was replaced in file'); // tslint:disable-line
+            console.log('Success: String was replaced in file'); // eslint-disable-line
         });
     });
 };

@@ -1,4 +1,4 @@
-exports.up = knex => knex.schema.createTable('main.users', (table) => {
+exports.up = (knex) => knex.schema.createTable('main.users', (table) => {
     table.increments('id');
     table.jsonb('accessLevels').defaultTo(JSON.stringify(['user.default']));
     table.string('userName').unique().notNullable();
@@ -10,4 +10,4 @@ exports.up = knex => knex.schema.createTable('main.users', (table) => {
     table.timestamps(true, true);
 });
 
-exports.down = knex => knex.schema.dropTable('main.users');
+exports.down = (knex) => knex.schema.dropTable('main.users');

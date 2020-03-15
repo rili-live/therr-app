@@ -1,6 +1,7 @@
 import * as bodyParser from 'body-parser';
 import * as express from 'express';
 import * as cors from 'cors';
+import helmet from 'helmet';
 import * as path from 'path';
 import { argv } from 'yargs';
 import connection from './store/connection';
@@ -28,6 +29,7 @@ const API_BASE_ROUTE = `/v${packageVersion.split('.')[0]}`;
 
 const app = express();
 
+app.use(helmet());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -46,7 +48,7 @@ app.use(API_BASE_ROUTE, (new UserRoutes(connection)).router);
 
 const { API_PORT } = process.env;
 
-app.listen(API_PORT, (err: string) => {
+const server = app.listen(API_PORT, (err: string) => {
     if (err) {
         throw err;
     }
@@ -56,3 +58,26 @@ app.listen(API_PORT, (err: string) => {
         messages: [`Server running on port ${API_PORT} with process id`, process.pid],
     });
 });
+
+// Hot Module Reloading
+type ModuleId = string | number;
+
+interface WebpackHotModule {
+    hot?: {
+        data: any;
+        accept(
+            dependencies: string[],
+            callback?: (updatedDependencies: ModuleId[]) => void,
+        ): void;
+        accept(dependency: string, callback?: () => void): void;
+        accept(errHandler?: (err: Error) => void): void;
+        dispose(callback: (data: any) => void): void;
+    };
+}
+
+declare const module: WebpackHotModule;
+
+if (process.env.NODE_ENV === 'development' && module.hot) {
+    module.hot.accept();
+    module.hot.dispose(() => server.close());
+}

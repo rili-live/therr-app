@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-dependencies
 const merge = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
+const nodeExternals = require('webpack-node-externals');
 const parts = require('../webpack.parts');
 
 const pkg = require('./package.json');
@@ -21,7 +22,7 @@ servers.forEach((server) => {
 });
 
 const nodeModules = {};
-fs.readdirSync('../node_modules').filter(x => ['.bin'].indexOf(x) === -1)
+fs.readdirSync('../node_modules').filter((x) => ['.bin'].indexOf(x) === -1)
     .forEach((mod) => { nodeModules[mod] = `commonjs ${mod}`; });
 
 const common = merge([
@@ -67,7 +68,20 @@ const common = merge([
 const buildDev = () => merge([
     common,
     {
+        entry: {
+            ...entry,
+            main: 'webpack/hot/poll?100',
+        },
         mode: 'development',
+        externals: [
+            ...Object.keys(pkg.peerDependencies || {}),
+            nodeExternals({
+                whitelist: ['webpack/hot/poll?100'],
+            }),
+        ],
+        plugins: [
+            new webpack.HotModuleReplacementPlugin(),
+        ],
     },
     parts.minifyJavaScript({ useSourceMap: true }),
 ]);

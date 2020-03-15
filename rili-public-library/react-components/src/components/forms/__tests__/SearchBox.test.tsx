@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { mount } from 'enzyme'; // tslint:disable-line no-implicit-dependencies
+import { mount } from 'enzyme'; // eslint-disable-line no-implicit-dependencies
 import { Key as KeyCode } from 'ts-keycode-enum';
 import SearchBox from '../SearchBox';
 

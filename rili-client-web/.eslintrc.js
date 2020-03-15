@@ -6,8 +6,20 @@ module.exports = {
         browser: true,
         jest: true
     },
-    extends: 'airbnb',
-    parser: 'babel-eslint',
+    env: {
+        browser: true,
+        jest: true
+    },
+    extends: [
+        'airbnb-base',
+        'plugin:@typescript-eslint/recommended',
+        "plugin:react/recommended"
+    ],
+    plugins: [
+        '@typescript-eslint',
+        "jsx-a11y"
+    ],
+    parser: '@typescript-eslint/parser',
     rules: {
         "jsx-a11y/label-has-associated-control": [ 2, {
             "labelComponents": ["CustomInputLabel"],
@@ -24,7 +36,12 @@ module.exports = {
             }
         ],
         'indent': [2, 4, { SwitchCase: 1 }],
-        'max-len': [2, { code: 140 }]
+        'max-len': [2, { code: 140 }],
+        '@typescript-eslint/explicit-function-return-type': 'off',
+        '@typescript-eslint/no-explicit-any': 'off',
+        'consistent-return': 'off',
+        'prefer-destructuring': 'off',
+        'import/prefer-default-export': 'off',
     },
     settings: {
         'import/resolver': {
