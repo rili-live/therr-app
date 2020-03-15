@@ -20,6 +20,7 @@ export interface IUserSocketSession {
  */
 export default class RedisSession {
     private client: Redis.Redis;
+
     private redisHelper: RedisHelper;
 
     constructor(args: IRedisSessionArgs) {
@@ -28,19 +29,16 @@ export default class RedisSession {
     }
 
     public create(args: IUserSocketSession): Promise<any> {
-        const configuredArgs = Object.assign({}, {
-            // TODO: RSERV-4: Use app and ip to namespace
+        const configuredArgs = { // TODO: RSERV-4: Use app and ip to namespace
             // TODO: RSERV-4: Create a token to send back to the frontend
             app: args.app,
             socketId: args.socketId,
             ip: args.ip.toString(),
             ttl: args.ttl || globalConfig[process.env.NODE_ENV || ''].socket.userSocketSessionExpire,
             data: JSON.stringify(args.data),
-        });
+        };
 
-        return this.redisHelper.storeUser(configuredArgs).then(() => {
-            return configuredArgs;
-        });
+        return this.redisHelper.storeUser(configuredArgs).then(() => configuredArgs);
     }
 
     public remove(socketId: Redis.KeyType) {

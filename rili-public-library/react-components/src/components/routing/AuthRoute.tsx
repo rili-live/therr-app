@@ -4,9 +4,9 @@ import { connect } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
 import RedirectWithStatus from './RedirectWithStatus';
 
-interface IAuthRouteRouterProps {
-}
-interface IAuthRouteProps extends RouteComponentProps<IAuthRouteRouterProps> {
+// interface IAuthRouteRouterProps {
+// }
+interface IAuthRouteProps extends RouteComponentProps<{}> {
     access: any;
     component: any;
     exact: boolean;
@@ -15,23 +15,17 @@ interface IAuthRouteProps extends RouteComponentProps<IAuthRouteRouterProps> {
     path: any;
 }
 
-interface IHomeProps extends RouteComponentProps<IAuthRouteRouterProps> {
-}
+type IHomeProps = RouteComponentProps<{}>
 
-const mapStateToProps = (state: any) => {
-    return {
-    };
-};
+const mapStateToProps = (state: any) => ({
+});
 
-const mapDispatchToProps = (dispatch: Dispatch) => {
-    return bindActionCreators(
-        {},
-        dispatch);
-};
+const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators(
+    {},
+    dispatch,
+);
 
 class AuthRoute extends React.Component<IAuthRouteProps, any> {
-    redirectPath: string = '/login';
-
     constructor(props: IAuthRouteProps) {
         super(props);
 
@@ -42,27 +36,31 @@ class AuthRoute extends React.Component<IAuthRouteProps, any> {
         }
     }
 
+    redirectPath = '/login';
+
     render() {
-        const { exact, isAuthorized, location, path } = this.props;
+        const {
+            exact, isAuthorized, location, path,
+        } = this.props;
         const routeProps = { ...this.props };
         delete routeProps.access;
         delete routeProps.component;
 
         return (
-            <Route location={location} path={path} exact={exact} render={props => (
-                isAuthorized ?
-                (
-                    <this.props.component {...props}/>
-                ) :
-                (
-                    <RedirectWithStatus
-                        statusCode={307}
-                        to={{
-                            pathname: this.redirectPath,
-                            state: { from: props.location },
-                        }}
-                    />
-                )
+            <Route location={location} path={path} exact={exact} render={(props) => (
+                isAuthorized
+                    ? (
+                        <this.props.component {...props}/>
+                    )
+                    : (
+                        <RedirectWithStatus
+                            statusCode={307}
+                            to={{
+                                pathname: this.redirectPath,
+                                state: { from: props.location },
+                            }}
+                        />
+                    )
             )}/>
         );
     }

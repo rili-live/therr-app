@@ -1,6 +1,6 @@
 import {
     validationResult,
-} from 'express-validator/check';
+} from 'express-validator/check'; // eslint-disable-line import/extensions
 
 export const validate = (req: any, res: any, next: any) => {
     const result = validationResult(req);

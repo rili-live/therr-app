@@ -6,10 +6,6 @@ interface IStatusProps {
 }
 
 class Status extends React.Component<IStatusProps, any> {
-    constructor(props: IStatusProps) {
-        super(props);
-    }
-
     render() {
         const { children, statusCode } = this.props;
 

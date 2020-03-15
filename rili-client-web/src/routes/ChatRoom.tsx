@@ -7,8 +7,8 @@ import Input from 'rili-public-library/react-components/Input';
 import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary';
 import scrollTo from 'rili-public-library/utilities/scroll-to';
 import { IMessage, ISocketState } from 'types/socket';
-import translator from '../services/translator';
 import { IUserState } from 'types/user';
+import translator from '../services/translator';
 // import * as globalConfig from '../../../global-config.js';
 
 // router params
@@ -37,23 +37,17 @@ interface IChatRoomState {
 // Environment Variables
 // const envVars = globalConfig[process.env.NODE_ENV];
 
-const mapStateToProps = (state: IChatRoomState | any) => {
-    return {
-        socket: state.socket,
-        user: state.user,
-    };
-};
+const mapStateToProps = (state: IChatRoomState | any) => ({
+    socket: state.socket,
+    user: state.user,
+});
 
-const mapDispatchToProps = (dispatch: any) => {
-    return bindActionCreators({
-        joinRoom: SocketActions.joinRoom,
-        sendMessage: SocketActions.sendMessage,
-    }, dispatch);
-};
+const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    joinRoom: SocketActions.joinRoom,
+    sendMessage: SocketActions.sendMessage,
+}, dispatch);
 
-const shouldRender = (props: IChatRoomProps) => {
-    return !!props.user;
-};
+const shouldRender = (props: IChatRoomProps) => !!props.user;
 
 // TODO: Leaving a roome should emit an event to the server and leave the current room
 /**
@@ -61,6 +55,7 @@ const shouldRender = (props: IChatRoomProps) => {
  */
 export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoomState> {
     private messageInputRef: any;
+
     // private sessionToken: string;
     private translate: Function;
 
@@ -68,9 +63,8 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
         if (!shouldRender(nextProps)) {
             nextProps.history.push('/login');
             return null;
-        } else {
-            return {};
         }
+        return {};
     }
 
     constructor(props: IChatRoomProps) {
@@ -167,18 +161,16 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
 
                 <div id="roomTitle">Room Name: {socket.user.currentRoom}</div>
                 {
-                    socket && socket.rooms &&
-                    <span id="rooms_list">
+                    socket && socket.rooms
+                    && <span id="rooms_list">
                         {
-                            messages && messages.length > 0 ?
-                            <span className="message-list">
-                                {
-                                    messages.map((message: IMessage) =>
-                                        <li key={message.key}>({message.time}) {message.text}</li>
-                                    )
-                                }
-                            </span> :
-                            <span>Welcome!</span>
+                            messages && messages.length > 0
+                                ? <span className="message-list">
+                                    {
+                                        messages.map((message: IMessage) => <li key={message.key}>({message.time}) {message.text}</li>)
+                                    }
+                                </span>
+                                : <span>Welcome!</span>
                         }
                     </span>
                 }

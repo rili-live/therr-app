@@ -3,9 +3,7 @@ import * as jwt from 'jsonwebtoken';
 
 const saltRounds = 10;
 
-export const hashPassword = (password: string) => {
-    return bcrypt.hash(password, saltRounds);
-};
+export const hashPassword = (password: string) => bcrypt.hash(password, saltRounds);
 
 export const createUserToken = (user: any, rememberMe?: boolean) => {
     const {
