@@ -15,6 +15,6 @@ window.onload = () => {
                 <Layout />
             </BrowserRouter>
         </Provider>,
-        document.getElementById('app')
+        document.getElementById('app'),
     );
 };

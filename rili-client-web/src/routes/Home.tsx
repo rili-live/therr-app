@@ -2,14 +2,12 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import translator from '../services/translator';
 import SocketActions from 'actions/socket';
-import LoginForm from '../components/LoginForm';
 import { IUserState } from 'types/user';
+import translator from '../services/translator';
+import LoginForm from '../components/LoginForm';
 
-const shouldRender = (props: IHomeProps) => {
-    return !props.user || !props.user.isAuthenticated;
-};
+const shouldRender = (props: IHomeProps) => !props.user || !props.user.isAuthenticated;
 
 interface IHomeRouterProps {
 }
@@ -30,17 +28,13 @@ interface IHomeState {
     inputs: any;
 }
 
-const mapStateToProps = (state: any) => {
-    return {
-        user: state.user,
-    };
-};
+const mapStateToProps = (state: any) => ({
+    user: state.user,
+});
 
-const mapDispatchToProps = (dispatch: any) => {
-    return bindActionCreators({
-        login: SocketActions.login,
-    }, dispatch);
-};
+const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    login: SocketActions.login,
+}, dispatch);
 
 /**
  * Home
@@ -52,9 +46,8 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
         if (!shouldRender(nextProps)) {
             nextProps.history.push('/user/profile');
             return null;
-        } else {
-            return {};
         }
+        return {};
     }
 
     constructor(props: IHomeProps) {

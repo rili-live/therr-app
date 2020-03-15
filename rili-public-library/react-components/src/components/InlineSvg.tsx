@@ -2,9 +2,9 @@ import * as React from 'react';
 
 // ICONS
 const iconMap: { [index: string]: string } = {
-    close: require('../svg-icons/close.svg').toString(),
-    home: require('../svg-icons/home.svg').toString(),
-    messages: require('../svg-icons/messages.svg').toString(),
+    close: require('../svg-icons/close.svg').toString(), // eslint-disable-line global-require
+    home: require('../svg-icons/home.svg').toString(), // eslint-disable-line global-require
+    messages: require('../svg-icons/messages.svg').toString(), // eslint-disable-line global-require
 };
 
 export interface IInlineSvgProps {

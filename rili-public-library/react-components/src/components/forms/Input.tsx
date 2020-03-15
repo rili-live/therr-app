@@ -13,8 +13,6 @@ import VALIDATIONS from '../../constants/VALIDATIONS';
 // }
 
 class Input extends React.Component<any, any> {
-    public inputEl: any;
-
     static propTypes: any = {
         autoComplete: PropTypes.oneOf(['off', 'on']),
         className: PropTypes.string,
@@ -65,11 +63,11 @@ class Input extends React.Component<any, any> {
         this.updateValidations(this.props);
     }
 
-    componentWillReceiveProps(nextProps: any) {
+    UNSAFE_componentWillReceiveProps(nextProps: any) {
         if (this.props.value !== nextProps.value) {
             this.setState({
                 inputValue: nextProps.value,
-            },            () => this.updateValidations(nextProps));
+            }, () => this.updateValidations(nextProps));
         } else {
             nextProps.validations.some((validation: any) => {
                 if (!this.props.validations.includes(validation)) {
@@ -80,6 +78,8 @@ class Input extends React.Component<any, any> {
             });
         }
     }
+
+    public inputEl: any;
 
     handleInputChange = (event: any) => {
         const name = event.target.name;
@@ -144,8 +144,12 @@ class Input extends React.Component<any, any> {
     }
 
     render() {
-        const { autoComplete, className, disabled, formClassName, id, name, placeholder, type, onBlur, validations } = this.props;
-        const { inputValue, isDirty, isTouched, validationErrors } = this.state;
+        const {
+            autoComplete, className, disabled, formClassName, id, name, placeholder, type, onBlur, validations,
+        } = this.props;
+        const {
+            inputValue, isDirty, isTouched, validationErrors,
+        } = this.state;
         const additionalClasses = classnames({
             'is-dirty': isDirty,
             'is-invalid': validationErrors.length > 0,
@@ -171,8 +175,8 @@ class Input extends React.Component<any, any> {
                     placeholder={placeholder}
                 />
                 {
-                    validationErrors.length > 0 && (isTouched || isDirty) &&
-                    <div className="validation-errors">
+                    validationErrors.length > 0 && (isTouched || isDirty)
+                    && <div className="validation-errors">
                         {
                             validationErrors.map((error: any) => (
                                 <div key={error.key} className="message-container icon-small attention-alert">

@@ -12,26 +12,26 @@ declare global {
 }
 
 const loggerMiddleware = createLogger();
-let store: any, preLoadedState;
+let store: any; let
+    preLoadedState;
 
-const composeEnhancers = typeof window === 'object' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ ?
-    window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
+const composeEnhancers = typeof window === 'object' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
+    ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
         // Specify extension’s options like name, actionsBlacklist, actionsCreators, serialize...
     }) : compose;
 
 // Grab the state from a global variable injected into the server-generated HTML
 function safelyParse(input: any) {
     if (input) {
-        var doc = new DOMParser().parseFromString(input, 'text/html');
+        const doc = new DOMParser().parseFromString(input, 'text/html');
         return JSON.parse(doc.documentElement.textContent);
-    } else {
-        console.log('Warning: __PRELOADED_STATE__ is not defined on the respective view'); // eslint-disable-line no-console
-        return {};
     }
+    console.log('Warning: __PRELOADED_STATE__ is not defined on the respective view'); // eslint-disable-line no-console
+    return {};
 }
 
 // Get stored user details from session storage if they are already logged in
-if (typeof(Storage) !== 'undefined' && typeof(window) !== 'undefined') {
+if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
     let storedUser = JSON.parse(localStorage.getItem('riliUser')) || JSON.parse(sessionStorage.getItem('riliUser'));
     storedUser = storedUser || {};
     const reloadedState: any = {
@@ -50,8 +50,8 @@ if (process.env.NODE_ENV !== 'development') {
         preLoadedState,
         applyMiddleware(
             socketIOMiddleWare,
-            thunkMiddleware
-        )
+            thunkMiddleware,
+        ),
     );
 } else {
     // Create Store - Redux Development (Chrome Only)
@@ -63,8 +63,8 @@ if (process.env.NODE_ENV !== 'development') {
                 loggerMiddleware, // middleware that logs actions (development only)
                 socketIOMiddleWare,
                 thunkMiddleware, // let's us dispatch functions
-            )
-        )
+            ),
+        ),
     );
 }
 

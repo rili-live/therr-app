@@ -1,6 +1,6 @@
 
 import * as Redis from 'ioredis';
-import promiser from 'rili-public-library/utilities/promiser';
+import promiser from 'rili-public-library/utilities/promiser.js';
 import * as globalConfig from '../../../../global-config.js';
 import { IUserSocketSession } from './RedisSession';
 
@@ -16,26 +16,20 @@ export default class RedisHelper {
         this.client = redisClient;
     }
 
-    public storeUser = (userSocketConfig: IUserSocketSession): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            this.client.setex(
-                userSocketConfig.socketId,
-                userSocketConfig.ttl || globalConfig[process.env.NODE_ENV || 'development'].socket.userSocketSessionExpire,
-                userSocketConfig.data,
-                promiser(resolve, reject),
-            );
-        });
-    };
+    public storeUser = (userSocketConfig: IUserSocketSession): Promise<any> => new Promise((resolve, reject) => {
+        this.client.setex(
+            userSocketConfig.socketId,
+            userSocketConfig.ttl || globalConfig[process.env.NODE_ENV || 'development'].socket.userSocketSessionExpire,
+            userSocketConfig.data,
+            promiser(resolve, reject),
+        );
+    });
 
-    public removeUser = (socketId: Redis.KeyType) => {
-        return new Promise((resolve, reject) => {
-            this.client.del(socketId);
-        });
-    }
+    public removeUser = (socketId: Redis.KeyType) => new Promise((resolve, reject) => {
+        this.client.del(socketId);
+    })
 
-    public getUser = (socketId: any): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            this.client.get(socketId, promiser(resolve, reject));
-        });
-    };
+    public getUser = (socketId: any): Promise<any> => new Promise((resolve, reject) => {
+        this.client.get(socketId, promiser(resolve, reject));
+    });
 }
