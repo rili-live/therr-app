@@ -1,6 +1,6 @@
 import * as bodyParser from 'body-parser';
-import * as express from 'express';
-import * as cors from 'cors';
+import express from 'express';
+import cors from 'cors';
 import helmet from 'helmet';
 import * as path from 'path';
 import { argv } from 'yargs';
@@ -8,9 +8,10 @@ import connection from './store/connection';
 import printLogs from 'rili-public-library/utilities/print-logs';
 import AuthRoutes from './api/routes/AuthRoutes';
 import UserRoutes from './api/routes/UserRoutes';
+import { version as packageVersion } from '../package.json';
 
 export const shouldPrintAllLogs = argv.withAllLogs;
-export const shouldPrintSQLLogs =  argv.withSQLLogs || shouldPrintAllLogs;
+export const shouldPrintSQLLogs = argv.withSQLLogs || shouldPrintAllLogs;
 export const shouldPrintServerLogs = argv.withServerLogs || shouldPrintAllLogs;
 
 const originWhitelist = [process.env.CLIENT_URI];
@@ -24,7 +25,6 @@ const corsOptions = {
     },
 };
 
-import { version as packageVersion } from '../package.json';
 const API_BASE_ROUTE = `/v${packageVersion.split('.')[0]}`;
 
 const app = express();
@@ -48,10 +48,7 @@ app.use(API_BASE_ROUTE, (new UserRoutes(connection)).router);
 
 const { API_PORT } = process.env;
 
-const server = app.listen(API_PORT, (err: string) => {
-    if (err) {
-        throw err;
-    }
+const server = app.listen(API_PORT, () => {
     printLogs({
         shouldPrintLogs: true,
         messageOrigin: 'API_SERVER',
