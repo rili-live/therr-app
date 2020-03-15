@@ -9,9 +9,7 @@ interface IPageNotFoundRouterProps {
 
 }
 
-interface IPageNotFoundProps extends RouteComponentProps<IPageNotFoundRouterProps> {
-// Add your regular properties here
-}
+type IPageNotFoundProps = RouteComponentProps<IPageNotFoundRouterProps>
 
 interface IPageNotFoundDispatchProps {
 // Add your dispatcher properties here

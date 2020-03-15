@@ -32,7 +32,6 @@ class SelectBox extends React.Component<any, any> {
         required: false,
     };
 
-    private buttonElement: any;
 
     constructor(props: any) {
         super(props);
@@ -45,7 +44,7 @@ class SelectBox extends React.Component<any, any> {
         };
     }
 
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         document.addEventListener('click', this.handlePageClick);
     }
 
@@ -53,7 +52,7 @@ class SelectBox extends React.Component<any, any> {
         this.updateValidations(this.props);
     }
 
-    componentWillReceiveProps(nextProps: any) {
+    UNSAFE_componentWillReceiveProps(nextProps: any) {
         if (this.props.value !== nextProps.value || this.props.required !== nextProps.required) {
             this.updateValidations(nextProps);
         }
@@ -62,6 +61,8 @@ class SelectBox extends React.Component<any, any> {
     componentWillUnmount() {
         document.removeEventListener('click', this.handlePageClick);
     }
+
+    private buttonElement: any;
 
     handleArrowKey = (change: any) => {
         const { options } = this.props;
@@ -159,8 +160,12 @@ class SelectBox extends React.Component<any, any> {
     }
 
     render() {
-        const { className, disabled, id, isTesting, options, placeHolderText, required, translate, value } = this.props;
-        const { axIndex, isInValid, isTouched, optionsAreVisible } = this.state;
+        const {
+            className, disabled, id, isTesting, options, placeHolderText, required, translate, value,
+        } = this.props;
+        const {
+            axIndex, isInValid, isTouched, optionsAreVisible,
+        } = this.state;
         const selectedOption = options.find((option: any) => option.value === value) || [];
         const selectedText = translate(selectedOption.text);
         const mainClasses = classnames({
@@ -192,13 +197,13 @@ class SelectBox extends React.Component<any, any> {
                         {selectedText || placeHolderText}
                     </button>
                     {
-                        (optionsAreVisible || isTesting) &&
-                        <ul role="listbox" className="options-list">
+                        (optionsAreVisible || isTesting)
+                        && <ul role="listbox" className="options-list">
                             {
                                 options.map((option: any, index: any) => {
                                     const isSelected = option.value === value;
                                     const classList = classnames({
-                                        'ax-active': index == axIndex, // eslint-disable-line triple-equals
+                                        'ax-active': index == axIndex, // eslint-disable-line eqeqeq
                                         'option-container': true,
                                         selected: isSelected,
                                     });

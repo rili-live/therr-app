@@ -1,8 +1,8 @@
+import { RouteProps } from 'react-router-dom';
 import ChatRoom from './ChatRoom';
 import JoinRoom from './JoinRoom';
 import PageNotFound from './PageNotFound';
 import Register from './Register';
-import { RouteProps } from 'react-router-dom';
 import Home from './Home';
 import Login from './Login';
 import UserProfile from './UserProfile';
@@ -15,7 +15,7 @@ export enum AccessCheckType {
 
 export interface IAccess {
     type: AccessCheckType;
-    levels: Array<String>;
+    levels: Array<string>;
 }
 
 export interface IRoute extends RouteProps {
@@ -26,7 +26,7 @@ export interface IRoute extends RouteProps {
     component: any;
 }
 
-let routes: IRoute[] = [
+const routes: IRoute[] = [
     {
         path: '/',
         component: Home,
@@ -72,7 +72,7 @@ let routes: IRoute[] = [
 
     // If no route matches, return NotFound component
     {
-        'component': PageNotFound,
+        component: PageNotFound,
     },
 ];
 

@@ -2,9 +2,9 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter, Link } from 'react-router-dom';
-import translator from '../services/translator';
 import SocketActions from 'actions/socket';
 import { IUserState } from 'types/user';
+import translator from '../services/translator';
 
 interface IUserProfileRouterProps {
 }
@@ -25,17 +25,13 @@ interface IUserProfileState {
     inputs: any;
 }
 
-const mapStateToProps = (state: any) => {
-    return {
-        user: state.user,
-    };
-};
+const mapStateToProps = (state: any) => ({
+    user: state.user,
+});
 
-const mapDispatchToProps = (dispatch: any) => {
-    return bindActionCreators({
-        login: SocketActions.login,
-    }, dispatch);
-};
+const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    login: SocketActions.login,
+}, dispatch);
 
 /**
  * UserProfile

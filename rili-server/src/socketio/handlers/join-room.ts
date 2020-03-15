@@ -1,7 +1,7 @@
 import moment from 'moment';
 import * as socketio from 'socket.io';
-import printLogs from 'rili-public-library/utilities/print-logs'; // eslint-disable-line no-implicit-dependencies
-import { SocketServerActionTypes } from 'rili-public-library/utilities/constants';
+import printLogs from 'rili-public-library/utilities/print-logs.js';
+import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
 import * as Constants from '../../constants';
 import { shouldPrintSocketLogs } from '../../server-socket-io';
 
@@ -15,7 +15,7 @@ const joinRoom = (socket: socketio.Socket, redisSession: any, data: IJoinRoomDat
 
     // Leave all current rooms (except default room) before joining a new one
     Object.keys(socket.rooms)
-        .filter(room => room !== socket.id)
+        .filter((room) => room !== socket.id)
         .forEach((room) => {
             socket.broadcast.to(room).emit('event', `${data.userName} left the room`);
             socket.leave(room);
