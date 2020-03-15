@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
-// import 'rili-public-library/styles/icons.scss'; // eslint-disable-line no-implicit-dependencies
+// import 'rili-public-library/styles/icons.scss';
 import Input from './Input';
 import VALIDATIONS from '../../constants/VALIDATIONS';
 
@@ -36,7 +36,7 @@ class SearchBox extends React.Component<any, any> {
         };
     }
 
-    componentWillReceiveProps(nextProps: any) {
+    UNSAFE_componentWillReceiveProps(nextProps: any) {
         this.setState({
             inputValue: nextProps.value,
         });
@@ -67,7 +67,9 @@ class SearchBox extends React.Component<any, any> {
     };
 
     render() {
-        const { autoComplete, disabled, id, labelText, name, translate, validations } = this.props;
+        const {
+            autoComplete, disabled, id, labelText, name, translate, validations,
+        } = this.props;
         const { inputValue, isActive, isDirty } = this.state;
         const additionalClasses = classnames({
             'is-dirty': isDirty,

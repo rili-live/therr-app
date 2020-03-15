@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { JoinRoomComponent } from '../JoinRoom';
 import { mount } from 'enzyme';
+import { JoinRoomComponent } from '../JoinRoom';
 
 describe('Rili App', () => {
     let wrapper: any = null;

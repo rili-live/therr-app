@@ -76,7 +76,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     translate={this.translate}
                     validations={['isRequired']}
                 />
-                
+
                 <label className="required" htmlFor="last_name">Last Name:</label>
                 <Input
                     type="text"
@@ -88,7 +88,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     translate={this.translate}
                     validations={['isRequired']}
                 />
-                
+
                 <label className="required" htmlFor="e_mail">E-mail:</label>
                 <Input
                     type="text"
@@ -100,7 +100,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     translate={this.translate}
                     validations={['isRequired']}
                 />
-            
+
                 <label className="required" htmlFor="phone_number">Mobile Phone #:</label>
                 <Input
                     type="text"
@@ -112,7 +112,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     translate={this.translate}
                     validations={['isRequired']}
                 />
-                
+
                 <label className="required" htmlFor="user_name">Username:</label>
                 <Input
                     type="text"
@@ -137,7 +137,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     translate={this.translate}
                     validations={['isRequired']}
                 />
-                
+
                 <label className="required" htmlFor="repeat_password">Repeat Password:</label>
                 <Input
                     type="password"

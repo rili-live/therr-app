@@ -2,14 +2,10 @@ import * as React from 'react';
 import { Route, Redirect, RedirectProps } from 'react-router-dom';
 
 interface IRedirectWithStatusProps extends RedirectProps {
-    statusCode: String | number;
+    statusCode: string | number;
 }
 
 class RedirectWithStatus extends React.Component<IRedirectWithStatusProps, any> {
-    constructor(props: IRedirectWithStatusProps) {
-        super(props);
-    }
-
     render() {
         const { from, statusCode, to } = this.props;
 
