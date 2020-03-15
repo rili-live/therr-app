@@ -1,4 +1,4 @@
-import * as io from 'socket.io-client';
+import io from 'socket.io-client';
 import createSocketIoMiddleware from 'redux-socket.io';
 import { WEB_CLIENT_PREFIX } from 'rili-public-library/utilities/constants';
 import * as globalConfig from '../../global-config.js';

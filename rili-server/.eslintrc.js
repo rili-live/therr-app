@@ -19,11 +19,17 @@ module.exports = {
         'max-len': [2, { code: 160 }],
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/interface-name-prefix': 2,
         'consistent-return': 'off',
         'prefer-destructuring': 'off',
         'import/prefer-default-export': 'off',
     },
     settings: {
+        'import/extensions': ['.js', '.ts', '.d.ts'],
+        'import/external-module-folders': ['../node_modules', '../node_modules/@types'],
+        'import/parsers': {
+            '@typescript-eslint/parser': ['.ts']
+        },
         'import/resolver': {
             // NOTE: These aliases must match aliases in webpack.config.js
             alias: {
@@ -33,6 +39,9 @@ module.exports = {
                     ['rili-public-library/utilities/*', path.join(__dirname, '../rili-public-library/utilities/lib')],
                 ],
                 extensions: ['.js', '.jsx', '.json', '.scss']
+            },
+            node: {
+                extensions: ['.js', '.ts']
             }
         }
     }
