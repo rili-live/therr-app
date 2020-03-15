@@ -1,5 +1,5 @@
 import * as express from 'express';
-import * as Knex from 'knex';
+import Knex from 'knex';
 import * as httpResponse from 'rili-public-library/utilities/http-response';
 import printLogs from 'rili-public-library/utilities/print-logs';
 import { IConnection } from '../../store/connection';
