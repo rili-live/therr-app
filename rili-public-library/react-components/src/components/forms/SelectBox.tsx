@@ -198,7 +198,7 @@ class SelectBox extends React.Component<any, any> {
                                 options.map((option: any, index: any) => {
                                     const isSelected = option.value === value;
                                     const classList = classnames({
-                                        'ax-active': index == axIndex, // tslint:disable-line triple-equals
+                                        'ax-active': index == axIndex, // eslint-disable-line triple-equals
                                         'option-container': true,
                                         selected: isSelected,
                                     });

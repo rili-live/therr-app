@@ -5,7 +5,7 @@ import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
 
 declare global {
-    interface Window { // tslint:disable-line interface-name
+    interface Window { // eslint-disable-line interface-name
         __REDUX_DEVTOOLS_EXTENSION_COMPOSE__: any;
         __PRELOADED_STATE__: any;
     }
@@ -25,7 +25,7 @@ function safelyParse(input: any) {
         var doc = new DOMParser().parseFromString(input, 'text/html');
         return JSON.parse(doc.documentElement.textContent);
     } else {
-        console.log('Warning: __PRELOADED_STATE__ is not defined on the respective view'); // tslint:disable-line no-console
+        console.log('Warning: __PRELOADED_STATE__ is not defined on the respective view'); // eslint-disable-line no-console
         return {};
     }
 }

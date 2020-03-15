@@ -7,12 +7,12 @@
     "build": "../node_modules/.bin/webpack --env production",
     "build:dev": "../node_modules/.bin/webpack --env development",
     "build:watch": "../node_modules/.bin/webpack --watch --env development",
-    "lint:fix": "../node_modules/.bin/eslint --ext .jsx,.js --fix ./ && ../node_modules/.bin/tslint --fix -p ./",
-    "lint": "../node_modules/.bin/eslint --ext .jsx,.js ./ && ../node_modules/.bin/tslint -p ./",
+    "lint:fix": "../node_modules/.bin/eslint --ext .jsx,.js --fix ./",
+    "lint": "../node_modules/.bin/eslint --ext .jsx,.js ./",
     "start:api": "pm run build:dev && node --require=../node_modules/dotenv/config build/server-api.js dotenv_config_path=../.env --withSQLLogs",
-    "start:api:dev": "npm run build:dev && nodemon --require=../node_modules/dotenv/config build/server-api.js dotenv_config_path=../.env --withSQLLogs",
+    "start:api:dev": "npm run build:dev && ../node_modules/.bin/nodemon --require=../node_modules/dotenv/config build/server-api.js dotenv_config_path=../.env --withSQLLogs",
     "start:socket": "pm run build:dev && node --require=../node_modules/dotenv/config build/server-api.js dotenv_config_path=../.env --withSQLLogs",
-    "start:socket:dev": "npm run build:dev && nodemon --require=../node_modules/dotenv/config build/server-socket-io.js dotenv_config_path=../.env --withAllLogs",
+    "start:socket:dev": "npm run build:dev && ../node_modules/.bin/nodemon --require=../node_modules/dotenv/config build/server-socket-io.js dotenv_config_path=../.env --withAllLogs",
     "test": "npm run lint:fix && echo \"Error: no test specified\" && exit 0"
   },
   "keywords": [
