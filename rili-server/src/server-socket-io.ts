@@ -5,17 +5,17 @@ import Redis from 'ioredis';
 import socketio from 'socket.io';
 import socketioRedis from 'socket.io-redis';
 import { argv } from 'yargs';
+import { SocketServerActionTypes, SocketClientActionTypes } from 'rili-public-library/utilities/constants.js';
+import printLogs from 'rili-public-library/utilities/print-logs.js';
 import * as socketHandlers from './socketio/handlers';
-import { SocketServerActionTypes, SocketClientActionTypes } from 'rili-public-library/utilities/constants';
 import * as Constants from './constants/index';
-import printLogs from 'rili-public-library/utilities/print-logs';
 import * as globalConfig from '../../global-config.js';
 import RedisSession from './socketio/services/RedisSession';
 import getSocketRoomsList from './utilities/get-socket-rooms-list';
 
 export const rsAppName = 'riliChat';
 export const shouldPrintAllLogs = argv.withAllLogs;
-export const shouldPrintRedisLogs =  argv.withRedisLogs || shouldPrintAllLogs;
+export const shouldPrintRedisLogs = argv.withRedisLogs || shouldPrintAllLogs;
 export const shouldPrintSocketLogs = argv.withSocketLogs || shouldPrintAllLogs || shouldPrintRedisLogs;
 
 let serverObj: http.Server;
@@ -54,27 +54,38 @@ const redisSub: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
     lazyConnect: true,
 });
 
-// We must connect manually since lazyConnect is true
-const redisConnectPromises = [redisPub.connect(), redisSub.connect()];
+const leaveAndNotifyRooms = (socket: SocketIO.Socket) => {
+    const activeRooms = Object.keys(socket.rooms)
+        .filter((room) => room !== socket.id);
 
-Promise.all(redisConnectPromises).then((responses: any[]) => {
-    // connection ready
-    if (shouldPrintRedisLogs) {
-        redisPub.monitor().then((monitor) => {
-            monitor.on('monitor', (time, args, source, database) => {
-                printLogs({
-                    time,
-                    shouldPrintLogs: true,
-                    messageOrigin: `REDIS_PUB_LOG`,
-                    messages: [`Source: ${source}, Database: ${database}`, ...args],
-                });
+    if (activeRooms.length) {
+        redisSession.get(socket.id).then((response: any) => {
+            activeRooms.forEach((room) => {
+                const parsedResponse = JSON.parse(response);
+                if (parsedResponse && parsedResponse.userName) {
+                    const now = moment(Date.now()).format('MMMM D/YY, h:mma');
+                    socket.broadcast.to(room).emit(Constants.ACTION, {
+                        type: SocketServerActionTypes.LEFT_ROOM,
+                        data: {
+                            roomId: room,
+                            message: {
+                                key: Date.now().toString(),
+                                time: now,
+                                text: `${parsedResponse.userName} left the room`,
+                            },
+                        },
+                    });
+                }
+            });
+        }).catch((err: any) => {
+            printLogs({
+                shouldPrintLogs: shouldPrintRedisLogs,
+                messageOrigin: 'REDIS_SESSION_ERROR',
+                messages: err,
             });
         });
     }
-
-    // Wait for both pub and sub redis instances to connect before starting Express/Socket.io server
-    startExpressSocketIOServer();
-});
+};
 
 const startExpressSocketIOServer = () => {
     const app = express();
@@ -112,18 +123,18 @@ const startExpressSocketIOServer = () => {
 
     // Redis Error handling
     // redisPubCluster.on('error', (error: string) => {
-        // printLogs({
-        //     shouldPrintLogs: shouldPrintRedisLogs,
-        //     messageOrigin: 'REDIS_PUB_CLUSTER_CONNECTION_ERROR',
-        //     messages: error.toString(),
-        // });
+    // printLogs({
+    //     shouldPrintLogs: shouldPrintRedisLogs,
+    //     messageOrigin: 'REDIS_PUB_CLUSTER_CONNECTION_ERROR',
+    //     messages: error.toString(),
+    // });
     // });
     // redisSubCluster.on('error', (error: string) => {
-        // printLogs({
-        //     shouldPrintLogs: shouldPrintRedisLogs,
-        //     messageOrigin: 'REDIS_SUB_CLUSTER_CONNECTION_ERROR:',
-        //     messages: error.toString(),
-        // });
+    // printLogs({
+    //     shouldPrintLogs: shouldPrintRedisLogs,
+    //     messageOrigin: 'REDIS_SUB_CLUSTER_CONNECTION_ERROR:',
+    //     messages: error.toString(),
+    // });
     // });
 
     redisAdapter.pubClient.on('error', (err: string) => {
@@ -178,20 +189,20 @@ const startExpressSocketIOServer = () => {
         // Event sent from socket.io, redux store middleware
         socket.on(Constants.ACTION, (action: any) => {
             switch (action.type) {
-            case SocketClientActionTypes.JOIN_ROOM:
-                socketHandlers.joinRoom(socket, redisSession, action.data);
-                break;
-            case SocketClientActionTypes.LOGIN:
-                socketHandlers.login(socket, redisSession, action.data);
-                break;
-            case SocketClientActionTypes.LOGOUT:
-                socketHandlers.logout(socket, redisSession, action.data);
-                break;
-            case SocketClientActionTypes.SEND_MESSAGE:
-                socketHandlers.sendMessage(socket, action.data);
-                break;
-            default:
-                break;
+                case SocketClientActionTypes.JOIN_ROOM:
+                    socketHandlers.joinRoom(socket, redisSession, action.data);
+                    break;
+                case SocketClientActionTypes.LOGIN:
+                    socketHandlers.login(socket, redisSession, action.data);
+                    break;
+                case SocketClientActionTypes.LOGOUT:
+                    socketHandlers.logout(socket, redisSession, action.data);
+                    break;
+                case SocketClientActionTypes.SEND_MESSAGE:
+                    socketHandlers.sendMessage(socket, action.data);
+                    break;
+                default:
+                    break;
             }
         });
 
@@ -207,38 +218,27 @@ const startExpressSocketIOServer = () => {
     });
 };
 
-const leaveAndNotifyRooms = (socket: SocketIO.Socket) => {
-    const activeRooms = Object.keys(socket.rooms)
-        .filter(room => room !== socket.id);
+// We must connect manually since lazyConnect is true
+const redisConnectPromises = [redisPub.connect(), redisSub.connect()];
 
-    if (activeRooms.length) {
-        redisSession.get(socket.id).then((response: any) => {
-            activeRooms.forEach((room) => {
-                const parsedResponse = JSON.parse(response);
-                if (parsedResponse && parsedResponse.userName) {
-                    const now = moment(Date.now()).format('MMMM D/YY, h:mma');
-                    socket.broadcast.to(room).emit(Constants.ACTION, {
-                        type: SocketServerActionTypes.LEFT_ROOM,
-                        data: {
-                            roomId: room,
-                            message: {
-                                key: Date.now().toString(),
-                                time: now,
-                                text: `${parsedResponse.userName} left the room`,
-                            },
-                        },
-                    });
-                }
-            });
-        }).catch((err: any) => {
-            printLogs({
-                shouldPrintLogs: shouldPrintRedisLogs,
-                messageOrigin: 'REDIS_SESSION_ERROR',
-                messages: err,
+Promise.all(redisConnectPromises).then((responses: any[]) => {
+    // connection ready
+    if (shouldPrintRedisLogs) {
+        redisPub.monitor().then((monitor) => {
+            monitor.on('monitor', (time, args, source, database) => {
+                printLogs({
+                    time,
+                    shouldPrintLogs: true,
+                    messageOrigin: 'REDIS_PUB_LOG',
+                    messages: [`Source: ${source}, Database: ${database}`, ...args],
+                });
             });
         });
     }
-};
+
+    // Wait for both pub and sub redis instances to connect before starting Express/Socket.io server
+    startExpressSocketIOServer();
+});
 
 // Hot Module Reloading
 type ModuleId = string | number;

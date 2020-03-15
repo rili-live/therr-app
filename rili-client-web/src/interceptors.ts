@@ -19,11 +19,10 @@ const initInterceptors = (
 
     // Global axios interceptor
     axios.interceptors.request.use((config) => {
-
         const token = store.getState().user && store.getState().user.idToken;
 
         if (token) {
-            config.headers.authorization = 'Bearer ' + token;
+            config.headers.authorization = `Bearer ${token}`;
         }
 
         numLoadings += 1;

@@ -32,16 +32,12 @@ interface IJoinRoomState {
 // Environment Variables
 // const envVars = globalConfig[process.env.NODE_ENV];
 
-const mapStateToProps = (state: any) => {
-    return {
-        socket: state.socket,
-    };
-};
+const mapStateToProps = (state: any) => ({
+    socket: state.socket,
+});
 
-const mapDispatchToProps = (dispatch: any) => {
-    return bindActionCreators({
-    }, dispatch);
-};
+const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+}, dispatch);
 
 // const handleSessionUpdate = (message: any) => {
 //     console.log('SESSION_UPDATE:', message); // eslint-disable-line no-console
@@ -103,22 +99,22 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
             case 'join_room':
             case 'room_name':
             case 'user_name':
-            if (!this.shouldDisableInput('room')) {
-                this.props.history.push(`/chat-room/${this.state.inputs.roomId}`);
-            }
+                if (!this.shouldDisableInput('room')) {
+                    this.props.history.push(`/chat-room/${this.state.inputs.roomId}`);
+                }
         }
     }
 
     shouldDisableInput = (buttonName: string) => {
         switch (buttonName) {
             case 'room':
-                return !this.state.inputs.roomId /* || !this.state.inputs.userName */;
+                return !this.state.inputs.roomId;
         }
     }
 
     public render(): JSX.Element | null {
         const { socket } = this.props;
-        let activeRooms = socket && socket.rooms.length > 0 && socket.rooms.map((room: any) => room.roomKey).toString();
+        const activeRooms = socket && socket.rooms.length > 0 && socket.rooms.map((room: any) => room.roomKey).toString();
 
         return (
             <div>
@@ -126,8 +122,8 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
                 <label htmlFor="room_name">Room:</label>
                 <Input type="text" id="room_name" name="roomId" value={this.state.inputs.roomId} onChange={this.onInputChange} onEnter={this.onButtonClick} translate={this.translate} />
                 {
-                    socket && socket.rooms &&
-                    <span className="rooms-list">
+                    socket && socket.rooms
+                    && <span className="rooms-list">
                         {
                             socket.rooms.length < 1
                                 ? <i>No rooms are currently active. Click 'Join Room' to start a new one.</i>

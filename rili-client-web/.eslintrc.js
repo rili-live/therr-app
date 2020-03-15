@@ -6,10 +6,6 @@ module.exports = {
         browser: true,
         jest: true
     },
-    env: {
-        browser: true,
-        jest: true
-    },
     extends: [
         'airbnb-base',
         'plugin:@typescript-eslint/recommended',
@@ -39,16 +35,26 @@ module.exports = {
         'max-len': [2, { code: 140 }],
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
-        '@typescript-eslint/interface-name-prefix': 2,
+        '@typescript-eslint/interface-name-prefix': 0,
         'consistent-return': 'off',
         'prefer-destructuring': 'off',
         'import/prefer-default-export': 'off',
+        'import/extensions': [
+            'error',
+            'always',
+            {
+                'js': 'always',
+                'jsx': 'always',
+                'ts': 'never',
+                'tsx': 'never',
+                'd.ts': 'never',
+            }
+        ],
     },
     settings: {
-        'import/extensions': ['.js', '.jsx', '.ts', '.tsx', '.d.ts'],
         'import/external-module-folders': ['../node_modules', '../node_modules/@types'],
         'import/parsers': {
-            '@typescript-eslint/parser': ['.ts']
+            '@typescript-eslint/parser': ['.ts', '.tsx']
         },
         'import/resolver': {
             // NOTE: These aliases must match aliases in webpack.config.js
@@ -59,10 +65,13 @@ module.exports = {
                     ['rili-public-library/utilities/*', path.join(__dirname, '../rili-public-library/utilities/lib')],
                 ],
                 extensions: ['.js', '.jsx', '.json', '.scss'],
-                node: {
-                    extensions: ['.js', '.jsx', '.ts', '.tsx']
-                }
+            },
+            node: {
+                extensions: ['.js', '.jsx', '.ts', '.tsx']
             }
+        },
+        react: {
+            version: "detect",
         }
     }
 };
