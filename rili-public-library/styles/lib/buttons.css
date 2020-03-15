@@ -2,12 +2,13 @@ button,
 [type=button],
 [type=reset],
 [type=submit] {
-  border-radius: 1.1875rem;
+  border-radius: 1.0625rem;
 }
 
 button {
-  font-size: 0.75rem;
-  height: 2.375rem;
+  font-size: 0.8rem;
+  height: 2.125rem;
+  padding: 1px 5px 2px;
 }
 button:disabled {
   cursor: not-allowed;
@@ -31,7 +32,7 @@ button.secondary:hover:not([disabled]) {
   background: #dee1e4;
 }
 button.primary {
-  background: #076d5f;
+  background: #2c7db1;
   border-color: transparent;
   color: #dee1e4;
 }

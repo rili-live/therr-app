@@ -18,6 +18,8 @@ export const shouldPrintAllLogs = argv.withAllLogs;
 export const shouldPrintRedisLogs =  argv.withRedisLogs || shouldPrintAllLogs;
 export const shouldPrintSocketLogs = argv.withSocketLogs || shouldPrintAllLogs || shouldPrintRedisLogs;
 
+let serverObj: http.Server;
+
 const nodes = [
     // Pub
     {
@@ -79,7 +81,7 @@ const startExpressSocketIOServer = () => {
     const { SOCKET_PORT } = process.env;
 
     const server = http.createServer(app);
-    server.listen(Number(SOCKET_PORT), () => {
+    serverObj = server.listen(Number(SOCKET_PORT), () => {
         printLogs({
             shouldPrintLogs: true,
             messageOrigin: 'SOCKET_IO_LOGS',
@@ -96,7 +98,7 @@ const startExpressSocketIOServer = () => {
     });
 
     io.on('error', (error: string) => {
-        console.log(error); // tslint:disable-line no-console
+        console.log(error); // eslint-disable-line no-console
     });
 
     const redisAdapter = socketioRedis({
@@ -237,3 +239,26 @@ const leaveAndNotifyRooms = (socket: SocketIO.Socket) => {
         });
     }
 };
+
+// Hot Module Reloading
+type ModuleId = string | number;
+
+interface WebpackHotModule {
+    hot?: {
+        data: any;
+        accept(
+            dependencies: string[],
+            callback?: (updatedDependencies: ModuleId[]) => void,
+        ): void;
+        accept(dependency: string, callback?: () => void): void;
+        accept(errHandler?: (err: Error) => void): void;
+        dispose(callback: (data: any) => void): void;
+    };
+}
+
+declare const module: WebpackHotModule;
+
+if (process.env.NODE_ENV === 'development' && module.hot) {
+    module.hot.accept();
+    module.hot.dispose(() => serverObj.close());
+}

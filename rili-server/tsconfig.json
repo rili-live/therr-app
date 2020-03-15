@@ -9,9 +9,12 @@
 		"removeComments": false,
 		"noLib": false,
 		"emitDecoratorMetadata": true,
+		"esModuleInterop": true,
+		"resolveJsonModule": true,
 		"experimentalDecorators": true,
 		"sourceMap": true,
-		"inlineSources": true,
+		"inlineSourceMap": true,               /* Emit a single file with source maps instead of having a separate file. */
+    "inlineSources": true, 
 		"paths": {
 			"react": ["../node_modules/@types/react"],
 			"rili-public-library/react-components/*": ["../rili-public-library/react-components/lib/*"],
@@ -21,7 +24,8 @@
 		"pretty": true,
 		"allowUnreachableCode": false,
 		"allowUnusedLabels": false,
-		"noImplicitAny": true,
+		"strict": true,
+		"noImplicitAny": false,
 		"noImplicitReturns": false,
 		"noImplicitUseStrict": false,
 		"noFallthroughCasesInSwitch": true,

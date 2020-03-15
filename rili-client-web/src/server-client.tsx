@@ -6,7 +6,7 @@ import { StaticRouter, matchPath } from 'react-router-dom';
 import { applyMiddleware, createStore } from 'redux';
 import { Provider } from 'react-redux';
 import thunkMiddleware from 'redux-thunk';
-import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disable-line no-implicit-dependencies
+import printLogs from 'rili-public-library/utilities/print-logs'; // eslint-disable-line no-implicit-dependencies
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
@@ -14,7 +14,7 @@ import socketIOMiddleWare from './socket-io-middleware';
 // TODO: RFRONT-9: Fix window is undefined hack
 declare global {
     namespace NodeJS {
-        interface Global { // tslint:disable-line
+        interface Global { // eslint-disable-line
             window: any;
         }
     }

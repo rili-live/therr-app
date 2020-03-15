@@ -1,4 +1,4 @@
-import { configureTranslator } from 'rili-public-library/utilities/localization'; // tslint:disable-line no-implicit-dependencies
+import { configureTranslator } from 'rili-public-library/utilities/localization'; // eslint-disable-line no-implicit-dependencies
 import locales from '../locales';
 
 const translator = configureTranslator(locales);
