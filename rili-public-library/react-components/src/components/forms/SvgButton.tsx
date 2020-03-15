@@ -17,10 +17,6 @@ interface ISvgButtonProps extends IBaseButtonProps {
 class SvgButton extends React.Component<ISvgButtonProps & IInlineSvgProps> {
     static defaultProps = { ...BaseButton.defaultProps, ...overrideProps };
 
-    constructor(props: ISvgButtonProps) {
-        super(props);
-    }
-
     render() {
         const { buttonType, className, name } = this.props;
         const buttonProps = { ...this.props };

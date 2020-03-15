@@ -1,68 +1,62 @@
 import axios from 'axios';
-import { IAccess, AccessCheckType } from '../routes';
 import { IUserState } from 'types/user';
+import { IAccess, AccessCheckType } from '../routes';
 
 interface ILoginCredentials {
-  userName: String;
-  password: String;
+  userName: string;
+  password: string;
 }
 
 interface ILogoutCredentials {
-  userName: String;
+  userName: string;
 }
 
 interface IRegisterCredentials {
-  firstName: String;
-  lastName: String;
-  email: String;
-  phoneNumber: String;
-  userName: String;
-  password: String;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  userName: string;
+  password: string;
 }
 
 class UserService {
-  authenticate = (data: ILoginCredentials) => {
-    return axios({
+  authenticate = (data: ILoginCredentials) => axios({
       method: 'post',
       url: '/auth',
       data,
-    });
-  }
+  })
 
-  create = (data: IRegisterCredentials) => {
-    return axios({
+  create = (data: IRegisterCredentials) => axios({
       method: 'post',
       url: '/users',
       data,
-    });
-  }
+  })
 
   isAuthorized = (access: IAccess, user: IUserState) => {
-    if (user && user.details && user.details.accessLevels) {
-        if (access.type === AccessCheckType.NONE) {
-            // User does not have any of the access levels from the check
-            return !access.levels.some(lvl => user.details.accessLevels.includes(lvl));
-        }
-        if (access.type === AccessCheckType.ANY) {
-            // User has at least one of the access levels from the check
-            return access.levels.some(lvl => user.details.accessLevels.includes(lvl));
-        }
-        if (access.type === AccessCheckType.ALL) {
-            // User has all of the access levels from the check
-            return !access.levels.some(lvl => !user.details.accessLevels.includes(lvl));
-        }
-    }
+      if (user && user.details && user.details.accessLevels) {
+          if (access.type === AccessCheckType.NONE) {
+              // User does not have any of the access levels from the check
+              return !access.levels.some((lvl) => user.details.accessLevels.includes(lvl));
+          }
+          if (access.type === AccessCheckType.ANY) {
+              // User has at least one of the access levels from the check
+              return access.levels.some((lvl) => user.details.accessLevels.includes(lvl));
+          }
+          if (access.type === AccessCheckType.ALL) {
+              // User has all of the access levels from the check
+              return !access.levels.some((lvl) => !user.details.accessLevels.includes(lvl));
+          }
+      }
 
-    return false;
+      return false;
   }
-  
-  logout = (data: ILogoutCredentials) => {
-    return axios({
+
+  logout = (data: ILogoutCredentials) => axios({
       method: 'post',
       url: '/auth/logout',
       data,
-    });
-  }
+  })
 }
 
 export default new UserService();

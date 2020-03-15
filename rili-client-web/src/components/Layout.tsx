@@ -2,7 +2,9 @@ import classnames from 'classnames';
 import * as React from 'react';
 import { bindActionCreators, Dispatch } from 'redux';
 import { connect } from 'react-redux';
-import { Route, Switch, withRouter, RouteComponentProps } from 'react-router-dom';
+import {
+    Route, Switch, withRouter, RouteComponentProps,
+} from 'react-router-dom';
 import { TransitionGroup as Animation } from 'react-transition-group';
 import { Location } from 'history';
 // import * as ReactGA from 'react-ga';
@@ -44,18 +46,14 @@ interface ILayoutState {
     isNavMenuOpen: boolean;
 }
 
-const mapStateToProps = (state: any) => {
-    return {
-        redirectRoute: state.redirectRoute,
-        user: state.user,
-    };
-};
+const mapStateToProps = (state: any) => ({
+    redirectRoute: state.redirectRoute,
+    user: state.user,
+});
 
-const mapDispatchToProps = (dispatch: Dispatch) => {
-    return bindActionCreators({
+const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
 
-    }, dispatch);
-};
+}, dispatch);
 
 // TODO: Animation between view change is not working when wrapped around a Switch
 export class Layout extends React.Component<ILayoutProps, ILayoutState> {
@@ -79,7 +77,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         // ReactGA.initialize(globalConfig[process.env.NODE_ENV].googleAnalyticsKey);
         document.addEventListener('click', this.handleClick);
         this.setState({
-            'clientHasLoaded': true,
+            clientHasLoaded: true,
         });
     }
 
@@ -112,22 +110,20 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.props.history.push('/');
     }
 
-    renderHeader = () => {
-        return (
-            <Header
-                goHome={this.goHome}
-                isAuthorized={
-                    UserService.isAuthorized(
-                        {
-                            type: AccessCheckType.ALL,
-                            levels: ['user.default'],
-                        },
-                        this.props.user,
-                    )
-                }
-            />
-        );
-    }
+    renderHeader = () => (
+        <Header
+            goHome={this.goHome}
+            isAuthorized={
+                UserService.isAuthorized(
+                    {
+                        type: AccessCheckType.ALL,
+                        levels: ['user.default'],
+                    },
+                    this.props.user,
+                )
+            }
+        />
+    )
 
     public render(): JSX.Element | null {
         const { location, user } = this.props;
@@ -162,11 +158,10 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                         return (
                                             <AuthRoute isAuthorized={UserService.isAuthorized(route.access, user)} location={location} key={i} {...route} />
                                         );
-                                    } else {
-                                        return (
-                                            <Route location={location} key={i} {...route} />
-                                        );
                                     }
+                                    return (
+                                        <Route location={location} key={i} {...route} />
+                                    );
                                 })
                             }
                             <RedirectWithStatus from="/redirect" to="/" />
@@ -188,14 +183,13 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     </footer>
                 </div>
             );
-        } else {
-            // Opportunity to add a loader of graphical display
-            return (
-                <div>
-                    {this.renderHeader()}
-                </div>
-            );
         }
+        // Opportunity to add a loader of graphical display
+        return (
+            <div>
+                {this.renderHeader()}
+            </div>
+        );
     }
 
     componentWillUnmount() {

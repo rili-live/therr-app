@@ -12,10 +12,6 @@ class RadioGroup extends React.Component<any, any> {
         value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.bool]).isRequired,
     };
 
-    constructor(props: any) {
-        super(props);
-    }
-
     selectOption = (event: any) => {
         event.preventDefault();
         const key = this.props.name;
@@ -30,24 +26,22 @@ class RadioGroup extends React.Component<any, any> {
         return (
             <div className="radio-group form-field">
                 {
-                    options.map((option: any) =>
-                        (<div key={option.value} className="radio-option">
-                            <button
-                                className="psuedo-label"
-                                data-value={option.value}
-                                onClick={this.selectOption}
-                                type="button"
-                            >
-                                {option.text}
-                            </button>
-                            <label
-                                className={option.value === value ? 'selected' : ''}
-                                data-value={option.value}
-                                htmlFor={option.value}
-                                onClick={this.selectOption}
-                            />
-                        </div>),
-                    )
+                    options.map((option: any) => (<div key={option.value} className="radio-option">
+                        <button
+                            className="psuedo-label"
+                            data-value={option.value}
+                            onClick={this.selectOption}
+                            type="button"
+                        >
+                            {option.text}
+                        </button>
+                        <label
+                            className={option.value === value ? 'selected' : ''}
+                            data-value={option.value}
+                            htmlFor={option.value}
+                            onClick={this.selectOption}
+                        />
+                    </div>))
                 }
             </div>
         );

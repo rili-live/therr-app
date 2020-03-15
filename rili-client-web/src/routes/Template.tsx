@@ -10,8 +10,7 @@ interface ITemplateRouterProps {
 interface ITemplateDispatchProps {
 }
 
-interface IStoreProps extends ITemplateDispatchProps {
-}
+type IStoreProps = ITemplateDispatchProps
 
 // Regular component props
 interface ITemplateProps extends RouteComponentProps<ITemplateRouterProps>, IStoreProps {
@@ -23,15 +22,11 @@ interface ITemplateState {
 // Environment Variables
 // const envVars = globalConfig[process.env.NODE_ENV];
 
-const mapStateToProps = (state: any) => {
-    return {
-    };
-};
+const mapStateToProps = (state: any) => ({
+});
 
-const mapDispatchToProps = (dispatch: any) => {
-    return bindActionCreators({
-    }, dispatch);
-};
+const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+}, dispatch);
 
 /**
  * Template

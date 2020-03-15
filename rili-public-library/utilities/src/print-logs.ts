@@ -24,7 +24,6 @@ const printLogs = (args: IPrintLogsArgs) => {
                 console.info(`LOG${currentTime}:`, messageList[i]); // eslint-disable-line no-console
             }
         }
-        return;
     }
 };
 
