@@ -3,9 +3,9 @@
 
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import 'rili-public-library/styles/icons.scss'; // tslint:disable-line no-implicit-dependencies
-import 'rili-public-library/styles/pagination.scss'; // tslint:disable-line no-implicit-dependencies
-import calculatePages from 'rili-public-library/utilities/calculate-pages'; // tslint:disable-line no-implicit-dependencies
+import 'rili-public-library/styles/icons.scss'; // eslint-disable-line no-implicit-dependencies
+import 'rili-public-library/styles/pagination.scss'; // eslint-disable-line no-implicit-dependencies
+import calculatePages from 'rili-public-library/utilities/calculate-pages'; // eslint-disable-line no-implicit-dependencies
 
 const PaginationControls = ({ disabled, hideFirstLastButtons, pagination, translate, handlePageChange, showResultsCount }: any) => {
     const { pagesList, totalPages } = calculatePages(pagination);
