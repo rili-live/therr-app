@@ -1,4 +1,4 @@
-apiVersion: skaffold/v1beta2
+apiVersion: skaffold/v2alpha3
 kind: Config
 build:
   local:
@@ -9,31 +9,34 @@ build:
       docker:
         dockerfile: ./rili-client-web/Dockerfile
       sync:
-        './rili-client-web/**/*.js': ./rili-client-web
-        './rili-client-web/**/*.json': ./rili-client-web
-        './rili-client-web/**/*.css': ./rili-client-web
-        './rili-client-web/**/*.html': ./rili-client-web
-        './rili-client-web/**/*.hbs': ./rili-client-web
-        './rili-public-library/**/lib/*.js': ./rili-public-library
-        './rili-public-library/**/lib/*.json': ./rili-public-library
-        './rili-public-library/**/lib/*.css': ./rili-public-library
-        './rili-public-library/**/lib/*.html': ./rili-public-library
+        infer:
+          - './rili-client-web/**/*.js'
+          - './rili-client-web/**/*.json'
+          - './rili-client-web/**/*.css'
+          - './rili-client-web/**/*.html'
+          - './rili-client-web/**/*.hbs'
+          - './rili-public-library/**/lib/*.js'
+          - './rili-public-library/**/lib/*.json'
+          - './rili-public-library/**/lib/*.css'
+          - './rili-public-library/**/lib/*.html'
     - image: riliadmin/server-api
       context: .
       docker:
         dockerfile: ./rili-server/Dockerfile.api
       sync:
-        './rili-server/**/*.js': ./rili-server
-        './rili-public-library/utilities/**/lib/*.js': ./rili-public-library/utilities
-        './rili-public-library/utilities/**/lib/*.json': ./rili-public-library/utilities
+        infer:
+          - './rili-server/**/*.js'
+          - './rili-public-library/utilities/**/lib/*.js'
+          - './rili-public-library/utilities/**/lib/*.json'
     - image: riliadmin/server-socket
       context: .
       docker:
         dockerfile: ./rili-server/Dockerfile.socket
       sync:
-        './rili-server/**/*.js': .
-        './rili-public-library/utilities/**/lib/*.js': ./rili-public-library/utilities
-        './rili-public-library/utilities/**/lib/*.json': ./rili-public-library/utilities
+        infer:
+          - './rili-server/**/*.js'
+          - './rili-public-library/utilities/**/lib/*.js'
+          - './rili-public-library/utilities/**/lib/*.json'
 deploy:
   kubectl:
     manifests:
