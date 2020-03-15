@@ -34,7 +34,7 @@ export default class RedisSession {
             app: args.app,
             socketId: args.socketId,
             ip: args.ip.toString(),
-            ttl: args.ttl || globalConfig[process.env.NODE_ENV].socket.userSocketSessionExpire,
+            ttl: args.ttl || globalConfig[process.env.NODE_ENV || ''].socket.userSocketSessionExpire,
             data: JSON.stringify(args.data),
         });
 

@@ -8,7 +8,12 @@ export const hashPassword = (password: string) => {
 };
 
 export const createUserToken = (user: any, rememberMe?: boolean) => {
-    const { id, userName, email, phoneNumber } = user;
+    const {
+        id,
+        userName,
+        email,
+        phoneNumber,
+    } = user;
     // Sign the JWT
     return jwt.sign(
         {
@@ -17,7 +22,7 @@ export const createUserToken = (user: any, rememberMe?: boolean) => {
             email,
             phoneNumber,
         },
-        process.env.SECRET,
+        (process.env.SECRET || ''),
         {
             algorithm: 'HS256',
             expiresIn: rememberMe ? '30d' : '4h',

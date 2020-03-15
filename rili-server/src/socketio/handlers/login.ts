@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs'; // eslint-disable-line no-implicit-dependencies
 import { SocketServerActionTypes } from 'rili-public-library/utilities/constants';
