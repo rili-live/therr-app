@@ -3,6 +3,7 @@ honeyCombBeeline({
     writeKey: process.env.HONEYCOMB_API_KEY,
     dataset: 'main',
     serviceName: 'rili-server-api',
+
     /* ... additional optional configuration ... */
 });
 /* eslint-disable import/first */
