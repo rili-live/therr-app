@@ -1,5 +1,5 @@
 import Immutable from 'seamless-immutable';
-import { SocketServerActionTypes } from 'rili-public-library/utilities/constants';
+import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
 import { IMessageList, ISocketState } from 'types/socket';
 
 const initialState: ISocketState = Immutable.from({

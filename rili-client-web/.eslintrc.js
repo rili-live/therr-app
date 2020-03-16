@@ -36,6 +36,7 @@ module.exports = {
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/interface-name-prefix': 0,
+        '@typescript-eslint/no-empty-interface': 0,
         'consistent-return': 'off',
         'prefer-destructuring': 'off',
         'import/prefer-default-export': 'off',
@@ -63,8 +64,10 @@ module.exports = {
                     ['rili-public-library/react-components/*', path.join(__dirname, '../rili-public-library/react-components/lib')],
                     ['rili-public-library/styles/*', path.join(__dirname, '../rili-public-library/styles/lib')],
                     ['rili-public-library/utilities/*', path.join(__dirname, '../rili-public-library/utilities/lib')],
+                    ['types/*', path.join(__dirname, './src/redux/types')],
+                    ['actions/*', path.join(__dirname, './src/redux/actions')],
                 ],
-                extensions: ['.js', '.jsx', '.json', '.scss'],
+                extensions: ['.js', '.jsx', '.ts', '.json', '.scss'],
             },
             node: {
                 extensions: ['.js', '.jsx', '.ts', '.tsx']
