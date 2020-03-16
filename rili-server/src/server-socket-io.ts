@@ -4,8 +4,7 @@ import moment from 'moment';
 import Redis from 'ioredis';
 import socketio from 'socket.io';
 import socketioRedis from 'socket.io-redis';
-import { argv } from 'yargs';
-import { SocketServerActionTypes, SocketClientActionTypes } from 'rili-public-library/utilities/constants.js';
+import { LogLevelMap, SocketServerActionTypes, SocketClientActionTypes } from 'rili-public-library/utilities/constants.js';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
 import * as socketHandlers from './socketio/handlers';
 import * as Constants from './constants/index';
@@ -14,9 +13,6 @@ import RedisSession from './socketio/services/RedisSession';
 import getSocketRoomsList from './utilities/get-socket-rooms-list';
 
 export const rsAppName = 'riliChat';
-export const shouldPrintAllLogs = argv.withAllLogs;
-export const shouldPrintRedisLogs = argv.withRedisLogs || shouldPrintAllLogs;
-export const shouldPrintSocketLogs = argv.withSocketLogs || shouldPrintAllLogs || shouldPrintRedisLogs;
 
 let serverObj: http.Server;
 
@@ -79,7 +75,7 @@ const leaveAndNotifyRooms = (socket: SocketIO.Socket) => {
             });
         }).catch((err: any) => {
             printLogs({
-                shouldPrintLogs: shouldPrintRedisLogs,
+                level: 'verbose',
                 messageOrigin: 'REDIS_SESSION_ERROR',
                 messages: err,
             });
@@ -94,7 +90,7 @@ const startExpressSocketIOServer = () => {
     const server = http.createServer(app);
     serverObj = server.listen(Number(SOCKET_PORT), () => {
         printLogs({
-            shouldPrintLogs: true,
+            level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: `Server running on port, ${SOCKET_PORT}, with process id ${process.pid}`,
         });
@@ -124,14 +120,14 @@ const startExpressSocketIOServer = () => {
     // Redis Error handling
     // redisPubCluster.on('error', (error: string) => {
     // printLogs({
-    //     shouldPrintLogs: shouldPrintRedisLogs,
+    //     info: 'verbose',
     //     messageOrigin: 'REDIS_PUB_CLUSTER_CONNECTION_ERROR',
     //     messages: error.toString(),
     // });
     // });
     // redisSubCluster.on('error', (error: string) => {
     // printLogs({
-    //     shouldPrintLogs: shouldPrintRedisLogs,
+    //     info: 'verbose',
     //     messageOrigin: 'REDIS_SUB_CLUSTER_CONNECTION_ERROR:',
     //     messages: error.toString(),
     // });
@@ -139,14 +135,14 @@ const startExpressSocketIOServer = () => {
 
     redisAdapter.pubClient.on('error', (err: string) => {
         printLogs({
-            shouldPrintLogs: shouldPrintRedisLogs,
+            info: 'verbose',
             messageOrigin: 'REDIS_PUB_CLIENT_ERROR',
             messages: err.toString(),
         });
     });
     redisAdapter.subClient.on('error', (err: string) => {
         printLogs({
-            shouldPrintLogs: shouldPrintRedisLogs,
+            info: 'verbose',
             messageOrigin: 'REDIS_SUB_CLIENT_ERROR',
             messages: err.toString(),
         });
@@ -154,7 +150,7 @@ const startExpressSocketIOServer = () => {
 
     redisAdapter.subClient.on('subscribe', (channel: any, count: any) => {
         printLogs({
-            shouldPrintLogs: shouldPrintRedisLogs,
+            info: 'verbose',
             messageOrigin: 'REDIS_SUB_CLIENT',
             messages: `Subscribed to ${channel}. Now subscribed to ${count} channel(s).`,
         });
@@ -162,7 +158,7 @@ const startExpressSocketIOServer = () => {
 
     redisAdapter.subClient.on('message', (channel: any, message: any) => {
         printLogs({
-            shouldPrintLogs: shouldPrintRedisLogs,
+            info: 'verbose',
             messageOrigin: 'REDIS_SUB_CLIENT',
             messages: `Message from channel ${channel}: ${message}`,
         });
@@ -170,12 +166,12 @@ const startExpressSocketIOServer = () => {
 
     io.on('connection', (socket: socketio.Socket) => {
         printLogs({
-            shouldPrintLogs: shouldPrintSocketLogs,
+            level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: 'NEW CONNECTION...',
         });
         printLogs({
-            shouldPrintLogs: shouldPrintSocketLogs,
+            level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: `All Rooms: ${JSON.stringify(getSocketRoomsList(io.sockets.adapter.rooms))}`,
         });
@@ -209,7 +205,7 @@ const startExpressSocketIOServer = () => {
         socket.on('disconnecting', (reason: string) => {
             // TODO: Use constants to mitigate disconnect reasons
             printLogs({
-                shouldPrintLogs: shouldPrintSocketLogs,
+                level: 'info',
                 messageOrigin: 'SOCKET_IO_LOGS',
                 messages: `DISCONNECTING... ${reason}`,
             });
@@ -223,12 +219,12 @@ const redisConnectPromises = [redisPub.connect(), redisSub.connect()];
 
 Promise.all(redisConnectPromises).then((responses: any[]) => {
     // connection ready
-    if (shouldPrintRedisLogs) {
+    if ((Number(process.env.LOG_LEVEL) || 2) <= LogLevelMap.verbose) {
         redisPub.monitor().then((monitor) => {
             monitor.on('monitor', (time, args, source, database) => {
                 printLogs({
                     time,
-                    shouldPrintLogs: true,
+                    level: 'verbose',
                     messageOrigin: 'REDIS_PUB_LOG',
                     messages: [`Source: ${source}, Database: ${database}`, ...args],
                 });
