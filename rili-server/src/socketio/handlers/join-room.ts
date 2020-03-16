@@ -3,7 +3,6 @@ import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
 import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
 import * as Constants from '../../constants';
-import { shouldPrintSocketLogs } from '../../server-socket-io';
 
 interface IJoinRoomData {
     roomId: string;
@@ -23,12 +22,12 @@ const joinRoom = (socket: socketio.Socket, redisSession: any, data: IJoinRoomDat
 
     socket.join(data.roomId, () => {
         printLogs({
-            shouldPrintLogs: shouldPrintSocketLogs,
+            level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: `User, ${data.userName} with socketId ${socket.id}, joined room ${data.roomId}`,
         });
         printLogs({
-            shouldPrintLogs: shouldPrintSocketLogs,
+            level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: `${data.userName}'s Current Rooms: ${JSON.stringify(socket.rooms)}`,
         });
