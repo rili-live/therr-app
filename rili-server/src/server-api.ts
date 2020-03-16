@@ -1,11 +1,4 @@
-import honeyCombBeeline from 'honeycomb-beeline'; // eslint-disable-line import/newline-after-import
-honeyCombBeeline({
-    writeKey: process.env.HONEYCOMB_API_KEY,
-    dataset: 'main',
-    serviceName: 'rili-server-api',
-    /* ... additional optional configuration ... */
-});
-/* eslint-disable import/first */
+import beeline from './beeline'; // eslint-disable-line import/order
 import * as bodyParser from 'body-parser';
 import express from 'express';
 import cors from 'cors';
@@ -18,7 +11,6 @@ import connection from './store/connection';
 import AuthRoutes from './api/routes/AuthRoutes';
 import UserRoutes from './api/routes/UserRoutes';
 import { version as packageVersion } from '../package.json';
-/* eslint-enable import/first */
 
 const honey = new Honey({
     writeKey: process.env.HONEYCOMB_API_KEY,
@@ -87,6 +79,10 @@ const server = app.listen(API_PORT, () => {
         level: 'info',
         messageOrigin: 'API_SERVER',
         messages: [`Server running on port ${API_PORT} with process id`, process.pid],
+        tracer: beeline,
+        traceArgs: {
+            zackTest: 'awesome',
+        },
     });
 });
 
