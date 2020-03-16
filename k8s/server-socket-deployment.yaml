@@ -19,6 +19,8 @@ spec:
         ports:
         - containerPort: 7743
         env:
+        - name: LOG_LEVEL
+          value: "info"
         - name: PG_USER
           value: "postgres"
         - name: PG_HOST

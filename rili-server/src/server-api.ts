@@ -10,10 +10,6 @@ import AuthRoutes from './api/routes/AuthRoutes';
 import UserRoutes from './api/routes/UserRoutes';
 import { version as packageVersion } from '../package.json';
 
-export const shouldPrintAllLogs = argv.withAllLogs;
-export const shouldPrintSQLLogs = argv.withSQLLogs || shouldPrintAllLogs;
-export const shouldPrintServerLogs = argv.withServerLogs || shouldPrintAllLogs;
-
 const originWhitelist = [process.env.CLIENT_URI];
 const corsOptions = {
     origin(origin: any, callback: any) {
@@ -50,7 +46,7 @@ const { API_PORT } = process.env;
 
 const server = app.listen(API_PORT, () => {
     printLogs({
-        shouldPrintLogs: true,
+        level: 'info',
         messageOrigin: 'API_SERVER',
         messages: [`Server running on port ${API_PORT} with process id`, process.pid],
     });
