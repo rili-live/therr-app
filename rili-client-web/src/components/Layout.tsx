@@ -10,7 +10,7 @@ import { Location } from 'history';
 // import * as ReactGA from 'react-ga';
 import { ISocketState } from 'types/socket';
 import { IUserState } from 'types/user';
-import AuthRoute from 'rili-public-library/react-components/AuthRoute';
+import AuthRoute from 'rili-public-library/react-components/AuthRoute.js';
 import RedirectWithStatus from 'rili-public-library/react-components/RedirectWithStatus';
 import SvgButton from 'rili-public-library/react-components/SvgButton';
 // import { Alerts } from '../library/alerts'
@@ -81,6 +81,10 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         });
     }
 
+    componentWillUnmount() {
+        _viewListener();
+    }
+
     handleClick = (event: any) => {
         if (this.state.isNavMenuOpen) {
             const isClickInsideNavMenu = document.getElementById('navMenu').contains(event.target)
@@ -133,7 +137,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         // Cloak the view so it doesn't flash before client mounts
         if (this.state.clientHasLoaded) {
             return (
-                <div>
+                <>
                     {this.renderHeader()}
                     <div id="navMenu" className={navMenuClassNames}>
                         <p>Rili Inc.</p>
@@ -156,7 +160,12 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 routes.map((route, i) => {
                                     if (route.access) {
                                         return (
-                                            <AuthRoute isAuthorized={UserService.isAuthorized(route.access, user)} location={location} key={i} {...route} />
+                                            <AuthRoute
+                                                isAuthorized={UserService.isAuthorized(route.access, user)}
+                                                location={location}
+                                                key={i}
+                                                {...route}
+                                            />
                                         );
                                     }
                                     return (
@@ -178,22 +187,24 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             <SvgButton id="home" name="home" className="home-button" onClick={this.goHome} buttonType="primary" />
                         </div>
                         <div className="footer-menu-item">
-                            <SvgButton id="messages" name="messages" className="messages-button" onClick={this.toggleNavMenu} buttonType="primary" />
+                            <SvgButton
+                                id="messages"
+                                name="messages"
+                                className="messages-button"
+                                onClick={this.toggleNavMenu}
+                                buttonType="primary"
+                            />
                         </div>
                     </footer>
-                </div>
+                </>
             );
         }
         // Opportunity to add a loader of graphical display
         return (
-            <div>
+            <>
                 {this.renderHeader()}
-            </div>
+            </>
         );
-    }
-
-    componentWillUnmount() {
-        _viewListener();
     }
 }
 
