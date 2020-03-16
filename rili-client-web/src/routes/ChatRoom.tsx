@@ -3,9 +3,9 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import SocketActions from 'actions/socket';
-import Input from 'rili-public-library/react-components/Input';
-import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary';
-import scrollTo from 'rili-public-library/utilities/scroll-to';
+import Input from 'rili-public-library/react-components/Input.js';
+import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
+import scrollTo from 'rili-public-library/utilities/scroll-to.js';
 import { IMessage, ISocketState } from 'types/socket';
 import { IUserState } from 'types/user';
 import translator from '../services/translator';
@@ -54,11 +54,6 @@ const shouldRender = (props: IChatRoomProps) => !!props.user;
  * ChatRoom
  */
 export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoomState> {
-    private messageInputRef: any;
-
-    // private sessionToken: string;
-    private translate: Function;
-
     static getDerivedStateFromProps(nextProps: IChatRoomProps) {
         if (!shouldRender(nextProps)) {
             nextProps.history.push('/login');
@@ -98,6 +93,12 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
         }
     }
 
+    private messageInputRef: any;
+
+    private translate: Function;
+
+    // private sessionToken: string;
+
     onInputChange = (name: string, value: string) => {
         const newInputChanges = {
             [name]: value,
@@ -121,6 +122,7 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
                     userName: this.props.socket.user.userName,
                 });
                 return this.onInputChange('message', '');
+            default:
         }
     }
 
@@ -128,6 +130,8 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
         switch (buttonName) {
             case 'sendMessage':
                 return !this.state.inputs.message;
+            default:
+                return false;
         }
     }
 
@@ -140,7 +144,7 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
         }
 
         return (
-            <div>
+            <div id="page_chat_room">
                 <div className="form-field-wrapper inline message-input">
                     <Input
                         ref={this.messageInputRef}
@@ -155,7 +159,12 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
                         translate={this.translate}
                     />
                     <div className="form-field">
-                        <ButtonPrimary id="enter_message" text="Send" onClick={this.onButtonClick} disabled={this.shouldDisableInput('sendMessage')} />
+                        <ButtonPrimary
+                            id="enter_message"
+                            text="Send"
+                            onClick={this.onButtonClick}
+                            disabled={this.shouldDisableInput('sendMessage')}
+                        />
                     </div>
                 </div>
 
