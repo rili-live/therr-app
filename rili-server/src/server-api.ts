@@ -1,14 +1,29 @@
+import honeyCombBeeline from 'honeycomb-beeline'; // eslint-disable-line import/newline-after-import
+honeyCombBeeline({
+    writeKey: process.env.HONEYCOMB_API_KEY,
+    dataset: 'main',
+    serviceName: 'rili-server-api',
+    /* ... additional optional configuration ... */
+});
+/* eslint-disable import/first */
 import * as bodyParser from 'body-parser';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import Honey from 'libhoney';
+import responseTime from 'response-time';
 import * as path from 'path';
-import { argv } from 'yargs';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
 import connection from './store/connection';
 import AuthRoutes from './api/routes/AuthRoutes';
 import UserRoutes from './api/routes/UserRoutes';
 import { version as packageVersion } from '../package.json';
+/* eslint-enable import/first */
+
+const honey = new Honey({
+    writeKey: process.env.HONEYCOMB_API_KEY,
+    dataset: 'main',
+});
 
 const originWhitelist = [process.env.CLIENT_URI];
 const corsOptions = {
@@ -24,6 +39,29 @@ const corsOptions = {
 const API_BASE_ROUTE = `/v${packageVersion.split('.')[0]}`;
 
 const app = express();
+
+// Logging Middleware
+app.use(
+    responseTime((req, res, time) => {
+        honey.sendNow({
+            app: req.app,
+            baseUrl: req.baseUrl,
+            fresh: req.fresh,
+            hostname: req.hostname,
+            ip: req.ip,
+            method: req.method,
+            originalUrl: req.originalUrl,
+            params: req.params,
+            path: req.path,
+            protocol: req.protocol,
+            query: req.query,
+            route: req.route,
+            secure: req.secure,
+            xhr: req.xhr,
+            responseTime_ms: time, // eslint-disable-line @typescript-eslint/camelcase
+        });
+    }),
+);
 
 app.use(helmet());
 app.use(bodyParser.urlencoded({ extended: true }));

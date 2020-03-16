@@ -19,6 +19,11 @@ spec:
         ports:
         - containerPort: 7743
         env:
+        - name: HONEYCOMB_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: honeycomb-writekey
+              key: key
         - name: LOG_LEVEL
           value: "info"
         - name: PG_USER
