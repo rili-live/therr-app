@@ -5,7 +5,29 @@ interface IPrintLogsArgs {
     messageOrigin: string;
     time?: Date | number;
     messages: (number | string) | (number | string)[];
-    tracer?: any;
+    tracer?: {
+        traceActive: any;
+        clearTrace: any;
+        getTraceContext: any;
+        marshalTraceContext: any;
+        unmarshalTraceContext: any;
+        startTrace: any;
+        finishTrace: any;
+        withTrace: any;
+        startSpan: any;
+        finishSpan: any;
+        withSpan: any;
+        startAsyncSpan: any;
+        startTimer: any;
+        finishTimer: any;
+        withTimer: any;
+        addContext: any;
+        removeContext: any;
+        customContext: any;
+        bindFunctionToTrace: any;
+        runWithoutTrace: any;
+        flush: any;
+    };
     traceArgs: { [key: string]: any };
 }
 
@@ -44,7 +66,7 @@ const printLogs = ({
             }
         }
         if (trace) {
-            tracer.finish(trace);
+            tracer.finishTrace(trace);
         }
     }
 };
