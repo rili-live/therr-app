@@ -3,7 +3,7 @@ import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
 import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
 import * as Constants from '../../constants';
-import { rsAppName, shouldPrintRedisLogs, shouldPrintSocketLogs } from '../../server-socket-io';
+import { rsAppName } from '../../server-socket-io';
 
 interface ILoginData {
     idToken: string;
@@ -21,7 +21,7 @@ const login = (socket: socketio.Socket, redisSession: any, data: ILoginData) => 
             });
         }).catch((err: any) => {
             printLogs({
-                shouldPrintLogs: shouldPrintRedisLogs,
+                level: 'verbose',
                 messageOrigin: 'REDIS_SESSION_ERROR',
                 messages: err.toString(),
             });
@@ -29,7 +29,7 @@ const login = (socket: socketio.Socket, redisSession: any, data: ILoginData) => 
     }
 
     printLogs({
-        shouldPrintLogs: shouldPrintSocketLogs,
+        level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
         messages: `User, ${data.userName} with socketId ${socket.id}, has LOGGED OUT.`,
     });
