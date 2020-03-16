@@ -5,18 +5,17 @@ import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
 
 declare global {
-    interface Window { // eslint-disable-line interface-name
+    interface Window {
         __REDUX_DEVTOOLS_EXTENSION_COMPOSE__: any;
         __PRELOADED_STATE__: any;
     }
 }
 
 const loggerMiddleware = createLogger();
-let store: any; let
-    preLoadedState;
-
-const composeEnhancers = typeof window === 'object' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
-    ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
+let preLoadedState;
+const composeEnhancers = typeof window === 'object'
+    && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ // eslint-disable-line no-underscore-dangle
+    ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({ // eslint-disable-line no-underscore-dangle
         // Specify extension’s options like name, actionsBlacklist, actionsCreators, serialize...
     }) : compose;
 
@@ -40,22 +39,19 @@ if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
             isAuthenticated: !!(storedUser && storedUser.id),
         },
     };
-    preLoadedState = Object.assign(safelyParse(window.__PRELOADED_STATE__), reloadedState);
+    preLoadedState = Object.assign(safelyParse(window.__PRELOADED_STATE__), reloadedState); // eslint-disable-line no-underscore-dangle
 }
 
-if (process.env.NODE_ENV !== 'development') {
-    // Create Store (Production)
-    store = createStore(
+const store: any = process.env.NODE_ENV !== 'development'
+    ? createStore( // Create Store (Production)
         rootReducer,
         preLoadedState,
         applyMiddleware(
             socketIOMiddleWare,
             thunkMiddleware,
         ),
-    );
-} else {
-    // Create Store - Redux Development (Chrome Only)
-    store = createStore(
+    )
+    : createStore( // Create Store - Redux Development (Chrome Only)
         rootReducer,
         preLoadedState,
         composeEnhancers(
@@ -66,6 +62,5 @@ if (process.env.NODE_ENV !== 'development') {
             ),
         ),
     );
-}
 
 export default store;

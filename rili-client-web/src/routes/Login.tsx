@@ -42,8 +42,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * Login
  */
 export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
-    private translate: Function;
-
     static getDerivedStateFromProps(nextProps: ILoginProps) {
         if (!shouldRender(nextProps)) {
             nextProps.history.push('/user/profile');
@@ -62,9 +60,11 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
-    componentDidMount() {
+    componentDidMount() { // eslint-disable-line class-methods-use-this
         document.title = 'Rili | Login';
     }
+
+    private translate: Function;
 
     login = (credentials: any) => {
         this.props.login(credentials).then(() => {
@@ -79,11 +79,9 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         const alertSuccessMessage = location.state && (location.state as any).successMessage;
 
         return (
-            <>
-                <div className="flex-box">
-                    <LoginForm login={this.login} alert={alertSuccessMessage}/>
-                </div>
-            </>
+            <div id="page_login" className="flex-box">
+                <LoginForm login={this.login} alert={alertSuccessMessage}/>
+            </div>
         );
     }
 }

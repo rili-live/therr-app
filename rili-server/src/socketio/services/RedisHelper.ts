@@ -2,7 +2,14 @@
 import * as Redis from 'ioredis';
 import promiser from 'rili-public-library/utilities/promiser.js';
 import * as globalConfig from '../../../../global-config.js';
-import { IUserSocketSession } from './RedisSession';
+
+export interface IUserSocketSession {
+    app: string;
+    socketId: Redis.KeyType;
+    ip: string | number;
+    ttl?: number;
+    data: any;
+}
 
 /**
  * RedisHelper

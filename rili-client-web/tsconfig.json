@@ -4,7 +4,7 @@
 		"target": "es6",
 		"baseUrl": ".",
 		"rootDir": "./src/",
-		"typeRoots": ["../node_modules/@types", "typings"],
+		"typeRoots": ["../node_modules/@types"],
 		"declaration": false,
 		"removeComments": false,
 		"noLib": false,
@@ -34,12 +34,8 @@
 		"outDir": "build",
 		"jsx": "react"
 	},
-	"files": [
-		"src/app.d.ts",
-		"src/unit_test.d.ts"
-	],
 	"include": [
-		"src/**/*"
+		"src/**/*", "src/types"
 	],
 	"exclude": [
 		"node_modules/**/*.*",

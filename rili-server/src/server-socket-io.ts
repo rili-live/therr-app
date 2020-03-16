@@ -189,10 +189,19 @@ const startExpressSocketIOServer = () => {
                     socketHandlers.joinRoom(socket, redisSession, action.data);
                     break;
                 case SocketClientActionTypes.LOGIN:
-                    socketHandlers.login(socket, redisSession, action.data);
+                    socketHandlers.login({
+                        appName: rsAppName,
+                        socket,
+                        redisSession,
+                        data: action.data,
+                    });
                     break;
                 case SocketClientActionTypes.LOGOUT:
-                    socketHandlers.logout(socket, redisSession, action.data);
+                    socketHandlers.logout({
+                        socket,
+                        redisSession,
+                        data: action.data,
+                    });
                     break;
                 case SocketClientActionTypes.SEND_MESSAGE:
                     socketHandlers.sendMessage(socket, action.data);

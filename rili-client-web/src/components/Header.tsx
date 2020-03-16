@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import AccessControl from 'rili-public-library/react-components/AccessControl';
+import AccessControl from 'rili-public-library/react-components/AccessControl.js';
 import { IUserState } from 'types/user';
 import SocketActions from 'actions/socket';
 import { bindActionCreators } from 'redux';
@@ -28,11 +28,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     logout: SocketActions.logout,
 }, dispatch);
 
-export class Header extends React.Component<IHeaderProps> {
-    constructor(props: IHeaderProps) {
-        super(props);
-    }
-
+export class HeaderComponent extends React.Component<IHeaderProps> {
   handleLogout = () => {
       const { logout, user, goHome } = this.props;
       logout(user.details).then(() => {
@@ -55,4 +51,4 @@ export class Header extends React.Component<IHeaderProps> {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Header);
+export default connect(mapStateToProps, mapDispatchToProps)(HeaderComponent);

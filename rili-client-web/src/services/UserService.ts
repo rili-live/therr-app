@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { IUserState } from 'types/user';
-import { IAccess, AccessCheckType } from '../routes';
+import { IAccess, AccessCheckType } from '../types';
 
 interface ILoginCredentials {
   userName: string;

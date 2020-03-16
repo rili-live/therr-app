@@ -1,3 +1,4 @@
+/* eslint-disable */
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -44,7 +45,7 @@ export class TemplateComponent extends React.Component<ITemplateProps, ITemplate
 
     public render(): JSX.Element | null {
         return (
-            <div>
+            <div id="page_template">
                 Hello, Template
             </div>
         );
@@ -52,3 +53,4 @@ export class TemplateComponent extends React.Component<ITemplateProps, ITemplate
 }
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(TemplateComponent));
+/* eslint-enable */
