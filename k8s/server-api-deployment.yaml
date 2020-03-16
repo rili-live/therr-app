@@ -23,6 +23,11 @@ spec:
           value: "7770"
         - name: CLIENT_URI
           value: "https://rili.live"
+        - name: HONEYCOMB_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: honeycomb-writekey
+              key: key
         - name: LOG_LEVEL
           value: "info"
         - name: PG_USER
