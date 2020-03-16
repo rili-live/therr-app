@@ -1,12 +1,12 @@
 import * as path from 'path';
 import express from 'express';
 import * as React from 'react';
-import * as ReactDOMServer from 'react-dom/server';
+import * as ReactDOMServer from 'react-dom/server'; // eslint-disable-line import/extensions
 import { StaticRouter, matchPath } from 'react-router-dom';
 import { applyMiddleware, createStore } from 'redux';
 import { Provider } from 'react-redux';
 import thunkMiddleware from 'redux-thunk';
-import printLogs from 'rili-public-library/utilities/print-logs';
+import printLogs from 'rili-public-library/utilities/print-logs.js';
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
@@ -87,7 +87,7 @@ routeConfig.forEach((config) => {
 
             if (staticContext.url) {
                 printLogs({
-                    shouldPrintLogs: true,
+                    level: 'info',
                     messageOrigin: 'SERVER_CLIENT',
                     messages: 'Somewhere a <Redirect> was rendered',
                 });
@@ -106,7 +106,7 @@ routeConfig.forEach((config) => {
 const port = process.env.CLIENT_PORT;
 app.listen(port, () => {
     printLogs({
-        shouldPrintLogs: true,
+        level: 'info',
         messageOrigin: 'SERVER_CLIENT',
         messages: `Server running on port, ${port}, with process id ${process.pid}`,
     });

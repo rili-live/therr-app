@@ -3,7 +3,6 @@ import Knex from 'knex';
 import * as httpResponse from 'rili-public-library/utilities/http-response.js';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
 import { IConnection } from '../../store/connection';
-import { shouldPrintSQLLogs } from '../../server-api';
 import {
     createUserValidation,
 } from '../validation/users';
@@ -28,7 +27,7 @@ class UserRoutes {
         // middleware to log time of a user route request
         router.use((req, res, next) => {
             printLogs({
-                shouldPrintLogs: shouldPrintSQLLogs,
+                level: 'http',
                 messageOrigin: `SQL:USER_ROUTES:${req.method}`,
                 messages: [req.baseUrl],
             });
@@ -38,7 +37,7 @@ class UserRoutes {
         router.route('/users')
             .get((req: any, res: any) => this.connection.read.query(knex.select('*').from('main.users').orderBy('id').toString())
                 .then((result) => res.status(200).send(httpResponse.success(result.rows[0])))
-                .catch((err) => handleError(err, res)))
+                .catch((err) => handleError(err.toString(), res, 'SQL:USER_ROUTES:ERROR')))
             .post(createUserValidation, validate, (req: any, res: any) => this.checkIfUserExists(req.body).then((exists) => {
                 if (exists) {
                     return res.status(400).send(httpResponse.error({
@@ -57,8 +56,8 @@ class UserRoutes {
                     userName: req.body.userName,
                 }).into('main.users').returning(['email', 'id', 'userName', 'accessLevels']).toString())
                     .then((result) => res.status(201).send(httpResponse.success(result.rows[0])))
-                    .catch((err) => handleError(err, res)));
-            }).catch((err) => handleError(err.toString(), res)));
+                    .catch((err) => handleError(err, res, 'SQL:USER_ROUTES:ERROR')));
+            }).catch((err) => handleError(err.toString(), res, 'SQL:USER_ROUTES:ERROR')));
 
         router.route('/users/:id')
             .get((req, res) => this.getUser(req.params.id).then((user) => res.status(200).send(httpResponse.success(user))).catch((err) => {
@@ -69,7 +68,7 @@ class UserRoutes {
                     }));
                 }
 
-                return handleError(err, res);
+                return handleError(err, res, 'SQL:USER_ROUTES:ERROR');
             }))
             .put((req, res) => this.connection.write.query(knex.update({ // TODO: Check if (other) users exist with unique properties, Throw error
                 firstName: req.body.firstName,
@@ -82,7 +81,7 @@ class UserRoutes {
                 .toString())
                 .then((result) => this.getUser(req.params.id) // TODO: Handle case where user already exists
                     .then((user) => res.status(200).send(httpResponse.success(user))))
-                .catch((err) => handleError(err, res)))
+                .catch((err) => handleError(err, res, 'SQL:USER_ROUTES:ERROR')))
             .delete((req, res) => this.connection.write.query(knex.delete().from('main.users').where({ id: req.params.id }).toString())
                 .then((result) => {
                     if (result.rows.length > 0) {
@@ -94,7 +93,7 @@ class UserRoutes {
                         statusCode: 404,
                     }));
                 })
-                .catch((err) => handleError(err, res)));
+                .catch((err) => handleError(err, res, 'SQL:USER_ROUTES:ERROR')));
     }
 
     checkIfUserExists = (body: any) => {
