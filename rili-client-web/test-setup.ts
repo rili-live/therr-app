@@ -1,4 +1,4 @@
-import 'raf/polyfill';
+import 'raf/polyfill'; // eslint-disable-line import/extensions
 import { configure } from 'enzyme';
 import * as Adapter from 'enzyme-adapter-react-16';
 

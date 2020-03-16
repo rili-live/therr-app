@@ -40,8 +40,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * Home
  */
 export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
-    private translate: Function;
-
     static getDerivedStateFromProps(nextProps: IHomeProps) {
         if (!shouldRender(nextProps)) {
             nextProps.history.push('/user/profile');
@@ -60,9 +58,11 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
-    componentDidMount() {
+    componentDidMount() { // eslint-disable-line class-methods-use-this
         document.title = 'Rili | Home';
     }
+
+    private translate: Function;
 
     login = (credentials: any) => {
         this.props.login(credentials).then(() => {
@@ -74,7 +74,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
     public render(): JSX.Element | null {
         return (
-            <div className="flex-box">
+            <div id="page_chat_room" className="flex-box">
                 <LoginForm login={this.login} title="Home" />
             </div>
         );

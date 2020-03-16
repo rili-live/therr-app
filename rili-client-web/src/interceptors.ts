@@ -19,10 +19,11 @@ const initInterceptors = (
 
     // Global axios interceptor
     axios.interceptors.request.use((config) => {
+        const modifiedConfig = config;
         const token = store.getState().user && store.getState().user.idToken;
 
         if (token) {
-            config.headers.authorization = `Bearer ${token}`;
+            modifiedConfig.headers.authorization = `Bearer ${token}`;
         }
 
         numLoadings += 1;
@@ -33,7 +34,7 @@ const initInterceptors = (
             }, timeout);
         }
 
-        return config;
+        return modifiedConfig;
     });
     axios.interceptors.response.use((response) => {
         if (numLoadings === 0) { return response; }

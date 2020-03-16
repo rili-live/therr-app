@@ -1,17 +1,9 @@
 import * as Redis from 'ioredis';
 import * as globalConfig from '../../../../global-config.js';
-import RedisHelper from './RedisHelper';
+import RedisHelper, { IUserSocketSession } from './RedisHelper';
 
 interface IRedisSessionArgs {
     client: Redis.Redis;
-}
-
-export interface IUserSocketSession {
-    app: string;
-    socketId: Redis.KeyType;
-    ip: string | number;
-    ttl?: number;
-    data: any;
 }
 
 /**

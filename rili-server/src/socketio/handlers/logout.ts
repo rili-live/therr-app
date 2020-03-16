@@ -3,14 +3,19 @@ import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
 import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
 import * as Constants from '../../constants';
-import { rsAppName } from '../../server-socket-io';
+import { ILoginData } from './login';
 
-interface ILoginData {
-    idToken: string;
-    userName: string;
+interface ILogoutArgs {
+    socket: socketio.Socket;
+    redisSession: any;
+    data: ILoginData;
 }
 
-const login = (socket: socketio.Socket, redisSession: any, data: ILoginData) => {
+const logout = ({
+    socket,
+    redisSession,
+    data,
+}: ILogoutArgs) => {
     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
 
     if (socket.handshake && socket.handshake.headers && socket.handshake.headers.host) {
@@ -48,4 +53,4 @@ const login = (socket: socketio.Socket, redisSession: any, data: ILoginData) => 
     });
 };
 
-export default login;
+export default logout;

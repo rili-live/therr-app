@@ -3,19 +3,30 @@ import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
 import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
 import * as Constants from '../../constants';
-import { rsAppName } from '../../server-socket-io';
 
-interface ILoginData {
+export interface ILoginData {
     idToken: string;
     userName: string;
 }
 
-const login = (socket: socketio.Socket, redisSession: any, data: ILoginData) => {
+interface ILoginArgs {
+    appName: string;
+    socket: socketio.Socket;
+    redisSession: any;
+    data: ILoginData;
+}
+
+const login = ({
+    appName,
+    socket,
+    redisSession,
+    data,
+}: ILoginArgs) => {
     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
 
     if (socket.handshake && socket.handshake.headers && socket.handshake.headers.host) {
         redisSession.create({
-            app: rsAppName,
+            app: appName,
             socketId: socket.id,
             ip: socket.handshake.headers.host.split(':')[0],
             // 30 minutes
