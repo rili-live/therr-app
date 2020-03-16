@@ -23,6 +23,8 @@ spec:
           value: "7770"
         - name: CLIENT_URI
           value: "https://rili.live"
+        - name: LOG_LEVEL
+          value: "info"
         - name: PG_USER
           value: "postgres"
         - name: PG_HOST

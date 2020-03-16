@@ -1,5 +1,7 @@
+import { LogLevelMap, ILogLevel } from './constants';
+
 interface IPrintLogsArgs {
-    shouldPrintLogs: boolean;
+    level: ILogLevel;
     messageOrigin: string;
     time?: Date | number;
     messages: (number | string) | (number | string)[];
@@ -7,13 +9,12 @@ interface IPrintLogsArgs {
 
 /**
  * printLogs
- * @param shouldPrintLogs: boolean - whether or not to actually console messages
  * @param messageOrigin: string - a title or group descriptor of the message
  * @param time: number - time to display. if 0, don't display time
  * @param messages: (number|string))[] - n number of messages to log
  */
 const printLogs = (args: IPrintLogsArgs) => {
-    if (args.shouldPrintLogs) {
+    if (LogLevelMap[args.level] <= (Number(process.env.LOG_LEVEL) || 2)) { // Default to 'info'
         const includeTime = args.time !== 0;
         const currentTime = includeTime ? `<at:${args.time || new Date()}>` : '';
         const messageList = Array.isArray(args.messages) ? args.messages : [args.messages];

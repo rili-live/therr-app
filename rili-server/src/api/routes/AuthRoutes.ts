@@ -5,7 +5,6 @@ import * as jwt from 'jsonwebtoken';
 import * as httpResponse from 'rili-public-library/utilities/http-response.js';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
 import { IConnection } from '../../store/connection';
-import { shouldPrintSQLLogs } from '../../server-api';
 import {
     authenticateUserTokenValidation,
     authenticateUserValidation,
@@ -37,7 +36,7 @@ class AuthRoutes {
         // middleware to log time of a user route request
         router.use((req, res, next) => {
             printLogs({
-                shouldPrintLogs: shouldPrintSQLLogs,
+                level: 'http',
                 messageOrigin: `SQL:USER_ROUTES:${req.method}`,
                 messages: [req.baseUrl],
             });
@@ -57,7 +56,7 @@ class AuthRoutes {
                     }
 
                     return res.status(401).send(invalidUserNameOrPassword);
-                }).catch((err: any) => handleError(err, res));
+                }).catch((err: any) => handleError(err, res, 'SQL:AUTH_ROUTES:ERROR'));
             }).catch((error) => {
                 if (error === 404) {
                     return res.status(401).send(invalidUserNameOrPassword);
