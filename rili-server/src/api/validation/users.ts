@@ -4,7 +4,7 @@ import {
     header,
     query,
     validationResult,
-} from 'express-validator/check';
+} from 'express-validator/check'; // eslint-disable-line import/extensions
 
 export const createUserValidation = [
     body('phoneNumber').exists().isMobilePhone('any'),

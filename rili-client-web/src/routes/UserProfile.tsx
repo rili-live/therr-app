@@ -6,8 +6,8 @@ import SocketActions from 'actions/socket';
 import { IUserState } from 'types/user';
 import translator from '../services/translator';
 
-interface IUserProfileRouterProps {
-}
+// interface IUserProfileRouterProps {
+// }
 
 interface IUserProfileDispatchProps {
     login: Function;
@@ -18,7 +18,7 @@ interface IStoreProps extends IUserProfileDispatchProps {
 }
 
 // Regular component props
-interface IUserProfileProps extends RouteComponentProps<IUserProfileRouterProps>, IStoreProps {
+interface IUserProfileProps extends RouteComponentProps<{}>, IStoreProps {
 }
 
 interface IUserProfileState {
@@ -37,7 +37,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * UserProfile
  */
 export class UserProfileComponent extends React.Component<IUserProfileProps, IUserProfileState> {
-    private translate: Function;
+    private translate: Function; // eslint-disable-line react/sort-comp
 
     constructor(props: IUserProfileProps) {
         super(props);
@@ -45,7 +45,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
-    componentDidMount() {
+    componentDidMount() { // eslint-disable-line class-methods-use-this
         document.title = 'Rili | User Profile';
     }
 
@@ -65,7 +65,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         }
 
         return (
-            <div className="flex-box">
+            <div id="page_user_profile" className="flex-box">
                 <h1>User Profile</h1>
                 <div>
                     <h3><b>Firstname:</b> {user.details.firstName}</h3>
