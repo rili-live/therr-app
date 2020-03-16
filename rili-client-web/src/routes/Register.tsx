@@ -36,8 +36,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * Login
  */
 export class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> {
-    private translate: Function;
-
     constructor(props: IRegisterProps) {
         super(props);
 
@@ -49,9 +47,11 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
-    componentDidMount() {
+    componentDidMount() { // eslint-disable-line class-methods-use-this
         document.title = 'Rili | Register';
     }
+
+    private translate: Function;
 
     register = (credentials: any) => {
         this.props.register(credentials).then((response: any) => {
@@ -79,7 +79,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
 
         return (
             <>
-                <div className="flex-box">
+                <div id="page_register" className="flex-box">
                     <RegisterForm register={this.register} />
 
                 </div>

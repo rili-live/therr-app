@@ -11,18 +11,19 @@ import { Location } from 'history';
 import { ISocketState } from 'types/socket';
 import { IUserState } from 'types/user';
 import AuthRoute from 'rili-public-library/react-components/AuthRoute.js';
-import RedirectWithStatus from 'rili-public-library/react-components/RedirectWithStatus';
-import SvgButton from 'rili-public-library/react-components/SvgButton';
+import RedirectWithStatus from 'rili-public-library/react-components/RedirectWithStatus.js';
+import SvgButton from 'rili-public-library/react-components/SvgButton.js';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
-import scrollTo from 'rili-public-library/utilities/scroll-to';
+import scrollTo from 'rili-public-library/utilities/scroll-to.js';
 import Header from './Header';
 import initInterceptors from '../interceptors';
 import * as globalConfig from '../../../global-config.js';
-import routes, { IAccess, AccessCheckType } from '../routes';
+import routes from '../routes';
+import { IAccess, AccessCheckType } from '../types';
 import UserService from '../services/UserService';
 
-let _viewListener: any;
+let _viewListener: any; // eslint-disable-line no-underscore-dangle
 
 interface ILayoutRouterProps {
 
@@ -56,7 +57,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
 }, dispatch);
 
 // TODO: Animation between view change is not working when wrapped around a Switch
-export class Layout extends React.Component<ILayoutProps, ILayoutState> {
+export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState> {
     constructor(props: ILayoutProps, state: ILayoutState) {
         super(props);
 
@@ -81,7 +82,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         });
     }
 
-    componentWillUnmount() {
+    componentWillUnmount() { // eslint-disable-line
         _viewListener();
     }
 
@@ -209,4 +210,4 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
 }
 
 // export default Layout;
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Layout));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(LayoutComponent));
