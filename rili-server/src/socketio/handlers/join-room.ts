@@ -2,6 +2,7 @@ import moment from 'moment';
 import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
 import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
+import beeline from '../../beeline';
 import * as Constants from '../../constants';
 
 interface IJoinRoomData {
@@ -25,11 +26,18 @@ const joinRoom = (socket: socketio.Socket, redisSession: any, data: IJoinRoomDat
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: `User, ${data.userName} with socketId ${socket.id}, joined room ${data.roomId}`,
+            tracer: beeline,
+            traceArgs: {
+                socketId: socket.id,
+            },
         });
         printLogs({
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: `${data.userName}'s Current Rooms: ${JSON.stringify(socket.rooms)}`,
+            traceArgs: {
+                socketId: socket.id,
+            },
         });
 
         // Emits an event back to the client who joined

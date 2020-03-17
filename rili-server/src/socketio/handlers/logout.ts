@@ -3,6 +3,7 @@ import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
 import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
 import * as Constants from '../../constants';
+import beeline from '../../beeline';
 import { ILoginData } from './login';
 
 interface ILogoutArgs {
@@ -29,6 +30,12 @@ const logout = ({
                 level: 'verbose',
                 messageOrigin: 'REDIS_SESSION_ERROR',
                 messages: err.toString(),
+                tracer: beeline,
+                traceArgs: {
+                    ip: socket.handshake.headers.host.split(':')[0],
+                    socketId: socket.id,
+                    userName: data.userName,
+                },
             });
         });
     }
@@ -37,6 +44,12 @@ const logout = ({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
         messages: `User, ${data.userName} with socketId ${socket.id}, has LOGGED OUT.`,
+        tracer: beeline,
+        traceArgs: {
+            ip: socket.handshake.headers.host.split(':')[0],
+            socketId: socket.id,
+            userName: data.userName,
+        },
     });
 
     // Emits an event back to the client who logged OUT
