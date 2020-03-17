@@ -1,7 +1,6 @@
 import * as express from 'express';
 import Knex from 'knex';
 import * as httpResponse from 'rili-public-library/utilities/http-response.js';
-import printLogs from 'rili-public-library/utilities/print-logs.js';
 import { IConnection } from '../../store/connection';
 import {
     createUserValidation,
@@ -23,16 +22,6 @@ class UserRoutes {
 
     constructor(connection: any) {
         this.connection = connection;
-
-        // middleware to log time of a user route request
-        router.use((req, res, next) => {
-            printLogs({
-                level: 'http',
-                messageOrigin: `SQL:USER_ROUTES:${req.method}`,
-                messages: [req.baseUrl],
-            });
-            next();
-        });
 
         router.route('/users')
             .get((req: any, res: any) => this.connection.read.query(knex.select('*').from('main.users').orderBy('id').toString())
