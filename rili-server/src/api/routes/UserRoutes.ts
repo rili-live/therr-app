@@ -11,6 +11,7 @@ import {
 import handleError from '../../utilities/handleError';
 import { hashPassword } from '../../utilities/userHelpers';
 import { HttpErrors } from '../../constants';
+import UsersStore from '../../store/UsersStore';
 
 const router = express.Router();
 const knex: Knex = Knex({ client: 'pg' });
@@ -24,9 +25,10 @@ class UserRoutes {
         this.connection = connection;
 
         router.route('/users')
-            .get((req: any, res: any) => this.connection.read.query(knex.select('*').from('main.users').orderBy('id').toString())
-                .then((result) => res.status(200).send(httpResponse.success(result.rows[0])))
+            .get((req: any, res: any) => UsersStore.getUsers()
+                .then((results) => res.status(200).send(httpResponse.success(results[0])))
                 .catch((err) => handleError(err.toString(), res, 'SQL:USER_ROUTES:ERROR')))
+
             .post(createUserValidation, validate, (req: any, res: any) => this.checkIfUserExists(req.body).then((exists) => {
                 if (exists) {
                     return res.status(400).send(httpResponse.error({
@@ -36,20 +38,23 @@ class UserRoutes {
                     }));
                 }
 
-                return hashPassword(req.body.password).then((hash) => this.connection.write.query(knex.insert({
-                    email: req.body.email,
-                    firstName: req.body.firstName,
-                    lastName: req.body.lastName,
-                    password: hash,
-                    phoneNumber: req.body.phoneNumber,
-                    userName: req.body.userName,
-                }).into('main.users').returning(['email', 'id', 'userName', 'accessLevels']).toString())
-                    .then((result) => res.status(201).send(httpResponse.success(result.rows[0])))
-                    .catch((err) => handleError(err, res, 'SQL:USER_ROUTES:ERROR')));
+                return hashPassword(req.body.password)
+                    .then((hash) => UsersStore.createUser({
+                        email: req.body.email,
+                        firstName: req.body.firstName,
+                        lastName: req.body.lastName,
+                        password: hash,
+                        phoneNumber: req.body.phoneNumber,
+                        userName: req.body.userName,
+                    })
+                        .then((results) => res.status(201).send(httpResponse.success(results[0])))
+                        .catch((err) => handleError(err, res, 'SQL:USER_ROUTES:ERROR')));
             }).catch((err) => handleError(err.toString(), res, 'SQL:USER_ROUTES:ERROR')));
 
         router.route('/users/:id')
-            .get((req, res) => this.getUser(req.params.id).then((user) => res.status(200).send(httpResponse.success(user))).catch((err) => {
+            .get((req, res) => UsersStore.getUsers({
+                id: req.params.id,
+            }).then((results) => res.status(200).send(httpResponse.success(results[0]))).catch((err) => {
                 if (err === 404) {
                     return res.status(404).send(httpResponse.error({
                         message: `No user found with id, ${req.params.id}.`,
@@ -59,21 +64,21 @@ class UserRoutes {
 
                 return handleError(err, res, 'SQL:USER_ROUTES:ERROR');
             }))
-            .put((req, res) => this.connection.write.query(knex.update({ // TODO: Check if (other) users exist with unique properties, Throw error
+
+            .put((req, res) => UsersStore.updateUser({
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
                 phoneNumber: req.body.phoneNumber,
                 userName: req.body.userName,
+            }, {
+                id: req.params.id,
             })
-                .into('main.users')
-                .where({ id: req.params.id }).returning('*')
-                .toString())
-                .then((result) => this.getUser(req.params.id) // TODO: Handle case where user already exists
-                    .then((user) => res.status(200).send(httpResponse.success(user))))
+                .then((results) => res.status(200).send(httpResponse.success(results[0])))
                 .catch((err) => handleError(err, res, 'SQL:USER_ROUTES:ERROR')))
-            .delete((req, res) => this.connection.write.query(knex.delete().from('main.users').where({ id: req.params.id }).toString())
-                .then((result) => {
-                    if (result.rows.length > 0) {
+
+            .delete((req, res) => UsersStore.deleteUsers({ id: req.params.id })
+                .then((results) => {
+                    if (results.length > 0) {
                         return res.status(200).send(httpResponse.success(`User with id, ${req.params.id}, was successfully deleted`));
                     }
 
@@ -99,15 +104,6 @@ class UserRoutes {
             .toString())
             .then((result) => result.rows.length > 0);
     }
-
-    getUser = (value: string, key = 'id') => this.connection.read.query(knex.select('*').from('main.users').where({ [key]: value }).toString())
-        .then((result) => {
-            if (result.rows.length > 0) {
-                return result.rows[0];
-            }
-
-            throw 404; // eslint-disable-line no-throw-literal
-        })
 }
 
 export default UserRoutes;

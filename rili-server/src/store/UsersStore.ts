@@ -1,0 +1,62 @@
+import Knex from 'knex';
+import connection, { IConnection } from './connection';
+
+const knex: Knex = Knex({ client: 'pg' });
+
+const USERS_DB_NAME = 'main.users';
+
+export interface ICreateUserParams {
+    email: string;
+    firstName: string;
+    lastName: string;
+    password: string;
+    phoneNumber: string;
+    userName: string;
+}
+
+class Store {
+    db: IConnection;
+
+    constructor(dbConnection) {
+        this.db = dbConnection;
+    }
+
+    getUsers(conditions = {}) {
+        const queryString = knex.select('*')
+            .from(USERS_DB_NAME)
+            .orderBy('id')
+            .where(conditions)
+            .toString();
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
+    createUser(params: ICreateUserParams) {
+        const queryString = knex.insert(params)
+            .into(USERS_DB_NAME)
+            .returning(['email', 'id', 'userName', 'accessLevels'])
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
+    updateUser(params, conditions = {}) { // TODO: Check if (other) users exist with unique properties, Throw error
+        const queryString = knex.update(params)
+            .into(USERS_DB_NAME)
+            .where(conditions)
+            .returning('*')
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
+    deleteUsers(conditions) {
+        const queryString = knex.delete()
+            .from(USERS_DB_NAME)
+            .where(conditions)
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+}
+
+export default new Store(connection);
