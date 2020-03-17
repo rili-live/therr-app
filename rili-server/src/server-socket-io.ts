@@ -1,3 +1,4 @@
+import beeline from './beeline'; // eslint-disable-line import/order
 import express from 'express';
 import * as http from 'http';
 import moment from 'moment';
@@ -78,6 +79,11 @@ const leaveAndNotifyRooms = (socket: SocketIO.Socket) => {
                 level: 'verbose',
                 messageOrigin: 'REDIS_SESSION_ERROR',
                 messages: err,
+                tracer: beeline,
+                traceArgs: {
+                    socketId: socket.id,
+                    activeRooms,
+                },
             });
         });
     }
@@ -93,6 +99,11 @@ const startExpressSocketIOServer = () => {
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: `Server running on port, ${SOCKET_PORT}, with process id ${process.pid}`,
+            tracer: beeline,
+            traceArgs: {
+                port: SOCKET_PORT,
+                processId: process.pid,
+            },
         });
     });
     // NOTE: engine.io config options https://github.com/socketio/engine.io#methods-1
@@ -123,6 +134,8 @@ const startExpressSocketIOServer = () => {
     //     info: 'verbose',
     //     messageOrigin: 'REDIS_PUB_CLUSTER_CONNECTION_ERROR',
     //     messages: error.toString(),
+    //     tracer: beeline,
+    //     traceArgs: {},
     // });
     // });
     // redisSubCluster.on('error', (error: string) => {
@@ -130,6 +143,9 @@ const startExpressSocketIOServer = () => {
     //     info: 'verbose',
     //     messageOrigin: 'REDIS_SUB_CLUSTER_CONNECTION_ERROR:',
     //     messages: error.toString(),
+    //     messages: error.toString(),
+    //     tracer: beeline,
+    //     traceArgs: {},
     // });
     // });
 
@@ -138,6 +154,10 @@ const startExpressSocketIOServer = () => {
             info: 'verbose',
             messageOrigin: 'REDIS_PUB_CLIENT_ERROR',
             messages: err.toString(),
+            tracer: beeline,
+            traceArgs: {
+                uid: redisAdapter.uid,
+            },
         });
     });
     redisAdapter.subClient.on('error', (err: string) => {
@@ -145,6 +165,10 @@ const startExpressSocketIOServer = () => {
             info: 'verbose',
             messageOrigin: 'REDIS_SUB_CLIENT_ERROR',
             messages: err.toString(),
+            tracer: beeline,
+            traceArgs: {
+                uid: redisAdapter.uid,
+            },
         });
     });
 
@@ -153,6 +177,10 @@ const startExpressSocketIOServer = () => {
             info: 'verbose',
             messageOrigin: 'REDIS_SUB_CLIENT',
             messages: `Subscribed to ${channel}. Now subscribed to ${count} channel(s).`,
+            tracer: beeline,
+            traceArgs: {
+                uid: redisAdapter.uid,
+            },
         });
     });
 
@@ -161,6 +189,10 @@ const startExpressSocketIOServer = () => {
             info: 'verbose',
             messageOrigin: 'REDIS_SUB_CLIENT',
             messages: `Message from channel ${channel}: ${message}`,
+            tracer: beeline,
+            traceArgs: {
+                uid: redisAdapter.uid,
+            },
         });
     });
 
@@ -169,11 +201,19 @@ const startExpressSocketIOServer = () => {
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: 'NEW CONNECTION...',
+            tracer: beeline,
+            traceArgs: {
+                socketId: socket.id,
+            },
         });
         printLogs({
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: `All Rooms: ${JSON.stringify(getSocketRoomsList(io.sockets.adapter.rooms))}`,
+            tracer: beeline,
+            traceArgs: {
+                socketId: socket.id,
+            },
         });
 
         // Send a list of the currently active chat rooms when user connects
@@ -217,6 +257,10 @@ const startExpressSocketIOServer = () => {
                 level: 'info',
                 messageOrigin: 'SOCKET_IO_LOGS',
                 messages: `DISCONNECTING... ${reason}`,
+                tracer: beeline,
+                traceArgs: {
+                    socketId: socket.id,
+                },
             });
             leaveAndNotifyRooms(socket);
         });
@@ -236,6 +280,8 @@ Promise.all(redisConnectPromises).then((responses: any[]) => {
                     level: 'verbose',
                     messageOrigin: 'REDIS_PUB_LOG',
                     messages: [`Source: ${source}, Database: ${database}`, ...args],
+                    tracer: beeline,
+                    traceArgs: {},
                 });
             });
         });

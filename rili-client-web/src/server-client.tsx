@@ -1,3 +1,4 @@
+import beeline from './beeline'; // eslint-disable-line import/order
 import * as path from 'path';
 import express from 'express';
 import * as React from 'react';
@@ -90,6 +91,10 @@ routeConfig.forEach((config) => {
                     level: 'info',
                     messageOrigin: 'SERVER_CLIENT',
                     messages: 'Somewhere a <Redirect> was rendered',
+                    tracer: beeline,
+                    traceArgs: {
+                        redirectUrl: staticContext.url,
+                    },
                 });
                 res.writeHead(staticContext.statusCode, {
                     Location: staticContext.url,
@@ -109,5 +114,10 @@ app.listen(port, () => {
         level: 'info',
         messageOrigin: 'SERVER_CLIENT',
         messages: `Server running on port, ${port}, with process id ${process.pid}`,
+        tracer: beeline,
+        traceArgs: {
+            port,
+            processId: process.pid,
+        },
     });
 });

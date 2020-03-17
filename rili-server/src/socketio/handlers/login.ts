@@ -2,6 +2,7 @@ import moment from 'moment';
 import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
 import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
+import beeline from '../../beeline';
 import * as Constants from '../../constants';
 
 export interface ILoginData {
@@ -45,6 +46,13 @@ const login = ({
                 level: 'verbose',
                 messageOrigin: 'REDIS_SESSION_ERROR',
                 messages: err.toString(),
+                tracer: beeline,
+                traceArgs: {
+                    appName,
+                    ip: socket.handshake.headers.host.split(':')[0],
+                    socketId: socket.id,
+                    userName: data.userName,
+                },
             });
         });
     }
@@ -53,6 +61,13 @@ const login = ({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
         messages: `User, ${data.userName} with socketId ${socket.id}, has logged in.`,
+        tracer: beeline,
+        traceArgs: {
+            appName,
+            ip: socket.handshake.headers.host.split(':')[0],
+            socketId: socket.id,
+            userName: data.userName,
+        },
     });
 
     // Emits an event back to the client who logged in
