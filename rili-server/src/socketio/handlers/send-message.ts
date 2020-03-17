@@ -2,6 +2,7 @@ import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
 import moment from 'moment';
 import { SocketServerActionTypes, SocketClientActionTypes } from 'rili-public-library/utilities/constants.js';
+import beeline from '../../beeline';
 import * as Constants from '../../constants';
 
 const sendMessage = (socket: socketio.Socket, data: any) => {
@@ -37,6 +38,12 @@ const sendMessage = (socket: socketio.Socket, data: any) => {
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
         messages: `${data.userName} said: ${data.message}`,
+        tracer: beeline,
+        traceArgs: {
+            socketId: socket.id,
+            userName: data.userName,
+            messageText: `You: ${data.message}`,
+        },
     });
 };
 

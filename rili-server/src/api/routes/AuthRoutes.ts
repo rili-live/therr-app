@@ -3,7 +3,6 @@ import * as express from 'express';
 import Knex from 'knex';
 import * as jwt from 'jsonwebtoken';
 import * as httpResponse from 'rili-public-library/utilities/http-response.js';
-import printLogs from 'rili-public-library/utilities/print-logs.js';
 import { IConnection } from '../../store/connection';
 import {
     authenticateUserTokenValidation,
@@ -17,7 +16,6 @@ import handleError from '../../utilities/handleError';
 import { createUserToken } from '../../utilities/userHelpers';
 
 const router = express.Router();
-const notProd = process.env.NODE_ENV !== 'production';
 const knex: Knex = Knex({ client: 'pg' });
 
 const invalidUserNameOrPassword = httpResponse.error({
@@ -32,16 +30,6 @@ class AuthRoutes {
 
     constructor(connection: any) {
         this.connection = connection;
-
-        // middleware to log time of a user route request
-        router.use((req, res, next) => {
-            printLogs({
-                level: 'http',
-                messageOrigin: `SQL:USER_ROUTES:${req.method}`,
-                messages: [req.baseUrl],
-            });
-            next();
-        });
 
         // Login user
         router.route('/auth')
