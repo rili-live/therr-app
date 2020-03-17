@@ -28,7 +28,7 @@ interface IPrintLogsArgs {
         runWithoutTrace: any;
         flush: any;
     };
-    traceArgs: { [key: string]: any };
+    traceArgs?: { [key: string]: any };
 }
 
 /**
@@ -43,7 +43,7 @@ const printLogs = ({
     time,
     messages,
     tracer,
-    traceArgs,
+    traceArgs = {},
 }: IPrintLogsArgs) => {
     if (LogLevelMap[level] <= (Number(process.env.LOG_LEVEL) || 2)) { // Default to 'info'
         let trace;
@@ -52,7 +52,7 @@ const printLogs = ({
                 level,
                 messageOrigin,
                 messages,
-                ...(traceArgs || {}),
+                ...traceArgs,
             });
         }
         const includeTime = time !== 0;

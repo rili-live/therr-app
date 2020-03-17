@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: server
-        image: riliadmin/server-socket:629bfb2c319a1d92dd58ac30533eceadf0a16eab
+        image: riliadmin/server-socket:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 7743

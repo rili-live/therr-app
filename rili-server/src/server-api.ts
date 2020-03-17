@@ -81,7 +81,8 @@ const server = app.listen(API_PORT, () => {
         messages: [`Server running on port ${API_PORT} with process id`, process.pid],
         tracer: beeline,
         traceArgs: {
-            zackTest: 'awesome',
+            port: API_PORT,
+            processId: process.pid,
         },
     });
 });
