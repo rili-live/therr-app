@@ -7,8 +7,7 @@ import Honey from 'libhoney';
 import responseTime from 'response-time';
 import * as path from 'path';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
-import authRouter from './api/routes/authRouter';
-import usersRouter from './api/routes/usersRouter';
+import router from './api/routes';
 import { version as packageVersion } from '../package.json';
 
 const honey = new Honey({
@@ -68,8 +67,7 @@ if (process.env.NODE_ENV !== 'production') {
 app.use(express.static(path.join(__dirname, 'static')));
 
 // Configure routes
-app.use(API_BASE_ROUTE, authRouter);
-app.use(API_BASE_ROUTE, usersRouter);
+app.use(API_BASE_ROUTE, router);
 
 const { API_PORT } = process.env;
 
