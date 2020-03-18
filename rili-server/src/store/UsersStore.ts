@@ -21,11 +21,29 @@ class Store {
         this.db = dbConnection;
     }
 
-    getUsers(conditions = {}) {
+    getUsers(conditions = {}, orConditions = {}) {
         const queryString = knex.select('*')
             .from(USERS_DB_NAME)
             .orderBy('id')
             .where(conditions)
+            .orWhere(orConditions)
+            .toString();
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
+    findUser({
+        id,
+        email,
+        userName,
+        phoneNumber,
+    }) {
+        const queryString = knex.select('*').from('main.users')
+            .where(function () {
+                return id ? this.where({ id }) : this;
+            })
+            .orWhere({ email })
+            .orWhere({ userName })
+            .orWhere({ phoneNumber })
             .toString();
         return this.db.read.query(queryString).then((response) => response.rows);
     }
@@ -39,7 +57,7 @@ class Store {
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 
-    updateUser(params, conditions = {}) { // TODO: Check if (other) users exist with unique properties, Throw error
+    updateUser(params, conditions = {}) {
         const queryString = knex.update(params)
             .into(USERS_DB_NAME)
             .where(conditions)
