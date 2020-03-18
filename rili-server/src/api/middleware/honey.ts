@@ -10,6 +10,7 @@ export default responseTime((req, res, time) => {
     const serializedBody = {
         ...req.body,
         idToken: 'XXXXX',
+        password: 'XXXXXX',
     };
     const serializedQuery = {
         ...req.query,
