@@ -7,6 +7,14 @@ const honey = new Honey({
 });
 
 export default responseTime((req, res, time) => {
+    const serializedBody = {
+        ...req.body,
+        idToken: 'XXXXX',
+    };
+    const serializedQuery = {
+        ...req.query,
+        idToken: 'XXXXX',
+    };
     honey.sendNow({
         app: req.app,
         baseUrl: req.baseUrl,
@@ -17,8 +25,9 @@ export default responseTime((req, res, time) => {
         originalUrl: req.originalUrl,
         params: req.params,
         path: req.path,
+        body: serializedBody,
         protocol: req.protocol,
-        query: req.query,
+        query: serializedQuery,
         route: req.route,
         secure: req.secure,
         xhr: req.xhr,
