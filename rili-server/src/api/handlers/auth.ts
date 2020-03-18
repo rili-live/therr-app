@@ -34,7 +34,7 @@ const login: RequestHandler = (req: any, res: any) => UsersStore
     .catch((err) => handleHttpError({ err, res, message: 'SQL:AUTH_ROUTES:ERROR' }));
 
 // Logout user
-const logout: RequestHandler = (req: any, res: any) => UsersStore.getUsers(req.body.userName)
+const logout: RequestHandler = (req: any, res: any) => UsersStore.getUsers({ userName: req.body.userName })
     .then((results) => {
         if (!results.length) {
             return handleHttpError({

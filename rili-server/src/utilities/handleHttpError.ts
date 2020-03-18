@@ -15,10 +15,10 @@ const handleHttpError = ({
     message,
     statusCode,
 }: IErrorArgs) => {
-    const span = beeline.startSpan({
+    const trace = beeline.startTrace({
         errorMessage: err ? err.stack : message,
     });
-    beeline.finishSpan(span);
+    beeline.finishTrace(trace);
 
     return res.status(statusCode || 500).send({
         statusCode: statusCode || 500,
