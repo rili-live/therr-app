@@ -3,19 +3,11 @@ import * as bodyParser from 'body-parser';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import Honey from 'libhoney';
-import responseTime from 'response-time';
 import * as path from 'path';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
-import connection from './store/connection';
-import AuthRoutes from './api/routes/AuthRoutes';
-import UserRoutes from './api/routes/UserRoutes';
+import router from './api/routes';
+import honey from './api/middleware/honey';
 import { version as packageVersion } from '../package.json';
-
-const honey = new Honey({
-    writeKey: process.env.HONEYCOMB_API_KEY,
-    dataset: 'main',
-});
 
 const originWhitelist = [process.env.CLIENT_URI];
 const corsOptions = {
@@ -33,27 +25,7 @@ const API_BASE_ROUTE = `/v${packageVersion.split('.')[0]}`;
 const app = express();
 
 // Logging Middleware
-app.use(
-    responseTime((req, res, time) => {
-        honey.sendNow({
-            app: req.app,
-            baseUrl: req.baseUrl,
-            fresh: req.fresh,
-            hostname: req.hostname,
-            ip: req.ip,
-            method: req.method,
-            originalUrl: req.originalUrl,
-            params: req.params,
-            path: req.path,
-            protocol: req.protocol,
-            query: req.query,
-            route: req.route,
-            secure: req.secure,
-            xhr: req.xhr,
-            responseTime_ms: time, // eslint-disable-line @typescript-eslint/camelcase
-        });
-    }),
-);
+app.use(honey);
 
 app.use(helmet());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -69,8 +41,7 @@ if (process.env.NODE_ENV !== 'production') {
 app.use(express.static(path.join(__dirname, 'static')));
 
 // Configure routes
-app.use(API_BASE_ROUTE, (new AuthRoutes(connection)).router);
-app.use(API_BASE_ROUTE, (new UserRoutes(connection)).router);
+app.use(API_BASE_ROUTE, router);
 
 const { API_PORT } = process.env;
 
