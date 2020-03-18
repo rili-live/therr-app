@@ -15,10 +15,9 @@ const handleHttpError = ({
     message,
     statusCode,
 }: IErrorArgs) => {
-    const trace = beeline.startTrace({
+    beeline.addContext({
         errorMessage: err ? err.stack : message,
     });
-    beeline.finishTrace(trace);
 
     return res.status(statusCode || 500).send({
         statusCode: statusCode || 500,
