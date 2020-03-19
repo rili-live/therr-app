@@ -78,4 +78,4 @@ RUN mkdir /usr/src/app
 WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app .
 WORKDIR /usr/src/app/rili-servers/users-service
-CMD ["npx", "node", "./build/server-api.js", "--withAllLogs"]
+CMD ["npx", "node", "./build/server.js", "--withAllLogs"]
