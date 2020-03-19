@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: server
-        image: riliadmin/websocket-service:fdc1b6fe075d580aa1953166133f6ac74c4bc66d
+        image: riliadmin/websocket-service:latest
         ports:
         - containerPort: 7743
         env:
