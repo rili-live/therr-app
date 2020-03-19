@@ -70,7 +70,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         this.props.login(credentials).then(() => {
             this.props.history.push('/join-room');
         }).catch((error: any) => {
-            // console.log('LOGIN_ERROR: ', error);
+            console.log('LOGIN_ERROR: ', error);
         });
     }
 

@@ -68,7 +68,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
         this.props.login(credentials).then(() => {
             this.props.history.push('/join-room');
         }).catch((error: any) => {
-            // console.log('HOME_LOGIN_ERROR: ', error);
+            console.log('HOME_LOGIN_ERROR: ', error);
         });
     }
 
