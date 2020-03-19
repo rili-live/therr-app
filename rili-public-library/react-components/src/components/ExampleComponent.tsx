@@ -1,5 +1,5 @@
 import * as React from 'react';
-
+/* eslint-disable */
 interface IExampleProps {
 
 }
@@ -13,3 +13,4 @@ export default class ExampleComponent extends React.Component<IExampleProps, IEx
         return (<div>Hello, World</div>);
     }
 }
+/* eslint-enable */

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { shallow } from 'enzyme'; // tslint:disable-line no-implicit-dependencies
+import { shallow } from 'enzyme';
 import { Key as KeyCode } from 'ts-keycode-enum';
 import SelectBox from '../SelectBox';
 
@@ -29,7 +29,7 @@ describe('SelectBox', () => {
         );
     });
 
-    const simulateButtonKeydown = (keyCode : any) => {
+    const simulateButtonKeydown = (keyCode: any) => {
         wrapper.find('button').simulate('keyDown', {
             keyCode,
             preventDefault: mockPreventDefault,

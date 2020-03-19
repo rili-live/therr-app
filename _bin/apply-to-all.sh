@@ -28,7 +28,7 @@ then
 fi
 
 # Remaining directores to run script in. Order matters.
-declare -a arr=("rili-server" "rili-client-web" "rili-client-mobile")
+declare -a arr=("rili-client-web" "rili-client-mobile" "rili-servers/users-service" "rili-servers/websocket-service")
 for i in "${arr[@]}"; do
     pushd ${i}
     if [ -f package.json ]

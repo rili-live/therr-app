@@ -2,8 +2,8 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import Input from 'rili-public-library/react-components/Input';
-import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary';
+import Input from 'rili-public-library/react-components/Input.js';
+import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
 import { ISocketState } from 'types/socket';
 import translator from '../services/translator';
 // import * as globalConfig from '../../../global-config.js';
@@ -32,19 +32,15 @@ interface IJoinRoomState {
 // Environment Variables
 // const envVars = globalConfig[process.env.NODE_ENV];
 
-const mapStateToProps = (state: any) => {
-    return {
-        socket: state.socket,
-    };
-};
+const mapStateToProps = (state: any) => ({
+    socket: state.socket,
+});
 
-const mapDispatchToProps = (dispatch: any) => {
-    return bindActionCreators({
-    }, dispatch);
-};
+const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+}, dispatch);
 
 // const handleSessionUpdate = (message: any) => {
-//     console.log('SESSION_UPDATE:', message); // tslint:disable-line no-console
+//     console.log('SESSION_UPDATE:', message); // eslint-disable-line no-console
 // };
 
 /**
@@ -52,7 +48,6 @@ const mapDispatchToProps = (dispatch: any) => {
  */
 export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoomState> {
     // private sessionToken: string;
-    private translate: Function;
 
     // static getDerivedStateFromProps(nextProps: IJoinRoomProps, nextState: IJoinRoomState) {
     //     if (!!nextProps.socket.user.userName && !nextState.inputs.userName) {
@@ -82,9 +77,11 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
-    componentDidMount() {
+    componentDidMount() { // eslint-disable-line class-methods-use-this
         document.title = 'Rili | Join a Room';
     }
+
+    private translate: Function;
 
     onInputChange = (name: string, value: string) => {
         const newInputChanges = {
@@ -103,41 +100,58 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
             case 'join_room':
             case 'room_name':
             case 'user_name':
-            if (!this.shouldDisableInput('room')) {
-                this.props.history.push(`/chat-room/${this.state.inputs.roomId}`);
-            }
+                if (!this.shouldDisableInput('room')) {
+                    this.props.history.push(`/chat-room/${this.state.inputs.roomId}`);
+                }
+                break;
+            default:
         }
     }
 
     shouldDisableInput = (buttonName: string) => {
         switch (buttonName) {
             case 'room':
-                return !this.state.inputs.roomId /* || !this.state.inputs.userName */;
+                return !this.state.inputs.roomId;
+            default:
+                return false;
         }
     }
 
     public render(): JSX.Element | null {
         const { socket } = this.props;
-        let activeRooms = socket && socket.rooms.length > 0 && socket.rooms.map((room: any) => room.roomKey).toString();
+        const activeRooms = socket && socket.rooms.length > 0 && socket.rooms.map((room: any) => room.roomKey).toString();
 
         return (
-            <div>
+            <div id="page_join_room">
                 <h1 className="center">Join a Room</h1>
                 <label htmlFor="room_name">Room:</label>
-                <Input type="text" id="room_name" name="roomId" value={this.state.inputs.roomId} onChange={this.onInputChange} onEnter={this.onButtonClick} translate={this.translate} />
+                <Input
+                    type="text"
+                    id="room_name"
+                    name="roomId"
+                    value={this.state.inputs.roomId}
+                    onChange={this.onInputChange}
+                    onEnter={this.onButtonClick}
+                    translate={this.translate}
+                />
                 {
-                    socket && socket.rooms &&
-                    <span className="rooms-list">
+                    socket && socket.rooms
+                    && <span className="rooms-list">
                         {
                             socket.rooms.length < 1
-                                ? <i>No rooms are currently active. Click 'Join Room' to start a new one.</i>
+                                ? <i>No rooms are currently active. Click &apos;Join Room&apos; to start a new one.</i>
                                 : <span>Active Rooms: <i>{activeRooms}</i></span>
                         }
                     </span>
                 }
 
                 <div className="form-field text-right">
-                    <ButtonPrimary id="join_room" text="Join Room" onClick={this.onButtonClick} disabled={this.shouldDisableInput('room')} />
+                    <ButtonPrimary
+                        id="join_room"
+                        text="Join Room"
+                        onClick={this.onButtonClick}
+                        disabled={this.shouldDisableInput('room')}
+                    />
                 </div>
             </div>
         );

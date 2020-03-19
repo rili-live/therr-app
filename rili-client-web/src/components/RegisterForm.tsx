@@ -1,6 +1,6 @@
 import * as React from 'react';
-import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary';
-import Input from 'rili-public-library/react-components/Input';
+import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
+import Input from 'rili-public-library/react-components/Input.js';
 import translator from '../services/translator';
 
 // Regular component props
@@ -16,8 +16,6 @@ interface IRegisterFormState {
  * RegisterForm
  */
 export class RegisterFormComponent extends React.Component<IRegisterFormProps, IRegisterFormState> {
-    private translate: Function;
-
     constructor(props: IRegisterFormProps) {
         super(props);
 
@@ -27,6 +25,8 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
+
+    private translate: Function;
 
     isFormDisabled() {
         return !this.state.inputs.userName || !this.state.inputs.password || !this.isFormValid();
@@ -46,6 +46,8 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     delete creds.repeatPassword;
                     this.props.register(creds);
                 }
+                break;
+            default:
         }
     }
 
@@ -76,7 +78,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     translate={this.translate}
                     validations={['isRequired']}
                 />
-                
+
                 <label className="required" htmlFor="last_name">Last Name:</label>
                 <Input
                     type="text"
@@ -88,7 +90,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     translate={this.translate}
                     validations={['isRequired']}
                 />
-                
+
                 <label className="required" htmlFor="e_mail">E-mail:</label>
                 <Input
                     type="text"
@@ -100,7 +102,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     translate={this.translate}
                     validations={['isRequired']}
                 />
-            
+
                 <label className="required" htmlFor="phone_number">Mobile Phone #:</label>
                 <Input
                     type="text"
@@ -112,7 +114,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     translate={this.translate}
                     validations={['isRequired']}
                 />
-                
+
                 <label className="required" htmlFor="user_name">Username:</label>
                 <Input
                     type="text"
@@ -137,7 +139,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     translate={this.translate}
                     validations={['isRequired']}
                 />
-                
+
                 <label className="required" htmlFor="repeat_password">Repeat Password:</label>
                 <Input
                     type="password"

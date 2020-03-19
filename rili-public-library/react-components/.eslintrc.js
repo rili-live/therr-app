@@ -6,8 +6,15 @@ module.exports = {
         browser: true,
         jest: true
     },
-    extends: 'airbnb',
-    parser: 'babel-eslint',
+    extends: [
+        'airbnb-base',
+        'plugin:@typescript-eslint/recommended',
+        "plugin:react/recommended"
+    ],
+    plugins: [
+        '@typescript-eslint'
+    ],
+    parser: '@typescript-eslint/parser',
     rules: {
         'react/jsx-indent': [2, 4],
         'react/jsx-indent-props': [2, 4],
@@ -18,9 +25,30 @@ module.exports = {
             }
         ],
         'indent': [2, 4, { SwitchCase: 1 }],
-        'max-len': [2, { code: 140 }]
+        'max-len': [2, { code: 140 }],
+        '@typescript-eslint/explicit-function-return-type': 'off',
+        '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/interface-name-prefix': 0,
+        'consistent-return': 'off',
+        'prefer-destructuring': 'off',
+        'import/prefer-default-export': 'off',
+        'import/extensions': [
+            'error',
+            'always',
+            {
+                'js': 'always',
+                'jsx': 'always',
+                'ts': 'never',
+                'tsx': 'never',
+                'd.ts': 'never',
+            }
+        ],
     },
     settings: {
+        'import/external-module-folders': ['../../node_modules', '../../node_modules/@types'],
+        'import/parsers': {
+            '@typescript-eslint/parser': ['.ts', '.tsx']
+        },
         'import/resolver': {
             // NOTE: These aliases must match aliases in webpack.config.js
             alias: {
@@ -28,8 +56,14 @@ module.exports = {
                     ['rili-public-library/styles/*', path.join(__dirname, '../styles')],
                     ['rili-public-library/utilities/*', path.join(__dirname, '../utilities/lib')],
                 ],
-                extensions: ['.js', '.jsx', '.json', '.scss']
+                extensions: ['.js', '.jsx', '.json', '.scss'],
+            },
+            node: {
+                extensions: ['.js', '.jsx', '.ts', '.tsx']
             }
+        },
+        react: {
+            version: "detect",
         }
     }
 };

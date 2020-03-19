@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import 'rili-public-library/styles/index.scss';
+import 'rili-public-library/styles/index.scss'; // eslint-disable-line
 
 // NOTE: Order matters for these css files
 // ...the latter will overwrite the former

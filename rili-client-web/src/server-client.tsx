@@ -1,30 +1,33 @@
+import beeline from './beeline'; // eslint-disable-line import/order
 import * as path from 'path';
-import * as express from 'express';
+import express from 'express';
 import * as React from 'react';
-import * as ReactDOMServer from 'react-dom/server';
+import * as ReactDOMServer from 'react-dom/server'; // eslint-disable-line import/extensions
 import { StaticRouter, matchPath } from 'react-router-dom';
 import { applyMiddleware, createStore } from 'redux';
 import { Provider } from 'react-redux';
 import thunkMiddleware from 'redux-thunk';
-import printLogs from 'rili-public-library/utilities/print-logs'; // tslint:disable-line no-implicit-dependencies
+import printLogs from 'rili-public-library/utilities/print-logs.js';
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
 
 // TODO: RFRONT-9: Fix window is undefined hack
+/* eslint-disable */
 declare global {
     namespace NodeJS {
-        interface Global { // tslint:disable-line
+        interface Global { // eslint-disable-line
             window: any;
         }
     }
 }
+/* eslint-enable */
 
 if (!process.env.BROWSER) {
     global.window = {}; // Temporarily define window for server-side
 }
-import Layout from './components/Layout';
-import routes, { IRoute } from './routes';
+import Layout from './components/Layout'; // eslint-disable-line
+import routes, { IRoute } from './routes'; // eslint-disable-line
 
 // Initialize the server and configure support for handlebars templates
 const app = express();
@@ -33,16 +36,16 @@ app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
 // Define the folder that will be used for static assets
-app.use(express.static(path.join(__dirname + '/../build/static/')));
+app.use(express.static(path.join(__dirname, '/../build/static/')));
 
 // Universal routing and rendering for SEO
-for (let i in routeConfig) {
-    let routePath = routeConfig[i].route;
-    let routeView = routeConfig[i].view;
-    let title = routeConfig[i].head.title;
+routeConfig.forEach((config) => {
+    const routePath = config.route;
+    const routeView = config.view;
+    const title = config.head.title;
 
     app.get(routePath, (req, res) => {
-        let promises: any = [];
+        const promises: any = [];
         const staticContext: any = {};
         const initialState = {
             user: {
@@ -55,7 +58,7 @@ for (let i in routeConfig) {
             applyMiddleware(
                 socketIOMiddleWare,
                 thunkMiddleware,
-            )
+            ),
         );
 
         routes.some((route: IRoute) => {
@@ -75,7 +78,7 @@ for (let i in routeConfig) {
                     <StaticRouter location={req.url} context={staticContext}>
                         <Layout />
                     </StaticRouter>
-                </Provider>
+                </Provider>,
             );
 
             // This gets the initial state created after all dispatches are called in fetchData
@@ -85,27 +88,36 @@ for (let i in routeConfig) {
 
             if (staticContext.url) {
                 printLogs({
-                    shouldPrintLogs: true,
+                    level: 'info',
                     messageOrigin: 'SERVER_CLIENT',
                     messages: 'Somewhere a <Redirect> was rendered',
+                    tracer: beeline,
+                    traceArgs: {
+                        redirectUrl: staticContext.url,
+                    },
                 });
                 res.writeHead(staticContext.statusCode, {
-                    'Location': staticContext.url,
+                    Location: staticContext.url,
                 });
                 res.end();
             } else {
-                return res.render(routeView, {title, markup, state});
+                return res.render(routeView, { title, markup, state });
             }
         });
     });
-}
+});
 
 // Start the server
 const port = process.env.CLIENT_PORT;
 app.listen(port, () => {
     printLogs({
-        shouldPrintLogs: true,
+        level: 'info',
         messageOrigin: 'SERVER_CLIENT',
         messages: `Server running on port, ${port}, with process id ${process.pid}`,
+        tracer: beeline,
+        traceArgs: {
+            port,
+            processId: process.pid,
+        },
     });
 });

@@ -6,9 +6,9 @@
   "scripts": {
     "build": "../../node_modules/.bin/webpack --env production",
     "build:dev": "../../node_modules/.bin/webpack --env development",
-    "lint:fix": "../../node_modules/.bin/eslint --ext .jsx,.js --fix ./ && ../../node_modules/.bin/tslint --fix -p ./",
-    "lint": "../../node_modules/.bin/eslint --ext .jsx,.js ./ && ../../node_modules/.bin/tslint -p ./",
-    "test": "npm run lint:fix && echo \"Error: no test specified\" && exit 0"
+    "lint:fix": "../../node_modules/.bin/eslint --ext .js,.jsx,.ts,.tsx --fix ./",
+    "lint": "../../node_modules/.bin/eslint --quiet --ext .js,.jsx,.ts,.tsx ./",
+    "test": "echo \"Error: no test specified\" && exit 0"
   },
   "author": "",
   "license": "MIT",

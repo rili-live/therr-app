@@ -1,5 +1,5 @@
-import * as Immutable from 'seamless-immutable';
-import { SocketServerActionTypes } from 'rili-public-library/utilities/constants';
+import Immutable from 'seamless-immutable';
+import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
 import { IMessageList, ISocketState } from 'types/socket';
 
 const initialState: ISocketState = Immutable.from({
@@ -15,7 +15,7 @@ const initialState: ISocketState = Immutable.from({
 const socket = (state: ISocketState = initialState, action: any) => {
     // If state is initialized by server-side rendering, it may not be a proper immutable object yet
     if (!state.setIn) {
-        state = state ? Immutable.from(state) : initialState;
+        state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
     }
 
     let prevMessageList: any = [];
@@ -25,6 +25,7 @@ const socket = (state: ISocketState = initialState, action: any) => {
         prevMessageList.push(action.data.message);
     }
     const updatedMessageList: IMessageList = Immutable(prevMessageList);
+    const actionData = action.data;
 
     switch (action.type) {
         case SocketServerActionTypes.SEND_ROOMS_LIST:
@@ -32,9 +33,9 @@ const socket = (state: ISocketState = initialState, action: any) => {
             return state.setIn(['rooms'], action.data);
         case SocketServerActionTypes.JOINED_ROOM:
             return state
-                    .setIn(['user', 'userName'], action.data.userName)
-                    .setIn(['user', 'currentRoom'], action.data.roomId)
-                    .setIn(['messages', action.data.roomId], updatedMessageList);
+                .setIn(['user', 'userName'], action.data.userName)
+                .setIn(['user', 'currentRoom'], action.data.roomId)
+                .setIn(['messages', action.data.roomId], updatedMessageList);
         case SocketServerActionTypes.USER_LOGIN_SUCCESS:
             return state.setIn(['user', 'userName'], action.data.userName);
         case SocketServerActionTypes.USER_LOGOUT_SUCCESS:
@@ -45,7 +46,6 @@ const socket = (state: ISocketState = initialState, action: any) => {
         case SocketServerActionTypes.SEND_MESSAGE:
             return state.setIn(['messages', action.data.roomId], updatedMessageList);
         case SocketServerActionTypes.SESSION_CREATED_MESSAGE:
-            const actionData = action.data;
             actionData.data = JSON.parse(actionData.data);
             return state.setIn(['user', 'session'], actionData);
         case SocketServerActionTypes.SESSION_CLOSED_MESSAGE:
