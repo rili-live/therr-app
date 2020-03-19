@@ -25,11 +25,11 @@ spec:
             servicePort: 7070
         - path: /api/?(.*)
           backend:
-            serviceName: server-api-cluster-ip-service
+            serviceName: users-service-cluster-ip-service
             servicePort: 7770
         - path: /ws/?(.*)
           backend:
-            serviceName: server-socket-cluster-ip-service
+            serviceName: websocket-service-cluster-ip-service
             servicePort: 7743
     - host: www.rili.live
       http:
@@ -40,9 +40,9 @@ spec:
             servicePort: 7070
         - path: /api/?(.*)
           backend:
-            serviceName: server-api-cluster-ip-service
+            serviceName: users-service-cluster-ip-service
             servicePort: 7770
         - path: /ws/?(.*)
           backend:
-            serviceName: server-socket-cluster-ip-service
+            serviceName: websocket-service-cluster-ip-service
             servicePort: 7743
