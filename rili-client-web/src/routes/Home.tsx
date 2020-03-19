@@ -7,7 +7,10 @@ import { IUserState } from 'types/user';
 import translator from '../services/translator';
 import LoginForm from '../components/LoginForm';
 
-const shouldRender = (props: IHomeProps) => !props.user || !props.user.isAuthenticated;
+const shouldRender = (props: IHomeProps) => !props.user
+    || !props.user.isAuthenticated
+    || !props.user.accessLevels
+    || !props.user.accessLevels.length;
 
 interface IHomeRouterProps {
 }
