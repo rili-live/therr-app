@@ -6,7 +6,7 @@ import {
     validate,
 } from '../validation';
 import {
-    createUsers,
+    createUser,
     getUser,
     getUsers,
     updateUser,
@@ -16,7 +16,7 @@ import {
 const router = express.Router();
 
 // CREATE
-router.post('/', createUserValidation, validate, createUsers);
+router.post('/', createUserValidation, validate, createUser);
 
 // READ
 router.get('/:id', getUser);

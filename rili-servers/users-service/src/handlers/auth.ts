@@ -19,8 +19,10 @@ const login: RequestHandler = (req: any, res: any) => UsersStore
     .then(([results, isValid]) => {
         if (isValid) {
             const idToken = createUserToken(results[0], req.body.rememberMe);
+            const user = results[0];
+            delete user.password;
             return res.status(201).send({
-                ...results[0],
+                user,
                 idToken,
             });
         }
