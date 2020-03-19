@@ -19,22 +19,22 @@ build:
           - './rili-public-library/**/lib/*.json'
           - './rili-public-library/**/lib/*.css'
           - './rili-public-library/**/lib/*.html'
-    - image: riliadmin/server-api
+    - image: riliadmin/users-service
       context: .
       docker:
-        dockerfile: ./rili-server/Dockerfile.api
+        dockerfile: ./rili-servers/users-service/Dockerfile
       sync:
         infer:
-          - './rili-server/**/*.js'
+          - './rili-servers/users-service/**/*.js'
           - './rili-public-library/utilities/**/lib/*.js'
           - './rili-public-library/utilities/**/lib/*.json'
-    - image: riliadmin/server-socket
+    - image: riliadmin/websocket-service
       context: .
       docker:
-        dockerfile: ./rili-server/Dockerfile.socket
+        dockerfile: ./rili-servers/websocket-service/Dockerfile
       sync:
         infer:
-          - './rili-server/**/*.js'
+          - './rili-servers/websocket-service/**/*.js'
           - './rili-public-library/utilities/**/lib/*.js'
           - './rili-public-library/utilities/**/lib/*.json'
 deploy:
@@ -42,9 +42,9 @@ deploy:
     manifests:
       - k8s/client-cluster-ip-service.yaml
       - k8s/client-deployment.yaml
-      - k8s/server-api-cluster-ip-service.yaml
-      - k8s/server-api-deployment.yaml
-      - k8s/server-socket-cluster-ip-service.yaml
-      - k8s/server-socket-deployment.yaml
+      - k8s/users-service-cluster-ip-service.yaml
+      - k8s/users-service-deployment.yaml
+      - k8s/websocket-service-cluster-ip-service.yaml
+      - k8s/websocket-service-deployment.yaml
       - k8s/redis-cluster-ip-service.yaml
       - k8s/redis-deployment.yaml
