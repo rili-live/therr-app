@@ -10,7 +10,6 @@ import translator from '../services/translator';
 // }
 
 interface IUserProfileDispatchProps {
-    login: Function;
 }
 
 interface IStoreProps extends IUserProfileDispatchProps {
@@ -30,7 +29,6 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    login: SocketActions.login,
 }, dispatch);
 
 /**
@@ -47,14 +45,6 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
         document.title = 'Rili | User Profile';
-    }
-
-    login = (credentials: any) => {
-        this.props.login(credentials).then(() => {
-            this.props.history.push('/join-room');
-        }).catch((error: any) => {
-            // console.log('HOME_LOGIN_ERROR: ', error);
-        });
     }
 
     public render(): JSX.Element | null {

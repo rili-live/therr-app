@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: client
-        image: riliadmin/client-web:latest
+        image: riliadmin/client-web:0492893e2ded702ca6f1defa9a65e923d00ae479
         ports:
         - containerPort: 7070
         env:
@@ -22,6 +22,11 @@ spec:
             value: "7770"
           - name: CLIENT_PORT
             value: "7070"
+          - name: HONEYCOMB_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: honeycomb-writekey
+                key: key
           - name: LOG_LEVEL
             value: "info"
           - name: SOCKET_PORT
