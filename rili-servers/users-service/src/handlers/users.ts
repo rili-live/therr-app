@@ -4,7 +4,7 @@ import UsersStore from '../store/UsersStore';
 import { hashPassword } from '../utilities/userHelpers';
 
 // CREATE
-const createUsers: RequestHandler = (req: any, res: any) => UsersStore.findUser(req.body)
+const createUser: RequestHandler = (req: any, res: any) => UsersStore.findUser(req.body)
     .then((findResults) => {
         if (findResults.length) {
             return handleHttpError({
@@ -42,6 +42,8 @@ const getUser = (req, res) => UsersStore.getUsers({ id: req.params.id })
                 statusCode: 404,
             });
         }
+        const user = results[0];
+        delete user.password;
         return res.status(200).send(results[0]);
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
@@ -70,7 +72,11 @@ const updateUser = (req, res) => UsersStore.findUser({ id: req.params.id, ...req
             }, {
                 id: req.params.id,
             })
-            .then((results) => res.status(200).send(results[0]));
+            .then((results) => {
+                const user = results[0];
+                delete user.password;
+                return res.status(200).send(results[0]);
+            });
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
@@ -92,7 +98,7 @@ const deleteUser = (req, res) => UsersStore.deleteUsers({ id: req.params.id })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
 export {
-    createUsers,
+    createUser,
     getUser,
     getUsers,
     updateUser,
