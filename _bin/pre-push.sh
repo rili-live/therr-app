@@ -10,7 +10,7 @@ popd
 
 is_pre_check_success()
 {
-    return 0
+    npm run test:all
 }
 
 # TODO: Add conditions to prevent bad commits
