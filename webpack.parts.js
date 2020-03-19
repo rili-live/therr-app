@@ -6,7 +6,6 @@ const DuplicatePackageCheckerPlugin = require("duplicate-package-checker-webpack
 const HappyPack = require('happypack');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
 // Max thread pool size for parallel tasks
