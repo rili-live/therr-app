@@ -6,7 +6,7 @@ const DuplicatePackageCheckerPlugin = require("duplicate-package-checker-webpack
 const HappyPack = require('happypack');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 // Max thread pool size for parallel tasks
 const THREAD_POOL_SIZE = 4;
@@ -111,28 +111,13 @@ exports.lintJavaScript = ({ paths, options }) => ({
                 enforce: 'pre',
                 loader: 'eslint-loader',
                 include: paths,
-                options,
+                options: options || {},
             },
         ],
     },
 });
 
-exports.lintTypeScript = ({ paths, options }) => ({
-    module: {
-        rules: [
-            {
-                test: /\.ts$/,
-                enforce: 'pre',
-                use: [
-                    {
-                        loader: 'tslint-loader',
-                        options: options || {},
-                    }
-                ]
-            }
-        ]
-    }
-});
+exports.lintTypeScript = exports.lintJavaScript;
 
 exports.loadCSS = (paths, env, dontHash) => {
     const miniCssExtractPlugin = new MiniCssExtractPlugin({
@@ -213,20 +198,18 @@ exports.minifyCss = () => ({
 
 exports.minifyJavaScript = ({ useSourceMap }) => ({
     optimization: {
-        minimizer: [
-            new UglifyJsPlugin({
-                cache: true,
-                parallel: true,
-                uglifyOptions: {
-                    compress: {
-                        warnings: false,
-                    },
-                    ecma: 6,
-                    mangle: true
+        minimize: true,
+        minimizer: [new TerserPlugin({
+            cache: true,
+            parallel: true,
+            terserOptions: {
+                compress: {
+                    warnings: false,
                 },
-                sourceMap: useSourceMap
-            })
-        ]
+                ecma: 2015,
+                mangle: true
+            },
+        })],
     }
 });
 

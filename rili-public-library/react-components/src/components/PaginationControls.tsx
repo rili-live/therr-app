@@ -3,19 +3,21 @@
 
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import 'rili-public-library/styles/icons.scss'; // tslint:disable-line no-implicit-dependencies
-import 'rili-public-library/styles/pagination.scss'; // tslint:disable-line no-implicit-dependencies
-import calculatePages from 'rili-public-library/utilities/calculate-pages'; // tslint:disable-line no-implicit-dependencies
+import 'rili-public-library/styles/icons.scss'; // eslint-disable-line import/no-unresolved
+import 'rili-public-library/styles/pagination.scss'; // eslint-disable-line import/no-unresolved
+import calculatePages from 'rili-public-library/utilities/calculate-pages.js';
 
-const PaginationControls = ({ disabled, hideFirstLastButtons, pagination, translate, handlePageChange, showResultsCount }: any) => {
+const PaginationControls = ({
+    disabled, hideFirstLastButtons, pagination, translate, handlePageChange, showResultsCount,
+}: any) => {
     const { pagesList, totalPages } = calculatePages(pagination);
     const currentPage = pagination.pageNumber;
     const configurePageChange = (pageNumber: any) => (event: any) => handlePageChange(event, pageNumber);
     const pagingInfo = translate('pagination.pagingInfo', {
         firstItem: (currentPage * pagination.itemsPerPage) - (pagination.itemsPerPage - 1),
-        lastItem: currentPage * pagination.itemsPerPage > pagination.totalItems ?
-            pagination.totalItems :
-            currentPage * pagination.itemsPerPage,
+        lastItem: currentPage * pagination.itemsPerPage > pagination.totalItems
+            ? pagination.totalItems
+            : currentPage * pagination.itemsPerPage,
         totalItems: pagination.totalItems,
     });
 
@@ -30,8 +32,8 @@ const PaginationControls = ({ disabled, hideFirstLastButtons, pagination, transl
             </div>
             <div className="controls-list">
                 {
-                    !hideFirstLastButtons &&
-                    <button
+                    !hideFirstLastButtons
+                    && <button
                         className="page-button-start"
                         disabled={disabled}
                         onClick={configurePageChange(1)}
@@ -49,8 +51,8 @@ const PaginationControls = ({ disabled, hideFirstLastButtons, pagination, transl
                 >
                 </button>
                 {
-                    pagesList.map((button: any, i: any) =>
-                        (<button
+                    pagesList.map((button: any, i: any) => (
+                        <button
                             key={i}
                             className={button.pageNumber === currentPage ? 'page-button active' : 'page-button'}
                             disabled={disabled}
@@ -58,8 +60,8 @@ const PaginationControls = ({ disabled, hideFirstLastButtons, pagination, transl
                             type="button"
                         >
                             {button.pageNumber}
-                        </button>), // eslint-disable-line comma-dangle
-                    )
+                        </button>
+                    ))
                 }
                 <button
                     className="page-button-forward icon-medium forward-arrow"
@@ -70,8 +72,8 @@ const PaginationControls = ({ disabled, hideFirstLastButtons, pagination, transl
                 >
                 </button>
                 {
-                    !hideFirstLastButtons &&
-                    <button
+                    !hideFirstLastButtons
+                    && <button
                         className="page-button-end"
                         disabled={disabled}
                         onClick={configurePageChange(totalPages)}

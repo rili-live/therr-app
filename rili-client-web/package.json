@@ -11,17 +11,18 @@
     "build:server": "../node_modules/.bin/webpack --config webpack.server.config.js --env production",
     "build:server:dev": "../node_modules/.bin/webpack --config webpack.server.config.js --env development",
     "build:watch": "npm run build:server:dev && ../node_modules/.bin/webpack --config webpack.app.config.js --watch --env.development",
-    "lint:fix": "../node_modules/.bin/eslint --ext .jsx,.js --fix ./ && ../node_modules/.bin/tslint --fix -p ./",
-    "lint": "../node_modules/.bin/eslint --ext .jsx,.js ./ && ../node_modules/.bin/tslint -p ./",
+    "lint:fix": "../node_modules/.bin/eslint --ext .js,.jsx,.ts,.tsx --fix ./",
+    "lint": "../node_modules/.bin/eslint --quiet --ext .js,.jsx,.ts,.tsx ./",
     "start": "node --require=../node_modules/dotenv/config ./build/server-client.js dotenv_config_path=../.env",
     "start:dev": "nodemon --require=../node_modules/dotenv/config ./build/server-client.js dotenv_config_path=../.env",
-    "test": "npm run lint:fix && jest --no-cache",
+    "test": "jest --no-cache",
     "test:update": "../node_modules/.bin/jest -u",
     "test:watch": "../node_modules/.bin/jest --watch",
     "test:coverage": "../node_modules/.bin/jest --coverage",
     "watch:app": "../node_modules/.bin/webpack --config webpack.app.config.js --watch --env development",
     "watch:server": "../node_modules/.bin/webpack --config webpack.server.config.js --watch --env development"
   },
+  "types": "src/types/index.d.ts",
   "keywords": [
     "rili",
     "web"

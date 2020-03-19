@@ -2,8 +2,8 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import translator from '../services/translator';
 import SocketActions from 'actions/socket';
+import translator from '../services/translator';
 import RegisterForm from '../components/RegisterForm';
 
 interface IRegisterRouterProps {
@@ -14,35 +14,28 @@ interface IRegisterDispatchProps {
     register: Function;
 }
 
-interface IStoreProps extends IRegisterDispatchProps {
-}
+type IStoreProps = IRegisterDispatchProps
 
 // Regular component props
 interface IRegisterProps extends RouteComponentProps<IRegisterRouterProps>, IStoreProps {
 }
 
 interface IRegisterState {
-    errorMessage: String;
+    errorMessage: string;
     inputs: any;
 }
 
-const mapStateToProps = (state: any) => {
-    return {
-    };
-};
+const mapStateToProps = (state: any) => ({
+});
 
-const mapDispatchToProps = (dispatch: any) => {
-    return bindActionCreators({
-        register: SocketActions.register,
-    }, dispatch);
-};
+const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    register: SocketActions.register,
+}, dispatch);
 
 /**
  * Login
  */
 export class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> {
-    private translate: Function;
-
     constructor(props: IRegisterProps) {
         super(props);
 
@@ -54,9 +47,11 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
-    componentDidMount() {
+    componentDidMount() { // eslint-disable-line class-methods-use-this
         document.title = 'Rili | Register';
     }
+
+    private translate: Function;
 
     register = (credentials: any) => {
         this.props.register(credentials).then((response: any) => {
@@ -84,13 +79,13 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
 
         return (
             <>
-                <div className="flex-box">
+                <div id="page_register" className="flex-box">
                     <RegisterForm register={this.register} />
-                    
+
                 </div>
                 {
-                    errorMessage &&
-                    <div className="alert-error text-center">{errorMessage}</div>
+                    errorMessage
+                    && <div className="alert-error text-center">{errorMessage}</div>
                 }
             </>
         );

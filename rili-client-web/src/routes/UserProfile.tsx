@@ -2,15 +2,14 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter, Link } from 'react-router-dom';
-import translator from '../services/translator';
 import SocketActions from 'actions/socket';
 import { IUserState } from 'types/user';
+import translator from '../services/translator';
 
-interface IUserProfileRouterProps {
-}
+// interface IUserProfileRouterProps {
+// }
 
 interface IUserProfileDispatchProps {
-    login: Function;
 }
 
 interface IStoreProps extends IUserProfileDispatchProps {
@@ -18,30 +17,25 @@ interface IStoreProps extends IUserProfileDispatchProps {
 }
 
 // Regular component props
-interface IUserProfileProps extends RouteComponentProps<IUserProfileRouterProps>, IStoreProps {
+interface IUserProfileProps extends RouteComponentProps<{}>, IStoreProps {
 }
 
 interface IUserProfileState {
     inputs: any;
 }
 
-const mapStateToProps = (state: any) => {
-    return {
-        user: state.user,
-    };
-};
+const mapStateToProps = (state: any) => ({
+    user: state.user,
+});
 
-const mapDispatchToProps = (dispatch: any) => {
-    return bindActionCreators({
-        login: SocketActions.login,
-    }, dispatch);
-};
+const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+}, dispatch);
 
 /**
  * UserProfile
  */
 export class UserProfileComponent extends React.Component<IUserProfileProps, IUserProfileState> {
-    private translate: Function;
+    private translate: Function; // eslint-disable-line react/sort-comp
 
     constructor(props: IUserProfileProps) {
         super(props);
@@ -49,16 +43,8 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
-    componentDidMount() {
+    componentDidMount() { // eslint-disable-line class-methods-use-this
         document.title = 'Rili | User Profile';
-    }
-
-    login = (credentials: any) => {
-        this.props.login(credentials).then(() => {
-            this.props.history.push('/join-room');
-        }).catch((error: any) => {
-            // console.log('HOME_LOGIN_ERROR: ', error);
-        });
     }
 
     public render(): JSX.Element | null {
@@ -69,7 +55,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         }
 
         return (
-            <div className="flex-box">
+            <div id="page_user_profile" className="flex-box">
                 <h1>User Profile</h1>
                 <div>
                     <h3><b>Firstname:</b> {user.details.firstName}</h3>

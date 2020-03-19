@@ -1,15 +1,18 @@
 // Allows importing json files without type declaration file
-declare module "*.json"
+declare module '*.json'
 
 // Allows importing js files without type declaration file
-declare module "*.js"
+declare module '*.js'
 
 // Allows importing svg files without type declaration file
-declare module "*.svg" {
+declare module '*.svg' {
     const content: any;
     export default content;
 }
 
 // Allows importing aliased js files without type declaration file
-declare module "rili-public-library/react-components/*"
-declare module "rili-public-library/utilities/*"
+declare module 'rili-public-library/react-components/*'
+declare module 'rili-public-library/utilities/*'
+
+// Honeycomb Beeline
+declare module 'honeycomb-beeline';

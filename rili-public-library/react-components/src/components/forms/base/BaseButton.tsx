@@ -22,17 +22,14 @@ class BaseButton extends React.Component<IBaseButtonProps> {
         disabled: false,
     };
 
-    constructor(props: IBaseButtonProps) {
-        super(props);
-
-    }
-
     render() {
-        const { children, className, disabled, id, onClick, text } = this.props;
+        const {
+            children, className, disabled, id, onClick, text,
+        } = this.props;
 
         return (
             <button id={id} className={className} onClick={onClick} type="button" disabled={disabled}>
-                {text ? text : children}
+                {text || children}
             </button>
         );
     }

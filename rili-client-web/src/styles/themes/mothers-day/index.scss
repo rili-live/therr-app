@@ -2,3 +2,10 @@
 @import './variables';
 @import '../../../../../rili-public-library/styles/lib';
 @import '../../root';
+
+html {
+  background: url("https://i.pinimg.com/originals/9d/eb/08/9deb08cbac490f5fa43032499f61c581.jpg") no-repeat center fixed;
+  background-size: cover;
+  -webkit-background-size: cover;
+  background-repeat: inherit;
+}

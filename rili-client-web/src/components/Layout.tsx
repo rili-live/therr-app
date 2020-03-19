@@ -2,25 +2,28 @@ import classnames from 'classnames';
 import * as React from 'react';
 import { bindActionCreators, Dispatch } from 'redux';
 import { connect } from 'react-redux';
-import { Route, Switch, withRouter, RouteComponentProps } from 'react-router-dom';
+import {
+    Route, Switch, withRouter, RouteComponentProps,
+} from 'react-router-dom';
 import { TransitionGroup as Animation } from 'react-transition-group';
 import { Location } from 'history';
 // import * as ReactGA from 'react-ga';
 import { ISocketState } from 'types/socket';
 import { IUserState } from 'types/user';
-import AuthRoute from 'rili-public-library/react-components/AuthRoute';
-import RedirectWithStatus from 'rili-public-library/react-components/RedirectWithStatus';
-import SvgButton from 'rili-public-library/react-components/SvgButton';
+import AuthRoute from 'rili-public-library/react-components/AuthRoute.js';
+import RedirectWithStatus from 'rili-public-library/react-components/RedirectWithStatus.js';
+import SvgButton from 'rili-public-library/react-components/SvgButton.js';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
-import scrollTo from 'rili-public-library/utilities/scroll-to';
+import scrollTo from 'rili-public-library/utilities/scroll-to.js';
 import Header from './Header';
 import initInterceptors from '../interceptors';
 import * as globalConfig from '../../../global-config.js';
-import routes, { IAccess, AccessCheckType } from '../routes';
+import routes from '../routes';
+import { IAccess, AccessCheckType } from '../types';
 import UserService from '../services/UserService';
 
-let _viewListener: any;
+let _viewListener: any; // eslint-disable-line no-underscore-dangle
 
 interface ILayoutRouterProps {
 
@@ -44,21 +47,17 @@ interface ILayoutState {
     isNavMenuOpen: boolean;
 }
 
-const mapStateToProps = (state: any) => {
-    return {
-        redirectRoute: state.redirectRoute,
-        user: state.user,
-    };
-};
+const mapStateToProps = (state: any) => ({
+    redirectRoute: state.redirectRoute,
+    user: state.user,
+});
 
-const mapDispatchToProps = (dispatch: Dispatch) => {
-    return bindActionCreators({
+const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
 
-    }, dispatch);
-};
+}, dispatch);
 
 // TODO: Animation between view change is not working when wrapped around a Switch
-export class Layout extends React.Component<ILayoutProps, ILayoutState> {
+export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState> {
     constructor(props: ILayoutProps, state: ILayoutState) {
         super(props);
 
@@ -79,8 +78,12 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         // ReactGA.initialize(globalConfig[process.env.NODE_ENV].googleAnalyticsKey);
         document.addEventListener('click', this.handleClick);
         this.setState({
-            'clientHasLoaded': true,
+            clientHasLoaded: true,
         });
+    }
+
+    componentWillUnmount() { // eslint-disable-line
+        _viewListener();
     }
 
     handleClick = (event: any) => {
@@ -112,22 +115,20 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.props.history.push('/');
     }
 
-    renderHeader = () => {
-        return (
-            <Header
-                goHome={this.goHome}
-                isAuthorized={
-                    UserService.isAuthorized(
-                        {
-                            type: AccessCheckType.ALL,
-                            levels: ['user.default'],
-                        },
-                        this.props.user,
-                    )
-                }
-            />
-        );
-    }
+    renderHeader = () => (
+        <Header
+            goHome={this.goHome}
+            isAuthorized={
+                UserService.isAuthorized(
+                    {
+                        type: AccessCheckType.ALL,
+                        levels: ['user.default'],
+                    },
+                    this.props.user,
+                )
+            }
+        />
+    )
 
     public render(): JSX.Element | null {
         const { location, user } = this.props;
@@ -137,7 +138,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
         // Cloak the view so it doesn't flash before client mounts
         if (this.state.clientHasLoaded) {
             return (
-                <div>
+                <>
                     {this.renderHeader()}
                     <div id="navMenu" className={navMenuClassNames}>
                         <p>Rili Inc.</p>
@@ -160,13 +161,17 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 routes.map((route, i) => {
                                     if (route.access) {
                                         return (
-                                            <AuthRoute isAuthorized={UserService.isAuthorized(route.access, user)} location={location} key={i} {...route} />
-                                        );
-                                    } else {
-                                        return (
-                                            <Route location={location} key={i} {...route} />
+                                            <AuthRoute
+                                                isAuthorized={UserService.isAuthorized(route.access, user)}
+                                                location={location}
+                                                key={i}
+                                                {...route}
+                                            />
                                         );
                                     }
+                                    return (
+                                        <Route location={location} key={i} {...route} />
+                                    );
                                 })
                             }
                             <RedirectWithStatus from="/redirect" to="/" />
@@ -183,25 +188,26 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             <SvgButton id="home" name="home" className="home-button" onClick={this.goHome} buttonType="primary" />
                         </div>
                         <div className="footer-menu-item">
-                            <SvgButton id="messages" name="messages" className="messages-button" onClick={this.toggleNavMenu} buttonType="primary" />
+                            <SvgButton
+                                id="messages"
+                                name="messages"
+                                className="messages-button"
+                                onClick={this.toggleNavMenu}
+                                buttonType="primary"
+                            />
                         </div>
                     </footer>
-                </div>
-            );
-        } else {
-            // Opportunity to add a loader of graphical display
-            return (
-                <div>
-                    {this.renderHeader()}
-                </div>
+                </>
             );
         }
-    }
-
-    componentWillUnmount() {
-        _viewListener();
+        // Opportunity to add a loader of graphical display
+        return (
+            <>
+                {this.renderHeader()}
+            </>
+        );
     }
 }
 
 // export default Layout;
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Layout));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(LayoutComponent));

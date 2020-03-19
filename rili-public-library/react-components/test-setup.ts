@@ -1,6 +1,6 @@
-import 'raf/polyfill'; // tslint:disable-line no-implicit-dependencies
-import { configure } from 'enzyme'; // tslint:disable-line no-implicit-dependencies
-import * as Adapter from 'enzyme-adapter-react-16'; // tslint:disable-line no-implicit-dependencies
+import 'raf/polyfill'; // eslint-disable-line import/extensions
+import { configure } from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
 
 Object.defineProperty(document, 'referrer', {
     value: 'https://www.example.com',

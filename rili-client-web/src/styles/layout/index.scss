@@ -5,9 +5,12 @@
 @import './alerts';
 @import '../pages';
 
+html {
+    background: $rili-black;
+}
+
 html,
 body {
-    background: $rili-black;
     color: $rili-white;
     font-family: sans-serif;
     font-size: 16px;
@@ -20,6 +23,7 @@ h1 {
 }
 
 .content-container {
+    background: transparentize($rili-black, .5);
     border-left: rem-calc(4px) double $rili-primary-2;
     border-right: rem-calc(4px) double $rili-primary-2;
     margin: ($header-height + 1rem) .5rem;

@@ -12,9 +12,9 @@ interface IItemsConfig {
 const calculatePages = ({ totalItems, itemsPerPage, pageNumber }: IItemsConfig, visiblePageButtons = 5) => {
     let endPage;
     let startPage;
-    const totalPages = totalItems ?
-        Math.ceil(totalItems / itemsPerPage) :
-        0;
+    const totalPages = totalItems
+        ? Math.ceil(totalItems / itemsPerPage)
+        : 0;
 
     const currentPage = pageNumber;
     const pageList = [];
