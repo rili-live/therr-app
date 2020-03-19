@@ -24,7 +24,11 @@ const createUser: RequestHandler = (req: any, res: any) => UsersStore.findUser(r
                     phoneNumber: req.body.phoneNumber,
                     userName: req.body.userName,
                 })
-                .then((results) => res.status(201).send(results[0])));
+                .then((results) => {
+                    const user = results[0];
+                    delete user.password;
+                    return res.status(201).send(user);
+                }));
     })
     .catch((err) => handleHttpError({
         err,
@@ -44,12 +48,17 @@ const getUser = (req, res) => UsersStore.getUsers({ id: req.params.id })
         }
         const user = results[0];
         delete user.password;
-        return res.status(200).send(results[0]);
+        return res.status(200).send(user);
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
 const getUsers: RequestHandler = (req: any, res: any) => UsersStore.getUsers()
-    .then((results) => res.status(200).send(results[0]))
+    .then((results) => {
+        res.status(200).send(results[0].map((user) => {
+            delete user.password; // eslint-disable-line no-param-reassign
+            return user;
+        }));
+    })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
 // UPDATE
@@ -75,7 +84,7 @@ const updateUser = (req, res) => UsersStore.findUser({ id: req.params.id, ...req
             .then((results) => {
                 const user = results[0];
                 delete user.password;
-                return res.status(200).send(results[0]);
+                return res.status(200).send(user);
             });
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));

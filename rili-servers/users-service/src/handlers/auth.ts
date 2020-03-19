@@ -22,7 +22,7 @@ const login: RequestHandler = (req: any, res: any) => UsersStore
             const user = results[0];
             delete user.password;
             return res.status(201).send({
-                user,
+                ...user,
                 idToken,
             });
         }
