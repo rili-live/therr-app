@@ -42,9 +42,7 @@ class SelectBox extends React.Component<any, any> {
             isInValid: true,
             isTouched: false,
         };
-    }
 
-    UNSAFE_componentWillMount() {
         document.addEventListener('click', this.handlePageClick);
     }
 
