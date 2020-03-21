@@ -8,17 +8,19 @@ describe('SearchBox', () => {
     const mockSearch = jest.fn();
     const mockTranslate = (key: any) => key;
     const searchBoxName = 'text-search-box';
+    const mockOnChange = jest.fn();
 
     beforeEach(() => {
+        mockOnChange.mockReset();
         wrapper = mount(
             <SearchBox
                 id={searchBoxName}
                 labelText="Search Box"
                 name={searchBoxName}
-                onChange={jest.fn()}
+                onChange={mockOnChange}
                 onSearch={mockSearch}
                 translate={mockTranslate}
-                value=""
+                value=''
             />,
         );
     });
@@ -34,7 +36,6 @@ describe('SearchBox', () => {
 
     it('applies and removes "is-dirty" class when text is added and removed', () => {
         const expectedValue = 'Test entry';
-        wrapper.instance().handleInputChange(expectedValue, searchBoxName);
         const inputWrapper = wrapper.find('Input');
         inputWrapper.instance().handleInputChange({
             target: {
@@ -42,7 +43,12 @@ describe('SearchBox', () => {
                 value: expectedValue,
             },
         });
+        wrapper.setProps({
+            value: expectedValue,
+        });
         wrapper.update();
+        expect(mockOnChange).toHaveBeenCalledTimes(1);
+        expect(mockOnChange).toHaveBeenCalledWith(searchBoxName, expectedValue);
         expect(wrapper.state().inputValue).toBe(expectedValue);
         expect(wrapper.find('.search-box').hasClass('is-dirty')).toBe(true);
         inputWrapper.instance().handleInputChange({
@@ -51,16 +57,19 @@ describe('SearchBox', () => {
                 value: '',
             },
         });
+        wrapper.setProps({
+            value: '',
+        });
         wrapper.update();
         expect(wrapper.state().inputValue).toBe('');
         expect(wrapper.find('.search-box').hasClass('is-dirty')).toBe(false);
-        expect(wrapper.props().onChange).toHaveBeenCalledTimes(3);
+        expect(wrapper.props().onChange).toHaveBeenCalledTimes(2);
     });
 
     it('calls onSearch prop when enter key is pressed', () => {
         const testInput = 'Test input';
-        wrapper.setState({
-            inputValue: testInput,
+        wrapper.setProps({
+            value: testInput,
         });
         wrapper.update();
         simulateKeyDown(KeyCode.Enter);
