@@ -14,6 +14,13 @@ export interface ICreateUserParams {
     userName: string;
 }
 
+interface IFindUserArgs {
+    id?: number;
+    email?: string;
+    userName?: string;
+    phoneNumber?: string;
+}
+
 class Store {
     db: IConnection;
 
@@ -36,7 +43,7 @@ class Store {
         email,
         userName,
         phoneNumber,
-    }) {
+    }: IFindUserArgs) {
         const queryString = knex.select('*').from('main.users')
             .where(function () {
                 return id ? this.where({ id }) : this;

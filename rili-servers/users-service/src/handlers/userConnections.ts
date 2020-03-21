@@ -2,32 +2,57 @@ import { RequestHandler } from 'express';
 import { getSearchQueryArgs } from 'rili-public-library/utilities/http.js';
 import handleHttpError from '../utilities/handleHttpError';
 import UserConnectionsStore from '../store/UserConnectionsStore';
+import UsersStore from '../store/UsersStore';
 
 // CREATE
-const createUserConnection: RequestHandler = (req: any, res: any) => UserConnectionsStore.getUserConnections({
-    requestingUserId: req.body.requestingUserId,
-    acceptingUserId: req.body.acceptingUserId,
-})
-    .then((getResults) => {
-        if (getResults.length) {
+const createUserConnection: RequestHandler = async (req: any, res: any) => {
+    const {
+        requestingUserId,
+        acceptingUserId,
+        acceptingUserPhoneNumber,
+        acceptingUserEmail,
+    } = req.body;
+    let user;
+    if (!acceptingUserId) {
+        const userResults = await UsersStore.findUser({
+            phoneNumber: acceptingUserPhoneNumber,
+            email: acceptingUserEmail,
+        });
+        if (!userResults.length) {
             return handleHttpError({
                 res,
-                message: 'This user connection already exists.',
-                statusCode: 400,
+                message: 'No user found with id with the provided criteria.',
+                statusCode: 404,
             });
         }
-
-        return UserConnectionsStore.createUserConnection({
-            requestingUserId: req.body.requestingUserId,
-            acceptingUserId: req.body.acceptingUserId,
-            requestStatus: 'pending',
-        }).then((results) => res.status(201).send({ id: results[0].id }));
+        user = userResults[0];
+    }
+    const acceptingId = acceptingUserId || user.id;
+    UserConnectionsStore.getUserConnections({
+        requestingUserId,
+        acceptingUserId: acceptingId,
     })
-    .catch((err) => handleHttpError({
-        err,
-        res,
-        message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR',
-    }));
+        .then((getResults) => {
+            if (getResults.length) {
+                return handleHttpError({
+                    res,
+                    message: 'This user connection already exists.',
+                    statusCode: 400,
+                });
+            }
+
+            return UserConnectionsStore.createUserConnection({
+                requestingUserId: req.body.requestingUserId,
+                acceptingUserId: req.body.acceptingUserId,
+                requestStatus: 'pending',
+            }).then((results) => res.status(201).send({ id: results[0].id }));
+        })
+        .catch((err) => handleHttpError({
+            err,
+            res,
+            message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR',
+        }));
+};
 
 // READ
 const getUserConnection = (req, res) => UserConnectionsStore.getUserConnections({
