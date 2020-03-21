@@ -1,10 +1,10 @@
 import * as express from 'express';
-// import {
-//     createUserValidation,
-// } from '../validation/users';
-// import {
-//     validate,
-// } from '../validation';
+import {
+    createUserConnectionValidation,
+} from '../validation/userConnections';
+import {
+    validate,
+} from '../validation';
 import {
     createUserConnection,
     getUserConnection,
@@ -15,7 +15,7 @@ import {
 const router = express.Router();
 
 // CREATE
-router.post('/', createUserConnection);
+router.post('/', createUserConnectionValidation, validate, createUserConnection);
 
 // READ
 router.get('/:requestingUserId', getUserConnection);
