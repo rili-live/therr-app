@@ -18,8 +18,10 @@ const PATHS = {
 
 const entry = {};
 utilities.forEach((utilityPath) => {
-    if (utilityPath === 'constants/index') {
-        entry.constants = `${PATHS.app}/${utilityPath}.ts`;
+    if (utilityPath === 'constants/index'
+        || utilityPath === 'db/index'
+        || utilityPath === 'http/index') {
+        entry[utilityPath.split('/')[0]] = `${PATHS.app}/${utilityPath}.ts`;
     } else {
         const pathSplit = utilityPath.split('/');
         const name = pathSplit[pathSplit.length - 1];

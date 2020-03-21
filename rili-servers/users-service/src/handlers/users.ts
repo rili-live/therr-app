@@ -67,8 +67,8 @@ const updateUser = (req, res) => UsersStore.findUser({ id: req.params.id, ...req
         if (!findResults.length) {
             return handleHttpError({
                 res,
-                message: 'Username, e-mail, and phone number must be unique. A user already exists.',
-                statusCode: 400,
+                message: `No user found with id, ${req.params.id}.`,
+                statusCode: 404,
             });
         }
 
