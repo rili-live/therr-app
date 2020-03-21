@@ -4,15 +4,64 @@ import classnames from 'classnames';
 import { Key as KeyCode } from 'ts-keycode-enum';
 import VALIDATIONS from '../../constants/VALIDATIONS';
 
-// interface IInputProps {
-
-// }
-
-// interface IInputState {
-
-// }
-
 class Input extends React.Component<any, any> {
+    static getDerivedStateFromProps(nextProps: any, nextState: any) {
+        if (nextState.inputValue !== nextProps.value) {
+            const modifiedValidationsState = Input.updateValidations(nextProps);
+            return {
+                inputValue: nextProps.value,
+                ...modifiedValidationsState,
+            };
+        }
+
+        const validationChanged = nextProps.validations.some((validation: any) => {
+            if (!(nextState.validations || []).includes(validation)) {
+                return true;
+            }
+            return false;
+        });
+
+        if (validationChanged) {
+            const modifiedValidationsState = Input.updateValidations(nextProps);
+            return {
+                ...modifiedValidationsState,
+            };
+        }
+
+        return {};
+    }
+
+    static updateValidations = (props: any) => {
+        const { onValidate, translate } = props;
+        const validationErrors: any = [];
+
+        if (props.validations.length === 0) {
+            return {};
+        }
+
+        props.validations.forEach((key: any) => {
+            if (!VALIDATIONS[key].regex.test(props.value)) {
+                validationErrors.push({
+                    key,
+                    message: translate(VALIDATIONS[key].errorMessageLocalizationKey, {
+                        value: props.value,
+                    }),
+                });
+            }
+        });
+
+        if (onValidate) {
+            onValidate({
+                [props.id]: validationErrors,
+            });
+        }
+
+        return {
+            validations: props.validations,
+            validationErrors,
+        };
+    }
+
     static propTypes: any = {
         autoComplete: PropTypes.oneOf(['off', 'on']),
         className: PropTypes.string,
@@ -54,29 +103,15 @@ class Input extends React.Component<any, any> {
         this.state = {
             isDirty: false,
             isTouched: false,
-            inputValue: props.value,
+            inputValue: props.input,
             validationErrors: [],
+            prevPropsValidations: [],
         };
     }
 
     componentDidMount() {
-        this.updateValidations(this.props);
-    }
-
-    UNSAFE_componentWillReceiveProps(nextProps: any) {
-        if (this.props.value !== nextProps.value) {
-            this.setState({
-                inputValue: nextProps.value,
-            }, () => this.updateValidations(nextProps));
-        } else {
-            nextProps.validations.some((validation: any) => {
-                if (!this.props.validations.includes(validation)) {
-                    this.updateValidations(nextProps);
-                    return true;
-                }
-                return false;
-            });
-        }
+        const modifiedValidationsState = Input.updateValidations(this.props);
+        this.setState(modifiedValidationsState);
     }
 
     public inputEl: any;
@@ -87,7 +122,6 @@ class Input extends React.Component<any, any> {
 
         this.setState({
             isDirty: value && value !== false,
-            inputValue: value,
         });
 
         this.props.onChange(name, value);
@@ -107,45 +141,16 @@ class Input extends React.Component<any, any> {
         return this.props.onFocus && this.props.onFocus();
     }
 
-    onBlur = () => {
-        this.updateValidations(this.props);
+    onBlur = () => { // eslint-disable-line arrow-body-style
+        const modifiedValidationsState = Input.updateValidations(this.props);
+        this.setState(modifiedValidationsState);
 
         return this.props.onBlur && this.props.onBlur();
     }
 
-    updateValidations = (props: any) => {
-        const { onValidate, translate } = this.props;
-        const validationErrors: any = [];
-
-        if (props.validations.length === 0) {
-            return;
-        }
-
-        props.validations.forEach((key: any) => {
-            if (!VALIDATIONS[key].regex.test(props.value)) {
-                validationErrors.push({
-                    key,
-                    message: translate(VALIDATIONS[key].errorMessageLocalizationKey, {
-                        value: props.value,
-                    }),
-                });
-            }
-        });
-
-        this.setState({
-            validationErrors,
-        });
-
-        if (onValidate) {
-            onValidate({
-                [props.id]: validationErrors,
-            });
-        }
-    }
-
     render() {
         const {
-            autoComplete, className, disabled, formClassName, id, name, placeholder, type, onBlur, validations,
+            autoComplete, className, disabled, formClassName, id, name, placeholder, type, validations,
         } = this.props;
         const {
             inputValue, isDirty, isTouched, validationErrors,

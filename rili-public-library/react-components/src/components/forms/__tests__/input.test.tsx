@@ -8,10 +8,12 @@ describe('Input', () => {
     const inputName = 'test-input';
     const mockOnValidate = jest.fn();
     const mockTranslate = (key: any) => key;
+    const mockOnChange = jest.fn();
 
     beforeEach(() => {
+        mockOnChange.mockReset();
         wrapper = mount(
-            <Input id={inputName} name={inputName} onChange={jest.fn()} onValidate={mockOnValidate} translate={mockTranslate} />,
+            <Input id={inputName} name={inputName} onChange={mockOnChange} onValidate={mockOnValidate} translate={mockTranslate} />,
         );
     });
 
@@ -24,7 +26,7 @@ describe('Input', () => {
             },
         });
         wrapper.update();
-        expect(wrapper.state().inputValue).toBe(expectedValue);
+        expect(mockOnChange).toHaveBeenCalledTimes(1);
         expect(wrapper.find('input').hasClass('is-dirty')).toBe(true);
         wrapper.instance().handleInputChange({
             target: {
@@ -95,10 +97,10 @@ describe('Input', () => {
             },
         });
         wrapper.update();
-        const input = wrapper.find('input');
 
         // This prop is not really a React prop, but rather the value property on a standard input
-        expect(input.props().value).toBe(expectedValue);
+        expect(mockOnChange).toHaveBeenCalledTimes(1);
+        expect(mockOnChange).toHaveBeenCalledWith(inputName, expectedValue);
     });
 
     it('updates input text based on props', () => {
