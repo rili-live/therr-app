@@ -6,6 +6,33 @@ import classnames from 'classnames';
 const SELECTION_KEYS: any = [KeyCode.Enter, KeyCode.Space];
 
 class SelectBox extends React.Component<any, any> {
+    static getDerivedStateFromProps(nextProps: any, nextState: any) {
+        if (nextProps.value !== nextState.value || nextProps.required !== nextState.required) {
+            const modifiedValidationsState = SelectBox.updateValidations(nextProps);
+            return {
+                value: nextProps.value,
+                required: nextProps.required,
+                ...modifiedValidationsState,
+            };
+        }
+
+        return {};
+    }
+
+    static updateValidations = (props: any) => {
+        const { onValidate, translate } = props;
+
+        if (onValidate) {
+            onValidate({
+                [props.id]: translate('validations.isRequired'),
+            });
+        }
+
+        return {
+            isInvalid: props.required && (!props.value && props.value !== false),
+        };
+    }
+
     static propTypes: any = {
         className: PropTypes.string,
         disabled: PropTypes.bool,
@@ -39,21 +66,18 @@ class SelectBox extends React.Component<any, any> {
         this.state = {
             axIndex: 0,
             optionsAreVisible: false,
-            isInValid: true,
+            isInvalid: true,
             isTouched: false,
+            value: props.value,
+            required: props.required,
         };
 
         document.addEventListener('click', this.handlePageClick);
     }
 
     componentDidMount() {
-        this.updateValidations(this.props);
-    }
-
-    UNSAFE_componentWillReceiveProps(nextProps: any) {
-        if (this.props.value !== nextProps.value || this.props.required !== nextProps.required) {
-            this.updateValidations(nextProps);
-        }
+        const modifiedValidationsState = SelectBox.updateValidations(this.props);
+        this.setState(modifiedValidationsState);
     }
 
     componentWillUnmount() {
@@ -145,10 +169,10 @@ class SelectBox extends React.Component<any, any> {
     }
 
     updateValidations = (props: any) => {
-        const { onValidate, translate } = this.props;
+        const { onValidate, translate } = props;
 
         this.setState({
-            isInValid: props.required && (!props.value && props.value !== false),
+            isInvalid: props.required && (!props.value && props.value !== false),
         });
         if (onValidate) {
             onValidate({
@@ -162,15 +186,15 @@ class SelectBox extends React.Component<any, any> {
             className, disabled, id, isTesting, options, placeHolderText, required, translate, value,
         } = this.props;
         const {
-            axIndex, isInValid, isTouched, optionsAreVisible,
+            axIndex, isInvalid, isTouched, optionsAreVisible,
         } = this.state;
         const selectedOption = options.find((option: any) => option.value === value) || [];
         const selectedText = translate(selectedOption.text);
         const mainClasses = classnames({
             disabled,
             active: optionsAreVisible,
-            'is-invalid': isInValid,
-            'is-valid': !isInValid && required,
+            'is-invalid': isInvalid,
+            'is-valid': !isInvalid && required,
             'is-touched': isTouched,
             'select-box': true,
         });
