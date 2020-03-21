@@ -1,3 +1,6 @@
+const path = require('path'); // eslint-disable-line @typescript-eslint/no-var-requires
+require('dotenv').config({ path: path.join(__dirname, '../../../../.env') });
+
 // Update with your config settings.
 module.exports = {
     development: {

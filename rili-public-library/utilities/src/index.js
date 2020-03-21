@@ -5,6 +5,12 @@ const utilities = [
     // Constants
     'constants/index',
 
+    // Database Helpers
+    'db/index',
+
+    // HTTP/REST Helpers
+    'http/index',
+
     // Utilities
     'calculate-pages',
     'http-response',
