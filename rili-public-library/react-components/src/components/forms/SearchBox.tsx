@@ -6,6 +6,16 @@ import Input from './Input';
 import VALIDATIONS from '../../constants/VALIDATIONS';
 
 class SearchBox extends React.Component<any, any> {
+    static getDerivedStateFromProps(nextProps: any, nextState: any) {
+        if (nextProps.value !== nextState.inputValue) {
+            return {
+                inputValue: nextProps.value,
+            };
+        }
+
+        return {};
+    }
+
     static propTypes: any = {
         autoComplete: PropTypes.oneOf(['off', 'on']),
         disabled: PropTypes.bool,
@@ -36,15 +46,8 @@ class SearchBox extends React.Component<any, any> {
         };
     }
 
-    UNSAFE_componentWillReceiveProps(nextProps: any) {
-        this.setState({
-            inputValue: nextProps.value,
-        });
-    }
-
     handleInputChange = (key: any, value: any) => {
         this.setState({
-            inputValue: value,
             isDirty: !!value.length,
         });
         this.props.onChange(key, value);
