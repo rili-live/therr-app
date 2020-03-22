@@ -58,7 +58,12 @@ const initInterceptors = (
                 //     type: 'error',
                 //     delay: 3000
                 // }));
-                history.push('/login');
+
+                // Do not redirect when 401 occurs on a login page
+                // The "home" page is also a login
+                if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
+                    history.push('/login');
+                }
             }
         }
 

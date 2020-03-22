@@ -7,10 +7,10 @@ import { IUserState } from 'types/user';
 import translator from '../services/translator';
 import LoginForm from '../components/LoginForm';
 
-const shouldRender = (props: ILoginProps) => !props.user
+export const shouldRenderLoginForm = (props: ILoginProps) => !props.user
     || !props.user.isAuthenticated
-    || !props.user.accessLevels
-    || !props.user.accessLevels.length;
+    || !props.user.details.accessLevels
+    || !props.user.details.accessLevels.length;
 
 interface ILoginRouterProps {
     history: any;
@@ -26,7 +26,7 @@ interface IStoreProps extends ILoginDispatchProps {
 }
 
 // Regular component props
-interface ILoginProps extends RouteComponentProps<ILoginRouterProps>, IStoreProps {
+export interface ILoginProps extends RouteComponentProps<ILoginRouterProps>, IStoreProps {
 }
 
 interface ILoginState {
@@ -46,7 +46,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  */
 export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     static getDerivedStateFromProps(nextProps: ILoginProps) {
-        if (!shouldRender(nextProps)) {
+        if (!shouldRenderLoginForm(nextProps)) {
             nextProps.history.push('/user/profile');
             return null;
         }
@@ -69,13 +69,9 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
 
     private translate: Function;
 
-    login = (credentials: any) => {
-        this.props.login(credentials).then(() => {
-            this.props.history.push('/join-room');
-        }).catch((error: any) => {
-            console.log('LOGIN_ERROR: ', error);
-        });
-    }
+    login = (credentials: any) => this.props.login(credentials).then(() => {
+        this.props.history.push('/join-room');
+    })
 
     public render(): JSX.Element | null {
         const { location } = this.props;

@@ -30,6 +30,12 @@ h1 {
     padding: .5rem 1.5rem;
 }
 
+@media only screen and (min-width: rem-calc(540px)) {
+    .content-container {
+        margin: ($header-height + 1.8rem) .5rem;
+    }
+}
+
 hr {
     border-color: $rili-primary-1;
     border-width: rem-calc(2px);
@@ -96,11 +102,4 @@ ul {
         padding-bottom: 4rem;
         background: none;
     }
-}
-
-.flex-box {
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    align-items: center;
 }

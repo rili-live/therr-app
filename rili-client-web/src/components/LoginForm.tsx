@@ -13,6 +13,7 @@ interface ILoginFormProps {
 
 interface ILoginFormState {
     inputs: any;
+    prevLoginError: string;
 }
 
 /**
@@ -24,6 +25,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
 
         this.state = {
             inputs: {},
+            prevLoginError: '',
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -36,6 +38,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
     }
 
     onSubmit = (event: any) => {
+        event.preventDefault();
         const { password, rememberMe, userName } = this.state.inputs;
         switch (event.target.id) {
             case 'password':
@@ -46,6 +49,10 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                         userName,
                         password,
                         rememberMe,
+                    }).catch((error: any) => {
+                        if (error.statusCode === 401 || error.statusCode === 404) {
+                            this.setState({ prevLoginError: error.message });
+                        }
                     });
                 }
                 break;
@@ -62,10 +69,12 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                 ...this.state.inputs,
                 ...newInputChanges,
             },
+            prevLoginError: '',
         });
     }
 
     public render(): JSX.Element | null {
+        const { prevLoginError } = this.state;
         const { alert, title } = this.props;
 
         return (
@@ -73,7 +82,11 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                 <h1 className="text-center">{ title || 'Login' }</h1>
                 {
                     alert
-              && <div className="text-center alert-success">{alert}</div>
+                     && <div className="text-center alert-success">{alert}</div>
+                }
+                {
+                    prevLoginError
+                    && <div className="text-center alert-error padding-sm">{prevLoginError}</div>
                 }
                 <label htmlFor="user_name">Username:</label>
                 <Input
@@ -84,6 +97,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                     onChange={this.onInputChange}
                     onEnter={this.onSubmit}
                     translate={this.translate}
+                    validations={['isRequired']}
                 />
 
                 <label htmlFor="passwork">Password:</label>
@@ -95,6 +109,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                     onChange={this.onInputChange}
                     onEnter={this.onSubmit}
                     translate={this.translate}
+                    validations={['isRequired']}
                 />
 
                 <div className="text-left">
