@@ -48,6 +48,14 @@ button.primary:hover:not([disabled]) {
   cursor: pointer;
 }
 
+.underline {
+  text-decoration: underline;
+}
+
+.text-center {
+  text-align: center;
+}
+
 .radio-group .radio-option {
   align-items: center;
   display: flex;
@@ -543,6 +551,31 @@ select .options-list .option-container.ax-active,
   fill: #dee1e4;
   height: 100%;
   width: 100%;
+}
+
+.fill {
+  width: 100%;
+}
+
+.flex-box {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+.flex-box.row {
+  flex-direction: row;
+  align-items: unset;
+}
+.flex-box.column {
+  flex-direction: column;
+}
+.flex-box.space-around {
+  justify-content: space-around;
+}
+
+.padding-sm {
+  margin: rem-calc(8px);
 }
 
 .pagination-controls {

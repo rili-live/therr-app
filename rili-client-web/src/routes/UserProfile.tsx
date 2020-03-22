@@ -1,8 +1,10 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { RouteComponentProps, withRouter, Link } from 'react-router-dom';
-import SocketActions from 'actions/socket';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
+import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
+import Input from 'rili-public-library/react-components/Input.js';
+import SelectBox from 'rili-public-library/react-components/SelectBox.js';
 import { IUserState } from 'types/user';
 import translator from '../services/translator';
 
@@ -22,6 +24,7 @@ interface IUserProfileProps extends RouteComponentProps<{}>, IStoreProps {
 
 interface IUserProfileState {
     inputs: any;
+    hasValidationErrors: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -40,6 +43,14 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
     constructor(props: IUserProfileProps) {
         super(props);
 
+        this.state = {
+            hasValidationErrors: true,
+            inputs: {
+                connectionIdentifier: '',
+                phoneNumber: '',
+            },
+        };
+
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
@@ -47,24 +58,139 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         document.title = 'Rili | User Profile';
     }
 
+    isFormValid() {
+        const { hasValidationErrors, inputs } = this.state;
+        return !hasValidationErrors
+            && ((inputs.connectionIdentifier === 'acceptingUserPhoneNumber' && !!inputs.phoneNumber)
+                || (inputs.connectionIdentifier === 'acceptingUserEmail' && !!inputs.email));
+    }
+
+    onJoinRoomClick = () => {
+        this.props.history.push('/join-room');
+    }
+
+    onSubmit = (event: any) => {
+        const { inputs } = this.state;
+        const reqBody: any = {
+            requestingUserId: this.props.user.details.id,
+        };
+        if (this.state.inputs.connectionIdentifier === 'acceptingUserEmail') {
+            reqBody.acceptingUserEmail = inputs.email;
+        }
+        if (this.state.inputs.connectionIdentifier === 'acceptingUserPhoneNumber') {
+            reqBody.acceptingUserPhoneNumber = inputs.phoneNumber;
+        }
+    };
+
+    onInputChange = (name: string, value: string) => {
+        const newInputChanges = {
+            [name]: value,
+        };
+        this.setState({
+            inputs: {
+                ...this.state.inputs,
+                ...newInputChanges,
+            },
+        });
+    }
+
+    onValidateInput = (validations: any) => {
+        const hasValidationErrors = !!Object.keys(validations).filter((key) => validations[key].length).length;
+        this.setState({
+            hasValidationErrors,
+        });
+    }
+
     public render(): JSX.Element | null {
         const { user } = this.props;
+        const { inputs } = this.state;
 
         if (!user.details) {
             return null;
         }
 
         return (
-            <div id="page_user_profile" className="flex-box">
+            <div id="page_user_profile" className="flex-box column">
                 <h1>User Profile</h1>
-                <div>
-                    <h3><b>Firstname:</b> {user.details.firstName}</h3>
-                    <h3><b>Lastname:</b> {user.details.lastName}</h3>
-                    <h3><b>Username:</b> {user.details.userName}</h3>
-                    <h3><b>E-mail:</b> {user.details.email}</h3>
-                    <h3><b>Phone:</b> {user.details.phoneNumber}</h3>
+                <div className="flex-box row space-around fill">
+                    <div id="account_details">
+                        <h2 className="underline">Account Details</h2>
+                        <h3><b>Firstname:</b> {user.details.firstName}</h3>
+                        <h3><b>Lastname:</b> {user.details.lastName}</h3>
+                        <h3><b>Username:</b> {user.details.userName}</h3>
+                        <h3><b>E-mail:</b> {user.details.email}</h3>
+                        <h3><b>Phone:</b> {user.details.phoneNumber}</h3>
+                    </div>
+                    <div id="add_connections">
+                        <h2 className="underline">Add New Connection</h2>
+                        <SelectBox
+                            type="text"
+                            id="connection_identifier"
+                            name="connectionIdentifier"
+                            value={this.state.inputs.connectionIdentifier}
+                            onChange={this.onInputChange}
+                            onEnter={this.onSubmit}
+                            translate={this.translate}
+                            options={[
+                                {
+                                    text: 'Phone Number',
+                                    value: 'acceptingUserPhoneNumber',
+                                },
+                                {
+                                    text: 'E-mail',
+                                    value: 'acceptingUserEmail',
+                                },
+                            ]}
+                            placeHolderText="Choose an identifier..."
+                            validations={['isRequired']}
+                        />
+                        {
+                            inputs.connectionIdentifier === 'acceptingUserPhoneNumber'
+                            && <>
+                                <label className="required" htmlFor="phone_number">Phone Number:</label>
+                                <Input
+                                    type="text"
+                                    id="phone_number"
+                                    name="phoneNumber"
+                                    value={this.state.inputs.phoneNumber}
+                                    onChange={this.onInputChange}
+                                    onEnter={this.onSubmit}
+                                    translate={this.translate}
+                                    validations={['isRequired', 'numbersOnly']}
+                                    onValidate={this.onValidateInput}
+                                />
+                            </>
+                        }
+                        {
+                            inputs.connectionIdentifier === 'acceptingUserEmail'
+                            && <>
+                                <label className="required" htmlFor="email">E-mail:</label>
+                                <Input
+                                    type="text"
+                                    id="email"
+                                    name="email"
+                                    value={this.state.inputs.email}
+                                    onChange={this.onInputChange}
+                                    onEnter={this.onSubmit}
+                                    translate={this.translate}
+                                    validations={['isRequired', 'email']}
+                                    onValidate={this.onValidateInput}
+                                />
+                            </>
+                        }
 
-                    <Link to="/join-room">Join a room</Link>
+                        <div className="form-field text-right">
+                            <ButtonPrimary id="sendRequest" text="Send Request" onClick={this.onSubmit} disabled={!this.isFormValid()} />
+                        </div>
+                    </div>
+                    <div id="your_connections">
+                        <h2 className="underline">Connections</h2>
+                    </div>
+                </div>
+                <div className="fill text-right">
+                    <button type="button" className="primary text-white" onClick={this.onJoinRoomClick}>
+                        Join A Room
+                    </button>
                 </div>
             </div>
         );

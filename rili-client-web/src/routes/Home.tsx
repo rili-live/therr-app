@@ -6,11 +6,7 @@ import SocketActions from 'actions/socket';
 import { IUserState } from 'types/user';
 import translator from '../services/translator';
 import LoginForm from '../components/LoginForm';
-
-const shouldRender = (props: IHomeProps) => !props.user
-    || !props.user.isAuthenticated
-    || !props.user.accessLevels
-    || !props.user.accessLevels.length;
+import { shouldRenderLoginForm, ILoginProps } from './Login';
 
 interface IHomeRouterProps {
 }
@@ -44,7 +40,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  */
 export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
     static getDerivedStateFromProps(nextProps: IHomeProps) {
-        if (!shouldRender(nextProps)) {
+        if (!shouldRenderLoginForm(nextProps as ILoginProps)) {
             nextProps.history.push('/user/profile');
             return null;
         }
@@ -67,13 +63,9 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
     private translate: Function;
 
-    login = (credentials: any) => {
-        this.props.login(credentials).then(() => {
-            this.props.history.push('/join-room');
-        }).catch((error: any) => {
-            console.log('HOME_LOGIN_ERROR: ', error);
-        });
-    }
+    login = (credentials: any) => this.props.login(credentials).then(() => {
+        this.props.history.push('/join-room');
+    })
 
     public render(): JSX.Element | null {
         return (

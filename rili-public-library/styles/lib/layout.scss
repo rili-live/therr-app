@@ -1,0 +1,27 @@
+.fill {
+  width: 100%;
+}
+
+.flex-box {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+
+  &.row {
+    flex-direction: row;
+    align-items: unset;
+  }
+
+  &.column {
+    flex-direction: column;
+  }
+
+  &.space-around {
+    justify-content: space-around;
+  }
+}
+
+.padding-sm {
+  margin: rem-calc(8px);
+}
