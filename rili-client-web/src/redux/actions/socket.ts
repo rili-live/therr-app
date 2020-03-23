@@ -1,6 +1,6 @@
 import { SocketClientActionTypes } from 'rili-public-library/utilities/constants.js';
 import { IUser } from 'types/user';
-import UserService from '../../services/UserService';
+import UserService from '../../services/UsersService';
 
 const SocketActions = {
     joinRoom: (data: any) => (dispatch: any) => {

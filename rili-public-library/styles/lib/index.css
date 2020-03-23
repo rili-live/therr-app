@@ -574,8 +574,32 @@ select .options-list .option-container.ax-active,
   justify-content: space-around;
 }
 
+.margin-sm {
+  margin: 0.5rem;
+}
+
+.margin-bot-sm {
+  margin-bottom: 0.5rem;
+}
+
+.margin-md {
+  margin: 1.5rem;
+}
+
+.margin-lg {
+  margin: 3rem;
+}
+
 .padding-sm {
-  margin: rem-calc(8px);
+  padding: 0.5rem;
+}
+
+.padding-md {
+  padding: 1.5rem;
+}
+
+.padding-lg {
+  padding: 3rem;
 }
 
 .pagination-controls {

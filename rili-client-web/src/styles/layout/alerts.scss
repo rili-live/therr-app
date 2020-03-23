@@ -1,5 +1,9 @@
 .alert-error {
   color: $rili-alert-error;
+
+  &.backed {
+    background-color: transparentize(lighten($rili-alert-error, 60%), .5);
+  }
 }
 
 .alert-success {

@@ -7,6 +7,7 @@ import Input from 'rili-public-library/react-components/Input.js';
 import SelectBox from 'rili-public-library/react-components/SelectBox.js';
 import { IUserState } from 'types/user';
 import translator from '../services/translator';
+import UserConnectionsService from '../services/UserConnectionsService';
 
 // interface IUserProfileRouterProps {
 // }
@@ -25,6 +26,8 @@ interface IUserProfileProps extends RouteComponentProps<{}>, IStoreProps {
 interface IUserProfileState {
     inputs: any;
     hasValidationErrors: boolean;
+    prevRequestError: string;
+    prevRequestSuccess: string;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -49,6 +52,8 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                 connectionIdentifier: '',
                 phoneNumber: '',
             },
+            prevRequestError: '',
+            prevRequestSuccess: '',
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -70,15 +75,36 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
     }
 
     onSubmit = (event: any) => {
-        const { inputs } = this.state;
-        const reqBody: any = {
-            requestingUserId: this.props.user.details.id,
-        };
-        if (this.state.inputs.connectionIdentifier === 'acceptingUserEmail') {
-            reqBody.acceptingUserEmail = inputs.email;
-        }
-        if (this.state.inputs.connectionIdentifier === 'acceptingUserPhoneNumber') {
-            reqBody.acceptingUserPhoneNumber = inputs.phoneNumber;
+        if (this.isFormValid()) {
+            const { inputs } = this.state;
+            const reqBody: any = {
+                requestingUserId: this.props.user.details.id,
+            };
+            if (this.state.inputs.connectionIdentifier === 'acceptingUserEmail') {
+                reqBody.acceptingUserEmail = inputs.email;
+            }
+            if (this.state.inputs.connectionIdentifier === 'acceptingUserPhoneNumber') {
+                reqBody.acceptingUserPhoneNumber = inputs.phoneNumber;
+            }
+
+            UserConnectionsService.create(reqBody)
+                .then((response) => {
+                    console.log(response);
+                    this.setState({
+                        inputs: {
+                            connectionIdentifier: '',
+                            phoneNumber: '',
+                        },
+                        prevRequestSuccess: 'A connection request was successfully sent',
+                    });
+                })
+                .catch((error) => {
+                    if (error.statusCode === 400 || error.statusCode === 404) {
+                        this.setState({
+                            prevRequestError: error.message,
+                        });
+                    }
+                });
         }
     };
 
@@ -91,6 +117,8 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                 ...this.state.inputs,
                 ...newInputChanges,
             },
+            prevRequestError: '',
+            prevRequestSuccess: '',
         });
     }
 
@@ -103,7 +131,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
 
     public render(): JSX.Element | null {
         const { user } = this.props;
-        const { inputs } = this.state;
+        const { inputs, prevRequestError, prevRequestSuccess } = this.state;
 
         if (!user.details) {
             return null;
@@ -178,7 +206,14 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                 />
                             </>
                         }
-
+                        {
+                            prevRequestSuccess
+                            && <div className="text-center alert-success">{prevRequestSuccess}</div>
+                        }
+                        {
+                            prevRequestError
+                            && <div className="text-center alert-error backed padding-sm margin-bot-sm">{prevRequestError}</div>
+                        }
                         <div className="form-field text-right">
                             <ButtonPrimary id="sendRequest" text="Send Request" onClick={this.onSubmit} disabled={!this.isFormValid()} />
                         </div>
