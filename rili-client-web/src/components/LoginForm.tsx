@@ -86,7 +86,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                 }
                 {
                     prevLoginError
-                    && <div className="text-center alert-error padding-sm">{prevLoginError}</div>
+                    && <div className="text-center alert-error backed padding-sm">{prevLoginError}</div>
                 }
                 <label htmlFor="user_name">Username:</label>
                 <Input

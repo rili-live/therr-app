@@ -20,8 +20,8 @@ import Header from './Header';
 import initInterceptors from '../interceptors';
 import * as globalConfig from '../../../global-config.js';
 import routes from '../routes';
-import { IAccess, AccessCheckType } from '../types';
-import UserService from '../services/UserService';
+import { AccessCheckType } from '../types';
+import UserService from '../services/UsersService';
 
 let _viewListener: any; // eslint-disable-line no-underscore-dangle
 

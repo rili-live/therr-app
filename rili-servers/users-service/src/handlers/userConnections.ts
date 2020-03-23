@@ -5,6 +5,7 @@ import UserConnectionsStore from '../store/UserConnectionsStore';
 import UsersStore from '../store/UsersStore';
 
 // CREATE
+// TODO:RSERV-24: Security, get requestingUserId from user header token
 const createUserConnection: RequestHandler = async (req: any, res: any) => {
     const {
         requestingUserId,
@@ -23,7 +24,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
             if (!userResults.length) {
                 return handleHttpError({
                     res,
-                    message: 'No user found with id with the provided criteria.',
+                    message: 'No user found with the provided criteria.',
                     statusCode: 404,
                 });
             }
@@ -37,6 +38,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 });
             }
         } catch (err) {
+            console.log(err);
             return handleHttpError({
                 err,
                 res,
