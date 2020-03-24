@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import AccessControl from 'rili-public-library/react-components/AccessControl.js';
 import { IUserState } from 'types/user';
-import SocketActions from 'actions/socket';
+import SocketActions from 'actions/Socket';
 import { bindActionCreators } from 'redux';
 
 interface IHeaderDispatchProps {

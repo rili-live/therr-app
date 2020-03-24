@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import SocketActions from 'actions/socket';
+import SocketActions from 'actions/Socket';
 import { IUserState } from 'types/user';
 import translator from '../services/translator';
 import LoginForm from '../components/LoginForm';
