@@ -6,6 +6,8 @@ import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js
 import Input from 'rili-public-library/react-components/Input.js';
 import SelectBox from 'rili-public-library/react-components/SelectBox.js';
 import { IUserState } from 'types/user';
+import { IUserConnectionsState } from 'types/userConnections';
+import UserConnectionActions from 'actions/UserConnections';
 import translator from '../services/translator';
 import UserConnectionsService from '../services/UserConnectionsService';
 
@@ -13,10 +15,12 @@ import UserConnectionsService from '../services/UserConnectionsService';
 // }
 
 interface IUserProfileDispatchProps {
+    searchUserConnections: Function;
 }
 
 interface IStoreProps extends IUserProfileDispatchProps {
     user: IUserState;
+    userConnections: IUserConnectionsState;
 }
 
 // Regular component props
@@ -32,9 +36,11 @@ interface IUserProfileState {
 
 const mapStateToProps = (state: any) => ({
     user: state.user,
+    userConnections: state.userConnections,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    searchUserConnections: UserConnectionActions.search,
 }, dispatch);
 
 /**
@@ -61,6 +67,15 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
         document.title = 'Rili | User Profile';
+        const {
+            user,
+        } = this.props;
+        this.props.searchUserConnections({
+            filterBy: 'requestingUserId',
+            query: user.details.id,
+            itemsPerPage: 20,
+            pageNumber: 1,
+        });
     }
 
     isFormValid() {
@@ -89,7 +104,6 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
 
             UserConnectionsService.create(reqBody)
                 .then((response) => {
-                    console.log(response);
                     this.setState({
                         inputs: {
                             connectionIdentifier: '',
@@ -130,7 +144,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
     }
 
     public render(): JSX.Element | null {
-        const { user } = this.props;
+        const { user, userConnections } = this.props;
         const { inputs, prevRequestError, prevRequestSuccess } = this.state;
 
         if (!user.details) {
@@ -220,6 +234,18 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                     </div>
                     <div id="your_connections">
                         <h2 className="underline">Connections</h2>
+                        <div className="user-connections-container">
+                            {
+                                userConnections.connections.map((connection: any) => (
+                                    <div className="user-connection-icon" key={connection.acceptingUserId}>
+                                        <img
+                                            src={`https://robohash.org/${connection.acceptingUserId}`}
+                                            alt="User Connection"
+                                        />
+                                    </div>
+                                ))
+                            }
+                        </div>
                     </div>
                 </div>
                 <div className="fill text-right">

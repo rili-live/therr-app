@@ -1,9 +1,9 @@
-import countDbRecords, { ICountDbRecords } from './count-db-records';
-import searchDbRecords, { ISearchDbRecords } from './search-db-records';
+import getDbCountQueryString, { ICountDbRecords } from './get-db-count-query-string';
+import getDbQueryString, { ISearchDbRecords } from './get-db-query-string';
 
 export {
-    countDbRecords,
+    getDbCountQueryString,
     ICountDbRecords,
-    searchDbRecords,
+    getDbQueryString,
     ISearchDbRecords,
 };
