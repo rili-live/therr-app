@@ -24,6 +24,7 @@ export default responseTime((req, res, time) => {
         ip: req.ip,
         method: req.method,
         originalUrl: req.originalUrl,
+        origin: req.origin,
         params: req.params,
         path: req.path,
         body: serializedBody,
