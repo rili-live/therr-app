@@ -1,5 +1,5 @@
 header {
-    z-index: 100;
+    z-index: 90;
     align-items: center;
     background: $rili-primary-1;
     display: flex;
@@ -11,7 +11,8 @@ header {
     box-shadow: $box-shadow-fixed-top;
 
     .login-link,
-    .logout-button {
+    .logout-button,
+    #header_account_button {
         position: absolute;
         right: 1rem;
         cursor: pointer;
@@ -21,6 +22,10 @@ header {
             text-decoration: none;
             font-weight: bold;
         }
+    }
+
+    #header_account_button {
+        width: 7rem;
     }
 }
 

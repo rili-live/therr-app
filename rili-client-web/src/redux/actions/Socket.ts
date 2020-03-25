@@ -9,36 +9,38 @@ const Socket = {
             data,
         });
     },
-    login: (data: any) => (dispatch: any) => UsersService.authenticate(data).then((response) => {
-        const {
-            accessLevels,
-            id,
-            idToken,
-            email,
-            firstName,
-            lastName,
-            phoneNumber,
-            userName,
-        } = response.data;
-        const userData: IUser = {
-            accessLevels,
-            id,
-            idToken,
-            email,
-            firstName,
-            lastName,
-            phoneNumber,
-            userName,
-        };
-        sessionStorage.setItem('riliUser', JSON.stringify(userData));
-        if (data.rememberMe) {
-            localStorage.setItem('riliUser', JSON.stringify(userData));
-        }
-        dispatch({
-            type: SocketClientActionTypes.LOGIN,
-            data: userData,
+    login: (data: any) => async (dispatch: any) => {
+        await UsersService.authenticate(data).then((response) => {
+            const {
+                accessLevels,
+                id,
+                idToken,
+                email,
+                firstName,
+                lastName,
+                phoneNumber,
+                userName,
+            } = response.data;
+            const userData: IUser = {
+                accessLevels,
+                id,
+                idToken,
+                email,
+                firstName,
+                lastName,
+                phoneNumber,
+                userName,
+            };
+            sessionStorage.setItem('riliUser', JSON.stringify(userData));
+            if (data.rememberMe) {
+                localStorage.setItem('riliUser', JSON.stringify(userData));
+            }
+            dispatch({
+                type: SocketClientActionTypes.LOGIN,
+                data: userData,
+            });
         });
-    }),
+    },
     logout: (data: any) => (dispatch: any) => UsersService.logout(data).then(() => {
         sessionStorage.removeItem('riliUser');
         localStorage.removeItem('riliUser');

@@ -22,6 +22,7 @@ import * as globalConfig from '../../../global-config.js';
 import routes from '../routes';
 import { AccessCheckType } from '../types';
 import UsersService from '../services/UsersService';
+import Footer from './Footer';
 
 let _viewListener: any; // eslint-disable-line no-underscore-dangle
 
@@ -89,7 +90,8 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
     handleClick = (event: any) => {
         if (this.state.isNavMenuOpen) {
             const isClickInsideNavMenu = document.getElementById('navMenu').contains(event.target)
-                || document.getElementById('messages').contains(event.target);
+                || document.getElementById('messages').contains(event.target)
+                || document.getElementById('header_account_button').contains(event.target);
 
             if (!isClickInsideNavMenu) {
                 this.toggleNavMenu();
@@ -127,8 +129,25 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                     this.props.user,
                 )
             }
+            toggleNavMenu={this.toggleNavMenu}
         />
     )
+
+    renderFooter = () => (
+        <Footer
+            goHome={this.goHome}
+            isAuthorized={
+                UsersService.isAuthorized(
+                    {
+                        type: AccessCheckType.ALL,
+                        levels: ['user.default'],
+                    },
+                    this.props.user,
+                )
+            }
+            toggleNavMenu={this.toggleNavMenu}
+        />
+    );
 
     public render(): JSX.Element | null {
         const { location, user } = this.props;
@@ -181,22 +200,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                     {/* <Alerts></Alerts> */}
                     {/* <Loader></Loader> */}
 
-                    <footer>
-                        <div className="footer-menu-item">
-                        </div>
-                        <div className="footer-menu-item">
-                            <SvgButton id="home" name="home" className="home-button" onClick={this.goHome} buttonType="primary" />
-                        </div>
-                        <div className="footer-menu-item">
-                            <SvgButton
-                                id="messages"
-                                name="messages"
-                                className="messages-button"
-                                onClick={this.toggleNavMenu}
-                                buttonType="primary"
-                            />
-                        </div>
-                    </footer>
+                    { this.renderFooter() }
                 </>
             );
         }
