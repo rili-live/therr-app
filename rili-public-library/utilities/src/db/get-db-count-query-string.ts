@@ -6,15 +6,16 @@ export interface ICountDbRecords {
     filterBy?: string;
     query?: any;
   };
+  defaultConditions: any;
 }
 
 export default ({
     queryBuilder,
-    execQuery,
     tableName,
     params,
+    defaultConditions,
 }: ICountDbRecords) => {
-    const where: any = {};
+    const where: any = defaultConditions;
     if (params.filterBy && params.query) {
         where[params.filterBy] = params.query || '';
     }
@@ -25,5 +26,5 @@ export default ({
         .where(where)
         .toString();
 
-    return execQuery(queryString);
+    return queryString;
 };

@@ -25,7 +25,7 @@ interface IRegisterCredentials {
     password: string;
 }
 
-class UserService {
+class UsersService {
     authenticate = (data: ILoginCredentials) => axios({
         method: 'post',
         url: '/auth',
@@ -64,4 +64,4 @@ class UserService {
     })
 }
 
-export default new UserService();
+export default new UsersService();

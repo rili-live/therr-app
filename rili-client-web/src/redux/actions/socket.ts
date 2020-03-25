@@ -1,15 +1,15 @@
 import { SocketClientActionTypes } from 'rili-public-library/utilities/constants.js';
 import { IUser } from 'types/user';
-import UserService from '../../services/UserService';
+import UsersService from '../../services/UsersService';
 
-const SocketActions = {
+const Socket = {
     joinRoom: (data: any) => (dispatch: any) => {
         dispatch({
             type: SocketClientActionTypes.JOIN_ROOM,
             data,
         });
     },
-    login: (data: any) => (dispatch: any) => UserService.authenticate(data).then((response) => {
+    login: (data: any) => (dispatch: any) => UsersService.authenticate(data).then((response) => {
         const {
             accessLevels,
             id,
@@ -39,7 +39,7 @@ const SocketActions = {
             data: userData,
         });
     }),
-    logout: (data: any) => (dispatch: any) => UserService.logout(data).then(() => {
+    logout: (data: any) => (dispatch: any) => UsersService.logout(data).then(() => {
         sessionStorage.removeItem('riliUser');
         localStorage.removeItem('riliUser');
         dispatch({
@@ -49,7 +49,7 @@ const SocketActions = {
             },
         });
     }),
-    register: (data: any) => (dispatch: any) => UserService.create(data).then((response) => {
+    register: (data: any) => (dispatch: any) => UsersService.create(data).then((response) => {
         const {
             accessLevels, email, id, userName,
         } = response && response.data;
@@ -74,4 +74,4 @@ const SocketActions = {
     },
 };
 
-export default SocketActions;
+export default Socket;

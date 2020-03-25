@@ -20,8 +20,8 @@ import Header from './Header';
 import initInterceptors from '../interceptors';
 import * as globalConfig from '../../../global-config.js';
 import routes from '../routes';
-import { IAccess, AccessCheckType } from '../types';
-import UserService from '../services/UserService';
+import { AccessCheckType } from '../types';
+import UsersService from '../services/UsersService';
 
 let _viewListener: any; // eslint-disable-line no-underscore-dangle
 
@@ -119,7 +119,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         <Header
             goHome={this.goHome}
             isAuthorized={
-                UserService.isAuthorized(
+                UsersService.isAuthorized(
                     {
                         type: AccessCheckType.ALL,
                         levels: ['user.default'],
@@ -162,7 +162,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                                     if (route.access) {
                                         return (
                                             <AuthRoute
-                                                isAuthorized={UserService.isAuthorized(route.access, user)}
+                                                isAuthorized={UsersService.isAuthorized(route.access, user)}
                                                 location={location}
                                                 key={i}
                                                 {...route}
