@@ -12,6 +12,7 @@ import { version as packageVersion } from '../package.json';
 const originWhitelist = [process.env.CLIENT_URI];
 const corsOptions = {
     origin(origin: any, callback: any) {
+        console.log(origin);
         if (originWhitelist.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
