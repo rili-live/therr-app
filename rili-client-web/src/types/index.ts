@@ -8,3 +8,12 @@ export interface IAccess {
   type: AccessCheckType;
   levels: Array<string>;
 }
+
+export interface ISearchQuery {
+  filterBy?: string;
+  filterOperator: string;
+  query?: string;
+  itemsPerPage?: string;
+  pageNumber?: string;
+  returning?: string;
+}
