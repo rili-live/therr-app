@@ -13,7 +13,7 @@ export const fallbackToLocale = (originalLocale: string) => {
 };
 
 export const configureTranslator = (translations: any) => {
-    const translateInternal = (locale: string, key: string, params: any) => {
+    const translateInternal = (locale: string, key = '', params: any) => {
         if (!translations[locale]) {
             return null;
         }

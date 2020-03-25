@@ -14,6 +14,7 @@ export interface IRoute extends RouteProps {
     fetchData?: Function;
     // Overriding this property allows us to add custom paramaters to React components
     component: any;
+    redirectPath?: string;
 }
 
 const routes: IRoute[] = [
@@ -21,6 +22,7 @@ const routes: IRoute[] = [
         path: '/',
         component: Home,
         exact: true,
+        redirectPath: '/',
     },
     {
         path: '/chat-room/:roomId',

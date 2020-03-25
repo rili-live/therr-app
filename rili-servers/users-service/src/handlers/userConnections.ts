@@ -5,6 +5,7 @@ import UserConnectionsStore from '../store/UserConnectionsStore';
 import UsersStore from '../store/UsersStore';
 
 // CREATE
+// TODO:RSERV-24: Security, get requestingUserId from user header token
 const createUserConnection: RequestHandler = async (req: any, res: any) => {
     const {
         requestingUserId,
@@ -12,23 +13,41 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
         acceptingUserPhoneNumber,
         acceptingUserEmail,
     } = req.body;
-    let user;
+    let acceptingId;
     if (!acceptingUserId) {
-        const userResults = await UsersStore.findUser({
-            phoneNumber: acceptingUserPhoneNumber,
-            email: acceptingUserEmail,
-        });
-        if (!userResults.length) {
+        try {
+            const userResults = await UsersStore.findUser({
+                phoneNumber: acceptingUserPhoneNumber,
+                email: acceptingUserEmail,
+            });
+
+            if (!userResults.length) {
+                return handleHttpError({
+                    res,
+                    message: 'No user found with the provided criteria.',
+                    statusCode: 404,
+                });
+            }
+            acceptingId = userResults[0].id;
+
+            if (acceptingId === requestingUserId) {
+                return handleHttpError({
+                    res,
+                    message: 'Cannot make a user connection with self.',
+                    statusCode: 400,
+                });
+            }
+        } catch (err) {
+            console.log(err);
             return handleHttpError({
+                err,
                 res,
-                message: 'No user found with id with the provided criteria.',
-                statusCode: 404,
+                message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR',
             });
         }
-        user = userResults[0];
     }
-    const acceptingId = acceptingUserId || user.id;
-    UserConnectionsStore.getUserConnections({
+
+    return UserConnectionsStore.getUserConnections({
         requestingUserId,
         acceptingUserId: acceptingId,
     })
@@ -43,7 +62,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
 
             return UserConnectionsStore.createUserConnection({
                 requestingUserId: req.body.requestingUserId,
-                acceptingUserId: req.body.acceptingUserId,
+                acceptingUserId: req.body.acceptingUserId || acceptingId,
                 requestStatus: 'pending',
             }).then((results) => res.status(201).send({ id: results[0].id }));
         })

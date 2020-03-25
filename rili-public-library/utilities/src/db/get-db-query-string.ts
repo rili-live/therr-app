@@ -11,26 +11,28 @@ export interface ISearchDbRecords {
             pageNumber: number;
         };
     };
+    defaultConditions: any;
     returning?: string | string[];
 }
 
 export default ({
     queryBuilder,
-    execQuery,
     tableName,
     conditions,
+    defaultConditions,
     returning,
-}: ISearchDbRecords) => {
+}: ISearchDbRecords): string => {
     const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
     const limit = conditions.pagination.itemsPerPage;
     let queryString = queryBuilder
         .select(returning || '*')
-        .from(tableName);
+        .from(tableName)
+        .where(defaultConditions);
 
     if (conditions.filterBy && conditions.query) {
         const operator = conditions.filterOperator || '=';
         const query = operator === 'like' ? `%${conditions.query}%` : conditions.query;
-        queryString = queryString.where(conditions.filterBy, operator, query);
+        queryString = queryString.andWhere(conditions.filterBy, operator, query);
     }
 
     queryString = queryString
@@ -38,5 +40,5 @@ export default ({
         .offset(offset)
         .toString();
 
-    return execQuery(queryString);
+    return queryString;
 };

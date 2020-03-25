@@ -44,14 +44,21 @@ class Store {
         userName,
         phoneNumber,
     }: IFindUserArgs) {
-        const queryString = knex.select('*').from('main.users')
+        let queryString: any = knex.select('*').from('main.users')
             .where(function () {
                 return id ? this.where({ id }) : this;
-            })
-            .orWhere({ email })
-            .orWhere({ userName })
-            .orWhere({ phoneNumber })
-            .toString();
+            });
+        if (email) {
+            queryString = queryString.orWhere({ email });
+        }
+        if (userName) {
+            queryString = queryString.orWhere({ userName });
+        }
+        if (phoneNumber) {
+            queryString = queryString.orWhere({ phoneNumber });
+        }
+
+        queryString = queryString.toString();
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 

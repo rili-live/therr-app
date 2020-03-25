@@ -1,4 +1,4 @@
-interface IReqQuery {
+export interface IReqQuery {
   filterBy?: string;
   filterOperator: string;
   query?: string;
