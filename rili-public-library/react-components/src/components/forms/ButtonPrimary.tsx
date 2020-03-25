@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import BaseButton from './base/BaseButton';
 
-const overrideProps = {
+export const overrideProps = {
     className: 'primary text-white py-2 px-4 ml-2',
 };
 

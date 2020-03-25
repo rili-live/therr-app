@@ -1,7 +1,7 @@
 import * as React from 'react';
 import BaseButton, { IBaseButtonProps } from './base/BaseButton';
-import ButtonPrimary from './ButtonPrimary';
-import ButtonSecondary from './ButtonSecondary';
+import ButtonPrimary, { overrideProps as primOverrideProps } from './ButtonPrimary';
+import ButtonSecondary, { overrideProps as secOverrideProps } from './ButtonSecondary';
 import InlineSvg, { IInlineSvgProps } from '../InlineSvg';
 
 const overrideProps = {
@@ -26,14 +26,14 @@ class SvgButton extends React.Component<ISvgButtonProps & IInlineSvgProps> {
 
         if (buttonType && buttonType === 'primary') {
             return (
-                <ButtonPrimary { ...buttonProps }>
+                <ButtonPrimary { ...buttonProps } className={`${primOverrideProps.className} icon-button`}>
                     <InlineSvg name={name} className={className} />
                 </ButtonPrimary>
             );
         }
 
         return (
-            <ButtonSecondary { ...buttonProps }>
+            <ButtonSecondary { ...buttonProps } className={`${secOverrideProps.className} icon-button`}>
                 <InlineSvg name={name} className={className} />
             </ButtonSecondary>
         );

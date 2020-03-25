@@ -10,7 +10,11 @@ button,
 button {
     font-size: .8rem;
     height: 2.125rem;
-    padding: 1px 5px 2px;
+    padding: 1px 12px 2px;
+
+    &.icon-button {
+        padding: 1px 5px 2px;
+    }
 
     &:disabled {
         cursor: not-allowed;

@@ -153,7 +153,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
 
         return (
             <div id="page_user_profile" className="flex-box column">
-                <h1>User Profile</h1>
+                <h1 className="fill text-left">User Profile</h1>
                 <div className="flex-box row space-around fill">
                     <div id="account_details">
                         <h2 className="underline">Account Details</h2>
