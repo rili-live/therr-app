@@ -4,6 +4,7 @@ import { routerReducer as routing } from 'react-router-redux';
 // import {loader} from '../library/loader';
 import socket from './socket';
 import user from './user';
+import userConnections from './userConnections';
 
 export default combineReducers({
     routing,
@@ -14,5 +15,5 @@ export default combineReducers({
     // loader,
     // redirectRoute,
     user,
-    // users
+    userConnections,
 });

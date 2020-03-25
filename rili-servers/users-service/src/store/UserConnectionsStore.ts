@@ -1,5 +1,5 @@
 import Knex from 'knex';
-import { countDbRecords, searchDbRecords } from 'rili-public-library/utilities/db.js';
+import { getDbCountQueryString, getDbQueryString } from 'rili-public-library/utilities/db.js';
 import connection, { IConnection } from './connection';
 
 const knex: Knex = Knex({ client: 'pg' });
@@ -33,30 +33,46 @@ class Store {
     }
 
     countRecords(params) {
-        return countDbRecords({
+        const queryString = getDbCountQueryString({
             queryBuilder: knex,
-            execQuery: this.db.write.query,
             tableName: USER_CONNECTIONS_TABLE_NAME,
             params,
-        }).then((response) => response.rows);
+            defaultConditions: {
+                isConnectionBroken: false,
+                requestStatus: 'complete',
+            },
+        });
+
+        return this.db.read.query(queryString).then((response) => response.rows);
     }
 
     getUserConnections(conditions = {}) {
         const queryString = knex.select('*')
             .from(USER_CONNECTIONS_TABLE_NAME)
-            .where(conditions)
+            .where({
+                isConnectionBroken: false,
+                requestStatus: 'complete',
+                ...conditions,
+            })
             .toString();
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
     searchUserConnections(conditions = {}, returning) {
-        return searchDbRecords({
+        const queryString = getDbQueryString({
             queryBuilder: knex,
-            execQuery: this.db.read.query,
             tableName: USER_CONNECTIONS_TABLE_NAME,
-            conditions,
+            conditions: {
+                ...conditions,
+            },
+            defaultConditions: {
+                isConnectionBroken: false,
+                requestStatus: 'complete',
+            },
             returning,
-        }).then((response) => response.rows);
+        });
+
+        return this.db.read.query(queryString).then((response) => response.rows);
     }
 
     createUserConnection(params: ICreateUserConnectionParams) {

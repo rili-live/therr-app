@@ -57,6 +57,7 @@ class SelectBox extends React.Component<any, any> {
         onValidate: null,
         placeHolderText: 'Select...',
         required: false,
+        value: '',
     };
 
 
@@ -120,7 +121,7 @@ class SelectBox extends React.Component<any, any> {
                 } else if (pressedKey === KeyCode.Escape) {
                     this.toggleSelectionVisibility();
                 } else if (SELECTION_KEYS.includes(pressedKey)) {
-                    this.props.onChange(this.props.options[this.state.axIndex].value);
+                    this.props.onChange(this.props.name, this.props.options[this.state.axIndex].value);
                     this.setState({
                         axIndex: this.state.axIndex,
                         optionsAreVisible: false,
@@ -144,7 +145,7 @@ class SelectBox extends React.Component<any, any> {
         event.preventDefault();
         if (!this.props.disabled) {
             const selection = this.props.options[event.target.dataset.index];
-            this.props.onChange(selection.value);
+            this.props.onChange(this.props.name, selection.value);
         }
     }
 
@@ -188,8 +189,8 @@ class SelectBox extends React.Component<any, any> {
         const {
             axIndex, isInvalid, isTouched, optionsAreVisible,
         } = this.state;
-        const selectedOption = options.find((option: any) => option.value === value) || [];
-        const selectedText = translate(selectedOption.text);
+        const selectedOption = options.find((option: any) => option.value === value);
+        const selectedText = selectedOption && translate(selectedOption.text);
         const mainClasses = classnames({
             disabled,
             active: optionsAreVisible,

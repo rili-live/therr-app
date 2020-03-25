@@ -2,3 +2,19 @@
 @import './variables';
 @import './helpers';
 @import '/layout/index';
+
+.user-connections-container {
+  display: flex;
+  flex-wrap: wrap;
+
+  .user-connection-icon {
+    display: inline;
+    height: 100px;
+    width: 100px;
+
+    img {
+      height: 100px;
+      width: 100px;
+    }
+  }
+}

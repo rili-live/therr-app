@@ -6,7 +6,7 @@ import userConnectionsRouter from './userConnectionsRouter';
 const router = express.Router();
 
 router.use('/auth', authRouter);
-router.use('/users', usersRouter);
 router.use('/users/connections', userConnectionsRouter);
+router.use('/users', usersRouter);
 
 export default router;
