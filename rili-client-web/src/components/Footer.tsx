@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router-dom';
+import AccessControl from 'rili-public-library/react-components/AccessControl.js';
 import SvgButton from 'rili-public-library/react-components/SvgButton.js';
 import { IUserState } from 'types/user';
 import SocketActions from 'actions/Socket';
 import { bindActionCreators } from 'redux';
+import { INavMenuContext } from '../types';
 
 interface IFooterDispatchProps {
     logout: Function;
@@ -39,7 +40,7 @@ export class FooterComponent extends React.Component<IFooterProps> {
   }
 
   render() {
-      const { goHome, toggleNavMenu } = this.props;
+      const { goHome, toggleNavMenu, isAuthorized } = this.props;
 
       return (
           <footer>
@@ -49,13 +50,15 @@ export class FooterComponent extends React.Component<IFooterProps> {
                   <SvgButton id="home" name="home" className="home-button" onClick={goHome} buttonType="primary" />
               </div>
               <div className="footer-menu-item">
-                  <SvgButton
-                      id="messages"
-                      name="messages"
-                      className="messages-button"
-                      onClick={toggleNavMenu}
-                      buttonType="primary"
-                  />
+                  <AccessControl isAuthorized={isAuthorized}>
+                      <SvgButton
+                          id="messages"
+                          name="messages"
+                          className="messages-button"
+                          onClick={(e) => toggleNavMenu(e, INavMenuContext.FOOTER_MESSAGES)}
+                          buttonType="primary"
+                      />
+                  </AccessControl>
               </div>
           </footer>
       );
