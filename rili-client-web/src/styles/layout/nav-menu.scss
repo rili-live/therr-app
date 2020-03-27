@@ -1,26 +1,57 @@
-#navMenu {
+$menu-width: rem-calc(280px);
+$menu-padding: rem-calc(24px);
+
+#nav_menu {
     background: white;
     border-left: 1px solid rgba(0, 0, 0, .12);
+    box-shadow: 0px 8px 10px 5px rgba(0,0,0,0.2), 0px 16px 24px 2px rgba(0,0,0,0.14), 0px 6px 30px 5px rgba(0,0,0,0.12);
     box-sizing: border-box;
     color: #5f6368;
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: rem-calc(24px);
+    padding: $menu-padding;
     position: fixed;
     right: -100%;
     top: 0;
     transition: right .15s cubic-bezier(.4,0,.2,1);
-    width: rem-calc(280px);
+    width: $menu-width;
     z-index: 100;
 
     &.is-open {
         right: 0;
     }
 
-    .nav-menu-footer {
-        bottom: 0;
+    .nav-menu-subfooter {
         position: absolute;
-        right: 0;
+        bottom: $footer-height;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: $menu-width;
+        padding-left: $menu-padding;
+        padding-right: $menu-padding;
+        left: 0;
+
+        button {
+            width: 9rem;
+        }
+    }
+
+    .nav-menu-footer {
+        position: absolute;
+        width: $menu-width;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        height: $footer-height;
+        bottom: 0;
+        left: 0;
+
+        #close {
+            float: right;
+            right: 0;
+        }
     }
 }
