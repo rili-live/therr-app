@@ -9,6 +9,10 @@
             box-sizing: border-box;
             flex: 1;
             width: 100%;
+
+            .account-section-content {
+                padding: 0 .5rem;
+            }
         }
     }
 }
@@ -21,6 +25,7 @@
             justify-content: flex-start;
 
             .account-section {
+                padding: 1.5rem;
                 flex: none;
                 width: 50%;
             }
@@ -35,7 +40,7 @@
             justify-content: space-around;
 
             .account-section {
-                width: unset;
+                width: 33.3333333%;
             }
         }
     }

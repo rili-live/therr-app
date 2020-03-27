@@ -93,7 +93,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
     handleClick = (event: any) => {
         if (this.state.isNavMenuOpen) {
-            const isClickInsideNavMenu = document.getElementById('navMenu').contains(event.target)
+            const isClickInsideNavMenu = document.getElementById('nav_menu').contains(event.target)
                 || document.getElementById('messages').contains(event.target)
                 || document.getElementById('header_account_button').contains(event.target);
 
@@ -138,8 +138,10 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             return (
                 <>
                     <h2>Header Profile</h2>
-                    <button type="button" className="primary text-white logout-button" onClick={handleLogout}>Logout</button>
 
+                    <div className="nav-menu-subfooter">
+                        <button type="button" className="primary text-white logout-button" onClick={handleLogout}>Logout</button>
+                    </div>
                     <div className="nav-menu-footer">
                         <SvgButton id="close" name="close" className="close-button" onClick={(e) => this.toggleNavMenu(e)} buttonType="primary" />
                     </div>
@@ -212,7 +214,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             return (
                 <>
                     {this.renderHeader()}
-                    <div id="navMenu" className={navMenuClassNames}>
+                    <div id="nav_menu" className={navMenuClassNames}>
                         {this.renderNavMenuContent()}
                     </div>
 
