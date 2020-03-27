@@ -27,7 +27,7 @@ h1 {
     border-left: rem-calc(4px) double $rili-primary-2;
     border-right: rem-calc(4px) double $rili-primary-2;
     margin: ($header-height + 2.1rem) .5rem;
-    padding: .5rem .5rem;
+    padding: .5rem 1rem;
 }
 
 @media only screen and (min-width: rem-calc(540px)) {
