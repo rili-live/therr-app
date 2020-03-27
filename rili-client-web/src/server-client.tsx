@@ -1,6 +1,7 @@
 import beeline from './beeline'; // eslint-disable-line import/order
 import * as path from 'path';
 import express from 'express';
+import helmet from 'helmet';
 import * as React from 'react';
 import * as ReactDOMServer from 'react-dom/server'; // eslint-disable-line import/extensions
 import { StaticRouter, matchPath } from 'react-router-dom';
@@ -32,6 +33,7 @@ import routes, { IRoute } from './routes'; // eslint-disable-line
 // Initialize the server and configure support for handlebars templates
 const app = express();
 
+app.use(helmet());
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 

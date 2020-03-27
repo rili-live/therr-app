@@ -7,10 +7,11 @@ module.exports = {
     development: {
         apiPort,
         baseApiRoute: `http://${hostDev}:${apiPort}/v1`,
-        baseSocketUrl: `http://${hostDev}`,
+        baseSocketUrl: `http://${hostDev}:7743`,
         googleAnalyticsKey: '',
         host: hostDev,
         socket: {
+            clientPath: '/socketio',
             pingInterval: 1000 * 10,
             pingTimeout: 1000 * 5,
             userSocketSessionExpire: 1000 * 60 * 60,
@@ -23,6 +24,7 @@ module.exports = {
         googleAnalyticsKey: '',
         host: hostStage,
         socket: {
+            clientPath: '/ws/socketio',
             pingInterval: 1000 * 10,
             pingTimeout: 1000 * 5,
             userSocketSessionExpire: 1000 * 60 * 60,
@@ -35,6 +37,7 @@ module.exports = {
         googleAnalyticsKey: '',
         host: hostProd,
         socket: {
+            clientPath: '/ws/socketio',
             pingInterval: 1000 * 10,
             pingTimeout: 1000 * 5,
             userSocketSessionExpire: 1000 * 60 * 60,

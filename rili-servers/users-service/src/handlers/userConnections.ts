@@ -38,7 +38,6 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 });
             }
         } catch (err) {
-            console.log(err);
             return handleHttpError({
                 err,
                 res,
