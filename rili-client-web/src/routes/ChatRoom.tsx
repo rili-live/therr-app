@@ -168,7 +168,7 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
                     </div>
                 </div>
 
-                <div id="roomTitle">Room Name: {socket.user.currentRoom}</div>
+                <h1 id="roomTitle">Room Name: {socket.user.currentRoom}</h1>
                 {
                     socket && socket.rooms
                     && <span id="rooms_list">
