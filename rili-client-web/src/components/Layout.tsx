@@ -10,6 +10,7 @@ import { Location } from 'history';
 // import * as ReactGA from 'react-ga';
 import { ISocketState } from 'types/socket';
 import { IUserState } from 'types/user';
+import AccessControl from 'rili-public-library/react-components/AccessControl.js';
 import AuthRoute from 'rili-public-library/react-components/AuthRoute.js';
 import RedirectWithStatus from 'rili-public-library/react-components/RedirectWithStatus.js';
 import SvgButton from 'rili-public-library/react-components/SvgButton.js';
@@ -20,8 +21,10 @@ import Header from './Header';
 import initInterceptors from '../interceptors';
 import * as globalConfig from '../../../global-config.js';
 import routes from '../routes';
-import { AccessCheckType } from '../types';
+import { AccessCheckType, INavMenuContext } from '../types';
 import UsersService from '../services/UsersService';
+import Footer from './Footer';
+import { SocketActions } from '../redux/actions';
 
 let _viewListener: any; // eslint-disable-line no-underscore-dangle
 
@@ -31,6 +34,7 @@ interface ILayoutRouterProps {
 
 interface ILayoutDispatchProps {
     // Add your dispatcher properties here
+    logout: Function;
 }
 
 interface IStoreProps extends ILayoutDispatchProps {
@@ -45,6 +49,7 @@ interface ILayoutProps extends RouteComponentProps<ILayoutRouterProps>, IStorePr
 interface ILayoutState {
     clientHasLoaded: boolean;
     isNavMenuOpen: boolean;
+    navMenuContext?: INavMenuContext;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -53,7 +58,7 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
-
+    logout: SocketActions.logout,
 }, dispatch);
 
 // TODO: Animation between view change is not working when wrapped around a Switch
@@ -88,11 +93,12 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
     handleClick = (event: any) => {
         if (this.state.isNavMenuOpen) {
-            const isClickInsideNavMenu = document.getElementById('navMenu').contains(event.target)
-                || document.getElementById('messages').contains(event.target);
+            const isClickInsideNavMenu = document.getElementById('nav_menu').contains(event.target)
+                || document.getElementById('messages').contains(event.target)
+                || document.getElementById('header_account_button').contains(event.target);
 
             if (!isClickInsideNavMenu) {
-                this.toggleNavMenu();
+                this.toggleNavMenu(event);
             }
         }
     }
@@ -105,14 +111,65 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         // }
     }
 
-    toggleNavMenu = () => {
-        this.setState({
+    toggleNavMenu = (event, context?: string) => {
+        const newState: any = {
             isNavMenuOpen: !this.state.isNavMenuOpen,
-        });
+        };
+        if (context) {
+            newState.navMenuContext = context;
+        }
+        this.setState(newState);
     }
 
     goHome = () => {
         this.props.history.push('/');
+    }
+
+    renderNavMenuContent = () => {
+        const { logout, user } = this.props;
+        const { navMenuContext } = this.state;
+
+        const handleLogout = (e) => {
+            this.toggleNavMenu(e);
+            logout(user.details);
+        };
+
+        if (navMenuContext === INavMenuContext.HEADER_PROFILE) {
+            return (
+                <>
+                    <h2>Header Profile</h2>
+
+                    <div className="nav-menu-subfooter">
+                        <button type="button" className="primary text-white logout-button" onClick={handleLogout}>Logout</button>
+                    </div>
+                    <div className="nav-menu-footer">
+                        <SvgButton id="close" name="close" className="close-button" onClick={(e) => this.toggleNavMenu(e)} buttonType="primary" />
+                    </div>
+                </>
+            );
+        }
+
+        if (navMenuContext === INavMenuContext.FOOTER_MESSAGES) {
+            return (
+                <>
+                    <h2>Messages</h2>
+                    <div className="nav-menu-footer">
+                        <SvgButton id="close" name="close" className="close-button" onClick={(e) => this.toggleNavMenu(e)} buttonType="primary" />
+                    </div>
+                </>
+            );
+        }
+
+        return (
+            <>
+                <p>Rili Inc.</p>
+                <p>Under Construction</p>
+                <p>Check back soon for updates</p>
+                <div className="nav-menu-footer">
+                    <SvgButton id="close" name="close" className="close-button" onClick={(e) => this.toggleNavMenu(e)} buttonType="primary" />
+                </div>
+            </>
+        );
     }
 
     renderHeader = () => (
@@ -127,8 +184,25 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                     this.props.user,
                 )
             }
+            toggleNavMenu={this.toggleNavMenu}
         />
     )
+
+    renderFooter = () => (
+        <Footer
+            goHome={this.goHome}
+            isAuthorized={
+                UsersService.isAuthorized(
+                    {
+                        type: AccessCheckType.ALL,
+                        levels: ['user.default'],
+                    },
+                    this.props.user,
+                )
+            }
+            toggleNavMenu={this.toggleNavMenu}
+        />
+    );
 
     public render(): JSX.Element | null {
         const { location, user } = this.props;
@@ -140,13 +214,8 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             return (
                 <>
                     {this.renderHeader()}
-                    <div id="navMenu" className={navMenuClassNames}>
-                        <p>Rili Inc.</p>
-                        <p>Under Construction</p>
-                        <p>Check back soon for updates</p>
-                        <div className="nav-menu-footer">
-                            <SvgButton id="close" name="close" className="close-button" onClick={this.toggleNavMenu} buttonType="primary" />
-                        </div>
+                    <div id="nav_menu" className={navMenuClassNames}>
+                        {this.renderNavMenuContent()}
                     </div>
 
                     <Animation
@@ -181,22 +250,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                     {/* <Alerts></Alerts> */}
                     {/* <Loader></Loader> */}
 
-                    <footer>
-                        <div className="footer-menu-item">
-                        </div>
-                        <div className="footer-menu-item">
-                            <SvgButton id="home" name="home" className="home-button" onClick={this.goHome} buttonType="primary" />
-                        </div>
-                        <div className="footer-menu-item">
-                            <SvgButton
-                                id="messages"
-                                name="messages"
-                                className="messages-button"
-                                onClick={this.toggleNavMenu}
-                                buttonType="primary"
-                            />
-                        </div>
-                    </footer>
+                    { this.renderFooter() }
                 </>
             );
         }

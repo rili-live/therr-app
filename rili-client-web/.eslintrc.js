@@ -32,7 +32,7 @@ module.exports = {
             }
         ],
         'indent': [2, 4, { SwitchCase: 1 }],
-        'max-len': [2, { code: 140 }],
+        'max-len': [2, { code: 160 }],
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/interface-name-prefix': 0,

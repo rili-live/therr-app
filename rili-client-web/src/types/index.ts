@@ -17,3 +17,8 @@ export interface ISearchQuery {
   pageNumber?: string;
   returning?: string;
 }
+
+export enum INavMenuContext {
+  HEADER_PROFILE = 'header_profile',
+  FOOTER_MESSAGES = 'footer_messages',
+}

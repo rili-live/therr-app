@@ -123,7 +123,7 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
 
         return (
             <div id="page_join_room">
-                <h1 className="center">Join a Room</h1>
+                <h1>Join a Room</h1>
                 <label htmlFor="room_name">Room:</label>
                 <Input
                     type="text"
