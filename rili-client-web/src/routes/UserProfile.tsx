@@ -154,8 +154,8 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         return (
             <div id="page_user_profile" className="flex-box column">
                 <h1 className="fill text-left">User Profile</h1>
-                <div className="flex-box row space-around fill">
-                    <div id="account_details">
+                <div className="flex-box account-sections">
+                    <div id="account_details" className="account-section">
                         <h2 className="underline">Account Details</h2>
                         <h3><b>Firstname:</b> {user.details.firstName}</h3>
                         <h3><b>Lastname:</b> {user.details.lastName}</h3>
@@ -163,7 +163,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                         <h3><b>E-mail:</b> {user.details.email}</h3>
                         <h3><b>Phone:</b> {user.details.phoneNumber}</h3>
                     </div>
-                    <div id="add_connections">
+                    <div id="add_connections" className="account-section">
                         <h2 className="underline">Add New Connection</h2>
                         <SelectBox
                             type="text"
@@ -232,7 +232,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                             <ButtonPrimary id="sendRequest" text="Send Request" onClick={this.onSubmit} disabled={!this.isFormValid()} />
                         </div>
                     </div>
-                    <div id="your_connections">
+                    <div id="your_connections" className="account-section">
                         <h2 className="underline">Connections</h2>
                         <div className="user-connections-container">
                             {
