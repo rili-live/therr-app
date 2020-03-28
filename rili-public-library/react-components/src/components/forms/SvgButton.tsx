@@ -10,6 +10,7 @@ const overrideProps = {
 
 interface ISvgButtonProps extends IBaseButtonProps {
     className: string;
+    iconClassName?: string;
     name: string;
     buttonType?: string;
 }
@@ -18,7 +19,12 @@ class SvgButton extends React.Component<ISvgButtonProps & IInlineSvgProps> {
     static defaultProps = { ...BaseButton.defaultProps, ...overrideProps };
 
     render() {
-        const { buttonType, className, name } = this.props;
+        const {
+            buttonType,
+            className,
+            iconClassName,
+            name,
+        } = this.props;
         const buttonProps = { ...this.props };
         delete buttonProps.buttonType;
         delete buttonProps.className;
@@ -26,15 +32,15 @@ class SvgButton extends React.Component<ISvgButtonProps & IInlineSvgProps> {
 
         if (buttonType && buttonType === 'primary') {
             return (
-                <ButtonPrimary { ...buttonProps } className={`${primOverrideProps.className} icon-button`}>
-                    <InlineSvg name={name} className={className} />
+                <ButtonPrimary { ...buttonProps } className={`${primOverrideProps.className} icon-button ${className || ''}`}>
+                    <InlineSvg name={name} className={iconClassName || ''} />
                 </ButtonPrimary>
             );
         }
 
         return (
-            <ButtonSecondary { ...buttonProps } className={`${secOverrideProps.className} icon-button`}>
-                <InlineSvg name={name} className={className} />
+            <ButtonSecondary { ...buttonProps } className={`${secOverrideProps.className} icon-button ${className || ''}`}>
+                <InlineSvg name={name} className={iconClassName || ''} />
             </ButtonSecondary>
         );
     }
