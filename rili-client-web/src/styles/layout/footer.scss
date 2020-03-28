@@ -25,14 +25,14 @@ footer {
 }
 
 button {
-    &#close,
-    &#home,
-    &#messages {
+    &#footer_close,
+    &#footer_home,
+    &#footer_messages {
         width: 2.15rem;
     }
 
-    &#close,
-    &#messages {
+    &#footer_close,
+    &#footer_messages {
         margin-right: 1rem;
         padding: rem-calc(7px);
         background: transparent;

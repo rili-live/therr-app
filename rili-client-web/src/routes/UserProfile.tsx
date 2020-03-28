@@ -241,7 +241,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                         <div className="user-connections-container account-section-content">
                             {
                                 userConnections.connections.length
-                                    ? userConnections.connections.map((connection: any) => (
+                                    ? userConnections.connections.slice(0, 10).map((connection: any) => (
                                         <div className="user-connection-icon" key={connection.acceptingUserId}>
                                             <img
                                                 src={`https://robohash.org/${connection.acceptingUserId}`}
@@ -254,7 +254,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                         </div>
                     </div>
                 </div>
-                <div className="fill text-right">
+                <div className="fill text-right padding-sm">
                     <button type="button" className="primary text-white" onClick={this.onJoinRoomClick}>
                         Join A Room
                     </button>
