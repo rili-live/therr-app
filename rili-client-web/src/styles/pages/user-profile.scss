@@ -13,6 +13,20 @@
             .account-section-content {
                 padding: 0 .5rem;
             }
+
+            .user-connections-container {
+                display: flex;
+                flex-wrap: wrap;
+              
+                .user-connection-icon {
+                    display: inline;
+              
+                    img {
+                        height: rem-calc(100px);
+                        width: rem-calc(100px);
+                    }
+                }
+            }
         }
     }
 }
@@ -28,6 +42,10 @@
                 padding: 1.5rem;
                 flex: none;
                 width: 50%;
+
+                &#your_connections {
+                    width: 100%;
+                }
             }
         }
     }
@@ -41,6 +59,10 @@
 
             .account-section {
                 width: 33.3333333%;
+
+                &#your_connections {
+                    width: 33.3333333%;
+                }
             }
         }
     }

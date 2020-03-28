@@ -20,6 +20,15 @@ body {
 
 h1 {
     margin: .9rem 0;
+    font-weight: 200;
+}
+
+h2 {
+    font-weight: 400;
+}
+
+h4 {
+    font-weight: 100;
 }
 
 .content-container {
@@ -91,7 +100,7 @@ hr {
     padding: 1rem .5rem;
     display: block;
     text-align: center;
-    font-size: rem-calc(20px);
+    font-size: rem-calc(16px);
 
     li {
         padding-bottom: .25rem;

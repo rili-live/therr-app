@@ -47,12 +47,12 @@ export class FooterComponent extends React.Component<IFooterProps> {
               <div className="footer-menu-item">
               </div>
               <div className="footer-menu-item">
-                  <SvgButton id="home" name="home" className="home-button" onClick={goHome} buttonType="primary" />
+                  <SvgButton id="footer_home" name="home" className="home-button" onClick={goHome} buttonType="primary" />
               </div>
               <div className="footer-menu-item">
                   <AccessControl isAuthorized={isAuthorized}>
                       <SvgButton
-                          id="messages"
+                          id="footer_messages"
                           name="messages"
                           className="messages-button"
                           onClick={(e) => toggleNavMenu(e, INavMenuContext.FOOTER_MESSAGES)}
