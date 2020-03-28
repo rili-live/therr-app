@@ -25,6 +25,8 @@ import { AccessCheckType, INavMenuContext } from '../types';
 import UsersService from '../services/UsersService';
 import Footer from './Footer';
 import { SocketActions } from '../redux/actions';
+import UserMenu from './nav-menu/UserMenu';
+import MessagesMenu from './nav-menu/MessagesMenu';
 
 let _viewListener: any; // eslint-disable-line no-underscore-dangle
 
@@ -93,8 +95,9 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
     handleClick = (event: any) => {
         if (this.state.isNavMenuOpen) {
-            const isClickInsideNavMenu = document.getElementById('nav_menu').contains(event.target)
-                || document.getElementById('messages').contains(event.target)
+            const navMenuEl = document.getElementById('nav_menu');
+            const isClickInsideNavMenu = navMenuEl.contains(event.target)
+                || document.getElementById('footer_messages').contains(event.target)
                 || document.getElementById('header_account_button').contains(event.target);
 
             if (!isClickInsideNavMenu) {
@@ -125,38 +128,25 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         this.props.history.push('/');
     }
 
-    renderNavMenuContent = () => {
+    handleLogout = (e) => {
         const { logout, user } = this.props;
-        const { navMenuContext } = this.state;
 
-        const handleLogout = (e) => {
-            this.toggleNavMenu(e);
-            logout(user.details);
-        };
+        this.toggleNavMenu(e);
+        logout(user.details);
+    };
+
+    renderNavMenuContent = () => {
+        const { navMenuContext } = this.state;
 
         if (navMenuContext === INavMenuContext.HEADER_PROFILE) {
             return (
-                <>
-                    <h2>Header Profile</h2>
-
-                    <div className="nav-menu-subfooter">
-                        <button type="button" className="primary text-white logout-button" onClick={handleLogout}>Logout</button>
-                    </div>
-                    <div className="nav-menu-footer">
-                        <SvgButton id="close" name="close" className="close-button" onClick={(e) => this.toggleNavMenu(e)} buttonType="primary" />
-                    </div>
-                </>
+                <UserMenu handleLogout={this.handleLogout} toggleNavMenu={this.toggleNavMenu} />
             );
         }
 
         if (navMenuContext === INavMenuContext.FOOTER_MESSAGES) {
             return (
-                <>
-                    <h2>Messages</h2>
-                    <div className="nav-menu-footer">
-                        <SvgButton id="close" name="close" className="close-button" onClick={(e) => this.toggleNavMenu(e)} buttonType="primary" />
-                    </div>
-                </>
+                <MessagesMenu toggleNavMenu={this.toggleNavMenu} />
             );
         }
 
@@ -166,7 +156,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                 <p>Under Construction</p>
                 <p>Check back soon for updates</p>
                 <div className="nav-menu-footer">
-                    <SvgButton id="close" name="close" className="close-button" onClick={(e) => this.toggleNavMenu(e)} buttonType="primary" />
+                    <SvgButton id="nav_menu_footer_close" name="close" className="close-button" onClick={(e) => this.toggleNavMenu(e)} buttonType="primary" />
                 </div>
             </>
         );
@@ -214,10 +204,11 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             return (
                 <>
                     {this.renderHeader()}
-                    <div id="nav_menu" className={navMenuClassNames}>
-                        {this.renderNavMenuContent()}
-                    </div>
-
+                    <AccessControl isAuthorized={UsersService.isAuthorized({ type: AccessCheckType.ALL, levels: ['user.default'] }, this.props.user)}>
+                        <div id="nav_menu" className={navMenuClassNames}>
+                            {this.renderNavMenuContent()}
+                        </div>
+                    </AccessControl>
                     <Animation
                         appear={true}
                         enter={true}
