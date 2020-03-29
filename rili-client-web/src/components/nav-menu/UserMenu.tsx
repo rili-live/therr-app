@@ -4,12 +4,14 @@ import SvgButton from 'rili-public-library/react-components/SvgButton.js';
 import { IUserState } from 'types/user';
 import SocketActions from 'actions/Socket';
 import { bindActionCreators } from 'redux';
+import { INotificationsState, INotification } from 'types/notifications';
 
 interface IUserMenuDispatchProps {
     logout: Function;
 }
 
 interface IStoreProps extends IUserMenuDispatchProps {
+    notifications: INotificationsState;
     user: IUserState;
 }
 
@@ -24,6 +26,7 @@ interface IUserMenuState {
 }
 
 const mapStateToProps = (state: any) => ({
+    notifications: state.notifications,
     user: state.user,
 });
 
@@ -52,11 +55,22 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         </>
     )
 
-    renderNotificationsContent = () => (
-        <>
-            <h2>Notification</h2>
-        </>
-    )
+    renderNotificationsContent = () => {
+        const { notifications } = this.props;
+
+        return (
+            <>
+                <h2>Notifications</h2>
+                {
+                    notifications.messages.map((n: INotification) => (
+                        <div key={notifications.id}>
+                            {n.message}
+                        </div>
+                    ))
+                }
+            </>
+        );
+    }
 
     renderAccountContent = () => (
         <>
