@@ -4,7 +4,7 @@ type IAccessLevel = Array<string>;
 
 export interface IUser {
   accessLevels: IAccessLevel;
-  id: string;
+  id: number;
   idToken: string;
   email: string;
   firstName: string;
