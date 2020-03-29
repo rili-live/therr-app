@@ -17,7 +17,6 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('notifications
         useTz: true,
     }).notNullable().defaultTo(knex.fn.now());
 
-    table.unique(['userId']);
     table.index('userId').index(['userId', 'updatedAt']);
 });
 
