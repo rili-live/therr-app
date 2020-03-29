@@ -24,7 +24,7 @@ import routes from '../routes';
 import { AccessCheckType, INavMenuContext } from '../types';
 import UsersService from '../services/UsersService';
 import Footer from './Footer';
-import { SocketActions } from '../redux/actions';
+import { NotificationActions, SocketActions } from '../redux/actions';
 import UserMenu from './nav-menu/UserMenu';
 import MessagesMenu from './nav-menu/MessagesMenu';
 
@@ -37,6 +37,7 @@ interface ILayoutRouterProps {
 interface ILayoutDispatchProps {
     // Add your dispatcher properties here
     logout: Function;
+    searchNotifications: Function;
 }
 
 interface IStoreProps extends ILayoutDispatchProps {
@@ -60,6 +61,7 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
+    searchNotifications: NotificationActions.search,
     logout: SocketActions.logout,
 }, dispatch);
 
@@ -75,10 +77,15 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
     }
 
     componentDidMount() {
+        const {
+            history,
+            searchNotifications,
+            user,
+        } = this.props;
         // TODO: Check if this should be initialized in index with history passed as argument
         // Initialize global interceptors such as 401, 403
-        initInterceptors(this.props.history, globalConfig.baseApiRoute, 300);
-        _viewListener = this.props.history.listen((location: Location, action: any) => {
+        initInterceptors(history, globalConfig.baseApiRoute, 300);
+        _viewListener = history.listen((location: Location, action: any) => {
             this.onViewChange(location);
         });
 
@@ -86,6 +93,13 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         document.addEventListener('click', this.handleClick);
         this.setState({
             clientHasLoaded: true,
+        });
+
+        searchNotifications({
+            filterBy: 'userId',
+            query: user.details.id,
+            itemsPerPage: 20,
+            pageNumber: 1,
         });
     }
 

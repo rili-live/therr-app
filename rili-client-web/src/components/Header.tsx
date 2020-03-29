@@ -6,6 +6,7 @@ import SvgButton from 'rili-public-library/react-components/SvgButton.js';
 import { IUserState } from 'types/user';
 import SocketActions from 'actions/Socket';
 import { bindActionCreators } from 'redux';
+import { INotificationsState, INotification } from 'types/notifications';
 import { INavMenuContext } from '../types';
 
 interface IHeaderDispatchProps {
@@ -13,6 +14,7 @@ interface IHeaderDispatchProps {
 }
 
 interface IStoreProps extends IHeaderDispatchProps {
+    notifications: INotificationsState;
     user: IUserState;
 }
 
@@ -23,7 +25,12 @@ interface IHeaderProps extends IStoreProps {
   toggleNavMenu: Function;
 }
 
+interface IHeaderState {
+    hasUnreadNotifications: boolean;
+}
+
 const mapStateToProps = (state: any) => ({
+    notifications: state.notifications,
     user: state.user,
 });
 
@@ -31,7 +38,24 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     logout: SocketActions.logout,
 }, dispatch);
 
-export class HeaderComponent extends React.Component<IHeaderProps> {
+export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState> {
+    static getDerivedStateFromProps(nextProps: IHeaderProps, nextState: IHeaderState) {
+        if (!nextState.hasUnreadNotifications && nextProps.notifications.messages.filter((m: INotification) => m.isUnread).length) {
+            return {
+                hasUnreadNotifications: true,
+            };
+        }
+        return {};
+    }
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            hasUnreadNotifications: false,
+        };
+    }
+
     handleLogout = () => {
         const {
             logout,
@@ -45,7 +69,9 @@ export class HeaderComponent extends React.Component<IHeaderProps> {
     }
 
     render() {
+        const { hasUnreadNotifications } = this.state;
         const { isAuthorized, toggleNavMenu } = this.props;
+
         return (
             <header>
                 <AccessControl isAuthorized={isAuthorized} publicOnly>
@@ -56,7 +82,7 @@ export class HeaderComponent extends React.Component<IHeaderProps> {
                     <SvgButton
                         id="header_account_button"
                         name="account"
-                        className="account-button"
+                        className={`account-button ${hasUnreadNotifications ? 'has-notifications' : ''}`}
                         onClick={(e) => toggleNavMenu(e, INavMenuContext.HEADER_PROFILE)}
                         buttonType="primary"
                     />
