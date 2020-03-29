@@ -1,10 +1,12 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
 import SvgButton from 'rili-public-library/react-components/SvgButton.js';
 import { IUserState } from 'types/user';
 import SocketActions from 'actions/Socket';
 import { bindActionCreators } from 'redux';
 import { INotificationsState, INotification } from 'types/notifications';
+import Notification from './Notification';
 
 interface IUserMenuDispatchProps {
     logout: Function;
@@ -18,6 +20,7 @@ interface IStoreProps extends IUserMenuDispatchProps {
 // Regular component props
 interface IUserMenuProps extends IStoreProps {
     handleLogout: any;
+    history: any;
     toggleNavMenu: Function;
 }
 
@@ -49,9 +52,29 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         });
     }
 
+    navigate = (destination) => (e) => {
+        this.props.toggleNavMenu(e);
+
+        switch (destination) {
+            case 'view-profile':
+                return this.props.history.push('/');
+            case 'edit-profile':
+                return this.props.history.push('/');
+            default:
+        }
+    }
+
     renderProfileContent = () => (
         <>
             <h2>Profile Settings</h2>
+            <div className="profile-settings-menu">
+                <ButtonPrimary
+                    id="nav_menu_view_profile"
+                    className="menu-item" name="View Profile" text="View Profile" onClick={this.navigate('view-profile')} buttonType="primary" />
+                <ButtonPrimary
+                    id="nav_menu_edit_profile"
+                    className="menu-item" name="Edit Profile" text="Edit Profile" onClick={this.navigate('edit-profile')} buttonType="primary" />
+            </div>
         </>
     )
 
@@ -61,13 +84,13 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         return (
             <>
                 <h2>Notifications</h2>
-                {
-                    notifications.messages.map((n: INotification) => (
-                        <div key={notifications.id}>
-                            {n.message}
-                        </div>
-                    ))
-                }
+                <div className="notifications">
+                    {
+                        notifications.messages.map((n: INotification) => (
+                            <Notification key={n.id} notification={n} />
+                        ))
+                    }
+                </div>
             </>
         );
     }

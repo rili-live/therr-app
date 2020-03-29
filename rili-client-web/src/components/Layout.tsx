@@ -53,6 +53,7 @@ interface ILayoutState {
     clientHasLoaded: boolean;
     isNavMenuOpen: boolean;
     navMenuContext?: INavMenuContext;
+    userId: number;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -67,12 +68,29 @@ const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
 
 // TODO: Animation between view change is not working when wrapped around a Switch
 export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState> {
+    static getDerivedStateFromProps(nextProps: ILayoutProps, nextState: ILayoutState) {
+        if (nextProps.user.details && nextProps.user.details.id !== nextState.userId) {
+            nextProps.searchNotifications({
+                filterBy: 'userId',
+                query: nextProps.user.details.id,
+                itemsPerPage: 20,
+                pageNumber: 1,
+            });
+
+            return {
+                userId: nextProps.user.details.id,
+            };
+        }
+        return {};
+    }
+
     constructor(props: ILayoutProps, state: ILayoutState) {
         super(props);
 
         this.state = {
             clientHasLoaded: false,
             isNavMenuOpen: false,
+            userId: props.user.details.id,
         };
     }
 
@@ -154,7 +172,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
         if (navMenuContext === INavMenuContext.HEADER_PROFILE) {
             return (
-                <UserMenu handleLogout={this.handleLogout} toggleNavMenu={this.toggleNavMenu} />
+                <UserMenu history={this.props.history} handleLogout={this.handleLogout} toggleNavMenu={this.toggleNavMenu} />
             );
         }
 
