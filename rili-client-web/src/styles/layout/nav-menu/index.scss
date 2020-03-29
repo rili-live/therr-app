@@ -48,6 +48,21 @@ $menu-padding: rem-calc(24px);
                     fill: $rili-secondary-1;
                 }
             }
+
+            &#nav_menu_notifications {
+                position: relative;
+
+                &.unread-notifications::before {
+                    position: absolute;
+                    content: '';
+                    background: $rili-alert-error;
+                    top: 10%;
+                    height: .5rem;
+                    width: .5rem;
+                    right: 25%;
+                    border-radius: 50%;
+                }
+            }
         }
 
         button {

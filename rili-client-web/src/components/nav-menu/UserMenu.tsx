@@ -103,7 +103,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
 
     render() {
         const { activeTab } = this.state;
-        const { toggleNavMenu, handleLogout } = this.props;
+        const { handleLogout, notifications, toggleNavMenu } = this.props;
 
         return (
             <>
@@ -116,14 +116,25 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                         onClick={(e) => this.handleTabSelect(e, 'profile')}
                         buttonType="primary"
                     />
-                    <SvgButton
-                        id="nav_menu_notifications"
-                        name="notifications"
-                        className={`menu-tab-button ${activeTab === 'notifications' ? 'active' : ''}`}
-                        iconClassName="tab-icon"
-                        onClick={(e) => this.handleTabSelect(e, 'notifications')}
-                        buttonType="primary"
-                    />
+                    {
+                        notifications.messages.filter((n) => n.isUnread).length
+                            ? <SvgButton
+                                id="nav_menu_notifications"
+                                name="notifications-active"
+                                className={`menu-tab-button ${activeTab === 'notifications' ? 'active' : ''} unread-notifications`}
+                                iconClassName="tab-icon"
+                                onClick={(e) => this.handleTabSelect(e, 'notifications')}
+                                buttonType="primary"
+                            />
+                            : <SvgButton
+                                id="nav_menu_notifications"
+                                name="notifications"
+                                className={`menu-tab-button ${activeTab === 'notifications' ? 'active' : ''}`}
+                                iconClassName="tab-icon"
+                                onClick={(e) => this.handleTabSelect(e, 'notifications')}
+                                buttonType="primary"
+                            />
+                    }
                     <SvgButton
                         id="nav_menu_account_settings"
                         name="settings"
