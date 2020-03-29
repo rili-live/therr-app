@@ -12,6 +12,8 @@ export interface ISearchDbRecords {
         };
     };
     defaultConditions: any;
+    groupBy?: string;
+    orderBy?: string;
     returning?: string | string[];
 }
 
@@ -20,6 +22,8 @@ export default ({
     tableName,
     conditions,
     defaultConditions,
+    groupBy,
+    orderBy,
     returning,
 }: ISearchDbRecords): string => {
     const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
@@ -33,6 +37,14 @@ export default ({
         const operator = conditions.filterOperator || '=';
         const query = operator === 'like' ? `%${conditions.query}%` : conditions.query;
         queryString = queryString.andWhere(conditions.filterBy, operator, query);
+    }
+
+    if (groupBy) {
+        queryString = queryString.groupBy(groupBy);
+    }
+
+    if (orderBy) {
+        queryString = queryString.orderBy(orderBy);
     }
 
     queryString = queryString

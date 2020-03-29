@@ -92,8 +92,11 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
     onSubmit = (event: any) => {
         if (this.isFormValid()) {
             const { inputs } = this.state;
+            const { user } = this.props;
             const reqBody: any = {
-                requestingUserId: this.props.user.details.id,
+                requestingUserId: user.details.id,
+                requestingUserFirstName: user.details.firstName,
+                requestingUserLastName: user.details.lastName,
             };
             if (this.state.inputs.connectionIdentifier === 'acceptingUserEmail') {
                 reqBody.acceptingUserEmail = inputs.email;

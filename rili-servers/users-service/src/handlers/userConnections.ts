@@ -1,5 +1,7 @@
 import { RequestHandler } from 'express';
 import { getSearchQueryArgs } from 'rili-public-library/utilities/http.js';
+import beeline from '../beeline';
+import NotificationsStore, { NotificationTypes, NotificationMessages } from '../store/NotificationsStore';
 import handleHttpError from '../utilities/handleHttpError';
 import UserConnectionsStore from '../store/UserConnectionsStore';
 import UsersStore from '../store/UsersStore';
@@ -9,11 +11,13 @@ import UsersStore from '../store/UsersStore';
 const createUserConnection: RequestHandler = async (req: any, res: any) => {
     const {
         requestingUserId,
+        requestingUserFirstName,
+        requestingUserLastName,
         acceptingUserId,
         acceptingUserPhoneNumber,
         acceptingUserEmail,
     } = req.body;
-    let acceptingId;
+    let acceptingId = acceptingUserId;
     if (!acceptingUserId) {
         try {
             const userResults = await UsersStore.findUser({
@@ -46,6 +50,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
         }
     }
 
+    // TODO: Make this one DB request
     return UserConnectionsStore.getUserConnections({
         requestingUserId,
         acceptingUserId: acceptingId,
@@ -60,9 +65,24 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
             }
 
             return UserConnectionsStore.createUserConnection({
-                requestingUserId: req.body.requestingUserId,
-                acceptingUserId: req.body.acceptingUserId || acceptingId,
+                requestingUserId,
+                acceptingUserId: acceptingId,
                 requestStatus: 'pending',
+            }).then((results) => {
+                NotificationsStore.createNotification({
+                    userId: acceptingId,
+                    type: NotificationTypes.CONNECTION_REQUEST_RECEIVED,
+                    associationId: results[0].id,
+                    isUnread: true,
+                    message: NotificationMessages.CONNECTION_REQUEST_RECEIVED,
+                    messageParams: { firstName: requestingUserFirstName, lastName: requestingUserLastName },
+                }).catch((err) => {
+                    beeline.addContext({
+                        errorMessage: err.stack,
+                    });
+                });
+
+                return results;
             }).then((results) => res.status(201).send({ id: results[0].id }));
         })
         .catch((err) => handleHttpError({

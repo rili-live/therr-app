@@ -5,7 +5,7 @@ export interface INotification {
   id: number;
   userId: number;
   type: string;
-  associationId: number;
+  associationId?: number;
   isUnread: boolean;
   message: string;
   messageParams?: any;
