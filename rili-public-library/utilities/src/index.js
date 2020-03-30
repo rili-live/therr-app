@@ -13,6 +13,7 @@ const utilities = [
 
     // Utilities
     'calculate-pages',
+    'format-sql-join-as-json',
     'http-response',
     'localization',
     'promiser',

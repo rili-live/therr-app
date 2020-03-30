@@ -1,4 +1,5 @@
 exports.up = (knex) => knex.schema.withSchema('main').createTable('userConnections', (table) => {
+    table.increments('id');
     table.integer('requestingUserId')
         .references('id')
         .inTable('main.users')
@@ -16,7 +17,7 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('userConnectio
     table.timestamp('updatedAt', { useTz: true }).notNullable().defaultTo(knex.fn.now());
 
     table.unique(['requestingUserId', 'acceptingUserId']);
-    table.index(['requestingUserId', 'acceptingUserId']).index('requestingUserId').index('interactionCount');
+    table.index('id').index(['requestingUserId', 'acceptingUserId']).index('interactionCount');
 });
 
 exports.down = (knex) => knex.schema.dropTable('main.userConnections');
