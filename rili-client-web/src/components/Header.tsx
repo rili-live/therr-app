@@ -78,7 +78,6 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
                     <div className="login-link"><Link to="/login">Login</Link></div>
                 </AccessControl>
                 <AccessControl isAuthorized={isAuthorized}>
-                    {/* <button type="button" className="primary text-white logout-button" onClick={this.handleLogout}>Logout</button> */}
                     <SvgButton
                         id="header_account_button"
                         name="account"
