@@ -12,7 +12,7 @@ env:
     - GIT_SHA=$(git rev-parse HEAD)
     - CLOUDSDK_CORE_DISABLE_PROMPTS=1
 before_install:
-  - _bin/travis/before-install.sh
+  - bash _bin/travis/before-install.sh
 # install:
 #   - _bin/travis/install.sh
 # jobs:
