@@ -28,7 +28,7 @@ const searchNotifications: RequestHandler = (req: any, res: any) => {
     } = req.query;
     const integerColumns = ['id', 'userId', 'associationId'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
-    const searchPromise = NotificationsStore.searchNotifications(searchArgs[0], searchArgs[1]);
+    const searchPromise = NotificationsStore.searchNotifications(searchArgs[0]);
     const countPromise = NotificationsStore.countRecords({
         filterBy,
         query,
@@ -46,7 +46,9 @@ const searchNotifications: RequestHandler = (req: any, res: any) => {
 
         res.status(200).send(response);
     })
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
+        .catch((err) => {
+            handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' });
+        });
 };
 
 // UPDATE
