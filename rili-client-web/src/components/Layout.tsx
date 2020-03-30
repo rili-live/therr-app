@@ -24,7 +24,7 @@ import routes from '../routes';
 import { AccessCheckType, INavMenuContext } from '../types';
 import UsersService from '../services/UsersService';
 import Footer from './Footer';
-import { SocketActions } from '../redux/actions';
+import { NotificationActions, SocketActions } from '../redux/actions';
 import UserMenu from './nav-menu/UserMenu';
 import MessagesMenu from './nav-menu/MessagesMenu';
 
@@ -37,6 +37,7 @@ interface ILayoutRouterProps {
 interface ILayoutDispatchProps {
     // Add your dispatcher properties here
     logout: Function;
+    searchNotifications: Function;
 }
 
 interface IStoreProps extends ILayoutDispatchProps {
@@ -52,6 +53,7 @@ interface ILayoutState {
     clientHasLoaded: boolean;
     isNavMenuOpen: boolean;
     navMenuContext?: INavMenuContext;
+    userId: number;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -60,25 +62,48 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
+    searchNotifications: NotificationActions.search,
     logout: SocketActions.logout,
 }, dispatch);
 
 // TODO: Animation between view change is not working when wrapped around a Switch
 export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState> {
+    static getDerivedStateFromProps(nextProps: ILayoutProps, nextState: ILayoutState) {
+        if (nextProps.user.details && nextProps.user.details.id !== nextState.userId) {
+            nextProps.searchNotifications({
+                filterBy: 'userId',
+                query: nextProps.user.details.id,
+                itemsPerPage: 20,
+                pageNumber: 1,
+            });
+
+            return {
+                userId: nextProps.user.details.id,
+            };
+        }
+        return {};
+    }
+
     constructor(props: ILayoutProps, state: ILayoutState) {
         super(props);
 
         this.state = {
             clientHasLoaded: false,
             isNavMenuOpen: false,
+            userId: props.user.details.id,
         };
     }
 
     componentDidMount() {
+        const {
+            history,
+            searchNotifications,
+            user,
+        } = this.props;
         // TODO: Check if this should be initialized in index with history passed as argument
         // Initialize global interceptors such as 401, 403
-        initInterceptors(this.props.history, globalConfig.baseApiRoute, 300);
-        _viewListener = this.props.history.listen((location: Location, action: any) => {
+        initInterceptors(history, globalConfig.baseApiRoute, 300);
+        _viewListener = history.listen((location: Location, action: any) => {
             this.onViewChange(location);
         });
 
@@ -86,6 +111,13 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         document.addEventListener('click', this.handleClick);
         this.setState({
             clientHasLoaded: true,
+        });
+
+        searchNotifications({
+            filterBy: 'userId',
+            query: user.details.id,
+            itemsPerPage: 20,
+            pageNumber: 1,
         });
     }
 
@@ -140,7 +172,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
         if (navMenuContext === INavMenuContext.HEADER_PROFILE) {
             return (
-                <UserMenu handleLogout={this.handleLogout} toggleNavMenu={this.toggleNavMenu} />
+                <UserMenu history={this.props.history} handleLogout={this.handleLogout} toggleNavMenu={this.toggleNavMenu} />
             );
         }
 

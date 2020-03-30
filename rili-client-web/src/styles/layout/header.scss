@@ -13,6 +13,7 @@ header {
     .login-link,
     .logout-button,
     #header_account_button {
+        width: 7rem;
         position: absolute;
         right: 1rem;
         cursor: pointer;
@@ -22,10 +23,6 @@ header {
             text-decoration: none;
             font-weight: bold;
         }
-    }
-
-    #header_account_button {
-        width: 7rem;
     }
 }
 
