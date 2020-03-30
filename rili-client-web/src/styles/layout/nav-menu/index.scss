@@ -42,6 +42,9 @@ $menu-padding: rem-calc(24px);
             &:focus {
                 box-shadow: none;
             }
+            &:active {
+                background: transparent;
+            }
 
             .tab-icon {
                 svg {
@@ -133,6 +136,7 @@ $menu-padding: rem-calc(24px);
         .menu-item {
             height: auto;
             color: $text-grey;
+            background: transparent;
             font-size: .95rem;
             text-align: left;;
             padding: .5rem;

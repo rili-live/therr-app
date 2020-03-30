@@ -14,7 +14,18 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
     switch (action.type) {
         // TODO: Rethink this
         case UserConnectionActionTypes.GET_USER_CONNECTIONS:
-            return state.setIn(['connections'], action.data);
+            let uniqueConnections = [...state.connections]; // eslint-disable-line no-case-declarations
+            const newConnections = (action.data || []).filter((connection) => { // eslint-disable-line no-case-declarations
+                const existingIndex = uniqueConnections.findIndex((c) => c.id === connection.id);
+                if (existingIndex > -1) {
+                    uniqueConnections[existingIndex] = connection;
+                    return false;
+                }
+
+                return true;
+            });
+            uniqueConnections = uniqueConnections.concat(newConnections);
+            return state.setIn(['connections'], uniqueConnections);
         default:
             return state;
     }
