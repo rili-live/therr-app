@@ -7,6 +7,7 @@ import SocketActions from 'actions/Socket';
 import { bindActionCreators } from 'redux';
 import { INotificationsState, INotification } from 'types/notifications';
 import Notification from './Notification';
+import UserConnectionsService from '../../services/UserConnectionsService';
 
 interface IUserMenuDispatchProps {
     logout: Function;
@@ -52,6 +53,22 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         });
     }
 
+    handleAcceptConnectionRequest = (e, notification) => {
+        const { user } = this.props;
+        const reqBody: any = {
+            acceptingUserId: user.details.id,
+            requestStatus: 'complete',
+        };
+
+        UserConnectionsService.update(notification.userConnection.requestingUserId, reqBody)
+            .then((response) => {
+                console.log(response);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    }
+
     navigate = (destination) => (e) => {
         this.props.toggleNavMenu(e);
 
@@ -87,7 +104,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                 <div className="notifications">
                     {
                         notifications.messages.map((n: INotification) => (
-                            <Notification key={n.id} notification={n} />
+                            <Notification handleAcceptConnectionRequest={this.handleAcceptConnectionRequest} key={n.id} notification={n} />
                         ))
                     }
                 </div>

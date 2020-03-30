@@ -50,8 +50,6 @@ class Store {
         const queryString = knex.select('*')
             .from(USER_CONNECTIONS_TABLE_NAME)
             .where({
-                isConnectionBroken: false,
-                requestStatus: 'complete',
                 ...conditions,
             })
             .toString();

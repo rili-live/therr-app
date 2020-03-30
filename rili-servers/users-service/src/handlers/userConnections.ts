@@ -142,7 +142,7 @@ const searchUserConnections: RequestHandler = (req: any, res: any) => {
 // UPDATE
 // TODO: Assess security implications to prevent anyone from hacking this endpoint
 const updateUserConnection = (req, res) => UserConnectionsStore.getUserConnections({
-    requestingUserId: req.params.requestingUserId,
+    requestingUserId: Number(req.params.requestingUserId),
     acceptingUserId: req.body.acceptingUserId,
 })
     .then((getResults) => {
@@ -153,9 +153,13 @@ const updateUserConnection = (req, res) => UserConnectionsStore.getUserConnectio
         } = req.body;
 
         if (!getResults.length) {
+            console.log({
+                requestingUserId: req.params.requestingUserId,
+                acceptingUserId: req.body.acceptingUserId,
+            });
             return handleHttpError({
                 res,
-                message: `No user connection found with id, ${req.params.id}.`,
+                message: `No user connection found with requesting user id, ${req.params.requestingUserId}.`,
                 statusCode: 404,
             });
         }
