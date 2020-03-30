@@ -1,21 +1,27 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
 import SvgButton from 'rili-public-library/react-components/SvgButton.js';
 import { IUserState } from 'types/user';
 import SocketActions from 'actions/Socket';
 import { bindActionCreators } from 'redux';
+import { INotificationsState, INotification } from 'types/notifications';
+import Notification from './Notification';
+import UserConnectionsService from '../../services/UserConnectionsService';
 
 interface IUserMenuDispatchProps {
     logout: Function;
 }
 
 interface IStoreProps extends IUserMenuDispatchProps {
+    notifications: INotificationsState;
     user: IUserState;
 }
 
 // Regular component props
 interface IUserMenuProps extends IStoreProps {
     handleLogout: any;
+    history: any;
     toggleNavMenu: Function;
 }
 
@@ -24,6 +30,7 @@ interface IUserMenuState {
 }
 
 const mapStateToProps = (state: any) => ({
+    notifications: state.notifications,
     user: state.user,
 });
 
@@ -46,17 +53,64 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         });
     }
 
+    handleAcceptConnectionRequest = (e, notification) => {
+        const { user } = this.props;
+        const reqBody: any = {
+            acceptingUserId: user.details.id,
+            requestStatus: 'complete',
+        };
+
+        UserConnectionsService.update(notification.userConnection.requestingUserId, reqBody)
+            .then((response) => {
+                console.log(response);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    }
+
+    navigate = (destination) => (e) => {
+        this.props.toggleNavMenu(e);
+
+        switch (destination) {
+            case 'view-profile':
+                return this.props.history.push('/');
+            case 'edit-profile':
+                return this.props.history.push('/');
+            default:
+        }
+    }
+
     renderProfileContent = () => (
         <>
             <h2>Profile Settings</h2>
+            <div className="profile-settings-menu">
+                <ButtonPrimary
+                    id="nav_menu_view_profile"
+                    className="menu-item" name="View Profile" text="View Profile" onClick={this.navigate('view-profile')} buttonType="primary" />
+                <ButtonPrimary
+                    id="nav_menu_edit_profile"
+                    className="menu-item" name="Edit Profile" text="Edit Profile" onClick={this.navigate('edit-profile')} buttonType="primary" />
+            </div>
         </>
     )
 
-    renderNotificationsContent = () => (
-        <>
-            <h2>Notification</h2>
-        </>
-    )
+    renderNotificationsContent = () => {
+        const { notifications } = this.props;
+
+        return (
+            <>
+                <h2>Notifications</h2>
+                <div className="notifications">
+                    {
+                        notifications.messages.map((n: INotification) => (
+                            <Notification handleAcceptConnectionRequest={this.handleAcceptConnectionRequest} key={n.id} notification={n} />
+                        ))
+                    }
+                </div>
+            </>
+        );
+    }
 
     renderAccountContent = () => (
         <>
@@ -66,7 +120,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
 
     render() {
         const { activeTab } = this.state;
-        const { toggleNavMenu, handleLogout } = this.props;
+        const { handleLogout, notifications, toggleNavMenu } = this.props;
 
         return (
             <>
@@ -79,14 +133,25 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                         onClick={(e) => this.handleTabSelect(e, 'profile')}
                         buttonType="primary"
                     />
-                    <SvgButton
-                        id="nav_menu_notifications"
-                        name="notifications"
-                        className={`menu-tab-button ${activeTab === 'notifications' ? 'active' : ''}`}
-                        iconClassName="tab-icon"
-                        onClick={(e) => this.handleTabSelect(e, 'notifications')}
-                        buttonType="primary"
-                    />
+                    {
+                        notifications.messages.filter((n) => n.isUnread).length
+                            ? <SvgButton
+                                id="nav_menu_notifications"
+                                name="notifications-active"
+                                className={`menu-tab-button ${activeTab === 'notifications' ? 'active' : ''} unread-notifications`}
+                                iconClassName="tab-icon"
+                                onClick={(e) => this.handleTabSelect(e, 'notifications')}
+                                buttonType="primary"
+                            />
+                            : <SvgButton
+                                id="nav_menu_notifications"
+                                name="notifications"
+                                className={`menu-tab-button ${activeTab === 'notifications' ? 'active' : ''}`}
+                                iconClassName="tab-icon"
+                                onClick={(e) => this.handleTabSelect(e, 'notifications')}
+                                buttonType="primary"
+                            />
+                    }
                     <SvgButton
                         id="nav_menu_account_settings"
                         name="settings"

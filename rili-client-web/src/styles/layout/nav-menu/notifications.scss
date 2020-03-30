@@ -1,0 +1,16 @@
+.notifications {
+  .notification {
+    font-size: .95rem;
+    padding-bottom: .75rem;
+    border-bottom: 1px solid $rili-divider-grey;
+    margin-bottom: .75rem;
+
+    .action-buttons {
+      .action-button {
+        &:hover {
+          cursor: pointer;
+        }
+      }
+    }
+  }
+}
