@@ -2,6 +2,7 @@ import { combineReducers } from 'redux';
 import { routerReducer as routing } from 'react-router-redux';
 // import {user, users, isAuthenticated, redirectRoute} from '../library/authentication';
 // import {loader} from '../library/loader';
+import notifications from './notifications';
 import socket from './socket';
 import user from './user';
 import userConnections from './userConnections';
@@ -14,6 +15,7 @@ export default combineReducers({
     // isAuthenticated,
     // loader,
     // redirectRoute,
+    notifications,
     user,
     userConnections,
 });

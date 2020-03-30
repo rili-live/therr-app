@@ -4,7 +4,7 @@ import connection, { IConnection } from './connection';
 
 const knex: Knex = Knex({ client: 'pg' });
 
-const USER_CONNECTIONS_TABLE_NAME = 'main.userConnections';
+export const USER_CONNECTIONS_TABLE_NAME = 'main.userConnections';
 
 export interface ICreateUserConnectionParams {
     requestingUserId: number;
@@ -50,8 +50,6 @@ class Store {
         const queryString = knex.select('*')
             .from(USER_CONNECTIONS_TABLE_NAME)
             .where({
-                isConnectionBroken: false,
-                requestStatus: 'complete',
                 ...conditions,
             })
             .toString();

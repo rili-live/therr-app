@@ -70,6 +70,13 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         const {
             user,
         } = this.props;
+        // TODO: RSERV-25 - Make this one Db request
+        this.props.searchUserConnections({
+            filterBy: 'acceptingUserId',
+            query: user.details.id,
+            itemsPerPage: 20,
+            pageNumber: 1,
+        });
         this.props.searchUserConnections({
             filterBy: 'requestingUserId',
             query: user.details.id,
@@ -92,8 +99,11 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
     onSubmit = (event: any) => {
         if (this.isFormValid()) {
             const { inputs } = this.state;
+            const { user } = this.props;
             const reqBody: any = {
-                requestingUserId: this.props.user.details.id,
+                requestingUserId: user.details.id,
+                requestingUserFirstName: user.details.firstName,
+                requestingUserLastName: user.details.lastName,
             };
             if (this.state.inputs.connectionIdentifier === 'acceptingUserEmail') {
                 reqBody.acceptingUserEmail = inputs.email;
