@@ -11,10 +11,7 @@ fi
 # This line is critical. We setup the SDK to take precedence in our
 # environment over the old SDK that is already on the machine.
 source $HOME/google-cloud-sdk/path.bash.inc
-gcloud components install kubectl
-kubectl version --client
 gcloud components update kubectl
-kubectl version --client
 gcloud auth activate-service-account --key-file service-account.json
 gcloud config set project rili-main
 gcloud config set compute/zone us-central1-a
