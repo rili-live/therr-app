@@ -15,6 +15,12 @@ class UserConnectionsService {
         data,
     })
 
+    update = (requestingUserId: string | number, data: ICreateConnectionBody) => axios({
+        method: 'put',
+        url: `/users/connections/${requestingUserId}`,
+        data,
+    })
+
     search = (query: ISearchQuery) => {
         const queryString = getSearchQueryString(query);
         return axios({
