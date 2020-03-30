@@ -252,9 +252,10 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                             {
                                 userConnections.connections.length
                                     ? userConnections.connections.slice(0, 10).map((connection: any) => (
-                                        <div className="user-connection-icon" key={connection.acceptingUserId}>
+                                        <div className="user-connection-icon" key={connection.id}>
+                                            {/* <span className="name-tag">{connection.firstName}</span> */}
                                             <img
-                                                src={`https://robohash.org/${connection.acceptingUserId}`}
+                                                src={`https://robohash.org/${connection.id}`}
                                                 alt="User Connection"
                                             />
                                         </div>
