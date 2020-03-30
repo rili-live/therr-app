@@ -4,7 +4,7 @@ import connection, { IConnection } from './connection';
 
 const knex: Knex = Knex({ client: 'pg' });
 
-const USER_CONNECTIONS_TABLE_NAME = 'main.userConnections';
+export const USER_CONNECTIONS_TABLE_NAME = 'main.userConnections';
 
 export interface ICreateUserConnectionParams {
     requestingUserId: number;

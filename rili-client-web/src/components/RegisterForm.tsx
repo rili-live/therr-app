@@ -37,17 +37,10 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
     }
 
     onSubmit = (event: any) => {
-        switch (event.target.id) {
-            case 'password':
-            case 'user_name':
-            case 'register':
-                if (!this.isFormDisabled()) {
-                    const creds = { ...this.state.inputs };
-                    delete creds.repeatPassword;
-                    this.props.register(creds);
-                }
-                break;
-            default:
+        if (!this.isFormDisabled()) {
+            const creds = { ...this.state.inputs };
+            delete creds.repeatPassword;
+            this.props.register(creds);
         }
     }
 
