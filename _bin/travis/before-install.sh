@@ -2,15 +2,10 @@
 
 set -e
 
-
 openssl aes-256-cbc -K $encrypted_9f3b5599b056_key -iv $encrypted_9f3b5599b056_iv -in service-account.json.enc -out service-account.json -d
 
 if [ ! -d $HOME/google-cloud-sdk/bin ]; then
-  # The install script errors if this directory already exists,
-  # but Travis already creates it when we mark it as cached.
   rm -rf $HOME/google-cloud-sdk;
-  # The install script is overly verbose, which sometimes causes
-  # problems on Travis, so ignore stdout.
   curl https://sdk.cloud.google.com | bash > /dev/null;
 fi
 # This line is critical. We setup the SDK to take precedence in our
