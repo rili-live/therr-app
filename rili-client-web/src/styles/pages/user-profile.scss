@@ -19,7 +19,16 @@
                 flex-wrap: wrap;
               
                 .user-connection-icon {
+                    position: relative;
                     display: inline;
+
+                    .name-tag {
+                        position: absolute;
+                        bottom: 0;
+                        width: 100%;
+                        color: $rili-white;
+                        background: transparentize($rili-black, .5);
+                    }
               
                     img {
                         height: rem-calc(100px);

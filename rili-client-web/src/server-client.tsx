@@ -33,7 +33,9 @@ import routes, { IRoute } from './routes'; // eslint-disable-line
 // Initialize the server and configure support for handlebars templates
 const app = express();
 
-app.use(helmet());
+if (process.env.NODE_ENV !== 'development') {
+    app.use(helmet());
+}
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 

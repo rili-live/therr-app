@@ -25,15 +25,18 @@ const Notification: React.FunctionComponent<INotificationProps> = ({
         return (
             <div className="notification">
                 <span>{message}</span>
-                <div className="action-buttons text-right">
-                    <ButtonPrimary
-                        className="action-button"
-                        name="Accept"
-                        text="Accept"
-                        onClick={(e) => handleAcceptConnectionRequest(e, notification)}
-                        buttonType="primary"
-                    />
-                </div>
+                {
+                    notification.userConnection.requestStatus === 'pending'
+                    && <div className="action-buttons text-right">
+                        <ButtonPrimary
+                            className="action-button"
+                            name="Accept"
+                            text="Accept"
+                            onClick={(e) => handleAcceptConnectionRequest(e, notification)}
+                            buttonType="primary"
+                        />
+                    </div>
+                }
             </div>
         );
     }

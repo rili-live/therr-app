@@ -9,6 +9,7 @@ export interface INotification {
   isUnread: boolean;
   message: string;
   messageParams?: any;
+  userConnection?: any;
 }
 
 export interface INotificationsState extends Immutable.ImmutableObject<any> {
