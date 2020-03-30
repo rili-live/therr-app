@@ -56,6 +56,7 @@ class Store {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
+    // TODO: RSERV:25 - Make this dynamic to accept multiple queries
     searchUserConnections(conditions = {}, returning) {
         const queryString = getDbQueryString({
             queryBuilder: knex,

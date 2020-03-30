@@ -7,6 +7,8 @@
 
     .action-buttons {
       .action-button {
+        border: none;
+
         &:hover {
           cursor: pointer;
         }
