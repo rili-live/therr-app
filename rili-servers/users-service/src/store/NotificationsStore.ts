@@ -63,6 +63,7 @@ class Store {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
+    // TODO: RSERV:25 - Make this dynamic to support various associationIds
     searchNotifications(conditions: any = {}) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
