@@ -25,6 +25,10 @@ header {
 
     #header_account_button {
         width: 7rem;
+
+        &.has-notifications {
+            box-shadow: 0px 0px 2px 1px transparentize($rili-white, .75);
+        }
     }
 }
 
