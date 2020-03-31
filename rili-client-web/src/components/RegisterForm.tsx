@@ -48,6 +48,11 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
         const newInputChanges = {
             [name]: value,
         };
+
+        if (name === 'userName') {
+            newInputChanges[name] = value.toLowerCase();
+        }
+
         this.setState({
             inputs: {
                 ...this.state.inputs,
@@ -93,7 +98,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     onChange={this.onInputChange}
                     onEnter={this.onSubmit}
                     translate={this.translate}
-                    validations={['isRequired']}
+                    validations={['isRequired', 'email']}
                 />
 
                 <label className="required" htmlFor="phone_number">Mobile Phone #:</label>
@@ -105,7 +110,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     onChange={this.onInputChange}
                     onEnter={this.onSubmit}
                     translate={this.translate}
-                    validations={['isRequired']}
+                    validations={['isRequired', 'mobilePhoneNumber']}
                 />
 
                 <label className="required" htmlFor="user_name">Username:</label>
