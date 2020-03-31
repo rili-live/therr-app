@@ -49,19 +49,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoomState> {
     // private sessionToken: string;
 
-    // static getDerivedStateFromProps(nextProps: IJoinRoomProps, nextState: IJoinRoomState) {
-    //     if (!!nextProps.socket.user.userName && !nextState.inputs.userName) {
-    //         return {
-    //             inputs: {
-    //                 userName: nextProps.socket.user.userName,
-    //                 roomId: 'general-chat'
-    //             }
-    //         };
-    //     } else {
-    //         return {};
-    //     }
-    // }
-
     constructor(props: IJoinRoomProps) {
         super(props);
 
@@ -78,7 +65,7 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = 'Rili | Join a Room';
+        document.title = `Rili | ${this.translate('pages.joinRoom.pageTitle')}`;
     }
 
     private translate: Function;
@@ -123,8 +110,8 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
 
         return (
             <div id="page_join_room">
-                <h1>Join a Room</h1>
-                <label htmlFor="room_name">Room:</label>
+                <h1>{this.translate('pages.joinRoom.pageTitle')}</h1>
+                <label htmlFor="room_name">{this.translate('pages.joinRoom.labels.room')}:</label>
                 <Input
                     type="text"
                     id="room_name"
@@ -139,8 +126,8 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
                     && <span className="rooms-list">
                         {
                             socket.rooms.length < 1
-                                ? <i>No rooms are currently active. Click &apos;Join Room&apos; to start a new one.</i>
-                                : <span>Active Rooms: <i>{activeRooms}</i></span>
+                                ? <i>{this.translate('pages.joinRoom.noRoomsMessage')}</i>
+                                : <span>{this.translate('pages.joinRoom.labels.activeRooms')}: <i>{activeRooms}</i></span>
                         }
                     </span>
                 }

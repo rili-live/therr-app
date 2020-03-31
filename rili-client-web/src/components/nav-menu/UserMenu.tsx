@@ -7,6 +7,7 @@ import SocketActions from 'actions/Socket';
 import { bindActionCreators } from 'redux';
 import { INotificationsState, INotification } from 'types/notifications';
 import Notification from './Notification';
+import translator from '../../services/translator';
 import UserConnectionsService from '../../services/UserConnectionsService';
 
 interface IUserMenuDispatchProps {
@@ -43,9 +44,13 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         super(props);
 
         this.state = {
-            activeTab: 'profile',
+            activeTab: 'notifications',
         };
+
+        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
+
+    private translate: Function;
 
     handleTabSelect = (e, tabName) => {
         this.setState({
@@ -83,14 +88,18 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
 
     renderProfileContent = () => (
         <>
-            <h2>Profile Settings</h2>
+            <h2>{this.translate('components.userMenu.h2.profileSettings')}</h2>
             <div className="profile-settings-menu">
                 <ButtonPrimary
                     id="nav_menu_view_profile"
-                    className="menu-item" name="View Profile" text="View Profile" onClick={this.navigate('view-profile')} buttonType="primary" />
+                    className="menu-item"
+                    name="View Profile"
+                    text={this.translate('components.userMenu.buttons.viewProfile')} onClick={this.navigate('view-profile')} buttonType="primary" />
                 <ButtonPrimary
                     id="nav_menu_edit_profile"
-                    className="menu-item" name="Edit Profile" text="Edit Profile" onClick={this.navigate('edit-profile')} buttonType="primary" />
+                    className="menu-item"
+                    name="Edit Profile"
+                    text={this.translate('components.userMenu.buttons.editProfile')} onClick={this.navigate('edit-profile')} buttonType="primary" />
             </div>
         </>
     )
@@ -100,7 +109,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
 
         return (
             <>
-                <h2>Notifications</h2>
+                <h2>{this.translate('components.userMenu.h2.notifications')}</h2>
                 <div className="notifications">
                     {
                         notifications.messages.map((n: INotification) => (
@@ -114,7 +123,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
 
     renderAccountContent = () => (
         <>
-            <h2>Account Settings</h2>
+            <h2>{this.translate('components.userMenu.h2.accountSettings')}</h2>
         </>
     )
 
@@ -125,14 +134,6 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         return (
             <>
                 <div className="nav-menu-header">
-                    <SvgButton
-                        id="nav_menu_profile_button"
-                        name="account"
-                        className={`menu-tab-button ${activeTab === 'profile' ? 'active' : ''}`}
-                        iconClassName="tab-icon"
-                        onClick={(e) => this.handleTabSelect(e, 'profile')}
-                        buttonType="primary"
-                    />
                     {
                         notifications.messages.filter((n) => n.isUnread).length
                             ? <SvgButton
@@ -152,6 +153,14 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                                 buttonType="primary"
                             />
                     }
+                    <SvgButton
+                        id="nav_menu_profile_button"
+                        name="account"
+                        className={`menu-tab-button ${activeTab === 'profile' ? 'active' : ''}`}
+                        iconClassName="tab-icon"
+                        onClick={(e) => this.handleTabSelect(e, 'profile')}
+                        buttonType="primary"
+                    />
                     <SvgButton
                         id="nav_menu_account_settings"
                         name="settings"
