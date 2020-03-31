@@ -1,4 +1,5 @@
-.login-container {
+.login-container,
+.register-container {
     background-color: rgba($rili-primary-1, .75);
     border: rem-calc(4px) solid $rili-primary-1;
     border-radius: 1rem;
@@ -11,8 +12,10 @@
 }
 
 @media only screen and (min-width: rem-calc(540px)) {
-    .login-container {
+    .login-container,
+    .register-container {
         border: rem-calc(6px) solid $rili-primary-1;
         min-width: rem-calc(360px);
+        max-width: rem-calc(360px)
     }
 }

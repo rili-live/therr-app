@@ -48,7 +48,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = 'Rili | Register';
+        document.title = `Rili | ${this.translate('pages.register.pageTitle')}`;
     }
 
     private translate: Function;
@@ -80,7 +80,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
         return (
             <>
                 <div id="page_register" className="flex-box">
-                    <RegisterForm register={this.register} />
+                    <RegisterForm register={this.register} title={this.translate('pages.register.pageTitle')} />
 
                 </div>
                 {

@@ -7,6 +7,7 @@ import { IUserState } from 'types/user';
 import SocketActions from 'actions/Socket';
 import { bindActionCreators } from 'redux';
 import { INotificationsState, INotification } from 'types/notifications';
+import translator from '../services/translator';
 import { INavMenuContext } from '../types';
 
 interface IHeaderDispatchProps {
@@ -54,7 +55,11 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
         this.state = {
             hasUnreadNotifications: false,
         };
+
+        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
+
+    private translate: Function;
 
     handleLogout = () => {
         const {
@@ -75,7 +80,7 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
         return (
             <header>
                 <AccessControl isAuthorized={isAuthorized} publicOnly>
-                    <div className="login-link"><Link to="/login">Login</Link></div>
+                    <div className="login-link"><Link to="/login">{this.translate('components.header.buttons.login')}</Link></div>
                 </AccessControl>
                 <AccessControl isAuthorized={isAuthorized}>
                     <SvgButton

@@ -63,6 +63,10 @@ class Store {
     }
 
     createUser(params: ICreateUserParams) {
+        const sanitizedParams = {
+            ...params,
+            userName: params.userName.toLowerCase(),
+        };
         const queryString = knex.insert(params)
             .into(USERS_TABLE_NAME)
             .returning(['email', 'id', 'userName', 'accessLevels'])
