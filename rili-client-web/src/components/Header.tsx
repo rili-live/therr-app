@@ -75,10 +75,20 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
 
     render() {
         const { hasUnreadNotifications } = this.state;
-        const { isAuthorized, toggleNavMenu } = this.props;
+        const { goHome, isAuthorized, toggleNavMenu } = this.props;
 
         return (
             <header>
+                <div id="rili">
+                    <SvgButton
+                        id="rili_svg_button"
+                        iconClassName="rili-icon"
+                        name="rili"
+                        onClick={() => goHome()}
+                        buttonType="primary"
+                    />
+                    rili
+                </div>
                 <AccessControl isAuthorized={isAuthorized} publicOnly>
                     <div className="login-link"><Link to="/login">{this.translate('components.header.buttons.login')}</Link></div>
                 </AccessControl>

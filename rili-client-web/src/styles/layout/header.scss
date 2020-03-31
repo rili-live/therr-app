@@ -10,6 +10,31 @@ header {
     width: 100%;
     box-shadow: $box-shadow-fixed-top;
 
+    #rili {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 4.4rem;
+        font-size: 1.5rem;
+        color: $rili-white;
+
+        #rili_svg_button {
+            background: transparent;
+            padding: 0;
+            width: rem-calc(34px);
+
+            .rili-icon {
+                path {
+                    stroke: transparent !important;
+                }
+
+                g {
+                    fill: $rili-white !important;
+                }
+            }
+        }
+    }
+
     .login-link,
     #header_account_button {
         position: absolute;
