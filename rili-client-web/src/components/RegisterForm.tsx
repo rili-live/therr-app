@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Link } from 'react-router-dom';
 import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
 import Input from 'rili-public-library/react-components/Input.js';
 import translator from '../services/translator';
@@ -6,6 +7,7 @@ import translator from '../services/translator';
 // Regular component props
 interface IRegisterFormProps {
   register: Function;
+  title: string;
 }
 
 interface IRegisterFormState {
@@ -48,6 +50,11 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
         const newInputChanges = {
             [name]: value,
         };
+
+        if (name === 'userName') {
+            newInputChanges[name] = value.toLowerCase();
+        }
+
         this.setState({
             inputs: {
                 ...this.state.inputs,
@@ -59,8 +66,8 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
     public render(): JSX.Element | null {
         return (
             <div className="register-container">
-                <h1 className="text-center">Register</h1>
-                <label className="required" htmlFor="first_name">First Name:</label>
+                <h1 className="text-center">{this.props.title}</h1>
+                <label className="required" htmlFor="first_name">{this.translate('components.registerForm.labels.firstName')}:</label>
                 <Input
                     type="text"
                     id="first_name"
@@ -72,7 +79,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     validations={['isRequired']}
                 />
 
-                <label className="required" htmlFor="last_name">Last Name:</label>
+                <label className="required" htmlFor="last_name">{this.translate('components.registerForm.labels.lastName')}:</label>
                 <Input
                     type="text"
                     id="last_name"
@@ -84,31 +91,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     validations={['isRequired']}
                 />
 
-                <label className="required" htmlFor="e_mail">E-mail:</label>
-                <Input
-                    type="text"
-                    id="e_mail"
-                    name="email"
-                    value={this.state.inputs.email}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    validations={['isRequired']}
-                />
-
-                <label className="required" htmlFor="phone_number">Mobile Phone #:</label>
-                <Input
-                    type="text"
-                    id="phone_number"
-                    name="phoneNumber"
-                    value={this.state.inputs.phoneNumber}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    validations={['isRequired']}
-                />
-
-                <label className="required" htmlFor="user_name">Username:</label>
+                <label className="required" htmlFor="user_name">{this.translate('components.registerForm.labels.userName')}:</label>
                 <Input
                     type="text"
                     id="user_name"
@@ -120,7 +103,31 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     validations={['isRequired']}
                 />
 
-                <label className="required" htmlFor="password">Password:</label>
+                <label className="required" htmlFor="e_mail">{this.translate('components.registerForm.labels.email')}:</label>
+                <Input
+                    type="text"
+                    id="e_mail"
+                    name="email"
+                    value={this.state.inputs.email}
+                    onChange={this.onInputChange}
+                    onEnter={this.onSubmit}
+                    translate={this.translate}
+                    validations={['isRequired', 'email']}
+                />
+
+                <label className="required" htmlFor="phone_number">{this.translate('components.registerForm.labels.mobilePhone')}:</label>
+                <Input
+                    type="text"
+                    id="phone_number"
+                    name="phoneNumber"
+                    value={this.state.inputs.phoneNumber}
+                    onChange={this.onInputChange}
+                    onEnter={this.onSubmit}
+                    translate={this.translate}
+                    validations={['isRequired', 'mobilePhoneNumber']}
+                />
+
+                <label className="required" htmlFor="password">{this.translate('components.registerForm.labels.password')}:</label>
                 <Input
                     type="password"
                     id="password"
@@ -133,7 +140,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     validations={['isRequired']}
                 />
 
-                <label className="required" htmlFor="repeat_password">Repeat Password:</label>
+                <label className="required" htmlFor="repeat_password">{this.translate('components.registerForm.labels.repeatPassword')}:</label>
                 <Input
                     type="password"
                     id="repeat_password"
@@ -146,8 +153,14 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     validations={['isRequired']}
                 />
 
+                <div className="text-left">
+                    <Link to="/login">{this.translate('components.registerForm.buttons.backToLogin')}</Link>
+                </div>
+
                 <div className="form-field text-right">
-                    <ButtonPrimary id="register" text="Register" onClick={this.onSubmit} disabled={this.isFormDisabled()} />
+                    <ButtonPrimary
+                        id="register"
+                        text={this.translate('components.registerForm.buttons.register')} onClick={this.onSubmit} disabled={this.isFormDisabled()} />
                 </div>
             </div>
         );

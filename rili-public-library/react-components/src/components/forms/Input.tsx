@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { Key as KeyCode } from 'ts-keycode-enum';
+import isValidInput from 'rili-public-library/utilities/is-valid-input.js';
 import VALIDATIONS from '../../constants/VALIDATIONS';
 
 class Input extends React.Component<any, any> {
@@ -40,7 +41,7 @@ class Input extends React.Component<any, any> {
         }
 
         props.validations.forEach((key: any) => {
-            if (!VALIDATIONS[key].regex.test(props.value)) {
+            if (!isValidInput(VALIDATIONS, key, props.value)) {
                 validationErrors.push({
                     key,
                     message: translate(VALIDATIONS[key].errorMessageLocalizationKey, {
