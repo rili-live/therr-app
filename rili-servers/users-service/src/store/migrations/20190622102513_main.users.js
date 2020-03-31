@@ -6,7 +6,7 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('users', (tabl
     table.string('firstName');
     table.string('lastName');
     table.string('password').notNullable();
-    table.string('phoneNumber').unique().notNullable();
+    table.string('phoneNumber', 24).unique().notNullable();
     table.timestamp('createdAt', { useTz: true }).notNullable().defaultTo(knex.fn.now());
     table.timestamp('updatedAt', { useTz: true }).notNullable().defaultTo(knex.fn.now());
 });

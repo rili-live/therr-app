@@ -15,6 +15,7 @@ const utilities = [
     'calculate-pages',
     'format-sql-join-as-json',
     'http-response',
+    'is-valid-input',
     'localization',
     'promiser',
     'scroll-to',

@@ -64,6 +64,11 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
         const newInputChanges = {
             [name]: value,
         };
+
+        if (name === 'userName') {
+            newInputChanges[name] = value.toLowerCase();
+        }
+
         this.setState({
             inputs: {
                 ...this.state.inputs,
