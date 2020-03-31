@@ -75,7 +75,7 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
     }
 
     componentDidMount() {
-        document.title = 'Rili | Chat Room';
+        document.title = `Rili | ${this.translate('pages.chatRoom.pageTitle')}`;
         if (shouldRender(this.props)) {
             this.messageInputRef.current.inputEl.focus();
             this.props.joinRoom({
@@ -168,7 +168,7 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
                     </div>
                 </div>
 
-                <h1 id="roomTitle">Room Name: {socket.user.currentRoom}</h1>
+                <h1 id="roomTitle">{this.translate('pages.chatRoom.pageTitle')}: {socket.user.currentRoom}</h1>
                 {
                     socket && socket.rooms
                     && <span id="rooms_list">
@@ -179,7 +179,7 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
                                         messages.map((message: IMessage) => <li key={message.key}>({message.time}) {message.text}</li>)
                                     }
                                 </span>
-                                : <span>Welcome!</span>
+                                : <span>{this.translate('pages.chatRoom.welcome')}</span>
                         }
                     </span>
                 }

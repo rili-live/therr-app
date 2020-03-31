@@ -66,7 +66,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = 'Rili | User Profile';
+        document.title = `Rili | ${this.translate('pages.userProfile.pageTitle')}`;
         const {
             user,
         } = this.props;
@@ -119,7 +119,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                             connectionIdentifier: '',
                             phoneNumber: '',
                         },
-                        prevRequestSuccess: 'A connection request was successfully sent',
+                        prevRequestSuccess: this.translate('pages.userProfile.connectionSent'),
                     });
                 })
                 .catch((error) => {
@@ -163,20 +163,20 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
 
         return (
             <div id="page_user_profile" className="flex-box column">
-                <h1 className="fill text-left">User Profile</h1>
+                <h1 className="fill text-left">{this.translate('pages.userProfile.pageTitle')}</h1>
                 <div className="flex-box account-sections">
                     <div id="account_details" className="account-section">
-                        <h2 className="underline">Account Details</h2>
+                        <h2 className="underline">{this.translate('pages.userProfile.h2.accountDetails')}</h2>
                         <div className="account-section-content">
-                            <h4><b>Firstname:</b> {user.details.firstName}</h4>
-                            <h4><b>Lastname:</b> {user.details.lastName}</h4>
-                            <h4><b>Username:</b> {user.details.userName}</h4>
-                            <h4><b>E-mail:</b> {user.details.email}</h4>
-                            <h4><b>Phone:</b> {user.details.phoneNumber}</h4>
+                            <h4><b>{this.translate('pages.userProfile.labels.firstName')}:</b> {user.details.firstName}</h4>
+                            <h4><b>{this.translate('pages.userProfile.labels.lastName')}:</b> {user.details.lastName}</h4>
+                            <h4><b>{this.translate('pages.userProfile.labels.userName')}:</b> {user.details.userName}</h4>
+                            <h4><b>{this.translate('pages.userProfile.labels.email')}:</b> {user.details.email}</h4>
+                            <h4><b>{this.translate('pages.userProfile.labels.phone')}:</b> {user.details.phoneNumber}</h4>
                         </div>
                     </div>
                     <div id="add_connections" className="account-section">
-                        <h2 className="underline">Add New Connection</h2>
+                        <h2 className="underline">{this.translate('pages.userProfile.h2.addConnection')}</h2>
                         <div className="account-section-content">
                             <SelectBox
                                 type="text"
@@ -188,11 +188,11 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                 translate={this.translate}
                                 options={[
                                     {
-                                        text: 'Phone Number',
+                                        text: this.translate('pages.userProfile.labels.phoneNumber'),
                                         value: 'acceptingUserPhoneNumber',
                                     },
                                     {
-                                        text: 'E-mail',
+                                        text: this.translate('pages.userProfile.labels.email'),
                                         value: 'acceptingUserEmail',
                                     },
                                 ]}
@@ -202,7 +202,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                             {
                                 inputs.connectionIdentifier === 'acceptingUserPhoneNumber'
                                 && <>
-                                    <label className="required" htmlFor="phone_number">Phone Number:</label>
+                                    <label className="required" htmlFor="phone_number">{this.translate('pages.userProfile.labels.phoneNumber')}:</label>
                                     <Input
                                         type="text"
                                         id="phone_number"
@@ -211,7 +211,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                         onChange={this.onInputChange}
                                         onEnter={this.onSubmit}
                                         translate={this.translate}
-                                        validations={['isRequired', 'numbersOnly']}
+                                        validations={['isRequired', 'mobilePhoneNumber']}
                                         onValidate={this.onValidateInput}
                                     />
                                 </>
@@ -219,7 +219,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                             {
                                 inputs.connectionIdentifier === 'acceptingUserEmail'
                                 && <>
-                                    <label className="required" htmlFor="email">E-mail:</label>
+                                    <label className="required" htmlFor="email">{this.translate('pages.userProfile.labels.email')}:</label>
                                     <Input
                                         type="text"
                                         id="email"
@@ -242,12 +242,14 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                 && <div className="text-center alert-error backed padding-sm margin-bot-sm">{prevRequestError}</div>
                             }
                             <div className="form-field text-right">
-                                <ButtonPrimary id="sendRequest" text="Send Request" onClick={this.onSubmit} disabled={!this.isFormValid()} />
+                                <ButtonPrimary
+                                    id="sendRequest"
+                                    text={this.translate('pages.userProfile.buttons.sendRequest')} onClick={this.onSubmit} disabled={!this.isFormValid()} />
                             </div>
                         </div>
                     </div>
                     <div id="your_connections" className="account-section">
-                        <h2 className="underline">Connections</h2>
+                        <h2 className="underline">{this.translate('pages.userProfile.h2.connections')}</h2>
                         <div className="user-connections-container account-section-content">
                             {
                                 userConnections.connections.length
@@ -260,14 +262,14 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                             />
                                         </div>
                                     ))
-                                    : <span><i>Send a request to make connections and build a network</i></span>
+                                    : <span><i>{this.translate('pages.userProfile.requestRecommendation')}</i></span>
                             }
                         </div>
                     </div>
                 </div>
                 <div className="fill text-right padding-sm">
                     <button type="button" className="primary text-white" onClick={this.onJoinRoomClick}>
-                        Join A Room
+                        {this.translate('pages.userProfile.buttons.joinARoom')}
                     </button>
                 </div>
             </div>

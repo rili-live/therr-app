@@ -58,7 +58,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = 'Rili | Home';
+        document.title = `Rili | ${this.translate('pages.home.pageTitle')}`;
     }
 
     private translate: Function;
@@ -70,7 +70,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
     public render(): JSX.Element | null {
         return (
             <div id="page_chat_room" className="flex-box">
-                <LoginForm login={this.login} title="Home" />
+                <LoginForm login={this.login} title={this.translate('pages.home.pageTitle')} />
             </div>
         );
     }
