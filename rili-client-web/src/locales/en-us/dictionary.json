@@ -107,7 +107,7 @@
         "lastName": "Lastname",
         "phone": "Phone",
         "phoneNumber": "Phone Number",
-        "userName": "Phone Number"
+        "userName": "Username"
       },
       "pageTitle": "User Profile",
       "requestRecommendation": "Send a request to make connections and build a network"
