@@ -34,7 +34,7 @@ export class PageNotFoundComponent extends React.Component<IPageNotFoundProps & 
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = 'Rili | Page Not Found';
+        document.title = `Rili | ${this.translate('pages.pageNotFound.pageTitle')}`;
     }
 
     private translate: Function;
@@ -43,7 +43,7 @@ export class PageNotFoundComponent extends React.Component<IPageNotFoundProps & 
         return (
             <Status statusCode={404} {...this.props}>
                 <div id="page_page_not_found">
-                    <h1>404 | Page not found</h1>
+                    <h1>404 | {this.translate('pages.pageNotFound.pageTitle')}</h1>
                 </div>
             </Status>
         );

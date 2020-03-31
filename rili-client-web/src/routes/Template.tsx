@@ -1,8 +1,8 @@
-/* eslint-disable */
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
+import translator from '../services/translator';
 // import * as globalConfig from '../../../global-config.js';
 
 interface ITemplateRouterProps {
@@ -37,20 +37,23 @@ export class TemplateComponent extends React.Component<ITemplateProps, ITemplate
         super(props);
 
         this.state = {};
+
+        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     componentDidMount() {
-        document.title = 'Rili | Home';
+        document.title = `Rili | ${this.translate('pages.template.helloTemplate')}`;
     }
+
+    private translate: Function;
 
     public render(): JSX.Element | null {
         return (
             <div id="page_template">
-                Hello, Template
+                {this.translate('pages.template.helloTemplate')}
             </div>
         );
     }
 }
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(TemplateComponent));
-/* eslint-enable */

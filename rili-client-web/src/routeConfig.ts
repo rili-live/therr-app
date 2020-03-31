@@ -16,7 +16,7 @@ export default [
     {
         route: '/join-room',
         head: {
-            title: 'Join a Room',
+            title: 'Join Chat Room',
         },
         view: 'index',
     },

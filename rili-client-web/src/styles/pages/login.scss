@@ -16,5 +16,6 @@
     .register-container {
         border: rem-calc(6px) solid $rili-primary-1;
         min-width: rem-calc(360px);
+        max-width: rem-calc(360px)
     }
 }

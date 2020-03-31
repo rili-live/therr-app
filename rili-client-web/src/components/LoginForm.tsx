@@ -84,7 +84,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
 
         return (
             <div className="login-container">
-                <h1 className="text-center">{ title || 'Login' }</h1>
+                <h1 className="text-center">{ title || this.translate('components.loginForm.defaultTitle') }</h1>
                 {
                     alert
                      && <div className="text-center alert-success">{alert}</div>
@@ -93,7 +93,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                     prevLoginError
                     && <div className="text-center alert-error backed padding-sm">{prevLoginError}</div>
                 }
-                <label htmlFor="user_name">Username:</label>
+                <label htmlFor="user_name">{this.translate('components.loginForm.labels.userName')}:</label>
                 <Input
                     type="text"
                     id="user_name"
@@ -105,7 +105,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                     validations={['isRequired']}
                 />
 
-                <label htmlFor="passwork">Password:</label>
+                <label htmlFor="passwork">{this.translate('components.loginForm.labels.password')}:</label>
                 <Input
                     type="password"
                     id="password"
@@ -118,11 +118,12 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                 />
 
                 <div className="text-left">
-                    <Link to="/register">Sign Up</Link>
+                    <Link to="/register">{this.translate('components.loginForm.buttons.signUp')}</Link>
                 </div>
 
                 <div className="form-field text-right">
-                    <ButtonPrimary id="login" text="Login" onClick={this.onSubmit} disabled={this.isLoginFormDisabled()} />
+                    <ButtonPrimary
+                        id="login" text={this.translate('components.loginForm.buttons.login')} onClick={this.onSubmit} disabled={this.isLoginFormDisabled()} />
                 </div>
             </div>
         );

@@ -5,5 +5,112 @@
     "lettersOnly": "Input only accepts alphabetic values",
     "mobilePhoneNumber": "Input must be a valid, international mobile number beginning with '+'",
     "numbersOnly": "Input only accepts numeric values"
+  },
+  "components": {
+    "header": {
+      "buttons": {
+        "login": "Login"
+      }
+    },
+    "loginForm": {
+      "buttons": {
+        "login": "Login",
+        "signUp": "Sign Up"
+      },
+      "defaultTitle": "Login",
+      "labels": {
+        "password": "Password",
+        "userName": "Username"
+      }
+    },
+    "messagesMenu": {
+      "buttons": {
+        "viewProfile": "View Profile",
+        "editProfile": "Edit Profile"
+      },
+      "h2": {
+        "messages": "Messages",
+        "riliConnect": "Rili Connect",
+        "locationMap": "Location Map"
+      }
+    },
+    "registerForm": {
+      "buttons": {
+        "backToLogin": "Back to Login",
+        "register": "Register"
+      },
+      "labels": {
+        "email": "E-mail",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "mobilePhone": "Mobile Phone #",
+        "password": "Password",
+        "repeatPassword": "Repeat Password",
+        "userName": "Username"
+      }
+    },
+    "userMenu": {
+      "buttons": {
+        "viewProfile": "View Profile",
+        "editProfile": "Edit Profile"
+      },
+      "h2": {
+        "accountSettings": "Account Settings",
+        "notifications": "Notifications",
+        "profileSettings": "Profile Settings"
+      }
+    }
+  },
+  "pages": {
+    "chatRoom": {
+      "pageTitle": "Chat Room",
+      "welcome": "Welcome!"
+    },
+    "home": {
+      "pageTitle": "Home"
+    },
+    "joinRoom": {
+      "labels": {
+        "room": "Room",
+        "activeRooms": "Active Rooms"
+      },
+      "noRoomsMessage": "No rooms are currently active. Click 'Join Room' to start a new one.",
+      "pageTitle": "Join Chat Room"
+    },
+    "login": {
+      "pageTitle": "Login"
+    },
+    "pageNotFound": {
+      "pageTitle": "Page Not Found"
+    },
+    "register": {
+      "pageTitle": "Register"
+    },
+    "template": {
+      "pageTitle": "Template",
+      "helloTemplate": "Hello, Template!"
+    },
+    "userProfile": {
+      "buttons": {
+        "joinARoom": "Join A room",
+        "sendRequest": "Send Request"
+      },
+      "connectionSent": "A connection request was successfully delivered",
+      "h2": {
+        "accountDetails": "Account Details",
+        "addConnection": "Add New Connection",
+        "connections": "Connections"
+      },
+      "labels": {
+        "email": "E-mail",
+        "firstName": "Firstname",
+        "lastName": "Lastname",
+        "phone": "Phone",
+        "phoneNumber": "Phone Number",
+        "userName": "Phone Number"
+      },
+      "pageTitle": "User Profile",
+      "requestRecommendation": "Send a request to make connections and build a network"
+    }
   }
 }

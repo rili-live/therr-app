@@ -4,6 +4,7 @@ import SvgButton from 'rili-public-library/react-components/SvgButton.js';
 import { IUserState } from 'types/user';
 import SocketActions from 'actions/Socket';
 import { bindActionCreators } from 'redux';
+import translator from '../../services/translator';
 
 interface IMessagesMenuDispatchProps {
     logout: Function;
@@ -37,7 +38,11 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
         this.state = {
             activeTab: 'messages',
         };
+
+        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
+
+    private translate: Function;
 
     handleTabSelect = (e, tabName) => {
         this.setState({
@@ -47,19 +52,19 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
 
     renderMessagesContent = () => (
         <>
-            <h2>Messages</h2>
+            <h2>{this.translate('components.messagesMenu.h2.messages')}</h2>
         </>
     )
 
     renderPeopleContent = () => (
         <>
-            <h2>Rili Connect</h2>
+            <h2>{this.translate('components.messagesMenu.h2.riliConnect')}</h2>
         </>
     )
 
     renderLocationContent = () => (
         <>
-            <h2>Locations Map</h2>
+            <h2>{this.translate('components.messagesMenu.h2.locationMap')}</h2>
         </>
     )
 
