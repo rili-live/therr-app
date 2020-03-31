@@ -31,6 +31,6 @@ jobs:
 #   - _bin/travis/after-success.sh
 deploy:
   provider: script
-  script: bash _bin/travis/deploy.sh
+  script: _bin/travis/deploy.sh
   on:
     branch: master
