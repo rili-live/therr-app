@@ -1,0 +1,8 @@
+{
+  "errorMessages": {
+
+  },
+  "notifications": {
+    "connectionRequestReceived": "You have received a new connection request from {firstName} {lastName}"
+  }
+}
