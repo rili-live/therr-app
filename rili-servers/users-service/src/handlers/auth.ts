@@ -4,15 +4,18 @@ import * as jwt from 'jsonwebtoken';
 import handleHttpError from '../utilities/handleHttpError';
 import UsersStore from '../store/UsersStore';
 import { createUserToken } from '../utilities/userHelpers';
+import translate from '../utilities/translator';
 
 // Authenticate user
 const login: RequestHandler = (req: any, res: any) => UsersStore
     .getUsers({ userName: req.body.userName }, { email: req.body.userName })
     .then((results) => {
+        const locale = req.headers['x-localecode'] || 'en-us';
+
         if (!results.length) {
             return handleHttpError({
                 res,
-                message: 'No user found with the entered username/e-mail',
+                message: translate(locale, 'errorMessages.auth.noUserFound'),
                 statusCode: 404,
             });
         }
@@ -31,7 +34,7 @@ const login: RequestHandler = (req: any, res: any) => UsersStore
 
                 return handleHttpError({
                     res,
-                    message: 'Incorrect username/password combination',
+                    message: translate(locale, 'errorMessages.auth.incorrectUserPass'),
                     statusCode: 401,
                 });
             });
