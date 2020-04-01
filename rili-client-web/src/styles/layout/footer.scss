@@ -8,7 +8,7 @@ footer {
     bottom: 0;
     left: 0;
     width: 100%;
-    height: $footer-height;
+    height: $footer-height-small;
     text-align: center;
     background: $rili-primary-1;
     box-shadow: $box-shadow-fixed-bot;
@@ -50,5 +50,11 @@ button {
         svg {
             fill: $rili-white;
         }
+    }
+}
+
+@media only screen and (min-width: rem-calc(540px)) {
+    footer {
+        height: $footer-height;
     }
 }
