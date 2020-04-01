@@ -1,0 +1,16 @@
+{
+    "errorMessages": {
+        "auth": {
+            "noUserFound": "No user found with the entered username/e-mail",
+            "incorrectUserPass": "Incorrect username/password combination"
+        },
+        "userConnections": {
+            "alreadyExists": "This user connection already exists",
+            "noUserFound": "No user found with the provided criteria",
+            "noRequestSelf": "Cannot make a user connection with self"
+        }
+    },
+    "notifications": {
+        "connectionRequestReceived": "You have received a new connection request from {firstName} {lastName}"
+    }
+}

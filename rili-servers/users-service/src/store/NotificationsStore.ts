@@ -13,7 +13,7 @@ export enum NotificationTypes {
 }
 
 export enum NotificationMessages {
-    CONNECTION_REQUEST_RECEIVED = 'You have received a new connection request from {{firstName}} {{lastName}}',
+    CONNECTION_REQUEST_RECEIVED = 'notifications.connectionRequestReceived',
 }
 
 export interface ICreateNotificationParams {
@@ -74,7 +74,7 @@ class Store {
                 `${NOTIFICATIONS_TABLE_NAME}.type`,
                 `${NOTIFICATIONS_TABLE_NAME}.associationId`,
                 `${NOTIFICATIONS_TABLE_NAME}.isUnread`,
-                `${NOTIFICATIONS_TABLE_NAME}.message`,
+                `${NOTIFICATIONS_TABLE_NAME}.messageLocaleKey`,
                 `${NOTIFICATIONS_TABLE_NAME}.messageParams`,
                 `${NOTIFICATIONS_TABLE_NAME}.createdAt`,
                 `${NOTIFICATIONS_TABLE_NAME}.updatedAt`,
