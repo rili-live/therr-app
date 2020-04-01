@@ -153,7 +153,15 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         if (context) {
             newState.navMenuContext = context;
         }
-        this.setState(newState);
+        const navMenuEl = document.getElementById('nav_menu');
+        this.setState(newState, () => {
+            if (this.state.isNavMenuOpen) {
+                const activeTabEl = navMenuEl && navMenuEl
+                    .getElementsByClassName('nav-menu-header')[0]
+                    .getElementsByClassName('menu-tab-button active')[0] as HTMLElement;
+                activeTabEl.focus();
+            }
+        });
     }
 
     goHome = () => {
@@ -178,7 +186,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
         if (navMenuContext === INavMenuContext.FOOTER_MESSAGES) {
             return (
-                <MessagesMenu toggleNavMenu={this.toggleNavMenu} />
+                <MessagesMenu history={this.props.history} toggleNavMenu={this.toggleNavMenu} />
             );
         }
 
