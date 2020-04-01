@@ -5,6 +5,7 @@ import NotificationsStore, { NotificationTypes, NotificationMessages } from '../
 import handleHttpError from '../utilities/handleHttpError';
 import UserConnectionsStore from '../store/UserConnectionsStore';
 import UsersStore from '../store/UsersStore';
+import translate from '../utilities/translator';
 
 // CREATE
 // TODO:RSERV-24: Security, get requestingUserId from user header token
@@ -17,7 +18,9 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
         acceptingUserPhoneNumber,
         acceptingUserEmail,
     } = req.body;
+    const locale = req.headers['x-localecode'] || 'en-us';
     let acceptingId = acceptingUserId;
+
     if (!acceptingUserId) {
         try {
             const userResults = await UsersStore.findUser({
@@ -28,7 +31,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
             if (!userResults.length) {
                 return handleHttpError({
                     res,
-                    message: 'No user found with the provided criteria.',
+                    message: translate(locale, 'errorMessages.userConnections.noUserFound'),
                     statusCode: 404,
                 });
             }
@@ -37,7 +40,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
             if (acceptingId === requestingUserId) {
                 return handleHttpError({
                     res,
-                    message: 'Cannot make a user connection with self.',
+                    message: translate(locale, 'errorMessages.userConnections.noRequestSelf'),
                     statusCode: 400,
                 });
             }
@@ -59,7 +62,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
             if (getResults.length) {
                 return handleHttpError({
                     res,
-                    message: 'This user connection already exists.',
+                    message: translate(locale, 'errorMessages.userConnections.alreadyExists'),
                     statusCode: 400,
                 });
             }
@@ -153,10 +156,6 @@ const updateUserConnection = (req, res) => UserConnectionsStore.getUserConnectio
         } = req.body;
 
         if (!getResults.length) {
-            console.log({
-                requestingUserId: req.params.requestingUserId,
-                acceptingUserId: req.body.acceptingUserId,
-            });
             return handleHttpError({
                 res,
                 message: `No user connection found with requesting user id, ${req.params.requestingUserId}.`,
