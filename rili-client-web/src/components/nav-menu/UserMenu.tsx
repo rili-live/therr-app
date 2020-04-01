@@ -9,6 +9,7 @@ import { INotificationsState, INotification } from 'types/notifications';
 import Notification from './Notification';
 import translator from '../../services/translator';
 import UserConnectionsService from '../../services/UserConnectionsService';
+import notifications from 'src/redux/reducers/notifications';
 
 interface IUserMenuDispatchProps {
     logout: Function;
@@ -74,6 +75,10 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
             });
     }
 
+    markNotificationAsRead = (e, notification) => {
+        console.log(notification);
+    }
+
     navigate = (destination) => (e) => {
         this.props.toggleNavMenu(e);
 
@@ -113,7 +118,12 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                 <div className="notifications">
                     {
                         notifications.messages.map((n: INotification) => (
-                            <Notification handleAcceptConnectionRequest={this.handleAcceptConnectionRequest} key={n.id} notification={n} />
+                            <Notification
+                                key={n.id}
+                                handleSetRead={this.markNotificationAsRead}
+                                handleAcceptConnectionRequest={this.handleAcceptConnectionRequest}
+                                notification={n}
+                            />
                         ))
                     }
                 </div>
