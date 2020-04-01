@@ -12,7 +12,7 @@ $menu-padding: rem-calc(24px);
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: $header-height $menu-padding $menu-padding $menu-padding;
+    padding: $header-height-small $menu-padding $menu-padding $menu-padding;
     position: fixed;
     right: -100%;
     top: 0;
@@ -30,11 +30,13 @@ $menu-padding: rem-calc(24px);
         display: flex;
         justify-content: flex-end;
         align-items: center;
-        height: $header-height;
+        height: $header-height-small;
         top: 0;
         left: 0;
 
         .menu-tab-button {
+            flex: 1;
+
             &.active,
             &:hover {
                 border-top: rem-calc(5px) solid $rili-secondary-1
@@ -81,7 +83,7 @@ $menu-padding: rem-calc(24px);
 
     .nav-menu-subfooter {
         position: absolute;
-        bottom: $footer-height;
+        bottom: $footer-height-small;
         box-sizing: border-box;
         display: flex;
         justify-content: center;
@@ -102,7 +104,7 @@ $menu-padding: rem-calc(24px);
         display: flex;
         justify-content: flex-end;
         align-items: center;
-        height: $footer-height;
+        height: $footer-height-small;
         bottom: 0;
         left: 0;
 
@@ -151,6 +153,24 @@ $menu-padding: rem-calc(24px);
                 color: $rili-black;
                 border-left: rem-calc(5px) solid $rili-primary-2;
             }
+        }
+    }
+}
+
+@media only screen and (min-width: rem-calc(540px)) {
+    #nav_menu {
+        padding: $header-height $menu-padding $menu-padding $menu-padding;
+
+        .nav-menu-header {
+            height: $header-height;
+        }
+
+        .nav-menu-subfooter {
+            bottom: $footer-height;
+        }
+    
+        .nav-menu-footer {
+            height: $footer-height;
         }
     }
 }

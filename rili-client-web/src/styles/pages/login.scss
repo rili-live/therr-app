@@ -9,7 +9,7 @@
     min-width: 98%;
     padding: 1.5rem;
     padding-top: 1rem;
-    box-shadow: $box-shadow-1;
+    box-shadow: none;
 }
 
 @media only screen and (min-width: rem-calc(540px)) {
@@ -19,6 +19,7 @@
         border: rem-calc(1px) solid $rili-primary-1;
         padding: 1rem;
         min-width: rem-calc(360px);
-        max-width: rem-calc(360px)
+        max-width: rem-calc(360px);
+        box-shadow: $box-shadow-1;
     }
 }
