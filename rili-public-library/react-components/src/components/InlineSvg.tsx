@@ -10,6 +10,7 @@ const iconMap: { [index: string]: string } = {
     'notifications-active': require('../svg-icons/notifications-active.svg').toString(), // eslint-disable-line global-require
     notifications: require('../svg-icons/notifications.svg').toString(), // eslint-disable-line global-require
     people: require('../svg-icons/people.svg').toString(), // eslint-disable-line global-require
+    rili: require('../svg-icons/rili.svg').toString(), // eslint-disable-line global-require
     settings: require('../svg-icons/settings.svg').toString(), // eslint-disable-line global-require
 };
 

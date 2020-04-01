@@ -25,11 +25,10 @@
     },
     "messagesMenu": {
       "buttons": {
-        "viewProfile": "View Profile",
-        "editProfile": "Edit Profile"
+        "joinRoom": "Join Room"
       },
       "h2": {
-        "messages": "Messages",
+        "messaging": "Messaging",
         "riliConnect": "Rili Connect",
         "locationMap": "Location Map"
       }
@@ -71,11 +70,11 @@
     },
     "joinRoom": {
       "labels": {
-        "room": "Room",
+        "room": "Join Room",
         "activeRooms": "Active Rooms"
       },
       "noRoomsMessage": "No rooms are currently active. Click 'Join Room' to start a new one.",
-      "pageTitle": "Join Chat Room"
+      "pageTitle": "Chat Rooms"
     },
     "login": {
       "pageTitle": "Login"
@@ -107,7 +106,7 @@
         "lastName": "Lastname",
         "phone": "Phone",
         "phoneNumber": "Phone Number",
-        "userName": "Phone Number"
+        "userName": "Username"
       },
       "pageTitle": "User Profile",
       "requestRecommendation": "Send a request to make connections and build a network"

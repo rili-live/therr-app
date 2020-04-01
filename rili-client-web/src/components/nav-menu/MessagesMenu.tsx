@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
 import SvgButton from 'rili-public-library/react-components/SvgButton.js';
 import { IUserState } from 'types/user';
 import SocketActions from 'actions/Socket';
@@ -11,6 +12,7 @@ interface IMessagesMenuDispatchProps {
 }
 
 interface IStoreProps extends IMessagesMenuDispatchProps {
+    history: any;
     user: IUserState;
 }
 
@@ -50,9 +52,28 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
         });
     }
 
+    navigate = (destination) => (e) => {
+        this.props.toggleNavMenu(e);
+
+        switch (destination) {
+            case 'join-room':
+                return this.props.history.push('/join-room');
+            default:
+        }
+    }
+
     renderMessagesContent = () => (
         <>
-            <h2>{this.translate('components.messagesMenu.h2.messages')}</h2>
+            <h2>{this.translate('components.messagesMenu.h2.messaging')}</h2>
+            <div className="rili-connect-menu">
+                <ButtonPrimary
+                    id="nav_menu_join_room"
+                    className="menu-item"
+                    name="Join Room"
+                    text={this.translate('components.messagesMenu.buttons.joinRoom')}
+                    onClick={this.navigate('join-room')} buttonType="primary"
+                />
+            </div>
         </>
     )
 

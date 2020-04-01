@@ -10,6 +10,32 @@ header {
     width: 100%;
     box-shadow: $box-shadow-fixed-top;
 
+    #rili {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 4.4rem;
+        font-size: rem-calc(21px);
+        color: $rili-white;
+        letter-spacing: .15rem;
+
+        #rili_svg_button {
+            background: transparent;
+            padding: 0;
+            width: rem-calc(34px);
+
+            .rili-icon {
+                path {
+                    stroke: transparent !important;
+                }
+
+                g {
+                    fill: $rili-white !important;
+                }
+            }
+        }
+    }
+
     .login-link,
     #header_account_button {
         position: absolute;
@@ -23,8 +49,14 @@ header {
         }
     }
 
+    .login-link {
+        a {
+            font-weight: 400;
+        }
+    }
+
     #header_account_button {
-        width: 7rem;
+        width: 5rem;
 
         &.has-notifications {
             box-shadow: 0px 0px 2px 1px transparentize($rili-white, .75);
@@ -32,3 +64,10 @@ header {
     }
 }
 
+@media only screen and (min-width: rem-calc(540px)) {
+    header {
+        #header_account_button {
+            width: 7rem;
+        }
+    }
+}
