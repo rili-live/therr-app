@@ -14,7 +14,7 @@ const getNotification = (req, res) => NotificationsStore.getNotifications({
     requestingUserId: req.params.notificationId,
 })
     .then((results) => {
-        const locale = req.headers['x-localecode'];
+        const locale = req.headers['x-localecode'] || 'en-us';
 
         if (!results.length) {
             return handleHttpError({
@@ -23,12 +23,12 @@ const getNotification = (req, res) => NotificationsStore.getNotifications({
                 statusCode: 404,
             });
         }
-        return res.status(200).send(translateNotification(results[0], locale || 'en-us'));
+        return res.status(200).send(translateNotification(results[0], locale));
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
 
 const searchNotifications: RequestHandler = (req: any, res: any) => {
-    const locale = req.headers['x-localecode'];
+    const locale = req.headers['x-localecode'] || 'en-us';
     const {
         filterBy,
         query,
@@ -45,7 +45,7 @@ const searchNotifications: RequestHandler = (req: any, res: any) => {
 
     return Promise.all([searchPromise, countPromise]).then(([results, countResult]) => {
         const response = {
-            results: results.map((r) => translateNotification(r, locale || 'en-us')),
+            results: results.map((r) => translateNotification(r, locale)),
             pagination: {
                 totalItems: Number(countResult[0].count),
                 itemsPerPage: Number(itemsPerPage),
@@ -67,7 +67,7 @@ const updateNotification = (req, res) => NotificationsStore.getNotifications({
     acceptingUserId: req.body.acceptingUserId,
 })
     .then((getResults) => {
-        const locale = req.headers['x-localecode'];
+        const locale = req.headers['x-localecode'] || 'en-us';
         const {
             isUnread,
         } = req.body;
@@ -86,7 +86,7 @@ const updateNotification = (req, res) => NotificationsStore.getNotifications({
             }, {
                 isUnread,
             })
-            .then((results) => res.status(202).send(translateNotification(results[0], locale || 'en-us')));
+            .then((results) => res.status(202).send(translateNotification(results[0], locale)));
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
 
