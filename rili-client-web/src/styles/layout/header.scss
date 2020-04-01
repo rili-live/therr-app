@@ -3,7 +3,7 @@ header {
     align-items: center;
     background: $rili-primary-1;
     display: flex;
-    height: $header-height;
+    height: $header-height-small;
     left: 0;
     position: fixed;
     top: 0;
@@ -66,6 +66,8 @@ header {
 
 @media only screen and (min-width: rem-calc(540px)) {
     header {
+        height: $header-height;
+
         #header_account_button {
             width: 7rem;
         }
