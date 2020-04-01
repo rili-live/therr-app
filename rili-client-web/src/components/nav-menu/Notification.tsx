@@ -15,18 +15,10 @@ const Notification: React.FunctionComponent<INotificationProps> = ({
     handleAcceptConnectionRequest,
     handleSetRead,
 }: INotificationProps) => {
-    let message = notification.message;
-
-    if (notification.messageParams && Object.keys(notification.messageParams).length) {
-        Object.keys(notification.messageParams).forEach((key) => {
-            message = message.replace(`{{${key}}}`, notification.messageParams[key]);
-        });
-    }
-
     if (notification.type === 'CONNECTION_REQUEST_RECEIVED') {
         return (
             <div className="notification" onClick={(e) => handleSetRead(e, notification)}>
-                <span>{message}</span>
+                <span>{notification.message}</span>
                 {
                     notification.userConnection.requestStatus === 'pending'
                     && <div className="action-buttons text-right">
@@ -45,7 +37,7 @@ const Notification: React.FunctionComponent<INotificationProps> = ({
 
     return (
         <div className="notification" onClick={(e) => handleSetRead(e, notification)}>
-            <span>{message}</span>
+            <span>{notification.message}</span>
         </div>
     );
 };
