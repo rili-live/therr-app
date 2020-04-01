@@ -9,7 +9,6 @@ import { INotificationsState, INotification } from 'types/notifications';
 import Notification from './Notification';
 import translator from '../../services/translator';
 import UserConnectionsService from '../../services/UserConnectionsService';
-import notifications from 'src/redux/reducers/notifications';
 
 interface IUserMenuDispatchProps {
     logout: Function;
