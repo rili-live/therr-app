@@ -1,20 +1,23 @@
 .login-container,
 .register-container {
-    background-color: rgba($rili-primary-1, .75);
-    border: rem-calc(4px) solid $rili-primary-1;
+    border: none;
+    background-color: transparent;
     border-radius: 1rem;
     margin-top: 4%;
     margin-bottom: 4%;
     max-width: 100%;
-    min-width: 80%;
-    padding: 1rem;
+    min-width: 98%;
+    padding: 1.5rem;
+    padding-top: 1rem;
     box-shadow: $box-shadow-1;
 }
 
 @media only screen and (min-width: rem-calc(540px)) {
     .login-container,
     .register-container {
-        border: rem-calc(6px) solid $rili-primary-1;
+        background-color: rgba($rili-primary-1, .75);
+        border: rem-calc(1px) solid $rili-primary-1;
+        padding: 1rem;
         min-width: rem-calc(360px);
         max-width: rem-calc(360px)
     }
