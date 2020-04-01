@@ -128,7 +128,8 @@ $menu-padding: rem-calc(24px);
         }
     }
 
-    .profile-settings-menu {
+    .profile-settings-menu,
+    .rili-connect-menu {
         display: flex;
         flex-direction: column;
         justify-content: center;

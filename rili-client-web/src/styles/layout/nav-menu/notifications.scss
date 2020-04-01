@@ -1,9 +1,17 @@
 .notifications {
+  width: 105%;
+  margin-left: -2.5%;
+
   .notification {
     font-size: .95rem;
-    padding-bottom: .75rem;
+    padding: .65rem .5rem .65rem;
     border-bottom: 1px solid $rili-divider-grey;
-    margin-bottom: .75rem;
+    margin-bottom: 1px;
+    border-left: 5px solid $rili-primary-2;
+
+    &:first-child {
+      border-top: 1px solid $rili-divider-grey;
+    }
 
     .action-buttons {
       .action-button {

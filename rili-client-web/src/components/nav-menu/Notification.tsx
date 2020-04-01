@@ -7,11 +7,13 @@ interface INotificationProps {
     key: number;
     notification: INotification;
     handleAcceptConnectionRequest: any;
+    handleSetRead: any;
 }
 
 const Notification: React.FunctionComponent<INotificationProps> = ({
     notification,
     handleAcceptConnectionRequest,
+    handleSetRead,
 }: INotificationProps) => {
     let message = notification.message;
 
@@ -23,7 +25,7 @@ const Notification: React.FunctionComponent<INotificationProps> = ({
 
     if (notification.type === 'CONNECTION_REQUEST_RECEIVED') {
         return (
-            <div className="notification">
+            <div className="notification" onClick={(e) => handleSetRead(e, notification)}>
                 <span>{message}</span>
                 {
                     notification.userConnection.requestStatus === 'pending'
@@ -42,7 +44,7 @@ const Notification: React.FunctionComponent<INotificationProps> = ({
     }
 
     return (
-        <div className="notification">
+        <div className="notification" onClick={(e) => handleSetRead(e, notification)}>
             <span>{message}</span>
         </div>
     );
