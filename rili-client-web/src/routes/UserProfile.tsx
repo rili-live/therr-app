@@ -163,7 +163,15 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
 
         return (
             <div id="page_user_profile" className="flex-box column">
-                <h1 className="fill text-left">{this.translate('pages.userProfile.pageTitle')}</h1>
+                <div className="header-profile-picture">
+                    <h1 className="fill text-left">{this.translate('pages.userProfile.pageTitle')}</h1>
+                    <div className="user-profile-icon">
+                        <img
+                            src={`https://robohash.org/${user.details.id}`}
+                            alt="Profile Picture"
+                        />
+                    </div>
+                </div>
                 <div className="flex-box account-sections">
                     <div id="account_details" className="account-section">
                         <h2 className="underline">{this.translate('pages.userProfile.h2.accountDetails')}</h2>
@@ -257,7 +265,9 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                         <div className="user-connection-icon" key={connection.id}>
                                             {/* <span className="name-tag">{connection.firstName}</span> */}
                                             <img
-                                                src={`https://robohash.org/${connection.id}`}
+                                                src={`https://robohash.org/${connection.acceptingUserId === user.details.id
+                                                    ? connection.requestingUserId
+                                                    : connection.acceptingUserId}`}
                                                 alt="User Connection"
                                             />
                                         </div>
