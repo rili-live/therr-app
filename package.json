@@ -15,6 +15,7 @@
     "lint:fix:all": "_bin/apply-to-all.sh 'npm run lint:fix'",
     "install:root": "npm run prep && npm install && _bin/apply-to-all.sh 'npm install' rootOnly",
     "install:all": "npm run prep && npm install && _bin/apply-to-all.sh 'npm install'",
+    "audit:all": "npm run prep && npm audit fix && _bin/apply-to-all.sh 'npm audit fix'",
     "install:all:ci": "npm run prep && npm ci && _bin/apply-to-all.sh 'npm ci'",
     "k8s:apply": "kubectl apply -f k8s --validate=false",
     "k8s:dev": "skaffold dev",
