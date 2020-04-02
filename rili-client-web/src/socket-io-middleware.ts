@@ -15,5 +15,5 @@ const socketIO = io(`${envVars.baseSocketUrl}`, {
     // rejectUnauthorized: false,
 });
 
-// TODO: Find a was to send server connection evern after middleware instantiates
+// TODO: Find a way to send server connection even after middleware instantiates
 export default createSocketIoMiddleware(socketIO, `${WEB_CLIENT_PREFIX}:`);
