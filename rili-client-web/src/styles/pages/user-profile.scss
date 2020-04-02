@@ -1,4 +1,31 @@
 #page_user_profile {
+    .header-profile-picture {
+        width: 100%;
+        display: flex;
+        position: relative;
+        flex-direction: row-reverse;
+
+        h1 {
+            margin: .9rem .2rem .9rem 1rem;
+            font-size: 1.8rem;
+            padding-top: 1rem;
+        }
+
+        .user-profile-icon {
+            border-radius: 50%;
+            position: relative;
+            right: 0;
+            display: inline;
+        
+            img {
+                height: rem-calc(100px);
+                width: rem-calc(100px);
+                border-radius: 50%;
+                background: $rili-white;
+            }
+        }
+    }
+
     .account-sections {
         width: 100%;
         flex-direction: column;
@@ -42,6 +69,34 @@
 
 @media only screen and (min-width: rem-calc(540px)) {
     #page_user_profile {
+        .header-profile-picture {
+            width: 100%;
+            display: flex;
+            position: relative;
+            flex-direction: row;
+
+
+            h1 {
+                font-size: 2rem;
+                padding-top: 0;
+                margin: .9rem 0;
+            }
+    
+            .user-profile-icon {
+                border-radius: 50%;
+                position: absolute;
+                right: 0;
+                display: inline;
+            
+                img {
+                    height: rem-calc(100px);
+                    width: rem-calc(100px);
+                    border-radius: 50%;
+                    background: $rili-white;
+                }
+            }
+        }
+
         .account-sections {
             flex-direction: row;
             flex-wrap: wrap;
