@@ -4,6 +4,7 @@ enum SocketClientActionTypes {
     LOGOUT = 'CLIENT:LOGOUT',
     REGISTER = 'CLIENT:REGISTER',
     SEND_MESSAGE = 'CLIENT:SEND_MESSAGE',
+    UPDATE_NOTIFICATION = 'CLIENT:UPDATE_NOTIFICATION',
 }
 
 export default SocketClientActionTypes;

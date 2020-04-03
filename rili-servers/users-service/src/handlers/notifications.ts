@@ -63,8 +63,7 @@ const searchNotifications: RequestHandler = (req: any, res: any) => {
 
 // UPDATE
 const updateNotification = (req, res) => NotificationsStore.getNotifications({
-    requestingUserId: req.params.requestingUserId,
-    acceptingUserId: req.body.acceptingUserId,
+    id: req.params.notificationId,
 })
     .then((getResults) => {
         const locale = req.headers['x-localecode'] || 'en-us';
@@ -75,7 +74,7 @@ const updateNotification = (req, res) => NotificationsStore.getNotifications({
         if (!getResults.length) {
             return handleHttpError({
                 res,
-                message: `No notification found with id, ${req.params.id}.`,
+                message: `No notification found with id, ${req.params.notificationId}.`,
                 statusCode: 404,
             });
         }
