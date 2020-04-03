@@ -17,7 +17,7 @@ const Notification: React.FunctionComponent<INotificationProps> = ({
 }: INotificationProps) => {
     if (notification.type === 'CONNECTION_REQUEST_RECEIVED') {
         return (
-            <div className="notification" onClick={(e) => handleSetRead(e, notification)}>
+            <div className={`notification ${!notification.isUnread ? 'read' : 'unread'}`} onClick={(e) => handleSetRead(e, notification)}>
                 <span>{notification.message}</span>
                 {
                     notification.userConnection.requestStatus === 'pending'

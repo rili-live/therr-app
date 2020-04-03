@@ -74,6 +74,12 @@ const Socket = {
             data,
         });
     },
+    updateNotification: (data: any) => (dispatch: any) => {
+        dispatch({
+            type: SocketClientActionTypes.UPDATE_NOTIFICATION,
+            data,
+        });
+    },
 };
 
 export default Socket;

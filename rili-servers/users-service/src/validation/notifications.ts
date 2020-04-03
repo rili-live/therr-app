@@ -1,10 +1,9 @@
 import {
     body,
+    param,
 } from 'express-validator/check'; // eslint-disable-line import/extensions
 
 export const updateNotificationValidation = [
-    body('userId').isNumeric(),
-    body('type').isString(),
-    body('associationId').isNumeric(),
+    param('notificationId').exists(),
     body('isUnread').isBoolean(),
 ];

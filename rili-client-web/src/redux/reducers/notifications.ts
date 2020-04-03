@@ -1,4 +1,5 @@
 import * as Immutable from 'seamless-immutable';
+import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
 import { INotificationsState, NotificationActionTypes } from 'types/notifications';
 
 const initialState: INotificationsState = Immutable.from({
@@ -15,6 +16,18 @@ const notifications = (state: INotificationsState = initialState, action: any) =
         // TODO: Rethink this
         case NotificationActionTypes.GET_NOTIFICATIONS:
             return state.setIn(['messages'], action.data);
+        case SocketServerActionTypes.NOTIFICATION_UPDATED:
+            const modifiedMessages = state.messages.map((message) => { // eslint-disable-line no-case-declarations
+                if (message.id === action.data.id) {
+                    return {
+                        ...message,
+                        isUnread: action.data.isUnread,
+                    };
+                }
+
+                return message;
+            });
+            return state.setIn(['messages'], modifiedMessages);
         default:
             return state;
     }
