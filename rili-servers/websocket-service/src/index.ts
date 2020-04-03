@@ -246,6 +246,9 @@ const startExpressSocketIOServer = () => {
                 case SocketClientActionTypes.SEND_MESSAGE:
                     socketHandlers.sendMessage(socket, action.data);
                     break;
+                case SocketClientActionTypes.UPDATE_NOTIFICATION:
+                    socketHandlers.updateNotification(socket, action.data);
+                    break;
                 default:
                     break;
             }

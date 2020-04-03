@@ -37,6 +37,7 @@ h4 {
     border-right: rem-calc(4px) double $rili-primary-2;
     margin: ($header-height-small + 2.2rem) .5rem;
     padding: .5rem 1rem;
+    box-shadow: $box-shadow-tile;
 }
 
 @media only screen and (min-width: rem-calc(540px)) {
