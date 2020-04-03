@@ -12,6 +12,7 @@ import UserConnectionsService from '../../services/UserConnectionsService';
 
 interface IUserMenuDispatchProps {
     logout: Function;
+    updateNotification: Function;
 }
 
 interface IStoreProps extends IUserMenuDispatchProps {
@@ -37,6 +38,7 @@ const mapStateToProps = (state: any) => ({
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     logout: SocketActions.logout,
+    updateNotification: SocketActions.updateNotification,
 }, dispatch);
 
 export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenuState> {
@@ -65,6 +67,8 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
             requestStatus: 'complete',
         };
 
+        this.markNotificationAsRead(e, notification);
+
         UserConnectionsService.update(notification.userConnection.requestingUserId, reqBody)
             .then((response) => {
                 console.log(response);
@@ -75,7 +79,15 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
     }
 
     markNotificationAsRead = (e, notification) => {
+        const { updateNotification, user } = this.props;
         console.log(notification);
+        updateNotification({
+            notification: {
+                ...notification,
+                isUnread: false,
+            },
+            userName: user.details.userName,
+        });
     }
 
     navigate = (destination) => (e) => {

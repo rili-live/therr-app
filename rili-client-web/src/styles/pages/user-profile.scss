@@ -22,6 +22,7 @@ $profileImgWidth: rem-calc(100px);
             display: inline;
             top: -1.4rem;
             left: 1rem;
+            box-shadow: $box-shadow-tile;
         
             img {
                 height: $profileImgWidth;
@@ -115,7 +116,7 @@ $profileImgWidth: rem-calc(100px);
             .user-profile-icon {
                 border-radius: 50%;
                 position: absolute;
-                right: 0;
+                right: 2.9rem;
                 left: unset;
                 display: inline;
             
