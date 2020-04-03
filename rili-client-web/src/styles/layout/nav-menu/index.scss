@@ -17,7 +17,7 @@ $menu-padding: rem-calc(24px);
     right: -100%;
     top: 0;
     transition: right .15s cubic-bezier(.4,0,.2,1);
-    width: $menu-width;
+    width: 100%;
     z-index: 100;
 
     &.is-open {
@@ -26,7 +26,7 @@ $menu-padding: rem-calc(24px);
 
     .nav-menu-header {
         position: absolute;
-        width: $menu-width;
+        width: 100%;
         display: flex;
         justify-content: flex-end;
         align-items: center;
@@ -88,7 +88,7 @@ $menu-padding: rem-calc(24px);
         display: flex;
         justify-content: center;
         align-items: center;
-        width: $menu-width;
+        width: 100%;
         padding-left: $menu-padding;
         padding-right: $menu-padding;
         left: 0;
@@ -100,7 +100,7 @@ $menu-padding: rem-calc(24px);
 
     .nav-menu-footer {
         position: absolute;
-        width: $menu-width;
+        width: 100%;
         display: flex;
         justify-content: flex-end;
         align-items: center;
@@ -160,7 +160,7 @@ $menu-padding: rem-calc(24px);
 @media only screen and (min-width: rem-calc(540px)) {
     #nav_menu {
         padding: $header-height $menu-padding $menu-padding $menu-padding;
-
+       
         .nav-menu-header {
             height: $header-height;
         }
@@ -171,6 +171,24 @@ $menu-padding: rem-calc(24px);
     
         .nav-menu-footer {
             height: $footer-height;
+        }
+    }
+}
+
+@media only screen and (min-width: $menu-width) {
+    #nav_menu {
+        width: $menu-width;
+       
+        .nav-menu-header {
+            width: $menu-width;
+        }
+
+        .nav-menu-subfooter {
+            width: $menu-width;
+        }
+
+        .nav-menu-footer {
+            width: $menu-width;
         }
     }
 }

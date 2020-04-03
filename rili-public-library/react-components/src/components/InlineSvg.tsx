@@ -11,6 +11,7 @@ const iconMap: { [index: string]: string } = {
     notifications: require('../svg-icons/notifications.svg').toString(), // eslint-disable-line global-require
     people: require('../svg-icons/people.svg').toString(), // eslint-disable-line global-require
     rili: require('../svg-icons/rili.svg').toString(), // eslint-disable-line global-require
+    send: require('../svg-icons/send.svg').toString(), // eslint-disable-line global-require
     settings: require('../svg-icons/settings.svg').toString(), // eslint-disable-line global-require
 };
 
