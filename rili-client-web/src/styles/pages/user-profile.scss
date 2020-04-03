@@ -1,14 +1,18 @@
+$profileImgWidth: rem-calc(100px);
+
 #page_user_profile {
     .header-profile-picture {
         width: 100%;
         display: flex;
         position: relative;
         flex-direction: row-reverse;
+        height: 4.2rem;
 
         h1 {
-            margin: .9rem .2rem .9rem 1rem;
-            font-size: 1.8rem;
+            margin: .2rem .2rem .9rem 2rem;
+            font-size: 1.5rem;
             padding-top: 1rem;
+            word-break: break-all;
         }
 
         .user-profile-icon {
@@ -16,10 +20,12 @@
             position: relative;
             right: 0;
             display: inline;
+            top: -1.4rem;
+            left: 1rem;
         
             img {
-                height: rem-calc(100px);
-                width: rem-calc(100px);
+                height: $profileImgWidth;
+                width: $profileImgWidth;
                 border-radius: 50%;
                 background: $rili-white;
             }
@@ -32,16 +38,31 @@
         align-items: flex-start;
 
         .account-section {
-            padding: 1rem;
             box-sizing: border-box;
             flex: 1;
             width: 100%;
+            padding: .5rem 1rem 0;
+
+            &:first-child {
+                padding: 1rem 1rem 0;
+            }
+
+            &#add_connections {
+                #send_request {
+                    width: 100%;
+                }
+            }
 
             .account-section-content {
                 padding: 0 .5rem;
+                
+                h4 {
+                    margin: 1rem 0;
+                }
             }
 
             .user-connections-container {
+                padding: 0;
                 display: flex;
                 flex-wrap: wrap;
               
@@ -58,8 +79,8 @@
                     }
               
                     img {
-                        height: rem-calc(100px);
-                        width: rem-calc(100px);
+                        height: 4rem;
+                        width: 4rem;
                     }
                 }
             }
@@ -67,7 +88,16 @@
     }
 }
 
-@media only screen and (min-width: rem-calc(540px)) {
+@media only screen and (min-width: $screen-xsmall) {
+
+    .header-profile-picture {
+        h1 {
+            font-size: 1.5rem;
+        }
+    }
+}
+
+@media only screen and (min-width: $screen-small) {
     #page_user_profile {
         .header-profile-picture {
             width: 100%;
@@ -86,6 +116,7 @@
                 border-radius: 50%;
                 position: absolute;
                 right: 0;
+                left: unset;
                 display: inline;
             
                 img {
@@ -107,15 +138,32 @@
                 flex: none;
                 width: 50%;
 
-                &#your_connections {
+                &:first-child {
+                    padding: 1rem;
+                }
+
+                &#add_connections {
                     width: 100%;
+                    
+                    #send_request {
+                        width: 4rem;
+                    }
+                }
+
+                .user-connections-container {
+                    .user-connection-icon {
+                        img {
+                            height: rem-calc(100px);
+                            width: rem-calc(100px);
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-@media only screen and (min-width: rem-calc(840px)) {
+@media only screen and (min-width: $screen-medium) {
     #page_user_profile {
         .account-sections {
             flex-wrap: nowrap;
@@ -124,7 +172,7 @@
             .account-section {
                 width: 33.3333333%;
 
-                &#your_connections {
+                &#add_connections {
                     width: 33.3333333%;
                 }
             }

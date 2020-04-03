@@ -113,3 +113,22 @@ ul {
         background: none;
     }
 }
+
+.desktop-only {
+    display: none;
+}
+
+@media only screen and (min-width: rem-calc(540px)) {
+    .desktop-only {
+        display: unset;
+
+        &.block {
+            display: block;
+        }
+
+        &.inline {
+            display: inline;
+        }
+    }
+}
+
