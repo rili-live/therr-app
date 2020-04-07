@@ -15,6 +15,10 @@ spec:
       containers:
       - name: server
         image: riliadmin/websocket-service:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
         ports:
         - containerPort: 7743
         env:
