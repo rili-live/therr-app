@@ -5,22 +5,21 @@ import { SocketServerActionTypes } from 'rili-public-library/utilities/constants
 import * as Constants from '../constants';
 import beeline from '../beeline';
 import { ILoginData } from './login';
+import redisSessions from '../store/redisSessions';
 
 interface ILogoutArgs {
     socket: socketio.Socket;
-    redisSession: any;
     data: ILoginData;
 }
 
 const logout = ({
     socket,
-    redisSession,
     data,
 }: ILogoutArgs) => {
     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
 
     if (socket.handshake && socket.handshake.headers && socket.handshake.headers.host) {
-        redisSession.remove(socket.id).then((response: any) => {
+        redisSessions.remove(socket.id).then((response: any) => {
             socket.emit(Constants.ACTION, {
                 type: SocketServerActionTypes.SESSION_CLOSED_MESSAGE,
                 data: response,
