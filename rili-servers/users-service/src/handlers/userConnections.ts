@@ -57,7 +57,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
     return UserConnectionsStore.getUserConnections({
         requestingUserId,
         acceptingUserId: acceptingId,
-    })
+    }, true)
         .then((getResults) => {
             if (getResults.length) {
                 return handleHttpError({

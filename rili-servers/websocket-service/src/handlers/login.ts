@@ -4,6 +4,7 @@ import printLogs from 'rili-public-library/utilities/print-logs.js';
 import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
 import beeline from '../beeline';
 import * as Constants from '../constants';
+import redisSessions from '../store/redisSessions';
 
 export interface ILoginData {
     idToken: string;
@@ -13,20 +14,18 @@ export interface ILoginData {
 interface ILoginArgs {
     appName: string;
     socket: socketio.Socket;
-    redisSession: any;
     data: ILoginData;
 }
 
 const login = ({
     appName,
     socket,
-    redisSession,
     data,
 }: ILoginArgs) => {
     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
 
     if (socket.handshake && socket.handshake.headers && socket.handshake.headers.host) {
-        redisSession.create({
+        redisSessions.create({
             app: appName,
             socketId: socket.id,
             ip: socket.handshake.headers.host.split(':')[0],

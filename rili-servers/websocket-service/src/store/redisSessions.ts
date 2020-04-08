@@ -1,23 +1,15 @@
 import * as Redis from 'ioredis';
 import * as globalConfig from '../../../../global-config.js';
-import RedisHelper, { IUserSocketSession } from './RedisHelper';
-
-interface IRedisSessionArgs {
-    client: Redis.Redis;
-}
+import redisHelper, { IUserSocketSession, RedisHelper } from '../services/redisHelper';
 
 /**
  * RedisSession
- * redisClient: any - the client to enter redis commands
  */
-export default class RedisSession {
-    private client: Redis.Redis;
-
+class RedisSessions {
     private redisHelper: RedisHelper;
 
-    constructor(args: IRedisSessionArgs) {
-        this.client = args.client;
-        this.redisHelper = new RedisHelper(this.client);
+    constructor() {
+        this.redisHelper = redisHelper;
     }
 
     public create(args: IUserSocketSession): Promise<any> {
@@ -27,7 +19,7 @@ export default class RedisSession {
             socketId: args.socketId,
             ip: args.ip.toString(),
             ttl: args.ttl || globalConfig[process.env.NODE_ENV || ''].socket.userSocketSessionExpire,
-            data: JSON.stringify(args.data),
+            data: args.data,
         };
 
         return this.redisHelper.storeUser(configuredArgs).then(() => configuredArgs);
@@ -37,7 +29,9 @@ export default class RedisSession {
         return this.redisHelper.removeUser(socketId);
     }
 
-    public get(socketId: Redis.KeyType): any {
-        return this.redisHelper.getUser(socketId);
+    public getBySocketId(socketId: Redis.KeyType): any {
+        return this.redisHelper.getUserBySocketId(socketId);
     }
 }
+
+export default new RedisSessions();

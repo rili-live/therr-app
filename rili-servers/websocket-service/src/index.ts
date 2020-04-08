@@ -2,7 +2,6 @@ import beeline from './beeline'; // eslint-disable-line import/order
 import express from 'express';
 import * as http from 'http';
 import moment from 'moment';
-import Redis from 'ioredis';
 import socketio from 'socket.io';
 import socketioRedis from 'socket.io-redis';
 import { LogLevelMap, SocketServerActionTypes, SocketClientActionTypes } from 'rili-public-library/utilities/constants.js';
@@ -10,53 +9,20 @@ import printLogs from 'rili-public-library/utilities/print-logs.js';
 import * as socketHandlers from './handlers';
 import * as Constants from './constants/index';
 import * as globalConfig from '../../../global-config.js';
-import RedisSession from './services/RedisSession';
 import getSocketRoomsList from './utilities/get-socket-rooms-list';
+import redisClient from './store/redisClient';
+import redisSessions from './store/redisSessions';
 
 export const rsAppName = 'riliChat';
 
 let serverObj: http.Server;
-
-const nodes = [
-    // Pub
-    {
-        host: process.env.REDIS_PUB_HOST,
-        port: Number(process.env.REDIS_PUB_PORT),
-    },
-    // Sub
-    {
-        host: process.env.REDIS_SUB_HOST,
-        port: Number(process.env.REDIS_PUB_PORT),
-    },
-];
-
-// TODO: RSERV-6: Configure redis clusters
-// NOTE: Redis cluster only works on Docker for Linux (ie. Ubuntu) using the host network (https://docs.docker.com/network/host/)
-// const redisPubCluster = new Redis.Cluster(nodes);
-// const redisSubCluster = new Redis.Cluster(nodes);
-
-const redisPub: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
-    connectionName: 'redisSocketPub',
-    lazyConnect: true,
-});
-
-const redisSession = new RedisSession({
-    client: redisPub,
-});
-
-// TODO: RSERV-5: PubSub doesn't seem to work when on different ports
-// This might simply require redis clusters
-const redisSub: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
-    connectionName: 'redisSocketSub',
-    lazyConnect: true,
-});
 
 const leaveAndNotifyRooms = (socket: SocketIO.Socket) => {
     const activeRooms = Object.keys(socket.rooms)
         .filter((room) => room !== socket.id);
 
     if (activeRooms.length) {
-        redisSession.get(socket.id).then((response: any) => {
+        redisSessions.getBySocketId(socket.id).then((response: any) => {
             activeRooms.forEach((room) => {
                 const parsedResponse = JSON.parse(response);
                 if (parsedResponse && parsedResponse.userName) {
@@ -120,10 +86,8 @@ const startExpressSocketIOServer = () => {
     });
 
     const redisAdapter = socketioRedis({
-        pubClient: redisPub,
-        subClient: redisSub,
-        // pubClient: redisPubCluster,
-        // subClient: redisSubCluster,
+        pubClient: redisClient,
+        // pubClient: redisCluster,
     });
 
     io.adapter(redisAdapter);
@@ -226,20 +190,18 @@ const startExpressSocketIOServer = () => {
         socket.on(Constants.ACTION, (action: any) => {
             switch (action.type) {
                 case SocketClientActionTypes.JOIN_ROOM:
-                    socketHandlers.joinRoom(socket, redisSession, action.data);
+                    socketHandlers.joinRoom(socket, action.data);
                     break;
                 case SocketClientActionTypes.LOGIN:
                     socketHandlers.login({
                         appName: rsAppName,
                         socket,
-                        redisSession,
                         data: action.data,
                     });
                     break;
                 case SocketClientActionTypes.LOGOUT:
                     socketHandlers.logout({
                         socket,
-                        redisSession,
                         data: action.data,
                     });
                     break;
@@ -271,12 +233,12 @@ const startExpressSocketIOServer = () => {
 };
 
 // We must connect manually since lazyConnect is true
-const redisConnectPromises = [redisPub.connect(), redisSub.connect()];
+const redisConnectPromises = [redisClient.connect()];
 
 Promise.all(redisConnectPromises).then((responses: any[]) => {
     // connection ready
     if ((Number(process.env.LOG_LEVEL) || 2) <= LogLevelMap.verbose) {
-        redisPub.monitor().then((monitor) => {
+        redisClient.monitor().then((monitor) => {
             monitor.on('monitor', (time, args, source, database) => {
                 printLogs({
                     time,

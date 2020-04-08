@@ -1,6 +1,7 @@
 
 import * as Redis from 'ioredis';
 import promiser from 'rili-public-library/utilities/promiser.js';
+import redisClient from '../store/redisClient';
 import * as globalConfig from '../../../../global-config.js';
 
 export interface IUserSocketSession {
@@ -13,30 +14,54 @@ export interface IUserSocketSession {
 
 /**
  * RedisHelper
- * redisClient: any - the ioredis client to enter redis commands
+ * redisClient: Redis.Redis - the ioredis client to enter redis commands
  */
-export default class RedisHelper {
-    private client: Redis.Redis;
+export class RedisHelper {
+    client: Redis.Redis;
 
-    constructor(redisClient: Redis.Redis) {
-        // NOTE: client should be build from ioredis
-        this.client = redisClient;
+    constructor(client: Redis.Redis) {
+        this.client = client; // NOTE: client should be build from 'ioredis'
     }
 
-    public storeUser = (userSocketConfig: IUserSocketSession): Promise<any> => new Promise((resolve, reject) => {
-        this.client.setex(
-            userSocketConfig.socketId,
-            userSocketConfig.ttl || globalConfig[process.env.NODE_ENV || 'development'].socket.userSocketSessionExpire,
-            userSocketConfig.data,
-            promiser(resolve, reject),
+    // TODO: RSERV-26 - Optimize with pipelines
+    public storeUser = async (userSocketConfig: IUserSocketSession): Promise<any> => {
+        const userId = userSocketConfig.data.id;
+        const ttl = userSocketConfig.ttl || globalConfig[process.env.NODE_ENV || 'development'].socket.userSocketSessionExpire;
+
+        await this.client.setex(`userSockets:${userSocketConfig.socketId}:socketId`, ttl, userId);
+
+        return this.client.setex(
+            `users:${userId}`,
+            ttl,
+            JSON.stringify({
+                ...userSocketConfig.data,
+                socketId: userSocketConfig.socketId,
+            }),
         );
-    });
+    };
 
-    public removeUser = (socketId: Redis.KeyType) => new Promise((resolve, reject) => {
-        this.client.del(socketId);
-    })
+    public removeUser = (socketId: Redis.KeyType) => this.client.del(socketId);
 
-    public getUser = (socketId: any): Promise<any> => new Promise((resolve, reject) => {
-        this.client.get(socketId, promiser(resolve, reject));
-    });
+    public getUserById = async (userId: any): Promise<any> => {
+        let userData = await this.client.get(`users:${userId}`);
+        let socketId: string | null | undefined;
+        userData = userData && JSON.parse(userData);
+
+        if (userData && !Object.keys(userData).length) {
+            socketId = (userData as any).socketId;
+            delete (userData as any).socketId;
+        }
+
+        return {
+            user: userData,
+            socketId,
+        };
+    };
+
+    public getUserBySocketId = async (socketId: any): Promise<any> => {
+        const userId = await this.client.get(`userSockets:${socketId}:socketId`);
+        return this.client.get(`users:${userId}`);
+    };
 }
+
+export default new RedisHelper(redisClient);
