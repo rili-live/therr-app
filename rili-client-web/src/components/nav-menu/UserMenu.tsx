@@ -63,28 +63,26 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         });
     }
 
-    handleAcceptConnectionRequest = (e, notification) => {
+    handleConnectionRequestAction = (e, notification, isAccepted) => {
+        e.stopPropagation();
         const { user, updateUserConnection } = this.props;
 
         const updatedUserConnection = {
             ...notification.userConnection,
             acceptingUserId: user.details.id,
-            requestStatus: 'complete',
+            requestStatus: isAccepted ? 'complete' : 'denied',
         };
 
         this.markNotificationAsRead(e, notification, updatedUserConnection);
 
         updateUserConnection({
             connection: updatedUserConnection,
-            userName: user.details.userName,
+            user: user.details,
         });
     }
 
     markNotificationAsRead = (event, notification, userConnection?: any) => {
-        // TODO: RSERV-26 - Fix race condition between marking read and accepting/rejecting connection request
-        // const targetIsActionButton = event.target && event.target.id === 'accept_connection_request_button';
-
-        if (notification.isUnread) {
+        if (notification.isUnread || userConnection) {
             const { updateNotification, user } = this.props;
 
             const message = {
@@ -144,7 +142,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                             <Notification
                                 key={n.id}
                                 handleSetRead={this.markNotificationAsRead}
-                                handleAcceptConnectionRequest={this.handleAcceptConnectionRequest}
+                                handleConnectionRequestAction={this.handleConnectionRequestAction}
                                 notification={n}
                             />
                         ))

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
-import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
+import { Notifications, SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
 import beeline from '../beeline';
 import * as Constants from '../constants';
 import redisSessions from '../store/redisSessions';
@@ -14,7 +14,7 @@ interface ICreateUserConnectionData {
 
 interface IUpdateUserConnectionData {
     connection: any;
-    userName: string;
+    user: any;
 }
 
 const createConnection = (socket: socketio.Socket, data: ICreateUserConnectionData) => {
@@ -42,33 +42,64 @@ const createConnection = (socket: socketio.Socket, data: ICreateUserConnectionDa
 };
 
 const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionData) => {
+    let requestingSocketId;
     printLogs({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
-        messages: `User, ${data.userName} with socketId ${socket.id}, updated a userConnection`,
+        messages: `User, ${data.user.userName} with socketId ${socket.id}, updated a userConnection`,
         tracer: beeline,
         traceArgs: {
             socketId: socket.id,
         },
     });
-    axios({
+
+    return axios({
         method: 'put',
         url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiRoute}/users/connections/${data.connection.requestingUserId}`,
         data: data.connection,
-    }).then((response) => {
+    }).then((updateConnectionResponse) => {
         redisSessions.getByUserId(data.connection.requestingUserId).then(({
             socketId,
         }) => {
-            // TODO: RSERV-26 - Also emit notification
-            socket.to(socketId).emit(Constants.ACTION, { // To user who sent request
+            requestingSocketId = socketId;
+            socket.to(requestingSocketId).emit(Constants.ACTION, { // To user who sent request
                 type: SocketServerActionTypes.USER_CONNECTION_UPDATED,
-                data: response.data,
+                data: updateConnectionResponse.data,
             });
             socket.emit(Constants.ACTION, { // To user who accepted request
                 type: SocketServerActionTypes.USER_CONNECTION_UPDATED,
-                data: response.data,
+                data: updateConnectionResponse.data,
             });
         });
+
+        return updateConnectionResponse;
+    }).then(({ data: connection }: any) => {
+        if (connection.requestStatus === 'complete') {
+            return axios({
+                method: 'post',
+                url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiRoute}/users/notifications`,
+                data: {
+                    userId: data.connection.requestingUserId,
+                    type: Notifications.Types.CONNECTION_REQUEST_ACCEPTED,
+                    associationId: connection.id,
+                    isUnread: true,
+                    messageLocaleKey: Notifications.MessageKeys.CONNECTION_REQUEST_ACCEPTED,
+                    messageParams: {
+                        firstName: data.user.firstName,
+                        lastName: data.user.lastName,
+                    },
+                },
+            }).then(({ data: notification }) => {
+                socket.to(requestingSocketId).emit(Constants.ACTION, { // To user who sent request
+                    type: SocketServerActionTypes.NOTIFICATION_CREATED,
+                    data: notification,
+                });
+
+                return notification;
+            });
+        }
+
+        return Promise.resolve(connection);
     });
 };
 

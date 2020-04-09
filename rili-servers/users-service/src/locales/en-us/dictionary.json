@@ -11,6 +11,7 @@
         }
     },
     "notifications": {
+        "connectionRequestAccepted": "{firstName} {lastName} accepted your connnectionn request",
         "connectionRequestReceived": "You have received a new connection request from {firstName} {lastName}"
     }
 }

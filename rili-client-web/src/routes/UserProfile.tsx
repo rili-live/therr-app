@@ -2,7 +2,6 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
 import Input from 'rili-public-library/react-components/Input.js';
 import SelectBox from 'rili-public-library/react-components/SelectBox.js';
 import SvgButton from 'rili-public-library/react-components/SvgButton.js';

@@ -1,6 +1,7 @@
 import LogLevelMap, { ILogLevel } from './LogLevelMap';
 
 // Enums
+import * as Notifications from './enums/Notifications';
 import SocketClientActionTypes from './enums/SocketClientActionTypes';
 import SocketServerActionTypes from './enums/SocketServerActionTypes';
 
@@ -12,6 +13,7 @@ export const WEB_CLIENT_PREFIX = 'CLIENT';
 export {
     ILogLevel,
     LogLevelMap,
+    Notifications,
     SocketClientActionTypes,
     SocketServerActionTypes,
 };
