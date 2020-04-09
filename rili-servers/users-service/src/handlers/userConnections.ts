@@ -1,7 +1,8 @@
 import { RequestHandler } from 'express';
+import { Notifications } from 'rili-public-library/utilities/constants.js';
 import { getSearchQueryArgs } from 'rili-public-library/utilities/http.js';
 import beeline from '../beeline';
-import NotificationsStore, { NotificationTypes, NotificationMessages } from '../store/NotificationsStore';
+import NotificationsStore from '../store/NotificationsStore';
 import handleHttpError from '../utilities/handleHttpError';
 import UserConnectionsStore from '../store/UserConnectionsStore';
 import UsersStore from '../store/UsersStore';
@@ -74,10 +75,10 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 requestStatus: 'pending',
             }).then(([userConnection]) => NotificationsStore.createNotification({
                 userId: acceptingId,
-                type: NotificationTypes.CONNECTION_REQUEST_RECEIVED,
+                type: Notifications.Types.CONNECTION_REQUEST_RECEIVED,
                 associationId: userConnection.id,
                 isUnread: true,
-                messageLocaleKey: NotificationMessages.CONNECTION_REQUEST_RECEIVED,
+                messageLocaleKey: Notifications.MessageKeys.CONNECTION_REQUEST_RECEIVED,
                 messageParams: { firstName: requestingUserFirstName, lastName: requestingUserLastName },
             }).then(([notification]) => ({
                 ...userConnection,

@@ -1,4 +1,5 @@
 import Knex from 'knex';
+// import { Notifications } from 'rili-public-library/utilities/constants.js';
 import { getDbCountQueryString } from 'rili-public-library/utilities/db.js';
 import formatSQLJoinAsJSON from 'rili-public-library/utilities/format-sql-join-as-json.js';
 import connection, { IConnection } from './connection';
@@ -8,20 +9,14 @@ const knex: Knex = Knex({ client: 'pg' });
 
 const NOTIFICATIONS_TABLE_NAME = 'main.notifications';
 
-export enum NotificationTypes {
-    CONNECTION_REQUEST_RECEIVED = 'CONNECTION_REQUEST_RECEIVED',
-}
-
-export enum NotificationMessages {
-    CONNECTION_REQUEST_RECEIVED = 'notifications.connectionRequestReceived',
-}
-
 export interface ICreateNotificationParams {
     userId: number;
-    type: NotificationTypes;
+    type: any;
+    // type: Notifications.Types;
     associationId?: number;
     isUnread: boolean;
-    messageLocaleKey?: NotificationMessages;
+    messageLocaleKey?: any;
+    // messageLocaleKey?: Notifications.MessageKeys;
     messageParams?: any;
 }
 

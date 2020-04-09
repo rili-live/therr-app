@@ -9,6 +9,22 @@ export const translateNotification = (notification, locale = 'en-us') => ({
     message: translate(locale, notification.messageLocaleKey, notification.messageParams),
 });
 
+// CREATE
+const createNotification = (req, res) => NotificationsStore.createNotification({
+    userId: req.body.userId,
+    type: req.body.type,
+    associationId: req.body.associationId,
+    isUnread: req.body.isUnread,
+    messageLocaleKey: req.body.messageLocaleKey,
+    messageParams: req.body.messageParams,
+})
+    .then(([notification]) => {
+        const locale = req.headers['x-localecode'] || 'en-us';
+
+        return res.status(202).send(translateNotification(notification, locale));
+    })
+    .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
+
 // READ
 const getNotification = (req, res) => NotificationsStore.getNotifications({
     requestingUserId: req.params.notificationId,
@@ -87,6 +103,7 @@ const updateNotification = (req, res) => NotificationsStore.getNotifications({
     .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
 
 export {
+    createNotification,
     getNotification,
     searchNotifications,
     updateNotification,

@@ -13,7 +13,7 @@ module.exports = {
         socket: {
             clientPath: '/socketio',
             pingInterval: 1000 * 10,
-            pingTimeout: 1000 * 5,
+            pingTimeout: 1000 * 15,
             userSocketSessionExpire: 1000 * 60 * 60,
         },
     },
