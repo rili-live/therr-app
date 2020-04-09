@@ -2,8 +2,8 @@ import Redis from 'ioredis';
 
 const nodes = [
     {
-        host: process.env.REDIS_NODE_1_HOST,
-        port: Number(process.env.REDIS_NODE_1_PORT),
+        host: process.env.REDIS_NODE_ONE_HOST,
+        port: Number(process.env.REDIS_NODE_ONE_PORT),
     },
 ];
 
