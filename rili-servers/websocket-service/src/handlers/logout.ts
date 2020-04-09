@@ -22,7 +22,7 @@ const logout = ({
         redisSessions.remove(socket.id).then((response: any) => {
             socket.emit(Constants.ACTION, {
                 type: SocketServerActionTypes.SESSION_CLOSED_MESSAGE,
-                data: response,
+                data: {},
             });
         }).catch((err: any) => {
             printLogs({

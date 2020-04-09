@@ -66,28 +66,40 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
     handleAcceptConnectionRequest = (e, notification) => {
         const { user, updateUserConnection } = this.props;
 
-        this.markNotificationAsRead(e, notification);
+        const updatedUserConnection = {
+            ...notification.userConnection,
+            acceptingUserId: user.details.id,
+            requestStatus: 'complete',
+        };
+
+        this.markNotificationAsRead(e, notification, updatedUserConnection);
 
         updateUserConnection({
-            connection: {
-                ...notification.userConnection,
-                acceptingUserId: user.details.id,
-                requestStatus: 'complete',
-            },
+            connection: updatedUserConnection,
             userName: user.details.userName,
         });
     }
 
-    markNotificationAsRead = (e, notification) => {
-        const { updateNotification, user } = this.props;
+    markNotificationAsRead = (event, notification, userConnection?: any) => {
+        // TODO: RSERV-26 - Fix race condition between marking read and accepting/rejecting connection request
+        // const targetIsActionButton = event.target && event.target.id === 'accept_connection_request_button';
 
-        updateNotification({
-            notification: {
-                ...notification,
-                isUnread: false,
-            },
-            userName: user.details.userName,
-        });
+        if (notification.isUnread) {
+            const { updateNotification, user } = this.props;
+
+            const message = {
+                notification: {
+                    ...notification,
+                    isUnread: false,
+                },
+                userName: user.details.userName,
+            };
+
+            if (userConnection) {
+                message.notification.userConnection = userConnection;
+            }
+            updateNotification(message);
+        }
     }
 
     navigate = (destination) => (e) => {

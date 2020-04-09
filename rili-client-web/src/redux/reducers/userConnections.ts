@@ -28,6 +28,8 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
             });
             uniqueConnections = uniqueConnections.concat(newConnections);
             return state.setIn(['connections'], uniqueConnections);
+        case SocketServerActionTypes.USER_CONNECTION_CREATED:
+            return state.setIn(['connections'], [...uniqueConnections, action.data]);
         case SocketServerActionTypes.USER_CONNECTION_UPDATED:
             return state.setIn(['connections'], [...uniqueConnections, action.data]);
         default:

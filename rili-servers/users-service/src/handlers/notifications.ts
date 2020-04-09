@@ -4,7 +4,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import NotificationsStore from '../store/NotificationsStore';
 import translate from '../utilities/translator';
 
-const translateNotification = (notification, locale = 'en-us') => ({
+export const translateNotification = (notification, locale = 'en-us') => ({
     ...notification,
     message: translate(locale, notification.messageLocaleKey, notification.messageParams),
 });
@@ -55,10 +55,7 @@ const searchNotifications: RequestHandler = (req: any, res: any) => {
 
         res.status(200).send(response);
     })
-        .catch((err) => {
-            console.log(err);
-            handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' });
-        });
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
 };
 
 // UPDATE

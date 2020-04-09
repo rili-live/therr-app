@@ -6,6 +6,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import UserConnectionsStore from '../store/UserConnectionsStore';
 import UsersStore from '../store/UsersStore';
 import translate from '../utilities/translator';
+import { translateNotification } from './notifications';
 
 // CREATE
 // TODO:RSERV-24: Security, get requestingUserId from user header token
@@ -71,22 +72,22 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 requestingUserId,
                 acceptingUserId: acceptingId,
                 requestStatus: 'pending',
-            }).then((results) => {
-                NotificationsStore.createNotification({
-                    userId: acceptingId,
-                    type: NotificationTypes.CONNECTION_REQUEST_RECEIVED,
-                    associationId: results[0].id,
-                    isUnread: true,
-                    message: NotificationMessages.CONNECTION_REQUEST_RECEIVED,
-                    messageParams: { firstName: requestingUserFirstName, lastName: requestingUserLastName },
-                }).catch((err) => {
-                    beeline.addContext({
-                        errorMessage: err.stack,
-                    });
+            }).then(([userConnection]) => NotificationsStore.createNotification({
+                userId: acceptingId,
+                type: NotificationTypes.CONNECTION_REQUEST_RECEIVED,
+                associationId: userConnection.id,
+                isUnread: true,
+                messageLocaleKey: NotificationMessages.CONNECTION_REQUEST_RECEIVED,
+                messageParams: { firstName: requestingUserFirstName, lastName: requestingUserLastName },
+            }).then(([notification]) => ({
+                ...userConnection,
+                notification: translateNotification(notification, locale),
+            })).catch((err) => {
+                beeline.addContext({
+                    routeName: 'CreateUserConnection',
+                    errorMessage: err.stack,
                 });
-
-                return results;
-            }).then((results) => res.status(201).send({ id: results[0].id }));
+            })).then((userConnection) => res.status(201).send(userConnection));
         })
         .catch((err) => handleHttpError({
             err,

@@ -16,6 +16,7 @@ import UserConnectionsService from '../services/UserConnectionsService';
 // }
 
 interface IUserProfileDispatchProps {
+    createUserConnection: Function;
     searchUserConnections: Function;
 }
 
@@ -41,6 +42,7 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    createUserConnection: UserConnectionActions.create,
     searchUserConnections: UserConnectionActions.search,
 }, dispatch);
 
@@ -100,7 +102,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
     onSubmit = (event: any) => {
         if (this.isFormValid()) {
             const { inputs } = this.state;
-            const { user } = this.props;
+            const { createUserConnection, user } = this.props;
             const reqBody: any = {
                 requestingUserId: user.details.id,
                 requestingUserFirstName: user.details.firstName,
@@ -115,6 +117,10 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
 
             UserConnectionsService.create(reqBody)
                 .then((response) => {
+                    createUserConnection({
+                        connection: response && response.data,
+                        user: user.details,
+                    });
                     this.setState({
                         inputs: {
                             connectionIdentifier: '',

@@ -12,16 +12,21 @@ const notifications = (state: INotificationsState = initialState, action: any) =
         state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
     }
 
+    let modifiedMessages = [...state.messages];
+
     switch (action.type) {
         // TODO: Rethink this
         case NotificationActionTypes.GET_NOTIFICATIONS:
             return state.setIn(['messages'], action.data);
+        case SocketServerActionTypes.NOTIFICATION_CREATED:
+            modifiedMessages.unshift(action.data);
+            return state.setIn(['messages'], modifiedMessages);
         case SocketServerActionTypes.NOTIFICATION_UPDATED:
-            const modifiedMessages = state.messages.map((message) => { // eslint-disable-line no-case-declarations
+            modifiedMessages = state.messages.map((message) => { // eslint-disable-line no-case-declarations
                 if (message.id === action.data.id) {
                     return {
                         ...message,
-                        isUnread: action.data.isUnread,
+                        ...action.data,
                     };
                 }
 
