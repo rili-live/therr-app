@@ -2,9 +2,9 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
 import Input from 'rili-public-library/react-components/Input.js';
 import SelectBox from 'rili-public-library/react-components/SelectBox.js';
+import SvgButton from 'rili-public-library/react-components/SvgButton.js';
 import { IUserState } from 'types/user';
 import { IUserConnectionsState } from 'types/userConnections';
 import UserConnectionActions from 'actions/UserConnections';
@@ -15,6 +15,7 @@ import UserConnectionsService from '../services/UserConnectionsService';
 // }
 
 interface IUserProfileDispatchProps {
+    createUserConnection: Function;
     searchUserConnections: Function;
 }
 
@@ -40,6 +41,7 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    createUserConnection: UserConnectionActions.create,
     searchUserConnections: UserConnectionActions.search,
 }, dispatch);
 
@@ -65,11 +67,11 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
-    componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Rili | ${this.translate('pages.userProfile.pageTitle')}`;
+    componentDidMount() {
         const {
             user,
         } = this.props;
+        document.title = `Rili | ${this.translate('pages.userProfile.pageTitle')} | ${user.details.userName}`;
         // TODO: RSERV-25 - Make this one Db request
         this.props.searchUserConnections({
             filterBy: 'acceptingUserId',
@@ -99,7 +101,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
     onSubmit = (event: any) => {
         if (this.isFormValid()) {
             const { inputs } = this.state;
-            const { user } = this.props;
+            const { createUserConnection, user } = this.props;
             const reqBody: any = {
                 requestingUserId: user.details.id,
                 requestingUserFirstName: user.details.firstName,
@@ -114,6 +116,10 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
 
             UserConnectionsService.create(reqBody)
                 .then((response) => {
+                    createUserConnection({
+                        connection: response && response.data,
+                        user: user.details,
+                    });
                     this.setState({
                         inputs: {
                             connectionIdentifier: '',
@@ -164,23 +170,43 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         return (
             <div id="page_user_profile" className="flex-box column">
                 <div className="header-profile-picture">
-                    <h1 className="fill text-left">{this.translate('pages.userProfile.pageTitle')}</h1>
+                    <h1 className="fill text-left">{user.details.userName}</h1>
                     <div className="user-profile-icon">
                         <img
-                            src={`https://robohash.org/${user.details.id}`}
+                            src={`https://robohash.org/${user.details.id}?size=100x100`}
                             alt="Profile Picture"
                         />
                     </div>
                 </div>
                 <div className="flex-box account-sections">
                     <div id="account_details" className="account-section">
-                        <h2 className="underline">{this.translate('pages.userProfile.h2.accountDetails')}</h2>
+                        <h2 className="underline desktop-only block">{this.translate('pages.userProfile.h2.accountDetails')}</h2>
                         <div className="account-section-content">
                             <h4><b>{this.translate('pages.userProfile.labels.firstName')}:</b> {user.details.firstName}</h4>
                             <h4><b>{this.translate('pages.userProfile.labels.lastName')}:</b> {user.details.lastName}</h4>
                             <h4><b>{this.translate('pages.userProfile.labels.userName')}:</b> {user.details.userName}</h4>
                             <h4><b>{this.translate('pages.userProfile.labels.email')}:</b> {user.details.email}</h4>
                             <h4><b>{this.translate('pages.userProfile.labels.phone')}:</b> {user.details.phoneNumber}</h4>
+                        </div>
+                    </div>
+                    <div id="your_connections" className="account-section">
+                        <h2 className="underline">{this.translate('pages.userProfile.h2.connections')}</h2>
+                        <div className="user-connections-container account-section-content">
+                            {
+                                userConnections.connections.length
+                                    ? userConnections.connections.slice(0, 10).map((connection: any) => (
+                                        <div className="user-connection-icon" key={connection.id}>
+                                            {/* <span className="name-tag">{connection.firstName}</span> */}
+                                            <img
+                                                src={`https://robohash.org/${connection.acceptingUserId === user.details.id
+                                                    ? connection.requestingUserId
+                                                    : connection.acceptingUserId}?size=100x100`}
+                                                alt="User Connection"
+                                            />
+                                        </div>
+                                    ))
+                                    : <span><i>{this.translate('pages.userProfile.requestRecommendation')}</i></span>
+                            }
                         </div>
                     </div>
                     <div id="add_connections" className="account-section">
@@ -250,30 +276,11 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                 && <div className="text-center alert-error backed padding-sm margin-bot-sm">{prevRequestError}</div>
                             }
                             <div className="form-field text-right">
-                                <ButtonPrimary
-                                    id="sendRequest"
-                                    text={this.translate('pages.userProfile.buttons.sendRequest')} onClick={this.onSubmit} disabled={!this.isFormValid()} />
+                                <SvgButton
+                                    id="send_request"
+                                    name="send"
+                                    onClick={this.onSubmit} disabled={!this.isFormValid()} />
                             </div>
-                        </div>
-                    </div>
-                    <div id="your_connections" className="account-section">
-                        <h2 className="underline">{this.translate('pages.userProfile.h2.connections')}</h2>
-                        <div className="user-connections-container account-section-content">
-                            {
-                                userConnections.connections.length
-                                    ? userConnections.connections.slice(0, 10).map((connection: any) => (
-                                        <div className="user-connection-icon" key={connection.id}>
-                                            {/* <span className="name-tag">{connection.firstName}</span> */}
-                                            <img
-                                                src={`https://robohash.org/${connection.acceptingUserId === user.details.id
-                                                    ? connection.requestingUserId
-                                                    : connection.acceptingUserId}`}
-                                                alt="User Connection"
-                                            />
-                                        </div>
-                                    ))
-                                    : <span><i>{this.translate('pages.userProfile.requestRecommendation')}</i></span>
-                            }
                         </div>
                     </div>
                 </div>

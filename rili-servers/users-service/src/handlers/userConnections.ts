@@ -1,11 +1,13 @@
 import { RequestHandler } from 'express';
+import { Notifications } from 'rili-public-library/utilities/constants.js';
 import { getSearchQueryArgs } from 'rili-public-library/utilities/http.js';
 import beeline from '../beeline';
-import NotificationsStore, { NotificationTypes, NotificationMessages } from '../store/NotificationsStore';
+import NotificationsStore from '../store/NotificationsStore';
 import handleHttpError from '../utilities/handleHttpError';
 import UserConnectionsStore from '../store/UserConnectionsStore';
 import UsersStore from '../store/UsersStore';
 import translate from '../utilities/translator';
+import { translateNotification } from './notifications';
 
 // CREATE
 // TODO:RSERV-24: Security, get requestingUserId from user header token
@@ -57,7 +59,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
     return UserConnectionsStore.getUserConnections({
         requestingUserId,
         acceptingUserId: acceptingId,
-    })
+    }, true)
         .then((getResults) => {
             if (getResults.length) {
                 return handleHttpError({
@@ -71,22 +73,22 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 requestingUserId,
                 acceptingUserId: acceptingId,
                 requestStatus: 'pending',
-            }).then((results) => {
-                NotificationsStore.createNotification({
-                    userId: acceptingId,
-                    type: NotificationTypes.CONNECTION_REQUEST_RECEIVED,
-                    associationId: results[0].id,
-                    isUnread: true,
-                    message: NotificationMessages.CONNECTION_REQUEST_RECEIVED,
-                    messageParams: { firstName: requestingUserFirstName, lastName: requestingUserLastName },
-                }).catch((err) => {
-                    beeline.addContext({
-                        errorMessage: err.stack,
-                    });
+            }).then(([userConnection]) => NotificationsStore.createNotification({
+                userId: acceptingId,
+                type: Notifications.Types.CONNECTION_REQUEST_RECEIVED,
+                associationId: userConnection.id,
+                isUnread: true,
+                messageLocaleKey: Notifications.MessageKeys.CONNECTION_REQUEST_RECEIVED,
+                messageParams: { firstName: requestingUserFirstName, lastName: requestingUserLastName },
+            }).then(([notification]) => ({
+                ...userConnection,
+                notification: translateNotification(notification, locale),
+            })).catch((err) => {
+                beeline.addContext({
+                    routeName: 'CreateUserConnection',
+                    errorMessage: err.stack,
                 });
-
-                return results;
-            }).then((results) => res.status(201).send({ id: results[0].id }));
+            })).then((userConnection) => res.status(201).send(userConnection));
         })
         .catch((err) => handleHttpError({
             err,

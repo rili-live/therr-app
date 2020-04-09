@@ -15,6 +15,10 @@ spec:
       containers:
       - name: server
         image: riliadmin/users-service:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
         ports:
         - containerPort: 7770
         env:
@@ -42,9 +46,12 @@ spec:
             secretKeyRef:
               name: pgpassword
               key: PGPASSWORD
-        - name: REDIS_PUB_HOST
+        - name: REDIS_NODE_1_HOST
           value: "redis-cluster-ip-service"
-        - name: REDIS_PUB_PORT
+        - name: REDIS_NODE_1_PORT
           value: "6379"
         - name: SECRET
-          value: "this-should-be-an-actual-secret"
+          valueFrom:
+            secretKeyRef:
+              name: riliapisecret
+              key: RILIAPISECRET
