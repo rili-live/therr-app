@@ -1,6 +1,6 @@
 
 import * as Redis from 'ioredis';
-import redisClient from '../store/redisClient';
+import { redisPub } from '../store/redisClient';
 import * as globalConfig from '../../../../global-config.js';
 
 export interface IUserSocketSession {
@@ -63,4 +63,4 @@ export class RedisHelper {
     };
 }
 
-export default new RedisHelper(redisClient);
+export default new RedisHelper(redisPub);
