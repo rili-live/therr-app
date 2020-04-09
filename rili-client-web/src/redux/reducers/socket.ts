@@ -2,6 +2,7 @@ import Immutable from 'seamless-immutable';
 import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
 import { IMessageList, ISocketState } from 'types/socket';
 
+// TODO: RSERV-26 - Create separate auth, room, and messages actions/reducers
 const initialState: ISocketState = Immutable.from({
     user: {
         userName: '',
@@ -46,10 +47,8 @@ const socket = (state: ISocketState = initialState, action: any) => {
         case SocketServerActionTypes.SEND_MESSAGE:
             return state.setIn(['messages', action.data.roomId], updatedMessageList);
         case SocketServerActionTypes.SESSION_CREATED_MESSAGE:
-            actionData.data = JSON.parse(actionData.data);
-            return state.setIn(['user', 'session'], actionData);
+            return state.setIn(['user', 'session'], (actionData && actionData.data) || {});
         case SocketServerActionTypes.SESSION_CLOSED_MESSAGE:
-            actionData.data = JSON.parse(actionData.data);
             return state.setIn(['user', 'session'], {});
         default:
             return state;

@@ -1,3 +1,4 @@
+import { SocketClientActionTypes } from 'rili-public-library/utilities/constants.js';
 import { NotificationActionTypes } from 'types/notifications';
 import NotificationsService from '../../services/NotificationsService';
 
@@ -8,6 +9,12 @@ const Notification = {
             data: response.data.results,
         });
     }),
+    update: (data: any) => (dispatch: any) => {
+        dispatch({
+            type: SocketClientActionTypes.UPDATE_NOTIFICATION,
+            data,
+        });
+    },
 };
 
 export default Notification;
