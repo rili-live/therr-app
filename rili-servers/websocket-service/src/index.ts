@@ -87,31 +87,10 @@ const startExpressSocketIOServer = () => {
 
     const redisAdapter = socketioRedis({
         pubClient: redisClient,
-        // pubClient: redisCluster,
+        subClient: redisClient,
     });
 
     io.adapter(redisAdapter);
-
-    // Redis Error handling
-    // redisPubCluster.on('error', (error: string) => {
-    // printLogs({
-    //     info: 'verbose',
-    //     messageOrigin: 'REDIS_PUB_CLUSTER_CONNECTION_ERROR',
-    //     messages: error.toString(),
-    //     tracer: beeline,
-    //     traceArgs: {},
-    // });
-    // });
-    // redisSubCluster.on('error', (error: string) => {
-    // printLogs({
-    //     info: 'verbose',
-    //     messageOrigin: 'REDIS_SUB_CLUSTER_CONNECTION_ERROR:',
-    //     messages: error.toString(),
-    //     messages: error.toString(),
-    //     tracer: beeline,
-    //     traceArgs: {},
-    // });
-    // });
 
     redisAdapter.pubClient.on('error', (err: string) => {
         printLogs({
