@@ -7,6 +7,8 @@ const nodes = [
     },
 ];
 
+console.log('NODES', nodes);
+
 // TODO: RSERV-6: Configure redis clusters
 // NOTE: Redis cluster only works on Docker for Linux (ie. Ubuntu) using the host network (https://docs.docker.com/network/host/)
 // const redisPubCluster = new Redis.Cluster(nodes);
