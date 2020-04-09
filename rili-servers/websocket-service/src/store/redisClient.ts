@@ -2,10 +2,12 @@ import Redis from 'ioredis';
 
 const nodes = [
     {
-        host: process.env.REDIS_NODE_1_HOST,
-        port: Number(process.env.REDIS_NODE_1_PORT),
+        host: process.env.REDIS_NODE_ONE_HOST,
+        port: Number(process.env.REDIS_NODE_ONE_PORT),
     },
 ];
+
+console.log('NODES', nodes);
 
 // TODO: RSERV-6: Configure redis clusters
 // NOTE: Redis cluster only works on Docker for Linux (ie. Ubuntu) using the host network (https://docs.docker.com/network/host/)
