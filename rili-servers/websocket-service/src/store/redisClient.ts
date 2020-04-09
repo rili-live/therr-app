@@ -14,13 +14,18 @@ const nodes = [
 // const redisPubCluster = new Redis.Cluster(nodes);
 // const redisSubCluster = new Redis.Cluster(nodes);
 
-const redisClient: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
+const redisPub: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
+    connectionName: 'redisSocketPub',
+    lazyConnect: true,
+});
+
+const redisSub: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
     connectionName: 'redisSocketPub',
     lazyConnect: true,
 });
 
 // Redis Error handling
-redisClient.on('error', (error: string) => {
+redisPub.on('error', (error: string) => {
     printLogs({
         info: 'verbose',
         messageOrigin: 'REDIS_PUB_CLUSTER_CONNECTION_ERROR',
@@ -30,4 +35,17 @@ redisClient.on('error', (error: string) => {
     });
 });
 
-export default redisClient;
+redisSub.on('error', (error: string) => {
+    printLogs({
+        info: 'verbose',
+        messageOrigin: 'REDIS_SUB_CLUSTER_CONNECTION_ERROR',
+        messages: error.toString(),
+        tracer: beeline,
+        traceArgs: {},
+    });
+});
+
+export {
+    redisPub,
+    redisSub,
+};
