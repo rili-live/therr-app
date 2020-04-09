@@ -21,7 +21,7 @@ export interface ICreateNotificationParams {
     type: NotificationTypes;
     associationId?: number;
     isUnread: boolean;
-    message?: NotificationMessages;
+    messageLocaleKey?: NotificationMessages;
     messageParams?: any;
 }
 
@@ -33,7 +33,7 @@ export interface IUpdateNotificationParams {
     type?: string;
     associationId?: number;
     isUnread?: boolean;
-    message?: string;
+    messageLocaleKey?: string;
     messageParams?: any;
 }
 

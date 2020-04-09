@@ -23,6 +23,7 @@ const Notification: React.FunctionComponent<INotificationProps> = ({
                     notification.userConnection.requestStatus === 'pending'
                     && <div className="action-buttons text-right">
                         <ButtonPrimary
+                            id="accept_connection_request_button"
                             className="action-button"
                             name="Accept"
                             text="Accept"

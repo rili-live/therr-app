@@ -9,6 +9,7 @@ import redisSessions from '../store/redisSessions';
 export interface ILoginData {
     idToken: string;
     userName: string;
+    id: string;
 }
 
 interface ILoginArgs {
@@ -32,6 +33,7 @@ const login = ({
             // 30 minutes
             ttl: 60 * 1000 * 30,
             data: {
+                id: data.id,
                 idToken: data.idToken,
                 userName: data.userName,
             },

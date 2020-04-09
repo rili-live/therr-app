@@ -1,6 +1,5 @@
 
 import * as Redis from 'ioredis';
-import promiser from 'rili-public-library/utilities/promiser.js';
 import redisClient from '../store/redisClient';
 import * as globalConfig from '../../../../global-config.js';
 
@@ -42,12 +41,12 @@ export class RedisHelper {
 
     public removeUser = (socketId: Redis.KeyType) => this.client.del(socketId);
 
-    public getUserById = async (userId: any): Promise<any> => {
+    public getUserById = async (userId: number): Promise<any> => {
         let userData = await this.client.get(`users:${userId}`);
         let socketId: string | null | undefined;
         userData = userData && JSON.parse(userData);
 
-        if (userData && !Object.keys(userData).length) {
+        if (userData && Object.keys(userData).length) {
             socketId = (userData as any).socketId;
             delete (userData as any).socketId;
         }

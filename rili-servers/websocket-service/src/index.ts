@@ -161,6 +161,7 @@ const startExpressSocketIOServer = () => {
     });
 
     io.on('connection', (socket: socketio.Socket) => {
+        // TODO: RSERV-26 - Update cached socket.id on each connection (page refresh)
         printLogs({
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
@@ -210,6 +211,12 @@ const startExpressSocketIOServer = () => {
                     break;
                 case SocketClientActionTypes.UPDATE_NOTIFICATION:
                     socketHandlers.updateNotification(socket, action.data);
+                    break;
+                case SocketClientActionTypes.CREATE_USER_CONNECTION:
+                    socketHandlers.createConnection(socket, action.data);
+                    break;
+                case SocketClientActionTypes.UPDATE_USER_CONNECTION:
+                    socketHandlers.updateConnection(socket, action.data);
                     break;
                 default:
                     break;

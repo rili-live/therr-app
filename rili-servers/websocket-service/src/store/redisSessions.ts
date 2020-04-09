@@ -32,6 +32,10 @@ class RedisSessions {
     public getBySocketId(socketId: Redis.KeyType): any {
         return this.redisHelper.getUserBySocketId(socketId);
     }
+
+    public getByUserId(userId: number): any {
+        return this.redisHelper.getUserById(userId);
+    }
 }
 
 export default new RedisSessions();
