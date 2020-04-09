@@ -3,15 +3,15 @@ import express from 'express';
 import * as http from 'http';
 import moment from 'moment';
 import socketio from 'socket.io';
-import socketioRedis from 'socket.io-redis';
 import { LogLevelMap, SocketServerActionTypes, SocketClientActionTypes } from 'rili-public-library/utilities/constants.js';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
 import * as socketHandlers from './handlers';
 import * as Constants from './constants/index';
 import * as globalConfig from '../../../global-config.js';
 import getSocketRoomsList from './utilities/get-socket-rooms-list';
-import redisClient from './store/redisClient';
+import redisAdapter from './store/redisAdapter';
 import redisSessions from './store/redisSessions';
+import { redisPub, redisSub } from './store/redisClient';
 
 export const rsAppName = 'riliChat';
 
@@ -85,59 +85,7 @@ const startExpressSocketIOServer = () => {
         console.log(error); // eslint-disable-line no-console
     });
 
-    const redisAdapter = socketioRedis({
-        pubClient: redisClient,
-        subClient: redisClient,
-    });
-
     io.adapter(redisAdapter);
-
-    redisAdapter.pubClient.on('error', (err: string) => {
-        printLogs({
-            info: 'verbose',
-            messageOrigin: 'REDIS_PUB_CLIENT_ERROR',
-            messages: err.toString(),
-            tracer: beeline,
-            traceArgs: {
-                uid: redisAdapter.uid,
-            },
-        });
-    });
-    redisAdapter.subClient.on('error', (err: string) => {
-        printLogs({
-            info: 'verbose',
-            messageOrigin: 'REDIS_SUB_CLIENT_ERROR',
-            messages: err.toString(),
-            tracer: beeline,
-            traceArgs: {
-                uid: redisAdapter.uid,
-            },
-        });
-    });
-
-    redisAdapter.subClient.on('subscribe', (channel: any, count: any) => {
-        printLogs({
-            info: 'verbose',
-            messageOrigin: 'REDIS_SUB_CLIENT',
-            messages: `Subscribed to ${channel}. Now subscribed to ${count} channel(s).`,
-            tracer: beeline,
-            traceArgs: {
-                uid: redisAdapter.uid,
-            },
-        });
-    });
-
-    redisAdapter.subClient.on('message', (channel: any, message: any) => {
-        printLogs({
-            info: 'verbose',
-            messageOrigin: 'REDIS_SUB_CLIENT',
-            messages: `Message from channel ${channel}: ${message}`,
-            tracer: beeline,
-            traceArgs: {
-                uid: redisAdapter.uid,
-            },
-        });
-    });
 
     io.on('connection', (socket: socketio.Socket) => {
         // TODO: RSERV-26 - Update cached socket.id on each connection (page refresh)
@@ -219,12 +167,12 @@ const startExpressSocketIOServer = () => {
 };
 
 // We must connect manually since lazyConnect is true
-const redisConnectPromises = [redisClient.connect()];
+const redisConnectPromises = [redisPub.connect(), redisSub.connect()];
 
 Promise.all(redisConnectPromises).then((responses: any[]) => {
     // connection ready
     if ((Number(process.env.LOG_LEVEL) || 2) <= LogLevelMap.verbose) {
-        redisClient.monitor().then((monitor) => {
+        redisPub.monitor().then((monitor) => {
             monitor.on('monitor', (time, args, source, database) => {
                 printLogs({
                     time,
