@@ -3,16 +3,18 @@ import { connect } from 'react-redux';
 import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
 import SvgButton from 'rili-public-library/react-components/SvgButton.js';
 import { IUserState } from 'types/user';
+import NotificationsActions from 'actions/Notifications';
 import SocketActions from 'actions/Socket';
+import UserConnectionsActions from 'actions/UserConnections';
 import { bindActionCreators } from 'redux';
 import { INotificationsState, INotification } from 'types/notifications';
 import Notification from './Notification';
 import translator from '../../services/translator';
-import UserConnectionsService from '../../services/UserConnectionsService';
 
 interface IUserMenuDispatchProps {
     logout: Function;
     updateNotification: Function;
+    updateUserConnection: Function;
 }
 
 interface IStoreProps extends IUserMenuDispatchProps {
@@ -38,7 +40,8 @@ const mapStateToProps = (state: any) => ({
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     logout: SocketActions.logout,
-    updateNotification: SocketActions.updateNotification,
+    updateNotification: NotificationsActions.update,
+    updateUserConnection: UserConnectionsActions.update,
 }, dispatch);
 
 export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenuState> {
@@ -60,34 +63,41 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         });
     }
 
-    handleAcceptConnectionRequest = (e, notification) => {
-        const { user } = this.props;
-        const reqBody: any = {
+    handleConnectionRequestAction = (e, notification, isAccepted) => {
+        e.stopPropagation();
+        const { user, updateUserConnection } = this.props;
+
+        const updatedUserConnection = {
+            ...notification.userConnection,
             acceptingUserId: user.details.id,
-            requestStatus: 'complete',
+            requestStatus: isAccepted ? 'complete' : 'denied',
         };
 
-        this.markNotificationAsRead(e, notification);
+        this.markNotificationAsRead(e, notification, updatedUserConnection);
 
-        UserConnectionsService.update(notification.userConnection.requestingUserId, reqBody)
-            .then((response) => {
-                console.log(response);
-            })
-            .catch((error) => {
-                console.log(error);
-            });
+        updateUserConnection({
+            connection: updatedUserConnection,
+            user: user.details,
+        });
     }
 
-    markNotificationAsRead = (e, notification) => {
-        const { updateNotification, user } = this.props;
-        console.log(notification);
-        updateNotification({
-            notification: {
-                ...notification,
-                isUnread: false,
-            },
-            userName: user.details.userName,
-        });
+    markNotificationAsRead = (event, notification, userConnection?: any) => {
+        if (notification.isUnread || userConnection) {
+            const { updateNotification, user } = this.props;
+
+            const message = {
+                notification: {
+                    ...notification,
+                    isUnread: false,
+                },
+                userName: user.details.userName,
+            };
+
+            if (userConnection) {
+                message.notification.userConnection = userConnection;
+            }
+            updateNotification(message);
+        }
     }
 
     navigate = (destination) => (e) => {
@@ -132,7 +142,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                             <Notification
                                 key={n.id}
                                 handleSetRead={this.markNotificationAsRead}
-                                handleAcceptConnectionRequest={this.handleAcceptConnectionRequest}
+                                handleConnectionRequestAction={this.handleConnectionRequestAction}
                                 notification={n}
                             />
                         ))

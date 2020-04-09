@@ -30,7 +30,10 @@ const updateNotification = (socket: socketio.Socket, data: IUpdateNotificationDa
     }).then((response) => {
         socket.emit(Constants.ACTION, {
             type: SocketServerActionTypes.NOTIFICATION_UPDATED,
-            data: response.data,
+            data: {
+                ...data.notification,
+                ...response.data,
+            },
         });
     });
 };

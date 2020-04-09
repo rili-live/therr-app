@@ -1,3 +1,4 @@
+import { SocketClientActionTypes } from 'rili-public-library/utilities/constants.js';
 import { UserConnectionActionTypes } from 'types/userConnections';
 import UserConnectionsService from '../../services/UserConnectionsService';
 
@@ -8,6 +9,18 @@ const UserConnection = {
             data: response.data.results,
         });
     }),
+    create: (data: any) => (dispatch: any) => {
+        dispatch({
+            type: SocketClientActionTypes.CREATE_USER_CONNECTION,
+            data,
+        });
+    },
+    update: (data: any) => (dispatch: any) => {
+        dispatch({
+            type: SocketClientActionTypes.UPDATE_USER_CONNECTION,
+            data,
+        });
+    },
 };
 
 export default UserConnection;

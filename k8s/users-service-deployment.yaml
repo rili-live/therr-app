@@ -46,9 +46,9 @@ spec:
             secretKeyRef:
               name: pgpassword
               key: PGPASSWORD
-        - name: REDIS_PUB_HOST
+        - name: REDIS_NODE_1_HOST
           value: "redis-cluster-ip-service"
-        - name: REDIS_PUB_PORT
+        - name: REDIS_NODE_1_PORT
           value: "6379"
         - name: SECRET
           valueFrom:
