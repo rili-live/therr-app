@@ -10,7 +10,7 @@ interface IJoinRoomData {
     userName: string;
 }
 
-const joinRoom = (socket: socketio.Socket, redisSession: any, data: IJoinRoomData) => {
+const joinRoom = (socket: socketio.Socket, data: IJoinRoomData) => {
     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
 
     // Leave all current rooms (except default room) before joining a new one

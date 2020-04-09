@@ -46,13 +46,29 @@ class Store {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
-    getUserConnections(conditions = {}) {
-        const queryString = knex.select('*')
-            .from(USER_CONNECTIONS_TABLE_NAME)
-            .where({
-                ...conditions,
-            })
-            .toString();
+    getUserConnections(conditions: any = {}, shouldCheckReverse?: boolean) {
+        let queryString;
+        if (shouldCheckReverse) {
+            queryString = knex.select('*')
+                .from(USER_CONNECTIONS_TABLE_NAME)
+                .where({
+                    requestingUserId: conditions.requestingUserId,
+                    acceptingUserId: conditions.acceptingUserId,
+                })
+                .orWhere({
+                    requestingUserId: conditions.acceptingUserId,
+                    acceptingUserId: conditions.requestingUserId,
+                })
+                .toString();
+        } else {
+            queryString = knex.select('*')
+                .from(USER_CONNECTIONS_TABLE_NAME)
+                .where({
+                    ...conditions,
+                })
+                .toString();
+        }
+
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 

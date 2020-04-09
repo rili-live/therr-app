@@ -1,3 +1,4 @@
+import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
 import * as Immutable from 'seamless-immutable';
 import { IUserConnectionsState, UserConnectionActionTypes } from 'types/userConnections';
 
@@ -11,10 +12,11 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
         state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
     }
 
+    let uniqueConnections = [...state.connections]; // eslint-disable-line no-case-declarations
+
     switch (action.type) {
-        // TODO: Rethink this
         case UserConnectionActionTypes.GET_USER_CONNECTIONS:
-            let uniqueConnections = [...state.connections]; // eslint-disable-line no-case-declarations
+            // TODO: RSERV-26 - Rethink/optimize/cleanup this
             const newConnections = (action.data || []).filter((connection) => { // eslint-disable-line no-case-declarations
                 const existingIndex = uniqueConnections.findIndex((c) => c.id === connection.id);
                 if (existingIndex > -1) {
@@ -26,6 +28,10 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
             });
             uniqueConnections = uniqueConnections.concat(newConnections);
             return state.setIn(['connections'], uniqueConnections);
+        case SocketServerActionTypes.USER_CONNECTION_CREATED:
+            return state.setIn(['connections'], [...uniqueConnections, action.data]);
+        case SocketServerActionTypes.USER_CONNECTION_UPDATED:
+            return state.setIn(['connections'], [...uniqueConnections, action.data]);
         default:
             return state;
     }

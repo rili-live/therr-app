@@ -6,12 +6,16 @@ import {
     validate,
 } from '../validation';
 import {
+    createNotification,
     getNotification,
     searchNotifications,
     updateNotification,
 } from '../handlers/notifications';
 
 const router = express.Router();
+
+// CREATE
+router.post('/', createNotification);
 
 // READ
 router.get('/:notificationId', getNotification);

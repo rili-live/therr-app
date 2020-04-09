@@ -4,10 +4,26 @@ import handleHttpError from '../utilities/handleHttpError';
 import NotificationsStore from '../store/NotificationsStore';
 import translate from '../utilities/translator';
 
-const translateNotification = (notification, locale = 'en-us') => ({
+export const translateNotification = (notification, locale = 'en-us') => ({
     ...notification,
     message: translate(locale, notification.messageLocaleKey, notification.messageParams),
 });
+
+// CREATE
+const createNotification = (req, res) => NotificationsStore.createNotification({
+    userId: req.body.userId,
+    type: req.body.type,
+    associationId: req.body.associationId,
+    isUnread: req.body.isUnread,
+    messageLocaleKey: req.body.messageLocaleKey,
+    messageParams: req.body.messageParams,
+})
+    .then(([notification]) => {
+        const locale = req.headers['x-localecode'] || 'en-us';
+
+        return res.status(202).send(translateNotification(notification, locale));
+    })
+    .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
 
 // READ
 const getNotification = (req, res) => NotificationsStore.getNotifications({
@@ -55,16 +71,12 @@ const searchNotifications: RequestHandler = (req: any, res: any) => {
 
         res.status(200).send(response);
     })
-        .catch((err) => {
-            console.log(err);
-            handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' });
-        });
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
 };
 
 // UPDATE
 const updateNotification = (req, res) => NotificationsStore.getNotifications({
-    requestingUserId: req.params.requestingUserId,
-    acceptingUserId: req.body.acceptingUserId,
+    id: req.params.notificationId,
 })
     .then((getResults) => {
         const locale = req.headers['x-localecode'] || 'en-us';
@@ -75,7 +87,7 @@ const updateNotification = (req, res) => NotificationsStore.getNotifications({
         if (!getResults.length) {
             return handleHttpError({
                 res,
-                message: `No notification found with id, ${req.params.id}.`,
+                message: `No notification found with id, ${req.params.notificationId}.`,
                 statusCode: 404,
             });
         }
@@ -91,6 +103,7 @@ const updateNotification = (req, res) => NotificationsStore.getNotifications({
     .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
 
 export {
+    createNotification,
     getNotification,
     searchNotifications,
     updateNotification,

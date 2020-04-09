@@ -6,27 +6,36 @@ import { INotification } from 'types/notifications';
 interface INotificationProps {
     key: number;
     notification: INotification;
-    handleAcceptConnectionRequest: any;
+    handleConnectionRequestAction: any;
     handleSetRead: any;
 }
 
 const Notification: React.FunctionComponent<INotificationProps> = ({
     notification,
-    handleAcceptConnectionRequest,
+    handleConnectionRequestAction,
     handleSetRead,
 }: INotificationProps) => {
     if (notification.type === 'CONNECTION_REQUEST_RECEIVED') {
         return (
-            <div className="notification" onClick={(e) => handleSetRead(e, notification)}>
+            <div className={`notification ${!notification.isUnread ? 'read' : 'unread'}`} onClick={(e) => handleSetRead(e, notification)}>
                 <span>{notification.message}</span>
                 {
                     notification.userConnection.requestStatus === 'pending'
                     && <div className="action-buttons text-right">
                         <ButtonPrimary
+                            id="deny_connection_request_button"
+                            className="action-button"
+                            name="Deny"
+                            text="Deny"
+                            onClick={(e) => handleConnectionRequestAction(e, notification, false)}
+                            buttonType="primary"
+                        />
+                        <ButtonPrimary
+                            id="accept_connection_request_button"
                             className="action-button"
                             name="Accept"
                             text="Accept"
-                            onClick={(e) => handleAcceptConnectionRequest(e, notification)}
+                            onClick={(e) => handleConnectionRequestAction(e, notification, true)}
                             buttonType="primary"
                         />
                     </div>

@@ -2,13 +2,8 @@ import { SocketClientActionTypes } from 'rili-public-library/utilities/constants
 import { IUser } from 'types/user';
 import UsersService from '../../services/UsersService';
 
+// TODO: RSERV-26 - Create separate auth, room, and messages actions/reducers
 const Socket = {
-    joinRoom: (data: any) => (dispatch: any) => {
-        dispatch({
-            type: SocketClientActionTypes.JOIN_ROOM,
-            data,
-        });
-    },
     login: (data: any) => async (dispatch: any) => {
         await UsersService.authenticate(data).then((response) => {
             const {
@@ -68,6 +63,12 @@ const Socket = {
         });
         return { email, id, userName };
     }),
+    joinRoom: (data: any) => (dispatch: any) => {
+        dispatch({
+            type: SocketClientActionTypes.JOIN_ROOM,
+            data,
+        });
+    },
     sendMessage: (data: any) => (dispatch: any) => {
         dispatch({
             type: SocketClientActionTypes.SEND_MESSAGE,
