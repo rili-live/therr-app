@@ -1,10 +1,11 @@
 import * as Immutable from 'seamless-immutable';
-import { SocketClientActionTypes } from 'rili-public-library/utilities/constants.js';
+import { SocketClientActionTypes, SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
 import { IUserState } from 'types/user';
 
 const initialState: IUserState = Immutable.from({
     details: null,
-    isAuthenticated: null,
+    socketDetails: {},
+    isAuthenticated: false,
 });
 
 const user = (state: IUserState = initialState, action: any) => {
@@ -13,11 +14,25 @@ const user = (state: IUserState = initialState, action: any) => {
         state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
     }
 
+    const actionData = { ...action.data };
+
     switch (action.type) {
+        case SocketServerActionTypes.JOINED_ROOM:
+            return state
+                .setIn(['socketDetails', 'userName'], action.data.userName)
+                .setIn(['socketDetails', 'currentRoom'], action.data.roomId);
+        case SocketServerActionTypes.USER_LOGIN_SUCCESS:
+            return state.setIn(['socketDetails', 'userName'], action.data.userName);
+        case SocketServerActionTypes.USER_LOGOUT_SUCCESS:
+            return state.setIn(['socketDetails', 'userName'], false);
         case SocketClientActionTypes.LOGIN:
             return state.setIn(['isAuthenticated'], true).setIn(['details'], action.data);
         case SocketClientActionTypes.LOGOUT:
-            return state.setIn(['isAuthenticated'], null).setIn(['details'], null);
+            return state.setIn(['isAuthenticated'], false).setIn(['details'], null);
+        case SocketServerActionTypes.SESSION_CREATED_MESSAGE:
+            return state.setIn(['socketDetails', 'session'], (actionData && actionData.data) || {});
+        case SocketServerActionTypes.SESSION_CLOSED_MESSAGE:
+            return state.setIn(['socketDetails', 'session'], {});
         default:
             return state;
     }
