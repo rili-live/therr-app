@@ -8,7 +8,6 @@ import {
 import { TransitionGroup as Animation } from 'react-transition-group';
 import { Location } from 'history';
 // import * as ReactGA from 'react-ga';
-import { ISocketState } from 'types/socket';
 import { IUserState } from 'types/user';
 import AccessControl from 'rili-public-library/react-components/AccessControl.js';
 import AuthRoute from 'rili-public-library/react-components/AuthRoute.js';
@@ -24,7 +23,7 @@ import routes from '../routes';
 import { AccessCheckType, INavMenuContext } from '../types';
 import UsersService from '../services/UsersService';
 import Footer from './Footer';
-import { NotificationActions, SocketActions } from '../redux/actions';
+import { NotificationActions, UsersActions } from '../redux/actions';
 import UserMenu from './nav-menu/UserMenu';
 import MessagesMenu from './nav-menu/MessagesMenu';
 
@@ -42,7 +41,6 @@ interface ILayoutDispatchProps {
 
 interface IStoreProps extends ILayoutDispatchProps {
     user?: IUserState;
-    socket?: ISocketState;
 }
 
 interface ILayoutProps extends RouteComponentProps<ILayoutRouterProps>, IStoreProps {
@@ -63,7 +61,7 @@ const mapStateToProps = (state: any) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
     searchNotifications: NotificationActions.search,
-    logout: SocketActions.logout,
+    logout: UsersActions.logout,
 }, dispatch);
 
 // TODO: Animation between view change is not working when wrapped around a Switch

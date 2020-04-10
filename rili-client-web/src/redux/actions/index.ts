@@ -1,9 +1,11 @@
 import NotificationActions from './Notifications';
 import SocketActions from './Socket';
-import UserConnections from './UserConnections';
+import UserConnectionsActions from './UserConnections';
+import UsersActions from './Users';
 
 export {
     NotificationActions,
     SocketActions,
-    UserConnections,
+    UserConnectionsActions,
+    UsersActions,
 };
