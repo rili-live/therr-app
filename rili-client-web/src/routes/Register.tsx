@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import SocketActions from 'actions/Socket';
+import UsersActions from 'actions/Users';
 import translator from '../services/translator';
 import RegisterForm from '../components/RegisterForm';
 
@@ -29,7 +29,7 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    register: SocketActions.register,
+    register: UsersActions.register,
 }, dispatch);
 
 /**
