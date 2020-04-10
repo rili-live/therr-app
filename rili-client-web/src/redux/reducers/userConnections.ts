@@ -16,7 +16,7 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
 
     switch (action.type) {
         case UserConnectionActionTypes.GET_USER_CONNECTIONS:
-            // TODO: RSERV-26 - Rethink/optimize/cleanup this
+            // TODO: RFRONT-31 - Rethink/optimize/cleanup this
             const newConnections = (action.data || []).filter((connection) => { // eslint-disable-line no-case-declarations
                 const existingIndex = uniqueConnections.findIndex((c) => c.id === connection.id);
                 if (existingIndex > -1) {

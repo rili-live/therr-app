@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
 import SvgButton from 'rili-public-library/react-components/SvgButton.js';
 import { IUserState } from 'types/user';
-import SocketActions from 'actions/Socket';
+import UsersActions from 'actions/Users';
 import { bindActionCreators } from 'redux';
 import translator from '../../services/translator';
 
@@ -30,7 +30,7 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    logout: SocketActions.logout,
+    logout: UsersActions.logout,
 }, dispatch);
 
 export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, IMessagesMenuState> {

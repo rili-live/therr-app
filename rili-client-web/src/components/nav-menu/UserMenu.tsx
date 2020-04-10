@@ -3,11 +3,13 @@ import { connect } from 'react-redux';
 import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
 import SvgButton from 'rili-public-library/react-components/SvgButton.js';
 import { IUserState } from 'types/user';
-import NotificationsActions from 'actions/Notifications';
-import SocketActions from 'actions/Socket';
-import UserConnectionsActions from 'actions/UserConnections';
 import { bindActionCreators } from 'redux';
 import { INotificationsState, INotification } from 'types/notifications';
+import {
+    NotificationActions,
+    UsersActions,
+    UserConnectionsActions,
+} from '../../redux/actions';
 import Notification from './Notification';
 import translator from '../../services/translator';
 
@@ -39,8 +41,8 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    logout: SocketActions.logout,
-    updateNotification: NotificationsActions.update,
+    logout: UsersActions.logout,
+    updateNotification: NotificationActions.update,
     updateUserConnection: UserConnectionsActions.update,
 }, dispatch);
 
