@@ -119,7 +119,7 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
                 this.props.sendMessage({
                     roomId: this.props.user.socketDetails.currentRoom,
                     message: this.state.inputs.message,
-                    userName: this.props.user.socketDetails.userName,
+                    userName: this.props.user.socketDetails.session.userName,
                 });
                 return this.onInputChange('message', '');
             default:

@@ -19,19 +19,21 @@ const user = (state: IUserState = initialState, action: any) => {
     switch (action.type) {
         case SocketServerActionTypes.JOINED_ROOM:
             return state
-                .setIn(['socketDetails', 'userName'], action.data.userName)
                 .setIn(['socketDetails', 'currentRoom'], action.data.roomId);
-        case SocketServerActionTypes.USER_LOGIN_SUCCESS:
-            return state.setIn(['socketDetails', 'userName'], action.data.userName);
-        case SocketServerActionTypes.USER_LOGOUT_SUCCESS:
-            return state.setIn(['socketDetails', 'userName'], false);
+        // case SocketServerActionTypes.USER_LOGIN_SUCCESS:
+        //     return state.setIn(['socketDetails', 'userName'], action.data.userName);
+        // case SocketServerActionTypes.USER_LOGOUT_SUCCESS:
+        //     return state.setIn(['socketDetails', 'userName'], null);
         case SocketClientActionTypes.LOGIN:
-            return state.setIn(['isAuthenticated'], true).setIn(['details'], action.data);
+            return state.setIn(['isAuthenticated'], true)
+                .setIn(['details'], action.data);
         case SocketClientActionTypes.LOGOUT:
-            return state.setIn(['isAuthenticated'], false).setIn(['details'], null);
-        case SocketServerActionTypes.SESSION_CREATED_MESSAGE:
+            return state.setIn(['isAuthenticated'], false)
+                .setIn(['details'], null);
+        case SocketServerActionTypes.SESSION_CREATED:
+        case SocketServerActionTypes.SESSION_UPDATED:
             return state.setIn(['socketDetails', 'session'], (actionData && actionData.data) || {});
-        case SocketServerActionTypes.SESSION_CLOSED_MESSAGE:
+        case SocketServerActionTypes.SESSION_CLOSED:
             return state.setIn(['socketDetails', 'session'], {});
         default:
             return state;

@@ -23,9 +23,10 @@ import routes from '../routes';
 import { AccessCheckType, INavMenuContext } from '../types';
 import UsersService from '../services/UsersService';
 import Footer from './Footer';
-import { NotificationActions, UsersActions } from '../redux/actions';
+import { NotificationActions, UsersActions, SocketActions } from '../redux/actions';
 import UserMenu from './nav-menu/UserMenu';
 import MessagesMenu from './nav-menu/MessagesMenu';
+import { socketIO } from '../socket-io-middleware';
 
 let _viewListener: any; // eslint-disable-line no-underscore-dangle
 
@@ -36,6 +37,7 @@ interface ILayoutRouterProps {
 interface ILayoutDispatchProps {
     // Add your dispatcher properties here
     logout: Function;
+    refreshConnection: Function;
     searchNotifications: Function;
 }
 
@@ -60,8 +62,9 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
-    searchNotifications: NotificationActions.search,
     logout: UsersActions.logout,
+    refreshConnection: SocketActions.refreshConnection,
+    searchNotifications: NotificationActions.search,
 }, dispatch);
 
 // TODO: Animation between view change is not working when wrapped around a Switch
@@ -95,6 +98,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
     componentDidMount() {
         const {
             history,
+            refreshConnection,
             searchNotifications,
             user,
         } = this.props;
@@ -116,6 +120,22 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             query: user.details.id,
             itemsPerPage: 20,
             pageNumber: 1,
+        });
+
+        socketIO.on('connect', () => {
+            // Only send event when user is already logged in and refreshes the page
+            if (user && user.isAuthenticated) {
+                console.log('Socket: PAGE REFRESHED', user);
+                refreshConnection(user);
+            }
+        });
+
+        socketIO.on('reconnect', () => {
+            // Only send event when user is already logged in and refreshes the page
+            if (user && user.isAuthenticated) {
+                console.log('Socket: RECONNECTED', user);
+                refreshConnection(user);
+            }
         });
     }
 
