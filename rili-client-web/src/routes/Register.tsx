@@ -62,7 +62,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
                 },
             });
         }).catch((error: any) => {
-            if (error.id === 'userExists') {
+            if (error.statusCode === 400) {
                 this.setState({
                     errorMessage: error.message,
                 });

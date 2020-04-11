@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
+import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
+import flags from 'react-phone-number-input/flags'; // eslint-disable-line import/extensions
 import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
 import Input from 'rili-public-library/react-components/Input.js';
 import translator from '../services/translator';
@@ -12,6 +14,7 @@ interface IRegisterFormProps {
 
 interface IRegisterFormState {
     inputs: any;
+    isPhoneNumberValid: boolean;
 }
 
 /**
@@ -23,6 +26,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
 
         this.state = {
             inputs: {},
+            isPhoneNumberValid: false,
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -35,7 +39,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
     }
 
     isFormValid() {
-        return this.state.inputs.password === this.state.inputs.repeatPassword;
+        return this.state.inputs.password === this.state.inputs.repeatPassword && isValidPhoneNumber(this.state.inputs.phoneNumber);
     }
 
     onSubmit = (event: any) => {
@@ -63,7 +67,19 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
         });
     }
 
+    onPhoneInputChange = (value: string) => {
+        this.setState({
+            inputs: {
+                ...this.state.inputs,
+                phoneNumber: value,
+            },
+            isPhoneNumberValid: isValidPhoneNumber(value),
+        });
+    }
+
     public render(): JSX.Element | null {
+        const { isPhoneNumberValid } = this.state;
+
         return (
             <div className="register-container">
                 <h1 className="text-center">{this.props.title}</h1>
@@ -116,16 +132,25 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                 />
 
                 <label className="required" htmlFor="phone_number">{this.translate('components.registerForm.labels.mobilePhone')}:</label>
-                <Input
-                    type="text"
-                    id="phone_number"
-                    name="phoneNumber"
-                    value={this.state.inputs.phoneNumber}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    validations={['isRequired', 'mobilePhoneNumber']}
-                />
+                <div className="form-field">
+                    <PhoneInput
+                        defaultCountry="US"
+                        country="US"
+                        international={true}
+                        flags={flags}
+                        value={this.state.inputs.phoneNumber}
+                        onChange={this.onPhoneInputChange} />
+                    {
+                        !isPhoneNumberValid
+                        && <div className="validation-errors">
+                            <div className="message-container icon-small attention-alert">
+                                <em className="message">
+                                    {this.translate('components.registerForm.validationErrors.phoneNumber')}
+                                </em>
+                            </div>
+                        </div>
+                    }
+                </div>
 
                 <label className="required" htmlFor="password">{this.translate('components.registerForm.labels.password')}:</label>
                 <Input
