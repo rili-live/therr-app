@@ -22,14 +22,14 @@ export class RedisHelper {
         this.client = client; // NOTE: client should be build from 'ioredis'
     }
 
-    // TODO: RSERV-26 - Optimize store and update with pipelines
     public storeUser = async (userSocketConfig: IUserSocketSession): Promise<any> => {
         const userId = userSocketConfig.data.userId;
         const ttl = userSocketConfig.ttl || globalConfig[process.env.NODE_ENV || 'development'].socket.userSocketSessionExpire;
+        const pipeline = this.client.pipeline();
 
-        await this.client.setex(`userSockets:${userSocketConfig.socketId}`, ttl, userId);
+        pipeline.setex(`userSockets:${userSocketConfig.socketId}`, ttl, userId);
 
-        return this.client.setex(
+        pipeline.setex(
             `users:${userId}`,
             ttl,
             JSON.stringify({
@@ -37,18 +37,21 @@ export class RedisHelper {
                 socketId: userSocketConfig.socketId,
             }),
         );
+
+        return pipeline.exec();
     };
 
     public updateUser = async (userSocketConfig: IUserSocketSession): Promise<any> => {
         const userId = userSocketConfig.data.userId;
         const ttl = userSocketConfig.ttl || globalConfig[process.env.NODE_ENV || 'development'].socket.userSocketSessionExpire;
         const prevSocketId = userSocketConfig.data.previousSocketId;
+        const pipeline = this.client.pipeline();
 
-        await this.client.del(`userSockets:${prevSocketId}`);
-        await this.client.setex(`userSockets:${userSocketConfig.socketId}`, ttl, userId);
+        pipeline.del(`userSockets:${prevSocketId}`);
+        pipeline.setex(`userSockets:${userSocketConfig.socketId}`, ttl, userId);
 
         // Updates the socketId
-        return this.client.setex(
+        pipeline.setex(
             `users:${userId}`,
             ttl,
             JSON.stringify({
@@ -56,6 +59,8 @@ export class RedisHelper {
                 socketId: userSocketConfig.socketId,
             }),
         );
+
+        return pipeline.exec();
     };
 
     public removeUser = (socketId: Redis.KeyType) => this.client.del(socketId);

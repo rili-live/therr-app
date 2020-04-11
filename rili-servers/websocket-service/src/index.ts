@@ -88,7 +88,6 @@ const startExpressSocketIOServer = () => {
     io.adapter(redisAdapter);
 
     io.on('connection', (socket: socketio.Socket) => {
-        // TODO: RSERV-26 - Update cached socket.id on each connection (page refresh)
         printLogs({
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
