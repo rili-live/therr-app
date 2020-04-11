@@ -25,6 +25,19 @@ class RedisSessions {
         return this.redisHelper.storeUser(configuredArgs).then(() => configuredArgs);
     }
 
+    public update(args: IUserSocketSession): Promise<any> {
+        const configuredArgs = { // TODO: RSERV-4: Use app and ip to namespace
+            // TODO: RSERV-4: Create a token to send back to the frontend
+            app: args.app,
+            socketId: args.socketId,
+            ip: args.ip.toString(),
+            ttl: args.ttl || globalConfig[process.env.NODE_ENV || ''].socket.userSocketSessionExpire,
+            data: args.data,
+        };
+
+        return this.redisHelper.updateUser(configuredArgs).then(() => configuredArgs);
+    }
+
     public remove(socketId: Redis.KeyType) {
         return this.redisHelper.removeUser(socketId);
     }

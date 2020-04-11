@@ -4,6 +4,9 @@ enum SocketClientActionTypes {
     LOGOUT = 'CLIENT:LOGOUT',
     REGISTER = 'CLIENT:REGISTER',
 
+    // Sessions
+    UPDATE_SESSION = 'CLIENT:UPDATE_SESSION', // socket reconnect
+
     // ROOMS
     JOIN_ROOM = 'CLIENT:JOIN_ROOM',
 

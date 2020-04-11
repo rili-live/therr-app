@@ -86,7 +86,7 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
     }
 
     componentDidUpdate(prevProps: IChatRoomProps) {
-        const currentRoom = this.props.socket.user.currentRoom;
+        const currentRoom = this.props.user.socketDetails.currentRoom;
         const messages = this.props.socket.messages[currentRoom];
         if (messages && messages.length > 3 && messages.length > prevProps.socket.messages[currentRoom].length) {
             scrollTo(document.body.scrollHeight, 100);
@@ -117,9 +117,9 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
             case 'enter_message':
             case 'message':
                 this.props.sendMessage({
-                    roomId: this.props.socket.user.currentRoom,
+                    roomId: this.props.user.socketDetails.currentRoom,
                     message: this.state.inputs.message,
-                    userName: this.props.socket.user.userName,
+                    userName: this.props.user.socketDetails.session.userName,
                 });
                 return this.onInputChange('message', '');
             default:
@@ -136,8 +136,8 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
     }
 
     render() {
-        const { socket } = this.props;
-        const messages = socket.messages[socket.user.currentRoom];
+        const { socket, user } = this.props;
+        const messages = socket.messages[user.socketDetails.currentRoom];
 
         if (!shouldRender(this.props)) {
             return null;
@@ -168,7 +168,7 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
                     </div>
                 </div>
 
-                <h1 id="roomTitle">{this.translate('pages.chatRoom.pageTitle')}: {socket.user.currentRoom}</h1>
+                <h1 id="roomTitle">{this.translate('pages.chatRoom.pageTitle')}: {user.socketDetails.currentRoom}</h1>
                 {
                     socket && socket.rooms
                     && <span id="rooms_list">
