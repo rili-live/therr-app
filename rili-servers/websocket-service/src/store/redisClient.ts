@@ -1,9 +1,11 @@
+import printLogs from 'rili-public-library/utilities/print-logs.js';
 import Redis from 'ioredis';
+import beeline from '../beeline'; // eslint-disable-line import/order
 
 const nodes = [
     {
-        host: process.env.REDIS_NODE_1_HOST,
-        port: Number(process.env.REDIS_NODE_1_PORT),
+        host: process.env.REDIS_NODE_ONE_HOST,
+        port: Number(process.env.REDIS_NODE_ONE_PORT),
     },
 ];
 
@@ -12,9 +14,38 @@ const nodes = [
 // const redisPubCluster = new Redis.Cluster(nodes);
 // const redisSubCluster = new Redis.Cluster(nodes);
 
-const redisClient: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
+const redisPub: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
     connectionName: 'redisSocketPub',
     lazyConnect: true,
 });
 
-export default redisClient;
+const redisSub: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
+    connectionName: 'redisSocketPub',
+    lazyConnect: true,
+});
+
+// Redis Error handling
+redisPub.on('error', (error: string) => {
+    printLogs({
+        info: 'verbose',
+        messageOrigin: 'REDIS_PUB_CLUSTER_CONNECTION_ERROR',
+        messages: error.toString(),
+        tracer: beeline,
+        traceArgs: {},
+    });
+});
+
+redisSub.on('error', (error: string) => {
+    printLogs({
+        info: 'verbose',
+        messageOrigin: 'REDIS_SUB_CLUSTER_CONNECTION_ERROR',
+        messages: error.toString(),
+        tracer: beeline,
+        traceArgs: {},
+    });
+});
+
+export {
+    redisPub,
+    redisSub,
+};

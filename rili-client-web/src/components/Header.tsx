@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import AccessControl from 'rili-public-library/react-components/AccessControl.js';
 import SvgButton from 'rili-public-library/react-components/SvgButton.js';
 import { IUserState } from 'types/user';
-import SocketActions from 'actions/Socket';
+import UsersActions from 'actions/Users';
 import { bindActionCreators } from 'redux';
 import { INotificationsState, INotification } from 'types/notifications';
 import translator from '../services/translator';
@@ -36,7 +36,7 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    logout: SocketActions.logout,
+    logout: UsersActions.logout,
 }, dispatch);
 
 export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState> {
