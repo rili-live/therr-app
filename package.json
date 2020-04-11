@@ -161,6 +161,7 @@
     "react": "^16.13.0",
     "react-dom": "^16.8.6",
     "react-ga": "^2.6.0",
+    "react-phone-number-input": "^3.0.22",
     "react-redux": "^7.2.0",
     "react-router-dom": "^5.1.2",
     "react-router-redux": "^4.0.8",
