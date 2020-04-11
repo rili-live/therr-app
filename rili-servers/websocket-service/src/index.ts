@@ -119,6 +119,11 @@ const startExpressSocketIOServer = () => {
             switch (action.type) {
                 case SocketClientActionTypes.JOIN_ROOM:
                     socketHandlers.joinRoom(socket, action.data);
+                    // Notify all users
+                    socket.broadcast.emit(Constants.ACTION, {
+                        type: SocketServerActionTypes.SEND_ROOMS_LIST,
+                        data: getSocketRoomsList(io.sockets.adapter.rooms),
+                    });
                     break;
                 case SocketClientActionTypes.LOGIN:
                     socketHandlers.login({
@@ -129,6 +134,13 @@ const startExpressSocketIOServer = () => {
                     break;
                 case SocketClientActionTypes.LOGOUT:
                     socketHandlers.logout({
+                        socket,
+                        data: action.data,
+                    });
+                    break;
+                case SocketClientActionTypes.UPDATE_SESSION:
+                    socketHandlers.updateSession({
+                        appName: rsAppName,
                         socket,
                         data: action.data,
                     });
@@ -161,6 +173,7 @@ const startExpressSocketIOServer = () => {
                     socketId: socket.id,
                 },
             });
+            // TODO: SocketServerActionTypes.DISCONNNECT, notify all users who are connected with the user that disconnects
             leaveAndNotifyRooms(socket);
         });
     });

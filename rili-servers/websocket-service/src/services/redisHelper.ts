@@ -22,13 +22,32 @@ export class RedisHelper {
         this.client = client; // NOTE: client should be build from 'ioredis'
     }
 
-    // TODO: RSERV-26 - Optimize with pipelines
+    // TODO: RSERV-26 - Optimize store and update with pipelines
     public storeUser = async (userSocketConfig: IUserSocketSession): Promise<any> => {
-        const userId = userSocketConfig.data.id;
+        const userId = userSocketConfig.data.userId;
         const ttl = userSocketConfig.ttl || globalConfig[process.env.NODE_ENV || 'development'].socket.userSocketSessionExpire;
 
-        await this.client.setex(`userSockets:${userSocketConfig.socketId}:socketId`, ttl, userId);
+        await this.client.setex(`userSockets:${userSocketConfig.socketId}`, ttl, userId);
 
+        return this.client.setex(
+            `users:${userId}`,
+            ttl,
+            JSON.stringify({
+                ...userSocketConfig.data,
+                socketId: userSocketConfig.socketId,
+            }),
+        );
+    };
+
+    public updateUser = async (userSocketConfig: IUserSocketSession): Promise<any> => {
+        const userId = userSocketConfig.data.userId;
+        const ttl = userSocketConfig.ttl || globalConfig[process.env.NODE_ENV || 'development'].socket.userSocketSessionExpire;
+        const prevSocketId = userSocketConfig.data.previousSocketId;
+
+        await this.client.del(`userSockets:${prevSocketId}`);
+        await this.client.setex(`userSockets:${userSocketConfig.socketId}`, ttl, userId);
+
+        // Updates the socketId
         return this.client.setex(
             `users:${userId}`,
             ttl,
@@ -58,7 +77,7 @@ export class RedisHelper {
     };
 
     public getUserBySocketId = async (socketId: any): Promise<any> => {
-        const userId = await this.client.get(`userSockets:${socketId}:socketId`);
+        const userId = await this.client.get(`userSockets:${socketId}`);
         return this.client.get(`users:${userId}`);
     };
 }

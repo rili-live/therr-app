@@ -1,13 +1,19 @@
 import { SocketClientActionTypes } from 'rili-public-library/utilities/constants.js';
 
 const Socket = {
-    joinRoom: (data: any) => (dispatch: any) => {
+    refreshConnection: (data) => (dispatch) => {
+        dispatch({
+            type: SocketClientActionTypes.UPDATE_SESSION,
+            data,
+        });
+    },
+    joinRoom: (data) => (dispatch) => {
         dispatch({
             type: SocketClientActionTypes.JOIN_ROOM,
             data,
         });
     },
-    sendMessage: (data: any) => (dispatch: any) => {
+    sendMessage: (data) => (dispatch) => {
         dispatch({
             type: SocketClientActionTypes.SEND_MESSAGE,
             data,

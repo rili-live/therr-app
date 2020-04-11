@@ -53,6 +53,7 @@ const joinRoom = (socket: socketio.Socket, data: IJoinRoomData) => {
                 userName: data.userName,
             },
         });
+
         // Broadcasts an event back to the client for all users in the specified room (excluding the user who triggered it)
         socket.broadcast.to(data.roomId).emit(Constants.ACTION, {
             type: SocketServerActionTypes.OTHER_JOINED_ROOM,

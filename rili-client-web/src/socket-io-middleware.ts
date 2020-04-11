@@ -7,7 +7,7 @@ import * as globalConfig from '../../global-config.js';
 const envVars = globalConfig[process.env.NODE_ENV];
 
 // Socket IO Connection
-const socketIO = io(`${envVars.baseSocketUrl}`, {
+export const socketIO = io(`${envVars.baseSocketUrl}`, {
     secure: true,
     transports: ['websocket'],
     upgrade: false,

@@ -1,6 +1,7 @@
 import * as Immutable from 'seamless-immutable';
 import { SocketClientActionTypes } from 'rili-public-library/utilities/constants.js';
 import { IUser } from 'types/user';
+import { socketIO } from '../../socket-io-middleware';
 import UsersService from '../../services/UsersService';
 
 const Socket = {
@@ -26,8 +27,10 @@ const Socket = {
                 phoneNumber,
                 userName,
             });
+            sessionStorage.setItem('riliSession', JSON.stringify({ id: socketIO.id }));
             sessionStorage.setItem('riliUser', JSON.stringify(userData));
             if (data.rememberMe) {
+                localStorage.setItem('riliSession', JSON.stringify({ id: socketIO.id }));
                 localStorage.setItem('riliUser', JSON.stringify(userData));
             }
             dispatch({
@@ -37,7 +40,9 @@ const Socket = {
         });
     },
     logout: (data: any) => (dispatch: any) => UsersService.logout(data).then(() => {
+        sessionStorage.removeItem('riliSession');
         sessionStorage.removeItem('riliUser');
+        localStorage.removeItem('riliSession');
         localStorage.removeItem('riliUser');
         dispatch({
             type: SocketClientActionTypes.LOGOUT,

@@ -31,12 +31,16 @@ function safelyParse(input: any) {
 
 // Get stored user details from session storage if they are already logged in
 if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
+    const storedSocketDetails = JSON.parse(localStorage.getItem('riliSession')) || JSON.parse(sessionStorage.getItem('riliSession'));
     let storedUser = JSON.parse(localStorage.getItem('riliUser')) || JSON.parse(sessionStorage.getItem('riliUser'));
     storedUser = storedUser || {};
     const reloadedState: any = {
         user: {
             details: storedUser,
             isAuthenticated: !!(storedUser && storedUser.id),
+            socketDetails: {
+                session: storedSocketDetails || {},
+            },
         },
     };
     preLoadedState = Object.assign(safelyParse(window.__PRELOADED_STATE__), reloadedState); // eslint-disable-line no-underscore-dangle

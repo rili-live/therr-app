@@ -57,24 +57,28 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
         method: 'put',
         url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiRoute}/users/connections/${data.connection.requestingUserId}`,
         data: data.connection,
-    }).then((updateConnectionResponse) => {
+    }).then(({ data: connection }) => {
         redisSessions.getByUserId(data.connection.requestingUserId).then(({
             socketId,
         }) => {
             requestingSocketId = socketId;
-            socket.to(requestingSocketId).emit(Constants.ACTION, { // To user who sent request
-                type: SocketServerActionTypes.USER_CONNECTION_UPDATED,
-                data: updateConnectionResponse.data,
-            });
-            socket.emit(Constants.ACTION, { // To user who accepted request
-                type: SocketServerActionTypes.USER_CONNECTION_UPDATED,
-                data: updateConnectionResponse.data,
-            });
+
+            if (connection.requestStatus === 'complete') { // Do not send notification when connection denied
+                socket.to(requestingSocketId).emit(Constants.ACTION, { // To user who sent request
+                    type: SocketServerActionTypes.USER_CONNECTION_UPDATED,
+                    data: connection,
+                });
+
+                socket.emit(Constants.ACTION, { // To user who accepted request
+                    type: SocketServerActionTypes.USER_CONNECTION_UPDATED,
+                    data: connection,
+                });
+            }
         });
 
-        return updateConnectionResponse;
-    }).then(({ data: connection }: any) => {
-        if (connection.requestStatus === 'complete') {
+        return connection;
+    }).then((connection: any) => {
+        if (connection.requestStatus === 'complete') { // Do not send notification when connection denied
             return axios({
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiRoute}/users/notifications`,
