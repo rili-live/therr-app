@@ -2,6 +2,8 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
+import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
+import flags from 'react-phone-number-input/flags'; // eslint-disable-line import/extensions
 import Input from 'rili-public-library/react-components/Input.js';
 import SelectBox from 'rili-public-library/react-components/SelectBox.js';
 import SvgButton from 'rili-public-library/react-components/SvgButton.js';
@@ -33,6 +35,7 @@ interface IUserProfileState {
     hasValidationErrors: boolean;
     prevRequestError: string;
     prevRequestSuccess: string;
+    isPhoneNumberValid: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -62,6 +65,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
             },
             prevRequestError: '',
             prevRequestSuccess: '',
+            isPhoneNumberValid: false,
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -89,9 +93,12 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
 
     isFormValid() {
         const { hasValidationErrors, inputs } = this.state;
-        return !hasValidationErrors
-            && ((inputs.connectionIdentifier === 'acceptingUserPhoneNumber' && !!inputs.phoneNumber)
-                || (inputs.connectionIdentifier === 'acceptingUserEmail' && !!inputs.email));
+        if (inputs.connectionIdentifier === 'acceptingUserEmail') {
+            return !hasValidationErrors
+            && !!inputs.email;
+        }
+
+        return isValidPhoneNumber(inputs.phoneNumber);
     }
 
     onJoinRoomClick = () => {
@@ -152,6 +159,18 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         });
     }
 
+    onPhoneInputChange = (value: string) => {
+        this.setState({
+            inputs: {
+                ...this.state.inputs,
+                phoneNumber: value,
+            },
+            isPhoneNumberValid: isValidPhoneNumber(value),
+            prevRequestError: '',
+            prevRequestSuccess: '',
+        });
+    }
+
     onValidateInput = (validations: any) => {
         const hasValidationErrors = !!Object.keys(validations).filter((key) => validations[key].length).length;
         this.setState({
@@ -161,7 +180,12 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
 
     public render(): JSX.Element | null {
         const { user, userConnections } = this.props;
-        const { inputs, prevRequestError, prevRequestSuccess } = this.state;
+        const {
+            inputs,
+            prevRequestError,
+            prevRequestSuccess,
+            isPhoneNumberValid,
+        } = this.state;
 
         if (!user.details) {
             return null;
@@ -237,17 +261,25 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                 inputs.connectionIdentifier === 'acceptingUserPhoneNumber'
                                 && <>
                                     <label className="required" htmlFor="phone_number">{this.translate('pages.userProfile.labels.phoneNumber')}:</label>
-                                    <Input
-                                        type="text"
-                                        id="phone_number"
-                                        name="phoneNumber"
-                                        value={this.state.inputs.phoneNumber}
-                                        onChange={this.onInputChange}
-                                        onEnter={this.onSubmit}
-                                        translate={this.translate}
-                                        validations={['isRequired', 'mobilePhoneNumber']}
-                                        onValidate={this.onValidateInput}
-                                    />
+                                    <div className="form-field">
+                                        <PhoneInput
+                                            defaultCountry="US"
+                                            country="US"
+                                            international={true}
+                                            flags={flags}
+                                            value={this.state.inputs.phoneNumber}
+                                            onChange={this.onPhoneInputChange} />
+                                        {
+                                            !isPhoneNumberValid
+                                            && <div className="validation-errors">
+                                                <div className="message-container icon-small attention-alert">
+                                                    <em className="message">
+                                                        {this.translate('pages.userProfile.validationErrors.phoneNumber')}
+                                                    </em>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
                                 </>
                             }
                             {

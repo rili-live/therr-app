@@ -46,6 +46,9 @@
         "password": "Password",
         "repeatPassword": "Repeat Password",
         "userName": "Username"
+      },
+      "validationErrors": {
+        "phoneNumber": "Invalid phone number"
       }
     },
     "userMenu": {
@@ -109,7 +112,10 @@
         "userName": "Username"
       },
       "pageTitle": "User Profile",
-      "requestRecommendation": "Send a request to make connections and build a network"
+      "requestRecommendation": "Send a request to make connections and build a network",
+      "validationErrors": {
+        "phoneNumber": "Invalid phone number"
+      }
     }
   }
 }
