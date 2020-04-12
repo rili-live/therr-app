@@ -1,5 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
 const webpack = require('webpack');
+const autoprefixer = require('autoprefixer');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const DuplicatePackageCheckerPlugin = require("duplicate-package-checker-webpack-plugin");
@@ -138,7 +139,15 @@ exports.loadCSS = (paths, env, dontHash) => {
                             loader: 'css-loader',
                             options: { importLoaders: 1 }
                         },
-                        'postcss-loader',
+                        {
+                            loader: 'postcss-loader',
+                            options: {
+                                options: {},
+                                plugins: () => {
+                                    autoprefixer();
+                                }
+                            },
+                        },
                         'sass-loader',
                     ],
                 },

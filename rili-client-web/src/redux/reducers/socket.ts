@@ -3,7 +3,7 @@ import { SocketServerActionTypes } from 'rili-public-library/utilities/constants
 import { IMessageList, ISocketState } from 'types/socket';
 
 const initialState: ISocketState = Immutable.from({
-    rooms: Immutable.from([]),
+    forums: Immutable.from([]),
     messages: {},
 });
 
@@ -23,8 +23,8 @@ const socket = (state: ISocketState = initialState, action: any) => {
 
     switch (action.type) {
         case SocketServerActionTypes.SEND_ROOMS_LIST:
-            // Any time this action is called, the data will be a full room list from the server
-            return state.setIn(['rooms'], action.data);
+            // Any time this action is called, the data will be a full forum list from the server
+            return state.setIn(['forums'], action.data);
         case SocketServerActionTypes.JOINED_ROOM:
             return state
                 .setIn(['messages', action.data.roomId], updatedMessageList);

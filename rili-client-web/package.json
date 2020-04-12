@@ -29,6 +29,9 @@
   ],
   "author": "Rili, Inc.",
   "license": "MIT",
+  "browserslist": [
+    "defaults"
+  ],
   "devDependencies": {
     "webpack-cli": "^3.3.11"
   },

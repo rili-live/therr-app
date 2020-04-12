@@ -7,16 +7,16 @@ export default [
         view: 'index',
     },
     {
-        route: '/chat-room',
+        route: '/forums',
         head: {
-            title: 'Chat Room',
+            title: 'Forums',
         },
         view: 'index',
     },
     {
-        route: '/join-room',
+        route: '/create-forum',
         head: {
-            title: 'Join Chat Room',
+            title: 'Join Forum',
         },
         view: 'index',
     },

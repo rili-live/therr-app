@@ -25,10 +25,11 @@
     },
     "messagesMenu": {
       "buttons": {
-        "joinRoom": "Join Room"
+        "createForum": "Create a Forum"
       },
       "h2": {
         "messaging": "Messaging",
+        "forums": "Forums",
         "riliConnect": "Rili Connect",
         "locationMap": "Location Map"
       }
@@ -46,6 +47,9 @@
         "password": "Password",
         "repeatPassword": "Repeat Password",
         "userName": "Username"
+      },
+      "validationErrors": {
+        "phoneNumber": "Invalid phone number"
       }
     },
     "userMenu": {
@@ -61,20 +65,20 @@
     }
   },
   "pages": {
-    "chatRoom": {
-      "pageTitle": "Chat Room",
+    "chatForum": {
+      "pageTitle": "Forums",
       "welcome": "Welcome!"
     },
     "home": {
       "pageTitle": "Home"
     },
-    "joinRoom": {
+    "createForum": {
       "labels": {
-        "room": "Join Room",
-        "activeRooms": "Active Rooms"
+        "forum": "Forum Name",
+        "activeForums": "Active Forums"
       },
-      "noRoomsMessage": "No rooms are currently active. Click 'Join Room' to start a new one.",
-      "pageTitle": "Chat Rooms"
+      "noForumsMessage": "No forums are currently active. Click 'Create Forum' to start a new one.",
+      "pageTitle": "Forums"
     },
     "login": {
       "pageTitle": "Login"
@@ -91,7 +95,7 @@
     },
     "userProfile": {
       "buttons": {
-        "joinARoom": "Join A room",
+        "createAForum": "Create a Forum",
         "sendRequest": "Send Request"
       },
       "connectionSent": "A connection request was successfully delivered",
@@ -109,7 +113,10 @@
         "userName": "Username"
       },
       "pageTitle": "User Profile",
-      "requestRecommendation": "Send a request to make connections and build a network"
+      "requestRecommendation": "Send a request to make connections and build a network",
+      "validationErrors": {
+        "phoneNumber": "Invalid phone number"
+      }
     }
   }
 }

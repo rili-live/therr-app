@@ -7,7 +7,7 @@ const Socket = {
             data,
         });
     },
-    joinRoom: (data) => (dispatch) => {
+    joinForum: (data) => (dispatch) => {
         dispatch({
             type: SocketClientActionTypes.JOIN_ROOM,
             data,
