@@ -131,7 +131,7 @@ $menu-padding: rem-calc(24px);
     }
 
     .profile-settings-menu,
-    .rili-connect-menu {
+    .forums-menu {
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -148,10 +148,85 @@ $menu-padding: rem-calc(24px);
             border-bottom: 1px solid #cdcdcd;
             margin-bottom: .5rem;
 
+            &.left-icon {
+                display: flex;
+                align-items: center;
+                
+                .inline-svg {
+                    margin-right: .5rem;
+
+                    svg {
+                        fill: $rili-primary-2;
+                    }
+                }
+            }
+
             &:hover {
                 cursor: pointer;
                 color: $rili-black;
                 border-left: rem-calc(5px) solid $rili-primary-2;
+            }
+        }
+    }
+
+    .forums-menu {
+        .realtime-forums-list {
+            $padding-sides: .5rem;
+
+            display: flex;
+            flex-direction: column;
+
+            .forum-link-item {
+                flex: 1;
+                padding: .5rem $padding-sides .5rem $padding-sides;
+                display: flex;
+                align-items: center;
+                border: none;
+                background: transparent;
+                position: relative;
+                margin: 0 -.5rem;
+
+                &.right-icon {
+                    display: flex;
+                    align-items: center;
+                    
+                    .inline-svg {
+                        display: none;
+                        position: absolute;
+                        right: $padding-sides;
+
+                        svg {
+                            fill: $rili-primary-2;
+                        }
+                    }
+                }
+
+                &:hover,
+                &:focus {
+                    &.right-icon {
+                        .inline-svg {
+                            display: inline;
+                        }
+                    }
+                }
+
+                &::before {
+                    content: '○';
+                    color: $rili-alert-neutral;
+                    padding: 0 .7rem .15rem 0;
+                    font-size: .625rem;;
+                    line-height: .5rem;
+                }
+
+                &.active {
+                    &::before {
+                        content: '•';
+                        color: $rili-alert-success;
+                        font-size: 2rem;
+                        margin-left: -.085rem;
+                        padding: 0 .5rem .35rem 0;
+                    }
+                }
             }
         }
     }

@@ -48,7 +48,7 @@ const joinRoom = (socket: socketio.Socket, data: IJoinRoomData) => {
                 message: {
                     key: Date.now().toString(),
                     time: now,
-                    text: `You joined room ${data.roomId}`,
+                    text: `You joined the room, ${data.roomId}`,
                 },
                 userName: data.userName,
             },
@@ -62,7 +62,7 @@ const joinRoom = (socket: socketio.Socket, data: IJoinRoomData) => {
                 message: {
                     key: Date.now().toString(),
                     time: now,
-                    text: `${data.userName} joined room ${data.roomId}`,
+                    text: `${data.userName} joined room, ${data.roomId}`,
                 },
             },
         });

@@ -1,8 +1,10 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
+import InlineSvg from 'rili-public-library/react-components/InlineSvg.js';
 import SvgButton from 'rili-public-library/react-components/SvgButton.js';
 import { IUserState } from 'types/user';
+import { ISocketState } from 'types/socket';
 import UsersActions from 'actions/Users';
 import { bindActionCreators } from 'redux';
 import translator from '../../services/translator';
@@ -13,6 +15,7 @@ interface IMessagesMenuDispatchProps {
 
 interface IStoreProps extends IMessagesMenuDispatchProps {
     history: any;
+    socket: ISocketState;
     user: IUserState;
 }
 
@@ -26,6 +29,7 @@ interface IMessagesMenuState {
 }
 
 const mapStateToProps = (state: any) => ({
+    socket: state.socket,
     user: state.user,
 });
 
@@ -52,12 +56,14 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
         });
     }
 
-    navigate = (destination) => (e) => {
+    navigate = (destination, params?: any) => (e) => {
         this.props.toggleNavMenu(e);
 
         switch (destination) {
-            case 'join-room':
-                return this.props.history.push('/join-room');
+            case 'create-forum':
+                return this.props.history.push('/create-forum');
+            case 'forums':
+                return this.props.history.push(`/forums/${params.roomKey}`);
             default:
         }
     }
@@ -65,17 +71,49 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
     renderMessagesContent = () => (
         <>
             <h2>{this.translate('components.messagesMenu.h2.messaging')}</h2>
-            <div className="rili-connect-menu">
-                <ButtonPrimary
-                    id="nav_menu_join_room"
-                    className="menu-item"
-                    name="Join Room"
-                    text={this.translate('components.messagesMenu.buttons.joinRoom')}
-                    onClick={this.navigate('join-room')} buttonType="primary"
-                />
-            </div>
+            <div className="messages-menu"></div>
         </>
     )
+
+    renderForumsContent = () => {
+        const { socket } = this.props;
+
+        return (
+            <>
+                <h2>{this.translate('components.messagesMenu.h2.forums')}</h2>
+                <div className="forums-menu">
+                    <ButtonPrimary
+                        id="nav_menu_join_forum"
+                        className="menu-item left-icon"
+                        name="Join Forum"
+                        onClick={this.navigate('create-forum')} buttonType="primary"
+                    >
+                        <InlineSvg name="add-circle" />
+                        {this.translate('components.messagesMenu.buttons.createForum')}
+                    </ButtonPrimary>
+                    {
+                        socket && socket.forums.length > 0
+                        && <div className="realtime-forums-list">
+                            {
+                                socket.forums.map((forum) => (
+                                    <ButtonPrimary
+                                        id="nav_menu_forum_link"
+                                        key={forum.roomKey}
+                                        className="forum-link-item right-icon active"
+                                        name={forum.roomKey}
+                                        onClick={this.navigate('forums', { roomKey: forum.roomKey })}
+                                        buttonType="primary">
+                                        {forum.roomKey}
+                                        <InlineSvg name="door" />
+                                    </ButtonPrimary>
+                                ))
+                            }
+                        </div>
+                    }
+                </div>
+            </>
+        );
+    }
 
     renderPeopleContent = () => (
         <>
@@ -91,7 +129,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
 
     render() {
         const { activeTab } = this.state;
-        const { toggleNavMenu } = this.props;
+        const { socket, toggleNavMenu } = this.props;
 
         return (
             <>
@@ -102,6 +140,14 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                         className={`menu-tab-button ${activeTab === 'messages' ? 'active' : ''}`}
                         iconClassName="tab-icon"
                         onClick={(e) => this.handleTabSelect(e, 'messages')}
+                        buttonType="primary"
+                    />
+                    <SvgButton
+                        id="nav_menu_forums_button"
+                        name="forum"
+                        className={`menu-tab-button ${activeTab === 'forums' ? 'active' : ''}`}
+                        iconClassName="tab-icon"
+                        onClick={(e) => this.handleTabSelect(e, 'forums')}
                         buttonType="primary"
                     />
                     <SvgButton
@@ -125,6 +171,10 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                     {
                         activeTab === 'messages'
                             && this.renderMessagesContent()
+                    }
+                    {
+                        activeTab === 'forums'
+                            && this.renderForumsContent()
                     }
                     {
                         activeTab === 'people'
