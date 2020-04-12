@@ -4,9 +4,15 @@ import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import Layout from './components/Layout';
 import store from './store';
+
+// Third Party Styles
+import 'react-phone-number-input/style.css';
+
+// Rili Styles
 // Change the following import to alter theme
 // TODO: RSERV-8-: Use themes endpoint to dynamically load theme styles
 import './styles/themes/mothers-day/index.scss';
+
 
 window.onload = () => {
     render(

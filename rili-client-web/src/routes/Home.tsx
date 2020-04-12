@@ -64,12 +64,12 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
     private translate: Function;
 
     login = (credentials: any) => this.props.login(credentials).then(() => {
-        this.props.history.push('/join-room');
+        this.props.history.push('/create-forum');
     })
 
     public render(): JSX.Element | null {
         return (
-            <div id="page_chat_room" className="flex-box">
+            <div id="page_chat_forum" className="flex-box">
                 <LoginForm login={this.login} title={this.translate('pages.home.pageTitle')} />
             </div>
         );

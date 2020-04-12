@@ -8,25 +8,25 @@ import { ISocketState } from 'types/socket';
 import translator from '../services/translator';
 // import * as globalConfig from '../../../global-config.js';
 
-interface IJoinRoomRouterProps {
+interface ICreateForumRouterProps {
 }
 
-interface IJoinRoomDispatchProps {
-    joinRoom: Function;
+interface ICreateForumDispatchProps {
+    joinForum: Function;
 }
 
-interface IStoreProps extends IJoinRoomDispatchProps {
+interface IStoreProps extends ICreateForumDispatchProps {
     socket: ISocketState;
 }
 
 // Regular component props
-interface IJoinRoomProps extends RouteComponentProps<IJoinRoomRouterProps>, IStoreProps {
+interface ICreateForumProps extends RouteComponentProps<ICreateForumRouterProps>, IStoreProps {
 }
 
-interface IJoinRoomState {
-    hasJoinedARoom: boolean;
+interface ICreateForumState {
+    hasJoinedAForum: boolean;
     inputs: any;
-    roomsList: any;
+    forumsList: any;
 }
 
 // Environment Variables
@@ -44,20 +44,20 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 // };
 
 /**
- * JoinRoom
+ * CreateForum
  */
-export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoomState> {
+export class CreateForumComponent extends React.Component<ICreateForumProps, ICreateForumState> {
     // private sessionToken: string;
 
-    constructor(props: IJoinRoomProps) {
+    constructor(props: ICreateForumProps) {
         super(props);
 
         this.state = {
-            hasJoinedARoom: false,
+            hasJoinedAForum: false,
             inputs: {
                 roomId: 'general-chat',
             },
-            roomsList: [],
+            forumsList: [],
         };
 
         // this.sessionToken = '';
@@ -65,7 +65,7 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Rili | ${this.translate('pages.joinRoom.pageTitle')}`;
+        document.title = `Rili | ${this.translate('pages.createForum.pageTitle')}`;
     }
 
     private translate: Function;
@@ -84,11 +84,11 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
 
     onButtonClick = (event: any) => {
         switch (event.target.id) {
-            case 'join_room':
-            case 'room_name':
+            case 'join_forum':
+            case 'forum_name':
             case 'user_name':
-                if (!this.shouldDisableInput('room')) {
-                    this.props.history.push(`/chat-room/${this.state.inputs.roomId}`);
+                if (!this.shouldDisableInput('forum')) {
+                    this.props.history.push(`/forums/${this.state.inputs.roomId}`);
                 }
                 break;
             default:
@@ -97,7 +97,7 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
 
     shouldDisableInput = (buttonName: string) => {
         switch (buttonName) {
-            case 'room':
+            case 'forum':
                 return !this.state.inputs.roomId;
             default:
                 return false;
@@ -106,15 +106,15 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
 
     public render(): JSX.Element | null {
         const { socket } = this.props;
-        const activeRooms = socket && socket.rooms.length > 0 && socket.rooms.map((room: any) => room.roomKey).toString();
+        const activeForums = socket && socket.forums.length > 0 && socket.forums.map((forum: any) => forum.roomKey).toString();
 
         return (
-            <div id="page_join_room">
-                <h1>{this.translate('pages.joinRoom.pageTitle')}</h1>
-                <label htmlFor="room_name">{this.translate('pages.joinRoom.labels.room')}:</label>
+            <div id="page_join_forum">
+                <h1>{this.translate('pages.createForum.pageTitle')}</h1>
+                <label htmlFor="forum_name">{this.translate('pages.createForum.labels.forum')}:</label>
                 <Input
                     type="text"
-                    id="room_name"
+                    id="forum_name"
                     name="roomId"
                     value={this.state.inputs.roomId}
                     onChange={this.onInputChange}
@@ -122,22 +122,22 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
                     translate={this.translate}
                 />
                 {
-                    socket && socket.rooms
-                    && <span className="rooms-list">
+                    socket && socket.forums
+                    && <span className="forums-list">
                         {
-                            socket.rooms.length < 1
-                                ? <i>{this.translate('pages.joinRoom.noRoomsMessage')}</i>
-                                : <span>{this.translate('pages.joinRoom.labels.activeRooms')}: <i>{activeRooms}</i></span>
+                            socket.forums.length < 1
+                                ? <i>{this.translate('pages.createForum.noForumsMessage')}</i>
+                                : <span>{this.translate('pages.createForum.labels.activeForums')}: <i>{activeForums}</i></span>
                         }
                     </span>
                 }
 
                 <div className="form-field text-right">
                     <ButtonPrimary
-                        id="join_room"
-                        text="Join Room"
+                        id="join_forum"
+                        text="Join Forum"
                         onClick={this.onButtonClick}
-                        disabled={this.shouldDisableInput('room')}
+                        disabled={this.shouldDisableInput('forum')}
                     />
                 </div>
             </div>
@@ -145,4 +145,4 @@ export class JoinRoomComponent extends React.Component<IJoinRoomProps, IJoinRoom
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(JoinRoomComponent));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(CreateForumComponent));
