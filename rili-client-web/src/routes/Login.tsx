@@ -70,7 +70,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     private translate: Function;
 
     login = (credentials: any) => this.props.login(credentials).then(() => {
-        this.props.history.push('/join-room');
+        this.props.history.push('/create-forum');
     })
 
     public render(): JSX.Element | null {

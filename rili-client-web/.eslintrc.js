@@ -9,19 +9,19 @@ module.exports = {
     extends: [
         'airbnb-base',
         'plugin:@typescript-eslint/recommended',
-        "plugin:react/recommended"
+        'plugin:react/recommended'
     ],
     plugins: [
         '@typescript-eslint',
-        "jsx-a11y"
+        'jsx-a11y'
     ],
     parser: '@typescript-eslint/parser',
     rules: {
-        "jsx-a11y/label-has-associated-control": [ 2, {
-            "labelComponents": ["CustomInputLabel"],
-            "labelAttributes": ["label"],
-            "controlComponents": ["CustomInput"],
-            "depth": 3,
+        'jsx-a11y/label-has-associated-control': [ 2, {
+            'labelComponents': ['CustomInputLabel'],
+            'labelAttributes': ['label'],
+            'controlComponents': ['CustomInput'],
+            'depth': 3,
         }],
         'react/jsx-indent': [2, 4],
         'react/jsx-indent-props': [2, 4],
@@ -74,7 +74,7 @@ module.exports = {
             }
         },
         react: {
-            version: "detect",
+            version: 'detect',
         }
     }
 };
