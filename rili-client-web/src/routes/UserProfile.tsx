@@ -101,8 +101,8 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         return isValidPhoneNumber(inputs.phoneNumber);
     }
 
-    onJoinRoomClick = () => {
-        this.props.history.push('/join-room');
+    onCreateForumClick = () => {
+        this.props.history.push('/create-forum');
     }
 
     onSubmit = (event: any) => {
@@ -317,8 +317,8 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                     </div>
                 </div>
                 <div className="fill text-right padding-sm">
-                    <button type="button" className="primary text-white" onClick={this.onJoinRoomClick}>
-                        {this.translate('pages.userProfile.buttons.joinARoom')}
+                    <button type="button" className="primary text-white" onClick={this.onCreateForumClick}>
+                        {this.translate('pages.userProfile.buttons.createAForum')}
                     </button>
                 </div>
             </div>

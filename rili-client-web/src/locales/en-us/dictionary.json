@@ -25,10 +25,11 @@
     },
     "messagesMenu": {
       "buttons": {
-        "joinRoom": "Join Room"
+        "createForum": "Create a Forum"
       },
       "h2": {
         "messaging": "Messaging",
+        "forums": "Forums",
         "riliConnect": "Rili Connect",
         "locationMap": "Location Map"
       }
@@ -64,20 +65,20 @@
     }
   },
   "pages": {
-    "chatRoom": {
-      "pageTitle": "Chat Room",
+    "chatForum": {
+      "pageTitle": "Forums",
       "welcome": "Welcome!"
     },
     "home": {
       "pageTitle": "Home"
     },
-    "joinRoom": {
+    "createForum": {
       "labels": {
-        "room": "Join Room",
-        "activeRooms": "Active Rooms"
+        "forum": "Forum Name",
+        "activeForums": "Active Forums"
       },
-      "noRoomsMessage": "No rooms are currently active. Click 'Join Room' to start a new one.",
-      "pageTitle": "Chat Rooms"
+      "noForumsMessage": "No forums are currently active. Click 'Create Forum' to start a new one.",
+      "pageTitle": "Forums"
     },
     "login": {
       "pageTitle": "Login"
@@ -94,7 +95,7 @@
     },
     "userProfile": {
       "buttons": {
-        "joinARoom": "Join A room",
+        "createAForum": "Create a Forum",
         "sendRequest": "Send Request"
       },
       "connectionSent": "A connection request was successfully delivered",
