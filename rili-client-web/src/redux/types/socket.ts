@@ -1,12 +1,12 @@
 import * as Immutable from 'seamless-immutable';
 
-export interface IRoom {
+export interface IForum {
     roomKey: string;
     sockets: any;
     length: number;
 }
 
-export type IRoomsArray = Immutable.ImmutableArray<IRoom>;
+export type IForumsArray = Immutable.ImmutableArray<IForum>;
 
 export interface IMessage {
     key: string;
@@ -17,6 +17,6 @@ export type IMessageList = Immutable.ImmutableArray<IMessage>;
 export type IMessages = Immutable.ImmutableObject<{[index: string]: IMessageList}>;
 
 export interface ISocketState extends Immutable.ImmutableObject<any> {
-    rooms: any;
+    forums: any;
     messages: any;
 }

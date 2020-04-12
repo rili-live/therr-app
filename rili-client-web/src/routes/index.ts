@@ -1,7 +1,7 @@
 import { RouteProps } from 'react-router-dom';
 import { AccessCheckType } from '../types';
-import ChatRoom from './ChatRoom';
-import JoinRoom from './JoinRoom';
+import Forum from './Forum';
+import CreateForum from './CreateForum';
 import PageNotFound from './PageNotFound';
 import Register from './Register';
 import Home from './Home';
@@ -25,8 +25,8 @@ const routes: IRoute[] = [
         redirectPath: '/',
     },
     {
-        path: '/chat-room/:roomId',
-        component: ChatRoom,
+        path: '/forums/:roomId',
+        component: Forum,
         exact: true,
         access: {
             type: AccessCheckType.ALL,
@@ -34,8 +34,8 @@ const routes: IRoute[] = [
         },
     },
     {
-        path: '/join-room',
-        component: JoinRoom,
+        path: '/create-forum',
+        component: CreateForum,
         exact: true,
         access: {
             type: AccessCheckType.ALL,

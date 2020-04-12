@@ -12,61 +12,66 @@ import translator from '../services/translator';
 // import * as globalConfig from '../../../global-config.js';
 
 // router params
-interface IChatRoomRouterProps {
+interface IForumRouterProps {
     roomId: string;
 }
 
-interface IChatRoomDispatchProps {
-    joinRoom: Function;
+interface IForumDispatchProps {
+    joinForum: Function;
     sendMessage: Function;
 }
 
-interface IStoreProps extends IChatRoomDispatchProps {
+interface IStoreProps extends IForumDispatchProps {
     socket: ISocketState;
     user: IUserState;
 }
 
 // Regular component props
-interface IChatRoomProps extends RouteComponentProps<IChatRoomRouterProps>, IStoreProps {
+interface IForumProps extends RouteComponentProps<IForumRouterProps>, IStoreProps {
 }
 
-interface IChatRoomState {
+interface IForumState {
     inputs: any;
+    previousRoomId: string;
 }
 
 // Environment Variables
 // const envVars = globalConfig[process.env.NODE_ENV];
 
-const mapStateToProps = (state: IChatRoomState | any) => ({
+const mapStateToProps = (state: IForumState | any) => ({
     socket: state.socket,
     user: state.user,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    joinRoom: SocketActions.joinRoom,
+    joinForum: SocketActions.joinForum,
     sendMessage: SocketActions.sendMessage,
 }, dispatch);
 
-const shouldRender = (props: IChatRoomProps) => !!props.user;
-
-// TODO: Leaving a roome should emit an event to the server and leave the current room
+// TODO: Leaving a forume should emit an event to the server and leave the current forum
 /**
- * ChatRoom
+ * Forum
  */
-export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoomState> {
-    static getDerivedStateFromProps(nextProps: IChatRoomProps) {
-        if (!shouldRender(nextProps)) {
-            nextProps.history.push('/login');
-            return null;
+export class ForumComponent extends React.Component<IForumProps, IForumState> {
+    static getDerivedStateFromProps(nextProps: IForumProps, nextState: IForumState) {
+        if (nextProps.match.params.roomId !== nextState.previousRoomId) {
+            nextProps.joinForum({
+                roomId: nextProps.match.params.roomId,
+                userName: nextProps.user.details.userName,
+            });
+            return {
+                previousRoomId: nextProps.match.params.roomId,
+            };
         }
         return {};
     }
 
-    constructor(props: IChatRoomProps) {
+    constructor(props: IForumProps) {
         super(props);
 
         this.state = {
             inputs: {},
+            previousRoomId: props.match.params.roomId,
         };
 
         this.messageInputRef = React.createRef();
@@ -75,17 +80,15 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
     }
 
     componentDidMount() {
-        document.title = `Rili | ${this.translate('pages.chatRoom.pageTitle')}`;
-        if (shouldRender(this.props)) {
-            this.messageInputRef.current.inputEl.focus();
-            this.props.joinRoom({
-                roomId: this.props.match.params.roomId,
-                userName: this.props.user.details.userName,
-            });
-        }
+        document.title = `Rili | ${this.translate('pages.chatForum.pageTitle')}`;
+        this.messageInputRef.current.inputEl.focus();
+        this.props.joinForum({
+            roomId: this.props.match.params.roomId,
+            userName: this.props.user.details.userName,
+        });
     }
 
-    componentDidUpdate(prevProps: IChatRoomProps) {
+    componentDidUpdate(prevProps: IForumProps) {
         const currentRoom = this.props.user.socketDetails.currentRoom;
         const messages = this.props.socket.messages[currentRoom];
         if (messages && messages.length > 3 && messages.length > prevProps.socket.messages[currentRoom].length) {
@@ -139,12 +142,8 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
         const { socket, user } = this.props;
         const messages = socket.messages[user.socketDetails.currentRoom];
 
-        if (!shouldRender(this.props)) {
-            return null;
-        }
-
         return (
-            <div id="page_chat_room">
+            <div id="page_chat_forum">
                 <div className="form-field-wrapper inline message-input">
                     <Input
                         ref={this.messageInputRef}
@@ -168,10 +167,10 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
                     </div>
                 </div>
 
-                <h1 id="roomTitle">{this.translate('pages.chatRoom.pageTitle')}: {user.socketDetails.currentRoom}</h1>
+                <h1 id="forumTitle">{this.translate('pages.chatForum.pageTitle')}: {user.socketDetails.currentRoom}</h1>
                 {
-                    socket && socket.rooms
-                    && <span id="rooms_list">
+                    socket && socket.forums
+                    && <span id="forums_list">
                         {
                             messages && messages.length > 0
                                 ? <span className="message-list">
@@ -179,7 +178,7 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
                                         messages.map((message: IMessage) => <li key={message.key}>({message.time}) {message.text}</li>)
                                     }
                                 </span>
-                                : <span>{this.translate('pages.chatRoom.welcome')}</span>
+                                : <span>{this.translate('pages.chatForum.welcome')}</span>
                         }
                     </span>
                 }
@@ -188,4 +187,4 @@ export class ChatRoomComponent extends React.Component<IChatRoomProps, IChatRoom
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ChatRoomComponent));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ForumComponent));
