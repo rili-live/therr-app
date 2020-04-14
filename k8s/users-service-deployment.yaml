@@ -25,7 +25,7 @@ spec:
         - name: API_PORT
           value: "7770"
         - name: CLIENT_URI
-          value: "https://rili.live"
+          value: "https://rili.world"
         - name: HONEYCOMB_API_KEY
           valueFrom:
             secretKeyRef:
