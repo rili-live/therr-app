@@ -12,11 +12,11 @@ metadata:
 spec:
   tls:
     - hosts:
-        - rili.live
-        - www.rili.live
-      secretName: rili-live
+        - rili.world
+        - www.rili.world
+      secretName: rili-world
   rules:
-    - host: rili.live
+    - host: rili.world
       http:
         paths:
         - path: /?(.*)
@@ -31,7 +31,7 @@ spec:
           backend:
             serviceName: websocket-service-cluster-ip-service
             servicePort: 7743
-    - host: www.rili.live
+    - host: www.rili.world
       http:
         paths:
         - path: /?(.*)
