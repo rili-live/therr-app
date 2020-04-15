@@ -3,7 +3,7 @@ import connection, { IConnection } from './connection';
 
 const knex: Knex = Knex({ client: 'pg' });
 
-const USERS_TABLE_NAME = 'main.users';
+export const USERS_TABLE_NAME = 'main.users';
 
 export interface ICreateUserParams {
     email: string;

@@ -220,7 +220,10 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                                 userConnections.connections.length
                                     ? userConnections.connections.slice(0, 10).map((connection: any) => (
                                         <div className="user-connection-icon" key={connection.id}>
-                                            {/* <span className="name-tag">{connection.firstName}</span> */}
+                                            {
+                                                connection.users
+                                                && <span className="name-tag">{connection.users.find((u) => u.id !== user.details.id).firstName}</span>
+                                            }
                                             <img
                                                 src={`https://robohash.org/${connection.acceptingUserId === user.details.id
                                                     ? connection.requestingUserId

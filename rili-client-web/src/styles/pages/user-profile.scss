@@ -72,11 +72,19 @@ $profileImgWidth: rem-calc(100px);
                     display: inline;
 
                     .name-tag {
+                        display: none;
+                        text-align: center;
                         position: absolute;
                         bottom: 0;
                         width: 100%;
                         color: $rili-white;
                         background: transparentize($rili-black, .5);
+                    }
+
+                    &:hover {
+                        .name-tag {
+                            display: block;
+                        }
                     }
               
                     img {
