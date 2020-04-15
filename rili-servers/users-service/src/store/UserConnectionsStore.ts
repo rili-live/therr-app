@@ -1,6 +1,8 @@
 import Knex from 'knex';
-import { getDbCountQueryString, getDbQueryString } from 'rili-public-library/utilities/db.js';
+import formatSQLJoinAsJSON from 'rili-public-library/utilities/format-sql-join-as-json.js';
+import { getDbCountQueryString } from 'rili-public-library/utilities/db.js';
 import connection, { IConnection } from './connection';
+import { USERS_TABLE_NAME } from './UsersStore';
 
 const knex: Knex = Knex({ client: 'pg' });
 
@@ -72,22 +74,91 @@ class Store {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
-    // TODO: RSERV:25 - Make this dynamic to accept multiple queries
-    searchUserConnections(conditions = {}, returning) {
-        const queryString = getDbQueryString({
-            queryBuilder: knex,
-            tableName: USER_CONNECTIONS_TABLE_NAME,
-            conditions: {
+    getExpandedUserConnections(conditions: any = {}) {
+        const queryString = knex.select([
+            `${USER_CONNECTIONS_TABLE_NAME}.id`,
+            `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId`,
+            `${USER_CONNECTIONS_TABLE_NAME}.acceptingUserId`,
+            `${USER_CONNECTIONS_TABLE_NAME}.interactionCount`,
+            `${USER_CONNECTIONS_TABLE_NAME}.requestStatus`,
+            `${USER_CONNECTIONS_TABLE_NAME}.isConnectionBroken`,
+            `${USER_CONNECTIONS_TABLE_NAME}.createdAt`,
+            `${USER_CONNECTIONS_TABLE_NAME}.updatedAt`,
+        ])
+            .from(USER_CONNECTIONS_TABLE_NAME)
+            .innerJoin(USERS_TABLE_NAME, function () {
+                this.on(function () {
+                    this.on(`${USERS_TABLE_NAME}.id`, '=', `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId`);
+                    this.orOn(`${USERS_TABLE_NAME}.id`, '=', `${USER_CONNECTIONS_TABLE_NAME}.acceptingUserId`);
+                });
+            })
+            .columns([
+                `${USERS_TABLE_NAME}.id as users[].id`,
+                `${USERS_TABLE_NAME}.userName as users[].userName`,
+                `${USERS_TABLE_NAME}.firstName as users[].firstName`,
+                `${USERS_TABLE_NAME}.lastName as users[].lastName`,
+            ])
+            .where({
                 ...conditions,
-            },
-            defaultConditions: {
+            })
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => formatSQLJoinAsJSON(response.rows, ['users']));
+    }
+
+    // TODO: RSERV:25 - Make this dynamic to accept multiple queries
+    searchUserConnections(conditions: any = {}, returning) {
+        const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
+        const limit = conditions.pagination.itemsPerPage;
+        let queryString: any = knex
+            .select([
+                `${USER_CONNECTIONS_TABLE_NAME}.id`,
+                `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId`,
+                `${USER_CONNECTIONS_TABLE_NAME}.acceptingUserId`,
+                `${USER_CONNECTIONS_TABLE_NAME}.interactionCount`,
+                `${USER_CONNECTIONS_TABLE_NAME}.requestStatus`,
+                `${USER_CONNECTIONS_TABLE_NAME}.isConnectionBroken`,
+                `${USER_CONNECTIONS_TABLE_NAME}.createdAt`,
+                `${USER_CONNECTIONS_TABLE_NAME}.updatedAt`,
+            ])
+            .from(USER_CONNECTIONS_TABLE_NAME)
+            .innerJoin(USERS_TABLE_NAME, function () {
+                this.on(function () {
+                    this.on(`${USERS_TABLE_NAME}.id`, '=', `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId`);
+                    this.orOn(`${USERS_TABLE_NAME}.id`, '=', `${USER_CONNECTIONS_TABLE_NAME}.acceptingUserId`);
+                });
+            })
+            .columns([
+                `${USERS_TABLE_NAME}.id as users[].id`,
+                `${USERS_TABLE_NAME}.userName as users[].userName`,
+                `${USERS_TABLE_NAME}.firstName as users[].firstName`,
+                `${USERS_TABLE_NAME}.lastName as users[].lastName`,
+            ])
+            .where({
                 isConnectionBroken: false,
                 requestStatus: 'complete',
-            },
-            returning,
-        });
+            });
 
-        return this.db.read.query(queryString).then((response) => response.rows);
+        if (conditions.filterBy && conditions.query) {
+            const operator = conditions.filterOperator || '=';
+            const query = operator === 'like' ? `%${conditions.query}%` : conditions.query;
+            queryString = queryString.andWhere(conditions.filterBy, operator, query);
+        }
+
+        // if (groupBy) {
+        //     queryString = queryString.groupBy(groupBy);
+        // }
+
+        // if (orderBy) {
+        //     queryString = queryString.orderBy(orderBy);
+        // }
+
+        queryString = queryString
+            .limit(limit)
+            .offset(offset)
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => formatSQLJoinAsJSON(response.rows, ['users']));
     }
 
     createUserConnection(params: ICreateUserConnectionParams) {
