@@ -1,10 +1,10 @@
-import axios from 'axios';
 import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
 import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
 import beeline from '../beeline';
 import * as Constants from '../constants';
 import globalConfig from '../../../../global-config.js';
+import restRequest from '../utilities/restRequest';
 
 interface IUpdateNotificationData {
     notification: any;
@@ -21,13 +21,13 @@ const updateNotification = (socket: socketio.Socket, data: IUpdateNotificationDa
             socketId: socket.id,
         },
     });
-    axios({
+    restRequest({
         method: 'put',
         url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiRoute}/users/notifications/${data.notification.id}`,
         data: {
             isUnread: data.notification.isUnread,
         },
-    }).then((response) => {
+    }, socket).then((response) => {
         socket.emit(Constants.ACTION, {
             type: SocketServerActionTypes.NOTIFICATION_UPDATED,
             data: {

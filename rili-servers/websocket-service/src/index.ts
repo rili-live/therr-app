@@ -3,15 +3,20 @@ import express from 'express';
 import * as http from 'http';
 import moment from 'moment';
 import socketio from 'socket.io';
-import { LogLevelMap, SocketServerActionTypes, SocketClientActionTypes } from 'rili-public-library/utilities/constants.js';
+import {
+    LogLevelMap,
+    SocketServerActionTypes,
+    SocketClientActionTypes,
+    SOCKET_MIDDLEWARE_ACTION,
+} from 'rili-public-library/utilities/constants.js';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
 import * as socketHandlers from './handlers';
-import * as Constants from './constants/index';
 import * as globalConfig from '../../../global-config.js';
 import getSocketRoomsList from './utilities/get-socket-rooms-list';
 import redisAdapter from './store/redisAdapter';
 import redisSessions from './store/redisSessions';
 import { redisPub, redisSub } from './store/redisClient';
+import authenticate from './utilities/authenticate';
 
 export const rsAppName = 'riliChat';
 
@@ -27,7 +32,7 @@ const leaveAndNotifyRooms = (socket: SocketIO.Socket) => {
                 const parsedResponse = JSON.parse(response);
                 if (parsedResponse && parsedResponse.userName) {
                     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
-                    socket.broadcast.to(room).emit(Constants.ACTION, {
+                    socket.broadcast.to(room).emit(SOCKET_MIDDLEWARE_ACTION, {
                         type: SocketServerActionTypes.LEFT_ROOM,
                         data: {
                             roomId: room,
@@ -108,21 +113,27 @@ const startExpressSocketIOServer = () => {
         });
 
         // Send a list of the currently active chat rooms when user connects
-        socket.emit(Constants.ACTION, {
+        socket.emit(SOCKET_MIDDLEWARE_ACTION, {
             type: SocketServerActionTypes.SEND_ROOMS_LIST,
             data: getSocketRoomsList(io.sockets.adapter.rooms),
         });
 
+
         // Event sent from socket.io, redux store middleware
-        socket.on(Constants.ACTION, (action: any) => {
+        socket.on(SOCKET_MIDDLEWARE_ACTION, async (action: any) => {
+            const isAuthenticated = await authenticate(socket, action.type);
+
             switch (action.type) {
                 case SocketClientActionTypes.JOIN_ROOM:
-                    socketHandlers.joinRoom(socket, action.data);
-                    // Notify all users
-                    socket.broadcast.emit(Constants.ACTION, {
-                        type: SocketServerActionTypes.SEND_ROOMS_LIST,
-                        data: getSocketRoomsList(io.sockets.adapter.rooms),
-                    });
+                    if (isAuthenticated) {
+                        socketHandlers.joinRoom(socket, action.data);
+                        // Notify all users
+                        socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
+                            type: SocketServerActionTypes.SEND_ROOMS_LIST,
+                            data: getSocketRoomsList(io.sockets.adapter.rooms),
+                        });
+                    }
+
                     break;
                 case SocketClientActionTypes.LOGIN:
                     socketHandlers.login({
@@ -138,23 +149,33 @@ const startExpressSocketIOServer = () => {
                     });
                     break;
                 case SocketClientActionTypes.UPDATE_SESSION:
-                    socketHandlers.updateSession({
-                        appName: rsAppName,
-                        socket,
-                        data: action.data,
-                    });
+                    if (isAuthenticated) {
+                        socketHandlers.updateSession({
+                            appName: rsAppName,
+                            socket,
+                            data: action.data,
+                        });
+                    }
                     break;
                 case SocketClientActionTypes.SEND_MESSAGE:
-                    socketHandlers.sendMessage(socket, action.data);
+                    if (isAuthenticated) {
+                        socketHandlers.sendMessage(socket, action.data);
+                    }
                     break;
                 case SocketClientActionTypes.UPDATE_NOTIFICATION:
-                    socketHandlers.updateNotification(socket, action.data);
+                    if (isAuthenticated) {
+                        socketHandlers.updateNotification(socket, action.data);
+                    }
                     break;
                 case SocketClientActionTypes.CREATE_USER_CONNECTION:
-                    socketHandlers.createConnection(socket, action.data);
+                    if (isAuthenticated) {
+                        socketHandlers.createConnection(socket, action.data);
+                    }
                     break;
                 case SocketClientActionTypes.UPDATE_USER_CONNECTION:
-                    socketHandlers.updateConnection(socket, action.data);
+                    if (isAuthenticated) {
+                        socketHandlers.updateConnection(socket, action.data);
+                    }
                     break;
                 default:
                     break;

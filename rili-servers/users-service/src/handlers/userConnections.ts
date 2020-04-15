@@ -141,10 +141,7 @@ const searchUserConnections: RequestHandler = (req: any, res: any) => {
 
         res.status(200).send(response);
     })
-        .catch((err) => {
-            console.log(err);
-            return handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' });
-        });
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
 };
 
 // UPDATE

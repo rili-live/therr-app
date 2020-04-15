@@ -11,17 +11,18 @@ import {
     searchUserConnections,
     updateUserConnection,
 } from '../handlers/userConnections';
+import authenticate from '../middleware/authenticate';
 
 const router = express.Router();
 
 // CREATE
-router.post('/', createUserConnectionValidation, validate, createUserConnection);
+router.post('/', authenticate, createUserConnectionValidation, validate, createUserConnection);
 
 // READ
-router.get('/:requestingUserId', getUserConnection);
-router.get('/', searchUserConnections);
+router.get('/:requestingUserId', authenticate, getUserConnection);
+router.get('/', authenticate, searchUserConnections);
 
 // UPDATE
-router.put('/:requestingUserId', updateUserConnection);
+router.put('/:requestingUserId', authenticate, updateUserConnection);
 
 export default router;

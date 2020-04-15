@@ -1,6 +1,6 @@
 import io from 'socket.io-client';
 import createSocketIoMiddleware from 'redux-socket.io';
-import { WEB_CLIENT_PREFIX } from 'rili-public-library/utilities/constants.js';
+import { SOCKET_MIDDLEWARE_ACTION, SocketClientActionTypes, WEB_CLIENT_PREFIX } from 'rili-public-library/utilities/constants.js';
 import * as globalConfig from '../../global-config.js';
 
 // Environment Variables
@@ -8,6 +8,7 @@ const envVars = globalConfig[process.env.NODE_ENV];
 
 // Socket IO Connection
 export const socketIO = io(`${envVars.baseSocketUrl}`, {
+    autoConnect: false,
     secure: true,
     transports: ['websocket'],
     upgrade: false,
@@ -15,5 +16,21 @@ export const socketIO = io(`${envVars.baseSocketUrl}`, {
     // rejectUnauthorized: false,
 });
 
+export const updateSocketToken = (user, shouldConnect?: boolean) => {
+    if (user && user.details && user.details.idToken) {
+        socketIO.io.opts.query = {
+            token: user.details.idToken,
+        };
+
+        if (shouldConnect) {
+            socketIO.connect();
+            socketIO.emit(SOCKET_MIDDLEWARE_ACTION, {
+                type: SocketClientActionTypes.UPDATE_SESSION,
+                data: user,
+            });
+        }
+    }
+};
+
 // TODO: Find a way to send server connection even after middleware instantiates
-export default createSocketIoMiddleware(socketIO, `${WEB_CLIENT_PREFIX}:`);
+export default createSocketIoMiddleware(socketIO, `${WEB_CLIENT_PREFIX}:`, { eventName: SOCKET_MIDDLEWARE_ACTION });
