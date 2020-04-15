@@ -4,13 +4,13 @@ import beeline from '../beeline';
 
 export default (config: AxiosRequestConfig, socket: SocketIO.Socket) => {
     printLogs({
-        level: 'debug',
+        level: 'info',
         messageOrigin: 'SOCKET_REST_REQUEST',
-        messages: [socket.handshake.toString()],
+        messages: 'Socket REST request debug',
         tracer: beeline,
         traceArgs: {
             socketId: socket.id,
-            socketHandshake: socket.handshake.toString(),
+            socketHandshake: JSON.stringify(socket.handshake),
         },
     });
     return axios({
