@@ -20,7 +20,8 @@ const initInterceptors = (
     // Global axios interceptor
     axios.interceptors.request.use((config) => {
         const modifiedConfig = config;
-        const token = store.getState().user && store.getState().user.idToken;
+        const storedUser = store.getState().user;
+        const token = storedUser && storedUser.details && storedUser.details.idToken;
 
         if (token) {
             modifiedConfig.headers.authorization = `Bearer ${token}`;
