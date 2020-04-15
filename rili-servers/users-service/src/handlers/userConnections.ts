@@ -141,11 +141,15 @@ const searchUserConnections: RequestHandler = (req: any, res: any) => {
 
         res.status(200).send(response);
     })
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
+        .catch((err) => {
+            console.log(err);
+            return handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' });
+        });
 };
 
 // UPDATE
 // TODO: Assess security implications to prevent anyone from hacking this endpoint
+// TODO: RSERV-32 - return associated users (same as search userConnections does)
 const updateUserConnection = (req, res) => UserConnectionsStore.getUserConnections({
     requestingUserId: Number(req.params.requestingUserId),
     acceptingUserId: req.body.acceptingUserId,
@@ -174,6 +178,10 @@ const updateUserConnection = (req, res) => UserConnectionsStore.getUserConnectio
                 isConnectionBroken,
                 requestStatus,
             })
+            .then(() => UserConnectionsStore.getExpandedUserConnections({
+                requestingUserId: req.params.requestingUserId,
+                acceptingUserId: req.body.acceptingUserId,
+            }))
             .then((results) => res.status(202).send(results[0]));
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
