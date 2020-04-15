@@ -2,7 +2,7 @@ import thunkMiddleware from 'redux-thunk';
 import { createLogger } from 'redux-logger';
 import { applyMiddleware, compose, createStore } from 'redux';
 import rootReducer from './redux/reducers';
-import socketIOMiddleWare from './socket-io-middleware';
+import socketIOMiddleWare, { socketIO, updateSocketToken } from './socket-io-middleware';
 
 declare global {
     interface Window {
@@ -44,6 +44,7 @@ if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
         },
     };
     preLoadedState = Object.assign(safelyParse(window.__PRELOADED_STATE__), reloadedState); // eslint-disable-line no-underscore-dangle
+    updateSocketToken(reloadedState.user, true);
 }
 
 const store: any = process.env.NODE_ENV !== 'development'

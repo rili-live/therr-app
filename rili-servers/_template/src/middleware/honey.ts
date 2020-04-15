@@ -12,26 +12,29 @@ export default responseTime((req, res, time) => {
         idToken: 'XXXXX',
         password: 'XXXXXX',
     };
+    const serializedHeaders = {
+        ...req.headers,
+        authorization: 'Bearer XXXXX',
+    };
     const serializedQuery = {
         ...req.query,
         idToken: 'XXXXX',
     };
     honey.sendNow({
-        app: req.app,
-        baseUrl: req.baseUrl,
-        fresh: req.fresh,
-        hostname: req.hostname,
-        ip: req.ip,
-        method: req.method,
-        originalUrl: req.originalUrl,
-        params: req.params,
-        path: req.path,
-        body: serializedBody,
-        protocol: req.protocol,
-        query: serializedQuery,
-        route: req.route,
-        secure: req.secure,
-        xhr: req.xhr,
+        'honey.app': req.app,
+        'honey.baseUrl': req.baseUrl,
+        'honey.hostname': req.hostname,
+        'honey.ip': req.ip,
+        'honey.method': req.method,
+        'honey.origin': req.origin,
+        'honey.params': req.params,
+        'honey.path': req.path,
+        'honey.body': serializedBody,
+        'honey.headers': serializedHeaders,
+        'honey.query': serializedQuery,
+        'honey.route': req.route,
+        'honey.secure': req.secure,
+        'honey.xhr': req.xhr,
         responseTime_ms: time, // eslint-disable-line @typescript-eslint/camelcase
     });
 });
