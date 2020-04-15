@@ -12,6 +12,7 @@ import {
     updateUser,
     deleteUser,
 } from '../handlers/users';
+import authenticate from '../middleware/authenticate';
 
 const router = express.Router();
 
@@ -19,13 +20,13 @@ const router = express.Router();
 router.post('/', createUserValidation, validate, createUser);
 
 // READ
-router.get('/:id', getUser);
-router.get('/', getUsers);
+router.get('/:id', authenticate, getUser);
+router.get('/', authenticate, getUsers);
 
 // UPDATE
-router.put('/:id', updateUser);
+router.put('/:id', authenticate, updateUser);
 
 // DELETE
-router.delete('/:id', deleteUser);
+router.delete('/:id', authenticate, deleteUser);
 
 export default router;

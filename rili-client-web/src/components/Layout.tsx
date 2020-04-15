@@ -26,7 +26,7 @@ import Footer from './Footer';
 import { NotificationActions, UsersActions, SocketActions } from '../redux/actions';
 import UserMenu from './nav-menu/UserMenu';
 import MessagesMenu from './nav-menu/MessagesMenu';
-import { socketIO } from '../socket-io-middleware';
+import { socketIO, updateSocketToken } from '../socket-io-middleware';
 
 let _viewListener: any; // eslint-disable-line no-underscore-dangle
 
@@ -102,6 +102,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             searchNotifications,
             user,
         } = this.props;
+
         // TODO: Check if this should be initialized in index with history passed as argument
         // Initialize global interceptors such as 401, 403
         initInterceptors(history, globalConfig.baseApiRoute, 300);
@@ -115,25 +116,23 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             clientHasLoaded: true,
         });
 
-        searchNotifications({
-            filterBy: 'userId',
-            query: user.details.id,
-            itemsPerPage: 20,
-            pageNumber: 1,
-        });
+        if (user && user.details && user.details.idToken) {
+            searchNotifications({
+                filterBy: 'userId',
+                query: user.details.id,
+                itemsPerPage: 20,
+                pageNumber: 1,
+            });
+        }
 
-        socketIO.on('connect', () => {
+        socketIO.on('reconnect_attempt', () => {
             // Only send event when user is already logged in and refreshes the page
-            if (user && user.isAuthenticated) {
-                console.log('Socket: PAGE REFRESHED', user);
-                refreshConnection(user);
-            }
+            updateSocketToken(user);
         });
 
         socketIO.on('reconnect', () => {
             // Only send event when user is already logged in and refreshes the page
             if (user && user.isAuthenticated) {
-                console.log('Socket: RECONNECTED', user);
                 refreshConnection(user);
             }
         });

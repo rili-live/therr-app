@@ -1,7 +1,7 @@
 const apiPort = 7770;
 const hostDev = 'localhost';
-const hostStage = 'stage.rili.live';
-const hostProd = 'rili.live';
+const hostStage = 'stage.rili.world';
+const hostProd = 'rili.world';
 
 module.exports = {
     development: {
