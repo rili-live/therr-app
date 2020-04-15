@@ -33,6 +33,10 @@ const Socket = {
                 localStorage.setItem('riliSession', JSON.stringify({ id: socketIO.id }));
                 localStorage.setItem('riliUser', JSON.stringify(userData));
             }
+            socketIO.io.opts.query = {
+                token: idToken,
+            };
+            socketIO.connect();
             dispatch({
                 type: SocketClientActionTypes.LOGIN,
                 data: userData,
@@ -44,6 +48,7 @@ const Socket = {
         sessionStorage.removeItem('riliUser');
         localStorage.removeItem('riliSession');
         localStorage.removeItem('riliUser');
+        socketIO.disconnect();
         dispatch({
             type: SocketClientActionTypes.LOGOUT,
             data: {

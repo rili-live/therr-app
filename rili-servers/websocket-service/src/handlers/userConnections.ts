@@ -1,4 +1,3 @@
-import axios from 'axios';
 import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
 import { Notifications, SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
@@ -6,6 +5,7 @@ import beeline from '../beeline';
 import * as Constants from '../constants';
 import redisSessions from '../store/redisSessions';
 import globalConfig from '../../../../global-config.js';
+import restRequest from '../utilities/restRequest';
 
 interface ICreateUserConnectionData {
     connection: any;
@@ -53,11 +53,11 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
         },
     });
 
-    return axios({
+    return restRequest({
         method: 'put',
         url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiRoute}/users/connections/${data.connection.requestingUserId}`,
         data: data.connection,
-    }).then(({ data: connection }) => {
+    }, socket).then(({ data: connection }) => {
         redisSessions.getByUserId(data.connection.requestingUserId).then(({
             socketId,
         }) => {
@@ -79,7 +79,7 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
         return connection;
     }).then((connection: any) => {
         if (connection.requestStatus === 'complete') { // Do not send notification when connection denied
-            return axios({
+            return restRequest({
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiRoute}/users/notifications`,
                 data: {
@@ -93,7 +93,7 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
                         lastName: data.user.lastName,
                     },
                 },
-            }).then(({ data: notification }) => {
+            }, socket).then(({ data: notification }) => {
                 socket.to(requestingSocketId).emit(Constants.ACTION, { // To user who sent request
                     type: SocketServerActionTypes.NOTIFICATION_CREATED,
                     data: notification,

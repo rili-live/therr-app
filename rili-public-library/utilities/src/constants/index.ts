@@ -9,6 +9,7 @@ import SocketServerActionTypes from './enums/SocketServerActionTypes';
 // Enumers cannot be build from string concatenation so much be input manually
 export const SERVER_PREFIX = 'SERVER';
 export const WEB_CLIENT_PREFIX = 'CLIENT';
+export const SOCKET_MIDDLEWARE_ACTION = 'action';
 
 export {
     ILogLevel,

@@ -12,6 +12,10 @@ export default responseTime((req, res, time) => {
         idToken: 'XXXXX',
         password: 'XXXXXX',
     };
+    const serializedHeaders = {
+        ...req.headers,
+        authorization: 'Bearer XXXXX',
+    };
     const serializedQuery = {
         ...req.query,
         idToken: 'XXXXX',
@@ -19,7 +23,6 @@ export default responseTime((req, res, time) => {
     honey.sendNow({
         'honey.app': req.app,
         'honey.baseUrl': req.baseUrl,
-        'honey.fresh': req.fresh,
         'honey.hostname': req.hostname,
         'honey.ip': req.ip,
         'honey.method': req.method,
@@ -27,6 +30,7 @@ export default responseTime((req, res, time) => {
         'honey.params': req.params,
         'honey.path': req.path,
         'honey.body': serializedBody,
+        'honey.headers': serializedHeaders,
         'honey.query': serializedQuery,
         'honey.route': req.route,
         'honey.secure': req.secure,
