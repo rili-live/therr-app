@@ -32,5 +32,4 @@ export const updateSocketToken = (user, shouldConnect?: boolean) => {
     }
 };
 
-// TODO: Find a way to send server connection even after middleware instantiates
 export default createSocketIoMiddleware(socketIO, `${WEB_CLIENT_PREFIX}:`, { eventName: SOCKET_MIDDLEWARE_ACTION });
