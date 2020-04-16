@@ -6,13 +6,13 @@ import * as Constants from '../constants/index';
 
 export default (socket, type) => new Promise((resolve) => {
     printLogs({
-        level: 'debug',
+        level: 'info',
         messageOrigin: 'SOCKET_AUTHENTICATION',
-        messages: [socket.handshake.toString()],
+        messages: 'Socket authntication debug',
         tracer: beeline,
         traceArgs: {
             socketId: socket.id,
-            socketHandshake: socket.handshake.toString(),
+            socketHandshake: JSON.stringify(socket.handshake),
         },
     });
     if (!socket.handshake || !socket.handshake.query || !socket.handshake.query.token) {
