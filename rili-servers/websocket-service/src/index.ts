@@ -121,7 +121,7 @@ const startExpressSocketIOServer = () => {
 
         // Event sent from socket.io, redux store middleware
         socket.on(SOCKET_MIDDLEWARE_ACTION, async (action: any) => {
-            const isAuthenticated = await authenticate(socket, action.type);
+            const isAuthenticated = await authenticate(socket);
 
             switch (action.type) {
                 case SocketClientActionTypes.JOIN_ROOM:
