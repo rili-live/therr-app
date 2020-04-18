@@ -54,12 +54,34 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
+    componentDidMount() {
+        const {
+            user,
+            userConnections,
+        } = this.props;
+        if (!userConnections.connections.length) {
+            this.props.searchUserConnections({
+                filterBy: 'acceptingUserId',
+                query: user.details.id,
+                itemsPerPage: 20,
+                pageNumber: 1,
+                orderBy: 'interactionCount',
+                order: 'desc',
+                shouldCheckReverse: true,
+            });
+        }
+    }
+
     private translate: Function;
 
     handleTabSelect = (e, tabName) => {
         this.setState({
             activeTab: tabName,
         });
+    }
+
+    handleConnectionClick = (e, connectionDetails) => {
+        console.log(connectionDetails);
     }
 
     navigate = (destination, params?: any) => (e) => {
@@ -74,12 +96,37 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
         }
     }
 
-    renderMessagesContent = () => (
-        <>
-            <h2>{this.translate('components.messagesMenu.h2.messaging')}</h2>
-            <div className="messages-menu"></div>
-        </>
-    )
+    renderMessagesContent = () => {
+        const { userConnections, user } = this.props;
+
+        return (
+            <>
+                <h2>{this.translate('components.messagesMenu.h2.messaging')}</h2>
+                <div className="messages-menu"></div>
+                {
+                    userConnections && userConnections.connections.length > 0
+                    && <div className="realtime-connections-list">
+                        {
+                            userConnections.connections.map((connection) => {
+                                const connectionDetails = connection.users.find((u) => u.id !== user.details.id);
+                                return (
+                                    <ButtonPrimary
+                                        id="nav_menu_connection_link"
+                                        key={connection.id}
+                                        className="connection-link-item right-icon active"
+                                        name={connection.id}
+                                        onClick={(e) => this.handleConnectionClick(e, connectionDetails)}
+                                        buttonType="primary">
+                                        {`${connectionDetails.firstName} ${connectionDetails.lastName}`}
+                                    </ButtonPrimary>
+                                );
+                            })
+                        }
+                    </div>
+                }
+            </>
+        );
+    }
 
     renderForumsContent = () => {
         const { socket } = this.props;

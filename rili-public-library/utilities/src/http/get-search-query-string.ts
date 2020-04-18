@@ -9,6 +9,8 @@ export default (reqQuery: IReqQuery) => {
         itemsPerPage,
         pageNumber,
         returning,
+        orderBy,
+        order,
     } = reqQuery;
 
     const sanitizedQuery: any = {
@@ -18,6 +20,8 @@ export default (reqQuery: IReqQuery) => {
         itemsPerPage,
         pageNumber,
         returning,
+        orderBy,
+        order,
     };
 
     Object.keys(sanitizedQuery).forEach((key) => {
