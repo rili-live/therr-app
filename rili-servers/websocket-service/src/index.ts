@@ -27,10 +27,9 @@ const leaveAndNotifyRooms = (socket: SocketIO.Socket) => {
         .filter((room) => room !== socket.id);
 
     if (activeRooms.length) {
-        redisSessions.getBySocketId(socket.id).then((response: any) => {
+        redisSessions.getUserBySocketId(socket.id).then((user: any) => {
             activeRooms.forEach((room) => {
-                const parsedResponse = JSON.parse(response);
-                if (parsedResponse && parsedResponse.userName) {
+                if (user && user.userName) {
                     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
                     socket.broadcast.to(room).emit(SOCKET_MIDDLEWARE_ACTION, {
                         type: SocketServerActionTypes.LEFT_ROOM,
@@ -39,7 +38,7 @@ const leaveAndNotifyRooms = (socket: SocketIO.Socket) => {
                             message: {
                                 key: Date.now().toString(),
                                 time: now,
-                                text: `${parsedResponse.userName} left the room`,
+                                text: `${user.userName} left the room`,
                             },
                         },
                     });
@@ -135,6 +134,17 @@ const startExpressSocketIOServer = () => {
                     }
 
                     break;
+                case SocketClientActionTypes.EXIT_ROOM:
+                    if (isAuthenticated) {
+                        socketHandlers.leaveRoom(socket, action.data);
+                        // Notify all users
+                        socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
+                            type: SocketServerActionTypes.SEND_ROOMS_LIST,
+                            data: getSocketRoomsList(io.sockets.adapter.rooms),
+                        });
+                    }
+
+                    break;
                 case SocketClientActionTypes.LOGIN:
                     socketHandlers.login({
                         appName: rsAppName,
@@ -165,6 +175,11 @@ const startExpressSocketIOServer = () => {
                 case SocketClientActionTypes.UPDATE_NOTIFICATION:
                     if (isAuthenticated) {
                         socketHandlers.updateNotification(socket, action.data);
+                    }
+                    break;
+                case SocketClientActionTypes.LOAD_ACTIVE_CONNECTIONS:
+                    if (isAuthenticated) {
+                        socketHandlers.loadActiveConnections(socket, action.data);
                     }
                     break;
                 case SocketClientActionTypes.CREATE_USER_CONNECTION:

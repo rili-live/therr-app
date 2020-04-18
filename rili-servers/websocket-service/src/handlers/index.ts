@@ -1,9 +1,9 @@
-import joinRoom from './rooms';
+import { joinRoom, leaveRoom } from './rooms';
 import { login, logout } from './auth';
 import updateSession from './sessions';
 import sendMessage from './messages';
 import updateNotification from './notifications';
-import { createConnection, updateConnection } from './userConnections';
+import { createConnection, updateConnection, loadActiveConnections } from './userConnections';
 
 export {
     // Auth
@@ -15,6 +15,7 @@ export {
 
     // Rooms
     joinRoom,
+    leaveRoom,
 
     // Messages
     sendMessage,
@@ -25,4 +26,5 @@ export {
     // Connections
     createConnection,
     updateConnection,
+    loadActiveConnections,
 };

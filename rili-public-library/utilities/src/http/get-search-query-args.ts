@@ -5,6 +5,8 @@ export interface IReqQuery {
   itemsPerPage?: string;
   pageNumber?: string;
   returning?: string;
+  orderBy?: string;
+  order?: string;
 }
 
 export default (reqQuery: IReqQuery, integerColumns: string[]) => {
@@ -16,6 +18,8 @@ export default (reqQuery: IReqQuery, integerColumns: string[]) => {
         itemsPerPage,
         pageNumber,
         returning,
+        orderBy,
+        order,
     } = reqQuery;
     const searchConditions = {
         filterBy,
@@ -25,6 +29,8 @@ export default (reqQuery: IReqQuery, integerColumns: string[]) => {
             itemsPerPage: itemsPerPage || 100,
             pageNumber: pageNumber || 1,
         },
+        order: (order && order.toLowerCase()) || 'asc',
+        orderBy,
     };
 
     if (returning) {

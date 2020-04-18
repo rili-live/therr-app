@@ -1,25 +1,16 @@
 import moment from 'moment';
 import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
-import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
+import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-library/utilities/constants.js';
 import beeline from '../beeline';
-import * as Constants from '../constants';
 
-interface IJoinRoomData {
+interface IRoomData {
     roomId: string;
     userName: string;
 }
 
-const joinRoom = (socket: socketio.Socket, data: IJoinRoomData) => {
+const joinRoom = (socket: socketio.Socket, data: IRoomData) => {
     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
-
-    // Leave all current rooms (except default room) before joining a new one
-    Object.keys(socket.rooms)
-        .filter((room) => room !== socket.id)
-        .forEach((room) => {
-            socket.broadcast.to(room).emit('event', `${data.userName} left the room`);
-            socket.leave(room);
-        });
 
     socket.join(data.roomId, () => {
         printLogs({
@@ -41,7 +32,7 @@ const joinRoom = (socket: socketio.Socket, data: IJoinRoomData) => {
         });
 
         // Emits an event back to the client who joined
-        socket.emit(Constants.ACTION, {
+        socket.emit(SOCKET_MIDDLEWARE_ACTION, {
             type: SocketServerActionTypes.JOINED_ROOM,
             data: {
                 roomId: data.roomId,
@@ -55,7 +46,7 @@ const joinRoom = (socket: socketio.Socket, data: IJoinRoomData) => {
         });
 
         // Broadcasts an event back to the client for all users in the specified room (excluding the user who triggered it)
-        socket.broadcast.to(data.roomId).emit(Constants.ACTION, {
+        socket.broadcast.to(data.roomId).emit(SOCKET_MIDDLEWARE_ACTION, {
             type: SocketServerActionTypes.OTHER_JOINED_ROOM,
             data: {
                 roomId: data.roomId,
@@ -69,4 +60,49 @@ const joinRoom = (socket: socketio.Socket, data: IJoinRoomData) => {
     });
 };
 
-export default joinRoom;
+const leaveRoom = (socket: socketio.Socket, data: IRoomData) => {
+    const now = moment(Date.now()).format('MMMM D/YY, h:mma');
+
+    socket.leave(data.roomId);
+
+    // Emits an event back to the client who left
+    socket.emit(SOCKET_MIDDLEWARE_ACTION, {
+        type: SocketServerActionTypes.LEFT_ROOM,
+        data: {
+            roomId: data.roomId,
+            message: {
+                key: Date.now().toString(),
+                time: now,
+                message: `You left the room, ${data.roomId}`,
+            },
+        },
+    });
+
+    // Broadcasts an event back to the client for all users in the specified room (excluding the user who triggered it)
+    socket.broadcast.to(data.roomId).emit(SOCKET_MIDDLEWARE_ACTION, {
+        type: SocketServerActionTypes.LEFT_ROOM,
+        data: {
+            roomId: data.roomId,
+            message: {
+                key: Date.now().toString(),
+                time: now,
+                text: `${data.userName} left the room`,
+            },
+        },
+    });
+
+    printLogs({
+        level: 'info',
+        messageOrigin: 'SOCKET_IO_LOGS',
+        messages: `User, ${data.userName} with socketId ${socket.id}, left room ${data.roomId}`,
+        tracer: beeline,
+        traceArgs: {
+            socketId: socket.id,
+        },
+    });
+};
+
+export {
+    joinRoom,
+    leaveRoom,
+};

@@ -120,10 +120,11 @@ const searchUserConnections: RequestHandler = (req: any, res: any) => {
         query,
         itemsPerPage,
         pageNumber,
+        shouldCheckReverse,
     } = req.query;
     const integerColumns = ['requestingUserId', 'acceptingUserId', 'interactionCount'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
-    const searchPromise = UserConnectionsStore.searchUserConnections(searchArgs[0], searchArgs[1]);
+    const searchPromise = UserConnectionsStore.searchUserConnections(searchArgs[0], searchArgs[1], shouldCheckReverse);
     const countPromise = UserConnectionsStore.countRecords({
         filterBy,
         query,
