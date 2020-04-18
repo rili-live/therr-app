@@ -1,6 +1,10 @@
 import * as Redis from 'ioredis';
 import * as globalConfig from '../../../../global-config.js';
-import redisHelper, { IUserSocketSession, RedisHelper } from '../services/redisHelper';
+import redisHelper, { IUserSocketSession, RedisHelper } from '../utilities/redisHelper';
+
+// TODO: Devise a strategy to group users in rooms (for realtime active/inactive status)
+// and broadcast to a room when their status changes rather than a broadcast to all users
+// SCALABILITY
 
 /**
  * RedisSession

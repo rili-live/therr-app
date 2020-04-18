@@ -154,9 +154,9 @@ class Store {
         //     queryString = queryString.groupBy(groupBy);
         // }
 
-        // if (orderBy) {
-        //     queryString = queryString.orderBy(orderBy);
-        // }
+        if (conditions.orderBy) {
+            queryString = queryString.orderBy(conditions.orderBy, conditions.order);
+        }
 
         queryString = queryString
             .limit(limit)

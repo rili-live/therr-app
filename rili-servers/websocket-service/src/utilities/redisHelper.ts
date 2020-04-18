@@ -19,7 +19,7 @@ export class RedisHelper {
     client: Redis.Redis;
 
     constructor(client: Redis.Redis) {
-        this.client = client; // NOTE: client should be build from 'ioredis'
+        this.client = client; // NOTE: client should be built from 'ioredis'
     }
 
     public storeUser = async (userSocketConfig: IUserSocketSession): Promise<any> => {
