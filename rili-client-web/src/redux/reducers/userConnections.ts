@@ -3,6 +3,7 @@ import * as Immutable from 'seamless-immutable';
 import { IUserConnectionsState, UserConnectionActionTypes } from 'types/userConnections';
 
 const initialState: IUserConnectionsState = Immutable.from({
+    activeConnections: Immutable.from([]),
     connections: Immutable.from([]),
 });
 
@@ -32,6 +33,8 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
             return state.setIn(['connections'], [...uniqueConnections, action.data]);
         case SocketServerActionTypes.USER_CONNECTION_UPDATED:
             return state.setIn(['connections'], [...uniqueConnections, action.data]);
+        case SocketServerActionTypes.ACTIVE_CONNECTIONS_LOADED:
+            return state.setIn(['activeConnections'], action.data.activeUsers);
         default:
             return state;
     }

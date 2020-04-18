@@ -49,9 +49,9 @@ const update = ({
             // 30 minutes
             ttl: 60 * 1000 * 30,
             data: {
-                id: socket.id,
+                id: user.id,
+                socketId: socket.id,
                 previousSocketId: socketDetails.session.id || null,
-                userId: user.id,
                 userName: user.userName,
                 idToken: user.idToken,
             },
