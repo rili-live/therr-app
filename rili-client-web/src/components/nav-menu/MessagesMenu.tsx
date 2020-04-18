@@ -56,11 +56,13 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
 
     componentDidMount() {
         const {
+            searchUserConnections,
             user,
             userConnections,
         } = this.props;
+
         if (!userConnections.connections.length) {
-            this.props.searchUserConnections({
+            searchUserConnections({
                 filterBy: 'acceptingUserId',
                 query: user.details.id,
                 itemsPerPage: 20,
@@ -68,7 +70,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                 orderBy: 'interactionCount',
                 order: 'desc',
                 shouldCheckReverse: true,
-            });
+            }, user.details.id);
         }
     }
 
@@ -97,30 +99,27 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
     }
 
     renderMessagesContent = () => {
-        const { userConnections, user } = this.props;
+        const { userConnections } = this.props;
 
         return (
             <>
                 <h2>{this.translate('components.messagesMenu.h2.messaging')}</h2>
                 <div className="messages-menu"></div>
                 {
-                    userConnections && userConnections.connections.length > 0
+                    userConnections && userConnections.activeConnections.length > 0
                     && <div className="realtime-connections-list">
                         {
-                            userConnections.connections.map((connection) => {
-                                const connectionDetails = connection.users.find((u) => u.id !== user.details.id);
-                                return (
-                                    <ButtonPrimary
-                                        id="nav_menu_connection_link"
-                                        key={connection.id}
-                                        className="connection-link-item right-icon active"
-                                        name={connection.id}
-                                        onClick={(e) => this.handleConnectionClick(e, connectionDetails)}
-                                        buttonType="primary">
-                                        {`${connectionDetails.firstName} ${connectionDetails.lastName}`}
-                                    </ButtonPrimary>
-                                );
-                            })
+                            userConnections.activeConnections.map((activeUser) => (
+                                <ButtonPrimary
+                                    id="nav_menu_connection_link"
+                                    key={activeUser.id}
+                                    className="connection-link-item right-icon active"
+                                    name={activeUser.id}
+                                    onClick={(e) => this.handleConnectionClick(e, activeUser)}
+                                    buttonType="primary">
+                                    {`${activeUser.firstName} ${activeUser.lastName}`}
+                                </ButtonPrimary>
+                            ))
                         }
                     </div>
                 }

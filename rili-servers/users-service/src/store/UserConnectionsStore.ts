@@ -144,7 +144,11 @@ class Store {
             const query = operator === 'like' ? `%${conditions.query}%` : conditions.query;
             if (shouldCheckReverse === 'true') {
                 queryString = queryString.andWhere('requestingUserId', operator, query)
-                    .orWhere('acceptingUserId', operator, query);
+                    .orWhere({
+                        isConnectionBroken: false,
+                        requestStatus: 'complete',
+                    })
+                    .andWhere('acceptingUserId', operator, query);
             } else {
                 queryString = queryString.andWhere(conditions.filterBy, operator, query);
             }

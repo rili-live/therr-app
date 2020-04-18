@@ -37,9 +37,9 @@ const login = ({
             // 30 minutes
             ttl: 60 * 1000 * 30,
             data: {
-                id: socket.id,
+                id: data.id,
+                socketId: socket.id,
                 previousSocketId: null,
-                userId: data.id,
                 userName: data.userName,
                 idToken: data.idToken,
             },

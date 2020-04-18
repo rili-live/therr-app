@@ -46,12 +46,16 @@ class RedisSessions {
         return this.redisHelper.removeUser(socketId);
     }
 
-    public getBySocketId(socketId: Redis.KeyType): any {
+    public getUserBySocketId(socketId: Redis.KeyType): any {
         return this.redisHelper.getUserBySocketId(socketId);
     }
 
-    public getByUserId(userId: number): any {
+    public getUserById(userId: number): any {
         return this.redisHelper.getUserById(userId);
+    }
+
+    public getUsersByIds(users: any[]): any {
+        return this.redisHelper.getUsersById(users);
     }
 }
 

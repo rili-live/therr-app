@@ -86,7 +86,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                 orderBy: 'interactionCount',
                 order: 'desc',
                 shouldCheckReverse: true,
-            });
+            }, user.details.id);
         }
     }
 
