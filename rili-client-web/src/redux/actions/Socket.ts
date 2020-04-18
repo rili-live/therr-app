@@ -13,6 +13,12 @@ const Socket = {
             data,
         });
     },
+    leaveForum: (data) => (dispatch) => {
+        dispatch({
+            type: SocketClientActionTypes.EXIT_ROOM,
+            data,
+        });
+    },
     sendMessage: (data) => (dispatch) => {
         dispatch({
             type: SocketClientActionTypes.SEND_MESSAGE,

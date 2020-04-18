@@ -1,4 +1,4 @@
-import joinRoom from './rooms';
+import { joinRoom, leaveRoom } from './rooms';
 import { login, logout } from './auth';
 import updateSession from './sessions';
 import sendMessage from './messages';
@@ -15,6 +15,7 @@ export {
 
     // Rooms
     joinRoom,
+    leaveRoom,
 
     // Messages
     sendMessage,

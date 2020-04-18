@@ -1,9 +1,8 @@
 import moment from 'moment';
 import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
-import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
+import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-library/utilities/constants.js';
 import beeline from '../beeline';
-import * as Constants from '../constants';
 import redisSessions from '../store/redisSessions';
 
 export interface ILoginData {
@@ -45,7 +44,7 @@ const login = ({
                 idToken: data.idToken,
             },
         }).then((response: any) => {
-            socket.emit(Constants.ACTION, {
+            socket.emit(SOCKET_MIDDLEWARE_ACTION, {
                 type: SocketServerActionTypes.SESSION_CREATED,
                 data: response,
             });
@@ -79,7 +78,7 @@ const login = ({
     });
 
     // Emits an event back to the client who logged in
-    socket.emit(Constants.ACTION, {
+    socket.emit(SOCKET_MIDDLEWARE_ACTION, {
         type: SocketServerActionTypes.USER_LOGIN_SUCCESS,
         data: {
             message: {
@@ -100,7 +99,7 @@ const logout = ({
 
     if (socket.handshake && socket.handshake.headers && socket.handshake.headers.host) {
         redisSessions.remove(socket.id).then((response: any) => {
-            socket.emit(Constants.ACTION, {
+            socket.emit(SOCKET_MIDDLEWARE_ACTION, {
                 type: SocketServerActionTypes.SESSION_CLOSED,
                 data: {},
             });
@@ -132,7 +131,7 @@ const logout = ({
     });
 
     // Emits an event back to the client who logged OUT
-    socket.emit(Constants.ACTION, {
+    socket.emit(SOCKET_MIDDLEWARE_ACTION, {
         type: SocketServerActionTypes.USER_LOGOUT_SUCCESS,
         data: {
             message: {

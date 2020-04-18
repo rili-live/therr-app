@@ -1,9 +1,7 @@
-import moment from 'moment';
 import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
-import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
+import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-library/utilities/constants.js';
 import beeline from '../beeline';
-import * as Constants from '../constants';
 import redisSessions from '../store/redisSessions';
 
 export interface ILoginData {
@@ -58,7 +56,7 @@ const update = ({
                 idToken: user.idToken,
             },
         }).then((response: any) => {
-            socket.emit(Constants.ACTION, {
+            socket.emit(SOCKET_MIDDLEWARE_ACTION, {
                 type: SocketServerActionTypes.SESSION_UPDATED,
                 data: response,
             });

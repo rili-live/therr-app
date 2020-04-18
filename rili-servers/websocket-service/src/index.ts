@@ -135,6 +135,17 @@ const startExpressSocketIOServer = () => {
                     }
 
                     break;
+                case SocketClientActionTypes.EXIT_ROOM:
+                    if (isAuthenticated) {
+                        socketHandlers.leaveRoom(socket, action.data);
+                        // Notify all users
+                        socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
+                            type: SocketServerActionTypes.SEND_ROOMS_LIST,
+                            data: getSocketRoomsList(io.sockets.adapter.rooms),
+                        });
+                    }
+
+                    break;
                 case SocketClientActionTypes.LOGIN:
                     socketHandlers.login({
                         appName: rsAppName,
