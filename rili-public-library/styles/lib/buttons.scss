@@ -12,6 +12,10 @@ button {
     height: 2.125rem;
     padding: 1px 12px 2px;
 
+    &:hover {
+        cursor: pointer;
+    }
+
     &.icon-button {
         padding: 1px 5px 2px;
     }

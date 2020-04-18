@@ -8,6 +8,7 @@ enum SocketClientActionTypes {
     UPDATE_SESSION = 'CLIENT:UPDATE_SESSION', // socket reconnect
 
     // ROOMS
+    EXIT_ROOM = 'CLIENT:EXIT_ROOM',
     JOIN_ROOM = 'CLIENT:JOIN_ROOM',
 
     // MESSAGES

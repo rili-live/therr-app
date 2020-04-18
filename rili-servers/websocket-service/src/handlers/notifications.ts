@@ -1,8 +1,7 @@
 import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
-import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
+import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-library/utilities/constants.js';
 import beeline from '../beeline';
-import * as Constants from '../constants';
 import globalConfig from '../../../../global-config.js';
 import restRequest from '../utilities/restRequest';
 
@@ -28,7 +27,7 @@ const updateNotification = (socket: socketio.Socket, data: IUpdateNotificationDa
             isUnread: data.notification.isUnread,
         },
     }, socket).then((response) => {
-        socket.emit(Constants.ACTION, {
+        socket.emit(SOCKET_MIDDLEWARE_ACTION, {
             type: SocketServerActionTypes.NOTIFICATION_UPDATED,
             data: {
                 ...data.notification,

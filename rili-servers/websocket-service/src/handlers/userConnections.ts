@@ -1,8 +1,7 @@
 import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
-import { Notifications, SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
+import { Notifications, SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-library/utilities/constants.js';
 import beeline from '../beeline';
-import * as Constants from '../constants';
 import redisSessions from '../store/redisSessions';
 import globalConfig from '../../../../global-config.js';
 import restRequest from '../utilities/restRequest';
@@ -31,7 +30,7 @@ const createConnection = (socket: socketio.Socket, data: ICreateUserConnectionDa
         const connection = { ...data.connection };
         const notification = data.connection.notification;
         delete connection.notification;
-        socket.to(socketId).emit(Constants.ACTION, { // To user who accepted request
+        socket.to(socketId).emit(SOCKET_MIDDLEWARE_ACTION, { // To user who accepted request
             type: SocketServerActionTypes.NOTIFICATION_CREATED,
             data: {
                 ...notification,
@@ -64,12 +63,12 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
             requestingSocketId = socketId;
 
             if (connection.requestStatus === 'complete') { // Do not send notification when connection denied
-                socket.to(requestingSocketId).emit(Constants.ACTION, { // To user who sent request
+                socket.to(requestingSocketId).emit(SOCKET_MIDDLEWARE_ACTION, { // To user who sent request
                     type: SocketServerActionTypes.USER_CONNECTION_UPDATED,
                     data: connection,
                 });
 
-                socket.emit(Constants.ACTION, { // To user who accepted request
+                socket.emit(SOCKET_MIDDLEWARE_ACTION, { // To user who accepted request
                     type: SocketServerActionTypes.USER_CONNECTION_UPDATED,
                     data: connection,
                 });
@@ -94,7 +93,7 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
                     },
                 },
             }, socket).then(({ data: notification }) => {
-                socket.to(requestingSocketId).emit(Constants.ACTION, { // To user who sent request
+                socket.to(requestingSocketId).emit(SOCKET_MIDDLEWARE_ACTION, { // To user who sent request
                     type: SocketServerActionTypes.NOTIFICATION_CREATED,
                     data: notification,
                 });
