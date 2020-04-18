@@ -16,6 +16,7 @@ export interface ISearchQuery {
   itemsPerPage?: string;
   pageNumber?: string;
   returning?: string;
+  shouldCheckReverse?: string;
 }
 
 // IDs of the elements on page, used to select/focus tabs

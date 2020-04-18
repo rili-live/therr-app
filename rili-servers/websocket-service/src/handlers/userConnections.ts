@@ -1,8 +1,7 @@
 import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
-import { Notifications, SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
+import { Notifications, SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-library/utilities/constants.js';
 import beeline from '../beeline';
-import * as Constants from '../constants';
 import redisSessions from '../store/redisSessions';
 import globalConfig from '../../../../global-config.js';
 import restRequest from '../utilities/restRequest';
@@ -27,17 +26,20 @@ const createConnection = (socket: socketio.Socket, data: ICreateUserConnectionDa
             socketId: socket.id,
         },
     });
-    redisSessions.getByUserId(data.connection.acceptingUserId).then(({ socketId }) => {
-        const connection = { ...data.connection };
-        const notification = data.connection.notification;
-        delete connection.notification;
-        socket.to(socketId).emit(Constants.ACTION, { // To user who accepted request
-            type: SocketServerActionTypes.NOTIFICATION_CREATED,
-            data: {
-                ...notification,
-                userConnection: connection,
-            },
-        });
+    redisSessions.getUserById(data.connection.acceptingUserId).then((response) => {
+        const socketId = response && response.socketId;
+        if (response.socketId) {
+            const connection = { ...data.connection };
+            const notification = data.connection.notification;
+            delete connection.notification;
+            socket.to(socketId).emit(SOCKET_MIDDLEWARE_ACTION, { // To user who accepted request
+                type: SocketServerActionTypes.NOTIFICATION_CREATED,
+                data: {
+                    ...notification,
+                    userConnection: connection,
+                },
+            });
+        }
     });
 };
 
@@ -58,21 +60,22 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
         url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiRoute}/users/connections/${data.connection.requestingUserId}`,
         data: data.connection,
     }, socket).then(({ data: connection }) => {
-        redisSessions.getByUserId(data.connection.requestingUserId).then(({
-            socketId,
-        }) => {
-            requestingSocketId = socketId;
+        redisSessions.getUserById(data.connection.requestingUserId).then((response) => {
+            const socketId = response && response.socketId;
+            if (socketId) {
+                requestingSocketId = socketId;
 
-            if (connection.requestStatus === 'complete') { // Do not send notification when connection denied
-                socket.to(requestingSocketId).emit(Constants.ACTION, { // To user who sent request
-                    type: SocketServerActionTypes.USER_CONNECTION_UPDATED,
-                    data: connection,
-                });
+                if (connection.requestStatus === 'complete') { // Do not send notification when connection denied
+                    socket.to(requestingSocketId).emit(SOCKET_MIDDLEWARE_ACTION, { // To user who sent request
+                        type: SocketServerActionTypes.USER_CONNECTION_UPDATED,
+                        data: connection,
+                    });
 
-                socket.emit(Constants.ACTION, { // To user who accepted request
-                    type: SocketServerActionTypes.USER_CONNECTION_UPDATED,
-                    data: connection,
-                });
+                    socket.emit(SOCKET_MIDDLEWARE_ACTION, { // To user who accepted request
+                        type: SocketServerActionTypes.USER_CONNECTION_UPDATED,
+                        data: connection,
+                    });
+                }
             }
         });
 
@@ -94,7 +97,7 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
                     },
                 },
             }, socket).then(({ data: notification }) => {
-                socket.to(requestingSocketId).emit(Constants.ACTION, { // To user who sent request
+                socket.to(requestingSocketId).emit(SOCKET_MIDDLEWARE_ACTION, { // To user who sent request
                     type: SocketServerActionTypes.NOTIFICATION_CREATED,
                     data: notification,
                 });
@@ -107,7 +110,28 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
     });
 };
 
+const loadActiveConnections = (socket: socketio.Socket, data: any) => {
+    const users = data.connections
+        .map((connection) => {
+            const contextUserId = connection.acceptingUserId === data.userId ? connection.requestingUserId : connection.acceptingUserId;
+            return connection.users.find((user) => user.id === contextUserId);
+        });
+
+    redisSessions.getUsersByIds(users).then((activeUserIds) => {
+        const activeUsers = users.filter((u) => activeUserIds.includes(u.id));
+        socket.emit(SOCKET_MIDDLEWARE_ACTION, {
+            type: SocketServerActionTypes.ACTIVE_CONNECTIONS_LOADED,
+            data: {
+                activeUsers,
+            },
+        });
+    });
+
+    // console.log('LENGTH', activeConnections.length, activeConnections);
+};
+
 export {
     createConnection,
     updateConnection,
+    loadActiveConnections,
 };

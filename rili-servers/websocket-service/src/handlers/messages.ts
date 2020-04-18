@@ -1,9 +1,8 @@
 import * as socketio from 'socket.io';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
 import moment from 'moment';
-import { SocketServerActionTypes, SocketClientActionTypes } from 'rili-public-library/utilities/constants.js';
+import { SocketServerActionTypes, SocketClientActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-library/utilities/constants.js';
 import beeline from '../beeline';
-import * as Constants from '../constants';
 
 const sendMessage = (socket: socketio.Socket, data: any) => {
     printLogs({
@@ -23,7 +22,7 @@ const sendMessage = (socket: socketio.Socket, data: any) => {
             },
         },
     });
-    socket.broadcast.to(data.roomId).emit(Constants.ACTION, {
+    socket.broadcast.to(data.roomId).emit(SOCKET_MIDDLEWARE_ACTION, {
         type: SocketServerActionTypes.SEND_MESSAGE,
         data: {
             roomId: data.roomId,

@@ -148,6 +148,7 @@ h1:focus {
 label {
   color: #dee1e4;
   font-weight: 700;
+  font-size: rem-calc(15px);
   line-height: 2.5rem;
   margin-bottom: 0;
   padding-left: 1rem;
@@ -420,6 +421,7 @@ select button,
   outline: none;
   overflow: hidden;
   padding: 0.5rem 1.5rem 0.5rem 0.5rem;
+  border: none;
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;

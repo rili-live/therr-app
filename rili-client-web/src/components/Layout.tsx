@@ -182,7 +182,19 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
     }
 
     goHome = () => {
-        this.props.history.push('/');
+        const isAuthorized = UsersService.isAuthorized(
+            {
+                type: AccessCheckType.ALL,
+                levels: ['user.default'],
+            },
+            this.props.user,
+        );
+
+        if (!isAuthorized) {
+            this.props.history.push('/');
+        } else {
+            this.props.history.push('/user/profile');
+        }
     }
 
     handleLogout = (e) => {
