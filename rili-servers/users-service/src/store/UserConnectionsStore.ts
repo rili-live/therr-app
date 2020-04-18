@@ -107,7 +107,7 @@ class Store {
     }
 
     // TODO: RSERV:25 - Make this dynamic to accept multiple queries
-    searchUserConnections(conditions: any = {}, returning) {
+    searchUserConnections(conditions: any = {}, returning, shouldCheckReverse?: string) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
         let queryString: any = knex
@@ -120,7 +120,7 @@ class Store {
                 `${USER_CONNECTIONS_TABLE_NAME}.isConnectionBroken`,
                 `${USER_CONNECTIONS_TABLE_NAME}.createdAt`,
                 `${USER_CONNECTIONS_TABLE_NAME}.updatedAt`,
-            ])
+            ] || returning)
             .from(USER_CONNECTIONS_TABLE_NAME)
             .innerJoin(USERS_TABLE_NAME, function () {
                 this.on(function () {
@@ -142,7 +142,12 @@ class Store {
         if (conditions.filterBy && conditions.query) {
             const operator = conditions.filterOperator || '=';
             const query = operator === 'like' ? `%${conditions.query}%` : conditions.query;
-            queryString = queryString.andWhere(conditions.filterBy, operator, query);
+            if (shouldCheckReverse === 'true') {
+                queryString = queryString.andWhere('requestingUserId', operator, query)
+                    .orWhere('acceptingUserId', operator, query);
+            } else {
+                queryString = queryString.andWhere(conditions.filterBy, operator, query);
+            }
         }
 
         // if (groupBy) {

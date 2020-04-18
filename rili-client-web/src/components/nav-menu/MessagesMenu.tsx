@@ -3,20 +3,24 @@ import { connect } from 'react-redux';
 import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
 import InlineSvg from 'rili-public-library/react-components/InlineSvg.js';
 import SvgButton from 'rili-public-library/react-components/SvgButton.js';
-import { IUserState } from 'types/user';
 import { ISocketState } from 'types/socket';
+import { IUserState } from 'types/user';
+import { IUserConnectionsState } from 'types/userConnections';
 import UsersActions from 'actions/Users';
+import UserConnectionsActions from 'actions/UserConnections';
 import { bindActionCreators } from 'redux';
 import translator from '../../services/translator';
 
 interface IMessagesMenuDispatchProps {
     logout: Function;
+    searchUserConnections: Function;
 }
 
 interface IStoreProps extends IMessagesMenuDispatchProps {
     history: any;
     socket: ISocketState;
     user: IUserState;
+    userConnections: IUserConnectionsState;
 }
 
 // Regular component props
@@ -31,10 +35,12 @@ interface IMessagesMenuState {
 const mapStateToProps = (state: any) => ({
     socket: state.socket,
     user: state.user,
+    userConnections: state.userConnections,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     logout: UsersActions.logout,
+    searchUserConnections: UserConnectionsActions.search,
 }, dispatch);
 
 export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, IMessagesMenuState> {
