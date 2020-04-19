@@ -6,13 +6,11 @@ import SvgButton from 'rili-public-library/react-components/SvgButton.js';
 import { ISocketState } from 'types/socket';
 import { IUserState } from 'types/user';
 import { IUserConnectionsState } from 'types/userConnections';
-import UsersActions from 'actions/Users';
 import UserConnectionsActions from 'actions/UserConnections';
 import { bindActionCreators } from 'redux';
 import translator from '../../services/translator';
 
 interface IMessagesMenuDispatchProps {
-    logout: Function;
     searchUserConnections: Function;
 }
 
@@ -39,7 +37,6 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    logout: UsersActions.logout,
     searchUserConnections: UserConnectionsActions.search,
 }, dispatch);
 
@@ -65,7 +62,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
             searchUserConnections({
                 filterBy: 'acceptingUserId',
                 query: user.details.id,
-                itemsPerPage: 20,
+                itemsPerPage: 50,
                 pageNumber: 1,
                 orderBy: 'interactionCount',
                 order: 'desc',
