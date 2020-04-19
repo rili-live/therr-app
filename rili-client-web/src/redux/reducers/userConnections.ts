@@ -13,6 +13,7 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
         state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
     }
 
+    const activeConnections = [...state.activeConnections]; // eslint-disable-line no-case-declarations
     let uniqueConnections = [...state.connections]; // eslint-disable-line no-case-declarations
 
     switch (action.type) {
@@ -35,6 +36,12 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
             return state.setIn(['connections'], [...uniqueConnections, action.data]);
         case SocketServerActionTypes.ACTIVE_CONNECTIONS_LOADED:
             return state.setIn(['activeConnections'], action.data.activeUsers);
+        case SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_OUT:
+            const leftUserIndex = activeConnections.findIndex((con) => con.id === action.data.id); // eslint-disable-line no-case-declarations
+            if (leftUserIndex > -1) {
+                activeConnections.splice(leftUserIndex, 1);
+            }
+            return state.setIn(['activeConnections'], activeConnections);
         default:
             return state;
     }

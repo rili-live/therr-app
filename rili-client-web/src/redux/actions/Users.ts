@@ -27,34 +27,41 @@ const Socket = {
                 phoneNumber,
                 userName,
             });
-            sessionStorage.setItem('riliSession', JSON.stringify({ id: socketIO.id }));
-            sessionStorage.setItem('riliUser', JSON.stringify(userData));
-            if (data.rememberMe) {
-                localStorage.setItem('riliSession', JSON.stringify({ id: socketIO.id }));
-                localStorage.setItem('riliUser', JSON.stringify(userData));
-            }
             socketIO.io.opts.query = {
                 token: idToken,
             };
+            // Connect and get socketIO.id
+            socketIO.on('connect', () => {
+                sessionStorage.setItem('riliSession', JSON.stringify({ id: socketIO.id }));
+                if (data.rememberMe) {
+                    localStorage.setItem('riliSession', JSON.stringify({ id: socketIO.id }));
+                }
+            });
             socketIO.connect();
+            sessionStorage.setItem('riliUser', JSON.stringify(userData));
+            if (data.rememberMe) {
+                localStorage.setItem('riliUser', JSON.stringify(userData));
+            }
             dispatch({
                 type: SocketClientActionTypes.LOGIN,
                 data: userData,
             });
         });
     },
-    logout: (data: any) => (dispatch: any) => UsersService.logout(data).then(() => {
+    logout: (userDetails?: any) => (dispatch: any) => UsersService.logout(userDetails).then(() => {
         sessionStorage.removeItem('riliSession');
         sessionStorage.removeItem('riliUser');
         localStorage.removeItem('riliSession');
         localStorage.removeItem('riliUser');
-        socketIO.disconnect();
         dispatch({
             type: SocketClientActionTypes.LOGOUT,
             data: {
-                userName: data.userName,
+                id: userDetails && userDetails.id,
+                idToken: userDetails && userDetails.idToken,
+                userName: userDetails && userDetails.userName,
             },
         });
+        // NOTE: Socket will disconnect in reducer after event response from server (SESSION_CLOSED)
     }),
     register: (data: any) => (dispatch: any) => UsersService.create(data).then((response) => {
         const {
