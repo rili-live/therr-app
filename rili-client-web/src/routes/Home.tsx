@@ -63,9 +63,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
     private translate: Function;
 
-    login = (credentials: any) => this.props.login(credentials).then(() => {
-        this.props.history.push('/create-forum');
-    })
+    login = (credentials: any) => this.props.login(credentials)
 
     public render(): JSX.Element | null {
         return (

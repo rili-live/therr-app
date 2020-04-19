@@ -3,20 +3,22 @@ import { connect } from 'react-redux';
 import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
 import InlineSvg from 'rili-public-library/react-components/InlineSvg.js';
 import SvgButton from 'rili-public-library/react-components/SvgButton.js';
-import { IUserState } from 'types/user';
 import { ISocketState } from 'types/socket';
-import UsersActions from 'actions/Users';
+import { IUserState } from 'types/user';
+import { IUserConnectionsState } from 'types/userConnections';
+import UserConnectionsActions from 'actions/UserConnections';
 import { bindActionCreators } from 'redux';
 import translator from '../../services/translator';
 
 interface IMessagesMenuDispatchProps {
-    logout: Function;
+    searchUserConnections: Function;
 }
 
 interface IStoreProps extends IMessagesMenuDispatchProps {
     history: any;
     socket: ISocketState;
     user: IUserState;
+    userConnections: IUserConnectionsState;
 }
 
 // Regular component props
@@ -31,10 +33,11 @@ interface IMessagesMenuState {
 const mapStateToProps = (state: any) => ({
     socket: state.socket,
     user: state.user,
+    userConnections: state.userConnections,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    logout: UsersActions.logout,
+    searchUserConnections: UserConnectionsActions.search,
 }, dispatch);
 
 export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, IMessagesMenuState> {
@@ -48,12 +51,36 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
+    componentDidMount() {
+        const {
+            searchUserConnections,
+            user,
+            userConnections,
+        } = this.props;
+
+        if (!userConnections.connections.length) {
+            searchUserConnections({
+                filterBy: 'acceptingUserId',
+                query: user.details.id,
+                itemsPerPage: 50,
+                pageNumber: 1,
+                orderBy: 'interactionCount',
+                order: 'desc',
+                shouldCheckReverse: true,
+            }, user.details.id);
+        }
+    }
+
     private translate: Function;
 
     handleTabSelect = (e, tabName) => {
         this.setState({
             activeTab: tabName,
         });
+    }
+
+    handleConnectionClick = (e, connectionDetails) => {
+        console.log(connectionDetails);
     }
 
     navigate = (destination, params?: any) => (e) => {
@@ -68,12 +95,34 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
         }
     }
 
-    renderMessagesContent = () => (
-        <>
-            <h2>{this.translate('components.messagesMenu.h2.messaging')}</h2>
-            <div className="messages-menu"></div>
-        </>
-    )
+    renderMessagesContent = () => {
+        const { userConnections } = this.props;
+
+        return (
+            <>
+                <h2>{this.translate('components.messagesMenu.h2.messaging')}</h2>
+                <div className="messages-menu"></div>
+                {
+                    userConnections && userConnections.activeConnections.length > 0
+                    && <div className="realtime-connections-list">
+                        {
+                            userConnections.activeConnections.map((activeUser) => (
+                                <ButtonPrimary
+                                    id="nav_menu_connection_link"
+                                    key={activeUser.id}
+                                    className="connection-link-item right-icon active"
+                                    name={activeUser.id}
+                                    onClick={(e) => this.handleConnectionClick(e, activeUser)}
+                                    buttonType="primary">
+                                    {`${activeUser.firstName} ${activeUser.lastName}`}
+                                </ButtonPrimary>
+                            ))
+                        }
+                    </div>
+                }
+            </>
+        );
+    }
 
     renderForumsContent = () => {
         const { socket } = this.props;

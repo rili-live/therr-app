@@ -1,6 +1,7 @@
 import * as Immutable from 'seamless-immutable';
 import { SocketClientActionTypes, SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
 import { IUserState } from 'types/user';
+import { socketIO } from '../../socket-io-middleware';
 
 const initialState: IUserState = Immutable.from({
     details: null,
@@ -34,6 +35,7 @@ const user = (state: IUserState = initialState, action: any) => {
         case SocketServerActionTypes.SESSION_UPDATED:
             return state.setIn(['socketDetails', 'session'], (actionData && actionData.data) || {});
         case SocketServerActionTypes.SESSION_CLOSED:
+            socketIO.disconnect();
             return state.setIn(['socketDetails', 'session'], {});
         default:
             return state;

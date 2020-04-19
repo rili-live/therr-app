@@ -8,6 +8,7 @@ export interface IUserConnection {
 }
 
 export interface IUserConnectionsState extends Immutable.ImmutableObject<any> {
+  activeConnections: any;
   connections: any;
 }
 

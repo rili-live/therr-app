@@ -18,6 +18,7 @@ interface IForumRouterProps {
 
 interface IForumDispatchProps {
     joinForum: Function;
+    leaveForum: Function;
     sendMessage: Function;
 }
 
@@ -45,6 +46,7 @@ const mapStateToProps = (state: IForumState | any) => ({
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     joinForum: SocketActions.joinForum,
+    leaveForum: SocketActions.leaveForum,
     sendMessage: SocketActions.sendMessage,
 }, dispatch);
 
@@ -94,6 +96,13 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
         if (messages && messages.length > 3 && messages.length > prevProps.socket.messages[currentRoom].length) {
             scrollTo(document.body.scrollHeight, 100);
         }
+    }
+
+    componentWillUnmount() {
+        this.props.leaveForum({
+            roomId: this.props.match.params.roomId,
+            userName: this.props.user.details.userName,
+        });
     }
 
     private messageInputRef: any;

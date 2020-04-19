@@ -74,21 +74,20 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
     componentDidMount() {
         const {
             user,
+            userConnections,
         } = this.props;
         document.title = `Rili | ${this.translate('pages.userProfile.pageTitle')} | ${user.details.userName}`;
-        // TODO: RSERV-25 - Make this one Db request
-        this.props.searchUserConnections({
-            filterBy: 'acceptingUserId',
-            query: user.details.id,
-            itemsPerPage: 20,
-            pageNumber: 1,
-        });
-        this.props.searchUserConnections({
-            filterBy: 'requestingUserId',
-            query: user.details.id,
-            itemsPerPage: 20,
-            pageNumber: 1,
-        });
+        if (!userConnections.connections.length) {
+            this.props.searchUserConnections({
+                filterBy: 'acceptingUserId',
+                query: user.details.id,
+                itemsPerPage: 50,
+                pageNumber: 1,
+                orderBy: 'interactionCount',
+                order: 'desc',
+                shouldCheckReverse: true,
+            }, user.details.id);
+        }
     }
 
     isFormValid() {

@@ -3,7 +3,14 @@ import { UserConnectionActionTypes } from 'types/userConnections';
 import UserConnectionsService from '../../services/UserConnectionsService';
 
 const UserConnection = {
-    search: (query: any) => (dispatch: any) => UserConnectionsService.search(query).then((response) => {
+    search: (query: any, userId: number) => (dispatch: any) => UserConnectionsService.search(query).then((response) => {
+        dispatch({
+            type: SocketClientActionTypes.LOAD_ACTIVE_CONNECTIONS,
+            data: {
+                connections: response.data.results,
+                userId,
+            },
+        });
         dispatch({
             type: UserConnectionActionTypes.GET_USER_CONNECTIONS,
             data: response.data.results,

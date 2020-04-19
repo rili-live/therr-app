@@ -17,6 +17,7 @@ import redisAdapter from './store/redisAdapter';
 import redisSessions from './store/redisSessions';
 import { redisPub, redisSub } from './store/redisClient';
 import authenticate from './utilities/authenticate';
+import notifyConnections from './utilities/notify-connections';
 
 export const rsAppName = 'riliChat';
 
@@ -27,10 +28,9 @@ const leaveAndNotifyRooms = (socket: SocketIO.Socket) => {
         .filter((room) => room !== socket.id);
 
     if (activeRooms.length) {
-        redisSessions.getBySocketId(socket.id).then((response: any) => {
+        redisSessions.getUserBySocketId(socket.id).then((user: any) => {
             activeRooms.forEach((room) => {
-                const parsedResponse = JSON.parse(response);
-                if (parsedResponse && parsedResponse.userName) {
+                if (user && user.userName) {
                     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
                     socket.broadcast.to(room).emit(SOCKET_MIDDLEWARE_ACTION, {
                         type: SocketServerActionTypes.LEFT_ROOM,
@@ -39,7 +39,7 @@ const leaveAndNotifyRooms = (socket: SocketIO.Socket) => {
                             message: {
                                 key: Date.now().toString(),
                                 time: now,
-                                text: `${parsedResponse.userName} left the room`,
+                                text: `${user.userName} left the room`,
                             },
                         },
                     });
@@ -121,12 +121,23 @@ const startExpressSocketIOServer = () => {
 
         // Event sent from socket.io, redux store middleware
         socket.on(SOCKET_MIDDLEWARE_ACTION, async (action: any) => {
-            const isAuthenticated = await authenticate(socket, action.type);
+            const isAuthenticated = await authenticate(socket);
 
             switch (action.type) {
                 case SocketClientActionTypes.JOIN_ROOM:
                     if (isAuthenticated) {
                         socketHandlers.joinRoom(socket, action.data);
+                        // Notify all users
+                        socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
+                            type: SocketServerActionTypes.SEND_ROOMS_LIST,
+                            data: getSocketRoomsList(io.sockets.adapter.rooms),
+                        });
+                    }
+
+                    break;
+                case SocketClientActionTypes.EXIT_ROOM:
+                    if (isAuthenticated) {
+                        socketHandlers.leaveRoom(socket, action.data);
                         // Notify all users
                         socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
                             type: SocketServerActionTypes.SEND_ROOMS_LIST,
@@ -167,6 +178,11 @@ const startExpressSocketIOServer = () => {
                         socketHandlers.updateNotification(socket, action.data);
                     }
                     break;
+                case SocketClientActionTypes.LOAD_ACTIVE_CONNECTIONS:
+                    if (isAuthenticated) {
+                        socketHandlers.loadActiveConnections(socket, action.data);
+                    }
+                    break;
                 case SocketClientActionTypes.CREATE_USER_CONNECTION:
                     if (isAuthenticated) {
                         socketHandlers.createConnection(socket, action.data);
@@ -182,7 +198,7 @@ const startExpressSocketIOServer = () => {
             }
         });
 
-        socket.on('disconnecting', (reason: string) => {
+        socket.on('disconnecting', async (reason: string) => {
             // TODO: Use constants to mitigate disconnect reasons
             printLogs({
                 level: 'info',
@@ -195,6 +211,11 @@ const startExpressSocketIOServer = () => {
             });
             // TODO: SocketServerActionTypes.DISCONNNECT, notify all users who are connected with the user that disconnects
             leaveAndNotifyRooms(socket);
+
+            const user = await redisSessions.getUserBySocketId(socket.id);
+            if (user) {
+                notifyConnections(socket, user, SocketServerActionTypes.ACTIVE_CONNECTION_DISCONNECTED);
+            }
         });
     });
 };

@@ -17,6 +17,9 @@ button {
   height: 2.125rem;
   padding: 1px 12px 2px;
 }
+button:hover {
+  cursor: pointer;
+}
 button.icon-button {
   padding: 1px 5px 2px;
 }
@@ -209,6 +212,7 @@ h1:focus {
 label {
   color: #dee1e4;
   font-weight: 700;
+  font-size: rem-calc(15px);
   line-height: 2.5rem;
   margin-bottom: 0;
   padding-left: 1rem;
@@ -481,6 +485,7 @@ select button,
   outline: none;
   overflow: hidden;
   padding: 0.5rem 1.5rem 0.5rem 0.5rem;
+  border: none;
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -557,6 +562,7 @@ select .options-list .option-container.ax-active,
 }
 
 .fill {
+  box-sizing: border-box;
   width: 100%;
 }
 

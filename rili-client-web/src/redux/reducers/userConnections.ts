@@ -3,6 +3,7 @@ import * as Immutable from 'seamless-immutable';
 import { IUserConnectionsState, UserConnectionActionTypes } from 'types/userConnections';
 
 const initialState: IUserConnectionsState = Immutable.from({
+    activeConnections: Immutable.from([]),
     connections: Immutable.from([]),
 });
 
@@ -12,6 +13,7 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
         state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
     }
 
+    const activeConnections = [...state.activeConnections]; // eslint-disable-line no-case-declarations
     let uniqueConnections = [...state.connections]; // eslint-disable-line no-case-declarations
 
     switch (action.type) {
@@ -32,6 +34,25 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
             return state.setIn(['connections'], [...uniqueConnections, action.data]);
         case SocketServerActionTypes.USER_CONNECTION_UPDATED:
             return state.setIn(['connections'], [...uniqueConnections, action.data]);
+        case SocketServerActionTypes.ACTIVE_CONNECTIONS_LOADED:
+            return state.setIn(['activeConnections'], action.data.activeUsers);
+        case SocketServerActionTypes.ACTIVE_CONNECTION_DISCONNECTED:
+        case SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_OUT:
+            const leftUserIndex = activeConnections.findIndex((con) => con.id === action.data.id); // eslint-disable-line no-case-declarations
+            if (leftUserIndex > -1) {
+                activeConnections.splice(leftUserIndex, 1);
+            }
+            return state.setIn(['activeConnections'], activeConnections);
+        case SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_IN:
+        case SocketServerActionTypes.ACTIVE_CONNECTION_REFRESHED:
+            const newUser = activeConnections.find((con) => con.id === action.data.id); // eslint-disable-line no-case-declarations
+            if (!newUser) {
+                activeConnections.unshift(action.data);
+            }
+            return state.setIn(['activeConnections'], activeConnections);
+        case SocketServerActionTypes.SESSION_CLOSED:
+            return state.setIn(['connections'], Immutable.from([]))
+                .setIn(['activeConnections'], Immutable.from([]));
         default:
             return state;
     }

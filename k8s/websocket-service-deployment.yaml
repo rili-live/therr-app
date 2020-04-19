@@ -48,3 +48,8 @@ spec:
           value: "6379"
         - name: SOCKET_PORT
           value: "7743"
+        - name: SECRET
+          valueFrom:
+            secretKeyRef:
+              name: riliapisecret
+              key: RILIAPISECRET

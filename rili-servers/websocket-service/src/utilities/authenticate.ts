@@ -1,10 +1,9 @@
 import jwt from 'jsonwebtoken';
-import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
+import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-library/utilities/constants.js';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
 import beeline from '../beeline';
-import * as Constants from '../constants/index';
 
-export default (socket, type) => new Promise((resolve) => {
+export default (socket) => new Promise((resolve) => {
     if (!socket.handshake || !socket.handshake.query || !socket.handshake.query.token) {
         return resolve();
     }
@@ -12,7 +11,7 @@ export default (socket, type) => new Promise((resolve) => {
     jwt.verify(socket.handshake.query.token, (process.env.SECRET || ''), (err, decoded) => {
         if (err) {
             printLogs({
-                level: 'verbose',
+                level: 'info',
                 messageOrigin: 'SOCKET_AUTHENTICATION_ERROR',
                 messages: err,
                 tracer: beeline,
@@ -20,7 +19,7 @@ export default (socket, type) => new Promise((resolve) => {
                     socketId: socket.id,
                 },
             });
-            socket.emit(Constants.ACTION, {
+            socket.emit(SOCKET_MIDDLEWARE_ACTION, {
                 type: SocketServerActionTypes.UNAUTHORIZED,
                 data: {
                     message: 'Unable to autheticate websocket request',

@@ -22,7 +22,10 @@ class UserConnectionsService {
     })
 
     search = (query: ISearchQuery) => {
-        const queryString = getSearchQueryString(query);
+        let queryString = getSearchQueryString(query);
+        if (query.shouldCheckReverse) {
+            queryString = `${queryString}&shouldCheckReverse=true`;
+        }
         return axios({
             method: 'get',
             url: `/users/connections${queryString}`,
