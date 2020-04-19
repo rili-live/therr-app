@@ -1,9 +1,12 @@
 import moment from 'moment';
 import * as socketio from 'socket.io';
+import { getSearchQueryString } from 'rili-public-library/utilities/http.js';
 import printLogs from 'rili-public-library/utilities/print-logs.js';
 import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-library/utilities/constants.js';
 import beeline from '../beeline';
 import redisSessions from '../store/redisSessions';
+import restRequest from '../utilities/restRequest';
+import globalConfig from '../../../../global-config.js';
 
 export interface ILoginData {
     idToken: string;
@@ -19,7 +22,7 @@ interface ILoginArgs {
 
 interface ILogoutArgs {
     socket: socketio.Socket;
-    data: ILoginData;
+    data?: ILoginData;
 }
 
 const login = ({
@@ -96,39 +99,82 @@ const logout = ({
     data,
 }: ILogoutArgs) => {
     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
+    const promises: any[] = [];
+
+    if (data && data.id) {
+        const query = {
+            filterBy: 'acceptingUserId',
+            query: data.id,
+            itemsPerPage: 50,
+            pageNumber: 1,
+            orderBy: 'interactionCount',
+            order: 'desc',
+            shouldCheckReverse: true,
+        };
+        let queryString = getSearchQueryString(query);
+        if (query.shouldCheckReverse) {
+            queryString = `${queryString}&shouldCheckReverse=true`;
+        }
+        const promise = restRequest({
+            method: 'get',
+            url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiRoute}/users/connections${queryString}`,
+        }, socket).then(({ data: searchResults }) => {
+            const users = searchResults && searchResults.results
+                .map((connection) => {
+                    const contextUserId = connection.acceptingUserId === data.id ? connection.requestingUserId : connection.acceptingUserId;
+                    return connection.users.find((user) => user.id === contextUserId);
+                });
+
+            redisSessions.getUsersByIds(users).then((cachedActiveUsers) => {
+                const activeUsers: any[] = [];
+                users.forEach((u) => {
+                    const mappedMatch = cachedActiveUsers.find((activeUser) => activeUser.id === u.id);
+                    if (mappedMatch) {
+                        activeUsers.push({
+                            ...u,
+                            ...mappedMatch,
+                        });
+                    }
+                });
+
+                activeUsers.forEach((activeUser) => {
+                    socket.broadcast.to(activeUser.socketId).emit(SOCKET_MIDDLEWARE_ACTION, {
+                        type: SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_OUT,
+                        data: {
+                            id: data.id,
+                            userName: data.userName,
+                        },
+                    });
+                });
+            });
+        });
+
+        promises.push(promise);
+    }
 
     if (socket.handshake && socket.handshake.headers && socket.handshake.headers.host) {
-        redisSessions.remove(socket.id).then((response: any) => {
-            socket.emit(SOCKET_MIDDLEWARE_ACTION, {
-                type: SocketServerActionTypes.SESSION_CLOSED,
-                data: {},
-            });
-        }).catch((err: any) => {
-            printLogs({
-                level: 'verbose',
-                messageOrigin: 'REDIS_SESSION_ERROR',
-                messages: err.toString(),
-                tracer: beeline,
-                traceArgs: {
-                    ip: socket.handshake.headers.host.split(':')[0],
-                    socketId: socket.id,
-                    userName: data.userName,
-                },
+        Promise.all(promises).then(() => {
+            redisSessions.remove(socket.id).catch((err: any) => {
+                printLogs({
+                    level: 'info',
+                    messageOrigin: 'REDIS_SESSION_ERROR',
+                    messages: err.toString(),
+                    tracer: beeline,
+                    traceArgs: {
+                        ip: socket.handshake.headers.host.split(':')[0],
+                        socketId: socket.id,
+                        userId: data && data.id,
+                        userName: data && data.userName,
+                    },
+                });
+            }).finally(() => {
+                socket.emit(SOCKET_MIDDLEWARE_ACTION, {
+                    type: SocketServerActionTypes.SESSION_CLOSED,
+                    data: {},
+                });
             });
         });
     }
-
-    printLogs({
-        level: 'info',
-        messageOrigin: 'SOCKET_IO_LOGS',
-        messages: `User, ${data.userName} with socketId ${socket.id}, has LOGGED OUT.`,
-        tracer: beeline,
-        traceArgs: {
-            ip: socket.handshake.headers.host.split(':')[0],
-            socketId: socket.id,
-            userName: data.userName,
-        },
-    });
 
     // Emits an event back to the client who logged OUT
     socket.emit(SOCKET_MIDDLEWARE_ACTION, {
@@ -137,9 +183,21 @@ const logout = ({
             message: {
                 key: Date.now().toString(),
                 time: now,
-                text: 'You have been logged in successfully.',
+                text: 'You have been logged out successfully.',
             },
-            userName: data.userName,
+            userName: data && data.userName,
+        },
+    });
+
+    printLogs({
+        level: 'info',
+        messageOrigin: 'SOCKET_IO_LOGS',
+        messages: `User, ${data ? data.userName : 'unknown'} with socketId ${socket.id}, has LOGGED OUT.`,
+        tracer: beeline,
+        traceArgs: {
+            ip: socket.handshake.headers.host.split(':')[0],
+            socketId: socket.id,
+            userName: data && data.userName,
         },
     });
 };

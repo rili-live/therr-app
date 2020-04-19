@@ -66,13 +66,12 @@ export class RedisHelper {
     };
 
     public removeUser = async (socketId: Redis.KeyType) => {
-        const response = await this.getUserBySocketId(socketId);
-        const user = response && response.user;
+        const user = await this.getUserBySocketId(socketId);
         const pipeline = this.client.pipeline();
         if (user && user.id) {
             pipeline.del(`users:${user.id}`);
         }
-        pipeline.del(socketId);
+        pipeline.del(`userSockets:${socketId}`);
         pipeline.exec();
     };
 
@@ -96,7 +95,7 @@ export class RedisHelper {
 
     public getUsersById = async (users: any[]): Promise<any> => {
         const pipeline = this.client.pipeline();
-        const activeUserIds: any[] = [];
+        const activeUsers: any[] = [];
 
         users.forEach((u) => {
             pipeline.get(`users:${u.id}`);
@@ -118,13 +117,13 @@ export class RedisHelper {
 
                 if (user && Object.keys(user).length) {
                     socketId = (user as any).socketId;
-                    delete (user as any).socketId;
+                    activeUsers.push({ ...user });
 
-                    activeUserIds.push(user.id);
+                    delete (user as any).socketId;
                 }
             });
 
-            return activeUserIds;
+            return activeUsers;
         });
     };
 

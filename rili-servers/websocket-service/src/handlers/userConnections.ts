@@ -117,8 +117,18 @@ const loadActiveConnections = (socket: socketio.Socket, data: any) => {
             return connection.users.find((user) => user.id === contextUserId);
         });
 
-    redisSessions.getUsersByIds(users).then((activeUserIds) => {
-        const activeUsers = users.filter((u) => activeUserIds.includes(u.id));
+    redisSessions.getUsersByIds(users).then((cachedActiveUsers) => {
+        const activeUsers: any[] = [];
+        users.forEach((u) => {
+            const mappedMatch = cachedActiveUsers.find((activeUser) => activeUser.id === u.id);
+            if (mappedMatch) {
+                activeUsers.push({
+                    ...u,
+                    ...mappedMatch,
+                });
+            }
+        });
+
         socket.emit(SOCKET_MIDDLEWARE_ACTION, {
             type: SocketServerActionTypes.ACTIVE_CONNECTIONS_LOADED,
             data: {
@@ -126,8 +136,6 @@ const loadActiveConnections = (socket: socketio.Socket, data: any) => {
             },
         });
     });
-
-    // console.log('LENGTH', activeConnections.length, activeConnections);
 };
 
 export {

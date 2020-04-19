@@ -7,14 +7,12 @@ import { bindActionCreators } from 'redux';
 import { INotificationsState, INotification } from 'types/notifications';
 import {
     NotificationActions,
-    UsersActions,
     UserConnectionsActions,
 } from '../../redux/actions';
 import Notification from './Notification';
 import translator from '../../services/translator';
 
 interface IUserMenuDispatchProps {
-    logout: Function;
     updateNotification: Function;
     updateUserConnection: Function;
 }
@@ -41,7 +39,6 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    logout: UsersActions.logout,
     updateNotification: NotificationActions.update,
     updateUserConnection: UserConnectionsActions.update,
 }, dispatch);

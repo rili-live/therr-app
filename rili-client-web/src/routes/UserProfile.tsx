@@ -81,7 +81,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
             this.props.searchUserConnections({
                 filterBy: 'acceptingUserId',
                 query: user.details.id,
-                itemsPerPage: 20,
+                itemsPerPage: 50,
                 pageNumber: 1,
                 orderBy: 'interactionCount',
                 order: 'desc',
