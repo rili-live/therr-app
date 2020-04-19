@@ -11,6 +11,8 @@ import globalConfig from '../../../../global-config.js';
 export interface ILoginData {
     idToken: string;
     userName: string;
+    firstName: string;
+    lastName: string;
     id: string;
 }
 
@@ -24,6 +26,68 @@ interface ILogoutArgs {
     socket: socketio.Socket;
     data?: ILoginData;
 }
+
+const notifyConnections = (socket, userDetails, actionType, shouldReturnActiveConnections = false) => {
+    const query = {
+        filterBy: 'acceptingUserId',
+        query: userDetails.id,
+        itemsPerPage: 50,
+        pageNumber: 1,
+        orderBy: 'interactionCount',
+        order: 'desc',
+        shouldCheckReverse: true,
+    };
+    let queryString = getSearchQueryString(query);
+
+    if (query.shouldCheckReverse) {
+        queryString = `${queryString}&shouldCheckReverse=true`;
+    }
+
+    return restRequest({
+        method: 'get',
+        url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiRoute}/users/connections${queryString}`,
+    }, socket).then(({ data: searchResults }) => {
+        const users = searchResults && searchResults.results
+            .map((connection) => {
+                const contextUserId = connection.acceptingUserId === userDetails.id ? connection.requestingUserId : connection.acceptingUserId;
+                return connection.users.find((user) => user.id === contextUserId);
+            });
+
+        redisSessions.getUsersByIds(users).then((cachedActiveUsers) => {
+            const activeUsers: any[] = [];
+            users.forEach((u) => {
+                const mappedMatch = cachedActiveUsers.find((activeUser) => activeUser.id === u.id);
+                if (mappedMatch) {
+                    activeUsers.push({
+                        ...u,
+                        ...mappedMatch,
+                    });
+                }
+            });
+
+            if (shouldReturnActiveConnections) {
+                socket.emit(SOCKET_MIDDLEWARE_ACTION, {
+                    type: SocketServerActionTypes.ACTIVE_CONNECTIONS_LOADED,
+                    data: {
+                        activeUsers,
+                    },
+                });
+            }
+
+            activeUsers.forEach((activeUser) => {
+                socket.broadcast.to(activeUser.socketId).emit(SOCKET_MIDDLEWARE_ACTION, {
+                    type: actionType,
+                    data: {
+                        id: userDetails.id,
+                        userName: userDetails.userName,
+                        firstName: userDetails.firstName,
+                        lastName: userDetails.lastName,
+                    },
+                });
+            });
+        });
+    });
+};
 
 const login = ({
     appName,
@@ -44,9 +108,13 @@ const login = ({
                 socketId: socket.id,
                 previousSocketId: null,
                 userName: data.userName,
+                firstName: data.firstName,
+                lastName: data.lastName,
                 idToken: data.idToken,
             },
         }).then((response: any) => {
+            notifyConnections(socket, data, SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_IN, true);
+
             socket.emit(SOCKET_MIDDLEWARE_ACTION, {
                 type: SocketServerActionTypes.SESSION_CREATED,
                 data: response,
@@ -66,6 +134,8 @@ const login = ({
             });
         });
     }
+
+    // TODO: RFRONT-33 - Notify activeConnections of login presence
 
     printLogs({
         level: 'info',
@@ -102,52 +172,7 @@ const logout = ({
     const promises: any[] = [];
 
     if (data && data.id) {
-        const query = {
-            filterBy: 'acceptingUserId',
-            query: data.id,
-            itemsPerPage: 50,
-            pageNumber: 1,
-            orderBy: 'interactionCount',
-            order: 'desc',
-            shouldCheckReverse: true,
-        };
-        let queryString = getSearchQueryString(query);
-        if (query.shouldCheckReverse) {
-            queryString = `${queryString}&shouldCheckReverse=true`;
-        }
-        const promise = restRequest({
-            method: 'get',
-            url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiRoute}/users/connections${queryString}`,
-        }, socket).then(({ data: searchResults }) => {
-            const users = searchResults && searchResults.results
-                .map((connection) => {
-                    const contextUserId = connection.acceptingUserId === data.id ? connection.requestingUserId : connection.acceptingUserId;
-                    return connection.users.find((user) => user.id === contextUserId);
-                });
-
-            redisSessions.getUsersByIds(users).then((cachedActiveUsers) => {
-                const activeUsers: any[] = [];
-                users.forEach((u) => {
-                    const mappedMatch = cachedActiveUsers.find((activeUser) => activeUser.id === u.id);
-                    if (mappedMatch) {
-                        activeUsers.push({
-                            ...u,
-                            ...mappedMatch,
-                        });
-                    }
-                });
-
-                activeUsers.forEach((activeUser) => {
-                    socket.broadcast.to(activeUser.socketId).emit(SOCKET_MIDDLEWARE_ACTION, {
-                        type: SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_OUT,
-                        data: {
-                            id: data.id,
-                            userName: data.userName,
-                        },
-                    });
-                });
-            });
-        });
+        const promise = notifyConnections(socket, data, SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_OUT);
 
         promises.push(promise);
     }
