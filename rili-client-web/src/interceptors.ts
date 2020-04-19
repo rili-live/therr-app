@@ -1,7 +1,7 @@
 import axios from 'axios';
+import UsersActions from 'actions/Users';
 // import { AlertActions } from './library/alerts';
 // import { LoaderActions } from './library/loader';
-// import { UserActions } from './library/authentication';
 import store from './store';
 import * as globalConfig from '../../global-config.js';
 
@@ -51,7 +51,7 @@ const initInterceptors = (
         if (error.response) {
             if (Number(error.response.status) === 401 || Number(error.response.data.statusCode) === 401) {
                 // store.dispatch(UserActions.setRedirect(window.location.pathname));
-                // store.dispatch(UserActions.logout());
+                store.dispatch(UsersActions.logout());
                 // store.dispatch(AlertActions.addAlert({
                 //     title: 'Not Authorized',
                 //     message: 'Redirected: You do not have authorization to view this content or your session has expired.
