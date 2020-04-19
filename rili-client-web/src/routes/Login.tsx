@@ -69,9 +69,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
 
     private translate: Function;
 
-    login = (credentials: any) => this.props.login(credentials).then(() => {
-        this.props.history.push('/create-forum');
-    })
+    login = (credentials: any) => this.props.login(credentials)
 
     public render(): JSX.Element | null {
         const { location } = this.props;

@@ -1,4 +1,5 @@
 @import './notifications';
+@import './connections';
 
 $menu-width: rem-calc(300px);
 $menu-padding: rem-calc(24px);
@@ -131,7 +132,8 @@ $menu-padding: rem-calc(24px);
     }
 
     .profile-settings-menu,
-    .forums-menu {
+    .forums-menu,
+    .messages-menu {
         display: flex;
         flex-direction: column;
         justify-content: center;

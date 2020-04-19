@@ -48,7 +48,11 @@ const printLogs = ({
     if (LogLevelMap[level] <= (Number(process.env.LOG_LEVEL) || 2)) { // Default to 'info'
         let trace;
         if (tracer) {
-            trace = tracer.startTrace({
+            if (!tracer.traceActive()) {
+                trace = tracer.startTrace();
+            }
+
+            tracer.addContext({
                 level,
                 messageOrigin,
                 messages,
@@ -65,7 +69,8 @@ const printLogs = ({
                 console.info(`LOG${currentTime}:`, messageList[i]); // eslint-disable-line no-console
             }
         }
-        if (trace) {
+
+        if (tracer) {
             tracer.finishTrace(trace);
         }
     }

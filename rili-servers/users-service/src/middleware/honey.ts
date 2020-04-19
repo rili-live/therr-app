@@ -1,12 +1,6 @@
-import responseTime from 'response-time';
-import Honey from 'libhoney';
+import beeline from '../beeline';
 
-const honey = new Honey({
-    writeKey: process.env.HONEYCOMB_API_KEY,
-    dataset: 'main',
-});
-
-export default responseTime((req, res, time) => {
+export default (req, res, next) => {
     const serializedBody = {
         ...req.body,
         idToken: 'XXXXX',
@@ -20,21 +14,22 @@ export default responseTime((req, res, time) => {
         ...req.query,
         idToken: 'XXXXX',
     };
-    honey.sendNow({
-        'honey.app': req.app,
-        'honey.baseUrl': req.baseUrl,
-        'honey.hostname': req.hostname,
-        'honey.ip': req.ip,
-        'honey.method': req.method,
-        'honey.origin': req.origin,
-        'honey.params': req.params,
-        'honey.path': req.path,
-        'honey.body': serializedBody,
-        'honey.headers': serializedHeaders,
-        'honey.query': serializedQuery,
-        'honey.route': req.route,
-        'honey.secure': req.secure,
-        'honey.xhr': req.xhr,
-        responseTime_ms: time, // eslint-disable-line @typescript-eslint/camelcase
+    beeline.addContext({
+        'middleware.app': req.app,
+        'middleware.baseUrl': req.baseUrl,
+        'middleware.hostname': req.hostname,
+        'middleware.ip': req.ip,
+        'middleware.method': req.method,
+        'middleware.origin': req.origin,
+        'middleware.params': req.params,
+        'middleware.path': req.path,
+        'middleware.body': serializedBody,
+        'middleware.headers': serializedHeaders,
+        'middleware.query': serializedQuery,
+        'middleware.route': req.route,
+        'middleware.secure': req.secure,
+        'middleware.xhr': req.xhr,
     });
-});
+
+    return next();
+};

@@ -1,5 +1,7 @@
 
 import * as Redis from 'ioredis';
+import printLogs from 'rili-public-library/utilities/print-logs.js';
+import beeline from '../beeline';
 import { redisPub } from '../store/redisClient';
 import * as globalConfig from '../../../../global-config.js';
 
@@ -19,11 +21,11 @@ export class RedisHelper {
     client: Redis.Redis;
 
     constructor(client: Redis.Redis) {
-        this.client = client; // NOTE: client should be build from 'ioredis'
+        this.client = client; // NOTE: client should be built from 'ioredis'
     }
 
     public storeUser = async (userSocketConfig: IUserSocketSession): Promise<any> => {
-        const userId = userSocketConfig.data.userId;
+        const userId = userSocketConfig.data.id;
         const ttl = userSocketConfig.ttl || globalConfig[process.env.NODE_ENV || 'development'].socket.userSocketSessionExpire;
         const pipeline = this.client.pipeline();
 
@@ -42,7 +44,7 @@ export class RedisHelper {
     };
 
     public updateUser = async (userSocketConfig: IUserSocketSession): Promise<any> => {
-        const userId = userSocketConfig.data.userId;
+        const userId = userSocketConfig.data.id;
         const ttl = userSocketConfig.ttl || globalConfig[process.env.NODE_ENV || 'development'].socket.userSocketSessionExpire;
         const prevSocketId = userSocketConfig.data.previousSocketId;
         const pipeline = this.client.pipeline();
@@ -63,7 +65,15 @@ export class RedisHelper {
         return pipeline.exec();
     };
 
-    public removeUser = (socketId: Redis.KeyType) => this.client.del(socketId);
+    public removeUser = async (socketId: Redis.KeyType) => {
+        const user = await this.getUserBySocketId(socketId);
+        const pipeline = this.client.pipeline();
+        if (user && user.id) {
+            pipeline.del(`users:${user.id}`);
+        }
+        pipeline.del(`userSockets:${socketId}`);
+        pipeline.exec();
+    };
 
     public getUserById = async (userId: number): Promise<any> => {
         let userData = await this.client.get(`users:${userId}`);
@@ -73,6 +83,8 @@ export class RedisHelper {
         if (userData && Object.keys(userData).length) {
             socketId = (userData as any).socketId;
             delete (userData as any).socketId;
+        } else {
+            return null;
         }
 
         return {
@@ -81,9 +93,48 @@ export class RedisHelper {
         };
     };
 
+    public getUsersById = async (users: any[]): Promise<any> => {
+        const pipeline = this.client.pipeline();
+        const activeUsers: any[] = [];
+
+        users.forEach((u) => {
+            pipeline.get(`users:${u.id}`);
+        });
+
+        return pipeline.exec().then((response) => {
+            response.forEach(([err, stringifiedUser]) => {
+                if (err) {
+                    printLogs({
+                        level: 'info',
+                        messageOrigin: 'REDIS_ERROR_LOGS',
+                        messages: err.message,
+                        tracer: beeline,
+                    });
+                    return;
+                }
+                let socketId: string | null | undefined;
+                const user = stringifiedUser && JSON.parse(stringifiedUser);
+
+                if (user && Object.keys(user).length) {
+                    socketId = (user as any).socketId;
+                    activeUsers.push({ ...user });
+
+                    delete (user as any).socketId;
+                }
+            });
+
+            return activeUsers;
+        });
+    };
+
     public getUserBySocketId = async (socketId: any): Promise<any> => {
         const userId = await this.client.get(`userSockets:${socketId}`);
-        return this.client.get(`users:${userId}`);
+
+        if (userId) {
+            return this.getUserById(Number(userId)).then((response) => response && response.user);
+        }
+
+        return null;
     };
 }
 
