@@ -3,10 +3,13 @@ import printLogs from 'rili-public-library/utilities/print-logs.js';
 import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-library/utilities/constants.js';
 import beeline from '../beeline';
 import redisSessions from '../store/redisSessions';
+import notifyConnections from '../utilities/notify-connections';
 
 export interface ILoginData {
     idToken: string;
     userName: string;
+    firstName: string;
+    lastName: string;
     id: string;
 }
 
@@ -37,6 +40,8 @@ const update = ({
             ip: socket.handshake.headers.host.split(':')[0],
             socketId: socket.id,
             userName: user.userName,
+            firstName: user.firstName,
+            lastName: user.lastName,
             previousSocketId: socketDetails.session.id,
         },
     });
@@ -53,9 +58,12 @@ const update = ({
                 socketId: socket.id,
                 previousSocketId: socketDetails.session.id || null,
                 userName: user.userName,
+                firstName: user.firstName,
+                lastName: user.lastName,
                 idToken: user.idToken,
             },
         }).then((response: any) => {
+            notifyConnections(socket, user, SocketServerActionTypes.ACTIVE_CONNECTION_REFRESHED, true);
             socket.emit(SOCKET_MIDDLEWARE_ACTION, {
                 type: SocketServerActionTypes.SESSION_UPDATED,
                 data: response,
