@@ -17,6 +17,7 @@ import redisAdapter from './store/redisAdapter';
 import redisSessions from './store/redisSessions';
 import { redisPub, redisSub } from './store/redisClient';
 import authenticate from './utilities/authenticate';
+import notifyConnections from './utilities/notify-connections';
 
 export const rsAppName = 'riliChat';
 
@@ -197,7 +198,7 @@ const startExpressSocketIOServer = () => {
             }
         });
 
-        socket.on('disconnecting', (reason: string) => {
+        socket.on('disconnecting', async (reason: string) => {
             // TODO: Use constants to mitigate disconnect reasons
             printLogs({
                 level: 'info',
@@ -210,6 +211,11 @@ const startExpressSocketIOServer = () => {
             });
             // TODO: SocketServerActionTypes.DISCONNNECT, notify all users who are connected with the user that disconnects
             leaveAndNotifyRooms(socket);
+
+            const user = await redisSessions.getUserBySocketId(socket.id);
+            if (user) {
+                notifyConnections(socket, user, SocketServerActionTypes.ACTIVE_CONNECTION_DISCONNECTED);
+            }
         });
     });
 };
