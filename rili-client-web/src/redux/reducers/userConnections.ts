@@ -42,6 +42,12 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
                 activeConnections.splice(leftUserIndex, 1);
             }
             return state.setIn(['activeConnections'], activeConnections);
+        case SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_IN:
+            const newUser = activeConnections.find((con) => con.id === action.data.id); // eslint-disable-line no-case-declarations
+            if (!newUser) {
+                activeConnections.unshift(action.data);
+            }
+            return state.setIn(['activeConnections'], activeConnections);
         default:
             return state;
     }
