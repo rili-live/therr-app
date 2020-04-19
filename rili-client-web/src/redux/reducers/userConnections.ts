@@ -36,6 +36,7 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
             return state.setIn(['connections'], [...uniqueConnections, action.data]);
         case SocketServerActionTypes.ACTIVE_CONNECTIONS_LOADED:
             return state.setIn(['activeConnections'], action.data.activeUsers);
+        case SocketServerActionTypes.ACTIVE_CONNECTION_DISCONNECTED:
         case SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_OUT:
             const leftUserIndex = activeConnections.findIndex((con) => con.id === action.data.id); // eslint-disable-line no-case-declarations
             if (leftUserIndex > -1) {
@@ -43,11 +44,15 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
             }
             return state.setIn(['activeConnections'], activeConnections);
         case SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_IN:
+        case SocketServerActionTypes.ACTIVE_CONNECTION_REFRESHED:
             const newUser = activeConnections.find((con) => con.id === action.data.id); // eslint-disable-line no-case-declarations
             if (!newUser) {
                 activeConnections.unshift(action.data);
             }
             return state.setIn(['activeConnections'], activeConnections);
+        case SocketServerActionTypes.SESSION_CLOSED:
+            return state.setIn(['connections'], Immutable.from([]))
+                .setIn(['activeConnections'], Immutable.from([]));
         default:
             return state;
     }
