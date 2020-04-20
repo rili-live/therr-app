@@ -9,10 +9,10 @@ import router from './routes';
 import honey from './middleware/honey';
 import { version as packageVersion } from '../package.json';
 
-const originWhitelist = [process.env.CLIENT_URI];
+const originWhitelist = (process.env.URI_WHITELIST || '').split(',');
 const corsOptions = {
     origin(origin: any, callback: any) {
-        if (originWhitelist.indexOf(origin) !== -1) {
+        if (origin === undefined || originWhitelist.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));
