@@ -24,7 +24,7 @@ spec:
         env:
         - name: API_PORT
           value: "7770"
-        - name: CLIENT_URI
+        - name: URI_WHITELIST
           value: "https://rili.world"
         - name: HONEYCOMB_API_KEY
           valueFrom:
