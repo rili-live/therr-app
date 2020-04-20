@@ -209,9 +209,10 @@ const startExpressSocketIOServer = () => {
                     socketId: socket.id,
                 },
             });
-            // TODO: SocketServerActionTypes.DISCONNNECT, notify all users who are connected with the user that disconnects
             leaveAndNotifyRooms(socket);
 
+            // TODO: RSERV-34 - Remove or lower expire ttl of associated redis cache (socket, userId)
+            // Consider implications for "remember me?" localStorage
             const user = await redisSessions.getUserBySocketId(socket.id);
             if (user) {
                 notifyConnections(socket, user, SocketServerActionTypes.ACTIVE_CONNECTION_DISCONNECTED);

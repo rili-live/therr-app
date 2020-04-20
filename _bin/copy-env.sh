@@ -12,7 +12,7 @@ touch .env
 
 cp .env.template .env;
 find ".env" -type f -exec sed -i '' -e "s/CLIENT_PORT=/CLIENT_PORT=$CLIENT_PORT/g" {} \;
-find ".env" -type f -exec sed -i '' -e "s/CLIENT_URI=/CLIENT_URI=$CLIENT_URI/g" {} \;
+find ".env" -type f -exec sed -i '' -e "s/URI_WHITELIST=/URI_WHITELIST=$URI_WHITELIST/g" {} \;
 find ".env" -type f -exec sed -i '' -e "s/PG_HOST=/PG_HOST=$PG_HOST/g" {} \;
 find ".env" -type f -exec sed -i '' -e "s/PG_USER=/PG_USER=$PG_USER/g" {} \;
 find ".env" -type f -exec sed -i '' -e "s/PG_DATABASE=/PG_DATABASE=$PG_DATABASE/g" {} \;
