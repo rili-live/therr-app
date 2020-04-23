@@ -1,3 +1,5 @@
+$side-margin: 1rem;
+
 footer {
     z-index: 90;
     position: fixed;
@@ -18,6 +20,12 @@ footer {
         flex: 1;
         justify-content: center;
 
+        &:first-child {
+            justify-content: flex-start;
+
+            
+        }
+
         &:last-child {
             justify-content: flex-end;
         }
@@ -33,9 +41,20 @@ button {
 
     &#footer_close,
     &#footer_messages {
-        margin-right: 1rem;
+        margin-right: $side-margin;
         padding: rem-calc(7px);
         background: transparent;
+    }
+
+    &#footer_messaging {
+        display: flex;
+        margin-left: $side-margin;
+        background: transparent;
+
+        .inline-svg:nth-child(2),
+        .inline-svg:nth-child(3) {
+            display: none;
+        }
     }
 }
 
@@ -56,5 +75,16 @@ button {
 @media only screen and (min-width: rem-calc(540px)) {
     footer {
         height: $footer-height;
+    }
+
+    button {
+        &#footer_messaging {
+            background: $rili-secondary-1;
+
+            .inline-svg:nth-child(2),
+            .inline-svg:nth-child(3) {
+                display: inline;
+            }
+        }
     }
 }
