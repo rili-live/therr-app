@@ -1,23 +1,27 @@
 import * as React from 'react';
 
+/* eslint-disable global-require */
 // ICONS
 const iconMap: { [index: string]: string } = {
-    account: require('../svg-icons/account.svg').toString(), // eslint-disable-line global-require
-    'add-circle': require('../svg-icons/add-circle.svg').toString(), // eslint-disable-line global-require
-    close: require('../svg-icons/close.svg').toString(), // eslint-disable-line global-require
-    dashboard: require('../svg-icons/dashboard.svg').toString(), // eslint-disable-line global-require
-    door: require('../svg-icons/door.svg').toString(), // eslint-disable-line global-require
-    forum: require('../svg-icons/forum.svg').toString(), // eslint-disable-line global-require
-    home: require('../svg-icons/home.svg').toString(), // eslint-disable-line global-require
-    location: require('../svg-icons/location.svg').toString(), // eslint-disable-line global-require
-    messages: require('../svg-icons/messages.svg').toString(), // eslint-disable-line global-require
-    'notifications-active': require('../svg-icons/notifications-active.svg').toString(), // eslint-disable-line global-require
-    notifications: require('../svg-icons/notifications.svg').toString(), // eslint-disable-line global-require
-    people: require('../svg-icons/people.svg').toString(), // eslint-disable-line global-require
-    rili: require('../svg-icons/rili.svg').toString(), // eslint-disable-line global-require
-    send: require('../svg-icons/send.svg').toString(), // eslint-disable-line global-require
-    settings: require('../svg-icons/settings.svg').toString(), // eslint-disable-line global-require
+    account: require('../svg-icons/account.svg').toString(),
+    'add-circle': require('../svg-icons/add-circle.svg').toString(),
+    close: require('../svg-icons/close.svg').toString(),
+    dashboard: require('../svg-icons/dashboard.svg').toString(),
+    door: require('../svg-icons/door.svg').toString(),
+    forum: require('../svg-icons/forum.svg').toString(),
+    home: require('../svg-icons/home.svg').toString(),
+    location: require('../svg-icons/location.svg').toString(),
+    messages: require('../svg-icons/messages.svg').toString(),
+    'notifications-active': require('../svg-icons/notifications-active.svg').toString(),
+    notifications: require('../svg-icons/notifications.svg').toString(),
+    people: require('../svg-icons/people.svg').toString(),
+    'people-alt': require('../svg-icons/people-alt.svg').toString(),
+    rili: require('../svg-icons/rili.svg').toString(),
+    send: require('../svg-icons/send.svg').toString(),
+    settings: require('../svg-icons/settings.svg').toString(),
+    world: require('../svg-icons/world.svg').toString(),
 };
+/* eslint-enable global-require */
 
 export interface IInlineSvgProps {
     className: string;

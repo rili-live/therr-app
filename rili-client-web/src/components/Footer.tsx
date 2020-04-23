@@ -7,6 +7,10 @@ import UsersActions from 'actions/Users';
 import { bindActionCreators } from 'redux';
 import { INavMenuContext } from '../types';
 
+export type IMessagingContext = any;
+// export interface IMessagingContext {
+
+// }
 interface IFooterDispatchProps {
     logout: Function;
 }
@@ -15,10 +19,16 @@ interface IStoreProps extends IFooterDispatchProps {
     user: IUserState;
 }
 
+interface IFooterState {
+    prevMessagingContext?: IMessagingContext;
+}
+
 // Regular component props
 interface IFooterProps extends IStoreProps {
     goHome: Function;
     isAuthorized: boolean;
+    isMessagingOpen: boolean;
+    messagingContext: IMessagingContext;
     toggleNavMenu: Function;
 }
 
@@ -30,7 +40,25 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     logout: UsersActions.logout,
 }, dispatch);
 
-export class FooterComponent extends React.Component<IFooterProps> {
+export class FooterComponent extends React.Component<IFooterProps, IFooterState> {
+    static getDerivedStateFromProps(nextProps: IFooterProps, nextState: IFooterState) {
+        if (nextProps.messagingContext !== nextState.prevMessagingContext) {
+            console.log('NEXT', nextProps.messagingContext);
+            return {
+                prevMessagingContext: nextProps.messagingContext,
+            };
+        }
+        return {};
+    }
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            prevMessagingContext: props.messagingContext,
+        };
+    }
+
     handleLogout = () => {
         const { logout, user, goHome } = this.props;
         logout(user.details).then(() => {
@@ -38,12 +66,34 @@ export class FooterComponent extends React.Component<IFooterProps> {
         });
     }
 
+    toggleMessaging = (e) => {
+        console.log(e);
+    }
+
     render() {
-        const { goHome, toggleNavMenu, isAuthorized } = this.props;
+        const {
+            goHome,
+            toggleNavMenu,
+            isAuthorized,
+            isMessagingOpen,
+            messagingContext,
+        } = this.props;
 
         return (
             <footer>
                 <div className="footer-menu-item">
+                    <AccessControl isAuthorized={isAuthorized}>
+                        {
+                            isMessagingOpen
+                            && <SvgButton
+                                id="footer_messaging"
+                                name="people-alt,messages,world"
+                                className="messaging-button"
+                                onClick={this.toggleMessaging}
+                                buttonType="primary"
+                            />
+                        }
+                    </AccessControl>
                 </div>
                 <div className="footer-menu-item">
                     <AccessControl isAuthorized={isAuthorized}>

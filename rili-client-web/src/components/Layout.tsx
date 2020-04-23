@@ -22,7 +22,7 @@ import * as globalConfig from '../../../global-config.js';
 import routes from '../routes';
 import { AccessCheckType, INavMenuContext } from '../types';
 import UsersService from '../services/UsersService';
-import Footer from './Footer';
+import Footer, { IMessagingContext } from './Footer';
 import { NotificationActions, UsersActions, SocketActions } from '../redux/actions';
 import UserMenu from './nav-menu/UserMenu';
 import MessagesMenu from './nav-menu/MessagesMenu';
@@ -54,6 +54,8 @@ interface ILayoutState {
     isNavMenuOpen: boolean;
     navMenuContext?: INavMenuContext;
     userId: number;
+    isMessagingOpen: boolean;
+    messagingContext?: IMessagingContext;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -92,6 +94,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             clientHasLoaded: false,
             isNavMenuOpen: false,
             userId: props.user.details.id,
+            isMessagingOpen: false,
         };
     }
 
@@ -204,6 +207,19 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         logout(user.details);
     };
 
+    initMessaging = (e, connectionDetails) => {
+        const { isMessagingOpen } = this.state;
+
+        if (!isMessagingOpen) {
+            console.log(connectionDetails);
+
+            this.setState({
+                isMessagingOpen: true,
+                messagingContext: connectionDetails,
+            });
+        }
+    }
+
     renderNavMenuContent = () => {
         const { navMenuContext } = this.state;
 
@@ -215,7 +231,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
         if (navMenuContext === INavMenuContext.FOOTER_MESSAGES) {
             return (
-                <MessagesMenu history={this.props.history} toggleNavMenu={this.toggleNavMenu} />
+                <MessagesMenu history={this.props.history} toggleNavMenu={this.toggleNavMenu} onInitMessaging={this.initMessaging} />
             );
         }
 
@@ -247,21 +263,27 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         />
     )
 
-    renderFooter = () => (
-        <Footer
-            goHome={this.goHome}
-            isAuthorized={
-                UsersService.isAuthorized(
-                    {
-                        type: AccessCheckType.ALL,
-                        levels: ['user.default'],
-                    },
-                    this.props.user,
-                )
-            }
-            toggleNavMenu={this.toggleNavMenu}
-        />
-    );
+    renderFooter = () => {
+        const { isMessagingOpen, messagingContext } = this.state;
+
+        return (
+            <Footer
+                goHome={this.goHome}
+                isAuthorized={
+                    UsersService.isAuthorized(
+                        {
+                            type: AccessCheckType.ALL,
+                            levels: ['user.default'],
+                        },
+                        this.props.user,
+                    )
+                }
+                isMessagingOpen={isMessagingOpen}
+                messagingContext={messagingContext}
+                toggleNavMenu={this.toggleNavMenu}
+            />
+        );
+    };
 
     public render(): JSX.Element | null {
         const { location, user } = this.props;
