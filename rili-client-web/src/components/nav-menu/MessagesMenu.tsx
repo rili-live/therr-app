@@ -23,7 +23,9 @@ interface IStoreProps extends IMessagesMenuDispatchProps {
 
 // Regular component props
 interface IMessagesMenuProps extends IStoreProps {
+    toggleMessaging: Function;
     toggleNavMenu: Function;
+    onInitMessaging: Function;
 }
 
 interface IMessagesMenuState {
@@ -79,12 +81,9 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
         });
     }
 
-    handleConnectionClick = (e, connectionDetails) => {
-        console.log(connectionDetails);
-    }
-
     navigate = (destination, params?: any) => (e) => {
         this.props.toggleNavMenu(e);
+        this.props.toggleMessaging(e);
 
         switch (destination) {
             case 'create-forum':
@@ -96,7 +95,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
     }
 
     renderMessagesContent = () => {
-        const { userConnections } = this.props;
+        const { onInitMessaging, userConnections } = this.props;
 
         return (
             <>
@@ -112,9 +111,10 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                                     key={activeUser.id}
                                     className="connection-link-item right-icon active"
                                     name={activeUser.id}
-                                    onClick={(e) => this.handleConnectionClick(e, activeUser)}
+                                    onClick={(e) => onInitMessaging(e, activeUser)}
                                     buttonType="primary">
                                     {`${activeUser.firstName} ${activeUser.lastName}`}
+                                    <InlineSvg name="messages" />
                                 </ButtonPrimary>
                             ))
                         }

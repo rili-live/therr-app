@@ -7,6 +7,10 @@ import UsersActions from 'actions/Users';
 import { bindActionCreators } from 'redux';
 import { INavMenuContext } from '../types';
 
+export type IMessagingContext = any;
+// export interface IMessagingContext {
+
+// }
 interface IFooterDispatchProps {
     logout: Function;
 }
@@ -15,11 +19,20 @@ interface IStoreProps extends IFooterDispatchProps {
     user: IUserState;
 }
 
+interface IFooterState {
+    prevIsMsgContainerOpen: boolean;
+    prevMessagingContext?: IMessagingContext;
+}
+
 // Regular component props
 interface IFooterProps extends IStoreProps {
     goHome: Function;
     isAuthorized: boolean;
+    isMessagingOpen: boolean;
+    isMsgContainerOpen: boolean;
+    messagingContext: IMessagingContext;
     toggleNavMenu: Function;
+    toggleMessaging: Function;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -30,7 +43,37 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     logout: UsersActions.logout,
 }, dispatch);
 
-export class FooterComponent extends React.Component<IFooterProps> {
+export class FooterComponent extends React.Component<IFooterProps, IFooterState> {
+    static getDerivedStateFromProps(nextProps: IFooterProps, nextState: IFooterState) {
+        if (nextProps.messagingContext !== nextState.prevMessagingContext) {
+            console.log('NEXT', nextProps.messagingContext);
+            return {
+                isMsgContainerOpen: true,
+                prevIsMsgContainerOpen: true,
+                prevMessagingContext: nextProps.messagingContext,
+            };
+        }
+        if (nextProps.isMsgContainerOpen !== nextState.prevIsMsgContainerOpen) {
+            return {
+                prevIsMsgContainerOpen: nextProps.isMsgContainerOpen,
+            };
+        }
+        return {};
+    }
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            prevIsMsgContainerOpen: false,
+            prevMessagingContext: props.messagingContext,
+        };
+    }
+
+    componentDidMount = () => {
+        document.addEventListener('click', this.handleClick);
+    }
+
     handleLogout = () => {
         const { logout, user, goHome } = this.props;
         logout(user.details).then(() => {
@@ -38,12 +81,60 @@ export class FooterComponent extends React.Component<IFooterProps> {
         });
     }
 
+    onToggleMessaging = (e) => {
+        console.log(e);
+        this.props.toggleMessaging(e);
+    }
+
+    shouldShowMessagingCtnr = () => {
+        const { isMessagingOpen, isMsgContainerOpen } = this.props;
+
+        return isMessagingOpen && isMsgContainerOpen;
+    }
+
+    handleClick = (event: any) => {
+        if (this.props.isMsgContainerOpen) {
+            const msgsMenuEl = document.getElementById('msgs_container');
+            const isClickInsideNavMenu = msgsMenuEl.contains(event.target)
+                || document.getElementById('nav_menu').contains(event.target)
+                || document.getElementById('footer_messaging').contains(event.target)
+                || document.getElementById('footer_messages').contains(event.target);
+
+            if (!isClickInsideNavMenu) {
+                this.onToggleMessaging(event);
+            }
+        }
+    }
+
     render() {
-        const { goHome, toggleNavMenu, isAuthorized } = this.props;
+        const {
+            goHome,
+            toggleNavMenu,
+            isAuthorized,
+            isMessagingOpen,
+            messagingContext,
+        } = this.props;
 
         return (
             <footer>
                 <div className="footer-menu-item">
+                    <AccessControl isAuthorized={isAuthorized}>
+                        <>
+                            {
+                                isMessagingOpen
+                                && <SvgButton
+                                    id="footer_messaging"
+                                    name="people-alt,messages,world"
+                                    className="messaging-button"
+                                    onClick={this.onToggleMessaging}
+                                    buttonType="primary"
+                                />
+                            }
+                        </>
+                        <div
+                            id="msgs_container"
+                            className={`messaging-container ${this.shouldShowMessagingCtnr() ? 'open' : ''}`} >Hello, Messaging! (Under Construction)</div>
+                    </AccessControl>
                 </div>
                 <div className="footer-menu-item">
                     <AccessControl isAuthorized={isAuthorized}>

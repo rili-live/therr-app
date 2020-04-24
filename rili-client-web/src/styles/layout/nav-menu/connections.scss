@@ -1,35 +1,60 @@
 .realtime-connections-list {
-  $padding-sides: .5rem;
+    $padding-sides: .5rem;
 
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 
-  .connection-link-item {
-      flex: 1;
-      padding: .5rem $padding-sides .5rem $padding-sides;
-      display: flex;
-      align-items: center;
-      border: none;
-      background: transparent;
-      position: relative;
-      margin: 0 -.5rem;
+    .connection-link-item {
+        flex: 1;
+        padding: .5rem $padding-sides .5rem $padding-sides;
+        display: flex;
+        align-items: center;
+        border: none;
+        background: transparent;
+        position: relative;
+        margin: 0 -.5rem;
 
-      &::before {
-          content: '○';
-          color: $rili-alert-neutral;
-          padding: 0 .7rem .15rem 0;
-          font-size: .625rem;;
-          line-height: .5rem;
-      }
+        &.right-icon {
+            display: flex;
+            align-items: center;
 
-      &.active {
-          &::before {
-              content: '•';
-              color: $rili-alert-success;
-              font-size: 2rem;
-              margin-left: -.085rem;
-              padding: 0 .5rem .35rem 0;
-          }
-      }
-  }
+            .inline-svg {
+                display: none;
+                position: absolute;
+                right: $padding-sides;
+
+                svg {
+                    fill: $rili-primary-2;
+                }
+            }
+        }
+
+        &:hover,
+        &:focus {
+            &.right-icon {
+                .inline-svg {
+                    display: inline;
+                }
+            }
+        }
+
+        &::before {
+            content: '○';
+            color: $rili-alert-neutral;
+            padding: 0 .7rem .15rem 0;
+            font-size: .625rem;
+            ;
+            line-height: .5rem;
+        }
+
+        &.active {
+            &::before {
+                content: '•';
+                color: $rili-alert-success;
+                font-size: 2rem;
+                margin-left: -.085rem;
+                padding: 0 .5rem .35rem 0;
+            }
+        }
+    }
 }
