@@ -55,6 +55,7 @@ interface ILayoutState {
     navMenuContext?: INavMenuContext;
     userId: number;
     isMessagingOpen: boolean;
+    isMsgContainerOpen: boolean;
     messagingContext?: IMessagingContext;
 }
 
@@ -95,6 +96,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             isNavMenuOpen: false,
             userId: props.user.details.id,
             isMessagingOpen: false,
+            isMsgContainerOpen: false,
         };
     }
 
@@ -184,6 +186,12 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         });
     }
 
+    toggleMessaging = (event) => {
+        this.setState({
+            isMsgContainerOpen: !this.state.isMsgContainerOpen,
+        });
+    }
+
     goHome = () => {
         const isAuthorized = UsersService.isAuthorized(
             {
@@ -208,16 +216,22 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
     };
 
     initMessaging = (e, connectionDetails) => {
-        const { isMessagingOpen } = this.state;
+        const { isMessagingOpen, isMsgContainerOpen } = this.state;
+
+        const newState: any = {
+            isNavMenuOpen: false,
+            messagingContext: connectionDetails,
+            isMsgContainerOpen: true,
+        };
 
         if (!isMessagingOpen) {
-            console.log(connectionDetails);
-
-            this.setState({
-                isMessagingOpen: true,
-                messagingContext: connectionDetails,
-            });
+            newState.isMessagingOpen = true;
+        } else {
+            newState.isMsgContainerOpen = true;
         }
+
+
+        this.setState(newState);
     }
 
     renderNavMenuContent = () => {
@@ -231,7 +245,9 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
         if (navMenuContext === INavMenuContext.FOOTER_MESSAGES) {
             return (
-                <MessagesMenu history={this.props.history} toggleNavMenu={this.toggleNavMenu} onInitMessaging={this.initMessaging} />
+                <MessagesMenu
+                    history={this.props.history}
+                    toggleNavMenu={this.toggleNavMenu} toggleMessaging={this.toggleMessaging} onInitMessaging={this.initMessaging} />
             );
         }
 
@@ -264,7 +280,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
     )
 
     renderFooter = () => {
-        const { isMessagingOpen, messagingContext } = this.state;
+        const { isMessagingOpen, isMsgContainerOpen, messagingContext } = this.state;
 
         return (
             <Footer
@@ -279,8 +295,10 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                     )
                 }
                 isMessagingOpen={isMessagingOpen}
+                isMsgContainerOpen={isMsgContainerOpen}
                 messagingContext={messagingContext}
                 toggleNavMenu={this.toggleNavMenu}
+                toggleMessaging={this.toggleMessaging}
             />
         );
     };
