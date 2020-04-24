@@ -4,6 +4,7 @@ import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-l
 import beeline from '../beeline';
 import redisSessions from '../store/redisSessions';
 import notifyConnections from '../utilities/notify-connections';
+import { UserStatus } from '../constants';
 
 export interface ILoginData {
     idToken: string;
@@ -61,12 +62,16 @@ const update = ({
                 firstName: user.firstName,
                 lastName: user.lastName,
                 idToken: user.idToken,
+                status: UserStatus.ACTIVE,
             },
         }).then((response: any) => {
-            notifyConnections(socket, user, SocketServerActionTypes.ACTIVE_CONNECTION_REFRESHED, true);
+            notifyConnections(socket, { ...user, status: UserStatus.ACTIVE }, SocketServerActionTypes.ACTIVE_CONNECTION_REFRESHED, true);
             socket.emit(SOCKET_MIDDLEWARE_ACTION, {
                 type: SocketServerActionTypes.SESSION_UPDATED,
-                data: response,
+                data: {
+                    ...response,
+                    status: UserStatus.ACTIVE,
+                },
             });
         }).catch((err: any) => {
             printLogs({
