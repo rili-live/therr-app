@@ -22,7 +22,7 @@ import * as globalConfig from '../../../global-config.js';
 import routes from '../routes';
 import { AccessCheckType, INavMenuContext } from '../types';
 import UsersService from '../services/UsersService';
-import Footer from './Footer';
+import Footer, { IMessagingContext } from './Footer';
 import { NotificationActions, UsersActions, SocketActions } from '../redux/actions';
 import UserMenu from './nav-menu/UserMenu';
 import MessagesMenu from './nav-menu/MessagesMenu';
@@ -54,6 +54,9 @@ interface ILayoutState {
     isNavMenuOpen: boolean;
     navMenuContext?: INavMenuContext;
     userId: number;
+    isMessagingOpen: boolean;
+    isMsgContainerOpen: boolean;
+    messagingContext?: IMessagingContext;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -92,6 +95,8 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             clientHasLoaded: false,
             isNavMenuOpen: false,
             userId: props.user.details.id,
+            isMessagingOpen: false,
+            isMsgContainerOpen: false,
         };
     }
 
@@ -181,6 +186,12 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         });
     }
 
+    toggleMessaging = (event) => {
+        this.setState({
+            isMsgContainerOpen: !this.state.isMsgContainerOpen,
+        });
+    }
+
     goHome = () => {
         const isAuthorized = UsersService.isAuthorized(
             {
@@ -204,6 +215,25 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         logout(user.details);
     };
 
+    initMessaging = (e, connectionDetails) => {
+        const { isMessagingOpen, isMsgContainerOpen } = this.state;
+
+        const newState: any = {
+            isNavMenuOpen: false,
+            messagingContext: connectionDetails,
+            isMsgContainerOpen: true,
+        };
+
+        if (!isMessagingOpen) {
+            newState.isMessagingOpen = true;
+        } else {
+            newState.isMsgContainerOpen = true;
+        }
+
+
+        this.setState(newState);
+    }
+
     renderNavMenuContent = () => {
         const { navMenuContext } = this.state;
 
@@ -215,7 +245,9 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
         if (navMenuContext === INavMenuContext.FOOTER_MESSAGES) {
             return (
-                <MessagesMenu history={this.props.history} toggleNavMenu={this.toggleNavMenu} />
+                <MessagesMenu
+                    history={this.props.history}
+                    toggleNavMenu={this.toggleNavMenu} toggleMessaging={this.toggleMessaging} onInitMessaging={this.initMessaging} />
             );
         }
 
@@ -247,21 +279,29 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         />
     )
 
-    renderFooter = () => (
-        <Footer
-            goHome={this.goHome}
-            isAuthorized={
-                UsersService.isAuthorized(
-                    {
-                        type: AccessCheckType.ALL,
-                        levels: ['user.default'],
-                    },
-                    this.props.user,
-                )
-            }
-            toggleNavMenu={this.toggleNavMenu}
-        />
-    );
+    renderFooter = () => {
+        const { isMessagingOpen, isMsgContainerOpen, messagingContext } = this.state;
+
+        return (
+            <Footer
+                goHome={this.goHome}
+                isAuthorized={
+                    UsersService.isAuthorized(
+                        {
+                            type: AccessCheckType.ALL,
+                            levels: ['user.default'],
+                        },
+                        this.props.user,
+                    )
+                }
+                isMessagingOpen={isMessagingOpen}
+                isMsgContainerOpen={isMsgContainerOpen}
+                messagingContext={messagingContext}
+                toggleNavMenu={this.toggleNavMenu}
+                toggleMessaging={this.toggleMessaging}
+            />
+        );
+    };
 
     public render(): JSX.Element | null {
         const { location, user } = this.props;

@@ -29,18 +29,27 @@ class SvgButton extends React.Component<ISvgButtonProps & IInlineSvgProps> {
         delete buttonProps.buttonType;
         delete buttonProps.className;
         delete buttonProps.name;
+        const svgBtns = name.split(',');
 
         if (buttonType && buttonType === 'primary') {
             return (
                 <ButtonPrimary { ...buttonProps } className={`${primOverrideProps.className} icon-button ${className || ''}`}>
-                    <InlineSvg name={name} className={iconClassName || ''} />
+                    {
+                        svgBtns.map((btnName) => (
+                            <InlineSvg key={btnName} name={btnName} className={iconClassName || ''} />
+                        ))
+                    }
                 </ButtonPrimary>
             );
         }
 
         return (
             <ButtonSecondary { ...buttonProps } className={`${secOverrideProps.className} icon-button ${className || ''}`}>
-                <InlineSvg name={name} className={iconClassName || ''} />
+                {
+                    svgBtns.map((btnName) => (
+                        <InlineSvg key={btnName} name={btnName} className={iconClassName || ''} />
+                    ))
+                }
             </ButtonSecondary>
         );
     }

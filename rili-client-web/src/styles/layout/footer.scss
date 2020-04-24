@@ -1,3 +1,8 @@
+$messaging-container-height: rem-calc(400px);
+$messaging-toggle-width: 4.4rem;
+$messaging-toggle-width-sm: 2rem;
+$side-margin: 1rem;
+
 footer {
     z-index: 90;
     position: fixed;
@@ -18,8 +23,35 @@ footer {
         flex: 1;
         justify-content: center;
 
+        &:first-child {
+            justify-content: flex-start;
+
+            
+        }
+
         &:last-child {
             justify-content: flex-end;
+        }
+    }
+
+    .messaging-container {
+        height: calc(100vh - #{$footer-height-small} - #{$header-height-small});
+        width: 100%;
+        box-shadow: none;
+        padding: 1rem .75rem;
+        box-sizing: border-box;
+        text-align: left;
+        border: 0;
+        border-radius: 0;
+        position: absolute;
+        background: $rili-white;
+        color: $rili-black;
+        bottom: $footer-height-small;
+        left: -100%;
+        transition: left .15s cubic-bezier(.4,0,.2,1);
+
+        &.open {
+            left: 0;
         }
     }
 }
@@ -33,9 +65,20 @@ button {
 
     &#footer_close,
     &#footer_messages {
-        margin-right: 1rem;
+        margin-right: $side-margin;
         padding: rem-calc(7px);
         background: transparent;
+    }
+
+    &#footer_messaging {
+        display: flex;
+        margin-left: $side-margin;
+        background: transparent;
+
+        .inline-svg:nth-child(2),
+        .inline-svg:nth-child(3) {
+            display: none;
+        }
     }
 }
 
@@ -56,5 +99,39 @@ button {
 @media only screen and (min-width: rem-calc(540px)) {
     footer {
         height: $footer-height;
+
+        .messaging-container {
+            height: $messaging-container-height;
+            width: rem-calc(360px);
+            box-shadow: $box-shadow-tile;
+            padding: 1rem .75rem;
+            box-sizing: border-box;
+            text-align: left;
+            border: 1px solid rgba(0, 0, 0, .12);
+            border-radius: .125rem;
+            position: absolute;
+            background: $rili-white;
+            color: $rili-black;
+            bottom: -$messaging-container-height;
+            left: $side-margin + $messaging-toggle-width + .75rem;
+            transition: bottom .15s cubic-bezier(.4,0,.2,1);
+
+            &.open {
+                bottom: .5rem;
+                left: $side-margin + $messaging-toggle-width + .75rem;
+            }
+        }
+    }
+
+    button {
+        &#footer_messaging {
+            width: $messaging-toggle-width;
+            background: $rili-secondary-1;
+
+            .inline-svg:nth-child(2),
+            .inline-svg:nth-child(3) {
+                display: inline;
+            }
+        }
     }
 }
