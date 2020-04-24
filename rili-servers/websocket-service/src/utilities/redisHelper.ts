@@ -24,12 +24,19 @@ export class RedisHelper {
         this.client = client; // NOTE: client should be built from 'ioredis'
     }
 
-    public storeUser = async (userSocketConfig: IUserSocketSession): Promise<any> => {
+    public storeOrUpdateUser = async (userSocketConfig: IUserSocketSession): Promise<any> => {
         const userId = userSocketConfig.data.id;
         const ttl = userSocketConfig.ttl || globalConfig[process.env.NODE_ENV || 'development'].socket.userSocketSessionExpire;
         const pipeline = this.client.pipeline();
 
+        const existingUser = await this.getUserById(userSocketConfig.data.id);
+
+        if (existingUser) {
+            return this.updateUser(userSocketConfig);
+        }
+
         pipeline.setex(`userSockets:${userSocketConfig.socketId}`, ttl, userId);
+
 
         pipeline.setex(
             `users:${userId}`,
@@ -64,6 +71,19 @@ export class RedisHelper {
 
         return pipeline.exec();
     };
+
+    public updateUserStatus = async (user, newStatus, newTtl?) => {
+        const ttl = newTtl || globalConfig[process.env.NODE_ENV || 'development'].socket.userSocketSessionExpire;
+
+        return this.client.setex(
+            `users:${user.id}`,
+            ttl,
+            JSON.stringify({
+                ...user,
+                status: newStatus,
+            }),
+        );
+    }
 
     public removeUser = async (socketId: Redis.KeyType) => {
         const user = await this.getUserBySocketId(socketId);
