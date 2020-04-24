@@ -186,9 +186,9 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         });
     }
 
-    toggleMessaging = (event) => {
+    toggleMessaging = (event, overrideAndClose = false) => {
         this.setState({
-            isMsgContainerOpen: !this.state.isMsgContainerOpen,
+            isMsgContainerOpen: overrideAndClose ? false : !this.state.isMsgContainerOpen,
         });
     }
 

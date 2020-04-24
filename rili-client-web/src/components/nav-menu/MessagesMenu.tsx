@@ -83,7 +83,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
 
     navigate = (destination, params?: any) => (e) => {
         this.props.toggleNavMenu(e);
-        this.props.toggleMessaging(e);
+        this.props.toggleMessaging(e, true);
 
         switch (destination) {
             case 'create-forum':
