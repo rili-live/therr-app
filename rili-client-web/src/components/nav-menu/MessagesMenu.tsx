@@ -23,6 +23,7 @@ interface IStoreProps extends IMessagesMenuDispatchProps {
 
 // Regular component props
 interface IMessagesMenuProps extends IStoreProps {
+    toggleMessaging: Function;
     toggleNavMenu: Function;
     onInitMessaging: Function;
 }
@@ -82,6 +83,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
 
     navigate = (destination, params?: any) => (e) => {
         this.props.toggleNavMenu(e);
+        this.props.toggleMessaging(e);
 
         switch (destination) {
             case 'create-forum':

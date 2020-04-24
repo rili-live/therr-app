@@ -3,16 +3,17 @@
 @import './user-profile';
 
 .PhoneInput {
-  position: relative;
+    position: relative;
 
-  .PhoneInputCountry {
-      color: $rili-secondary-1;
-      top: .6rem;
-      left: 1rem;
-      position: absolute;
-  }
+    .PhoneInputCountry {
+        color: $rili-secondary-1;
+        top: .6rem;
+        left: 1rem;
+        position: absolute;
+    }
 
-  input {
-      padding-left: rem-calc(60px);
-  }
+    input {
+        padding-left: rem-calc(60px);
+        background: $rili-white;
+    }
 }

@@ -20,6 +20,7 @@ interface IStoreProps extends IFooterDispatchProps {
 }
 
 interface IFooterState {
+    prevIsMsgContainerOpen: boolean;
     prevMessagingContext?: IMessagingContext;
 }
 
@@ -28,8 +29,10 @@ interface IFooterProps extends IStoreProps {
     goHome: Function;
     isAuthorized: boolean;
     isMessagingOpen: boolean;
+    isMsgContainerOpen: boolean;
     messagingContext: IMessagingContext;
     toggleNavMenu: Function;
+    toggleMessaging: Function;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -45,7 +48,14 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
         if (nextProps.messagingContext !== nextState.prevMessagingContext) {
             console.log('NEXT', nextProps.messagingContext);
             return {
+                isMsgContainerOpen: true,
+                prevIsMsgContainerOpen: true,
                 prevMessagingContext: nextProps.messagingContext,
+            };
+        }
+        if (nextProps.isMsgContainerOpen !== nextState.prevIsMsgContainerOpen) {
+            return {
+                prevIsMsgContainerOpen: nextProps.isMsgContainerOpen,
             };
         }
         return {};
@@ -55,8 +65,13 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
         super(props);
 
         this.state = {
+            prevIsMsgContainerOpen: false,
             prevMessagingContext: props.messagingContext,
         };
+    }
+
+    componentDidMount = () => {
+        document.addEventListener('click', this.handleClick);
     }
 
     handleLogout = () => {
@@ -66,8 +81,29 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
         });
     }
 
-    toggleMessaging = (e) => {
+    onToggleMessaging = (e) => {
         console.log(e);
+        this.props.toggleMessaging(e);
+    }
+
+    shouldShowMessagingCtnr = () => {
+        const { isMessagingOpen, isMsgContainerOpen } = this.props;
+
+        return isMessagingOpen && isMsgContainerOpen;
+    }
+
+    handleClick = (event: any) => {
+        if (this.props.isMsgContainerOpen) {
+            const msgsMenuEl = document.getElementById('msgs_container');
+            const isClickInsideNavMenu = msgsMenuEl.contains(event.target)
+                || document.getElementById('nav_menu').contains(event.target)
+                || document.getElementById('footer_messaging').contains(event.target)
+                || document.getElementById('footer_messages').contains(event.target);
+
+            if (!isClickInsideNavMenu) {
+                this.onToggleMessaging(event);
+            }
+        }
     }
 
     render() {
@@ -83,16 +119,21 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
             <footer>
                 <div className="footer-menu-item">
                     <AccessControl isAuthorized={isAuthorized}>
-                        {
-                            isMessagingOpen
-                            && <SvgButton
-                                id="footer_messaging"
-                                name="people-alt,messages,world"
-                                className="messaging-button"
-                                onClick={this.toggleMessaging}
-                                buttonType="primary"
-                            />
-                        }
+                        <>
+                            {
+                                isMessagingOpen
+                                && <SvgButton
+                                    id="footer_messaging"
+                                    name="people-alt,messages,world"
+                                    className="messaging-button"
+                                    onClick={this.onToggleMessaging}
+                                    buttonType="primary"
+                                />
+                            }
+                        </>
+                        <div
+                            id="msgs_container"
+                            className={`messaging-container ${this.shouldShowMessagingCtnr() ? 'open' : ''}`} >Hello, Messaging! (Under Construction)</div>
                     </AccessControl>
                 </div>
                 <div className="footer-menu-item">
