@@ -5,12 +5,14 @@ import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-l
 import beeline from '../beeline';
 import redisSessions from '../store/redisSessions';
 import notifyConnections from '../utilities/notify-connections';
+import { UserStatus } from '../constants';
 
 export interface ILoginData {
     idToken: string;
     userName: string;
     firstName: string;
     lastName: string;
+    status: UserStatus;
     id: string;
 }
 
@@ -33,7 +35,7 @@ const login = ({
     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
 
     if (socket.handshake && socket.handshake.headers && socket.handshake.headers.host) {
-        redisSessions.create({
+        redisSessions.createOrUpdate({
             app: appName,
             socketId: socket.id,
             ip: socket.handshake.headers.host.split(':')[0],
@@ -47,9 +49,10 @@ const login = ({
                 firstName: data.firstName,
                 lastName: data.lastName,
                 idToken: data.idToken,
+                status: UserStatus.ACTIVE,
             },
         }).then((response: any) => {
-            notifyConnections(socket, data, SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_IN, true);
+            notifyConnections(socket, { ...data, status: UserStatus.ACTIVE }, SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_IN, true);
 
             socket.emit(SOCKET_MIDDLEWARE_ACTION, {
                 type: SocketServerActionTypes.SESSION_CREATED,

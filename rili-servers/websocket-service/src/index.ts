@@ -18,6 +18,7 @@ import redisSessions from './store/redisSessions';
 import { redisPub, redisSub } from './store/redisClient';
 import authenticate from './utilities/authenticate';
 import notifyConnections from './utilities/notify-connections';
+import { UserStatus } from './constants';
 
 export const rsAppName = 'riliChat';
 
@@ -211,11 +212,12 @@ const startExpressSocketIOServer = () => {
             });
             leaveAndNotifyRooms(socket);
 
-            // TODO: RSERV-34 - Remove or lower expire ttl of associated redis cache (socket, userId)
+            // TODO: RSERV-34 - Lower expire ttl of associated redis cache (socket, userId)
             // Consider implications for "remember me?" localStorage
             const user = await redisSessions.getUserBySocketId(socket.id);
             if (user) {
-                notifyConnections(socket, user, SocketServerActionTypes.ACTIVE_CONNECTION_DISCONNECTED);
+                redisSessions.updateStatus(user, UserStatus.AWAY);
+                notifyConnections(socket, { ...user, status: UserStatus.AWAY }, SocketServerActionTypes.ACTIVE_CONNECTION_DISCONNECTED);
             }
         });
     });
