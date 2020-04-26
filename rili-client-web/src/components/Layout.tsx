@@ -22,11 +22,12 @@ import * as globalConfig from '../../../global-config.js';
 import routes from '../routes';
 import { AccessCheckType, INavMenuContext } from '../types';
 import UsersService from '../services/UsersService';
-import Footer, { IMessagingContext } from './Footer';
+import Footer from './footer/Footer';
 import { NotificationActions, UsersActions, SocketActions } from '../redux/actions';
 import UserMenu from './nav-menu/UserMenu';
 import MessagesMenu from './nav-menu/MessagesMenu';
 import { socketIO, updateSocketToken } from '../socket-io-middleware';
+import { IMessagingContext } from './footer/MessagingContainer';
 
 let _viewListener: any; // eslint-disable-line no-underscore-dangle
 

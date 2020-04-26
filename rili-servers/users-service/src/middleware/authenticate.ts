@@ -11,7 +11,7 @@ export default (req, res, next) => {
         return handleHttpError({
             res,
             message: "Invalid 'authorization' header provided",
-            statusCode: 400,
+            statusCode: 401,
         });
     } catch (err) {
         if (err.name === 'TokenExpiredError') {
