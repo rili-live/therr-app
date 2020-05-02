@@ -130,7 +130,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                 this.props.sendMessage({
                     roomId: this.props.user.socketDetails.currentRoom,
                     message: this.state.inputs.message,
-                    userName: this.props.user.socketDetails.session.userName,
+                    userName: this.props.user.details.userName,
                 });
                 return this.onInputChange('message', '');
             default:

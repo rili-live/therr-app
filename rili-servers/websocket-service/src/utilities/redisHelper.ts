@@ -102,7 +102,6 @@ export class RedisHelper {
 
         if (userData && Object.keys(userData).length) {
             socketId = (userData as any).socketId;
-            delete (userData as any).socketId;
         } else {
             return null;
         }
@@ -137,9 +136,8 @@ export class RedisHelper {
 
                 if (user && Object.keys(user).length) {
                     socketId = (user as any).socketId;
+                    delete user.idToken;
                     activeUsers.push({ ...user });
-
-                    delete (user as any).socketId;
                 }
             });
 

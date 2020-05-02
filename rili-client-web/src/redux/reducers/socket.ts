@@ -4,6 +4,7 @@ import { IMessageList, ISocketState } from 'types/socket';
 
 const initialState: ISocketState = Immutable.from({
     forums: Immutable.from([]),
+    dms: {},
     messages: {},
 });
 
@@ -33,6 +34,11 @@ const socket = (state: ISocketState = initialState, action: any) => {
         case SocketServerActionTypes.OTHER_JOINED_ROOM:
         case SocketServerActionTypes.SEND_MESSAGE:
             return state.setIn(['messages', action.data.roomId], updatedMessageList);
+        case SocketServerActionTypes.SEND_DIRECT_MESSAGE:
+            const directMessages = (state.dms[action.data.contextUserId] // eslint-disable-line no-case-declarations
+                && state.dms[action.data.contextUserId].asMutable()) || [];
+            directMessages.push(action.data.message);
+            return state.setIn(['dms', action.data.contextUserId], directMessages);
         default:
             return state;
     }
