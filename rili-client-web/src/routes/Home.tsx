@@ -67,7 +67,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
     public render(): JSX.Element | null {
         return (
-            <div id="page_chat_forum" className="flex-box">
+            <div id="page_home" className="flex-box">
                 <LoginForm login={this.login} title={this.translate('pages.home.pageTitle')} />
             </div>
         );

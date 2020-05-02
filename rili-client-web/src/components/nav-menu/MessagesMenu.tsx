@@ -83,7 +83,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
 
     navigate = (destination, params?: any) => (e) => {
         this.props.toggleNavMenu(e);
-        this.props.toggleMessaging(e);
+        this.props.toggleMessaging(e, true);
 
         switch (destination) {
             case 'create-forum':
@@ -109,7 +109,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                                 <ButtonPrimary
                                     id="nav_menu_connection_link"
                                     key={activeUser.id}
-                                    className="connection-link-item right-icon active"
+                                    className={`connection-link-item right-icon ${activeUser.status === 'active' ? 'active' : 'away'}`}
                                     name={activeUser.id}
                                     onClick={(e) => onInitMessaging(e, activeUser)}
                                     buttonType="primary">

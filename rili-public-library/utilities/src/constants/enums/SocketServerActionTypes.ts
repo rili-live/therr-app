@@ -33,6 +33,7 @@ enum SocketServerActionTypes {
     SEND_ROOMS_LIST = 'SERVER:SEND_ROOMS_LIST',
 
     // Messages
+    SEND_DIRECT_MESSAGE = 'SERVER:SEND_DIRECT_MESSAGE',
     SEND_MESSAGE = 'SERVER:SEND_MESSAGE',
 }
 
