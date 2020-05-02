@@ -63,6 +63,7 @@ export default (socket, userDetails, actionType, shouldReturnActiveConnections =
                         firstName: userDetails.firstName,
                         lastName: userDetails.lastName,
                         status: userDetails.status,
+                        socketId: socket.id,
                     },
                 });
             });
