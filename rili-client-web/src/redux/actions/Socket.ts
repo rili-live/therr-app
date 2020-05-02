@@ -25,6 +25,12 @@ const Socket = {
             data,
         });
     },
+    sendDirectMessage: (data) => (dispatch) => {
+        dispatch({
+            type: SocketClientActionTypes.SEND_DIRECT_MESSAGE,
+            data,
+        });
+    },
 };
 
 export default Socket;

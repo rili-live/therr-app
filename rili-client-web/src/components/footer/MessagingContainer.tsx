@@ -5,29 +5,36 @@ import SvgButton from 'rili-public-library/react-components/SvgButton.js';
 import scrollTo from 'rili-public-library/utilities/scroll-to.js';
 import { bindActionCreators } from 'redux';
 import { IMessage, ISocketState } from 'types/socket';
+import { IUserState } from 'types/user';
+import { IUserConnectionsState } from 'types/userConnections';
+import SocketActions from 'actions/Socket';
 import translator from '../../services/translator';
+
 
 export type IMessagingContext = any;
 // export interface IMessagingContext {
 
 // }
 
-interface IMessaginngContainerDispatchProps {
+interface IMessagingContainerDispatchProps {
+    sendDirectMessage: Function;
 }
 
-interface IStoreProps extends IMessaginngContainerDispatchProps {
+interface IStoreProps extends IMessagingContainerDispatchProps {
     socket: ISocketState;
+    user: IUserState;
+    userConnections: IUserConnectionsState;
 }
 
 // Regular component props
-interface IMessaginngContainerProps extends IStoreProps {
+interface IMessagingContainerProps extends IStoreProps {
     isMessagingOpen: boolean;
     isMsgContainerOpen: boolean;
     messagingContext: IMessagingContext;
     toggleMessaging: Function;
 }
 
-interface IMessaginngContainerState {
+interface IMessagingContainerState {
     inputs: any;
     prevIsMsgContainerOpen: boolean;
     prevMessagingContext?: IMessagingContext;
@@ -35,13 +42,16 @@ interface IMessaginngContainerState {
 
 const mapStateToProps = (state: any) => ({
     socket: state.socket,
+    user: state.user,
+    userConnections: state.userConnections,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    sendDirectMessage: SocketActions.sendDirectMessage,
 }, dispatch);
 
-export class MessaginngContainerComponent extends React.Component<IMessaginngContainerProps, IMessaginngContainerState> {
-    static getDerivedStateFromProps(nextProps: IMessaginngContainerProps, nextState: IMessaginngContainerState) {
+export class MessagingContainerComponent extends React.Component<IMessagingContainerProps, IMessagingContainerState> {
+    static getDerivedStateFromProps(nextProps: IMessagingContainerProps, nextState: IMessagingContainerState) {
         if (nextProps.messagingContext !== nextState.prevMessagingContext) {
             console.log('NEXT', nextProps.messagingContext);
             return {
@@ -75,7 +85,7 @@ export class MessaginngContainerComponent extends React.Component<IMessaginngCon
         document.addEventListener('click', this.handleClick);
     }
 
-    componentDidUpdate(prevProps: IMessaginngContainerProps) {
+    componentDidUpdate(prevProps: IMessagingContainerProps) {
         const { messagingContext, socket } = this.props;
         const messages = socket.dms && socket.dms[messagingContext && messagingContext.id];
         const prevMessages = prevProps.socket.dms && prevProps.socket.dms[messagingContext && messagingContext.id];
@@ -100,7 +110,6 @@ export class MessaginngContainerComponent extends React.Component<IMessaginngCon
     private translate: Function;
 
     onToggleMessaging = (e) => {
-        console.log(e);
         this.props.toggleMessaging(e);
     }
 
@@ -146,8 +155,21 @@ export class MessaginngContainerComponent extends React.Component<IMessaginngCon
     }
 
     onSendMessage = (event) => {
+        const {
+            userConnections,
+            messagingContext,
+            sendDirectMessage,
+            user,
+        } = this.props;
         event.preventDefault();
-        console.log(this.state.inputs.message);
+        const toUser = userConnections.activeConnections.find((connection) => connection.id === messagingContext.id);
+        sendDirectMessage({
+            message: this.state.inputs.message,
+            userId: user.details.id,
+            userName: user.details.userName,
+            to: toUser,
+        });
+        this.onInputChange('message', '');
     }
 
     render() {
@@ -223,4 +245,4 @@ export class MessaginngContainerComponent extends React.Component<IMessaginngCon
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(MessaginngContainerComponent);
+export default connect(mapStateToProps, mapDispatchToProps)(MessagingContainerComponent);
