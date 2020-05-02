@@ -1,6 +1,6 @@
 @import './nav-menu/index';
 @import './header';
-@import './footer';
+@import './footer/index';
 @import './formatting';
 @import './alerts';
 @import '../pages';
@@ -75,36 +75,6 @@ hr {
         button {
             width: 4rem;
         }
-    }
-}
-
-.message-input {
-    margin-bottom: 3rem;
-    padding: 0 1rem;
-    width: calc(100% - 2rem);
-}
-
-.message-list {
-    padding: 1rem .5rem;
-    display: block;
-    text-align: left;
-    font-size: rem-calc(17px);
-    list-style-type: none;
-    margin-bottom: 1.5rem;
-
-    li:last-child {
-        margin-bottom: 1rem;
-    }
-}
-
-.forums-list {
-    padding: 1rem .5rem;
-    display: block;
-    text-align: center;
-    font-size: rem-calc(16px);
-
-    li {
-        padding-bottom: .25rem;
     }
 }
 

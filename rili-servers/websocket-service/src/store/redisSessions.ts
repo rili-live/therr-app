@@ -7,6 +7,8 @@ import { UserStatus } from '../constants';
 // and broadcast to a room when their status changes rather than a broadcast to all users
 // SCALABILITY
 
+const defaultExpire = Number(globalConfig[process.env.NODE_ENV || 'development'].socket.userSocketSessionExpire) / 1000;
+
 /**
  * RedisSession
  */
@@ -23,7 +25,7 @@ class RedisSessions {
             app: args.app,
             socketId: args.socketId,
             ip: args.ip.toString(),
-            ttl: args.ttl || globalConfig[process.env.NODE_ENV || ''].socket.userSocketSessionExpire,
+            ttl: args.ttl || defaultExpire,
             data: args.data,
         };
 
@@ -36,7 +38,7 @@ class RedisSessions {
             app: args.app,
             socketId: args.socketId,
             ip: args.ip.toString(),
-            ttl: args.ttl || globalConfig[process.env.NODE_ENV || ''].socket.userSocketSessionExpire,
+            ttl: args.ttl || defaultExpire,
             data: args.data,
         };
 

@@ -23,6 +23,13 @@
         "userName": "Username"
       }
     },
+    "messagingContainer": {
+      "conversation": {
+        "to": "To: {firstName} {lastName}"
+      },
+      "inputPlaceholder": "Enter a message",
+      "welcome": "This is the start of a new conversation..."
+    },
     "messagesMenu": {
       "buttons": {
         "createForum": "Create a Forum"
@@ -67,7 +74,8 @@
   "pages": {
     "chatForum": {
       "pageTitle": "Forums",
-      "welcome": "Welcome!"
+      "welcome": "Welcome!",
+      "inputPlaceholder": "Enter a message"
     },
     "home": {
       "pageTitle": "Home"

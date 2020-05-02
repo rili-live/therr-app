@@ -169,6 +169,11 @@ const startExpressSocketIOServer = () => {
                         });
                     }
                     break;
+                case SocketClientActionTypes.SEND_DIRECT_MESSAGE:
+                    if (isAuthenticated) {
+                        socketHandlers.sendDirectMessage(socket, action.data);
+                    }
+                    break;
                 case SocketClientActionTypes.SEND_MESSAGE:
                     if (isAuthenticated) {
                         socketHandlers.sendMessage(socket, action.data);

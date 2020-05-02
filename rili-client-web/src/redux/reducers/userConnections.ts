@@ -52,7 +52,7 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
             const existingUserIndex = activeConnections.findIndex((con) => con.id === action.data.id); // eslint-disable-line no-case-declarations
 
             if (existingUserIndex > -1) {
-                activeConnections.splice(existingUserIndex, 1, { ...activeConnections[existingUserIndex], status: 'active' });
+                activeConnections.splice(existingUserIndex, 1, { ...action.data, status: 'active' });
             } else {
                 activeConnections.unshift(action.data);
             }
