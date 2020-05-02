@@ -15,6 +15,7 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
 
     const activeConnections = [...state.activeConnections]; // eslint-disable-line no-case-declarations
     let uniqueConnections = [...state.connections]; // eslint-disable-line no-case-declarations
+    const contextUserId = activeConnections.findIndex((con) => con.id === action.data.id); // eslint-disable-line no-case-declarations
 
     switch (action.type) {
         case UserConnectionActionTypes.GET_USER_CONNECTIONS:
@@ -37,16 +38,22 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
         case SocketServerActionTypes.ACTIVE_CONNECTIONS_LOADED:
             return state.setIn(['activeConnections'], action.data.activeUsers);
         case SocketServerActionTypes.ACTIVE_CONNECTION_DISCONNECTED:
+            if (contextUserId > -1) {
+                activeConnections.splice(contextUserId, 1, { ...activeConnections[contextUserId], status: 'away' });
+            }
+            return state.setIn(['activeConnections'], activeConnections);
         case SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_OUT:
-            const leftUserIndex = activeConnections.findIndex((con) => con.id === action.data.id); // eslint-disable-line no-case-declarations
-            if (leftUserIndex > -1) {
-                activeConnections.splice(leftUserIndex, 1);
+            if (contextUserId > -1) {
+                activeConnections.splice(contextUserId, 1);
             }
             return state.setIn(['activeConnections'], activeConnections);
         case SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_IN:
         case SocketServerActionTypes.ACTIVE_CONNECTION_REFRESHED:
-            const newUser = activeConnections.find((con) => con.id === action.data.id); // eslint-disable-line no-case-declarations
-            if (!newUser) {
+            const existingUserIndex = activeConnections.findIndex((con) => con.id === action.data.id); // eslint-disable-line no-case-declarations
+
+            if (existingUserIndex > -1) {
+                activeConnections.splice(existingUserIndex, 1, { ...action.data, status: 'active' });
+            } else {
                 activeConnections.unshift(action.data);
             }
             return state.setIn(['activeConnections'], activeConnections);

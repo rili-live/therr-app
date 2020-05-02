@@ -19,17 +19,21 @@ const easeInOutQuad = (time: number, startValue: number, valueChange: number, du
  * @param to - pixels from top to scroll to
  * @param duration - amount of time spent scrolling
  */
-const scrollTo = (to: number, duration: number) => {
+const scrollTo = (to: number, duration: number, container?: any) => {
     let currentTime = 0;
     const increment = 20;
-    const start = window.pageYOffset || document.documentElement.scrollTop;
+    const start = (container !== undefined && container.scrollTop) || window.pageYOffset || document.documentElement.scrollTop;
     const change = to - start;
 
     const animateScroll = () => {
         currentTime += increment;
         const val = easeInOutQuad(currentTime, start, change, duration);
-        document.body.scrollTop = val;
-        document.documentElement.scrollTop = val;
+        if (container) {
+            container.scrollTop = val; // eslint-disable-line no-param-reassign
+        } else {
+            document.body.scrollTop = val;
+            document.documentElement.scrollTop = val;
+        }
         if (currentTime < duration) {
             setTimeout(animateScroll, increment);
         }

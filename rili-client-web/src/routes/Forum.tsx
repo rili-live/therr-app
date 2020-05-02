@@ -77,7 +77,6 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
         };
 
         this.messageInputRef = React.createRef();
-        // this.sessionToken = '';
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
@@ -131,7 +130,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                 this.props.sendMessage({
                     roomId: this.props.user.socketDetails.currentRoom,
                     message: this.state.inputs.message,
-                    userName: this.props.user.socketDetails.session.userName,
+                    userName: this.props.user.details.userName,
                 });
                 return this.onInputChange('message', '');
             default:
@@ -163,7 +162,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                         value={this.state.inputs.message}
                         onChange={this.onInputChange}
                         onEnter={this.onButtonClick}
-                        placeholder="Enter a message"
+                        placeholder={this.translate('pages.chatForum.inputPlaceholder')}
                         translate={this.translate}
                     />
                     <div className="form-field">

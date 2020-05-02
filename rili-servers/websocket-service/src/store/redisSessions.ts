@@ -1,10 +1,13 @@
 import * as Redis from 'ioredis';
 import * as globalConfig from '../../../../global-config.js';
 import redisHelper, { IUserSocketSession, RedisHelper } from '../utilities/redisHelper';
+import { UserStatus } from '../constants';
 
 // TODO: Devise a strategy to group users in rooms (for realtime active/inactive status)
 // and broadcast to a room when their status changes rather than a broadcast to all users
 // SCALABILITY
+
+const defaultExpire = Number(globalConfig[process.env.NODE_ENV || 'development'].socket.userSocketSessionExpire) / 1000;
 
 /**
  * RedisSession
@@ -16,17 +19,17 @@ class RedisSessions {
         this.redisHelper = redisHelper;
     }
 
-    public create(args: IUserSocketSession): Promise<any> {
+    public createOrUpdate(args: IUserSocketSession): Promise<any> {
         const configuredArgs = { // TODO: RSERV-4: Use app and ip to namespace
             // TODO: RSERV-4: Create a token to send back to the frontend
             app: args.app,
             socketId: args.socketId,
             ip: args.ip.toString(),
-            ttl: args.ttl || globalConfig[process.env.NODE_ENV || ''].socket.userSocketSessionExpire,
+            ttl: args.ttl || defaultExpire,
             data: args.data,
         };
 
-        return this.redisHelper.storeUser(configuredArgs).then(() => configuredArgs);
+        return this.redisHelper.storeOrUpdateUser(configuredArgs).then(() => configuredArgs);
     }
 
     public update(args: IUserSocketSession): Promise<any> {
@@ -35,11 +38,15 @@ class RedisSessions {
             app: args.app,
             socketId: args.socketId,
             ip: args.ip.toString(),
-            ttl: args.ttl || globalConfig[process.env.NODE_ENV || ''].socket.userSocketSessionExpire,
+            ttl: args.ttl || defaultExpire,
             data: args.data,
         };
 
         return this.redisHelper.updateUser(configuredArgs).then(() => configuredArgs);
+    }
+
+    public updateStatus(user, newStatus: UserStatus, ttl?): Promise<any> {
+        return this.redisHelper.updateUserStatus(user, newStatus, ttl);
     }
 
     public remove(socketId: Redis.KeyType) {
