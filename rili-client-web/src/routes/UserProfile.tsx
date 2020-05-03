@@ -146,7 +146,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
 
     onInputChange = (name: string, value: string) => {
         const newInputChanges = {
-            [name]: value,
+            [name]: this.state.inputs.connectionIdentifier === 'acceptingUserEmail' ? value.toLowerCase() : value,
         };
         this.setState({
             inputs: {
