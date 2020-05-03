@@ -4,10 +4,10 @@ export default (req, res, next) => {
     const serializedBody = {
         ...req.body,
     };
-    if (req.body.idToken) {
+    if (req.body && req.body.idToken) {
         serializedBody.idToken = 'XXXXX';
     }
-    if (req.body.password) {
+    if (req.body && req.body.password) {
         serializedBody.password = 'XXXXX';
     }
     const serializedHeaders = {
@@ -18,7 +18,7 @@ export default (req, res, next) => {
         ...req.query,
         idToken: 'XXXXX',
     };
-    if (req.query.idToken) {
+    if (req.query && req.query.idToken) {
         serializedQuery.idToken = 'XXXXX';
     }
     beeline.addContext({

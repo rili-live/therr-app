@@ -8,6 +8,7 @@ import printLogs from 'rili-public-library/utilities/print-logs.js';
 import router from './routes';
 import honey from './middleware/honey';
 import { version as packageVersion } from '../package.json';
+import authenticate from './middleware/authenticate';
 
 const originWhitelist = (process.env.URI_WHITELIST || '').split(',');
 const corsOptions = {
@@ -26,6 +27,9 @@ const app = express();
 
 // Logging Middleware
 app.use(honey);
+
+// Authentication
+app.use(authenticate);
 
 app.use(helmet());
 app.use(bodyParser.urlencoded({ extended: true }));
