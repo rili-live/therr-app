@@ -113,7 +113,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
         this.props.toggleMessaging(e);
     }
 
-    shouldDisableInput = (buttonName: string) => {
+    shouldDisableSubmit = (buttonName: string) => {
         switch (buttonName) {
             case 'sendMessaging':
                 return !this.state.inputs.message;
@@ -155,21 +155,23 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
     }
 
     onSendMessage = (event) => {
-        const {
-            userConnections,
-            messagingContext,
-            sendDirectMessage,
-            user,
-        } = this.props;
-        event.preventDefault();
-        const toUser = userConnections.activeConnections.find((connection) => connection.id === messagingContext.id);
-        sendDirectMessage({
-            message: this.state.inputs.message,
-            userId: user.details.id,
-            userName: user.details.userName,
-            to: toUser,
-        });
-        this.onInputChange('message', '');
+        if (!this.shouldDisableSubmit('sendMessaging')) {
+            const {
+                userConnections,
+                messagingContext,
+                sendDirectMessage,
+                user,
+            } = this.props;
+            event.preventDefault();
+            const toUser = userConnections.activeConnections.find((connection) => connection.id === messagingContext.id);
+            sendDirectMessage({
+                message: this.state.inputs.message,
+                userId: user.details.id,
+                userName: user.details.userName,
+                to: toUser,
+            });
+            this.onInputChange('message', '');
+        }
     }
 
     render() {
@@ -227,14 +229,13 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
                             onEnter={this.onSendMessage}
                             placeholder={this.translate('components.messagingContainer.inputPlaceholder')}
                             translate={this.translate}
-                            disabled={this.shouldDisableInput('sendMessaging')}
                         />
                         <div className="form-field">
                             <SvgButton
                                 id="messaging_send"
                                 name="send"
                                 onClick={this.onSendMessage}
-                                disabled={this.shouldDisableInput('sendMessaging')}
+                                disabled={this.shouldDisableSubmit('sendMessaging')}
                                 iconClassName="send-icon"
                                 buttonType="primary"
                             />
