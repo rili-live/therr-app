@@ -39,6 +39,7 @@ class Store {
         this.db = dbConnection;
     }
 
+    // TODO: Verify that the count is correct after adding custom search method
     countRecords(params) {
         const queryString = getDbCountQueryString({
             queryBuilder: knex,

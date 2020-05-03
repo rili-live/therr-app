@@ -40,7 +40,7 @@ spec:
         - name: PG_PORT
           value: "5432"
         - name: MESSAGES_SERVICE_PG_DATABASE
-          value: "rili_messsages"
+          value: "rili_messages"
         - name: PG_PASSWORD
           valueFrom:
             secretKeyRef:

@@ -11,6 +11,9 @@ const utilities = [
     // HTTP/REST Helpers
     'http/index',
 
+    // Express Middleware
+    'middleware/index',
+
     // Utilities
     'calculate-pages',
     'format-sql-join-as-json',
