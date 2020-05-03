@@ -6,7 +6,7 @@ module.exports = {
     development: {
         client: 'pg',
         connection: {
-            database: process.env.PG_DATABASE,
+            database: process.env.USERS_SERVICE_PG_DATABASE,
             host: process.env.PG_HOST,
             user: process.env.PG_USER,
             password: process.env.PG_PASSWORD,
@@ -22,7 +22,7 @@ module.exports = {
     production: {
         client: 'pg',
         connection: {
-            database: process.env.PG_DATABASE,
+            database: process.env.USERS_SERVICE_PG_DATABASE,
             host: process.env.PG_HOST,
             user: process.env.PG_USER,
             password: process.env.PG_PASSWORD,

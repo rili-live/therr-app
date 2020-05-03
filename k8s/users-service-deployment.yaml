@@ -39,8 +39,8 @@ spec:
           value: "postgres-cluster-ip-service"
         - name: PG_PORT
           value: "5432"
-        - name: PG_DATABASE
-          value: "rili_prod"
+        - name: USERS_SERVICE_PG_DATABASE
+          value: "rili_users"
         - name: PG_PASSWORD
           valueFrom:
             secretKeyRef:
