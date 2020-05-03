@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: users-service-deployment
+  name: messages-service-deployment
 spec:
   replicas: 1
   selector:
@@ -14,16 +14,16 @@ spec:
     spec:
       containers:
       - name: server
-        image: riliadmin/users-service:latest
+        image: riliadmin/messages-service:latest
         resources:
           limits:
             memory: "128Mi"
             cpu: "100m"
         ports:
-        - containerPort: 7770
+        - containerPort: 7771
         env:
-        - name: USERS_SERVICE_API_PORT
-          value: "7770"
+        - name: MESSAGES_SERVICE_API_PORT
+          value: "7771"
         - name: URI_WHITELIST
           value: "https://rili.world"
         - name: HONEYCOMB_API_KEY
@@ -39,8 +39,8 @@ spec:
           value: "postgres-cluster-ip-service"
         - name: PG_PORT
           value: "5432"
-        - name: USERS_SERVICE_PG_DATABASE
-          value: "rili_users"
+        - name: MESSAGES_SERVICE_PG_DATABASE
+          value: "rili_messsages"
         - name: PG_PASSWORD
           valueFrom:
             secretKeyRef:
