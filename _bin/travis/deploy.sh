@@ -37,7 +37,7 @@ docker push riliadmin/websocket-service$SUFFIX:latest
 docker push riliadmin/websocket-service$SUFFIX:$GIT_SHA
 
 kubectl apply -f k8s
-kubectl set image deployments/messsages-service-deployment server=riliadmin/messsages-service:$GIT_SHA
+kubectl set image deployments/messages-service-deployment server=riliadmin/messsages-service:$GIT_SHA
 kubectl set image deployments/users-service-deployment server=riliadmin/users-service:$GIT_SHA
 kubectl set image deployments/websocket-service-deployment server=riliadmin/websocket-service:$GIT_SHA
 kubectl set image deployments/client-deployment client=riliadmin/client-web:$GIT_SHA
