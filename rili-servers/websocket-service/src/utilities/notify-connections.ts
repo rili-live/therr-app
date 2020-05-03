@@ -23,7 +23,7 @@ export default (socket, userDetails, actionType, shouldReturnActiveConnections =
 
     return restRequest({
         method: 'get',
-        url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiRoute}/users/connections${queryString}`,
+        url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/connections${queryString}`,
     }, socket).then(({
         data: searchResults,
     }) => {

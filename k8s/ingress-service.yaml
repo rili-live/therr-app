@@ -23,7 +23,7 @@ spec:
           backend:
             serviceName: client-cluster-ip-service
             servicePort: 7070
-        - path: /api/?(.*)
+        - path: /api-messages/?(.*)
           backend:
             serviceName: mesages-service-cluster-ip-service
             servicePort: 7771
@@ -42,7 +42,7 @@ spec:
           backend:
             serviceName: client-cluster-ip-service
             servicePort: 7070
-        - path: /api/?(.*)
+        - path: /api-messages/?(.*)
           backend:
             serviceName: messages-service-cluster-ip-service
             servicePort: 7771

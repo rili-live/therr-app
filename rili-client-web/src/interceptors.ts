@@ -11,7 +11,7 @@ const _timeout = 350; // eslint-disable-line no-underscore-dangle
 
 const initInterceptors = (
     history: any,
-    baseUrl = globalConfig[process.env.NODE_ENV].baseApiRoute,
+    baseUrl = globalConfig[process.env.NODE_ENV].baseUsersServiceRoute,
     timeout = _timeout,
 ) => {
     // Global axios config

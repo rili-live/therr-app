@@ -6,7 +6,7 @@ const hostProd = 'rili.world';
 module.exports = {
     development: {
         apiPort,
-        baseApiRoute: `http://${hostDev}:${apiPort}/v1`,
+        baseUsersServiceRoute: `http://${hostDev}:${apiPort}/v1`,
         baseSocketUrl: `http://${hostDev}:7743`,
         googleAnalyticsKey: '',
         host: hostDev,
@@ -19,7 +19,7 @@ module.exports = {
     },
     stage: {
         apiPort,
-        baseApiRoute: `https://${hostStage}/api/v1`,
+        baseUsersServiceRoute: `https://${hostStage}/api/v1`,
         baseSocketUrl: `https://${hostStage}`,
         googleAnalyticsKey: '',
         host: hostStage,
@@ -32,7 +32,7 @@ module.exports = {
     },
     production: {
         apiPort,
-        baseApiRoute: `https://${hostProd}/api/v1`,
+        baseUsersServiceRoute: `https://${hostProd}/api/v1`,
         baseSocketUrl: `https://${hostProd}`,
         googleAnalyticsKey: '',
         host: hostProd,
