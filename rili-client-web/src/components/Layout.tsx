@@ -111,7 +111,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
         // TODO: Check if this should be initialized in index with history passed as argument
         // Initialize global interceptors such as 401, 403
-        initInterceptors(history, globalConfig.baseApiRoute, 300);
+        initInterceptors(history, globalConfig.baseUsersServiceRoute, 300);
         _viewListener = history.listen((location: Location, action: any) => {
             this.onViewChange(location);
         });
