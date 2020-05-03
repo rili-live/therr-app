@@ -43,16 +43,16 @@ app.use(express.static(path.join(__dirname, 'static')));
 // Configure routes
 app.use(API_BASE_ROUTE, router);
 
-const { API_PORT } = process.env;
+const { USERS_SERVICE_API_PORT } = process.env;
 
-const server = app.listen(API_PORT, () => {
+const server = app.listen(USERS_SERVICE_API_PORT, () => {
     printLogs({
         level: 'info',
         messageOrigin: 'API_SERVER',
-        messages: [`Server running on port ${API_PORT} with process id`, process.pid],
+        messages: [`Server running on port ${USERS_SERVICE_API_PORT} with process id`, process.pid],
         tracer: beeline,
         traceArgs: {
-            port: API_PORT,
+            port: USERS_SERVICE_API_PORT,
             processId: process.pid,
         },
     });
