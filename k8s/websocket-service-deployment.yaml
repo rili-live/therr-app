@@ -31,19 +31,6 @@ spec:
               key: key
         - name: LOG_LEVEL
           value: "info"
-        - name: PG_USER
-          value: "postgres"
-        - name: PG_HOST
-          value: "postgres-cluster-ip-service"
-        - name: PG_PORT
-          value: "5432"
-        - name: PG_DATABASE
-          value: "postgres"
-        - name: PG_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: pgpassword
-              key: PGPASSWORD
         - name: REDIS_NODE_ONE_HOST
           value: "redis-cluster-ip-service"
         - name: REDIS_NODE_ONE_PORT
