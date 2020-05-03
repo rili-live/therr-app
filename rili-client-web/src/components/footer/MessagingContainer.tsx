@@ -227,6 +227,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
                             onEnter={this.onSendMessage}
                             placeholder={this.translate('components.messagingContainer.inputPlaceholder')}
                             translate={this.translate}
+                            disabled={this.shouldDisableInput('sendMessaging')}
                         />
                         <div className="form-field">
                             <SvgButton

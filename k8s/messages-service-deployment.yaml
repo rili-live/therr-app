@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: websocket-service-deployment
+  name: messages-service-deployment
 spec:
   replicas: 1
   selector:
@@ -14,16 +14,18 @@ spec:
     spec:
       containers:
       - name: server
-        image: riliadmin/websocket-service:latest
+        image: riliadmin/messages-service:latest
         resources:
           limits:
             memory: "128Mi"
             cpu: "100m"
         ports:
-        - containerPort: 7743
+        - containerPort: 7771
         env:
         - name: MESSAGES_SERVICE_API_PORT
           value: "7771"
+        - name: URI_WHITELIST
+          value: "https://rili.world"
         - name: HONEYCOMB_API_KEY
           valueFrom:
             secretKeyRef:
@@ -38,7 +40,7 @@ spec:
         - name: PG_PORT
           value: "5432"
         - name: PG_DATABASE
-          value: "postgres"
+          value: "rili_prod"
         - name: PG_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -48,8 +50,6 @@ spec:
           value: "redis-cluster-ip-service"
         - name: REDIS_NODE_ONE_PORT
           value: "6379"
-        - name: SOCKET_PORT
-          value: "7743"
         - name: SECRET
           valueFrom:
             secretKeyRef:
