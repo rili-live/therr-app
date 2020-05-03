@@ -20,7 +20,8 @@ const entry = {};
 utilities.forEach((utilityPath) => {
     if (utilityPath === 'constants/index'
         || utilityPath === 'db/index'
-        || utilityPath === 'http/index') {
+        || utilityPath === 'http/index'
+        || utilityPath === 'middleware/index') {
         entry[utilityPath.split('/')[0]] = `${PATHS.app}/${utilityPath}.ts`;
     } else {
         const pathSplit = utilityPath.split('/');
