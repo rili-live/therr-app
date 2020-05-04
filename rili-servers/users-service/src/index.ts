@@ -41,7 +41,7 @@ if (process.env.NODE_ENV !== 'production') {
 app.use(express.static(path.join(__dirname, 'static')));
 
 // Configure routes
-app.use('/', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
+app.get('/', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
 app.use(API_BASE_ROUTE, router);
 
 const { USERS_SERVICE_API_PORT } = process.env;

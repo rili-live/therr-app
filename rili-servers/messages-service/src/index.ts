@@ -49,7 +49,7 @@ app.use(authenticate.unless({
 }));
 
 // Configure routes
-app.use('/', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
+app.get('/', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
 app.use(API_BASE_ROUTE, router);
 
 const { MESSAGES_SERVICE_API_PORT } = process.env;
