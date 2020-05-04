@@ -16,13 +16,13 @@ import authenticate from '../middleware/authenticate';
 const router = express.Router();
 
 // CREATE
-router.post('/', createNotification);
+router.post('/', authenticate, createNotification);
 
 // READ
 router.get('/:notificationId', authenticate, getNotification);
 router.get('/', authenticate, searchNotifications);
 
 // UPDATE
-router.put('/:notificationId', updateNotificationValidation, validate, updateNotification);
+router.put('/:notificationId', authenticate, updateNotificationValidation, validate, updateNotification);
 
 export default router;

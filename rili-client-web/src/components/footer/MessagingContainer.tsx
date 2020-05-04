@@ -53,7 +53,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 export class MessagingContainerComponent extends React.Component<IMessagingContainerProps, IMessagingContainerState> {
     static getDerivedStateFromProps(nextProps: IMessagingContainerProps, nextState: IMessagingContainerState) {
         if (nextProps.messagingContext !== nextState.prevMessagingContext) {
-            console.log('NEXT', nextProps.messagingContext);
             return {
                 isMsgContainerOpen: true,
                 prevIsMsgContainerOpen: true,
