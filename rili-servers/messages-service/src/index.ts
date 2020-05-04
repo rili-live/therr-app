@@ -42,9 +42,14 @@ if (process.env.NODE_ENV !== 'production') {
 app.use(express.static(path.join(__dirname, 'static')));
 
 // Authentication
-app.use(authenticate);
+app.use(authenticate.unless({
+    path: [
+        { url: '/', methods: ['GET'] },
+    ],
+}));
 
 // Configure routes
+app.use('/', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
 app.use(API_BASE_ROUTE, router);
 
 const { MESSAGES_SERVICE_API_PORT } = process.env;
