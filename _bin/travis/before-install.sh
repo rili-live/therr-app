@@ -15,6 +15,6 @@ gcloud components update kubectl
 gcloud auth activate-service-account --key-file service-account.json
 gcloud config set project rili-main
 gcloud config set compute/zone us-central1-a
-gcloud container clusters get-credentials rili-app
+gcloud container clusters get-credentials rili-cluster
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
 # docker build -t riliadmin/testing -f ./client/Dockerfile.dev ./client
