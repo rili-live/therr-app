@@ -37,10 +37,6 @@ spec:
           backend:
             serviceName: websocket-service-cluster-ip-service
             servicePort: 7743
-        - path: /api-messages/?(.*)
-          backend:
-            serviceName: messages-service-cluster-ip-service
-            servicePort: 7771
     - host: www.rili.world
       http:
         paths:
@@ -56,7 +52,3 @@ spec:
           backend:
             serviceName: websocket-service-cluster-ip-service
             servicePort: 7743
-        - path: /api-messages/?(.*)
-          backend:
-            serviceName: messages-service-cluster-ip-service
-            servicePort: 7771
