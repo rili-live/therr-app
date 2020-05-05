@@ -3,7 +3,7 @@ kind: Certificate
 metadata:
   name: rili-world-tls
 spec:
-  secretName: rili-world-secret
+  secretName: rili-world
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
