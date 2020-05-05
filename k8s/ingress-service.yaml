@@ -9,7 +9,10 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-buffers-number: "8"
     nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+    nginx.ingress.kubernetes.io/connection-proxy-header: "keep-alive"
     nginx.ingress.kubernetes.io/proxy-next-upstream: error timeout http_502
+    nginx.ingress.kubernetes.io/proxy-next-upstream-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60s"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
 spec:
