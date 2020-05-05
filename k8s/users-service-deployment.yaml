@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: users-service-deployment
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       component: server
@@ -17,8 +17,8 @@ spec:
         image: riliadmin/users-service:latest
         resources:
           limits:
-            memory: "128Mi"
-            cpu: "100m"
+            memory: "64Mi"
+            cpu: "50m"
         ports:
         - containerPort: 7770
         env:
