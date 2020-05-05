@@ -3,7 +3,7 @@ kind: Certificate
 metadata:
   name: rili-world-tls
 spec:
-  secretName: rili-world
+  secretName: rili-world-secret
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
@@ -11,10 +11,3 @@ spec:
   dnsNames:
     - rili.world
     - www.rili.world
-  acme:
-    config:
-      - http01:
-          ingressClass: nginx
-        domains:
-          - rili.world
-          - www.rili.world

@@ -20,7 +20,7 @@ spec:
     - hosts:
         - rili.world
         - www.rili.world
-      secretName: rili-world
+      secretName: rili-world-secret
   rules:
     - host: rili.world
       http:
