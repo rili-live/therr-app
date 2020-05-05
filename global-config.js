@@ -20,7 +20,7 @@ module.exports = {
     },
     stage: {
         baseMessagesServiceRoute: `https://${hostStage}/messages-api/v1`,
-        baseUsersServiceRoute: `https://${hostStage}/api-users/v1`,
+        baseUsersServiceRoute: `https://${hostStage}/api/v1`,
         baseSocketUrl: `https://${hostStage}`,
         googleAnalyticsKey: '',
         host: hostStage,
@@ -33,7 +33,7 @@ module.exports = {
     },
     production: {
         baseMessagesServiceRoute: `https://${hostProd}/messages-api/v1`,
-        baseUsersServiceRoute: `https://${hostProd}/api-users/v1`,
+        baseUsersServiceRoute: `https://${hostProd}/api/v1`,
         baseSocketUrl: `https://${hostProd}`,
         googleAnalyticsKey: '',
         host: hostProd,
