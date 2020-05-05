@@ -4,6 +4,7 @@ metadata:
   name: letsencrypt-prod
 spec:
   acme:
+    http01: {}
     # You must replace this email address with your own.
     # Let's Encrypt will use this to contact you about expiring
     # certificates, and issues related to your account.
@@ -15,4 +16,4 @@ spec:
     - http01:
         ingress:
           class: nginx
-      selector: {}
+        selector: {}
