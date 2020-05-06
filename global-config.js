@@ -1,13 +1,13 @@
 const apiMessagesPort = 7771;
 const apiUsersPort = 7770;
 const hostDev = 'localhost';
-const hostStage = 'stage.rili.world';
-const hostProd = 'rili.world';
+const hostStage = 'stage.rili.network';
+const hostProd = 'rili.network';
 
 module.exports = {
     development: {
-        baseMessagesServiceRoute: `http://${hostDev}:${apiMessagesPort}/v1`,
-        baseUsersServiceRoute: `http://${hostDev}:${apiUsersPort}/v1`,
+        baseMessagesServiceRoute: `/v1`,
+        baseUsersServiceRoute: `/v1`,
         baseSocketUrl: `http://${hostDev}:7743`,
         googleAnalyticsKey: '',
         host: hostDev,
@@ -19,8 +19,8 @@ module.exports = {
         },
     },
     stage: {
-        baseMessagesServiceRoute: `https://${hostStage}/api-messages/v1`,
-        baseUsersServiceRoute: `https://${hostStage}/api-users/v1`,
+        baseMessagesServiceRoute: `/api-messages/v1`,
+        baseUsersServiceRoute: `/api-users/v1`,
         baseSocketUrl: `https://${hostStage}`,
         googleAnalyticsKey: '',
         host: hostStage,
@@ -32,8 +32,8 @@ module.exports = {
         },
     },
     production: {
-        baseMessagesServiceRoute: `https://${hostProd}/api-messages/v1`,
-        baseUsersServiceRoute: `https://${hostProd}/api-users/v1`,
+        baseMessagesServiceRoute: `/api-messages/v1`,
+        baseUsersServiceRoute: `/api-users/v1`,
         baseSocketUrl: `https://${hostProd}`,
         googleAnalyticsKey: '',
         host: hostProd,
