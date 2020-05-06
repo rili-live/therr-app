@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: websocket-service-deployment
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       component: server
@@ -17,8 +17,8 @@ spec:
         image: riliadmin/websocket-service:latest
         resources:
           limits:
-            memory: "128Mi"
-            cpu: "50m"
+            memory: "256Mi"
+            cpu: "100m"
         ports:
         - containerPort: 7743
         env:
