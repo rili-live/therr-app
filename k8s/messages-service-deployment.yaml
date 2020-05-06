@@ -25,7 +25,7 @@ spec:
         - name: MESSAGES_SERVICE_API_PORT
           value: "7771"
         - name: URI_WHITELIST
-          value: "https://rili.world"
+          value: "https://rili.network"
         - name: HONEYCOMB_API_KEY
           valueFrom:
             secretKeyRef:
