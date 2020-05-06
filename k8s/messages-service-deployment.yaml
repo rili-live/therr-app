@@ -17,7 +17,7 @@ spec:
         image: riliadmin/messages-service:latest
         resources:
           limits:
-            memory: "64Mi"
+            memory: "128Mi"
             cpu: "50m"
         ports:
         - containerPort: 7771

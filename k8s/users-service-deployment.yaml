@@ -17,7 +17,7 @@ spec:
         image: riliadmin/users-service:latest
         resources:
           limits:
-            memory: "64Mi"
+            memory: "128Mi"
             cpu: "50m"
         ports:
         - containerPort: 7770

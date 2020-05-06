@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: websocket-service-deployment
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       component: server
@@ -18,7 +18,7 @@ spec:
         resources:
           limits:
             memory: "128Mi"
-            cpu: "100m"
+            cpu: "50m"
         ports:
         - containerPort: 7743
         env:
