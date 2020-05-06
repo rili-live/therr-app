@@ -3,8 +3,7 @@ kind: Service
 metadata:
   name: websocket-service-cluster-ip-service
 spec:
-  type: LoadBalancer
-  externalTrafficPolicy: Local
+  type: ClusterIP
   selector:
     component: server
   ports:
