@@ -6,8 +6,8 @@ const hostProd = 'rili.network';
 
 module.exports = {
     development: {
-        baseMessagesServiceRoute: `/v1`,
-        baseUsersServiceRoute: `/v1`,
+        baseMessagesServiceRoute: `http://${hostDev}:${apiMessagesPort}/v1`,
+        baseUsersServiceRoute: `http://${hostDev}:${apiUsersPort}/v1`,
         baseSocketUrl: `http://${hostDev}:7743`,
         googleAnalyticsKey: '',
         host: hostDev,
@@ -19,8 +19,8 @@ module.exports = {
         },
     },
     stage: {
-        baseMessagesServiceRoute: `/api-messages/v1`,
-        baseUsersServiceRoute: `/api-users/v1`,
+        baseMessagesServiceRoute: `https://${hostStage}/api-messages/v1`,
+        baseUsersServiceRoute: `https://${hostStage}/api-users/v1`,
         baseSocketUrl: `https://${hostStage}`,
         googleAnalyticsKey: '',
         host: hostStage,
@@ -32,8 +32,8 @@ module.exports = {
         },
     },
     production: {
-        baseMessagesServiceRoute: `/api-messages/v1`,
-        baseUsersServiceRoute: `/api-users/v1`,
+        baseMessagesServiceRoute: `https://${hostProd}/api-messages/v1`,
+        baseUsersServiceRoute: `https://${hostProd}/api-users/v1`,
         baseSocketUrl: `https://${hostProd}`,
         googleAnalyticsKey: '',
         host: hostProd,
