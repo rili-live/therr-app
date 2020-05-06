@@ -3,7 +3,8 @@ kind: Service
 metadata:
   name: messages-service-cluster-ip-service
 spec:
-  type: ClusterIP
+  type: LoadBalancer
+  externalTrafficPolicy: Local
   selector:
     component: server
   ports:
