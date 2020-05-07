@@ -6,14 +6,14 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      component: server
+      component: server-messages
   template:
     metadata:
       labels:
-        component: server
+        component: server-messages
     spec:
       containers:
-      - name: server
+      - name: server-messages
         image: riliadmin/messages-service:latest
         resources:
           limits:
