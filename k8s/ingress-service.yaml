@@ -8,8 +8,12 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /$1
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-next-upstream: "error timeout http_502"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "8"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "360"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "360"
+    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   tls:
   - hosts:
@@ -20,10 +24,6 @@ spec:
   - host: rili.network
     http:
       paths:
-      - path: /?(.*)
-        backend:
-          serviceName: client-cluster-ip-service
-          servicePort: 7070
       - path: /api-messages/?(.*)
         backend:
           serviceName: messages-service-cluster-ip-service
@@ -36,13 +36,13 @@ spec:
         backend:
           serviceName: websocket-service-cluster-ip-service
           servicePort: 7743
+      - path: /?(.*)
+        backend:
+          serviceName: client-cluster-ip-service
+          servicePort: 7070
   - host: www.rili.network
     http:
       paths:
-      - path: /?(.*)
-        backend:
-          serviceName: client-cluster-ip-service
-          servicePort: 7070
       - path: /api-messages/?(.*)
         backend:
           serviceName: messages-service-cluster-ip-service
@@ -55,3 +55,7 @@ spec:
         backend:
           serviceName: websocket-service-cluster-ip-service
           servicePort: 7743
+      - path: /?(.*)
+        backend:
+          serviceName: client-cluster-ip-service
+          servicePort: 7070
