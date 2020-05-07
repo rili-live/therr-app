@@ -37,6 +37,14 @@ docker push riliadmin/users-service$SUFFIX:$GIT_SHA
 docker push riliadmin/websocket-service$SUFFIX:latest
 docker push riliadmin/websocket-service$SUFFIX:$GIT_SHA
 
+kubectl delete -f k8s/client-cluster-ip-service.yaml
+kubectl delete -f k8s/client-deployment.yaml
+kubectl delete -f k8s/messages-service-cluster-ip-service.yaml
+kubectl delete -f k8s/messages-service-deployment.yaml
+kubectl delete -f k8s/users-service-cluster-ip-service.yaml
+kubectl delete -f k8s/users-service-deployment.yaml
+kubectl delete -f k8s/websocket-service-cluster-ip-service.yaml
+kubectl delete -f k8s/websocket-service-deployment.yaml
 kubectl apply -f k8s
 kubectl set image deployments/client-deployment client=riliadmin/client-web:$GIT_SHA
 kubectl set image deployments/messages-service-deployment server=riliadmin/messages-service:$GIT_SHA
