@@ -5,7 +5,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    component: server
+    component: server-messages
   ports:
   - port: 7771
     targetPort: 7771

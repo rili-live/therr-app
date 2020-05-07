@@ -13,7 +13,7 @@ spec:
         component: web
     spec:
       containers:
-      - name: client
+      - name: web
         image: riliadmin/client-web:latest
         resources:
           limits:
