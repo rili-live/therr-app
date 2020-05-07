@@ -203,7 +203,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                 </div>
                 <div className="flex-box account-sections">
                     <div id="account_details" className="account-section">
-                        <h2 className="underline desktop-only block">{this.translate('pages.userProfile.h2.accountDetails')}</h2>
+                        <h2 className="desktop-only block">{this.translate('pages.userProfile.h2.accountDetails')}</h2>
                         <div className="account-section-content">
                             <h4><b>{this.translate('pages.userProfile.labels.firstName')}:</b> {user.details.firstName}</h4>
                             <h4><b>{this.translate('pages.userProfile.labels.lastName')}:</b> {user.details.lastName}</h4>
@@ -213,7 +213,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                         </div>
                     </div>
                     <div id="your_connections" className="account-section">
-                        <h2 className="underline">{this.translate('pages.userProfile.h2.connections')}</h2>
+                        <h2>{this.translate('pages.userProfile.h2.connections')}</h2>
                         <div className="user-connections-container account-section-content">
                             {
                                 userConnections.connections.length
@@ -236,7 +236,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                         </div>
                     </div>
                     <div id="add_connections" className="account-section">
-                        <h2 className="underline">{this.translate('pages.userProfile.h2.addConnection')}</h2>
+                        <h2>{this.translate('pages.userProfile.h2.addConnection')}</h2>
                         <div className="account-section-content">
                             <SelectBox
                                 type="text"
