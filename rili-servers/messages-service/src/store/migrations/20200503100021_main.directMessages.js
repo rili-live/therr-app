@@ -7,6 +7,8 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('directMessage
     table.string('locale', 8);
     table.timestamp('createdAt', { useTz: true }).notNullable().defaultTo(knex.fn.now());
     table.timestamp('updatedAt', { useTz: true }).notNullable().defaultTo(knex.fn.now());
+
+    table.index(['toUserId', 'fromUserId']);
 });
 
 exports.down = (knex) => knex.schema.withSchema('main').dropTable('directMessages');
