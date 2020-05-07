@@ -25,7 +25,7 @@ spec:
         - name: USERS_SERVICE_API_PORT
           value: "7770"
         - name: URI_WHITELIST
-          value: "https://rili.network"
+          value: "https://rili.network,https://www.rili.network"
         - name: HONEYCOMB_API_KEY
           valueFrom:
             secretKeyRef:
