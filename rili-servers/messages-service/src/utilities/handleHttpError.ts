@@ -1,10 +1,30 @@
-import { configureHandleHttpError, IErrorArgs } from 'rili-public-library/utilities/http.js';
+import * as express from 'express';
 import beeline from '../beeline';
 
-export {
-    IErrorArgs,
-};
+interface IErrorArgs {
+    err?: Error;
+    res: express.Response;
+    message: string;
+    resBody?: any;
+    statusCode?: number;
+}
 
-const handleHttpError = configureHandleHttpError(beeline);
+const handleHttpError = ({
+    err,
+    res,
+    message,
+    resBody,
+    statusCode,
+}: IErrorArgs) => {
+    beeline.addContext({
+        errorMessage: err ? err.stack : message,
+    });
+
+    return res.status(statusCode || 500).send({
+        statusCode: statusCode || 500,
+        message,
+        ...resBody,
+    });
+};
 
 export default handleHttpError;
