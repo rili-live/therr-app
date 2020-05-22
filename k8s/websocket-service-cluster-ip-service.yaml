@@ -5,7 +5,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    component: server
+    component: server-websocket
   ports:
   - port: 7743
     targetPort: 7743

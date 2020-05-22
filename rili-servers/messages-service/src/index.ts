@@ -28,9 +28,6 @@ const app = express();
 // Logging Middleware
 app.use(honey);
 
-// Authentication
-app.use(authenticate);
-
 app.use(helmet());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -44,7 +41,15 @@ if (process.env.NODE_ENV !== 'production') {
 // Serves static files in the /build/static directory
 app.use(express.static(path.join(__dirname, 'static')));
 
+// Authentication
+app.use(authenticate.unless({
+    path: [
+        { url: '/', methods: ['GET'] },
+    ],
+}));
+
 // Configure routes
+app.get('/', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
 app.use(API_BASE_ROUTE, router);
 
 const { MESSAGES_SERVICE_API_PORT } = process.env;

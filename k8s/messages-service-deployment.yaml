@@ -6,18 +6,18 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      component: server
+      component: server-messages
   template:
     metadata:
       labels:
-        component: server
+        component: server-messages
     spec:
       containers:
-      - name: server
+      - name: server-messages
         image: riliadmin/messages-service:latest
         resources:
           limits:
-            memory: "128Mi"
+            memory: "256Mi"
             cpu: "100m"
         ports:
         - containerPort: 7771
@@ -25,7 +25,7 @@ spec:
         - name: MESSAGES_SERVICE_API_PORT
           value: "7771"
         - name: URI_WHITELIST
-          value: "https://rili.world"
+          value: "https://rili.network,https://www.rili.network"
         - name: HONEYCOMB_API_KEY
           valueFrom:
             secretKeyRef:
@@ -46,10 +46,6 @@ spec:
             secretKeyRef:
               name: pgpassword
               key: PGPASSWORD
-        - name: REDIS_NODE_ONE_HOST
-          value: "redis-cluster-ip-service"
-        - name: REDIS_NODE_ONE_PORT
-          value: "6379"
         - name: SECRET
           valueFrom:
             secretKeyRef:

@@ -1,8 +1,8 @@
 const apiMessagesPort = 7771;
 const apiUsersPort = 7770;
-const hostDev = 'localhost';
-const hostStage = 'stage.rili.world';
-const hostProd = 'rili.world';
+const hostDev = '127.0.0.1';
+const hostStage = 'stage.rili.network';
+const hostProd = 'rili.network';
 
 module.exports = {
     development: {
