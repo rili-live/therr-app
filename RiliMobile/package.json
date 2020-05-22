@@ -1,0 +1,23 @@
+{
+  "name": "RiliMobile",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "android": "./node_modules/.bin/react-native run-android",
+    "ios": "./node_modules/.bin/react-native run-ios",
+    "start": "./node_modules/.bin/react-native start",
+    "test": "../node_modules/.bin/jest --no-cache",
+    "test:update": "../node_modules/.bin/jest -u",
+    "test:watch": "../node_modules/.bin/jest --watch",
+    "test:coverage": "../node_modules/.bin/jest --coverage",
+    "lint": "../node_modules/.bin/eslint . --ext .js,.jsx,.ts,.tsx ./",
+    "lint:fix": "../node_modules/.bin/eslint --ext .js,.jsx,.ts,.tsx --fix ./"
+  },
+  "dependencies": {
+    "react": "^16.13.1",
+    "react-native": "0.62.2"
+  },
+  "devDependencies": {
+    "metro-react-native-babel-preset": "^0.58.0"
+  }
+}

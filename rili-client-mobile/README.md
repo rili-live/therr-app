@@ -1,1 +1,0 @@
-# rili-client-mobile
