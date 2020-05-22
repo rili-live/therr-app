@@ -6,18 +6,18 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      component: server
+      component: server-websocket
   template:
     metadata:
       labels:
-        component: server
+        component: server-websocket
     spec:
       containers:
-      - name: server
+      - name: server-websocket
         image: riliadmin/websocket-service:latest
         resources:
           limits:
-            memory: "128Mi"
+            memory: "256Mi"
             cpu: "100m"
         ports:
         - containerPort: 7743

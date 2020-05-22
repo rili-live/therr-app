@@ -8,6 +8,7 @@ import printLogs from 'rili-public-library/utilities/print-logs.js';
 import router from './routes';
 import honey from './middleware/honey';
 import { version as packageVersion } from '../package.json';
+import authenticate from './middleware/authenticate';
 
 const originWhitelist = (process.env.URI_WHITELIST || '').split(',');
 const corsOptions = {
@@ -40,7 +41,15 @@ if (process.env.NODE_ENV !== 'production') {
 // Serves static files in the /build/static directory
 app.use(express.static(path.join(__dirname, 'static')));
 
+// Authentication
+app.use(authenticate.unless({
+    path: [
+        { url: '/', methods: ['GET'] },
+    ],
+}));
+
 // Configure routes
+app.get('/', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
 app.use(API_BASE_ROUTE, router);
 
 const { NEW_SERVICE_API_PORT } = process.env;

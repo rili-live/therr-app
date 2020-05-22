@@ -44,6 +44,13 @@ $profileImgWidth: rem-calc(100px);
             width: 100%;
             padding: .5rem 1rem 0;
 
+            h2 {
+                width: 100%;
+                border-bottom: 1px solid;
+                padding: .5rem .75rem;
+                box-sizing: border-box;
+            }
+
             &:first-child {
                 padding: 1rem 1rem 0;
             }
@@ -149,7 +156,7 @@ $profileImgWidth: rem-calc(100px);
                 width: 50%;
 
                 &:first-child {
-                    padding: 1rem;
+                    padding: 1.5rem;
                 }
 
                 &#add_connections {

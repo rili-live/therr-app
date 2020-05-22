@@ -14,6 +14,7 @@ interface ILoginFormProps {
 interface ILoginFormState {
     inputs: any;
     prevLoginError: string;
+    isSubmitting: boolean;
 }
 
 /**
@@ -26,6 +27,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
         this.state = {
             inputs: {},
             prevLoginError: '',
+            isSubmitting: false,
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -34,7 +36,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
     private translate: Function;
 
     isLoginFormDisabled() {
-        return !this.state.inputs.userName || !this.state.inputs.password;
+        return !this.state.inputs.userName || !this.state.inputs.password || this.state.isSubmitting;
     }
 
     onSubmit = (event: any) => {
@@ -45,6 +47,9 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
             case 'user_name':
             case 'login':
                 if (!this.isLoginFormDisabled()) {
+                    this.setState({
+                        isSubmitting: true,
+                    });
                     this.props.login({
                         userName,
                         password,
@@ -53,6 +58,10 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                         if (error.statusCode === 401 || error.statusCode === 404) {
                             this.setState({ prevLoginError: error.message });
                         }
+                    }).finally(() => {
+                        this.setState({
+                            isSubmitting: false,
+                        });
                     });
                 }
                 break;
