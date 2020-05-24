@@ -32,7 +32,7 @@
     "node_modules", "babel.config.js", "metro.config.js", "jest.config.js"
   ],
   "paths": {
-    "react": ["../node_modules/@types/react"],
+    "shared/*": ["../node_modules/*"],
     "rili-public-library/styles/*": ["../rili-public-library/styles/lib/*"],
 		"rili-public-library/utilities/*": ["../rili-public-library/utilities/lib/*"]
   }

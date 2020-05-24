@@ -187,10 +187,11 @@ $profileImgWidth: rem-calc(100px);
             justify-content: space-around;
 
             .account-section {
-                width: 33.3333333%;
+                flex: 2;
 
-                &#add_connections {
-                    width: 33.3333333%;
+                &#add_connections,
+                &#account_details {
+                    flex: 1;
                 }
             }
         }
