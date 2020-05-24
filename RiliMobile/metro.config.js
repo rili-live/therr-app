@@ -4,6 +4,12 @@
  *
  * @format
  */
+const path = require('path');
+
+const extraNodeModules = {
+    shared: path.join(__dirname, '/../node_modules'),
+};
+const watchFolders = [path.join(__dirname, '/../node_modules')];
 
 module.exports = {
     transformer: {
@@ -14,4 +20,14 @@ module.exports = {
             },
         }),
     },
+    resolver: {
+        extraNodeModules: new Proxy(extraNodeModules, {
+            get: (target, name) =>
+                //redirects dependencies referenced from shared/ to local node_modules
+                name in target
+                    ? target[name]
+                    : path.join(process.cwd(), `node_modules/${name}`),
+        }),
+    },
+    watchFolders,
 };
