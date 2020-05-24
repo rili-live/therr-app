@@ -9,7 +9,7 @@ const localPkg = require('./package.json');
 const rootPkg = require('../../package.json');
 
 // List of utility filenames
-const components = require('./src');
+const { components, redux } = require('./src');
 
 const PATHS = {
     app: path.join(__dirname, 'src'),
@@ -22,8 +22,13 @@ const PATHS = {
 const entry = {};
 components.forEach((componentPath) => {
     const pathSplit = componentPath.split('/');
-    const name = pathSplit[pathSplit.length - 1];
-    entry[name] = `${PATHS.app}/components/${componentPath}.tsx`;
+    const name = pathSplit[pathSplit.length - 1] === 'index' ? pathSplit[pathSplit.length - 2] : pathSplit[pathSplit.length - 1];
+    entry[name] = `${PATHS.app}/${componentPath}.tsx`;
+});
+redux.forEach((reduxPath) => {
+    const pathSplit = reduxPath.split('/');
+    const name = pathSplit[pathSplit.length - 1] === 'index' ? pathSplit[pathSplit.length - 2] : pathSplit[pathSplit.length - 1];
+    entry[name] = `${PATHS.app}/${reduxPath}.ts`;
 });
 
 const common = merge([
