@@ -1,7 +1,8 @@
+import getCombinedReducers from 'rili-react-components/reducers';
 import { combineReducers } from 'redux';
 
-const placeholder = (state = {}) => state;
+// const placeholder = (state = {}) => state;
 
-export default combineReducers({
-    placeholder,
-});
+const reducers = getCombinedReducers({});
+
+export default reducers;

@@ -2,24 +2,39 @@
 // This allows tree-shaking
 
 // Root level components
-const componentList = ['demo-page', 'AccessControl', 'ExampleComponent', 'InlineSvg'];
+const miscellaneousComponents = [
+    'components/demo-page',
+    'components/AccessControl',
+    'components/ExampleComponent',
+    'components/InlineSvg',
+];
 
 // Forms
 const formComponents = [
-    'forms/ButtonPrimary',
-    'forms/ButtonSecondary',
-    'forms/SvgButton',
-    'forms/Input',
-    'forms/RadioGroup',
-    'forms/SearchBox',
-    'forms/SelectBox',
+    'components/forms/ButtonPrimary',
+    'components/forms/ButtonSecondary',
+    'components/forms/SvgButton',
+    'components/forms/Input',
+    'components/forms/RadioGroup',
+    'components/forms/SearchBox',
+    'components/forms/SelectBox',
 ];
 
 // Routing
 const routingComponents = [
-    'routing/AuthRoute',
-    'routing/Status',
-    'routing/RedirectWithStatus',
+    'components/routing/AuthRoute',
+    'components/routing/Status',
+    'components/routing/RedirectWithStatus',
 ];
 
-module.exports = componentList.concat(formComponents).concat(routingComponents);
+// Redux
+const redux = [
+    'redux/actions/index',
+    'redux/reducers/index',
+    'redux/types/index',
+];
+
+module.exports = {
+    components: miscellaneousComponents.concat(formComponents).concat(routingComponents),
+    redux,
+};
