@@ -25,7 +25,7 @@ module.exports = {
     '@typescript-eslint/no-empty-interface': 0,
     'consistent-return': 'off',
     'prefer-destructuring': 'off',
-    "prettier/prettier": ["error", {"singleQuote": true, "parser": "typescript"}],
+    "prettier/prettier": ["warn", {"singleQuote": true, "parser": "typescript"}],
     'import/prefer-default-export': 'off'
   },
   settings: {
@@ -37,6 +37,7 @@ module.exports = {
         // NOTE: These aliases must match aliases in webpack.config.js
         alias: {
             map: [
+                ['shared/*', path.join(__dirname, '../node_modules')],
                 ['rili-public-library/react-components/*', path.join(__dirname, '../rili-public-library/react-components/lib')],
                 ['rili-public-library/styles/*', path.join(__dirname, '../rili-public-library/styles/lib')],
                 ['rili-public-library/utilities/*', path.join(__dirname, '../rili-public-library/utilities/lib')],
