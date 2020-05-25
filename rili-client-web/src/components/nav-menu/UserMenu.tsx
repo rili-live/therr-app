@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
-import SvgButton from 'rili-public-library/react-components/SvgButton.js';
+import ButtonPrimary from 'rili-public-library/react/ButtonPrimary.js';
+import SvgButton from 'rili-public-library/react/SvgButton.js';
 import { IUserState } from 'types/user';
 import { bindActionCreators } from 'redux';
 import { INotificationsState, INotification } from 'types/notifications';

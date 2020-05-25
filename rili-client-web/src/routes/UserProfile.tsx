@@ -4,9 +4,9 @@ import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 import flags from 'react-phone-number-input/flags'; // eslint-disable-line import/extensions
-import Input from 'rili-public-library/react-components/Input.js';
-import SelectBox from 'rili-public-library/react-components/SelectBox.js';
-import SvgButton from 'rili-public-library/react-components/SvgButton.js';
+import Input from 'rili-public-library/react/Input.js';
+import SelectBox from 'rili-public-library/react/SelectBox.js';
+import SvgButton from 'rili-public-library/react/SvgButton.js';
 import { IUserState } from 'types/user';
 import { IUserConnectionsState } from 'types/userConnections';
 import UserConnectionActions from 'actions/UserConnections';

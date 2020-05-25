@@ -19,7 +19,7 @@
 			"enums/*": ["./src/constants/enums/*"],
 			"types/*": ["./src/redux/types/*"],
 			"react": ["../../node_modules/@types/react"],
-			"rili-public-library/react-components/*": ["../rili-public-library/react-components/lib/*"],
+			"rili-public-library/react/*": ["../rili-public-library/react/lib/*"],
 			"rili-public-library/styles/*": ["../rili-public-library/styles/lib/*"],
 			"rili-public-library/utilities/*": ["../rili-public-library/utilities/lib/*"]
 		},

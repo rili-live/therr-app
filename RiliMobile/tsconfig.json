@@ -33,8 +33,8 @@
   ],
   "paths": {
     "shared/*": ["../node_modules/*"],
-    "rili-public-library/styles/*": ["../rili-public-library/styles/lib/*"],
-		"rili-public-library/react-components/*": ["../rili-public-library/react-components/lib/*"],
-		"rili-public-library/utilities/*": ["../rili-public-library/utilities/lib/*"]
+		"rili-react/*": ["../rili-public-library/react/lib/*"],
+    "rili-styles/*": ["../rili-public-library/styles/lib/*"],
+		"rili-utilities/*": ["../rili-public-library/utilities/lib/*"]
   }
 }

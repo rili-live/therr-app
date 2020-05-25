@@ -5,7 +5,7 @@ module.exports = {
             'module-resolver',
             {
                 alias: {
-                    'shared': '../node_modules',
+                    shared: '../node_modules',
                 },
             },
         ],

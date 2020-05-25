@@ -5,7 +5,7 @@ import UsersActions from 'actions/Users';
 import store from './store';
 import * as globalConfig from '../../global-config.js';
 
-let timer: number;
+let timer: any;
 let numLoadings = 0;
 const _timeout = 350; // eslint-disable-line no-underscore-dangle
 

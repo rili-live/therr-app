@@ -34,13 +34,13 @@ module.exports = {
         '@typescript-eslint/parser': ['.ts', '.tsx']
     },
     'import/resolver': {
-        // NOTE: These aliases must match aliases in webpack.config.js
+        // NOTE: These aliases must match aliases in metro.config.js
         alias: {
             map: [
                 ['shared/*', path.join(__dirname, '../node_modules')],
-                ['rili-public-library/react-components/*', path.join(__dirname, '../rili-public-library/react-components/lib')],
-                ['rili-public-library/styles/*', path.join(__dirname, '../rili-public-library/styles/lib')],
-                ['rili-public-library/utilities/*', path.join(__dirname, '../rili-public-library/utilities/lib')],
+                ['rili-react/*', path.join(__dirname, '../rili-public-library/react/lib')],
+                ['rili-styles/*', path.join(__dirname, '../rili-public-library/styles/lib')],
+                ['rili-utilities/*', path.join(__dirname, '../rili-public-library/utilities/lib')],
             ],
             extensions: ['.js', '.jsx', '.ts', '.json', '.scss'],
         },
