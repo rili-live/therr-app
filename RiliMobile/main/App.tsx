@@ -1,5 +1,6 @@
 import React from 'react';
 import { Provider } from 'shared/react-redux';
+import UsersService from 'rili-react/UsersService';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
@@ -9,18 +10,26 @@ import { theme } from './styles';
 
 const Stack = createStackNavigator();
 
-export const isAuthorized = (route) => {
-    return !route.options.access;
-};
-
 const App = () => {
+    const user = store.getState().user;
+
     return (
         <Provider store={store}>
             <NavigationContainer theme={theme}>
                 <Stack.Navigator>
                     {routes
-                        .filter((route) => isAuthorized(route))
-                        .map((route) => {
+                        .filter(
+                            (route: any) =>
+                                !(route.options && route.options.access) ||
+                                UsersService.isAuthorized(
+                                    route.options.access,
+                                    user
+                                )
+                        )
+                        .map((route: any) => {
+                            if (route.options) {
+                                delete route.options.access;
+                            }
                             return <Stack.Screen key={route.name} {...route} />;
                         })}
                 </Stack.Navigator>

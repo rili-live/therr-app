@@ -7,7 +7,7 @@ import { bindActionCreators } from 'redux';
 import { IMessage, ISocketState } from 'types/socket';
 import { IUserState } from 'types/user';
 import { IUserConnectionsState } from 'types/userConnections';
-import SocketActions from 'actions/Socket';
+import { SocketActions } from 'rili-public-library/react/actions.js';
 import translator from '../../services/translator';
 
 

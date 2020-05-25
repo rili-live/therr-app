@@ -3,10 +3,11 @@ import { connect } from 'react-redux';
 import AccessControl from 'rili-public-library/react/AccessControl.js';
 import SvgButton from 'rili-public-library/react/SvgButton.js';
 import { IUserState } from 'types/user';
-import UsersActions from 'actions/Users';
+import { UsersActions } from 'rili-public-library/react/actions.js';
 import { bindActionCreators } from 'redux';
 import MessagingContainer, { IMessagingContext } from './MessagingContainer';
 import { INavMenuContext } from '../../types';
+import { socketIO } from '../../socket-io-middleware';
 
 interface IFooterDispatchProps {
     logout: Function;
@@ -35,7 +36,7 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    logout: UsersActions.logout,
+    logout: (new UsersActions(socketIO)).logout,
 }, dispatch);
 
 export class FooterComponent extends React.Component<IFooterProps, IFooterState> {

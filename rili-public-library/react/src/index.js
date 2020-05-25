@@ -34,7 +34,15 @@ const redux = [
     'redux/types/index',
 ];
 
+// Services
+const services = [
+    'services/NotificationsService',
+    'services/UserConnectionsService',
+    'services/UsersService',
+];
+
 module.exports = {
     components: miscellaneousComponents.concat(formComponents).concat(routingComponents),
     redux,
+    services,
 };

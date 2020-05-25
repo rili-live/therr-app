@@ -2,9 +2,10 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import UsersActions from 'actions/Users';
+import { UsersActions } from 'rili-public-library/react/actions.js';
 import translator from '../services/translator';
 import RegisterForm from '../components/RegisterForm';
+import { socketIO } from '../socket-io-middleware';
 
 interface IRegisterRouterProps {
     history: any;
@@ -29,7 +30,7 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    register: UsersActions.register,
+    register: (new UsersActions(socketIO)).register,
 }, dispatch);
 
 /**

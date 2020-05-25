@@ -1,21 +1,6 @@
-import { combineReducers } from 'redux';
-import { routerReducer as routing } from 'react-router-redux';
-// import {user, users, isAuthenticated, redirectRoute} from '../library/authentication';
-// import {loader} from '../library/loader';
-import notifications from './notifications';
-import socket from './socket';
-import user from './user';
-import userConnections from './userConnections';
+import getCombinedReducers from 'rili-public-library/react/reducers.js';
+import { socketIO } from '../../socket-io-middleware';
 
-export default combineReducers({
-    routing,
-    socket,
+const reducers = getCombinedReducers(socketIO);
 
-    // library
-    // isAuthenticated,
-    // loader,
-    // redirectRoute,
-    notifications,
-    user,
-    userConnections,
-});
+export default reducers;

@@ -2,13 +2,14 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import AccessControl from 'rili-public-library/react/AccessControl.js';
+import { UsersActions } from 'rili-public-library/react/actions.js';
 import SvgButton from 'rili-public-library/react/SvgButton.js';
 import { IUserState } from 'types/user';
-import UsersActions from 'actions/Users';
 import { bindActionCreators } from 'redux';
 import { INotificationsState, INotification } from 'types/notifications';
 import translator from '../services/translator';
 import { INavMenuContext } from '../types';
+import { socketIO } from '../socket-io-middleware';
 
 interface IHeaderDispatchProps {
     logout: Function;
@@ -36,7 +37,7 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    logout: UsersActions.logout,
+    logout: (new UsersActions(socketIO)).logout,
 }, dispatch);
 
 export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState> {

@@ -6,7 +6,7 @@ import SvgButton from 'rili-public-library/react/SvgButton.js';
 import { ISocketState } from 'types/socket';
 import { IUserState } from 'types/user';
 import { IUserConnectionsState } from 'types/userConnections';
-import UserConnectionsActions from 'actions/UserConnections';
+import { UserConnectionsActions } from 'rili-public-library/react/actions.js';
 import { bindActionCreators } from 'redux';
 import translator from '../../services/translator';
 

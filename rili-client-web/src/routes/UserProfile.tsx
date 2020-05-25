@@ -9,7 +9,7 @@ import SelectBox from 'rili-public-library/react/SelectBox.js';
 import SvgButton from 'rili-public-library/react/SvgButton.js';
 import { IUserState } from 'types/user';
 import { IUserConnectionsState } from 'types/userConnections';
-import UserConnectionActions from 'actions/UserConnections';
+import { UserConnectionsActions } from 'rili-public-library/react/actions.js';
 import translator from '../services/translator';
 import UserConnectionsService from '../services/UserConnectionsService';
 
@@ -44,8 +44,8 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    createUserConnection: UserConnectionActions.create,
-    searchUserConnections: UserConnectionActions.search,
+    createUserConnection: UserConnectionsActions.create,
+    searchUserConnections: UserConnectionsActions.search,
 }, dispatch);
 
 /**

@@ -2,10 +2,11 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import UsersActions from 'actions/Users';
+import { UsersActions } from 'rili-public-library/react/actions.js';
 import { IUserState } from 'types/user';
 import translator from '../services/translator';
 import LoginForm from '../components/LoginForm';
+import { socketIO } from '../socket-io-middleware';
 
 export const shouldRenderLoginForm = (props: ILoginProps) => !props.user
     || !props.user.isAuthenticated
@@ -38,7 +39,7 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    login: UsersActions.login,
+    login: (new UsersActions(socketIO)).login,
 }, dispatch);
 
 /**
