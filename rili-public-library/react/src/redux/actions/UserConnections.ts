@@ -2,7 +2,7 @@ import { SocketClientActionTypes } from 'rili-public-library/utilities/constants
 import { UserConnectionActionTypes } from '../types/userConnections';
 import UserConnectionsService from '../../services/UserConnectionsService';
 
-const UserConnection = {
+const UserConnections = {
     search: (query: any, userId: number) => (dispatch: any) => UserConnectionsService.search(query).then((response) => {
         dispatch({
             type: SocketClientActionTypes.LOAD_ACTIVE_CONNECTIONS,
@@ -30,4 +30,4 @@ const UserConnection = {
     },
 };
 
-export default UserConnection;
+export default UserConnections;

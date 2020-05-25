@@ -2,6 +2,7 @@ const path = require('path');
 const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-dependencies
 const merge = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
 const HtmlWebpackPlugin = require('html-webpack-plugin'); // eslint-disable-line import/no-extraneous-dependencies
+const DeclarationBundlerPlugin = require('declaration-bundler-webpack-plugin');
 const parts = require('../../webpack.parts');
 
 // For externals

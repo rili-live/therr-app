@@ -3,7 +3,7 @@ import { SocketClientActionTypes } from 'rili-public-library/utilities/constants
 import { IUser } from '../types/user';
 import UsersService from '../../services/UsersService';
 
-class UserActions {
+class UsersActions {
     constructor(socketIO) {
         this.socketIO = socketIO;
     }
@@ -89,4 +89,4 @@ class UserActions {
     });
 }
 
-export default UserActions;
+export default UsersActions;
