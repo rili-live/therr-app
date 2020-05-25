@@ -8,8 +8,7 @@ const parts = require('../../webpack.parts');
 const localPkg = require('./package.json');
 const rootPkg = require('../../package.json');
 
-// List of utility filenames
-const { components, redux } = require('./src');
+const { components, redux, services } = require('./src');
 
 const PATHS = {
     app: path.join(__dirname, 'src'),
@@ -30,6 +29,11 @@ redux.forEach((reduxPath) => {
     const name = pathSplit[pathSplit.length - 1] === 'index' ? pathSplit[pathSplit.length - 2] : pathSplit[pathSplit.length - 1];
     entry[name] = `${PATHS.app}/${reduxPath}.ts`;
 });
+services.forEach((servicePath) => {
+    const pathSplit = servicePath.split('/');
+    const name = pathSplit[pathSplit.length - 1] === 'index' ? pathSplit[pathSplit.length - 2] : pathSplit[pathSplit.length - 1];
+    entry[name] = `${PATHS.app}/${servicePath}.ts`;
+});
 
 const common = merge([
     {
@@ -48,6 +52,7 @@ const common = merge([
                 'rili-public-library/utilities': path.join(__dirname, '../utilities/lib'),
             },
         },
+        target: 'node',
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
             new HtmlWebpackPlugin({

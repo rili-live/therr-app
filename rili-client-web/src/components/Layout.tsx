@@ -12,6 +12,7 @@ import { IUserState } from 'types/user';
 import AccessControl from 'rili-public-library/react/AccessControl.js';
 import AuthRoute from 'rili-public-library/react/AuthRoute.js';
 import RedirectWithStatus from 'rili-public-library/react/RedirectWithStatus.js';
+import { NotificationActions, UsersActions, SocketActions } from 'rili-public-library/react/actions.js';
 import SvgButton from 'rili-public-library/react/SvgButton.js';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
@@ -23,7 +24,6 @@ import routes from '../routes';
 import { AccessCheckType, INavMenuContext } from '../types';
 import UsersService from '../services/UsersService';
 import Footer from './footer/Footer';
-import { NotificationActions, UsersActions, SocketActions } from '../redux/actions';
 import UserMenu from './nav-menu/UserMenu';
 import MessagesMenu from './nav-menu/MessagesMenu';
 import { socketIO, updateSocketToken } from '../socket-io-middleware';

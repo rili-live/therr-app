@@ -2,7 +2,7 @@ import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import SocketActions from 'actions/Socket';
+import { SocketActions } from 'rili-public-library/react/actions.js';
 import Input from 'rili-public-library/react/Input.js';
 import ButtonPrimary from 'rili-public-library/react/ButtonPrimary.js';
 import scrollTo from 'rili-public-library/utilities/scroll-to.js';

@@ -8,7 +8,7 @@ import { INotificationsState, INotification } from 'types/notifications';
 import {
     NotificationActions,
     UserConnectionsActions,
-} from '../../redux/actions';
+} from 'rili-public-library/react/actions.js';
 import Notification from './Notification';
 import translator from '../../services/translator';
 

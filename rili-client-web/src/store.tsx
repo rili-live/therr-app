@@ -23,7 +23,7 @@ const composeEnhancers = typeof window === 'object'
 function safelyParse(input: any) {
     if (input) {
         const doc = new DOMParser().parseFromString(input, 'text/html');
-        return JSON.parse(doc.documentElement.textContent);
+        return JSON.parse(doc.documentElement.textContent || '');
     }
     console.log('Warning: __PRELOADED_STATE__ is not defined on the respective view'); // eslint-disable-line no-console
     return {};
