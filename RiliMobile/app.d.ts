@@ -10,8 +10,9 @@ declare module '*.svg' {
     export default content;
 }
 
-// Allows importing aliased js files without type declaration file
-// declare module 'rili-react/*'
+// TODO
+/// <reference path="../node_modules/@types/react-redux" />
+declare module 'shared/react-redux'
 
 // Honeycomb Beeline
 declare module 'honeycomb-beeline';
