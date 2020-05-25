@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import AccessControl from 'rili-public-library/react-components/AccessControl.js';
-import SvgButton from 'rili-public-library/react-components/SvgButton.js';
+import AccessControl from 'rili-public-library/react/AccessControl.js';
+import SvgButton from 'rili-public-library/react/SvgButton.js';
 import { IUserState } from 'types/user';
 import UsersActions from 'actions/Users';
 import { bindActionCreators } from 'redux';

@@ -12,7 +12,7 @@ const PATHS = {
     build: path.join(__dirname, 'build/static'),
     themes: path.join(__dirname, 'src/styles/themes'),
     utils: path.join(__dirname, '../utilities'),
-    reactComponents: path.join(__dirname, '../rili-public-library/react-components'),
+    reactComponents: path.join(__dirname, '../rili-public-library/react'),
     public: '/',
 };
 
@@ -40,7 +40,7 @@ const common = merge([
                 actions: path.join(__dirname, 'src/redux/actions/'),
                 enums: path.join(__dirname, 'src/constants/enums/'),
                 types: path.join(__dirname, 'src/redux/types/'),
-                'rili-public-library/react-components': path.join(__dirname, '../rili-public-library/react-components/lib'),
+                'rili-public-library/react': path.join(__dirname, '../rili-public-library/react/lib'),
                 'rili-public-library/styles': path.join(__dirname, '../rili-public-library/styles/lib'),
                 'rili-public-library/utilities': path.join(__dirname, '../rili-public-library/utilities/lib'),
             },

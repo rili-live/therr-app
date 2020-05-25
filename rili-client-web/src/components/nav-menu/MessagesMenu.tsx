@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
-import InlineSvg from 'rili-public-library/react-components/InlineSvg.js';
-import SvgButton from 'rili-public-library/react-components/SvgButton.js';
+import ButtonPrimary from 'rili-public-library/react/ButtonPrimary.js';
+import InlineSvg from 'rili-public-library/react/InlineSvg.js';
+import SvgButton from 'rili-public-library/react/SvgButton.js';
 import { ISocketState } from 'types/socket';
 import { IUserState } from 'types/user';
 import { IUserConnectionsState } from 'types/userConnections';

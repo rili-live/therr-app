@@ -8,11 +8,11 @@ const path = require('path');
 
 const extraNodeModules = {
     shared: path.join(__dirname, '/../node_modules'),
-    'rili-react-components': path.join(__dirname, '/../rili-public-library/react-components/lib'),
+    'rili-react': path.join(__dirname, '/../rili-public-library/react/lib'),
 };
 const watchFolders = [
     path.join(__dirname, '/../node_modules'),
-    path.join(__dirname, '/../rili-public-library/react-components/lib'),
+    path.join(__dirname, '/../rili-public-library/react/lib'),
 ];
 
 module.exports = {

@@ -9,10 +9,10 @@ import { TransitionGroup as Animation } from 'react-transition-group';
 import { Location } from 'history';
 // import * as ReactGA from 'react-ga';
 import { IUserState } from 'types/user';
-import AccessControl from 'rili-public-library/react-components/AccessControl.js';
-import AuthRoute from 'rili-public-library/react-components/AuthRoute.js';
-import RedirectWithStatus from 'rili-public-library/react-components/RedirectWithStatus.js';
-import SvgButton from 'rili-public-library/react-components/SvgButton.js';
+import AccessControl from 'rili-public-library/react/AccessControl.js';
+import AuthRoute from 'rili-public-library/react/AuthRoute.js';
+import RedirectWithStatus from 'rili-public-library/react/RedirectWithStatus.js';
+import SvgButton from 'rili-public-library/react/SvgButton.js';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
 import scrollTo from 'rili-public-library/utilities/scroll-to.js';
@@ -146,6 +146,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
     componentWillUnmount() { // eslint-disable-line
         _viewListener();
+        document.removeEventListener('click', this.handleClick);
     }
 
     handleClick = (event: any) => {

@@ -43,7 +43,7 @@ WORKDIR /usr/src/app/rili-public-library/styles
 RUN npm run build
 WORKDIR /usr/src/app/rili-public-library/utilities
 RUN npm run build
-WORKDIR /usr/src/app/rili-public-library/react-components
+WORKDIR /usr/src/app/rili-public-library/react
 RUN npm run build
 
 # Copy main app files
