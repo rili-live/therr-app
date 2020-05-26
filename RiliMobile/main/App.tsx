@@ -1,4 +1,3 @@
-/// <reference path="../../node_modules/@types/react-redux" />
 import React from 'react';
 import { Provider } from 'shared/react-redux';
 import UsersService from 'rili-react/UsersService';

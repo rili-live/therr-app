@@ -24,6 +24,10 @@
   ],
   "author": "Rili, Inc.",
   "license": "MIT",
+  "types:": "lib/index.d.ts",
+  "files": [
+    "lib/"
+  ],
   "peerDependencies": {},
   "devDependencies": {},
   "dependencies": {}

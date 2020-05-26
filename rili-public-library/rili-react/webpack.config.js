@@ -19,7 +19,9 @@ const PATHS = {
     public: '/',
 };
 
-const entry = {};
+const entry = {
+    index: path.join(PATHS.app, 'index'),
+};
 components.forEach((componentPath) => {
     const pathSplit = componentPath.split('/');
     const name = pathSplit[pathSplit.length - 1] === 'index' ? pathSplit[pathSplit.length - 2] : pathSplit[pathSplit.length - 1];
