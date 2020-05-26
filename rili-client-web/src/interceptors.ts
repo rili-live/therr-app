@@ -1,10 +1,9 @@
 import axios from 'axios';
-import { UsersActions } from 'rili-public-library/react/actions.js';
 // import { AlertActions } from './library/alerts';
 // import { LoaderActions } from './library/loader';
 import store from './store';
-import * as globalConfig from '../../global-config.js';
-import { socketIO } from './socket-io-middleware';
+import * as globalConfig from '../../global-config';
+import UsersActions from './redux/actions/UsersActions';
 
 let timer: any;
 let numLoadings = 0;
@@ -52,7 +51,7 @@ const initInterceptors = (
         if (error.response) {
             if (Number(error.response.status) === 401 || Number(error.response.data.statusCode) === 401) {
                 // store.dispatch(UserActions.setRedirect(window.location.pathname));
-                store.dispatch((new UsersActions(socketIO)).logout());
+                store.dispatch(UsersActions.logout());
                 // store.dispatch(AlertActions.addAlert({
                 //     title: 'Not Authorized',
                 //     message: 'Redirected: You do not have authorization to view this content or your session has expired.
