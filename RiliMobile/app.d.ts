@@ -12,7 +12,7 @@ declare module '*.svg' {
 
 // TODO
 /// <reference path="../node_modules/@types/react-redux" />
-declare module 'shared/react-redux'
+declare module 'shared/react-redux';
 
 // Honeycomb Beeline
 declare module 'honeycomb-beeline';

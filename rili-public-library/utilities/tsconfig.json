@@ -5,7 +5,7 @@
 		"baseUrl": ".",
 		"rootDir": "./src/",
 		"typeRoots": ["../../node_modules/@types", "typings"],
-		"declaration": false,
+		"declaration": true,
 		"removeComments": false,
 		"noLib": false,
 		"emitDecoratorMetadata": true,
@@ -27,7 +27,7 @@
 		"noImplicitUseStrict": false,
 		"noFallthroughCasesInSwitch": true,
 		"moduleResolution": "node",
-		"outDir": "build",
+		"outDir": "lib",
 		"jsx": "react"
 	},
 	"files": [
