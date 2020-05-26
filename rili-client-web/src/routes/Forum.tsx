@@ -2,14 +2,14 @@ import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { SocketActions } from 'rili-public-library/react/actions.js';
-import Input from 'rili-public-library/react/Input.js';
-import ButtonPrimary from 'rili-public-library/react/ButtonPrimary.js';
-import scrollTo from 'rili-public-library/utilities/scroll-to.js';
+import { SocketActions } from 'rili-react/actions';
+import Input from 'rili-react/Input';
+import ButtonPrimary from 'rili-react/ButtonPrimary';
+import scrollTo from 'rili-public-library/utilities/scroll-to';
 import { IMessage, ISocketState } from 'types/socket';
 import { IUserState } from 'types/user';
 import translator from '../services/translator';
-// import * as globalConfig from '../../../global-config.js';
+// import * as globalConfig from '../../../global-config';
 
 // router params
 interface IForumRouterProps {

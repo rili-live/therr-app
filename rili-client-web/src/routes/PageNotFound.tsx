@@ -1,9 +1,8 @@
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import * as io from 'socket.io-client';
-import Status from 'rili-public-library/react/Status.js';
+import Status from 'rili-react/Status';
 import translator from '../services/translator';
-import * as globalConfig from '../../../global-config.js';
+import * as globalConfig from '../../../global-config';
 
 interface IPageNotFoundRouterProps {
 
