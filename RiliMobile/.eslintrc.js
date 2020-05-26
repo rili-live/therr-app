@@ -38,7 +38,7 @@ module.exports = {
         alias: {
             map: [
                 ['shared/*', path.join(__dirname, '../node_modules')],
-                ['rili-react/*', path.join(__dirname, '../rili-public-library/react/lib')],
+                ['rili-react/*', path.join(__dirname, '../rili-public-library/rili-react/lib')],
                 ['rili-styles/*', path.join(__dirname, '../rili-public-library/styles/lib')],
                 ['rili-utilities/*', path.join(__dirname, '../rili-public-library/utilities/lib')],
             ],

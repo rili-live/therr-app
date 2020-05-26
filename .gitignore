@@ -67,5 +67,5 @@ typings/
 
 # build files
 build/
-rili-public-library/react/lib/
+rili-public-library/rili-react/lib/
 rili-public-library/utilities/lib/

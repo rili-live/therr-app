@@ -41,6 +41,7 @@
 		"node_modules/**/*.*",
 		"build/**/*.*",
 		"lib/**/*.*",
+		"lib/**/*.d.ts",
 		"**/*.js"
 	],
 	"compileOnSave": false
