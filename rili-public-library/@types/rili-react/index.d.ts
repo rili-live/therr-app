@@ -6,7 +6,6 @@ declare module 'rili-react/AccessControl' {
     const AccessControl: React.SFC<IAccessControlProps>;
     export default AccessControl;
 }
-
 declare module 'rili-react/actions' {
     const NotificationActions: {
         search: (query: any) => (dispatch: any) => Promise<void>;

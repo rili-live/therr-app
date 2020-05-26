@@ -34,7 +34,7 @@
   "paths": {
     "shared/react": ["../../node_modules/@types/react"],
     "shared/*": ["../node_modules/*"],
-		"rili-react/*": ["../rili-public-library/react/lib/*"],
+		"rili-react/*": ["../rili-public-library/rili-react/lib/*"],
     "rili-styles/*": ["../rili-public-library/styles/lib/*"],
 		"rili-utilities/*": ["../rili-public-library/utilities/lib/*"]
   },

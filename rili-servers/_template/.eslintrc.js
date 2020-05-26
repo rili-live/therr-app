@@ -42,7 +42,7 @@ module.exports = {
             // NOTE: These aliases must match aliases in webpack.config.js
             alias: {
                 map: [
-                    ['rili-public-library/react/*', path.join(__dirname, '../../rili-public-library/react/lib')],
+                    ['rili-public-library/rili-react/*', path.join(__dirname, '../../rili-public-library/rili-react/lib')],
                     ['rili-public-library/styles/*', path.join(__dirname, '../../rili-public-library/styles')],
                     ['rili-public-library/utilities/*', path.join(__dirname, '../../rili-public-library/utilities/lib')],
                 ],
