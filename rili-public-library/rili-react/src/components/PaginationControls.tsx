@@ -5,7 +5,7 @@ import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import 'rili-public-library/styles/icons.scss'; // eslint-disable-line import/no-unresolved
 import 'rili-public-library/styles/pagination.scss'; // eslint-disable-line import/no-unresolved
-import calculatePages from 'rili-public-library/utilities/calculate-pages.js';
+import calculatePages from 'rili-public-library/rili-js-utilities/calculate-pages.js';
 
 const PaginationControls = ({
     disabled, hideFirstLastButtons, pagination, translate, handlePageChange, showResultsCount,

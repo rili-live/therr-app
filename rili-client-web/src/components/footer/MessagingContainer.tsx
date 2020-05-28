@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import Input from 'rili-react/Input';
 import SvgButton from 'rili-react/SvgButton';
-import scrollTo from 'rili-public-library/utilities/scroll-to';
+import scrollTo from 'rili-utilities/scroll-to';
 import { bindActionCreators } from 'redux';
 import { IMessage, ISocketState } from 'types/socket';
 import { IUserState } from 'types/user';

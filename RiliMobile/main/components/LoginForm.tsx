@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { View, Text } from 'react-native';
-import { Input } from 'react-native-elements';
-import ButtonPrimary from 'rili-react/ButtonPrimary';
+import { Button, Input } from 'react-native-elements';
 import translator from '../services/translator';
 import { loginForm as styles } from '../styles/forms';
 
@@ -48,48 +47,41 @@ export class LoginFormComponent extends React.Component<
         );
     }
 
-    onSubmit = (event: any) => {
-        event.preventDefault();
+    onSubmit = () => {
         const { password, rememberMe, userName } = this.state.inputs;
-        switch (event.target.id) {
-            case 'password':
-            case 'user_name':
-            case 'login':
-                if (!this.isLoginFormDisabled()) {
-                    this.setState({
-                        isSubmitting: true,
-                    });
-                    this.props
-                        .login({
-                            userName,
-                            password,
-                            rememberMe,
-                        })
-                        .catch((error: any) => {
-                            if (
-                                error.statusCode === 401 ||
-                                error.statusCode === 404
-                            ) {
-                                this.setState({
-                                    prevLoginError: error.message,
-                                    isSubmitting: false,
-                                });
-                            }
+        if (!this.isLoginFormDisabled()) {
+            this.setState({
+                isSubmitting: true,
+            });
+            this.props
+                .login({
+                    userName,
+                    password,
+                    rememberMe,
+                })
+                .catch((error: any) => {
+                    console.log(error);
+                    if (
+                        error.statusCode === 401 ||
+                        error.statusCode === 404
+                    ) {
+                        this.setState({
+                            prevLoginError: error.message,
+                            isSubmitting: false,
                         });
-                }
-                break;
-            default:
+                    }
+                });
         }
     };
 
-    onInputChange = (value: string) => {
+    onInputChange = (name: string, value: string) => {
         const newInputChanges = {
-            temp: value,
+            [name]: value,
         };
 
-        // if (name === 'userName') {
-        //     newInputChanges[name] = value.toLowerCase();
-        // }
+        if (name === 'userName') {
+            newInputChanges[name] = value.toLowerCase();
+        }
 
         this.setState({
             inputs: {
@@ -106,37 +98,27 @@ export class LoginFormComponent extends React.Component<
 
         return (
             <View style={styles.loginContainer}>
-                <Text>
-                    {title ||
-                        this.translate('components.loginForm.defaultTitle')}
-                </Text>
-                {alert && <View>{alert}</View>}
-                {prevLoginError && <View>{prevLoginError}</View>}
-                <label htmlFor="user_name">:</label>
                 <Input
                     label={this.translate(
                         'components.loginForm.labels.userName'
                     )}
                     value={this.state.inputs.userName}
-                    onChangeText={this.onInputChange}
+                    onChangeText={(text) => this.onInputChange('userName', text)}
                 />
-
                 <Input
                     label={this.translate(
                         'components.loginForm.labels.password'
                     )}
                     value={this.state.inputs.password}
-                    onChangeText={this.onInputChange}
+                    onChangeText={(text) => this.onInputChange('password', text)}
                     secureTextEntry={true}
                 />
-
                 <View>
-                    <ButtonPrimary
-                        id="login"
-                        text={this.translate(
+                    <Button
+                        title={this.translate(
                             'components.loginForm.buttons.login'
                         )}
-                        onClick={this.onSubmit}
+                        onPress={this.onSubmit}
                         disabled={this.isLoginFormDisabled()}
                     />
                 </View>

@@ -1,8 +1,8 @@
-import { getSearchQueryString } from 'rili-public-library/utilities/http.js';
-import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-library/utilities/constants.js';
+import { getSearchQueryString } from 'rili-public-library/rili-js-utilities/http';
+import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-library/rili-js-utilities/constants';
 import restRequest from './restRequest';
 import redisSessions from '../store/redisSessions';
-import globalConfig from '../../../../global-config.js';
+import globalConfig from '../../../../global-config';
 
 // TODO: Optimizing for performance
 export default (socket, userDetails, actionType, shouldReturnActiveConnections = false) => {

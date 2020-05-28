@@ -1,5 +1,5 @@
 import * as Immutable from 'seamless-immutable';
-import { SocketClientActionTypes } from 'rili-public-library/utilities/constants.js';
+import { SocketClientActionTypes } from 'rili-utilities/constants';
 import { IUser } from '../types/user';
 import UsersService from '../../services/UsersService';
 

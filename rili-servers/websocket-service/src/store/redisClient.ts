@@ -1,4 +1,4 @@
-import printLogs from 'rili-public-library/utilities/print-logs.js';
+import printLogs from 'rili-public-library/rili-js-utilities/print-logs';
 import Redis from 'ioredis';
 import beeline from '../beeline'; // eslint-disable-line import/order
 

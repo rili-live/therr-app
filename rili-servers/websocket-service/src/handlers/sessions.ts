@@ -1,6 +1,6 @@
 import * as socketio from 'socket.io';
-import printLogs from 'rili-public-library/utilities/print-logs.js';
-import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-library/utilities/constants.js';
+import printLogs from 'rili-public-library/rili-js-utilities/print-logs';
+import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-library/rili-js-utilities/constants';
 import beeline from '../beeline';
 import redisSessions from '../store/redisSessions';
 import notifyConnections from '../utilities/notify-connections';

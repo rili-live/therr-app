@@ -16,7 +16,7 @@
     "inlineSources": true,
 		"paths": {
 			"rili-public-library/styles/*": ["../../rili-public-library/styles/*"],
-			"rili-public-library/utilities/*": ["../../rili-public-library/utilities/lib/*"],
+			"rili-public-library/rili-js-utilities/*": ["../../rili-public-library/rili-js-utilities/lib/*"],
 		},
 		"pretty": true,
 		"allowUnreachableCode": false,

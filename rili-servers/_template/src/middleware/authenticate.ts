@@ -1,5 +1,5 @@
 import unless from 'express-unless';
-import { configureAuthenticate } from 'rili-public-library/utilities/middleware.js';
+import { configureAuthenticate } from 'rili-public-library/rili-js-utilities/middleware';
 import handleHttpError from '../utilities/handleHttpError';
 
 const authenticate = configureAuthenticate(handleHttpError);

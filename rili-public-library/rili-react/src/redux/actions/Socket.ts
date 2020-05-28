@@ -1,4 +1,4 @@
-import { SocketClientActionTypes } from 'rili-public-library/utilities/constants.js';
+import { SocketClientActionTypes } from 'rili-utilities/constants';
 
 const Socket = {
     refreshConnection: (data) => (dispatch) => {

@@ -1,6 +1,5 @@
 export interface ICountDbRecords {
   queryBuilder: any;
-  execQuery: Function;
   tableName: string;
   params: {
     filterBy?: string;

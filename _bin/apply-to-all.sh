@@ -8,7 +8,7 @@ source ./lib/colorize.sh
 popd
 
 # The rili-public-library utilities then react-components commands must happen first to ensure cross-package dependencies
-declare -a arr=("rili-public-library/styles" "rili-public-library/utilities" "rili-public-library/rili-react")
+declare -a arr=("rili-public-library/styles" "rili-public-library/rili-js-utilities" "rili-public-library/rili-react")
 for i in "${arr[@]}"; do
     pushd ${i}
     if [ -f package.json ]

@@ -47,7 +47,7 @@ module.exports = {
                     ['shared/*', path.join(__dirname, '../node_modules')],
                     ['rili-react/*', path.join(__dirname, '../rili-public-library/rili-react/lib')],
                     ['rili-styles/*', path.join(__dirname, '../rili-public-library/styles/lib')],
-                    ['rili-utilities/*', path.join(__dirname, '../rili-public-library/utilities/lib')],
+                    ['rili-utilities/*', path.join(__dirname, '../rili-public-library/rili-js-utilities/lib')],
                 ],
                 extensions: ['.js', '.jsx', '.ts', '.json', '.scss'],
             },

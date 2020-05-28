@@ -11,7 +11,7 @@ module.exports = {
         'rili-styles/(.*)': '<rootDir>../rili-public-library/styles/lib/$1.css',
         'rili-react/(.*)': '<rootDir>../rili-public-library/rili-react/lib/$1',
         'rili-utilities/(.*)':
-            '<rootDir>../rili-public-library/utilities/lib/$1',
+            '<rootDir>../rili-public-library/rili-js-utilities/lib/$1',
     },
     moduleDirectories: ['<rootDir>/node_modules', '<rootDir>../node_modules'],
     setupFiles: ['./test-setup.ts'],

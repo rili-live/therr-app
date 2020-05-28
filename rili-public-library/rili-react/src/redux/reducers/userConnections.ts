@@ -1,4 +1,4 @@
-import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
+import { SocketServerActionTypes } from 'rili-utilities/constants';
 import * as Immutable from 'seamless-immutable';
 import { IUserConnectionsState, UserConnectionActionTypes } from '../types/userConnections';
 

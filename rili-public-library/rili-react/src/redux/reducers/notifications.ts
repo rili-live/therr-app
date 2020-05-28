@@ -1,5 +1,5 @@
 import * as Immutable from 'seamless-immutable';
-import { SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
+import { SocketServerActionTypes } from 'rili-utilities/constants';
 import { INotificationsState, NotificationActionTypes } from '../types/notifications';
 
 const initialState: INotificationsState = Immutable.from({

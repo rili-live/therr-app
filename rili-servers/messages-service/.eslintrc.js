@@ -27,7 +27,7 @@ module.exports = {
             'error',
             'always',
             {
-                'js': 'always',
+                'js': 'never',
                 'ts': 'never',
                 'd.ts': 'never',
             }
@@ -44,7 +44,7 @@ module.exports = {
                 map: [
                     ['rili-public-library/rili-react/*', path.join(__dirname, '../../rili-public-library/rili-react/lib')],
                     ['rili-public-library/styles/*', path.join(__dirname, '../../rili-public-library/styles')],
-                    ['rili-public-library/utilities/*', path.join(__dirname, '../../rili-public-library/utilities/lib')],
+                    ['rili-public-library/rili-js-utilities/*', path.join(__dirname, '../../rili-public-library/rili-js-utilities/lib')],
                 ],
                 extensions: ['.js', '.jsx', '.json', '.scss']
             },

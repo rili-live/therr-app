@@ -36,7 +36,7 @@
     "shared/*": ["../node_modules/*"],
 		"rili-react/*": ["../rili-public-library/rili-react/lib/*"],
     "rili-styles/*": ["../rili-public-library/styles/lib/*"],
-		"rili-utilities/*": ["../rili-public-library/utilities/lib/*"]
+		"rili-utilities/*": ["../rili-public-library/rili-js-utilities/lib/*"]
   },
   "files": [
     "app.d.ts"
