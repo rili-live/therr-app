@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
-// import 'rili-public-library/styles/icons.scss';
+// import 'rili-styles/icons.scss';
 import Input from './Input';
 import VALIDATIONS from '../../constants/VALIDATIONS';
 

@@ -38,7 +38,7 @@ const common = merge([
                 enums: path.join(__dirname, 'src/constants/enums/'),
                 types: path.join(__dirname, 'src/redux/types/'),
                 'rili-react': path.join(__dirname, '../rili-public-library/rili-react/lib'),
-                'rili-public-library/styles': path.join(__dirname, '../rili-public-library/styles/lib'),
+                'rili-styles': path.join(__dirname, '../rili-public-library/rili-styles/lib'),
                 'rili-js-utilities': path.join(__dirname, '../rili-public-library/rili-js-utilities/lib'),
             },
         },

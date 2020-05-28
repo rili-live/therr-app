@@ -16,7 +16,7 @@
     "inlineSources": true,
 		"paths": {
 			"react": ["node_modules/@types/react"],
-			"rili-public-library/styles/*": ["../styles/*"],
+			"rili-styles/*": ["../rili-styles/*"],
 			"rili-js-utilities/*": ["../rili-js-utilities/lib/*"],
 		},
 		"pretty": true,
