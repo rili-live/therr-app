@@ -1,6 +1,6 @@
 
 import * as Redis from 'ioredis';
-import printLogs from 'rili-public-library/rili-js-utilities/print-logs';
+import printLogs from 'rili-js-utilities/print-logs';
 import beeline from '../beeline';
 import { redisPub } from '../store/redisClient';
 import * as globalConfig from '../../../../global-config';

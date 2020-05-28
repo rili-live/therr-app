@@ -1,5 +1,5 @@
-import { getSearchQueryString } from 'rili-public-library/rili-js-utilities/http';
-import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-library/rili-js-utilities/constants';
+import { getSearchQueryString } from 'rili-js-utilities/http';
+import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-js-utilities/constants';
 import restRequest from './restRequest';
 import redisSessions from '../store/redisSessions';
 import globalConfig from '../../../../global-config';

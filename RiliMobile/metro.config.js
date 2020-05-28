@@ -12,7 +12,7 @@ const extraNodeModules = {
         __dirname,
         '/../rili-public-library/rili-react/lib'
     ),
-    'rili-utilities': path.join(
+    'rili-js-utilities': path.join(
         __dirname,
         '/../rili-public-library/rili-js-utilities/lib'
     ),

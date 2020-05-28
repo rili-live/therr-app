@@ -10,7 +10,7 @@ module.exports = {
         'shared/(.*)': '<rootDir>../node_modules/$1',
         'rili-styles/(.*)': '<rootDir>../rili-public-library/styles/lib/$1.css',
         'rili-react/(.*)': '<rootDir>../rili-public-library/rili-react/lib/$1',
-        'rili-utilities/(.*)':
+        'rili-js-utilities/(.*)':
             '<rootDir>../rili-public-library/rili-js-utilities/lib/$1',
     },
     moduleDirectories: ['<rootDir>/node_modules', '<rootDir>../node_modules'],

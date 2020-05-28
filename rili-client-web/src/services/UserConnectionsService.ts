@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getSearchQueryString } from 'rili-utilities/http';
+import { getSearchQueryString } from 'rili-js-utilities/http';
 import { ISearchQuery } from '../types';
 
 interface ICreateConnectionBody {

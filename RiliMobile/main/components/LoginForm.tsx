@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { Button, Input } from 'react-native-elements';
 import translator from '../services/translator';
 import { loginForm as styles } from '../styles/forms';
@@ -61,10 +61,7 @@ export class LoginFormComponent extends React.Component<
                 })
                 .catch((error: any) => {
                     console.log(error);
-                    if (
-                        error.statusCode === 401 ||
-                        error.statusCode === 404
-                    ) {
+                    if (error.statusCode === 401 || error.statusCode === 404) {
                         this.setState({
                             prevLoginError: error.message,
                             isSubmitting: false,
@@ -93,8 +90,8 @@ export class LoginFormComponent extends React.Component<
     };
 
     public render(): JSX.Element | null {
-        const { prevLoginError } = this.state;
-        const { alert, title } = this.props;
+        // const { prevLoginError } = this.state;
+        // const { alert, title } = this.props;
 
         return (
             <View style={styles.loginContainer}>
@@ -103,14 +100,18 @@ export class LoginFormComponent extends React.Component<
                         'components.loginForm.labels.userName'
                     )}
                     value={this.state.inputs.userName}
-                    onChangeText={(text) => this.onInputChange('userName', text)}
+                    onChangeText={(text) =>
+                        this.onInputChange('userName', text)
+                    }
                 />
                 <Input
                     label={this.translate(
                         'components.loginForm.labels.password'
                     )}
                     value={this.state.inputs.password}
-                    onChangeText={(text) => this.onInputChange('password', text)}
+                    onChangeText={(text) =>
+                        this.onInputChange('password', text)
+                    }
                     secureTextEntry={true}
                 />
                 <View>

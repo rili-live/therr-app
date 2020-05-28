@@ -35,10 +35,10 @@ export interface IAccess {
 
 export interface ISearchQuery {
     filterBy?: string;
-    filterOperator: string;
+    filterOperator?: string;
     query?: string;
-    itemsPerPage?: string;
-    pageNumber?: string;
+    itemsPerPage?: number;
+    pageNumber?: number;
     returning?: string;
     shouldCheckReverse?: string;
 }

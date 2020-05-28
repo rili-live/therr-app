@@ -4,7 +4,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import * as path from 'path';
-import printLogs from 'rili-public-library/rili-js-utilities/print-logs';
+import printLogs from 'rili-js-utilities/print-logs';
 import router from './routes';
 import honey from './middleware/honey';
 import { version as packageVersion } from '../package.json';
