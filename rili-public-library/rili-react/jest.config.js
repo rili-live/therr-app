@@ -9,7 +9,7 @@ module.exports = {
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
     moduleNameMapper: {
         '^.+\\.(css|scss|svg)$': 'identity-obj-proxy',
-        'rili-utilities/(.*)': '<rootDir>../utilities/lib/$1',
+        'rili-js-utilities/(.*)': '<rootDir>../rili-js-utilities/lib/$1',
         'rili-public-library/styles/(.*)': '<rootDir>../styles/$1',
     },
     rootDir: './',

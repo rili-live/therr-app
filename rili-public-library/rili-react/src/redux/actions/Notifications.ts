@@ -1,4 +1,4 @@
-import { SocketClientActionTypes } from 'rili-utilities/constants';
+import { SocketClientActionTypes } from 'rili-js-utilities/constants';
 import { NotificationActionTypes } from '../types/notifications';
 import NotificationsService from '../../services/NotificationsService';
 

@@ -1,6 +1,6 @@
 import Knex from 'knex';
-import { getDbCountQueryString } from 'rili-public-library/rili-js-utilities/db';
-import formatSQLJoinAsJSON from 'rili-public-library/rili-js-utilities/format-sql-join-as-json';
+import { getDbCountQueryString } from 'rili-js-utilities/db';
+import formatSQLJoinAsJSON from 'rili-js-utilities/format-sql-join-as-json';
 import connection, { IConnection } from './connection';
 
 const knex: Knex = Knex({ client: 'pg' });

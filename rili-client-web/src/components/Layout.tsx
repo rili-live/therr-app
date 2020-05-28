@@ -16,7 +16,7 @@ import { NotificationActions, SocketActions } from 'rili-react/actions';
 import SvgButton from 'rili-react/SvgButton';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
-import scrollTo from 'rili-utilities/scroll-to';
+import scrollTo from 'rili-js-utilities/scroll-to';
 import Header from './Header';
 import initInterceptors from '../interceptors';
 import * as globalConfig from '../../../global-config';

@@ -22,8 +22,7 @@ interface IStoreProps extends ILoginDispatchProps {
 }
 
 // Regular component props
-export interface ILoginProps extends IStoreProps {
-}
+export interface ILoginProps extends IStoreProps {}
 
 interface ILoginState {
     inputs: any;
@@ -33,10 +32,13 @@ const mapStateToProps = (state: any) => ({
     user: state.user,
 });
 
-const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    login: UsersActions.login,
-}, dispatch);
-
+const mapDispatchToProps = (dispatch: any) =>
+    bindActionCreators(
+        {
+            login: UsersActions.login,
+        },
+        dispatch
+    );
 
 class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     constructor(props) {
@@ -54,15 +56,17 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                     >
                         <View style={styles.body}>
                             <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitle}>Login Page</Text>
+                                <Text style={styles.sectionTitle}>
+                                    Login Page
+                                </Text>
                             </View>
-                            <LoginForm login={this.props.login}/>
+                            <LoginForm login={this.props.login} />
                         </View>
                     </ScrollView>
                 </SafeAreaView>
             </>
         );
     }
-};
+}
 
 export default connect(mapStateToProps, mapDispatchToProps)(LoginComponent);

@@ -4,7 +4,7 @@ export default (reqQuery: IReqQuery) => {
     let queryString = '';
     const {
         filterBy,
-        filterOperator,
+        filterOperator = '=',
         query,
         itemsPerPage,
         pageNumber,

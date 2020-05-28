@@ -8,8 +8,8 @@ import {
     SocketServerActionTypes,
     SocketClientActionTypes,
     SOCKET_MIDDLEWARE_ACTION,
-} from 'rili-public-library/rili-js-utilities/constants';
-import printLogs from 'rili-public-library/rili-js-utilities/print-logs';
+} from 'rili-js-utilities/constants';
+import printLogs from 'rili-js-utilities/print-logs';
 import * as socketHandlers from './handlers';
 import * as globalConfig from '../../../global-config';
 import getSocketRoomsList from './utilities/get-socket-rooms-list';

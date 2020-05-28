@@ -1,6 +1,6 @@
 import Knex from 'knex';
-import formatSQLJoinAsJSON from 'rili-public-library/rili-js-utilities/format-sql-join-as-json';
-import { getDbCountQueryString } from 'rili-public-library/rili-js-utilities/db';
+import formatSQLJoinAsJSON from 'rili-js-utilities/format-sql-join-as-json';
+import { getDbCountQueryString } from 'rili-js-utilities/db';
 import connection, { IConnection } from './connection';
 import { USERS_TABLE_NAME } from './UsersStore';
 

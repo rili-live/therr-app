@@ -14,7 +14,9 @@ export interface IMessage {
     text: string;
 }
 export type IMessageList = Immutable.ImmutableArray<IMessage>;
-export type IMessages = Immutable.ImmutableObject<{[index: string]: IMessageList}>;
+export type IMessages = Immutable.ImmutableObject<{
+    [index: string]: IMessageList;
+}>;
 
 export interface ISocketState extends Immutable.ImmutableObject<any> {
     forums: any;

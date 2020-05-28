@@ -1,9 +1,9 @@
 export interface IReqQuery {
   filterBy?: string;
-  filterOperator: string;
+  filterOperator?: string;
   query?: string;
-  itemsPerPage?: string;
-  pageNumber?: string;
+  itemsPerPage?: number;
+  pageNumber?: number;
   returning?: string;
   orderBy?: string;
   order?: string;
@@ -13,7 +13,7 @@ export default (reqQuery: IReqQuery, integerColumns: string[]) => {
     let returningArr;
     const {
         filterBy,
-        filterOperator,
+        filterOperator = '=',
         query,
         itemsPerPage,
         pageNumber,
