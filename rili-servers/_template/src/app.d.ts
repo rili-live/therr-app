@@ -5,7 +5,7 @@ declare module '*.json'
 declare module '*.js'
 
 // Allows importing aliased js files without type declaration file
-declare module 'rili-public-library/utilities/*'
+declare module 'rili-public-library/rili-js-utilities/*'
 
 // Modules
 declare module 'redis-session'

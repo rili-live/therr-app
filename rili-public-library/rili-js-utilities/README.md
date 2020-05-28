@@ -4,7 +4,7 @@ We have included this set of helper utilities to provide common, Rili javascript
 ## How to Include a utility
 Simply add an import to the top of a file, ie.
 ```javascript
-import { configureTranslator } from 'rili-public-library/utilities/localization';
-import * as scrollTo from 'rili-public-library/utilities/scroll-to';
+import { configureTranslator } from 'rili-public-library/rili-js-utilities/localization';
+import * as scrollTo from 'rili-public-library/rili-js-utilities/scroll-to';
 etc.
 ```

@@ -1,5 +1,5 @@
 import * as Immutable from 'seamless-immutable';
-import { SocketClientActionTypes, SocketServerActionTypes } from 'rili-public-library/utilities/constants.js';
+import { SocketClientActionTypes, SocketServerActionTypes } from 'rili-utilities/constants';
 import { IUserState } from '../types/user';
 
 const initialState: IUserState = Immutable.from({

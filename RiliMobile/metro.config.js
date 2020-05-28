@@ -14,13 +14,13 @@ const extraNodeModules = {
     ),
     'rili-utilities': path.join(
         __dirname,
-        '/../rili-public-library/rili-utilities/lib'
+        '/../rili-public-library/rili-js-utilities/lib'
     ),
 };
 const watchFolders = [
     path.join(__dirname, '/../node_modules'),
     path.join(__dirname, '/../rili-public-library/rili-react/lib'),
-    path.join(__dirname, '/../rili-public-library/rili-utilities/lib'),
+    path.join(__dirname, '/../rili-public-library/rili-js-utilities/lib'),
 ];
 
 module.exports = {

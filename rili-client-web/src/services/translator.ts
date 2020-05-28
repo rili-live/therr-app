@@ -1,4 +1,4 @@
-import { configureTranslator } from 'rili-public-library/utilities/localization';
+import { configureTranslator } from 'rili-utilities/localization';
 import locales from '../locales';
 
 const translator = configureTranslator(locales);

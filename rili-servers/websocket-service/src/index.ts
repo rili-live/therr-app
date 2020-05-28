@@ -8,10 +8,10 @@ import {
     SocketServerActionTypes,
     SocketClientActionTypes,
     SOCKET_MIDDLEWARE_ACTION,
-} from 'rili-public-library/utilities/constants.js';
-import printLogs from 'rili-public-library/utilities/print-logs.js';
+} from 'rili-public-library/rili-js-utilities/constants';
+import printLogs from 'rili-public-library/rili-js-utilities/print-logs';
 import * as socketHandlers from './handlers';
-import * as globalConfig from '../../../global-config.js';
+import * as globalConfig from '../../../global-config';
 import getSocketRoomsList from './utilities/get-socket-rooms-list';
 import redisAdapter from './store/redisAdapter';
 import redisSessions from './store/redisSessions';

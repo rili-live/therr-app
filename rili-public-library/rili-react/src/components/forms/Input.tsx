@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { Key as KeyCode } from 'ts-keycode-enum';
-import isValidInput from 'rili-public-library/utilities/is-valid-input.js';
+import isValidInput from 'rili-public-library/rili-js-utilities/is-valid-input.js';
 import VALIDATIONS from '../../constants/VALIDATIONS';
 
 class Input extends React.Component<any, any> {

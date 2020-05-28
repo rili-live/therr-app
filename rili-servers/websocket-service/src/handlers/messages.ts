@@ -1,10 +1,10 @@
 import * as socketio from 'socket.io';
-import printLogs from 'rili-public-library/utilities/print-logs.js';
+import printLogs from 'rili-public-library/rili-js-utilities/print-logs';
 import moment from 'moment';
-import { SocketServerActionTypes, SocketClientActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-library/utilities/constants.js';
+import { SocketServerActionTypes, SocketClientActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-library/rili-js-utilities/constants';
 import beeline from '../beeline';
 import restRequest from '../utilities/restRequest';
-import globalConfig from '../../../../global-config.js';
+import globalConfig from '../../../../global-config';
 
 const sendDirectMessage = (socket: socketio.Socket, data: any) => {
     restRequest({

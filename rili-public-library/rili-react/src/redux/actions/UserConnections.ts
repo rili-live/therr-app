@@ -1,4 +1,4 @@
-import { SocketClientActionTypes } from 'rili-public-library/utilities/constants.js';
+import { SocketClientActionTypes } from 'rili-utilities/constants';
 import { UserConnectionActionTypes } from '../types/userConnections';
 import UserConnectionsService from '../../services/UserConnectionsService';
 

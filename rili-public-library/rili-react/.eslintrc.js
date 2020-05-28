@@ -36,7 +36,7 @@ module.exports = {
             'error',
             'always',
             {
-                'js': 'always',
+                'js': 'never',
                 'jsx': 'always',
                 'ts': 'never',
                 'tsx': 'never',
@@ -54,7 +54,7 @@ module.exports = {
             alias: {
                 map: [
                     ['rili-public-library/styles/*', path.join(__dirname, '../styles')],
-                    ['rili-public-library/utilities/*', path.join(__dirname, '../utilities/lib')],
+                    ['rili-utilities/*', path.join(__dirname, '../utilities/lib')],
                 ],
                 extensions: ['.js', '.jsx', '.json', '.scss'],
             },
