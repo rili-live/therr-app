@@ -20,7 +20,7 @@
 			"types/*": ["./src/redux/types/*"],
 			"react": ["../../node_modules/@types/react"],
 			"rili-react/*": ["../rili-public-library/rili-react/lib/*"],
-			"rili-public-library/styles/*": ["../rili-public-library/styles/lib/*"],
+			"rili-styles/*": ["../rili-public-library/rili-styles/lib/*"],
 			"rili-js-utilities/*": ["../rili-public-library/rili-js-utilities/lib/*"]
 		},
 		"pretty": true,

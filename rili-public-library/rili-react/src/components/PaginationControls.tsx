@@ -3,8 +3,8 @@
 
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import 'rili-public-library/styles/icons.scss'; // eslint-disable-line import/no-unresolved
-import 'rili-public-library/styles/pagination.scss'; // eslint-disable-line import/no-unresolved
+import 'rili-styles/icons.scss'; // eslint-disable-line import/no-unresolved
+import 'rili-styles/pagination.scss'; // eslint-disable-line import/no-unresolved
 import calculatePages from 'rili-js-utilities/calculate-pages';
 
 const PaginationControls = ({

@@ -10,7 +10,7 @@ module.exports = {
     moduleNameMapper: {
         '^.+\\.(css|scss|svg)$': 'identity-obj-proxy',
         'rili-js-utilities/(.*)': '<rootDir>../rili-js-utilities/lib/$1',
-        'rili-public-library/styles/(.*)': '<rootDir>../styles/$1',
+        'rili-styles/(.*)': '<rootDir>../rili-styles/$1',
     },
     rootDir: './',
     setupFiles: [],

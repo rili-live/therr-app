@@ -62,7 +62,7 @@ module.exports = {
             alias: {
                 map: [
                     ['rili-react/*', path.join(__dirname, '../rili-public-library/rili-react/lib')],
-                    ['rili-public-library/styles/*', path.join(__dirname, '../rili-public-library/styles/lib')],
+                    ['rili-styles/*', path.join(__dirname, '../rili-public-library/rili-styles/lib')],
                     ['rili-js-utilities/*', path.join(__dirname, '../rili-public-library/rili-js-utilities/lib')],
                     ['types/*', path.join(__dirname, './src/redux/types')],
                     ['actions/*', path.join(__dirname, './src/redux/actions')],
