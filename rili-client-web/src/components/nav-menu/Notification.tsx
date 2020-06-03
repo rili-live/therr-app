@@ -1,5 +1,5 @@
 import * as React from 'react';
-import ButtonPrimary from 'rili-react/ButtonPrimary';
+import { ButtonPrimary } from 'rili-react/components';
 import { INotification } from 'types/notifications';
 
 // Regular component props

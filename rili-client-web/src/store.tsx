@@ -2,7 +2,7 @@ import thunkMiddleware from 'redux-thunk';
 import { createLogger } from 'redux-logger';
 import { applyMiddleware, compose, createStore } from 'redux';
 import rootReducer from './redux/reducers';
-import socketIOMiddleWare, { socketIO, updateSocketToken } from './socket-io-middleware';
+import socketIOMiddleWare, { updateSocketToken } from './socket-io-middleware';
 
 declare global {
     interface Window {

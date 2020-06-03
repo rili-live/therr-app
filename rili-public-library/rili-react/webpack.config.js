@@ -22,20 +22,14 @@ const PATHS = {
 const entry = {
     index: path.join(PATHS.app, 'index'),
 };
-components.forEach((componentPath) => {
-    const pathSplit = componentPath.split('/');
-    const name = pathSplit[pathSplit.length - 1] === 'index' ? pathSplit[pathSplit.length - 2] : pathSplit[pathSplit.length - 1];
-    entry[name] = `${PATHS.app}/${componentPath}.tsx`;
+components.forEach((filePath) => {
+    const isIndexFile = filePath.includes('index');
+    const name = isIndexFile ? filePath.split('/index')[0] : filePath;
+    entry[name] = `${PATHS.app}/${filePath}.${isIndexFile ? 'ts' : 'tsx'}`;
 });
-redux.forEach((reduxPath) => {
-    const pathSplit = reduxPath.split('/');
-    const name = pathSplit[pathSplit.length - 1] === 'index' ? pathSplit[pathSplit.length - 2] : pathSplit[pathSplit.length - 1];
-    entry[name] = `${PATHS.app}/${reduxPath}.ts`;
-});
-services.forEach((servicePath) => {
-    const pathSplit = servicePath.split('/');
-    const name = pathSplit[pathSplit.length - 1] === 'index' ? pathSplit[pathSplit.length - 2] : pathSplit[pathSplit.length - 1];
-    entry[name] = `${PATHS.app}/${servicePath}.ts`;
+[...redux, ...services].forEach((filePath) => {
+    const name = filePath.includes('index') ? filePath.split('/index')[0] : filePath;
+    entry[name] = `${PATHS.app}/${filePath}.ts`;
 });
 
 const common = merge([

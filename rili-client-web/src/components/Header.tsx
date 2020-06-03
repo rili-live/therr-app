@@ -1,8 +1,10 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import AccessControl from 'rili-react/AccessControl';
-import SvgButton from 'rili-react/SvgButton';
+import {
+    AccessControl,
+    SvgButton,
+} from 'rili-react/components';
 import { IUserState } from 'types/user';
 import { bindActionCreators } from 'redux';
 import { INotificationsState, INotification } from 'types/notifications';

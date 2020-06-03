@@ -2,8 +2,10 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import Input from 'rili-react/Input';
-import ButtonPrimary from 'rili-react/ButtonPrimary';
+import {
+    Input,
+    ButtonPrimary,
+} from 'rili-react/components';
 import { ISocketState } from 'types/socket';
 import translator from '../services/translator';
 // import * as globalConfig from '../../../global-config';
