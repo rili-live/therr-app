@@ -9,11 +9,13 @@ import { TransitionGroup as Animation } from 'react-transition-group';
 import { Location } from 'history';
 // import * as ReactGA from 'react-ga';
 import { IUserState } from 'types/user';
-import AccessControl from 'rili-react/AccessControl';
-import AuthRoute from 'rili-react/AuthRoute';
-import RedirectWithStatus from 'rili-react/RedirectWithStatus';
-import { NotificationActions, SocketActions } from 'rili-react/actions';
-import SvgButton from 'rili-react/SvgButton';
+import {
+    AccessControl,
+    AuthRoute,
+    RedirectWithStatus,
+    SvgButton,
+} from 'rili-react/components';
+import { NotificationActions, SocketActions } from 'rili-react/redux/actions';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
 import scrollTo from 'rili-js-utilities/scroll-to';
@@ -330,7 +332,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                     >
                         <Switch>
                             {
-                                routes.map((route, i) => {
+                                routes.map((route: any, i) => {
                                     if (route.access) {
                                         return (
                                             <AuthRoute
@@ -346,7 +348,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                                     );
                                 })
                             }
-                            <RedirectWithStatus from="/redirect" to="/" />
+                            <RedirectWithStatus from="/redirect" to="/" statusCode="301" />
                         </Switch>
                     </Animation>
 

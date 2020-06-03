@@ -4,7 +4,7 @@
 		"target": "es6",
 		"baseUrl": ".",
 		"rootDir": "./src/",
-		"typeRoots": ["../node_modules/@types", "../rili-public-library/@types"],
+		"typeRoots": ["../node_modules/@types"],
 		"declaration": false,
 		"removeComments": false,
 		"noLib": false,

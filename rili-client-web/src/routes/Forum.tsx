@@ -2,9 +2,11 @@ import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { SocketActions } from 'rili-react/actions';
-import Input from 'rili-react/Input';
-import ButtonPrimary from 'rili-react/ButtonPrimary';
+import { SocketActions } from 'rili-react/redux/actions';
+import {
+    Input,
+    ButtonPrimary,
+} from 'rili-react/components';
 import scrollTo from 'rili-js-utilities/scroll-to';
 import { IMessage, ISocketState } from 'types/socket';
 import { IUserState } from 'types/user';

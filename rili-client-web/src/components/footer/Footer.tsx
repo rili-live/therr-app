@@ -1,7 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import AccessControl from 'rili-react/AccessControl';
-import SvgButton from 'rili-react/SvgButton';
+import {
+    AccessControl,
+    SvgButton,
+} from 'rili-react/components';
 import { IUserState } from 'types/user';
 import { bindActionCreators } from 'redux';
 import MessagingContainer, { IMessagingContext } from './MessagingContainer';

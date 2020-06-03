@@ -2,8 +2,10 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 import flags from 'react-phone-number-input/flags'; // eslint-disable-line import/extensions
-import ButtonPrimary from 'rili-react/ButtonPrimary';
-import Input from 'rili-react/Input';
+import {
+    ButtonPrimary,
+    Input,
+} from 'rili-react/components';
 import translator from '../services/translator';
 
 // Regular component props

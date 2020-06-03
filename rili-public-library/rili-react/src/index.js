@@ -3,28 +3,17 @@
 
 // Root level components
 const miscellaneousComponents = [
-    'components/demo-page',
-    'components/AccessControl',
-    'components/ExampleComponent',
-    'components/InlineSvg',
+    'components/index',
 ];
 
 // Forms
 const formComponents = [
-    'components/forms/ButtonPrimary',
-    'components/forms/ButtonSecondary',
-    'components/forms/SvgButton',
-    'components/forms/Input',
-    'components/forms/RadioGroup',
-    'components/forms/SearchBox',
-    'components/forms/SelectBox',
+    'components/forms/index',
 ];
 
 // Routing
 const routingComponents = [
-    'components/routing/AuthRoute',
-    'components/routing/Status',
-    'components/routing/RedirectWithStatus',
+    'components/routing/index',
 ];
 
 // Redux
@@ -36,9 +25,7 @@ const redux = [
 
 // Services
 const services = [
-    'services/NotificationsService',
-    'services/UserConnectionsService',
-    'services/UsersService',
+    'services/index',
 ];
 
 module.exports = {

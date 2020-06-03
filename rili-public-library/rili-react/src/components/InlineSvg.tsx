@@ -24,7 +24,7 @@ const iconMap: { [index: string]: string } = {
 /* eslint-enable global-require */
 
 export interface IInlineSvgProps {
-    className: string;
+    className?: string;
     name: string;
 }
 

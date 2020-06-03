@@ -1,13 +1,15 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import Input from 'rili-react/Input';
-import SvgButton from 'rili-react/SvgButton';
+import {
+    Input,
+    SvgButton,
+} from 'rili-react/components';
+import { SocketActions } from 'rili-react/redux/actions';
 import scrollTo from 'rili-js-utilities/scroll-to';
 import { bindActionCreators } from 'redux';
 import { IMessage, ISocketState } from 'types/socket';
 import { IUserState } from 'types/user';
 import { IUserConnectionsState } from 'types/userConnections';
-import { SocketActions } from 'rili-react/actions';
 import translator from '../../services/translator';
 
 
