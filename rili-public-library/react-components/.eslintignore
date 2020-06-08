@@ -1,7 +1,0 @@
-node_modules/
-build/
-lib/
-coverage/
-test-setup.js
-**/*.ts
-webpack.config.js

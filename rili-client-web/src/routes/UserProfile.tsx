@@ -4,14 +4,15 @@ import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 import flags from 'react-phone-number-input/flags'; // eslint-disable-line import/extensions
-import Input from 'rili-public-library/react-components/Input.js';
-import SelectBox from 'rili-public-library/react-components/SelectBox.js';
-import SvgButton from 'rili-public-library/react-components/SvgButton.js';
-import { IUserState } from 'types/user';
-import { IUserConnectionsState } from 'types/userConnections';
-import UserConnectionActions from 'actions/UserConnections';
+import {
+    Input,
+    SelectBox,
+    SvgButton,
+} from 'rili-react/components';
+import { UserConnectionsActions } from 'rili-react/redux/actions';
+import { UserConnectionsService } from 'rili-react/services';
+import { IUserState, IUserConnectionsState } from 'rili-react/types';
 import translator from '../services/translator';
-import UserConnectionsService from '../services/UserConnectionsService';
 
 // interface IUserProfileRouterProps {
 // }
@@ -44,8 +45,8 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    createUserConnection: UserConnectionActions.create,
-    searchUserConnections: UserConnectionActions.search,
+    createUserConnection: UserConnectionsActions.create,
+    searchUserConnections: UserConnectionsActions.search,
 }, dispatch);
 
 /**

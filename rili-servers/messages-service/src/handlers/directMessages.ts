@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { getSearchQueryArgs } from 'rili-public-library/utilities/http.js';
+import { getSearchQueryArgs } from 'rili-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import DirectMessagesStore from '../store/DirectMessagesStore';
 

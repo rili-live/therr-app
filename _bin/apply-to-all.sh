@@ -8,7 +8,7 @@ source ./lib/colorize.sh
 popd
 
 # The rili-public-library utilities then react-components commands must happen first to ensure cross-package dependencies
-declare -a arr=("rili-public-library/styles" "rili-public-library/utilities" "rili-public-library/react-components")
+declare -a arr=("rili-public-library/rili-styles" "rili-public-library/rili-js-utilities" "rili-public-library/rili-react")
 for i in "${arr[@]}"; do
     pushd ${i}
     if [ -f package.json ]
@@ -28,7 +28,7 @@ then
 fi
 
 # Remaining directores to run script in. Order matters.
-declare -a arr=("rili-client-web" "rili-client-mobile" "rili-servers/messages-service" "rili-servers/users-service" "rili-servers/websocket-service")
+declare -a arr=("rili-client-web" "RiliMobile" "rili-servers/messages-service" "rili-servers/users-service" "rili-servers/websocket-service")
 for i in "${arr[@]}"; do
     pushd ${i}
     if [ -f package.json ]

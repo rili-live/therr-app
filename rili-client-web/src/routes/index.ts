@@ -1,5 +1,5 @@
 import { RouteProps } from 'react-router-dom';
-import { AccessCheckType } from '../types';
+import { AccessCheckType, IAccess } from 'rili-react/types';
 import Forum from './Forum';
 import CreateForum from './CreateForum';
 import PageNotFound from './PageNotFound';
@@ -9,7 +9,7 @@ import Login from './Login';
 import UserProfile from './UserProfile';
 
 export interface IRoute extends RouteProps {
-    access?: any;
+    access?: IAccess;
     exact?: boolean;
     fetchData?: Function;
     // Overriding this property allows us to add custom paramaters to React components

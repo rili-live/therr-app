@@ -19,9 +19,9 @@
 			"enums/*": ["./src/constants/enums/*"],
 			"types/*": ["./src/redux/types/*"],
 			"react": ["../../node_modules/@types/react"],
-			"rili-public-library/react-components/*": ["../rili-public-library/react-components/lib/*"],
-			"rili-public-library/styles/*": ["../rili-public-library/styles/lib/*"],
-			"rili-public-library/utilities/*": ["../rili-public-library/utilities/lib/*"]
+			"rili-react/*": ["../rili-public-library/rili-react/lib/*"],
+			"rili-styles/*": ["../rili-public-library/rili-styles/lib/*"],
+			"rili-js-utilities/*": ["../rili-public-library/rili-js-utilities/lib/*"]
 		},
 		"pretty": true,
 		"allowUnreachableCode": false,
@@ -35,7 +35,8 @@
 		"jsx": "react"
 	},
 	"include": [
-		"src/**/*", "src/types"
+		"src/**/*",
+		"src/types"
 	],
 	"exclude": [
 		"node_modules/**/*.*",

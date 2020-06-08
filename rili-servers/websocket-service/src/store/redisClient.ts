@@ -1,4 +1,4 @@
-import printLogs from 'rili-public-library/utilities/print-logs.js';
+import printLogs from 'rili-js-utilities/print-logs';
 import Redis from 'ioredis';
 import beeline from '../beeline'; // eslint-disable-line import/order
 
@@ -27,7 +27,7 @@ const redisSub: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
 // Redis Error handling
 redisPub.on('error', (error: string) => {
     printLogs({
-        info: 'verbose',
+        level: 'verbose',
         messageOrigin: 'REDIS_PUB_CLUSTER_CONNECTION_ERROR',
         messages: error.toString(),
         tracer: beeline,
@@ -37,7 +37,7 @@ redisPub.on('error', (error: string) => {
 
 redisSub.on('error', (error: string) => {
     printLogs({
-        info: 'verbose',
+        level: 'verbose',
         messageOrigin: 'REDIS_SUB_CLUSTER_CONNECTION_ERROR',
         messages: error.toString(),
         tracer: beeline,
