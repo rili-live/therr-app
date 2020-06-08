@@ -1,6 +1,6 @@
 import Immutable from 'seamless-immutable';
 import { SocketServerActionTypes } from 'rili-js-utilities/constants';
-import { IMessageList, ISocketState } from '../types/socket';
+import { IMessageList, ISocketState } from '../../types/redux/socket';
 
 const initialState: ISocketState = Immutable.from({
     forums: Immutable.from([]),

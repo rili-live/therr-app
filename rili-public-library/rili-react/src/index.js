@@ -20,7 +20,6 @@ const routingComponents = [
 const redux = [
     'redux/actions/index',
     'redux/reducers/index',
-    'redux/types/index',
 ];
 
 // Services
@@ -28,8 +27,15 @@ const services = [
     'services/index',
 ];
 
+// Types
+const types = [
+    'types/index',
+    'types/redux/index',
+];
+
 module.exports = {
     components: miscellaneousComponents.concat(formComponents).concat(routingComponents),
     redux,
     services,
+    types,
 };

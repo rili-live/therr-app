@@ -10,10 +10,9 @@ import {
     SvgButton,
 } from 'rili-react/components';
 import { UserConnectionsActions } from 'rili-react/redux/actions';
-import { IUserState } from 'types/user';
-import { IUserConnectionsState } from 'types/userConnections';
+import { UserConnectionsService } from 'rili-react/services';
+import { IUserState, IUserConnectionsState } from 'rili-react/types';
 import translator from '../services/translator';
-import UserConnectionsService from '../services/UserConnectionsService';
 
 // interface IUserProfileRouterProps {
 // }

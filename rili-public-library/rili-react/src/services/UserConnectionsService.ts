@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { getSearchQueryString } from 'rili-js-utilities/http';
-import { ISearchQuery } from '../redux/types';
+import { ISearchQuery } from '../types';
 
 interface ICreateConnectionBody {
     requestingUserId: number;

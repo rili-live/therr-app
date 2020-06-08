@@ -1,6 +1,6 @@
 import * as Immutable from 'seamless-immutable';
 import { SocketClientActionTypes } from 'rili-js-utilities/constants';
-import { IUser } from '../types/user';
+import { IUser } from '../../types/redux/user';
 import UsersService from '../../services/UsersService';
 
 class UsersActions {

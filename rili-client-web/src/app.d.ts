@@ -10,8 +10,5 @@ declare module '*.svg' {
     export default content;
 }
 
-// Allows importing aliased js files without type declaration file
-declare module 'rili-js-utilities/*'
-
 // Honeycomb Beeline
 declare module 'honeycomb-beeline';

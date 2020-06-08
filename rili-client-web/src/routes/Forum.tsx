@@ -8,10 +8,12 @@ import {
     ButtonPrimary,
 } from 'rili-react/components';
 import scrollTo from 'rili-js-utilities/scroll-to';
-import { IMessage, ISocketState } from 'types/socket';
-import { IUserState } from 'types/user';
+import {
+    IMessage,
+    ISocketState,
+    IUserState,
+} from 'rili-react/types';
 import translator from '../services/translator';
-// import * as globalConfig from '../../../global-config';
 
 // router params
 interface IForumRouterProps {

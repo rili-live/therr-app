@@ -8,9 +8,8 @@ import {
     NotificationActions,
     UserConnectionsActions,
 } from 'rili-react/redux/actions';
-import { IUserState } from 'types/user';
+import { IUserState, INotificationsState, INotification } from 'rili-react/types';
 import { bindActionCreators } from 'redux';
-import { INotificationsState, INotification } from 'types/notifications';
 
 import Notification from './Notification';
 import translator from '../../services/translator';

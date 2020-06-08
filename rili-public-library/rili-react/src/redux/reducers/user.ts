@@ -1,6 +1,6 @@
 import * as Immutable from 'seamless-immutable';
 import { SocketClientActionTypes, SocketServerActionTypes } from 'rili-js-utilities/constants';
-import { IUserState } from '../types/user';
+import { IUserState } from '../../types/redux/user';
 
 const initialState: IUserState = Immutable.from({
     details: null,

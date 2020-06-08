@@ -9,7 +9,12 @@ const parts = require('../../webpack.parts');
 const localPkg = require('./package.json');
 const rootPkg = require('../../package.json');
 
-const { components, redux, services } = require('./src');
+const {
+    components,
+    redux,
+    services,
+    types,
+} = require('./src');
 
 const PATHS = {
     app: path.join(__dirname, 'src'),
@@ -27,7 +32,7 @@ components.forEach((filePath) => {
     const name = isIndexFile ? filePath.split('/index')[0] : filePath;
     entry[name] = `${PATHS.app}/${filePath}.${isIndexFile ? 'ts' : 'tsx'}`;
 });
-[...redux, ...services].forEach((filePath) => {
+[...redux, ...services, ...types].forEach((filePath) => {
     const name = filePath.includes('index') ? filePath.split('/index')[0] : filePath;
     entry[name] = `${PATHS.app}/${filePath}.ts`;
 });

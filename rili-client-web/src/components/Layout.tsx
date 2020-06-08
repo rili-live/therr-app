@@ -8,7 +8,7 @@ import {
 import { TransitionGroup as Animation } from 'react-transition-group';
 import { Location } from 'history';
 // import * as ReactGA from 'react-ga';
-import { IUserState } from 'types/user';
+import { IUserState, AccessCheckType } from 'rili-react/types';
 import {
     AccessControl,
     AuthRoute,
@@ -16,6 +16,7 @@ import {
     SvgButton,
 } from 'rili-react/components';
 import { NotificationActions, SocketActions } from 'rili-react/redux/actions';
+import { UsersService } from 'rili-react/services';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
 import scrollTo from 'rili-js-utilities/scroll-to';
@@ -23,8 +24,7 @@ import Header from './Header';
 import initInterceptors from '../interceptors';
 import * as globalConfig from '../../../global-config';
 import routes from '../routes';
-import { AccessCheckType, INavMenuContext } from '../types';
-import UsersService from '../services/UsersService';
+import { INavMenuContext } from '../types';
 import Footer from './footer/Footer';
 import UserMenu from './nav-menu/UserMenu';
 import MessagesMenu from './nav-menu/MessagesMenu';

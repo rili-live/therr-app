@@ -3,7 +3,7 @@ import {
     IAccess,
     AccessCheckType,
     IUserState,
-} from '../redux/types';
+} from '../types';
 
 interface ILoginCredentials {
     userName: string;
