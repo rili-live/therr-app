@@ -1,7 +1,7 @@
 import Knex from 'knex';
-// import { Notifications } from 'rili-public-library/utilities/constants.js';
-import { getDbCountQueryString } from 'rili-public-library/utilities/db.js';
-import formatSQLJoinAsJSON from 'rili-public-library/utilities/format-sql-join-as-json.js';
+// import { Notifications } from 'rili-js-utilities/constants';
+import { getDbCountQueryString } from 'rili-js-utilities/db';
+import formatSQLJoinAsJSON from 'rili-js-utilities/format-sql-join-as-json';
 import connection, { IConnection } from './connection';
 import { USER_CONNECTIONS_TABLE_NAME } from './UserConnectionsStore';
 
@@ -97,7 +97,7 @@ class Store {
             .toString();
 
         return this.db.read.query(queryString).then((response) => {
-            const configuredResponse = formatSQLJoinAsJSON(response.rows);
+            const configuredResponse = formatSQLJoinAsJSON(response.rows, []);
             // delete configuredResponse.requestingUserId;
             // delete configuredResponse.acceptingUserId;
             // delete configuredResponse.requestStatus;

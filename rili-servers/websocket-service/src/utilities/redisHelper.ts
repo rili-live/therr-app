@@ -1,9 +1,9 @@
 
 import * as Redis from 'ioredis';
-import printLogs from 'rili-public-library/utilities/print-logs.js';
+import printLogs from 'rili-js-utilities/print-logs';
 import beeline from '../beeline';
 import { redisPub } from '../store/redisClient';
-import * as globalConfig from '../../../../global-config.js';
+import * as globalConfig from '../../../../global-config';
 
 const defaultExpire = Number(globalConfig[process.env.NODE_ENV || 'development'].socket.userSocketSessionExpire) / 1000;
 

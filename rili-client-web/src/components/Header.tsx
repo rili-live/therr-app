@@ -1,14 +1,15 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import AccessControl from 'rili-public-library/react-components/AccessControl.js';
-import SvgButton from 'rili-public-library/react-components/SvgButton.js';
-import { IUserState } from 'types/user';
-import UsersActions from 'actions/Users';
+import {
+    AccessControl,
+    SvgButton,
+} from 'rili-react/components';
+import { IUserState, INotificationsState, INotification } from 'rili-react/types';
 import { bindActionCreators } from 'redux';
-import { INotificationsState, INotification } from 'types/notifications';
 import translator from '../services/translator';
 import { INavMenuContext } from '../types';
+import UsersActions from '../redux/actions/UsersActions';
 
 interface IHeaderDispatchProps {
     logout: Function;
