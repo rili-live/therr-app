@@ -1,12 +1,16 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
-import InlineSvg from 'rili-public-library/react-components/InlineSvg.js';
-import SvgButton from 'rili-public-library/react-components/SvgButton.js';
-import { ISocketState } from 'types/socket';
-import { IUserState } from 'types/user';
-import { IUserConnectionsState } from 'types/userConnections';
-import UserConnectionsActions from 'actions/UserConnections';
+import {
+    ButtonPrimary,
+    InlineSvg,
+    SvgButton,
+} from 'rili-react/components';
+import { UserConnectionsActions } from 'rili-react/redux/actions';
+import {
+    ISocketState,
+    IUserState,
+    IUserConnectionsState,
+} from 'rili-react/types';
 import { bindActionCreators } from 'redux';
 import translator from '../../services/translator';
 

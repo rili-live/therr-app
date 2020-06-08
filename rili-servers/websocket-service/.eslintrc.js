@@ -27,7 +27,7 @@ module.exports = {
             'error',
             'always',
             {
-                'js': 'always',
+                'js': 'never',
                 'ts': 'never',
                 'd.ts': 'never',
             }
@@ -42,9 +42,8 @@ module.exports = {
             // NOTE: These aliases must match aliases in webpack.config.js
             alias: {
                 map: [
-                    ['rili-public-library/react-components/*', path.join(__dirname, '../../rili-public-library/react-components/lib')],
-                    ['rili-public-library/styles/*', path.join(__dirname, '../../rili-public-library/styles')],
-                    ['rili-public-library/utilities/*', path.join(__dirname, '../../rili-public-library/utilities/lib')],
+                    ['rili-public-library/rili-styles/*', path.join(__dirname, '../../rili-public-library/rili-styles')],
+                    ['rili-js-utilities/*', path.join(__dirname, '../../rili-public-library/rili-js-utilities/lib')],
                 ],
                 extensions: ['.js', '.jsx', '.json', '.scss']
             },

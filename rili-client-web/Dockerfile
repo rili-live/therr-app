@@ -39,11 +39,11 @@ RUN npm ci --no-optional
 ENV PATH $PATH:/usr/src/app/node_modules/.bin:$PATH
 
 # Install and build libraries
-WORKDIR /usr/src/app/rili-public-library/styles
+WORKDIR /usr/src/app/rili-public-library/rili-styles
 RUN npm run build
-WORKDIR /usr/src/app/rili-public-library/utilities
+WORKDIR /usr/src/app/rili-public-library/rili-js-utilities
 RUN npm run build
-WORKDIR /usr/src/app/rili-public-library/react-components
+WORKDIR /usr/src/app/rili-public-library/rili-react
 RUN npm run build
 
 # Copy main app files

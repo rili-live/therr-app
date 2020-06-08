@@ -8,8 +8,20 @@ const path = require('path');
 
 const extraNodeModules = {
     shared: path.join(__dirname, '/../node_modules'),
+    'rili-react': path.join(
+        __dirname,
+        '/../rili-public-library/rili-react/lib'
+    ),
+    'rili-js-utilities': path.join(
+        __dirname,
+        '/../rili-public-library/rili-js-utilities/lib'
+    ),
 };
-const watchFolders = [path.join(__dirname, '/../node_modules')];
+const watchFolders = [
+    path.join(__dirname, '/../node_modules'),
+    path.join(__dirname, '/../rili-public-library/rili-react/lib'),
+    path.join(__dirname, '/../rili-public-library/rili-js-utilities/lib'),
+];
 
 module.exports = {
     transformer: {

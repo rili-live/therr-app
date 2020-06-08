@@ -26,8 +26,8 @@ build:
       sync:
         infer:
           - './rili-servers/users-service/**/*.js'
-          - './rili-public-library/utilities/**/lib/*.js'
-          - './rili-public-library/utilities/**/lib/*.json'
+          - './rili-public-library/rili-js-utilities/**/lib/*.js'
+          - './rili-public-library/rili-js-utilities/**/lib/*.json'
     - image: riliadmin/websocket-service
       context: .
       docker:
@@ -35,8 +35,8 @@ build:
       sync:
         infer:
           - './rili-servers/websocket-service/**/*.js'
-          - './rili-public-library/utilities/**/lib/*.js'
-          - './rili-public-library/utilities/**/lib/*.json'
+          - './rili-public-library/rili-js-utilities/**/lib/*.js'
+          - './rili-public-library/rili-js-utilities/**/lib/*.json'
 deploy:
   kubectl:
     manifests:

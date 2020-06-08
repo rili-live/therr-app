@@ -1,11 +1,11 @@
 import axios from 'axios';
-import UsersActions from 'actions/Users';
 // import { AlertActions } from './library/alerts';
 // import { LoaderActions } from './library/loader';
 import store from './store';
-import * as globalConfig from '../../global-config.js';
+import * as globalConfig from '../../global-config';
+import UsersActions from './redux/actions/UsersActions';
 
-let timer: number;
+let timer: any;
 let numLoadings = 0;
 const _timeout = 350; // eslint-disable-line no-underscore-dangle
 

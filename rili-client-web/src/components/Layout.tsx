@@ -8,26 +8,29 @@ import {
 import { TransitionGroup as Animation } from 'react-transition-group';
 import { Location } from 'history';
 // import * as ReactGA from 'react-ga';
-import { IUserState } from 'types/user';
-import AccessControl from 'rili-public-library/react-components/AccessControl.js';
-import AuthRoute from 'rili-public-library/react-components/AuthRoute.js';
-import RedirectWithStatus from 'rili-public-library/react-components/RedirectWithStatus.js';
-import SvgButton from 'rili-public-library/react-components/SvgButton.js';
+import { IUserState, AccessCheckType } from 'rili-react/types';
+import {
+    AccessControl,
+    AuthRoute,
+    RedirectWithStatus,
+    SvgButton,
+} from 'rili-react/components';
+import { NotificationActions, SocketActions } from 'rili-react/redux/actions';
+import { UsersService } from 'rili-react/services';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
-import scrollTo from 'rili-public-library/utilities/scroll-to.js';
+import scrollTo from 'rili-js-utilities/scroll-to';
 import Header from './Header';
 import initInterceptors from '../interceptors';
-import * as globalConfig from '../../../global-config.js';
+import * as globalConfig from '../../../global-config';
 import routes from '../routes';
-import { AccessCheckType, INavMenuContext } from '../types';
-import UsersService from '../services/UsersService';
+import { INavMenuContext } from '../types';
 import Footer from './footer/Footer';
-import { NotificationActions, UsersActions, SocketActions } from '../redux/actions';
 import UserMenu from './nav-menu/UserMenu';
 import MessagesMenu from './nav-menu/MessagesMenu';
 import { socketIO, updateSocketToken } from '../socket-io-middleware';
 import { IMessagingContext } from './footer/MessagingContainer';
+import UsersActions from '../redux/actions/UsersActions';
 
 let _viewListener: any; // eslint-disable-line no-underscore-dangle
 
@@ -146,6 +149,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
     componentWillUnmount() { // eslint-disable-line
         _viewListener();
+        document.removeEventListener('click', this.handleClick);
     }
 
     handleClick = (event: any) => {
@@ -328,7 +332,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                     >
                         <Switch>
                             {
-                                routes.map((route, i) => {
+                                routes.map((route: any, i) => {
                                     if (route.access) {
                                         return (
                                             <AuthRoute
@@ -344,7 +348,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                                     );
                                 })
                             }
-                            <RedirectWithStatus from="/redirect" to="/" />
+                            <RedirectWithStatus from="/redirect" to="/" statusCode="301" />
                         </Switch>
                     </Animation>
 
