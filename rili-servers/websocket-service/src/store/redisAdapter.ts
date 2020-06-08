@@ -1,5 +1,5 @@
 import socketioRedis from 'socket.io-redis';
-import printLogs from 'rili-public-library/utilities/print-logs.js';
+import printLogs from 'rili-js-utilities/print-logs';
 import beeline from '../beeline';
 import { redisPub, redisSub } from './redisClient';
 
@@ -10,7 +10,7 @@ const redisAdapter = socketioRedis({
 
 redisAdapter.pubClient.on('error', (err: string) => {
     printLogs({
-        info: 'verbose',
+        level: 'verbose',
         messageOrigin: 'REDIS_PUB_CLIENT_ERROR',
         messages: err.toString(),
         tracer: beeline,
@@ -21,7 +21,7 @@ redisAdapter.pubClient.on('error', (err: string) => {
 });
 redisAdapter.subClient.on('error', (err: string) => {
     printLogs({
-        info: 'verbose',
+        level: 'verbose',
         messageOrigin: 'REDIS_SUB_CLIENT_ERROR',
         messages: err.toString(),
         tracer: beeline,
@@ -33,7 +33,7 @@ redisAdapter.subClient.on('error', (err: string) => {
 
 redisAdapter.subClient.on('subscribe', (channel: any, count: any) => {
     printLogs({
-        info: 'verbose',
+        level: 'verbose',
         messageOrigin: 'REDIS_SUB_CLIENT',
         messages: `Subscribed to ${channel}. Now subscribed to ${count} channel(s).`,
         tracer: beeline,
@@ -45,7 +45,7 @@ redisAdapter.subClient.on('subscribe', (channel: any, count: any) => {
 
 redisAdapter.subClient.on('message', (channel: any, message: any) => {
     printLogs({
-        info: 'verbose',
+        level: 'verbose',
         messageOrigin: 'REDIS_SUB_CLIENT',
         messages: `Message from channel ${channel}: ${message}`,
         tracer: beeline,

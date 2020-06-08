@@ -2,11 +2,11 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import UsersActions from 'actions/Users';
-import { IUserState } from 'types/user';
+import { IUserState } from 'rili-react/types';
 import translator from '../services/translator';
 import LoginForm from '../components/LoginForm';
 import { shouldRenderLoginForm, ILoginProps } from './Login';
+import UsersActions from '../redux/actions/UsersActions';
 
 interface IHomeRouterProps {
 }

@@ -1,12 +1,14 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import AccessControl from 'rili-public-library/react-components/AccessControl.js';
-import SvgButton from 'rili-public-library/react-components/SvgButton.js';
-import { IUserState } from 'types/user';
-import UsersActions from 'actions/Users';
+import {
+    AccessControl,
+    SvgButton,
+} from 'rili-react/components';
+import { IUserState } from 'rili-react/types';
 import { bindActionCreators } from 'redux';
 import MessagingContainer, { IMessagingContext } from './MessagingContainer';
 import { INavMenuContext } from '../../types';
+import UsersActions from '../../redux/actions/UsersActions';
 
 interface IFooterDispatchProps {
     logout: Function;

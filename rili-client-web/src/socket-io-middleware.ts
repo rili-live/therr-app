@@ -1,7 +1,7 @@
 import io from 'socket.io-client';
 import createSocketIoMiddleware from 'redux-socket.io';
-import { SOCKET_MIDDLEWARE_ACTION, SocketClientActionTypes, WEB_CLIENT_PREFIX } from 'rili-public-library/utilities/constants.js';
-import * as globalConfig from '../../global-config.js';
+import { SOCKET_MIDDLEWARE_ACTION, SocketClientActionTypes, WEB_CLIENT_PREFIX } from 'rili-js-utilities/constants';
+import * as globalConfig from '../../global-config';
 
 // Environment Variables
 const envVars = globalConfig[process.env.NODE_ENV];

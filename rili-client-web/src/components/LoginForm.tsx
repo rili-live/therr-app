@@ -1,7 +1,9 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
-import Input from 'rili-public-library/react-components/Input.js';
+import {
+    ButtonPrimary,
+    Input,
+} from 'rili-react/components';
 import translator from '../services/translator';
 
 // Regular component props
@@ -56,12 +58,11 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                         rememberMe,
                     }).catch((error: any) => {
                         if (error.statusCode === 401 || error.statusCode === 404) {
-                            this.setState({ prevLoginError: error.message });
+                            this.setState({
+                                prevLoginError: error.message,
+                                isSubmitting: false,
+                            });
                         }
-                    }).finally(() => {
-                        this.setState({
-                            isSubmitting: false,
-                        });
                     });
                 }
                 break;

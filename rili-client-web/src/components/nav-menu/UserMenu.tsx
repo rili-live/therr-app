@@ -1,14 +1,16 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import ButtonPrimary from 'rili-public-library/react-components/ButtonPrimary.js';
-import SvgButton from 'rili-public-library/react-components/SvgButton.js';
-import { IUserState } from 'types/user';
-import { bindActionCreators } from 'redux';
-import { INotificationsState, INotification } from 'types/notifications';
+import {
+    ButtonPrimary,
+    SvgButton,
+} from 'rili-react/components';
 import {
     NotificationActions,
     UserConnectionsActions,
-} from '../../redux/actions';
+} from 'rili-react/redux/actions';
+import { IUserState, INotificationsState, INotification } from 'rili-react/types';
+import { bindActionCreators } from 'redux';
+
 import Notification from './Notification';
 import translator from '../../services/translator';
 
