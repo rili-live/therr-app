@@ -1,15 +1,19 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import Input from 'rili-public-library/react-components/Input.js';
-import SvgButton from 'rili-public-library/react-components/SvgButton.js';
-import scrollTo from 'rili-public-library/utilities/scroll-to.js';
+import {
+    Input,
+    SvgButton,
+} from 'rili-react/components';
+import { SocketActions } from 'rili-react/redux/actions';
+import scrollTo from 'rili-js-utilities/scroll-to';
 import { bindActionCreators } from 'redux';
-import { IMessage, ISocketState } from 'types/socket';
-import { IUserState } from 'types/user';
-import { IUserConnectionsState } from 'types/userConnections';
-import SocketActions from 'actions/Socket';
+import {
+    IMessage,
+    ISocketState,
+    IUserState,
+    IUserConnectionsState,
+} from 'rili-react/types';
 import translator from '../../services/translator';
-
 
 export type IMessagingContext = any;
 // export interface IMessagingContext {
@@ -102,6 +106,10 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
         } else if (messages && messages.length > 3 && messages.length > prevMessages.length) {
             scrollDown();
         }
+    }
+
+    componentWillUnmount = () => {
+        document.removeEventListener('click', this.handleClick);
     }
 
     private messageInputRef: any;

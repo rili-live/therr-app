@@ -1,7 +1,6 @@
-import { combineReducers } from 'redux';
+import getCombinedReducers from 'rili-react/redux/reducers';
 
-const placeholder = (state = {}) => state;
+// TODO: Use SocketIO
+const reducers = getCombinedReducers({});
 
-export default combineReducers({
-    placeholder,
-});
+export default reducers;

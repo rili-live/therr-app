@@ -1,5 +1,5 @@
 import * as Redis from 'ioredis';
-import * as globalConfig from '../../../../global-config.js';
+import * as globalConfig from '../../../../global-config';
 import redisHelper, { IUserSocketSession, RedisHelper } from '../utilities/redisHelper';
 import { UserStatus } from '../constants';
 

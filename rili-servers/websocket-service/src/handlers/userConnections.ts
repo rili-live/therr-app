@@ -1,9 +1,9 @@
 import * as socketio from 'socket.io';
-import printLogs from 'rili-public-library/utilities/print-logs.js';
-import { Notifications, SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-public-library/utilities/constants.js';
+import printLogs from 'rili-js-utilities/print-logs';
+import { Notifications, SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-js-utilities/constants';
 import beeline from '../beeline';
 import redisSessions from '../store/redisSessions';
-import globalConfig from '../../../../global-config.js';
+import globalConfig from '../../../../global-config';
 import restRequest from '../utilities/restRequest';
 
 interface ICreateUserConnectionData {
