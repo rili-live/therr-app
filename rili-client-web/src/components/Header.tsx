@@ -5,9 +5,8 @@ import {
     AccessControl,
     SvgButton,
 } from 'rili-react/components';
-import { IUserState } from 'types/user';
+import { IUserState, INotificationsState, INotification } from 'rili-react/types';
 import { bindActionCreators } from 'redux';
-import { INotificationsState, INotification } from 'types/notifications';
 import translator from '../services/translator';
 import { INavMenuContext } from '../types';
 import UsersActions from '../redux/actions/UsersActions';

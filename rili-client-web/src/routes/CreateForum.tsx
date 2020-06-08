@@ -6,7 +6,7 @@ import {
     Input,
     ButtonPrimary,
 } from 'rili-react/components';
-import { ISocketState } from 'types/socket';
+import { ISocketState } from 'rili-react/types';
 import translator from '../services/translator';
 // import * as globalConfig from '../../../global-config';
 

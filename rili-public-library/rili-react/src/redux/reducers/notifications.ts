@@ -1,6 +1,6 @@
 import * as Immutable from 'seamless-immutable';
 import { SocketServerActionTypes } from 'rili-js-utilities/constants';
-import { INotificationsState, NotificationActionTypes } from '../types/notifications';
+import { INotificationsState, NotificationActionTypes } from '../../types/redux/notifications';
 
 const initialState: INotificationsState = Immutable.from({
     messages: Immutable.from([]),

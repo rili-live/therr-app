@@ -1,5 +1,5 @@
 import { SocketClientActionTypes } from 'rili-js-utilities/constants';
-import { NotificationActionTypes } from '../types/notifications';
+import { NotificationActionTypes } from '../../types/redux/notifications';
 import NotificationsService from '../../services/NotificationsService';
 
 const Notification = {

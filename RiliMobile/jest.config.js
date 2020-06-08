@@ -8,7 +8,8 @@ module.exports = {
         '^.+\\.(png)$': '<rootDir>/__mocks__/fileMock.ts',
         '^.+\\.(css|scss|svg)$': 'identity-obj-proxy',
         'shared/(.*)': '<rootDir>../node_modules/$1',
-        'rili-styles/(.*)': '<rootDir>../rili-public-library/rili-styles/lib/$1.css',
+        'rili-styles/(.*)':
+            '<rootDir>../rili-public-library/rili-styles/lib/$1.css',
         'rili-react/(.*)': '<rootDir>../rili-public-library/rili-react/lib/$1',
         'rili-js-utilities/(.*)':
             '<rootDir>../rili-public-library/rili-js-utilities/lib/$1',

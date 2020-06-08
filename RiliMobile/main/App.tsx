@@ -1,6 +1,6 @@
 import React from 'react';
 import { Provider } from 'shared/react-redux';
-import UsersService from 'rili-react/UsersService';
+import { UsersService } from 'rili-react/services';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import 'react-native-gesture-handler';

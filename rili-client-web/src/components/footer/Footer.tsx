@@ -4,7 +4,7 @@ import {
     AccessControl,
     SvgButton,
 } from 'rili-react/components';
-import { IUserState } from 'types/user';
+import { IUserState } from 'rili-react/types';
 import { bindActionCreators } from 'redux';
 import MessagingContainer, { IMessagingContext } from './MessagingContainer';
 import { INavMenuContext } from '../../types';

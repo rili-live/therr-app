@@ -35,7 +35,8 @@
 		"jsx": "react"
 	},
 	"include": [
-		"src/**/*", "src/types"
+		"src/**/*",
+		"src/types"
 	],
 	"exclude": [
 		"node_modules/**/*.*",

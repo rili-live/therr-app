@@ -1,5 +1,5 @@
 import { SocketClientActionTypes } from 'rili-js-utilities/constants';
-import { UserConnectionActionTypes } from '../types/userConnections';
+import { UserConnectionActionTypes } from '../../types/redux/userConnections';
 import UserConnectionsService from '../../services/UserConnectionsService';
 
 const UserConnections = {

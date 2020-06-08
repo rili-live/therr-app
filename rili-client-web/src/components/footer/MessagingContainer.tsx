@@ -7,11 +7,13 @@ import {
 import { SocketActions } from 'rili-react/redux/actions';
 import scrollTo from 'rili-js-utilities/scroll-to';
 import { bindActionCreators } from 'redux';
-import { IMessage, ISocketState } from 'types/socket';
-import { IUserState } from 'types/user';
-import { IUserConnectionsState } from 'types/userConnections';
+import {
+    IMessage,
+    ISocketState,
+    IUserState,
+    IUserConnectionsState,
+} from 'rili-react/types';
 import translator from '../../services/translator';
-
 
 export type IMessagingContext = any;
 // export interface IMessagingContext {
