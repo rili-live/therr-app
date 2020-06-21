@@ -8,6 +8,12 @@ import { bindActionCreators } from 'redux';
 import UsersActions from '../redux/actions/UsersActions';
 import { IUserState } from '../redux/types/user';
 
+export const shouldRenderLoginForm = (props: ILoginProps) =>
+    !props.user ||
+    !props.user.isAuthenticated ||
+    !props.user.details.accessLevels ||
+    !props.user.details.accessLevels.length;
+
 interface ILoginRouterProps {
     history: any;
     location: any;
@@ -22,11 +28,11 @@ interface IStoreProps extends ILoginDispatchProps {
 }
 
 // Regular component props
-export interface ILoginProps extends IStoreProps {}
-
-interface ILoginState {
-    inputs: any;
+export interface ILoginProps extends IStoreProps {
+    navigation: any;
 }
+
+interface ILoginState {}
 
 const mapStateToProps = (state: any) => ({
     user: state.user,
@@ -41,8 +47,18 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class LoginComponent extends React.Component<ILoginProps, ILoginState> {
+    static getDerivedStateFromProps(nextProps: ILoginProps) {
+        if (!shouldRenderLoginForm(nextProps)) {
+            nextProps.navigation.navigate('Home', { name: 'Home' });
+            return null;
+        }
+        return {};
+    }
+
     constructor(props) {
         super(props);
+
+        this.state = {};
     }
 
     render() {

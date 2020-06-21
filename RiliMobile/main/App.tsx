@@ -1,41 +1,45 @@
 import React from 'react';
 import { Provider } from 'shared/react-redux';
-import { UsersService } from 'rili-react/services';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import 'react-native-gesture-handler';
-import store from './store';
-import routes from './routes';
-import { theme } from './styles';
+import { Text } from 'react-native';
+import getStore from './getStore';
+import initInterceptors from './interceptors';
+import Layout from './components/Layout';
 
-const Stack = createStackNavigator();
+class App extends React.Component<any, any> {
+    constructor(props) {
+        super(props);
 
-const App = () => {
-    const user = store.getState().user;
+        this.state = {
+            isLoading: true,
+        };
 
-    return (
-        <Provider store={store}>
-            <NavigationContainer theme={theme}>
-                <Stack.Navigator>
-                    {routes
-                        .filter(
-                            (route: any) =>
-                                !(route.options && route.options.access) ||
-                                UsersService.isAuthorized(
-                                    route.options.access,
-                                    user
-                                )
-                        )
-                        .map((route: any) => {
-                            if (route.options) {
-                                delete route.options.access;
-                            }
-                            return <Stack.Screen key={route.name} {...route} />;
-                        })}
-                </Stack.Navigator>
-            </NavigationContainer>
-        </Provider>
-    );
-};
+        this.loadStorage();
+    }
+
+    // TODO: Add typescript
+    private store;
+
+    loadStorage = async () => {
+        this.store = await getStore();
+        initInterceptors(this.store);
+        this.setState({
+            isLoading: false,
+        });
+    };
+
+    render() {
+        const { isLoading } = this.state;
+
+        if (isLoading || !this.store) {
+            return <Text>Loading...</Text>;
+        }
+
+        return (
+            <Provider store={this.store}>
+                <Layout />
+            </Provider>
+        );
+    }
+}
 
 export default App;

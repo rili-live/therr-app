@@ -24,11 +24,13 @@ interface IRegisterCredentials {
 }
 
 class UsersService {
-    authenticate = (data: ILoginCredentials) => axios({
-        method: 'post',
-        url: '/auth',
-        data,
-    })
+    authenticate = (data: ILoginCredentials) => {
+        return axios({
+            method: 'post',
+            url: '/auth',
+            data,
+        });
+    }
 
     create = (data: IRegisterCredentials) => axios({
         method: 'post',
