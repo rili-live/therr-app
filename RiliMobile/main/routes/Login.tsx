@@ -2,22 +2,17 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
 import 'react-native-gesture-handler';
+import { IUserState } from 'rili-react/types';
 import styles from '../styles';
 import LoginForm from '../components/LoginForm';
 import { bindActionCreators } from 'redux';
 import UsersActions from '../redux/actions/UsersActions';
-import { IUserState } from '../redux/types/user';
 
 export const shouldRenderLoginForm = (props: ILoginProps) =>
     !props.user ||
     !props.user.isAuthenticated ||
     !props.user.details.accessLevels ||
     !props.user.details.accessLevels.length;
-
-interface ILoginRouterProps {
-    history: any;
-    location: any;
-}
 
 interface ILoginDispatchProps {
     login: Function;
