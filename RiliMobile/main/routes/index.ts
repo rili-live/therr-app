@@ -5,7 +5,7 @@ import Home from './Home';
 import Login from './Login';
 import { IAccess, AccessCheckType } from '../types';
 
-interface ExtendedRouteOptions {
+export interface ExtendedRouteOptions extends StackNavigationOptions {
     access?: IAccess;
 }
 
@@ -13,9 +13,14 @@ const routes: RouteConfig<
     Record<string, object>,
     any,
     StackNavigationState,
-    StackNavigationOptions & ExtendedRouteOptions,
+    ExtendedRouteOptions,
     StackNavigationEventMap
 >[] = [
+    {
+        name: 'Login',
+        component: Login,
+        options: { title: 'Login' },
+    },
     {
         name: 'Home',
         component: Home,
@@ -26,11 +31,6 @@ const routes: RouteConfig<
                 levels: [],
             },
         },
-    },
-    {
-        name: 'Login',
-        component: Login,
-        options: { title: 'Login' },
     },
 ];
 
