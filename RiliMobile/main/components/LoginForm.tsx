@@ -60,13 +60,16 @@ export class LoginFormComponent extends React.Component<
                     rememberMe,
                 })
                 .catch((error: any) => {
-                    console.log(error);
                     if (error.statusCode === 401 || error.statusCode === 404) {
                         this.setState({
                             prevLoginError: error.message,
-                            isSubmitting: false,
                         });
                     }
+                })
+                .finally(() => {
+                    this.setState({
+                        isSubmitting: false,
+                    });
                 });
         }
     };
@@ -96,6 +99,9 @@ export class LoginFormComponent extends React.Component<
         return (
             <View style={styles.loginContainer}>
                 <Input
+                    inputStyle={{
+                        color: 'white',
+                    }}
                     label={this.translate(
                         'components.loginForm.labels.userName'
                     )}
@@ -105,6 +111,9 @@ export class LoginFormComponent extends React.Component<
                     }
                 />
                 <Input
+                    inputStyle={{
+                        color: 'white',
+                    }}
                     label={this.translate(
                         'components.loginForm.labels.password'
                     )}

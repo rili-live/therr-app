@@ -1,13 +1,13 @@
 {
-    "presets": [
-        "@babel/preset-env",
-        "@babel/preset-react"
-    ],
-    "env": {
-        "start": {
-            "presets": [
-                "react-hmre"
-            ]
-        }
-    }
+  "presets": [
+      "@babel/preset-env",
+      "@babel/preset-react"
+  ],
+  "env": {
+      "start": {
+          "presets": [
+              "react-hmre"
+          ]
+      }
+  }
 }

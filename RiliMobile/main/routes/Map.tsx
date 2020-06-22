@@ -16,21 +16,21 @@ import { IUserState } from 'rili-react/types';
 import styles from '../styles';
 import UsersActions from '../redux/actions/UsersActions';
 
-interface IHomeDispatchProps {
+interface IMapDispatchProps {
     login: Function;
     logout: Function;
 }
 
-interface IStoreProps extends IHomeDispatchProps {
+interface IStoreProps extends IMapDispatchProps {
     user: IUserState;
 }
 
 // Regular component props
-export interface IHomeProps extends IStoreProps {
+export interface IMapProps extends IStoreProps {
     navigation: any;
 }
 
-interface IHomeState {}
+interface IMapState {}
 
 const mapStateToProps = (state: any) => ({
     user: state.user,
@@ -45,29 +45,17 @@ const mapDispatchToProps = (dispatch: any) =>
         dispatch
     );
 
-class Home extends React.Component<IHomeProps, IHomeState> {
+class Map extends React.Component<IMapProps, IMapState> {
     constructor(props) {
         super(props);
 
         this.state = {};
     }
 
-    goToMap = () => {
+    goToHome = () => {
         const { navigation } = this.props;
 
-        navigation.navigate('Map');
-    }
-
-    handleLogout = () => {
-        const { user, logout, navigation } = this.props;
-
-        logout(user.details)
-            .then(() => {
-                navigation.navigate('Login');
-            })
-            .catch((e) => {
-                console.log(e);
-            });
+        navigation.navigate('Home');
     }
     
     render() {
@@ -83,21 +71,14 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                     >
                         <View style={styles.body}>
                             <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitle}>Home Page</Text>
+                                <Text style={styles.sectionTitle}>Map Page</Text>
                                 <Text style={styles.sectionDescription}>
-                                    Welcome to the homepage. This is a work in
+                                    Welcome to the Map. This is a work in
                                     progress...
                                 </Text>
                                 <Button
-                                    title="MAP"
-                                    onPress={this.goToMap}
-                                    containerStyle={{
-                                        marginBottom: 10,
-                                    }}
-                                />
-                                <Button
-                                    title="LOGOUT"
-                                    onPress={this.handleLogout}
+                                    title="Home"
+                                    onPress={this.goToHome}
                                 />
                             </View>
                         </View>
@@ -108,4 +89,4 @@ class Home extends React.Component<IHomeProps, IHomeState> {
     }
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Home);
+export default connect(mapStateToProps, mapDispatchToProps)(Map);
