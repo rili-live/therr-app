@@ -4,8 +4,9 @@ import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/
 import Home from './Home';
 import Login from './Login';
 import { IAccess, AccessCheckType } from '../types';
+import Map from './Map';
 
-interface ExtendedRouteOptions {
+export interface ExtendedRouteOptions extends StackNavigationOptions {
     access?: IAccess;
 }
 
@@ -13,9 +14,14 @@ const routes: RouteConfig<
     Record<string, object>,
     any,
     StackNavigationState,
-    StackNavigationOptions & ExtendedRouteOptions,
+    ExtendedRouteOptions,
     StackNavigationEventMap
 >[] = [
+    {
+        name: 'Login',
+        component: Login,
+        options: { title: 'Login' },
+    },
     {
         name: 'Home',
         component: Home,
@@ -28,9 +34,15 @@ const routes: RouteConfig<
         },
     },
     {
-        name: 'Login',
-        component: Login,
-        options: { title: 'Login' },
+        name: 'Map',
+        component: Map,
+        options: {
+            title: 'Map',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [],
+            },
+        },
     },
 ];
 
