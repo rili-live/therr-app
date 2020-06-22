@@ -99,6 +99,9 @@ export class LoginFormComponent extends React.Component<
         return (
             <View style={styles.loginContainer}>
                 <Input
+                    inputStyle={{
+                        color: 'white',
+                    }}
                     label={this.translate(
                         'components.loginForm.labels.userName'
                     )}
@@ -108,6 +111,9 @@ export class LoginFormComponent extends React.Component<
                     }
                 />
                 <Input
+                    inputStyle={{
+                        color: 'white',
+                    }}
                     label={this.translate(
                         'components.loginForm.labels.password'
                     )}
