@@ -29,6 +29,7 @@
   "devDependencies": {
     "@react-native-community/eslint-config": "^1.0.0",
     "@types/react-native": "^0.62.0",
+    "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "metro-react-native-babel-preset": "^0.58.0"
   }
 }

@@ -4,6 +4,7 @@ import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/
 import Home from './Home';
 import Login from './Login';
 import { IAccess, AccessCheckType } from '../types';
+import Map from './Map';
 
 export interface ExtendedRouteOptions extends StackNavigationOptions {
     access?: IAccess;
@@ -26,6 +27,17 @@ const routes: RouteConfig<
         component: Home,
         options: {
             title: 'Home',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [],
+            },
+        },
+    },
+    {
+        name: 'Map',
+        component: Map,
+        options: {
+            title: 'Map',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [],
