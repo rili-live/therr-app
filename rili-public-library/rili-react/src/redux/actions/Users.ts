@@ -4,14 +4,17 @@ import { IUser } from '../../types/redux/user';
 import UsersService from '../../services/UsersService';
 
 class UsersActions {
-    constructor(socketIO) {
+    constructor(socketIO, NativeStorage?) {
         this.socketIO = socketIO;
+        this.NativeStorage = NativeStorage;
     }
 
     private socketIO;
 
+    private NativeStorage;
+
     login = (data: any) => async (dispatch: any) => {
-        await UsersService.authenticate(data).then((response) => {
+        await UsersService.authenticate(data).then(async (response) => {
             const {
                 accessLevels,
                 id,
@@ -37,14 +40,15 @@ class UsersActions {
             };
             // Connect and get socketIO.id
             this.socketIO.on('connect', () => {
-                sessionStorage.setItem('riliSession', JSON.stringify({ id: this.socketIO.id }));
-                if (data.rememberMe) {
+                // NOTE: Native Storage methods return a promise, but in this case we don't need to await
+                (this.NativeStorage || sessionStorage).setItem('riliSession', JSON.stringify({ id: this.socketIO.id }));
+                if (data.rememberMe && !this.NativeStorage) {
                     localStorage.setItem('riliSession', JSON.stringify({ id: this.socketIO.id }));
                 }
             });
             this.socketIO.connect();
-            sessionStorage.setItem('riliUser', JSON.stringify(userData));
-            if (data.rememberMe) {
+            (this.NativeStorage || sessionStorage).setItem('riliUser', JSON.stringify(userData));
+            if (data.rememberMe && !this.NativeStorage) {
                 localStorage.setItem('riliUser', JSON.stringify(userData));
             }
             dispatch({
@@ -55,10 +59,13 @@ class UsersActions {
     };
 
     logout = (userDetails?: any) => (dispatch: any) => UsersService.logout(userDetails).then(() => {
-        sessionStorage.removeItem('riliSession');
-        sessionStorage.removeItem('riliUser');
-        localStorage.removeItem('riliSession');
-        localStorage.removeItem('riliUser');
+        // NOTE: Native Storage methods return a promise, but in this case we don't need to await
+        (this.NativeStorage || sessionStorage).removeItem('riliSession');
+        (this.NativeStorage || sessionStorage).removeItem('riliUser');
+        if (!this.NativeStorage) {
+            localStorage.removeItem('riliSession');
+            localStorage.removeItem('riliUser');
+        }
         dispatch({
             type: SocketClientActionTypes.LOGOUT,
             data: {
