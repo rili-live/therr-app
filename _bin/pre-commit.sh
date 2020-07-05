@@ -10,7 +10,7 @@ popd
 
 is_pre_check_success()
 {
-    npm run lint:all
+    npm run lint:changed
 }
 
 # TODO: Use CHANGEME.json file to verify development changes and re-build respective pages
