@@ -9,6 +9,7 @@ has_diff_changes()
     ORIGIN_BRANCH=$1
     DIR=$2
     
+    git fetch origin $ORIGIN_BRANCH
     NUM_FILES_CHANGED=$(git diff --name-only origin/$ORIGIN_BRANCH -- $DIR | wc -l)
 
     if [[ ${NUM_FILES_CHANGED} -gt 0 ]]; then

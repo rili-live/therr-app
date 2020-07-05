@@ -37,11 +37,13 @@ if has_prev_diff_changes "rili-public-library/rili-js-utilities"; then
   HAS_UTILITIES_LIBRARY_CHANGES=true
 fi
 
+# This is reliant on the previous commit being a single merge commit with all prior changes
 should_deploy_web_app()
 {
   has_prev_diff_changes "rili-client-web" || "$HAS_ANY_LIBRARY_CHANGES" = true
 }
 
+# This is reliant on the previous commit being a single merge commit with all prior changes
 should_deploy_service()
 {
   SERVICE_DIR=$1
