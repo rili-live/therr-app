@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -e
+
+source ./_bin/lib/colorize.sh
+
+has_diff_changes()
+{
+    ORIGIN_BRANCH=$1
+    DIR=$2
+    
+    NUM_FILES_CHANGED=$(git diff --name-only origin/$ORIGIN_BRANCH -- $DIR | wc -l)
+
+    if [[ ${NUM_FILES_CHANGED} -gt 0 ]]; then
+        printMessageWarning "Found ${NUM_FILES_CHANGED} files changed w/ 'git diff origin/$ORIGIN_BRANCH:$DIR'"
+        return 0
+    else
+        return 1
+    fi
+}
