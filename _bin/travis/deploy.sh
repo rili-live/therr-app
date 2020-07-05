@@ -87,13 +87,21 @@ fi
 kubectl apply -f k8s
 if should_deploy_web_app; then
   kubectl set image deployments/client-deployment web=riliadmin/client-web:$GIT_SHA
+else
+  echo "Skipping client-web deployment (No Changes)"
 fi
 if should_deploy_service "rili-servers/messages-service"; then
   kubectl set image deployments/messages-service-deployment server-messages=riliadmin/messages-service:$GIT_SHA
+else
+  echo "Skipping messages-service deployment (No Changes)"
 fi
 if should_deploy_service "rili-servers/users-service"; then
   kubectl set image deployments/users-service-deployment server-users=riliadmin/users-service:$GIT_SHA
+else
+  echo "Skipping users-service deployment (No Changes)"
 fi
 if should_deploy_service "rili-servers/websocket-service"; then
   kubectl set image deployments/websocket-service-deployment server-websocket=riliadmin/websocket-service:$GIT_SHA
+else
+  echo "Skipping websocket-service deployment (No Changes)"
 fi
