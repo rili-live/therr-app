@@ -27,25 +27,25 @@ fi
 HAS_ANY_LIBRARY_CHANGES=false
 HAS_UTILITIES_LIBRARY_CHANGES=false
 
-if has_diff_changes $DESTINATION_BRANCH "rili-public-library/rili-styles" || \
-  has_diff_changes $DESTINATION_BRANCH "rili-public-library/rili-js-utilities" || \
-  has_diff_changes $DESTINATION_BRANCH "rili-public-library/rili-react"; then
+if has_prev_diff_changes "rili-public-library/rili-styles" || \
+  has_prev_diff_changes "rili-public-library/rili-js-utilities" || \
+  has_prev_diff_changes "rili-public-library/rili-react"; then
   HAS_ANY_LIBRARY_CHANGES=true
 fi
 
-if has_diff_changes $DESTINATION_BRANCH "rili-public-library/rili-js-utilities"; then
+if has_prev_diff_changes "rili-public-library/rili-js-utilities"; then
   HAS_UTILITIES_LIBRARY_CHANGES=true
 fi
 
 should_deploy_web_app()
 {
-  has_diff_changes $DESTINATION_BRANCH "rili-client-web" || "$HAS_ANY_LIBRARY_CHANGES" = true
+  has_prev_diff_changes "rili-client-web" || "$HAS_ANY_LIBRARY_CHANGES" = true
 }
 
 should_deploy_service()
 {
   SERVICE_DIR=$1
-  has_diff_changes $DESTINATION_BRANCH $SERVICE_DIR || "$HAS_UTILITIES_LIBRARY_CHANGES" = true
+  has_prev_diff_changes $SERVICE_DIR || "$HAS_UTILITIES_LIBRARY_CHANGES" = true
 }
 
 # Docker Build
