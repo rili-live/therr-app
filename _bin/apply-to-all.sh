@@ -16,7 +16,7 @@ for i in "${arr[@]}"; do
         printMessageNeutral "Running command '${1}': ${i}"
         eval $1
     fi
-    popd
+        popd
 done
 
 printMessageSuccess "'${1}' command run on all Libraries!"
@@ -36,7 +36,7 @@ for i in "${arr[@]}"; do
         printMessageNeutral "Running command '${1}': ${i}"
         eval $1
     fi
-    popd
+        popd
 done
 
-printMessageSuccess "'${1}' command run on all Libraries and example UI Apps!"${NC}
+printMessageSuccess "'${1}' command run on all Libraries, services, and frontend apps!"${NC}
