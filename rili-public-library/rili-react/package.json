@@ -1,6 +1,6 @@
 {
   "name": "rili-public-library-react-components",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Multi-purpose code used in the Rili codebase and open-sourced to the developer community",
   "main": "index.js",
   "scripts": {
