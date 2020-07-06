@@ -1,14 +1,6 @@
 import React from 'react';
-import {
-    SafeAreaView,
-    ScrollView,
-    View,
-    Text,
-    StatusBar,
-} from 'react-native';
-import {
-    Button,
-} from 'react-native-elements';
+import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
+import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -56,7 +48,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         const { navigation } = this.props;
 
         navigation.navigate('Map');
-    }
+    };
 
     handleLogout = () => {
         const { user, logout, navigation } = this.props;
@@ -68,11 +60,9 @@ class Home extends React.Component<IHomeProps, IHomeState> {
             .catch((e) => {
                 console.log(e);
             });
-    }
-    
-    render() {
-        
+    };
 
+    render() {
         return (
             <>
                 <StatusBar barStyle="dark-content" />
@@ -83,7 +73,9 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                     >
                         <View style={styles.body}>
                             <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitle}>Home Page</Text>
+                                <Text style={styles.sectionTitle}>
+                                    Home Page
+                                </Text>
                                 <Text style={styles.sectionDescription}>
                                     Welcome to the homepage. This is a work in
                                     progress...
@@ -106,6 +98,6 @@ class Home extends React.Component<IHomeProps, IHomeState> {
             </>
         );
     }
-};
+}
 
 export default connect(mapStateToProps, mapDispatchToProps)(Home);

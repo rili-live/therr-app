@@ -1,14 +1,6 @@
 import React from 'react';
-import {
-    SafeAreaView,
-    ScrollView,
-    View,
-    Text,
-    StatusBar,
-} from 'react-native';
-import {
-    Button,
-} from 'react-native-elements';
+import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
+import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -56,11 +48,9 @@ class Map extends React.Component<IMapProps, IMapState> {
         const { navigation } = this.props;
 
         navigation.navigate('Home');
-    }
-    
-    render() {
-        
+    };
 
+    render() {
         return (
             <>
                 <StatusBar barStyle="dark-content" />
@@ -71,15 +61,14 @@ class Map extends React.Component<IMapProps, IMapState> {
                     >
                         <View style={styles.body}>
                             <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitle}>Map Page</Text>
+                                <Text style={styles.sectionTitle}>
+                                    Map Page
+                                </Text>
                                 <Text style={styles.sectionDescription}>
                                     Welcome to the Map. This is a work in
                                     progress...
                                 </Text>
-                                <Button
-                                    title="Home"
-                                    onPress={this.goToHome}
-                                />
+                                <Button title="Home" onPress={this.goToHome} />
                             </View>
                         </View>
                     </ScrollView>
@@ -87,6 +76,6 @@ class Map extends React.Component<IMapProps, IMapState> {
             </>
         );
     }
-};
+}
 
 export default connect(mapStateToProps, mapDispatchToProps)(Map);
