@@ -1,3 +1,5 @@
+import React from 'react';
+import { View } from 'react-native';
 import { RouteConfig, StackNavigationState } from '@react-navigation/native';
 import { StackNavigationOptions } from '@react-navigation/stack';
 import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/src/types';
@@ -20,29 +22,33 @@ const routes: RouteConfig<
     {
         name: 'Login',
         component: Login,
-        options: { title: 'Login' },
+        options: {
+            title: 'Login',
+            headerLeft: () => <View />,
+            headerRight: () => <View />,
+        },
     },
     {
         name: 'Home',
         component: Home,
-        options: {
+        options: ({}) => ({
             title: 'Home',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [],
             },
-        },
+        }),
     },
     {
         name: 'Map',
         component: Map,
-        options: {
+        options: ({}) => ({
             title: 'Map',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [],
             },
-        },
+        }),
     },
 ];
 

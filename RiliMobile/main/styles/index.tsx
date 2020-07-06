@@ -12,9 +12,7 @@ export const theme = {
 };
 
 export default StyleSheet.create({
-    scrollView: {
-        backgroundColor: '#1b4a69',
-    },
+    scrollView: {},
     body: {
         backgroundColor: '#1f597d',
         color: '#fcfeff',

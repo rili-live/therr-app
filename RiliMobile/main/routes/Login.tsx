@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
+import { SafeAreaView, ScrollView, View, StatusBar } from 'react-native';
 import 'react-native-gesture-handler';
 import { IUserState } from 'rili-react/types';
 import styles from '../styles';
@@ -66,11 +66,7 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                         style={styles.scrollView}
                     >
                         <View style={styles.body}>
-                            <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitle}>
-                                    Login Page
-                                </Text>
-                            </View>
+                            <View style={styles.sectionContainer} />
                             <LoginForm login={this.props.login} />
                         </View>
                     </ScrollView>

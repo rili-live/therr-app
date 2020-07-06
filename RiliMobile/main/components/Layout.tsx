@@ -7,6 +7,8 @@ import routes from '../routes';
 import { theme } from '../styles';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import HeaderMenuRight from './HeaderMenuRight';
+import { AccessCheckType } from '../types';
 
 const Stack = createStackNavigator();
 
@@ -23,12 +25,36 @@ class Layout extends React.Component<any, any> {
         this.state = {};
     }
 
+    shouldShowTopRightMenu = () => {
+        return UsersService.isAuthorized(
+            {
+                type: AccessCheckType.ALL,
+                levels: [],
+            },
+            this.props.user
+        );
+    };
+
     render() {
         const { user } = this.props;
 
         return (
             <NavigationContainer theme={theme}>
-                <Stack.Navigator>
+                <Stack.Navigator
+                    screenOptions={({ navigation }) => ({
+                        headerRight: () => (
+                            <HeaderMenuRight
+                                navigation={navigation}
+                                isVisible={this.shouldShowTopRightMenu()}
+                            />
+                        ),
+                        headerTitleStyle: {
+                            alignSelf: 'center',
+                            textAlign: 'center',
+                            flex: 1,
+                        },
+                    })}
+                >
                     {routes
                         .filter(
                             (route: any) =>
