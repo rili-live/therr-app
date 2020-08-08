@@ -6,9 +6,9 @@ $spin-duration: 1.3s;
 .spinner {
     .circle {
         animation: spinAnimation $spin-duration infinite cubic-bezier(.53, .21, .29, .67);
-        border: $border-size solid $rili-bg-grey;
+        border: $border-size solid $therr-bg-grey;
         border-radius: 50%;
-        border-top-color: $rili-secondary-3;
+        border-top-color: $therr-secondary-3;
         box-sizing: border-box;
         height: 100%;
         margin: auto;

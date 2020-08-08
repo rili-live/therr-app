@@ -1,0 +1,12 @@
+// Local variables will overwrite library defaults
+@import './variables';
+@import '../../../../../therr-public-library/therr-styles/lib';
+@import './forms';
+@import '../../root';
+
+html {
+  background: $therr-tertiary-1;
+  background-size: cover;
+  -webkit-background-size: cover;
+  background-repeat: inherit;
+}

@@ -25,14 +25,16 @@ spec:
         - name: MESSAGES_SERVICE_API_PORT
           value: "7771"
         - name: URI_WHITELIST
-          value: "https://rili.network,https://www.rili.network"
+          value: "https://therr.app,https://www.therr.app"
         - name: HONEYCOMB_API_KEY
           valueFrom:
             secretKeyRef:
               name: honeycomb-writekey
-              key: key
+              key: HONEYCOMB
         - name: LOG_LEVEL
           value: "info"
+        - name: LOGGING_DATASET
+          value: "production"
         - name: PG_USER
           value: "postgres"
         - name: PG_HOST
@@ -40,14 +42,14 @@ spec:
         - name: PG_PORT
           value: "5432"
         - name: MESSAGES_SERVICE_PG_DATABASE
-          value: "rili_messages"
+          value: "therr_messages"
         - name: PG_PASSWORD
           valueFrom:
             secretKeyRef:
               name: pgpassword
               key: PGPASSWORD
-        - name: SECRET
+        - name: JWT_SECRET
           valueFrom:
             secretKeyRef:
-              name: riliapisecret
-              key: RILIAPISECRET
+              name: therrjwtsecret
+              key: THERRJWT_SECRET

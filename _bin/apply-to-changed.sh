@@ -55,7 +55,7 @@ else
 fi
 
 # UI Apps
-declare -a arr=("rili-client-web" "TherrMobile")
+declare -a arr=("therr-client-web" "TherrMobile")
 for i in "${arr[@]}"; do
   if has_diff_changes $TARGET_BRANCH ${i} || "$HAS_ANY_LIBRARY_CHANGES" = true; then
     if [ -f package.json ]; then
@@ -70,7 +70,7 @@ for i in "${arr[@]}"; do
 done
 
 # Services
-declare -a arr=("rili-servers/messages-service" "rili-servers/users-service" "rili-servers/websocket-service")
+declare -a arr=("therr-servers/messages-service" "therr-servers/users-service" "therr-servers/websocket-service")
 for i in "${arr[@]}"; do
   if has_diff_changes $TARGET_BRANCH ${i} || "$HAS_UTILITIES_LIBRARY_CHANGES" = true; then
     if [ -f package.json ]; then

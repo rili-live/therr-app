@@ -4,7 +4,7 @@ import * as jwt from 'jsonwebtoken';
 export default (handleHttpError: any) => (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
-            jwt.verify(req.headers.authorization.split(' ')[1], process.env.SECRET || '');
+            jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET || '');
             return next();
         }
 

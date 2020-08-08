@@ -23,7 +23,7 @@ h1 {
 }
 
 label {
-    color: $rili-white;
+    color: $therr-white;
     font-weight: 700;
     font-size: rem-calc(15px);
     line-height: 2.5rem;
@@ -32,7 +32,7 @@ label {
 
     &.required {
         &::before {
-            color: $rili-ax-negative;
+            color: $therr-ax-negative;
             content: '*';
             padding-right: .25rem;
         }
@@ -60,7 +60,7 @@ input[type='week'],
 select,
 .select-box,
 textarea {
-    background-color: $rili-white;
+    background-color: $therr-white;
     border: 1px solid #cdcdcd;
     border-radius: (2.375rem/2);
     box-shadow: none;
@@ -76,25 +76,25 @@ textarea {
     width: 100%;
 
     &:focus {
-        background-color: $rili-white;
-        border-color: $rili-input-focus-color;
-        box-shadow: $rili-input-shadow;
+        background-color: $therr-white;
+        border-color: $therr-input-focus-color;
+        box-shadow: $therr-input-shadow;
         outline: none !important;
     }
 
     &.is-dirty,
     &.is-touched {
         &.is-invalid {
-            border-color: $rili-ax-negative;
+            border-color: $therr-ax-negative;
         }
     }
 
     &.is-touched {
         &.is-valid {
-            border-color: $rili-ax-positive;
+            border-color: $therr-ax-positive;
 
             &:focus {
-                box-shadow: $rili-input-shadow-valid;
+                box-shadow: $therr-input-shadow-valid;
             }
         }
     }
@@ -102,13 +102,13 @@ textarea {
     &:disabled,
     &.disabled,
     &.disabled {
-        background: $rili-hover-grey;
-        color: $rili-middle-grey;
+        background: $therr-hover-grey;
+        color: $therr-middle-grey;
         cursor: not-allowed;
 
         button {
-            background: $rili-hover-grey;
-            color: $rili-middle-grey;
+            background: $therr-hover-grey;
+            color: $therr-middle-grey;
             cursor: not-allowed;
         }
     }
@@ -116,7 +116,7 @@ textarea {
 
 select,
 .select-box {
-    background-color: $rili-white;
+    background-color: $therr-white;
     background-position: 95%;
     background-repeat: no-repeat;
     background-size: .75rem;
@@ -146,14 +146,14 @@ select,
         width: 100%;
 
         &::before {
-            color: $rili-black;
+            color: $therr-black;
             right: .5rem;
             top: .65rem;
         }
     }
 
     .options-list {
-        background: $rili-white;
+        background: $therr-white;
         border: 1px solid #ccc;
         border-radius: .125rem;
         box-shadow: 0 0 0 .25rem rgba(38, 38, 38, .075);
@@ -184,19 +184,19 @@ select,
 
             &:hover {
                 &:not(.selected) {
-                    background: $rili-hover-grey;
+                    background: $therr-hover-grey;
                     text-decoration: underline;
                 }
             }
 
             &.selected,
             &:active  {
-                background: $rili-black;
-                color: $rili-white;
+                background: $therr-black;
+                color: $therr-white;
 
                 &:hover {
-                    background: $rili-black;
-                    color: $rili-white;
+                    background: $therr-black;
+                    color: $therr-white;
                 }
             }
 

@@ -41,15 +41,15 @@ class UsersActions {
             // Connect and get socketIO.id
             this.socketIO.on('connect', () => {
                 // NOTE: Native Storage methods return a promise, but in this case we don't need to await
-                (this.NativeStorage || sessionStorage).setItem('riliSession', JSON.stringify({ id: this.socketIO.id }));
+                (this.NativeStorage || sessionStorage).setItem('therrSession', JSON.stringify({ id: this.socketIO.id }));
                 if (data.rememberMe && !this.NativeStorage) {
-                    localStorage.setItem('riliSession', JSON.stringify({ id: this.socketIO.id }));
+                    localStorage.setItem('therrSession', JSON.stringify({ id: this.socketIO.id }));
                 }
             });
             this.socketIO.connect();
-            (this.NativeStorage || sessionStorage).setItem('riliUser', JSON.stringify(userData));
+            (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
             if (data.rememberMe && !this.NativeStorage) {
-                localStorage.setItem('riliUser', JSON.stringify(userData));
+                localStorage.setItem('therrUser', JSON.stringify(userData));
             }
             dispatch({
                 type: SocketClientActionTypes.LOGIN,
@@ -60,11 +60,11 @@ class UsersActions {
 
     logout = (userDetails?: any) => (dispatch: any) => UsersService.logout(userDetails).then(() => {
         // NOTE: Native Storage methods return a promise, but in this case we don't need to await
-        (this.NativeStorage || sessionStorage).removeItem('riliSession');
-        (this.NativeStorage || sessionStorage).removeItem('riliUser');
+        (this.NativeStorage || sessionStorage).removeItem('therrSession');
+        (this.NativeStorage || sessionStorage).removeItem('therrUser');
         if (!this.NativeStorage) {
-            localStorage.removeItem('riliSession');
-            localStorage.removeItem('riliUser');
+            localStorage.removeItem('therrSession');
+            localStorage.removeItem('therrUser');
         }
         dispatch({
             type: SocketClientActionTypes.LOGOUT,

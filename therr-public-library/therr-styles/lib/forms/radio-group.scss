@@ -23,13 +23,13 @@
 
                 +label {
                     &::before {
-                        background: $rili-ghost-grey;
+                        background: $therr-ghost-grey;
                         display: inline;
                     }
 
                     &.selected {
                         &::before {
-                            background: $rili-black;
+                            background: $therr-black;
                         }
                     }
                 }
@@ -37,8 +37,8 @@
         }
 
         label {
-            background: $rili-white;
-            border: 1px solid $rili-white;
+            background: $therr-white;
+            border: 1px solid $therr-white;
             border-radius: 50%;
             box-sizing: content-box;
             cursor: pointer;
@@ -51,29 +51,29 @@
 
 
             &.selected {
-                background: $rili-primary-1;
+                background: $therr-primary-1;
 
                 &::before {
-                    background: $rili-black;
+                    background: $therr-black;
                     display: inline;
                 }
             }
 
             &:hover {
                 &::before {
-                    background: $rili-ghost-grey;
+                    background: $therr-ghost-grey;
                     display: inline;
                 }
 
                 &.selected {
                     &::before {
-                        background: $rili-black;
+                        background: $therr-black;
                     }
                 }
             }
 
             &::before {
-                background: $rili-black;
+                background: $therr-black;
                 border-radius: 50%;
                 content: '';
                 display: none;
