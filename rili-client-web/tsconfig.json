@@ -19,9 +19,9 @@
 			"enums/*": ["./src/constants/enums/*"],
 			"types/*": ["./src/redux/types/*"],
 			"react": ["../../node_modules/@types/react"],
-			"rili-react/*": ["../rili-public-library/rili-react/lib/*"],
-			"rili-styles/*": ["../rili-public-library/rili-styles/lib/*"],
-			"rili-js-utilities/*": ["../rili-public-library/rili-js-utilities/lib/*"]
+			"therr-react/*": ["../therr-public-library/therr-react/lib/*"],
+			"therr-styles/*": ["../therr-public-library/therr-styles/lib/*"],
+			"therr-js-utilities/*": ["../therr-public-library/therr-js-utilities/lib/*"]
 		},
 		"pretty": true,
 		"allowUnreachableCode": false,

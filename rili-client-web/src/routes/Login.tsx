@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import { IUserState } from 'rili-react/types';
+import { IUserState } from 'therr-react/types';
 import translator from '../services/translator';
 import LoginForm from '../components/LoginForm';
 import UsersActions from '../redux/actions/UsersActions';

@@ -45,9 +45,9 @@ module.exports = {
             alias: {
                 map: [
                     ['shared/*', path.join(__dirname, '../node_modules')],
-                    ['rili-react/*', path.join(__dirname, '../rili-public-library/rili-react/lib')],
-                    ['rili-styles/*', path.join(__dirname, '../rili-public-library/rili-styles/lib')],
-                    ['rili-js-utilities/*', path.join(__dirname, '../rili-public-library/rili-js-utilities/lib')],
+                    ['therr-react/*', path.join(__dirname, '../therr-public-library/therr-react/lib')],
+                    ['therr-styles/*', path.join(__dirname, '../therr-public-library/therr-styles/lib')],
+                    ['therr-js-utilities/*', path.join(__dirname, '../therr-public-library/therr-js-utilities/lib')],
                 ],
                 extensions: ['.js', '.jsx', '.ts', '.json', '.scss'],
             },

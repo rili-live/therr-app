@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import { Status } from 'rili-react/components';
+import { Status } from 'therr-react/components';
 import translator from '../services/translator';
 import * as globalConfig from '../../../global-config';
 

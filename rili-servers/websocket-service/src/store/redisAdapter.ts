@@ -1,5 +1,5 @@
 import socketioRedis from 'socket.io-redis';
-import printLogs from 'rili-js-utilities/print-logs';
+import printLogs from 'therr-js-utilities/print-logs';
 import beeline from '../beeline';
 import { redisPub, redisSub } from './redisClient';
 

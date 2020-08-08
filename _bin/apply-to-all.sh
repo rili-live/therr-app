@@ -7,8 +7,8 @@ pushd _bin
 source ./lib/colorize.sh
 popd
 
-# The rili-public-library utilities then react-components commands must happen first to ensure cross-package dependencies
-declare -a arr=("rili-public-library/rili-styles" "rili-public-library/rili-js-utilities" "rili-public-library/rili-react")
+# The therr-public-library utilities then react-components commands must happen first to ensure cross-package dependencies
+declare -a arr=("therr-public-library/therr-styles" "therr-public-library/therr-js-utilities" "therr-public-library/therr-react")
 for i in "${arr[@]}"; do
     pushd ${i}
     if [ -f package.json ]

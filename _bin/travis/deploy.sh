@@ -27,13 +27,13 @@ fi
 HAS_ANY_LIBRARY_CHANGES=false
 HAS_UTILITIES_LIBRARY_CHANGES=false
 
-if has_prev_diff_changes "rili-public-library/rili-styles" || \
-  has_prev_diff_changes "rili-public-library/rili-js-utilities" || \
-  has_prev_diff_changes "rili-public-library/rili-react"; then
+if has_prev_diff_changes "therr-public-library/therr-styles" || \
+  has_prev_diff_changes "therr-public-library/therr-js-utilities" || \
+  has_prev_diff_changes "therr-public-library/therr-react"; then
   HAS_ANY_LIBRARY_CHANGES=true
 fi
 
-if has_prev_diff_changes "rili-public-library/rili-js-utilities"; then
+if has_prev_diff_changes "therr-public-library/therr-js-utilities"; then
   HAS_UTILITIES_LIBRARY_CHANGES=true
 fi
 

@@ -8,10 +8,10 @@ import {
     Input,
     SelectBox,
     SvgButton,
-} from 'rili-react/components';
-import { UserConnectionsActions } from 'rili-react/redux/actions';
-import { UserConnectionsService } from 'rili-react/services';
-import { IUserState, IUserConnectionsState } from 'rili-react/types';
+} from 'therr-react/components';
+import { UserConnectionsActions } from 'therr-react/redux/actions';
+import { UserConnectionsService } from 'therr-react/services';
+import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import translator from '../services/translator';
 
 // interface IUserProfileRouterProps {

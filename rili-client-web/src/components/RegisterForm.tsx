@@ -5,7 +5,7 @@ import flags from 'react-phone-number-input/flags'; // eslint-disable-line impor
 import {
     ButtonPrimary,
     Input,
-} from 'rili-react/components';
+} from 'therr-react/components';
 import translator from '../services/translator';
 
 // Regular component props

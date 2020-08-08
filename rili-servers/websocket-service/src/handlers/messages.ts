@@ -1,7 +1,7 @@
 import * as socketio from 'socket.io';
-import printLogs from 'rili-js-utilities/print-logs';
+import printLogs from 'therr-js-utilities/print-logs';
 import moment from 'moment';
-import { SocketServerActionTypes, SocketClientActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-js-utilities/constants';
+import { SocketServerActionTypes, SocketClientActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
 import beeline from '../beeline';
 import restRequest from '../utilities/restRequest';
 import globalConfig from '../../../../global-config';

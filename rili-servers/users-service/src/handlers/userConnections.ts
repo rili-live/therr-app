@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
-import { Notifications } from 'rili-js-utilities/constants';
-import { getSearchQueryArgs } from 'rili-js-utilities/http';
+import { Notifications } from 'therr-js-utilities/constants';
+import { getSearchQueryArgs } from 'therr-js-utilities/http';
 import beeline from '../beeline';
 import NotificationsStore from '../store/NotificationsStore';
 import handleHttpError from '../utilities/handleHttpError';

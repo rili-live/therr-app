@@ -1,5 +1,5 @@
 import { RouteProps } from 'react-router-dom';
-import { AccessCheckType, IAccess } from 'rili-react/types';
+import { AccessCheckType, IAccess } from 'therr-react/types';
 import Forum from './Forum';
 import CreateForum from './CreateForum';
 import PageNotFound from './PageNotFound';

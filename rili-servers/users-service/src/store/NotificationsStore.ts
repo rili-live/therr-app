@@ -1,7 +1,7 @@
 import Knex from 'knex';
-// import { Notifications } from 'rili-js-utilities/constants';
-import { getDbCountQueryString } from 'rili-js-utilities/db';
-import formatSQLJoinAsJSON from 'rili-js-utilities/format-sql-join-as-json';
+// import { Notifications } from 'therr-js-utilities/constants';
+import { getDbCountQueryString } from 'therr-js-utilities/db';
+import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import connection, { IConnection } from './connection';
 import { USER_CONNECTIONS_TABLE_NAME } from './UserConnectionsStore';
 

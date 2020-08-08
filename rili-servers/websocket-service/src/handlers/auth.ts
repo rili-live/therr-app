@@ -1,7 +1,7 @@
 import moment from 'moment';
 import * as socketio from 'socket.io';
-import printLogs from 'rili-js-utilities/print-logs';
-import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-js-utilities/constants';
+import printLogs from 'therr-js-utilities/print-logs';
+import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
 import beeline from '../beeline';
 import redisSessions from '../store/redisSessions';
 import notifyConnections from '../utilities/notify-connections';

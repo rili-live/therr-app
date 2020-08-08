@@ -42,8 +42,8 @@ module.exports = {
             // NOTE: These aliases must match aliases in webpack.config.js
             alias: {
                 map: [
-                    ['rili-public-library/rili-styles/*', path.join(__dirname, '../../rili-public-library/rili-styles')],
-                    ['rili-js-utilities/*', path.join(__dirname, '../../rili-public-library/rili-js-utilities/lib')],
+                    ['therr-public-library/therr-styles/*', path.join(__dirname, '../../therr-public-library/therr-styles')],
+                    ['therr-js-utilities/*', path.join(__dirname, '../../therr-public-library/therr-js-utilities/lib')],
                 ],
                 extensions: ['.js', '.jsx', '.json', '.scss']
             },
