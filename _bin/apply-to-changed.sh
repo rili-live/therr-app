@@ -13,49 +13,49 @@ HAS_UTILITIES_LIBRARY_CHANGES=false
 HAS_REACT_LIBRARY_CHANGES=false
 
 # Library directories: styles
-if has_diff_changes $TARGET_BRANCH "rili-public-library/rili-styles"; then
+if has_diff_changes $TARGET_BRANCH "therr-public-library/therr-styles"; then
   if [ -f package.json ]; then
     HAS_ANY_LIBRARY_CHANGES=true
     HAS_STYLES_LIBRARY_CHANGES=true
-    pushd "rili-public-library/rili-styles"
-    printMessageNeutral "Running command '${COMMAND}': rili-public-library/rili-styles"
+    pushd "therr-public-library/therr-styles"
+    printMessageNeutral "Running command '${COMMAND}': therr-public-library/therr-styles"
     eval $COMMAND
   fi
     popd
 else
-  printMessageNeutral "Skipping command '${COMMAND}': rili-public-library/rili-styles (No Changes)"
+  printMessageNeutral "Skipping command '${COMMAND}': therr-public-library/therr-styles (No Changes)"
 fi
 
 # Library directories: js-utilities
-if has_diff_changes $TARGET_BRANCH "rili-public-library/rili-js-utilities"; then
+if has_diff_changes $TARGET_BRANCH "therr-public-library/therr-js-utilities"; then
   if [ -f package.json ]; then
     HAS_ANY_LIBRARY_CHANGES=true
     HAS_UTILITIES_LIBRARY_CHANGES=true
-    pushd "rili-public-library/rili-js-utilities"
-    printMessageNeutral "Running command '${COMMAND}': rili-public-library/rili-js-utilities"
+    pushd "therr-public-library/therr-js-utilities"
+    printMessageNeutral "Running command '${COMMAND}': therr-public-library/therr-js-utilities"
     eval $COMMAND
   fi
     popd
 else
-  printMessageNeutral "Skipping command '${COMMAND}': rili-public-library/rili-js-utilities (No Changes)"
+  printMessageNeutral "Skipping command '${COMMAND}': therr-public-library/therr-js-utilities (No Changes)"
 fi
 
 # Library directories: react
-if has_diff_changes $TARGET_BRANCH "rili-public-library/rili-react" || "$HAS_UTILITIES_LIBRARY_CHANGES" = true || "$HAS_STYLES_LIBRARY_CHANGES" = true; then
+if has_diff_changes $TARGET_BRANCH "therr-public-library/therr-react" || "$HAS_UTILITIES_LIBRARY_CHANGES" = true || "$HAS_STYLES_LIBRARY_CHANGES" = true; then
   if [ -f package.json ]; then
     HAS_ANY_LIBRARY_CHANGES=true
     HAS_REACT_LIBRARY_CHANGES=true
-    pushd "rili-public-library/rili-react"
-    printMessageNeutral "Running command '${COMMAND}': rili-public-library/rili-react"
+    pushd "therr-public-library/therr-react"
+    printMessageNeutral "Running command '${COMMAND}': therr-public-library/therr-react"
     eval $COMMAND
   fi
     popd
 else
-  printMessageNeutral "Skipping command '${COMMAND}': rili-public-library/rili-react (No Changes)"
+  printMessageNeutral "Skipping command '${COMMAND}': therr-public-library/therr-react (No Changes)"
 fi
 
 # UI Apps
-declare -a arr=("rili-client-web" "TherrMobile")
+declare -a arr=("therr-client-web" "TherrMobile")
 for i in "${arr[@]}"; do
   if has_diff_changes $TARGET_BRANCH ${i} || "$HAS_ANY_LIBRARY_CHANGES" = true; then
     if [ -f package.json ]; then
@@ -70,7 +70,7 @@ for i in "${arr[@]}"; do
 done
 
 # Services
-declare -a arr=("rili-servers/messages-service" "rili-servers/users-service" "rili-servers/websocket-service")
+declare -a arr=("therr-servers/messages-service" "therr-servers/users-service" "therr-servers/websocket-service")
 for i in "${arr[@]}"; do
   if has_diff_changes $TARGET_BRANCH ${i} || "$HAS_UTILITIES_LIBRARY_CHANGES" = true; then
     if [ -f package.json ]; then

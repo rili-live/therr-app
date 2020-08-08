@@ -4,39 +4,39 @@ build:
   local:
     push: false
   artifacts:
-    - image: riliadmin/client-web
+    - image: therrapp/client-web
       context: .
       docker:
-        dockerfile: ./rili-client-web/Dockerfile
+        dockerfile: ./therr-client-web/Dockerfile
       sync:
         infer:
-          - './rili-client-web/**/*.js'
-          - './rili-client-web/**/*.json'
-          - './rili-client-web/**/*.css'
-          - './rili-client-web/**/*.html'
-          - './rili-client-web/**/*.hbs'
-          - './rili-public-library/**/lib/*.js'
-          - './rili-public-library/**/lib/*.json'
-          - './rili-public-library/**/lib/*.css'
-          - './rili-public-library/**/lib/*.html'
-    - image: riliadmin/users-service
+          - './therr-client-web/**/*.js'
+          - './therr-client-web/**/*.json'
+          - './therr-client-web/**/*.css'
+          - './therr-client-web/**/*.html'
+          - './therr-client-web/**/*.hbs'
+          - './therr-public-library/**/lib/*.js'
+          - './therr-public-library/**/lib/*.json'
+          - './therr-public-library/**/lib/*.css'
+          - './therr-public-library/**/lib/*.html'
+    - image: therrapp/users-service
       context: .
       docker:
-        dockerfile: ./rili-servers/users-service/Dockerfile
+        dockerfile: ./therr-servers/users-service/Dockerfile
       sync:
         infer:
-          - './rili-servers/users-service/**/*.js'
-          - './rili-public-library/rili-js-utilities/**/lib/*.js'
-          - './rili-public-library/rili-js-utilities/**/lib/*.json'
-    - image: riliadmin/websocket-service
+          - './therr-servers/users-service/**/*.js'
+          - './therr-public-library/therr-js-utilities/**/lib/*.js'
+          - './therr-public-library/therr-js-utilities/**/lib/*.json'
+    - image: therrapp/websocket-service
       context: .
       docker:
-        dockerfile: ./rili-servers/websocket-service/Dockerfile
+        dockerfile: ./therr-servers/websocket-service/Dockerfile
       sync:
         infer:
-          - './rili-servers/websocket-service/**/*.js'
-          - './rili-public-library/rili-js-utilities/**/lib/*.js'
-          - './rili-public-library/rili-js-utilities/**/lib/*.json'
+          - './therr-servers/websocket-service/**/*.js'
+          - './therr-public-library/therr-js-utilities/**/lib/*.js'
+          - './therr-public-library/therr-js-utilities/**/lib/*.json'
 deploy:
   kubectl:
     manifests:

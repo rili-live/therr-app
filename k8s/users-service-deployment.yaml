@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: server-users
-        image: riliadmin/users-service:latest
+        image: therrapp/users-service:latest
         resources:
           limits:
             memory: "128Mi"
@@ -25,14 +25,16 @@ spec:
         - name: USERS_SERVICE_API_PORT
           value: "7770"
         - name: URI_WHITELIST
-          value: "https://rili.network,https://www.rili.network"
+          value: "https://therr.app,https://www.therr.app"
         - name: HONEYCOMB_API_KEY
           valueFrom:
             secretKeyRef:
               name: honeycomb-writekey
-              key: key
+              key: HONEYCOMB
         - name: LOG_LEVEL
           value: "info"
+        - name: LOGGING_DATASET
+          value: "production"
         - name: REDIS_NODE_ONE_HOST
           value: "redis-cluster-ip-service"
         - name: REDIS_NODE_ONE_PORT
@@ -44,14 +46,14 @@ spec:
         - name: PG_PORT
           value: "5432"
         - name: USERS_SERVICE_PG_DATABASE
-          value: "rili_users"
+          value: "therr_users"
         - name: PG_PASSWORD
           valueFrom:
             secretKeyRef:
               name: pgpassword
               key: PGPASSWORD
-        - name: SECRET
+        - name: JWT_SECRET
           valueFrom:
             secretKeyRef:
-              name: riliapisecret
-              key: RILIAPISECRET
+              name: therrjwtsecret
+              key: THERRJWT_SECRET

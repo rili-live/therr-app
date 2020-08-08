@@ -12,21 +12,21 @@ env:
     - GIT_SHA=$(git rev-parse HEAD)
     - CLOUDSDK_CORE_DISABLE_PROMPTS=1
 before_install:
-  - openssl aes-256-cbc -K $encrypted_7f1945c3d670_key -iv $encrypted_7f1945c3d670_iv -in service-account.json.enc -out service-account.json -d
+  - openssl aes-256-cbc -K $encrypted_04e2fe021a89_key -iv $encrypted_04e2fe021a89_iv -in service-account.json.enc -out service-account.json -d
   - if [ ! -d $HOME/google-cloud-sdk/bin ]; then rm -rf $HOME/google-cloud-sdk; curl https://sdk.cloud.google.com | bash > /dev/null; fi
   - source $HOME/google-cloud-sdk/path.bash.inc
   - gcloud components update kubectl
   - gcloud auth activate-service-account --key-file service-account.json
-  - gcloud config set project rili-main
-  - gcloud config set compute/zone us-central1-c
-  - gcloud container clusters get-credentials rili-cluster
+  - gcloud config set project therr-app
+  - gcloud config set compute/zone us-central1-a
+  - gcloud container clusters get-credentials cluster-1
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
 jobs:
   include:
     - stage: "Build and test"
       name: "Build and test app services"
       script: true
-      # script: docker run -e CI=true riliadmin/testing npm run test
+      # script: docker run -e CI=true therrapp/testing npm run test
 # after_success:
 #   - _bin/travis/after-success.sh
 deploy:

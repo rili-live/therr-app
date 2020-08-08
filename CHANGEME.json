@@ -1,4 +1,11 @@
 {
     "version": "0.0.1",
-    "updatedPackages": ["rili-connect-mobile", "rili-client-web", "rili-public-library", "rili-server"]
+    "updatedPackages": [
+        "TherrMobile",
+        "therr-client-web",
+        "therr-public-library",
+        "messages-service",
+        "users-service",
+        "websocket-service"
+    ]
 }

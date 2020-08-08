@@ -8,19 +8,19 @@ const path = require('path');
 
 const extraNodeModules = {
     shared: path.join(__dirname, '/../node_modules'),
-    'rili-react': path.join(
+    'therr-react': path.join(
         __dirname,
-        '/../rili-public-library/rili-react/lib'
+        '/../therr-public-library/therr-react/lib'
     ),
-    'rili-js-utilities': path.join(
+    'therr-js-utilities': path.join(
         __dirname,
-        '/../rili-public-library/rili-js-utilities/lib'
+        '/../therr-public-library/therr-js-utilities/lib'
     ),
 };
 const watchFolders = [
     path.join(__dirname, '/../node_modules'),
-    path.join(__dirname, '/../rili-public-library/rili-react/lib'),
-    path.join(__dirname, '/../rili-public-library/rili-js-utilities/lib'),
+    path.join(__dirname, '/../therr-public-library/therr-react/lib'),
+    path.join(__dirname, '/../therr-public-library/therr-js-utilities/lib'),
 ];
 
 module.exports = {
