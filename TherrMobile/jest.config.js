@@ -1,7 +1,7 @@
 module.exports = {
     preset: 'react-native',
     globals: {
-        window: {}, // This required since we import Rili React library that is compiled for web app (with window)
+        window: {}, // This required since we import Therr React library that is compiled for web app (with window)
     },
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
     moduleNameMapper: {

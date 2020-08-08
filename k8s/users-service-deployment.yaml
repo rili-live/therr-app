@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: server-users
-        image: riliadmin/users-service:latest
+        image: therrapp/users-service:latest
         resources:
           limits:
             memory: "128Mi"

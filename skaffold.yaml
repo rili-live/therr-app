@@ -4,7 +4,7 @@ build:
   local:
     push: false
   artifacts:
-    - image: riliadmin/client-web
+    - image: therrapp/client-web
       context: .
       docker:
         dockerfile: ./rili-client-web/Dockerfile
@@ -19,7 +19,7 @@ build:
           - './rili-public-library/**/lib/*.json'
           - './rili-public-library/**/lib/*.css'
           - './rili-public-library/**/lib/*.html'
-    - image: riliadmin/users-service
+    - image: therrapp/users-service
       context: .
       docker:
         dockerfile: ./rili-servers/users-service/Dockerfile
@@ -28,7 +28,7 @@ build:
           - './rili-servers/users-service/**/*.js'
           - './rili-public-library/rili-js-utilities/**/lib/*.js'
           - './rili-public-library/rili-js-utilities/**/lib/*.json'
-    - image: riliadmin/websocket-service
+    - image: therrapp/websocket-service
       context: .
       docker:
         dockerfile: ./rili-servers/websocket-service/Dockerfile

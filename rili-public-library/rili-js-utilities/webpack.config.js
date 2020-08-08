@@ -38,7 +38,7 @@ const common = merge([
             filename: '[name].js',
             publicPath: PATHS.public,
             libraryTarget: 'umd',
-            library: 'Rili Public Library: Utilities',
+            library: 'Therr Public Library: Utilities',
         },
         resolve: {
             extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],

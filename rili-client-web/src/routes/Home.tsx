@@ -58,7 +58,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Rili | ${this.translate('pages.home.pageTitle')}`;
+        document.title = `Therr | ${this.translate('pages.home.pageTitle')}`;
     }
 
     private translate: Function;

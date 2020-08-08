@@ -1,10 +1,10 @@
-[![Build Status](https://travis-ci.org/rili-live/rili-app.svg?branch=stage)](https://travis-ci.org/rili-live/rili-app)
+[![Build Status](https://travis-ci.org/rili-live/therr-app.svg?branch=stage)](https://travis-ci.org/rili-live/therr-app)
 
-# rili-app
+# therr-app
 
 # Further Documentation
 * [General Documentation](./_docs/#readme)
-* [Rili Public Library Documentation](./rili-server/#readme)
-* [Rili Client Mobile Documentation](./RiliMobile/#readme)
-* [Rili Client Web Documentation](./rilir-client-web/#readme)
-* [Rili Server Documentation](./rili-public-library/#readme)
+* [Therr Public Library Documentation](./therr-server/#readme)
+* [Therr Client Mobile Documentation](./TherrMobile/#readme)
+* [Therr Client Web Documentation](./rilir-client-web/#readme)
+* [Therr Server Documentation](./therr-public-library/#readme)

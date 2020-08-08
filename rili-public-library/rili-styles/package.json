@@ -1,7 +1,7 @@
 {
   "name": "rili-public-library-styles",
   "version": "0.0.1",
-  "description": "Multi-purpose code used in the Rili codebase and open-sourced to the developer community",
+  "description": "Multi-purpose code used in the Therr codebase and open-sourced to the developer community",
   "main": "index.js",
   "scripts": {
     "build": "../../node_modules/.bin/sass lib:lib",
@@ -16,7 +16,7 @@
     "public",
     "library"
   ],
-  "author": "Rili, Inc.",
+  "author": "Therr, Inc.",
   "license": "MIT",
   "devDependencies": {}
 }

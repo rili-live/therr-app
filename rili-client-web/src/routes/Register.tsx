@@ -48,7 +48,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Rili | ${this.translate('pages.register.pageTitle')}`;
+        document.title = `Therr | ${this.translate('pages.register.pageTitle')}`;
     }
 
     private translate: Function;

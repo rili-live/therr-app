@@ -1,7 +1,7 @@
 {
-  "name": "rili-app",
+  "name": "therr-app",
   "version": "0.0.1",
-  "description": "The main Rili app root",
+  "description": "The main Therr app root",
   "main": "index.js",
   "engines": {
     "npm": ">=6.10.0"
@@ -37,10 +37,10 @@
     "url": "git+https://github.com/rili-live/rili-app.git"
   },
   "keywords": [
-    "Rili",
+    "Therr",
     "app"
   ],
-  "author": "Rili, Inc.",
+  "author": "Therr, Inc.",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/rili-live/rili-app/issues"

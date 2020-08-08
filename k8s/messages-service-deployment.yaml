@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: server-messages
-        image: riliadmin/messages-service:latest
+        image: therrapp/messages-service:latest
         resources:
           limits:
             memory: "256Mi"

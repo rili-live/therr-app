@@ -17,4 +17,4 @@ gcloud config set project rili-main
 gcloud config set compute/zone us-central1-c
 gcloud container clusters get-credentials rili-cluster
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
-# docker build -t riliadmin/testing -f ./client/Dockerfile.dev ./client
+# docker build -t therrapp/testing -f ./client/Dockerfile.dev ./client

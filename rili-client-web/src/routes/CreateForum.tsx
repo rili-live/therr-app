@@ -67,7 +67,7 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Rili | ${this.translate('pages.createForum.pageTitle')}`;
+        document.title = `Therr | ${this.translate('pages.createForum.pageTitle')}`;
     }
 
     private translate: Function;

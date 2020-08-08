@@ -1,7 +1,7 @@
 {
   "name": "rili-public-library-react-components",
   "version": "0.0.2",
-  "description": "Multi-purpose code used in the Rili codebase and open-sourced to the developer community",
+  "description": "Multi-purpose code used in the Therr codebase and open-sourced to the developer community",
   "main": "index.js",
   "scripts": {
     "build": "../../node_modules/.bin/webpack --env production",
@@ -22,7 +22,7 @@
     "public",
     "library"
   ],
-  "author": "Rili, Inc.",
+  "author": "Therr, Inc.",
   "license": "MIT",
   "types:": "lib/index.d.ts",
   "files": [
