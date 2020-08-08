@@ -15,6 +15,7 @@
     "lint:all": "_bin/apply-to-all.sh 'npm run lint'",
     "lint:changed": "_bin/apply-to-changed.sh 'npm run lint'",
     "lint:fix:all": "_bin/apply-to-all.sh 'npm run lint:fix'",
+    "lint:fix:changed": "_bin/apply-to-changed.sh 'npm run lint:fix'",
     "install:root": "npm run prep && npm install && _bin/apply-to-all.sh 'npm install' rootOnly",
     "install:all": "npm run prep && npm install && _bin/apply-to-all.sh 'npm install'",
     "audit:all": "npm run prep && npm audit fix && _bin/apply-to-all.sh 'npm audit fix'",
