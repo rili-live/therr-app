@@ -18,7 +18,7 @@ before_install:
   - gcloud components update kubectl
   - gcloud auth activate-service-account --key-file service-account.json
   - gcloud config set project therr-app
-  - gcloud config set compute/zone us-central1-c
+  - gcloud config set compute/zone us-central1-a
   - gcloud container clusters get-credentials cluster-1
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
 jobs:
