@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
     ButtonPrimary,
     Input,
-} from 'rili-react/components';
+} from 'therr-react/components';
 import translator from '../services/translator';
 
 // Regular component props

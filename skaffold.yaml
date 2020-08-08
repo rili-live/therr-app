@@ -15,10 +15,10 @@ build:
           - './rili-client-web/**/*.css'
           - './rili-client-web/**/*.html'
           - './rili-client-web/**/*.hbs'
-          - './rili-public-library/**/lib/*.js'
-          - './rili-public-library/**/lib/*.json'
-          - './rili-public-library/**/lib/*.css'
-          - './rili-public-library/**/lib/*.html'
+          - './therr-public-library/**/lib/*.js'
+          - './therr-public-library/**/lib/*.json'
+          - './therr-public-library/**/lib/*.css'
+          - './therr-public-library/**/lib/*.html'
     - image: therrapp/users-service
       context: .
       docker:
@@ -26,8 +26,8 @@ build:
       sync:
         infer:
           - './rili-servers/users-service/**/*.js'
-          - './rili-public-library/rili-js-utilities/**/lib/*.js'
-          - './rili-public-library/rili-js-utilities/**/lib/*.json'
+          - './therr-public-library/therr-js-utilities/**/lib/*.js'
+          - './therr-public-library/therr-js-utilities/**/lib/*.json'
     - image: therrapp/websocket-service
       context: .
       docker:
@@ -35,8 +35,8 @@ build:
       sync:
         infer:
           - './rili-servers/websocket-service/**/*.js'
-          - './rili-public-library/rili-js-utilities/**/lib/*.js'
-          - './rili-public-library/rili-js-utilities/**/lib/*.json'
+          - './therr-public-library/therr-js-utilities/**/lib/*.js'
+          - './therr-public-library/therr-js-utilities/**/lib/*.json'
 deploy:
   kubectl:
     manifests:

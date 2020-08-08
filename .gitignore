@@ -67,5 +67,5 @@ typings/
 
 # build files
 build/
-rili-public-library/rili-react/lib/
-rili-public-library/rili-js-utilities/lib/
+therr-public-library/therr-react/lib/
+therr-public-library/therr-js-utilities/lib/

@@ -15,8 +15,8 @@
 		"inlineSourceMap": true,               /* Emit a single file with source maps instead of having a separate file. */
     "inlineSources": true,
 		"paths": {
-			"rili-public-library/rili-styles/*": ["../../rili-public-library/rili-styles/*"],
-			"rili-js-utilities/*": ["../../rili-public-library/rili-js-utilities/lib/*"],
+			"therr-public-library/therr-styles/*": ["../../therr-public-library/therr-styles/*"],
+			"therr-js-utilities/*": ["../../therr-public-library/therr-js-utilities/lib/*"],
 		},
 		"pretty": true,
 		"allowUnreachableCode": false,

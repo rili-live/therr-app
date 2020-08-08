@@ -3,16 +3,16 @@ import { connect } from 'react-redux';
 import {
     Input,
     SvgButton,
-} from 'rili-react/components';
-import { SocketActions } from 'rili-react/redux/actions';
-import scrollTo from 'rili-js-utilities/scroll-to';
+} from 'therr-react/components';
+import { SocketActions } from 'therr-react/redux/actions';
+import scrollTo from 'therr-js-utilities/scroll-to';
 import { bindActionCreators } from 'redux';
 import {
     IMessage,
     ISocketState,
     IUserState,
     IUserConnectionsState,
-} from 'rili-react/types';
+} from 'therr-react/types';
 import translator from '../../services/translator';
 
 export type IMessagingContext = any;

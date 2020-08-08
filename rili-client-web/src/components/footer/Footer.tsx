@@ -3,8 +3,8 @@ import { connect } from 'react-redux';
 import {
     AccessControl,
     SvgButton,
-} from 'rili-react/components';
-import { IUserState } from 'rili-react/types';
+} from 'therr-react/components';
+import { IUserState } from 'therr-react/types';
 import { bindActionCreators } from 'redux';
 import MessagingContainer, { IMessagingContext } from './MessagingContainer';
 import { INavMenuContext } from '../../types';

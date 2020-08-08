@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom';
 import {
     AccessControl,
     SvgButton,
-} from 'rili-react/components';
-import { IUserState, INotificationsState, INotification } from 'rili-react/types';
+} from 'therr-react/components';
+import { IUserState, INotificationsState, INotification } from 'therr-react/types';
 import { bindActionCreators } from 'redux';
 import translator from '../services/translator';
 import { INavMenuContext } from '../types';

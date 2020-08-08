@@ -1,4 +1,4 @@
-import { configureHandleHttpError, IErrorArgs } from 'rili-js-utilities/http';
+import { configureHandleHttpError, IErrorArgs } from 'therr-js-utilities/http';
 import beeline from '../beeline';
 
 export {

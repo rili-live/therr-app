@@ -8,7 +8,7 @@ import { StaticRouter, matchPath } from 'react-router-dom';
 import { applyMiddleware, createStore } from 'redux';
 import { Provider } from 'react-redux';
 import thunkMiddleware from 'redux-thunk';
-import printLogs from 'rili-js-utilities/print-logs';
+import printLogs from 'therr-js-utilities/print-logs';
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';

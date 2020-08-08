@@ -4,13 +4,13 @@ import {
     ButtonPrimary,
     InlineSvg,
     SvgButton,
-} from 'rili-react/components';
-import { UserConnectionsActions } from 'rili-react/redux/actions';
+} from 'therr-react/components';
+import { UserConnectionsActions } from 'therr-react/redux/actions';
 import {
     ISocketState,
     IUserState,
     IUserConnectionsState,
-} from 'rili-react/types';
+} from 'therr-react/types';
 import { bindActionCreators } from 'redux';
 import translator from '../../services/translator';
 

@@ -3,12 +3,12 @@ import { connect } from 'react-redux';
 import {
     ButtonPrimary,
     SvgButton,
-} from 'rili-react/components';
+} from 'therr-react/components';
 import {
     NotificationActions,
     UserConnectionsActions,
-} from 'rili-react/redux/actions';
-import { IUserState, INotificationsState, INotification } from 'rili-react/types';
+} from 'therr-react/redux/actions';
+import { IUserState, INotificationsState, INotification } from 'therr-react/types';
 import { bindActionCreators } from 'redux';
 
 import Notification from './Notification';

@@ -2,17 +2,17 @@ import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { SocketActions } from 'rili-react/redux/actions';
+import { SocketActions } from 'therr-react/redux/actions';
 import {
     Input,
     ButtonPrimary,
-} from 'rili-react/components';
-import scrollTo from 'rili-js-utilities/scroll-to';
+} from 'therr-react/components';
+import scrollTo from 'therr-js-utilities/scroll-to';
 import {
     IMessage,
     ISocketState,
     IUserState,
-} from 'rili-react/types';
+} from 'therr-react/types';
 import translator from '../services/translator';
 
 // router params

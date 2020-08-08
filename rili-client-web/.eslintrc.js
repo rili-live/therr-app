@@ -61,9 +61,9 @@ module.exports = {
             // NOTE: These aliases must match aliases in webpack.config.js
             alias: {
                 map: [
-                    ['rili-react/*', path.join(__dirname, '../rili-public-library/rili-react/lib')],
-                    ['rili-styles/*', path.join(__dirname, '../rili-public-library/rili-styles/lib')],
-                    ['rili-js-utilities/*', path.join(__dirname, '../rili-public-library/rili-js-utilities/lib')],
+                    ['therr-react/*', path.join(__dirname, '../therr-public-library/therr-react/lib')],
+                    ['therr-styles/*', path.join(__dirname, '../therr-public-library/therr-styles/lib')],
+                    ['therr-js-utilities/*', path.join(__dirname, '../therr-public-library/therr-js-utilities/lib')],
                     ['types/*', path.join(__dirname, './src/redux/types')],
                     ['actions/*', path.join(__dirname, './src/redux/actions')],
                 ],

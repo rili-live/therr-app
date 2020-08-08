@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
-import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'rili-js-utilities/constants';
-import printLogs from 'rili-js-utilities/print-logs';
+import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
+import printLogs from 'therr-js-utilities/print-logs';
 import beeline from '../beeline';
 
 export default (socket) => new Promise((resolve) => {

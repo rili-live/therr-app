@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { ButtonPrimary } from 'rili-react/components';
-import { INotification } from 'rili-react/types';
+import { ButtonPrimary } from 'therr-react/components';
+import { INotification } from 'therr-react/types';
 
 // Regular component props
 interface INotificationProps {

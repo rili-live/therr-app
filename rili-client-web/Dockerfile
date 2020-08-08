@@ -26,7 +26,7 @@ COPY ./package*.json ./
 COPY ./.babelrc ./
 COPY ./global-config.js ./
 COPY ./webpack.parts.js ./
-COPY ./rili-public-library ./rili-public-library
+COPY ./therr-public-library ./therr-public-library
 
 # Set libary directory permissions
 USER root
@@ -39,11 +39,11 @@ RUN npm ci --no-optional
 ENV PATH $PATH:/usr/src/app/node_modules/.bin:$PATH
 
 # Install and build libraries
-WORKDIR /usr/src/app/rili-public-library/rili-styles
+WORKDIR /usr/src/app/therr-public-library/therr-styles
 RUN npm run build
-WORKDIR /usr/src/app/rili-public-library/rili-js-utilities
+WORKDIR /usr/src/app/therr-public-library/therr-js-utilities
 RUN npm run build
-WORKDIR /usr/src/app/rili-public-library/rili-react
+WORKDIR /usr/src/app/therr-public-library/therr-react
 RUN npm run build
 
 # Copy main app files

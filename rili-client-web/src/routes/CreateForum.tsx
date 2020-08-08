@@ -5,8 +5,8 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import {
     Input,
     ButtonPrimary,
-} from 'rili-react/components';
-import { ISocketState } from 'rili-react/types';
+} from 'therr-react/components';
+import { ISocketState } from 'therr-react/types';
 import translator from '../services/translator';
 // import * as globalConfig from '../../../global-config';
 
