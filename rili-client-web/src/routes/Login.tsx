@@ -64,7 +64,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Rili | ${this.translate('pages.login.pageTitle')}`;
+        document.title = `Therr | ${this.translate('pages.login.pageTitle')}`;
     }
 
     private translate: Function;

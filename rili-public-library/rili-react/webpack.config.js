@@ -45,7 +45,7 @@ const common = merge([
             filename: '[name].js',
             publicPath: PATHS.public,
             libraryTarget: 'umd',
-            library: 'Rili Public Library: React Components',
+            library: 'Therr Public Library: React Components',
         },
         resolve: {
             extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.scss'],

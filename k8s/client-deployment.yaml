@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: web
-        image: riliadmin/client-web:latest
+        image: therrapp/client-web:latest
         resources:
           limits:
             memory: "128Mi"

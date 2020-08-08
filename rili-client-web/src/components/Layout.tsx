@@ -258,7 +258,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
         return (
             <>
-                <p>Rili Inc.</p>
+                <p>Therr Inc.</p>
                 <p>Under Construction</p>
                 <p>Check back soon for updates</p>
                 <div className="nav-menu-footer">

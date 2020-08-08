@@ -42,7 +42,7 @@ export class TemplateComponent extends React.Component<ITemplateProps, ITemplate
     }
 
     componentDidMount() {
-        document.title = `Rili | ${this.translate('pages.template.helloTemplate')}`;
+        document.title = `Therr | ${this.translate('pages.template.helloTemplate')}`;
     }
 
     private translate: Function;

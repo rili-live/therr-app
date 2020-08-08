@@ -1,5 +1,5 @@
-# Rili Public Library: Utilities
-We have included this set of helper utilities to provide common, Rili javascript functions that were abstracted for re-use.
+# Therr Public Library: Utilities
+We have included this set of helper utilities to provide common, Therr javascript functions that were abstracted for re-use.
 
 ## How to Include a utility
 Simply add an import to the top of a file, ie.

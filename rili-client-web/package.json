@@ -1,7 +1,7 @@
 {
-  "name": "rili-client-web",
+  "name": "therr-client-web",
   "version": "0.0.1",
-  "description": "The web client side code for Rili",
+  "description": "The web client side code for Therr",
   "main": "index.js",
   "scripts": {
     "build": "npm run build:app && npm run build:server && node ./update-views.js",
@@ -23,10 +23,10 @@
   },
   "types": "src/types/index.d.ts",
   "keywords": [
-    "rili",
+    "therr",
     "web"
   ],
-  "author": "Rili, Inc.",
+  "author": "Therr, Inc.",
   "license": "MIT",
   "browserslist": [
     "defaults"

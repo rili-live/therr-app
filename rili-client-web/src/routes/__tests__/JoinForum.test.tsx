@@ -2,7 +2,7 @@ import * as React from 'react';
 import { mount } from 'enzyme';
 import { CreateForumComponent } from '../CreateForum';
 
-describe('Rili App', () => {
+describe('Therr App', () => {
     let wrapper: any = null;
 
     function mountWithProps(props = {}) {

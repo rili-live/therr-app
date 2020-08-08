@@ -8,7 +8,7 @@ import store from './store';
 // Third Party Styles
 import 'react-phone-number-input/style.css';
 
-// Rili Styles
+// Therr Styles
 // Change the following import to alter theme
 // TODO: RSERV-8-: Use themes endpoint to dynamically load theme styles
 import './styles/themes/mothers-day/index.scss';

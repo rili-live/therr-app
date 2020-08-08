@@ -52,58 +52,58 @@ should_deploy_service()
 
 # Docker Build
 if should_deploy_web_app; then
-  docker build -t riliadmin/client-web$SUFFIX:latest -t riliadmin/client-web$SUFFIX:$GIT_SHA -f ./rili-client-web/Dockerfile \
+  docker build -t therrapp/client-web$SUFFIX:latest -t therrapp/client-web$SUFFIX:$GIT_SHA -f ./rili-client-web/Dockerfile \
     --build-arg NODE_VERSION=${NODE_VERSION} .
 fi
 if should_deploy_service "rili-servers/messages-service"; then
-  docker build -t riliadmin/messages-service$SUFFIX:latest -t riliadmin/messages-service$SUFFIX:$GIT_SHA -f ./rili-servers/messages-service/Dockerfile \
+  docker build -t therrapp/messages-service$SUFFIX:latest -t therrapp/messages-service$SUFFIX:$GIT_SHA -f ./rili-servers/messages-service/Dockerfile \
     --build-arg NODE_VERSION=${NODE_VERSION} .
 fi
 if should_deploy_service "rili-servers/users-service"; then
-  docker build -t riliadmin/users-service$SUFFIX:latest -t riliadmin/users-service$SUFFIX:$GIT_SHA -f ./rili-servers/users-service/Dockerfile \
+  docker build -t therrapp/users-service$SUFFIX:latest -t therrapp/users-service$SUFFIX:$GIT_SHA -f ./rili-servers/users-service/Dockerfile \
   --build-arg NODE_VERSION=${NODE_VERSION} .
 fi
 if should_deploy_service "rili-servers/websocket-service"; then
-  docker build -t riliadmin/websocket-service$SUFFIX:latest -t riliadmin/websocket-service$SUFFIX:$GIT_SHA -f ./rili-servers/websocket-service/Dockerfile \
+  docker build -t therrapp/websocket-service$SUFFIX:latest -t therrapp/websocket-service$SUFFIX:$GIT_SHA -f ./rili-servers/websocket-service/Dockerfile \
     --build-arg NODE_VERSION=${NODE_VERSION} .
 fi
 
 # Docker Push
 if should_deploy_web_app; then
-  docker push riliadmin/client-web$SUFFIX:latest
-  docker push riliadmin/client-web$SUFFIX:$GIT_SHA
+  docker push therrapp/client-web$SUFFIX:latest
+  docker push therrapp/client-web$SUFFIX:$GIT_SHA
 fi
 if should_deploy_service "rili-servers/messages-service"; then
-  docker push riliadmin/messages-service$SUFFIX:latest
-  docker push riliadmin/messages-service$SUFFIX:$GIT_SHA
+  docker push therrapp/messages-service$SUFFIX:latest
+  docker push therrapp/messages-service$SUFFIX:$GIT_SHA
 fi
 if should_deploy_service "rili-servers/users-service"; then
-  docker push riliadmin/users-service$SUFFIX:latest
-  docker push riliadmin/users-service$SUFFIX:$GIT_SHA
+  docker push therrapp/users-service$SUFFIX:latest
+  docker push therrapp/users-service$SUFFIX:$GIT_SHA
 fi
 if should_deploy_service "rili-servers/websocket-service"; then
-  docker push riliadmin/websocket-service$SUFFIX:latest
-  docker push riliadmin/websocket-service$SUFFIX:$GIT_SHA
+  docker push therrapp/websocket-service$SUFFIX:latest
+  docker push therrapp/websocket-service$SUFFIX:$GIT_SHA
 fi
 
 kubectl apply -f k8s
 if should_deploy_web_app; then
-  kubectl set image deployments/client-deployment web=riliadmin/client-web:$GIT_SHA
+  kubectl set image deployments/client-deployment web=therrapp/client-web:$GIT_SHA
 else
   echo "Skipping client-web deployment (No Changes)"
 fi
 if should_deploy_service "rili-servers/messages-service"; then
-  kubectl set image deployments/messages-service-deployment server-messages=riliadmin/messages-service:$GIT_SHA
+  kubectl set image deployments/messages-service-deployment server-messages=therrapp/messages-service:$GIT_SHA
 else
   echo "Skipping messages-service deployment (No Changes)"
 fi
 if should_deploy_service "rili-servers/users-service"; then
-  kubectl set image deployments/users-service-deployment server-users=riliadmin/users-service:$GIT_SHA
+  kubectl set image deployments/users-service-deployment server-users=therrapp/users-service:$GIT_SHA
 else
   echo "Skipping users-service deployment (No Changes)"
 fi
 if should_deploy_service "rili-servers/websocket-service"; then
-  kubectl set image deployments/websocket-service-deployment server-websocket=riliadmin/websocket-service:$GIT_SHA
+  kubectl set image deployments/websocket-service-deployment server-websocket=therrapp/websocket-service:$GIT_SHA
 else
   echo "Skipping websocket-service deployment (No Changes)"
 fi

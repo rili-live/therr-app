@@ -85,7 +85,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
     }
 
     componentDidMount() {
-        document.title = `Rili | ${this.translate('pages.chatForum.pageTitle')}`;
+        document.title = `Therr | ${this.translate('pages.chatForum.pageTitle')}`;
         this.messageInputRef.current.inputEl.focus();
         this.props.joinForum({
             roomId: this.props.match.params.roomId,

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: server-websocket
-        image: riliadmin/websocket-service:latest
+        image: therrapp/websocket-service:latest
         resources:
           limits:
             memory: "256Mi"

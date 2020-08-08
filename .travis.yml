@@ -26,7 +26,7 @@ jobs:
     - stage: "Build and test"
       name: "Build and test app services"
       script: true
-      # script: docker run -e CI=true riliadmin/testing npm run test
+      # script: docker run -e CI=true therrapp/testing npm run test
 # after_success:
 #   - _bin/travis/after-success.sh
 deploy:

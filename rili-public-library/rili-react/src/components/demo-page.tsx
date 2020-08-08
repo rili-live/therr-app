@@ -8,7 +8,7 @@ import '../styles/demo-page.scss';
 
 ReactDOM.render(
     <div>
-        <h1>Rili Public Library: React Components</h1>
+        <h1>Therr Public Library: React Components</h1>
         <h2>Demo Page</h2>
     </div>,
     document.getElementById('app'),

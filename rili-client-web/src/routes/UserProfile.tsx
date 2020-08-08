@@ -77,7 +77,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
             user,
             userConnections,
         } = this.props;
-        document.title = `Rili | ${this.translate('pages.userProfile.pageTitle')} | ${user.details.userName}`;
+        document.title = `Therr | ${this.translate('pages.userProfile.pageTitle')} | ${user.details.userName}`;
         if (!userConnections.connections.length) {
             this.props.searchUserConnections({
                 filterBy: 'acceptingUserId',
