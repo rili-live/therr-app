@@ -1,0 +1,9 @@
+@import 'variables';
+
+a {
+    color: $therr-link-blue-2;
+
+    &:visited {
+        color: $therr-link-1;
+    }
+}

@@ -13,8 +13,8 @@ fi
 source $HOME/google-cloud-sdk/path.bash.inc
 gcloud components update kubectl
 gcloud auth activate-service-account --key-file service-account.json
-gcloud config set project rili-main
+gcloud config set project therr-app
 gcloud config set compute/zone us-central1-c
-gcloud container clusters get-credentials rili-cluster
+gcloud container clusters get-credentials cluster-1
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
-# docker build -t riliadmin/testing -f ./client/Dockerfile.dev ./client
+# docker build -t therrapp/testing -f ./client/Dockerfile.dev ./client

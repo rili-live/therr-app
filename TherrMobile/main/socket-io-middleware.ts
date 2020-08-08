@@ -4,7 +4,7 @@ import {
     SOCKET_MIDDLEWARE_ACTION,
     SocketClientActionTypes,
     WEB_CLIENT_PREFIX,
-} from 'rili-js-utilities/constants';
+} from 'therr-js-utilities/constants';
 import getConfig from './utilities/getConfig';
 
 // Socket IO Connection

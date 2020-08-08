@@ -1,4 +1,4 @@
-import getCombinedReducers from 'rili-react/redux/reducers';
+import getCombinedReducers from 'therr-react/redux/reducers';
 
 // TODO: Use SocketIO
 const reducers = getCombinedReducers({});

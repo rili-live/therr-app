@@ -17,11 +17,11 @@ metadata:
 spec:
   tls:
   - hosts:
-      - rili.network
-      - www.rili.network
-    secretName: rili-network
+      - therr.app
+      - www.therr.app
+    secretName: therr-network
   rules:
-  - host: rili.network
+  - host: therr.app
     http:
       paths:
       - path: /api-messages/?(.*)
@@ -40,7 +40,7 @@ spec:
         backend:
           serviceName: client-cluster-ip-service
           servicePort: 7070
-  - host: www.rili.network
+  - host: www.therr.app
     http:
       paths:
       - path: /api-messages/?(.*)

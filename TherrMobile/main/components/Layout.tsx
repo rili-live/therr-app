@@ -1,5 +1,5 @@
 import React from 'react';
-import { UsersService } from 'rili-react/services';
+import { UsersService } from 'therr-react/services';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
