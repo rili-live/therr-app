@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { SafeAreaView, ScrollView, View, StatusBar } from 'react-native';
 import 'react-native-gesture-handler';
-import { IUserState } from 'rili-react/types';
+import { IUserState } from 'therr-react/types';
 import styles from '../styles';
 import LoginForm from '../components/LoginForm';
 import { bindActionCreators } from 'redux';

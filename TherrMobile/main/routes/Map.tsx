@@ -4,7 +4,7 @@ import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { IUserState } from 'rili-react/types';
+import { IUserState } from 'therr-react/types';
 import styles from '../styles';
 import UsersActions from '../redux/actions/UsersActions';
 

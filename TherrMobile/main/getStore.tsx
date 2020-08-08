@@ -31,10 +31,10 @@ function safelyParse(input: any) {
 const getStore = async () => {
     // Get stored user details from session storage if they are already logged in
     if (typeof Storage !== 'undefined' && typeof window !== 'undefined') {
-        const riliSession = await AsyncStorage.getItem('riliSession');
-        const storedSocketDetails = JSON.parse(riliSession);
-        const riliUser = await AsyncStorage.getItem('riliUser');
-        let storedUser = JSON.parse(riliUser);
+        const therrSession = await AsyncStorage.getItem('therrSession');
+        const storedSocketDetails = JSON.parse(therrSession);
+        const therrUser = await AsyncStorage.getItem('therrUser');
+        let storedUser = JSON.parse(therrUser);
         storedUser = storedUser || {};
         const reloadedState: any = {
             user: {

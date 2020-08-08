@@ -1,18 +1,18 @@
 module.exports = {
     preset: 'react-native',
     globals: {
-        window: {}, // This required since we import Rili React library that is compiled for web app (with window)
+        window: {}, // This required since we import Therr React library that is compiled for web app (with window)
     },
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
     moduleNameMapper: {
         '^.+\\.(png)$': '<rootDir>/__mocks__/fileMock.ts',
         '^.+\\.(css|scss|svg)$': 'identity-obj-proxy',
         'shared/(.*)': '<rootDir>../node_modules/$1',
-        'rili-styles/(.*)':
-            '<rootDir>../rili-public-library/rili-styles/lib/$1.css',
-        'rili-react/(.*)': '<rootDir>../rili-public-library/rili-react/lib/$1',
-        'rili-js-utilities/(.*)':
-            '<rootDir>../rili-public-library/rili-js-utilities/lib/$1',
+        'therr-styles/(.*)':
+            '<rootDir>../therr-public-library/therr-styles/lib/$1.css',
+        'therr-react/(.*)': '<rootDir>../therr-public-library/therr-react/lib/$1',
+        'therr-js-utilities/(.*)':
+            '<rootDir>../therr-public-library/therr-js-utilities/lib/$1',
     },
     moduleDirectories: ['<rootDir>/node_modules', '<rootDir>../node_modules'],
     setupFiles: ['./test-setup.ts'],

@@ -1,1 +1,1 @@
-# rili-app
+# therr-app
