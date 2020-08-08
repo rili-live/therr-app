@@ -1,0 +1,34 @@
+{
+  "name": "therr-public-library-react-components",
+  "version": "0.0.2",
+  "description": "Multi-purpose code used in the Therr codebase and open-sourced to the developer community",
+  "main": "index.js",
+  "scripts": {
+    "build": "../../node_modules/.bin/webpack --env production",
+    "build:dev": "../../node_modules/.bin/webpack --env production",
+    "build:watch": "../../node_modules/.bin/webpack --watch --env development",
+    "lint:fix": "../../node_modules/.bin/eslint --ext .js,.jsx,.ts,.tsx --fix ./",
+    "lint": "../../node_modules/.bin/eslint --quiet --ext .js,.jsx,.ts,.tsx ./",
+    "start": "npm run server:dev",
+    "server": "../../node_modules/.bin/webpack-dev-server --env development",
+    "server:dev": "../../node_modules/.bin/nodemon --watch webpack.config.js --exec \"npm run server\"",
+    "test": "../../node_modules/.bin/jest --no-cache",
+    "test:update": "../../node_modules/.bin/jest -u",
+    "test:watch": "../../node_modules/.bin/jest --watch",
+    "test:coverage": "../../node_modules/.bin/jest --coverage"
+  },
+  "keywords": [
+    "therr",
+    "public",
+    "library"
+  ],
+  "author": "Therr, Inc.",
+  "license": "MIT",
+  "types:": "lib/index.d.ts",
+  "files": [
+    "lib/"
+  ],
+  "peerDependencies": {},
+  "devDependencies": {},
+  "dependencies": {}
+}
