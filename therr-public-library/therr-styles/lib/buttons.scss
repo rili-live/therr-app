@@ -26,34 +26,34 @@ button {
     }
 
     &.anchor {
-        color: $rili-link-1;
+        color: $therr-link-1;
         text-decoration: none;
 
         &:hover:not([disabled]) {
-            color: $rili-link-hover;
+            color: $therr-link-hover;
             text-decoration: underline;
         }
 
         &:visited {
-            color: $rili-link-1;
+            color: $therr-link-1;
         }
     }
 
     &.secondary {
-        background: lighten($rili-off-white, 5%);
+        background: lighten($therr-off-white, 5%);
 
         &:hover:not([disabled]) {
-            background: $rili-white;
+            background: $therr-white;
         }
     }
 
     &.primary {
-        background: $rili-secondary-1;
+        background: $therr-secondary-1;
         border-color: transparent;
-        color: $rili-white;
+        color: $therr-white;
 
         &:hover:not([disabled]) {
-            background: $rili-primary-1;
+            background: $therr-primary-1;
             cursor: pointer;
         }
     }

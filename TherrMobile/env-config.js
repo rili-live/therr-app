@@ -1,8 +1,8 @@
 const apiMessagesPort = 7771;
 const apiUsersPort = 7770;
 const hostDev = '127.0.0.1';
-const hostStage = 'stage.rili.network';
-const hostProd = 'rili.network';
+const hostStage = 'stage.therr.app';
+const hostProd = 'therr.app';
 
 // TODO: Find a way to import this from global config
 module.exports = {

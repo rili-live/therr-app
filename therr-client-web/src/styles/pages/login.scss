@@ -1,0 +1,25 @@
+.login-container,
+.register-container {
+    border: none;
+    background-color: transparent;
+    border-radius: 1rem;
+    margin-top: 4%;
+    margin-bottom: 4%;
+    max-width: 100%;
+    min-width: 98%;
+    padding: 1.5rem;
+    padding-top: 1rem;
+    box-shadow: none;
+}
+
+@media only screen and (min-width: rem-calc(540px)) {
+    .login-container,
+    .register-container {
+        background-color: rgba($therr-primary-1, .25);
+        border: rem-calc(4px) solid $therr-primary-1;
+        padding: 1rem;
+        min-width: rem-calc(360px);
+        max-width: rem-calc(360px);
+        box-shadow: $box-shadow-1;
+    }
+}

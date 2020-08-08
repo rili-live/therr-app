@@ -1,5 +1,5 @@
 {
-  "name": "therr-app",
+  "name": "",
   "version": "0.0.1",
   "description": "The main Therr app root",
   "main": "index.js",
@@ -22,8 +22,8 @@
     "install:all:ci": "npm run prep && npm ci && _bin/apply-to-all.sh 'npm ci'",
     "k8s:apply": "kubectl apply -f k8s --validate=false",
     "k8s:dev": "skaffold dev",
-    "seeds:create": "node --require=./node_modules/dotenv/config ./node_modules/.bin/knex --require @babel/register --knexfile ./rili-servers/users-service/src/store/knexfile.js seed:make $1 dotenv_config_path=./.env",
-    "seeds:run": "node --require=./node_modules/dotenv/config ./node_modules/.bin/babel-node ./node_modules/.bin/knex --knexfile ./rili-servers/users-service/src/store/knexfile.js seed:run dotenv_config_path=./.env",
+    "seeds:create": "node --require=./node_modules/dotenv/config ./node_modules/.bin/knex --require @babel/register --knexfile ./therr-servers/users-service/src/store/knexfile.js seed:make $1 dotenv_config_path=./.env",
+    "seeds:run": "node --require=./node_modules/dotenv/config ./node_modules/.bin/babel-node ./node_modules/.bin/knex --knexfile ./therr-servers/users-service/src/store/knexfile.js seed:run dotenv_config_path=./.env",
     "update:all": "npm run prep && npm update && _bin/apply-to-all.sh 'npm update'",
     "update:dev:all": "npm run prep && npm update --dev && _bin/apply-to-all.sh 'npm update --dev'",
     "prep": "_bin/prep.sh",
@@ -34,7 +34,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rili-live/rili-app.git"
+    "url": "git+https://github.com/rili-live/therr-app.git"
   },
   "keywords": [
     "Therr",
@@ -43,9 +43,9 @@
   "author": "Therr, Inc.",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/rili-live/rili-app/issues"
+    "url": "https://github.com/rili-live/therr-app/issues"
   },
-  "homepage": "https://github.com/rili-live/rili-app#readme",
+  "homepage": "https://github.com/rili-live/therr-app#readme",
   "devDependencies": {
     "@babel/cli": "^7.5.0",
     "@babel/core": "^7.9.6",
