@@ -55,7 +55,7 @@ else
 fi
 
 # UI Apps
-declare -a arr=("rili-client-web" "RiliMobile")
+declare -a arr=("rili-client-web" "TherrMobile")
 for i in "${arr[@]}"; do
   if has_diff_changes $TARGET_BRANCH ${i} || "$HAS_ANY_LIBRARY_CHANGES" = true; then
     if [ -f package.json ]; then
