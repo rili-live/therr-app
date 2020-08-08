@@ -10,6 +10,6 @@ it('renders correctly', async () => {
     AsyncStorageMock.getItem = jest.fn((key, callback) => {
         // do something here to retrieve data
         callback(JSON.stringify({}));
-    })
+    });
     renderer.create(<App />);
 });
