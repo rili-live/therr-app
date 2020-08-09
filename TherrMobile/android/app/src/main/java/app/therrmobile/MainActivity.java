@@ -1,4 +1,4 @@
-package com.therr;
+package app.therrmobile;
 
 import com.facebook.react.ReactActivity;
 

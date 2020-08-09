@@ -21,7 +21,8 @@
       "labels": {
         "password": "Password",
         "userName": "Username"
-      }
+      },
+      "backendErrorMessage": "Connection error. Please try again later."
     },
     "messagingContainer": {
       "conversation": {
