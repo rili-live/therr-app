@@ -85,29 +85,6 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
         return (
             <div className="register-container">
                 <h1 className="text-center">{this.props.title}</h1>
-                <label className="required" htmlFor="first_name">{this.translate('components.registerForm.labels.firstName')}:</label>
-                <Input
-                    type="text"
-                    id="first_name"
-                    name="firstName"
-                    value={this.state.inputs.firstName}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    validations={['isRequired']}
-                />
-
-                <label className="required" htmlFor="last_name">{this.translate('components.registerForm.labels.lastName')}:</label>
-                <Input
-                    type="text"
-                    id="last_name"
-                    name="lastName"
-                    value={this.state.inputs.lastName}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    validations={['isRequired']}
-                />
 
                 <label className="required" htmlFor="user_name">{this.translate('components.registerForm.labels.userName')}:</label>
                 <Input
