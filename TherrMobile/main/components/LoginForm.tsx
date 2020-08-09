@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { View } from 'react-native';
-import { Button, Input } from 'react-native-elements';
+import { Button, Input, Text } from 'react-native-elements';
 import translator from '../services/translator';
 import { loginForm as styles } from '../styles/forms';
 
@@ -60,9 +60,14 @@ export class LoginFormComponent extends React.Component<
                     rememberMe,
                 })
                 .catch((error: any) => {
-                    if (error.statusCode === 401 || error.statusCode === 404) {
+                    if (error.statusCode === 400 || error.statusCode === 401 || error.statusCode === 404) {
                         this.setState({
-                            prevLoginError: error.message,
+                            prevLoginError: `${error.message}${error.parameters ? '(' + error.parameters.toString() + ')' : ''}`,
+                        });
+                    } else if (error.statusCode === 500) {
+                        this.setState({
+                            prevLoginError: this.translate('components.loginForm.backendErrorMessage'),
+                            isSubmitting: false,
                         });
                     }
                 })
@@ -93,7 +98,7 @@ export class LoginFormComponent extends React.Component<
     };
 
     public render(): JSX.Element | null {
-        // const { prevLoginError } = this.state;
+        const { prevLoginError } = this.state;
         // const { alert, title } = this.props;
 
         return (
@@ -123,7 +128,7 @@ export class LoginFormComponent extends React.Component<
                     }
                     secureTextEntry={true}
                 />
-                <View>
+                <View style={{ marginBottom: 20 }}>
                     <Button
                         title={this.translate(
                             'components.loginForm.buttons.login'
@@ -132,6 +137,10 @@ export class LoginFormComponent extends React.Component<
                         disabled={this.isLoginFormDisabled()}
                     />
                 </View>
+                <Text style={{
+                    textAlign: 'center',
+                    color: '#AA0042',
+                }}>{prevLoginError}</Text>
             </View>
         );
     }
