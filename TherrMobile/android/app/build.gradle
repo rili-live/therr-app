@@ -129,7 +129,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.therr"
+        applicationId "app.therrmobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

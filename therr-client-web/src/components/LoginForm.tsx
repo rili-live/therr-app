@@ -62,6 +62,11 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                                 prevLoginError: error.message,
                                 isSubmitting: false,
                             });
+                        } else if (error.statusCode === 500) {
+                            this.setState({
+                                prevLoginError: this.translate('components.loginForm.backendErrorMessage'),
+                                isSubmitting: false,
+                            });
                         }
                     });
                 }

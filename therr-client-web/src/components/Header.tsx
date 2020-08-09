@@ -88,7 +88,7 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
                         onClick={() => goHome()}
                         buttonType="primary"
                     />
-                    rili
+                    therr
                 </div>
                 <AccessControl isAuthorized={isAuthorized} publicOnly>
                     <div className="login-link"><Link to="/login">{this.translate('components.header.buttons.login')}</Link></div>
