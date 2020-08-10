@@ -21,7 +21,7 @@ spec:
       - www.therr.app
       - api.therr.app
       - www.api.therr.app
-    secretName: therr-network
+    secretName: therr-network-secret
   rules:
   - host: therr.app
     http:
