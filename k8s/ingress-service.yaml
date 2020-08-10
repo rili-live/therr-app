@@ -21,39 +21,15 @@ spec:
       - www.therr.app
       - api.therr.app
       - www.api.therr.app
+      - messages-service.therr.app
+      - www.messages-service.therr.app
+      - users-service.therr.app
       - www.users-service.therr.app
     secretName: therr-network
   rules:
   - host: therr.app
     http:
       paths:
-      - path: /api-messages/?(.*)
-        backend:
-          serviceName: messages-service-cluster-ip-service
-          servicePort: 7772
-      - path: /api-users/?(.*)
-        backend:
-          serviceName: users-service-cluster-ip-service
-          servicePort: 7771
-      - path: /ws/?(.*)
-        backend:
-          serviceName: websocket-service-cluster-ip-service
-          servicePort: 7743
-      - path: /?(.*)
-        backend:
-          serviceName: client-cluster-ip-service
-          servicePort: 7070
-  - host: www.therr.app
-    http:
-      paths:
-      - path: /api-messages/?(.*)
-        backend:
-          serviceName: messages-service-cluster-ip-service
-          servicePort: 7772
-      - path: /api-users/?(.*)
-        backend:
-          serviceName: users-service-cluster-ip-service
-          servicePort: 7771
       - path: /ws/?(.*)
         backend:
           serviceName: websocket-service-cluster-ip-service
@@ -69,6 +45,31 @@ spec:
         backend:
           serviceName: api-gateway-service-cluster-ip-service
           servicePort: 7770
+  - host: messages-service.therr.app
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          serviceName: messages-service-cluster-ip-service
+          servicePort: 7772
+  - host: users-service.therr.app
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          serviceName: users-service-cluster-ip-service
+          servicePort: 7771
+  - host: www.therr.app
+    http:
+      paths:
+      - path: /ws/?(.*)
+        backend:
+          serviceName: websocket-service-cluster-ip-service
+          servicePort: 7743
+      - path: /?(.*)
+        backend:
+          serviceName: client-cluster-ip-service
+          servicePort: 7070
   - host: www.api.therr.app
     http:
       paths:
@@ -76,10 +77,17 @@ spec:
         backend:
           serviceName: api-gateway-service-cluster-ip-service
           servicePort: 7770
+  - host: www.messages-service.therr.app
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          serviceName: messages-service-cluster-ip-service
+          servicePort: 7772
   - host: www.users-service.therr.app
     http:
       paths:
       - path: /?(.*)
         backend:
           serviceName: users-service-cluster-ip-service
-          servicePort: 7770
+          servicePort: 7771
