@@ -15,4 +15,7 @@ spec:
     - http01:
         ingress:
           class: nginx
-      selector: {}
+      selector:
+        dnsNames:
+        - 'therr.app'
+        - '*.therr.app'

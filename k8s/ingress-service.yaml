@@ -27,11 +27,11 @@ spec:
       - path: /api-messages/?(.*)
         backend:
           serviceName: messages-service-cluster-ip-service
-          servicePort: 7771
+          servicePort: 7772
       - path: /api-users/?(.*)
         backend:
           serviceName: users-service-cluster-ip-service
-          servicePort: 7770
+          servicePort: 7771
       - path: /ws/?(.*)
         backend:
           serviceName: websocket-service-cluster-ip-service
@@ -46,11 +46,11 @@ spec:
       - path: /api-messages/?(.*)
         backend:
           serviceName: messages-service-cluster-ip-service
-          servicePort: 7771
+          servicePort: 7772
       - path: /api-users/?(.*)
         backend:
           serviceName: users-service-cluster-ip-service
-          servicePort: 7770
+          servicePort: 7771
       - path: /ws/?(.*)
         backend:
           serviceName: websocket-service-cluster-ip-service
@@ -59,3 +59,17 @@ spec:
         backend:
           serviceName: client-cluster-ip-service
           servicePort: 7070
+  - host: api.therr.app
+    http:
+      paths:
+      - path: /api-gateway/?(.*)
+        backend:
+          serviceName: api-gateway-service-cluster-ip-service
+          servicePort: 7770
+  - host: www.api.therr.app
+    http:
+      paths:
+      - path: /api-gateway/?(.*)
+        backend:
+          serviceName: api-gateway-service-cluster-ip-service
+          servicePort: 7770

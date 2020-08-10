@@ -20,10 +20,10 @@ spec:
             memory: "256Mi"
             cpu: "100m"
         ports:
-        - containerPort: 7771
+        - containerPort: 7772
         env:
         - name: MESSAGES_SERVICE_API_PORT
-          value: "7771"
+          value: "7772"
         - name: URI_WHITELIST
           value: "https://therr.app,https://www.therr.app"
         - name: HONEYCOMB_API_KEY
