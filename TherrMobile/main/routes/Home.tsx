@@ -79,6 +79,11 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         return connection.users.find((u) => u.id !== user.details.id) || {};
     };
 
+    getConnectionSubtitle = (connection) => {
+        const connectionDetails = this.getConnectionDetails(connection);
+        return `${connectionDetails.firstName || ''} ${connectionDetails.lastName || ''}`;
+    }
+
     goToMap = () => {
         const { navigation } = this.props;
 
@@ -138,19 +143,19 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                 </Text>
                                 {
                                     userConnections.connections
-                                    ? userConnections.connections.map((connection, i) => (
-                                        <ListItem
-                                            key={connection.id}
-                                            leftAvatar={{ source: { uri: `https://robohash.org/${connection.acceptingUserId === user.details.id
-                                                            ? connection.requestingUserId
-                                                : connection.acceptingUserId}?size=100x100` } }}
-                                            onPress={() => this.onConnectionPress(connection)}
-                                            title={this.getConnectionDetails(connection).userName}
-                                            subtitle={`${this.getConnectionDetails(connection).firstName || ''} ${this.getConnectionDetails(connection).lastName || ''}`}
-                                            bottomDivider
-                                        />
-                                    ))
-                                    : <Text>{this.translate('pages.userProfile.requestRecommendation')}</Text>
+                                        ? userConnections.connections.map((connection) => (
+                                            <ListItem
+                                                key={connection.id}
+                                                leftAvatar={{ source: { uri: `https://robohash.org/${connection.acceptingUserId === user.details.id
+                                                    ? connection.requestingUserId
+                                                    : connection.acceptingUserId}?size=100x100` } }}
+                                                onPress={() => this.onConnectionPress(connection)}
+                                                title={this.getConnectionDetails(connection).userName}
+                                                subtitle={this.getConnectionSubtitle(connection)}
+                                                bottomDivider
+                                            />
+                                        ))
+                                        : <Text>{this.translate('pages.userProfile.requestRecommendation')}</Text>
                                 }
                             </View>
                         </View>
