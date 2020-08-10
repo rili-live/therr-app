@@ -24,8 +24,13 @@ fi
 
 [[ "$CURRENT_BRANCH" = "stage" ]] && SUFFIX="-stage" || SUFFIX=""
 
+HAS_GLOBAL_CONFIG_FILE_CHANGES=false
 HAS_ANY_LIBRARY_CHANGES=false
 HAS_UTILITIES_LIBRARY_CHANGES=false
+
+if has_prev_diff_changes "global-config.js"; then
+  HAS_GLOBAL_CONFIG_FILE_CHANGES=true
+fi
 
 if has_prev_diff_changes "therr-public-library/therr-styles" || \
   has_prev_diff_changes "therr-public-library/therr-js-utilities" || \
@@ -40,14 +45,14 @@ fi
 # This is reliant on the previous commit being a single merge commit with all prior changes
 should_deploy_web_app()
 {
-  has_prev_diff_changes "therr-client-web" || "$HAS_ANY_LIBRARY_CHANGES" = true
+  has_prev_diff_changes "therr-client-web" || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
 }
 
 # This is reliant on the previous commit being a single merge commit with all prior changes
 should_deploy_service()
 {
   SERVICE_DIR=$1
-  has_prev_diff_changes $SERVICE_DIR || "$HAS_UTILITIES_LIBRARY_CHANGES" = true
+  has_prev_diff_changes $SERVICE_DIR || "$HAS_UTILITIES_LIBRARY_CHANGES" = true ||  || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
 }
 
 # Docker Build
