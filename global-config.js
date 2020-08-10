@@ -28,7 +28,7 @@ module.exports = {
         googleAnalyticsKey: '',
         host: hostStage,
         socket: {
-            clientPath: '/ws/socketio',
+            clientPath: '/socketio',
             pingInterval: 1000 * 10,
             pingTimeout: 1000 * 5,
             userSocketSessionExpire: 1000 * 60 * 30,
@@ -42,7 +42,7 @@ module.exports = {
         googleAnalyticsKey: '',
         host: hostProd,
         socket: {
-            clientPath: '/ws/socketio',
+            clientPath: '/socketio',
             pingInterval: 1000 * 10,
             pingTimeout: 1000 * 5,
             userSocketSessionExpire: 1000 * 60 * 30,

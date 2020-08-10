@@ -30,10 +30,6 @@ spec:
   - host: therr.app
     http:
       paths:
-      - path: /ws/?(.*)
-        backend:
-          serviceName: websocket-service-cluster-ip-service
-          servicePort: 7743
       - path: /?(.*)
         backend:
           serviceName: client-cluster-ip-service
@@ -59,13 +55,16 @@ spec:
         backend:
           serviceName: users-service-cluster-ip-service
           servicePort: 7771
-  - host: www.therr.app
+  - host: websocket-service.therr.app
     http:
       paths:
-      - path: /ws/?(.*)
+      - path: /?(.*)
         backend:
           serviceName: websocket-service-cluster-ip-service
           servicePort: 7743
+  - host: www.therr.app
+    http:
+      paths:
       - path: /?(.*)
         backend:
           serviceName: client-cluster-ip-service
@@ -91,3 +90,10 @@ spec:
         backend:
           serviceName: users-service-cluster-ip-service
           servicePort: 7771
+  - host: www.websocket-service.therr.app
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          serviceName: websocket-service-cluster-ip-service
+          servicePort: 7743
