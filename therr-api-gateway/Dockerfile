@@ -10,7 +10,7 @@ ENV BUILD_MODE $BUILD_MODE
 RUN npm i npm@latest -g
 
 # Create app directory
-RUN mkdir /usr/src/app && mkdir /usr/src/app/therr-services && mkdir /usr/src/app/therr-services/messages-service && chown -R node:node /usr/src/app
+RUN mkdir /usr/src/app && mkdir /usr/src/app/therr-api-gateway && chown -R node:node /usr/src/app
 WORKDIR /usr/src/app
 
 # the official node image provides an unprivileged user as a security best practice
@@ -44,11 +44,11 @@ RUN npm run build
 
 # Copy main app files
 WORKDIR /usr/src/app
-COPY ./therr-services/messages-service ./therr-services/messages-service
+COPY ./therr-api-gateway ./therr-api-gateway
 USER root
-RUN chown -R node:node /usr/src/app/therr-services/messages-service
+RUN chown -R node:node /usr/src/app/therr-api-gateway
 USER node
-WORKDIR /usr/src/app/therr-services/messages-service
+WORKDIR /usr/src/app/therr-api-gateway
 
 RUN if [ "$BUILD_MODE" = "development" ]; then \
       echo "Building in $BUILD_MODE mode" \
@@ -72,10 +72,10 @@ ENV BUILD_MODE $BUILD_MODE
 ENV NODE_ENV $BUILD_MODE
 RUN echo "Running app in $NODE_ENV"
 
-EXPOSE 7772
+EXPOSE 7770
 
 RUN mkdir /usr/src/app
 WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app .
-WORKDIR /usr/src/app/therr-services/messages-service
+WORKDIR /usr/src/app/therr-api-gateway
 CMD ["npx", "node", "./build/server.js", "--withAllLogs"]

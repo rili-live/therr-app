@@ -1,29 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: websocket-service-deployment
+  name: api-gateway-service-deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      component: server-websocket
+      component: server-api-gateway
   template:
     metadata:
       labels:
-        component: server-websocket
+        component: server-api-gateway
     spec:
       containers:
-      - name: server-websocket
-        image: therrapp/websocket-service:latest
+      - name: server-api-gateway
+        image: therrapp/api-gateway:latest
         resources:
           limits:
-            memory: "256Mi"
-            cpu: "100m"
+            memory: "128Mi"
+            cpu: "75m"
         ports:
-        - containerPort: 7743
+        - containerPort: 7770
         env:
-        - name: MESSAGES_SERVICE_API_PORT
-          value: "7772"
+        - name: API_GATEWAY_PORT
+          value: "7770"
+        - name: URI_WHITELIST
+          value: "https://therr.app,https://www.therr.app"
         - name: HONEYCOMB_API_KEY
           valueFrom:
             secretKeyRef:
@@ -33,12 +35,6 @@ spec:
           value: "info"
         - name: LOGGING_DATASET
           value: "production"
-        - name: REDIS_NODE_ONE_HOST
-          value: "redis-cluster-ip-service"
-        - name: REDIS_NODE_ONE_PORT
-          value: "6379"
-        - name: SOCKET_PORT
-          value: "7743"
         - name: JWT_SECRET
           valueFrom:
             secretKeyRef:
