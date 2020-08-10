@@ -16,6 +16,5 @@ spec:
         ingress:
           class: nginx
       selector:
-        dnsNames:
+        dnsZones:
         - 'therr.app'
-        - '*.therr.app'
