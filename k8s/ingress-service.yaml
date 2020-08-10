@@ -21,6 +21,7 @@ spec:
       - www.therr.app
       - api.therr.app
       - www.api.therr.app
+      - www.users-service.therr.app
     secretName: therr-network
   rules:
   - host: therr.app
@@ -64,14 +65,21 @@ spec:
   - host: api.therr.app
     http:
       paths:
-      - path: /api-gateway/?(.*)
+      - path: /?(.*)
         backend:
           serviceName: api-gateway-service-cluster-ip-service
           servicePort: 7770
   - host: www.api.therr.app
     http:
       paths:
-      - path: /api-gateway/?(.*)
+      - path: /?(.*)
         backend:
           serviceName: api-gateway-service-cluster-ip-service
+          servicePort: 7770
+  - host: www.users-service.therr.app
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          serviceName: users-service-cluster-ip-service
           servicePort: 7770
