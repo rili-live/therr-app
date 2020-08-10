@@ -60,13 +60,23 @@ export class LoginFormComponent extends React.Component<
                     rememberMe,
                 })
                 .catch((error: any) => {
-                    if (error.statusCode === 400 || error.statusCode === 401 || error.statusCode === 404) {
+                    if (
+                        error.statusCode === 400 ||
+                        error.statusCode === 401 ||
+                        error.statusCode === 404
+                    ) {
                         this.setState({
-                            prevLoginError: `${error.message}${error.parameters ? '(' + error.parameters.toString() + ')' : ''}`,
+                            prevLoginError: `${error.message}${
+                                error.parameters
+                                    ? '(' + error.parameters.toString() + ')'
+                                    : ''
+                            }`,
                         });
                     } else if (error.statusCode === 500) {
                         this.setState({
-                            prevLoginError: this.translate('components.loginForm.backendErrorMessage'),
+                            prevLoginError: this.translate(
+                                'components.loginForm.backendErrorMessage'
+                            ),
                             isSubmitting: false,
                         });
                     }
@@ -137,10 +147,14 @@ export class LoginFormComponent extends React.Component<
                         disabled={this.isLoginFormDisabled()}
                     />
                 </View>
-                <Text style={{
-                    textAlign: 'center',
-                    color: '#AA0042',
-                }}>{prevLoginError}</Text>
+                <Text
+                    style={{
+                        textAlign: 'center',
+                        color: '#AA0042',
+                    }}
+                >
+                    {prevLoginError}
+                </Text>
             </View>
         );
     }

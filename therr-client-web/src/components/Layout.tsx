@@ -223,6 +223,8 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
     initMessaging = (e, connectionDetails) => {
         const { isMessagingOpen, isMsgContainerOpen } = this.state;
 
+        // TODO: RSERV-36 - Search pre-existing messages
+
         const newState: any = {
             isNavMenuOpen: false,
             messagingContext: connectionDetails,

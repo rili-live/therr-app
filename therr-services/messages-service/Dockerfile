@@ -10,7 +10,7 @@ ENV BUILD_MODE $BUILD_MODE
 RUN npm i npm@latest -g
 
 # Create app directory
-RUN mkdir /usr/src/app && mkdir /usr/src/app/therr-servers && mkdir /usr/src/app/therr-servers/websocket-service && chown -R node:node /usr/src/app
+RUN mkdir /usr/src/app && mkdir /usr/src/app/therr-services && mkdir /usr/src/app/therr-services/messages-service && chown -R node:node /usr/src/app
 WORKDIR /usr/src/app
 
 # the official node image provides an unprivileged user as a security best practice
@@ -22,11 +22,11 @@ USER node
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 # Note: This is the root mono-repo directory
-COPY package*.json ./
-COPY .babelrc ./
-COPY global-config.js ./
-COPY webpack.parts.js ./
-COPY therr-public-library ./therr-public-library
+COPY ./package*.json ./
+COPY ./.babelrc ./
+COPY ./global-config.js ./
+COPY ./webpack.parts.js ./
+COPY ./therr-public-library ./therr-public-library
 
 # Set libary directory permissions
 USER root
@@ -44,11 +44,11 @@ RUN npm run build
 
 # Copy main app files
 WORKDIR /usr/src/app
-COPY ./therr-servers/websocket-service ./therr-servers/websocket-service
+COPY ./therr-services/messages-service ./therr-services/messages-service
 USER root
-RUN chown -R node:node /usr/src/app/therr-servers/websocket-service
+RUN chown -R node:node /usr/src/app/therr-services/messages-service
 USER node
-WORKDIR /usr/src/app/therr-servers/websocket-service
+WORKDIR /usr/src/app/therr-services/messages-service
 
 RUN if [ "$BUILD_MODE" = "development" ]; then \
       echo "Building in $BUILD_MODE mode" \
@@ -72,10 +72,10 @@ ENV BUILD_MODE $BUILD_MODE
 ENV NODE_ENV $BUILD_MODE
 RUN echo "Running app in $NODE_ENV"
 
-EXPOSE 7743
+EXPOSE 7771
 
 RUN mkdir /usr/src/app
 WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app .
-WORKDIR /usr/src/app/therr-servers/websocket-service
-CMD ["node", "./build/server.js", "--withAllLogs"]
+WORKDIR /usr/src/app/therr-services/messages-service
+CMD ["npx", "node", "./build/server.js", "--withAllLogs"]
