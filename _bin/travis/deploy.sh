@@ -55,6 +55,10 @@ if should_deploy_web_app; then
   docker build -t therrapp/client-web$SUFFIX:latest -t therrapp/client-web$SUFFIX:$GIT_SHA -f ./therr-client-web/Dockerfile \
     --build-arg NODE_VERSION=${NODE_VERSION} .
 fi
+if should_deploy_service "therr-api-gateway"; then
+  docker build -t therrapp/api-gateway$SUFFIX:latest -t therrapp/api-gateway$SUFFIX:$GIT_SHA -f ./therr-api-gateway/Dockerfile \
+    --build-arg NODE_VERSION=${NODE_VERSION} .
+fi
 if should_deploy_service "therr-services/messages-service"; then
   docker build -t therrapp/messages-service$SUFFIX:latest -t therrapp/messages-service$SUFFIX:$GIT_SHA -f ./therr-services/messages-service/Dockerfile \
     --build-arg NODE_VERSION=${NODE_VERSION} .
@@ -72,6 +76,10 @@ fi
 if should_deploy_web_app; then
   docker push therrapp/client-web$SUFFIX:latest
   docker push therrapp/client-web$SUFFIX:$GIT_SHA
+fi
+if should_deploy_service "therr-api-gateway"; then
+  docker push therrapp/api-gateway$SUFFIX:latest
+  docker push therrapp/api-gateway$SUFFIX:$GIT_SHA
 fi
 if should_deploy_service "therr-services/messages-service"; then
   docker push therrapp/messages-service$SUFFIX:latest

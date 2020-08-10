@@ -1,11 +1,13 @@
-const apiMessagesPort = 7771;
-const apiUsersPort = 7770;
+const apiGatewayPort = 7770;
+const apiMessagesPort = 7772;
+const apiUsersPort = 7771;
 const hostDev = '127.0.0.1';
 const hostStage = 'stage.therr.app';
 const hostProd = 'therr.app';
 
 module.exports = {
     development: {
+        baseApiGatewayPort: `http://${hostDev}:${apiGatewayPort}/v1`,
         baseMessagesServiceRoute: `http://${hostDev}:${apiMessagesPort}/v1`,
         baseUsersServiceRoute: `http://${hostDev}:${apiUsersPort}/v1`,
         baseSocketUrl: `http://${hostDev}:7743`,
@@ -19,6 +21,7 @@ module.exports = {
         },
     },
     stage: {
+        baseApiGatewayPort: `https://${hostStage}/api-gateway/v1`,
         baseMessagesServiceRoute: `https://${hostStage}/api-messages/v1`,
         baseUsersServiceRoute: `https://${hostStage}/api-users/v1`,
         baseSocketUrl: `https://${hostStage}`,
@@ -32,6 +35,7 @@ module.exports = {
         },
     },
     production: {
+        baseApiGatewayPort: `https://${hostProd}/api-gateway/v1`,
         baseMessagesServiceRoute: `https://${hostProd}/api-messages/v1`,
         baseUsersServiceRoute: `https://${hostProd}/api-users/v1`,
         baseSocketUrl: `https://${hostProd}`,
