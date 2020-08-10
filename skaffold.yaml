@@ -22,19 +22,19 @@ build:
     - image: therrapp/users-service
       context: .
       docker:
-        dockerfile: ./therr-servers/users-service/Dockerfile
+        dockerfile: ./therr-services/users-service/Dockerfile
       sync:
         infer:
-          - './therr-servers/users-service/**/*.js'
+          - './therr-services/users-service/**/*.js'
           - './therr-public-library/therr-js-utilities/**/lib/*.js'
           - './therr-public-library/therr-js-utilities/**/lib/*.json'
     - image: therrapp/websocket-service
       context: .
       docker:
-        dockerfile: ./therr-servers/websocket-service/Dockerfile
+        dockerfile: ./therr-services/websocket-service/Dockerfile
       sync:
         infer:
-          - './therr-servers/websocket-service/**/*.js'
+          - './therr-services/websocket-service/**/*.js'
           - './therr-public-library/therr-js-utilities/**/lib/*.js'
           - './therr-public-library/therr-js-utilities/**/lib/*.json'
 deploy:
