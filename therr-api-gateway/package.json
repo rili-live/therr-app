@@ -1,0 +1,25 @@
+{
+  "name": "therr-api-gateway",
+  "version": "1.0.0",
+  "description": "Service for users and authentication",
+  "main": "build/index.js",
+  "scripts": {
+    "build": "../node_modules/.bin/webpack --env production",
+    "build:dev": "../node_modules/.bin/webpack --env development",
+    "build:watch": "../node_modules/.bin/webpack --watch --env development",
+    "lint:fix": "../node_modules/.bin/eslint --quiet --ext .js,.jsx,.ts,.tsx --fix ./",
+    "lint": "../node_modules/.bin/eslint --quiet --ext .js,.jsx,.ts,.tsx ./",
+    "start": "../node_modules/.bin/nodemon --require=../node_modules/dotenv/config build/server.js dotenv_config_path=../.env --withSQLLogs",
+    "test": "echo \"Error: no test specified\" && exit 0"
+  },
+  "keywords": [
+    "therr",
+    "server"
+  ],
+  "author": "Therr, Inc.",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "webpack-cli": "^3.3.10"
+  }
+}
