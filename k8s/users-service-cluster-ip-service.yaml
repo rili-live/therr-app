@@ -7,5 +7,5 @@ spec:
   selector:
     component: server-users
   ports:
-  - port: 7770
-    targetPort: 7770
+  - port: 7771
+    targetPort: 7771

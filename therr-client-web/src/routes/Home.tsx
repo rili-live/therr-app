@@ -1,4 +1,5 @@
 import * as React from 'react';
+import axios from 'axios';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -63,12 +64,17 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
     private translate: Function;
 
-    login = (credentials: any) => this.props.login(credentials)
+    login = (credentials: any) => this.props.login(credentials);
+
+    temp = () => {
+        axios.get('https://api.therr.app/api-gateway/v1/');
+    }
 
     public render(): JSX.Element | null {
         return (
             <div id="page_home" className="flex-box">
                 <LoginForm login={this.login} title={this.translate('pages.home.pageTitle')} />
+                <button onClick={this.temp}>TEST</button>
             </div>
         );
     }

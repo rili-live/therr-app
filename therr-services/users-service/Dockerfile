@@ -72,7 +72,7 @@ ENV BUILD_MODE $BUILD_MODE
 ENV NODE_ENV $BUILD_MODE
 RUN echo "Running app in $NODE_ENV"
 
-EXPOSE 7770
+EXPOSE 7771
 
 RUN mkdir /usr/src/app
 WORKDIR /usr/src/app
