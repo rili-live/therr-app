@@ -7,7 +7,7 @@ spec:
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
-  commonName: therr.app
+  commonName: '*.therr.app'
   dnsNames:
     - 'therr.app'
     - '*.therr.app'
