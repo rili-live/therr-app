@@ -3,7 +3,7 @@ kind: Certificate
 metadata:
   name: therr-network-tls
 spec:
-  secretName: therr-network-secret
+  secretName: therr-network
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
