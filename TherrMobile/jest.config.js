@@ -10,7 +10,8 @@ module.exports = {
         'shared/(.*)': '<rootDir>../node_modules/$1',
         'therr-styles/(.*)':
             '<rootDir>../therr-public-library/therr-styles/lib/$1.css',
-        'therr-react/(.*)': '<rootDir>../therr-public-library/therr-react/lib/$1',
+        'therr-react/(.*)':
+            '<rootDir>../therr-public-library/therr-react/lib/$1',
         'therr-js-utilities/(.*)':
             '<rootDir>../therr-public-library/therr-js-utilities/lib/$1',
     },
