@@ -7,5 +7,5 @@ spec:
   selector:
     component: server-messages
   ports:
-  - port: 7771
-    targetPort: 7771
+  - port: 7772
+    targetPort: 7772

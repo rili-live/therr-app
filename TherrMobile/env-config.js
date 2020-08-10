@@ -1,5 +1,5 @@
-const apiMessagesPort = 7771;
-const apiUsersPort = 7770;
+const apiMessagesPort = 7772;
+const apiUsersPort = 7771;
 const hostDev = '127.0.0.1';
 const hostStage = 'stage.therr.app';
 const hostProd = 'therr.app';

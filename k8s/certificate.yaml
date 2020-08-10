@@ -9,5 +9,5 @@ spec:
     kind: ClusterIssuer
   commonName: therr.app
   dnsNames:
-    - therr.app
-    - www.therr.app
+    - 'therr.app'
+    - '*.therr.app'
