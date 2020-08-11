@@ -25,6 +25,8 @@ spec:
       - www.messages-service.therr.app
       - users-service.therr.app
       - www.users-service.therr.app
+      - websocket-service.therr.app
+      - www.websocket-service.therr.app
     secretName: therr-network
   rules:
   - host: therr.app
