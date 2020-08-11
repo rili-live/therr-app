@@ -103,6 +103,7 @@ const startExpressSocketIOServer = () => {
                 socketId: socket.id,
             },
         });
+
         printLogs({
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
@@ -118,7 +119,6 @@ const startExpressSocketIOServer = () => {
             type: SocketServerActionTypes.SEND_ROOMS_LIST,
             data: getSocketRoomsList(io.sockets.adapter.rooms),
         });
-
 
         // Event sent from socket.io, redux store middleware
         socket.on(SOCKET_MIDDLEWARE_ACTION, async (action: any) => {

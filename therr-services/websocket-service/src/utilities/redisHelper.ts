@@ -1,4 +1,3 @@
-
 import * as Redis from 'ioredis';
 import printLogs from 'therr-js-utilities/print-logs';
 import beeline from '../beeline';
@@ -38,7 +37,6 @@ export class RedisHelper {
         }
 
         pipeline.setex(`userSockets:${userSocketConfig.socketId}`, ttl, userId);
-
 
         pipeline.setex(
             `users:${userId}`,
