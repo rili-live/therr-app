@@ -52,7 +52,7 @@ should_deploy_web_app()
 should_deploy_service()
 {
   SERVICE_DIR=$1
-  has_prev_diff_changes $SERVICE_DIR || "$HAS_UTILITIES_LIBRARY_CHANGES" = true ||  || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
+  has_prev_diff_changes $SERVICE_DIR || "$HAS_UTILITIES_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
 }
 
 # Docker Build
