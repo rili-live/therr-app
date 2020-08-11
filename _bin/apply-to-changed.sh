@@ -7,10 +7,18 @@ source ./_bin/lib/has_diff_changes.sh
 
 COMMAND=$1
 TARGET_BRANCH=${2:-"stage"}
+HAS_GLOBAL_CONFIG_FILES_CHANGES=false
 HAS_ANY_LIBRARY_CHANGES=false
 HAS_STYLES_LIBRARY_CHANGES=false
 HAS_UTILITIES_LIBRARY_CHANGES=false
 HAS_REACT_LIBRARY_CHANGES=false
+
+# Global config file
+if has_diff_changes $TARGET_BRANCH "global-config.js"; then
+  HAS_GLOBAL_CONFIG_FILES_CHANGES=true
+else
+  printMessageNeutral "No changes found in global-config.js file"
+fi
 
 # Library directories: styles
 if has_diff_changes $TARGET_BRANCH "therr-public-library/therr-styles"; then
@@ -57,7 +65,7 @@ fi
 # UI Apps
 declare -a arr=("therr-client-web" "TherrMobile")
 for i in "${arr[@]}"; do
-  if has_diff_changes $TARGET_BRANCH ${i} || "$HAS_ANY_LIBRARY_CHANGES" = true; then
+  if has_diff_changes $TARGET_BRANCH ${i} || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILES_CHANGES" = true; then
     if [ -f package.json ]; then
       pushd ${i}
       printMessageNeutral "Running command '${COMMAND}': ${i}"
@@ -70,9 +78,9 @@ for i in "${arr[@]}"; do
 done
 
 # Services
-declare -a arr=("therr-services/messages-service" "therr-services/users-service" "therr-services/websocket-service")
+declare -a arr=("therr-api-gateway" "therr-services/messages-service" "therr-services/users-service" "therr-services/websocket-service")
 for i in "${arr[@]}"; do
-  if has_diff_changes $TARGET_BRANCH ${i} || "$HAS_UTILITIES_LIBRARY_CHANGES" = true; then
+  if has_diff_changes $TARGET_BRANCH ${i} || "$HAS_UTILITIES_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILES_CHANGES" = true; then
     if [ -f package.json ]; then
       pushd ${i}
       printMessageNeutral "Running command '${COMMAND}': ${i}"

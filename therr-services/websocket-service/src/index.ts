@@ -80,7 +80,7 @@ const startExpressSocketIOServer = () => {
     });
     // NOTE: engine.io config options https://github.com/socketio/engine.io#methods-1
     const io = socketio(server, {
-        path: '/socketio',
+        path: globalConfig[process.env.NODE_ENV].socket.clientPath,
         // how many ms before sending a new ping packet
         pingInterval: Number(globalConfig[process.env.NODE_ENV || 'development'].socket.pingInterval),
         // how many ms without a pong packet to consider the connection closed
@@ -103,6 +103,7 @@ const startExpressSocketIOServer = () => {
                 socketId: socket.id,
             },
         });
+
         printLogs({
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
@@ -118,7 +119,6 @@ const startExpressSocketIOServer = () => {
             type: SocketServerActionTypes.SEND_ROOMS_LIST,
             data: getSocketRoomsList(io.sockets.adapter.rooms),
         });
-
 
         // Event sent from socket.io, redux store middleware
         socket.on(SOCKET_MIDDLEWARE_ACTION, async (action: any) => {

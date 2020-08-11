@@ -23,7 +23,7 @@ spec:
         - containerPort: 7743
         env:
         - name: MESSAGES_SERVICE_API_PORT
-          value: "7771"
+          value: "7772"
         - name: HONEYCOMB_API_KEY
           valueFrom:
             secretKeyRef:

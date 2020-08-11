@@ -1,5 +1,5 @@
 ARG NODE_VERSION=12.16.3
-FROM node:$NODE_VERSION as builder
+FROM node:$NODE_VERSION
 
 # Build in development allow devDependencies/dependencies to be installed correctly
 ENV NODE_ENV development
@@ -65,11 +65,6 @@ RUN if [ "$BUILD_MODE" = "development" ]; then \
 # check every 30s to ensure this service returns HTTP 200
 # HEALTHCHECK --interval=30s CMD node healthcheck.js
 
-################################
-## Final image to run the app ##
-################################
-FROM node:$NODE_VERSION
-
 # Run app with an environment equal to the mode that it was built
 ARG BUILD_MODE=production
 ENV BUILD_MODE $BUILD_MODE
@@ -78,8 +73,4 @@ RUN echo "Running app in $NODE_ENV"
 
 EXPOSE 7070
 
-RUN mkdir /usr/src/app
-WORKDIR /usr/src/app
-COPY --from=builder /usr/src/app .
-WORKDIR /usr/src/app/therr-client-web
 CMD ["node", "./build/server-client.js"]

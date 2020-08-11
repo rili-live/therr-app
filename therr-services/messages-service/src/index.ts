@@ -35,7 +35,7 @@ app.use(bodyParser.json());
 if (process.env.NODE_ENV !== 'production') {
     app.use(cors());
 } else {
-    // app.use(cors(corsOptions)); // We cannot use cors because mobile apps have not concept of this
+    // app.use(cors(corsOptions)); // We cannot use cors because mobile apps have no concept of this
     app.use(cors());
 }
 
