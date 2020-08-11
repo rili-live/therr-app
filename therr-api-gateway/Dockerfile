@@ -69,4 +69,4 @@ RUN echo "Running app in $NODE_ENV"
 
 EXPOSE 7770
 
-CMD ["npx", "node", "./build/server.js", "--withAllLogs"]
+CMD ["npx", "node", "./build/server.js"]
