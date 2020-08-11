@@ -237,7 +237,6 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             newState.isMsgContainerOpen = true;
         }
 
-
         this.setState(newState);
     }
 
