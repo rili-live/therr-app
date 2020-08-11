@@ -15,4 +15,6 @@ spec:
     - http01:
         ingress:
           class: nginx
-      selector: {}
+      selector:
+        dnsZones:
+        - 'therr.app'

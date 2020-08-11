@@ -1,7 +1,8 @@
 import * as jwt from 'jsonwebtoken';
+import unless from 'express-unless';
 import handleHttpError from '../utilities/handleHttpError';
 
-export default (req, res, next) => {
+const authenticate = (req, res, next) => {
     try {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET || '');
@@ -34,3 +35,7 @@ export default (req, res, next) => {
         return handleHttpError({ err, res, message: 'SQL:AUTH_ROUTES:ERROR' });
     }
 };
+
+authenticate.unless = unless;
+
+export default authenticate;

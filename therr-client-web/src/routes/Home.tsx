@@ -1,4 +1,5 @@
 import * as React from 'react';
+import axios from 'axios';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -63,7 +64,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
     private translate: Function;
 
-    login = (credentials: any) => this.props.login(credentials)
+    login = (credentials: any) => this.props.login(credentials);
 
     public render(): JSX.Element | null {
         return (

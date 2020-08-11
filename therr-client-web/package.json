@@ -1,6 +1,6 @@
 {
   "name": "therr-client-web",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "The web client side code for Therr",
   "main": "index.js",
   "scripts": {
@@ -32,7 +32,7 @@
     "defaults"
   ],
   "devDependencies": {
-    "webpack-cli": "^3.3.11"
+    "webpack-cli": "^3.3.12"
   },
   "dependencies": {}
 }
