@@ -7,7 +7,7 @@ class NotificationsService {
         const queryString = getSearchQueryString(query);
         return axios({
             method: 'get',
-            url: `/users/notifications${queryString}`,
+            url: `/users-service/users/notifications${queryString}`,
         });
     }
 }

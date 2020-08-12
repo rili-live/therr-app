@@ -14,7 +14,6 @@ export default (req, res, next) => {
         'middleware.origin': req.origin,
         'middleware.params': req.params,
         'middleware.path': req.path,
-        'middleware.body': req.body,
         'middleware.headers': serializedHeaders,
         'middleware.query': req.query,
         'middleware.route': req.route,

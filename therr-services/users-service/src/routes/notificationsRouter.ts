@@ -1,8 +1,5 @@
 import * as express from 'express';
 import {
-    updateNotificationValidation,
-} from '../validation/notifications';
-import {
     validate,
 } from '../validation';
 import {
@@ -11,18 +8,17 @@ import {
     searchNotifications,
     updateNotification,
 } from '../handlers/notifications';
-import authenticate from '../middleware/authenticate';
 
 const router = express.Router();
 
 // CREATE
-router.post('/', authenticate, createNotification);
+router.post('/', createNotification);
 
 // READ
-router.get('/:notificationId', authenticate, getNotification);
-router.get('/', authenticate, searchNotifications);
+router.get('/:notificationId', getNotification);
+router.get('/', searchNotifications);
 
 // UPDATE
-router.put('/:notificationId', authenticate, updateNotificationValidation, validate, updateNotification);
+router.put('/:notificationId', validate, updateNotification);
 
 export default router;
