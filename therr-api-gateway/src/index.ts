@@ -45,7 +45,9 @@ app.use(express.static(path.join(__dirname, 'static')));
 // Authentication
 app.use(authenticate.unless({
     path: [
-        { url: '/', methods: ['GET'] },
+        { url: '/v1/users-service/auth', methods: ['POST'] }, // login
+        { url: '/v1/users-service/auth/logout', methods: ['POST'] },
+        { url: '/v1/users-service/users', methods: ['POST'] }, // register
     ],
 }));
 
