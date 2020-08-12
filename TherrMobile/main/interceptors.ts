@@ -10,12 +10,11 @@ const _timeout = 350; // eslint-disable-line no-underscore-dangle
 
 const initInterceptors = (
     store,
-    baseUrl = getConfig().baseUsersServiceRoute,
+    baseUrl = getConfig().baseApiGatewayRoute,
     timeout = _timeout
 ) => {
     // Global axios config
     axios.defaults.baseURL = baseUrl;
-    console.log(baseUrl);
 
     // Global axios interceptor
     axios.interceptors.request.use((config) => {

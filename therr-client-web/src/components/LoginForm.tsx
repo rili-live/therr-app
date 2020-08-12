@@ -60,14 +60,15 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                         if (error.statusCode === 401 || error.statusCode === 404) {
                             this.setState({
                                 prevLoginError: error.message,
-                                isSubmitting: false,
                             });
-                        } else if (error.statusCode === 500) {
+                        } else {
                             this.setState({
                                 prevLoginError: this.translate('components.loginForm.backendErrorMessage'),
-                                isSubmitting: false,
                             });
                         }
+                        this.setState({
+                            isSubmitting: false,
+                        });
                     });
                 }
                 break;

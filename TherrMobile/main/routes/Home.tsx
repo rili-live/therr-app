@@ -104,7 +104,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
 
     onConnectionPress = (connection) => {
         const details = this.getConnectionDetails(connection);
-        console.log(`Hello, ${details.userName}`);
+        console.log(details);
     };
 
     render() {
