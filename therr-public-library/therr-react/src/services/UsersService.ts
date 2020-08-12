@@ -24,17 +24,15 @@ interface IRegisterCredentials {
 }
 
 class UsersService {
-    authenticate = (data: ILoginCredentials) => {
-        return axios({
-            method: 'post',
-            url: '/auth',
-            data,
-        });
-    }
+    authenticate = (data: ILoginCredentials) => axios({
+        method: 'post',
+        url: '/users-service/auth',
+        data,
+    })
 
     create = (data: IRegisterCredentials) => axios({
         method: 'post',
-        url: '/users',
+        url: '/users-service/users',
         data,
     })
 
@@ -59,7 +57,7 @@ class UsersService {
 
     logout = (data: ILogoutCredentials) => axios({
         method: 'post',
-        url: '/auth/logout',
+        url: '/users-service/auth/logout',
         data,
     })
 }

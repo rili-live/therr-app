@@ -11,13 +11,13 @@ interface ICreateConnectionBody {
 class UserConnectionsService {
     create = (data: ICreateConnectionBody) => axios({
         method: 'post',
-        url: '/users/connections',
+        url: '/users-service/users/connections',
         data,
     })
 
     update = (requestingUserId: string | number, data: ICreateConnectionBody) => axios({
         method: 'put',
-        url: `/users/connections/${requestingUserId}`,
+        url: `/users-service/users/connections/${requestingUserId}`,
         data,
     })
 
@@ -28,7 +28,7 @@ class UserConnectionsService {
         }
         return axios({
             method: 'get',
-            url: `/users/connections${queryString}`,
+            url: `/users-service/users/connections${queryString}`,
         });
     }
 }

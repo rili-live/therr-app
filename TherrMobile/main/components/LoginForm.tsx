@@ -77,11 +77,8 @@ export class LoginFormComponent extends React.Component<
                             prevLoginError: this.translate(
                                 'components.loginForm.backendErrorMessage'
                             ),
-                            isSubmitting: false,
                         });
                     }
-                })
-                .finally(() => {
                     this.setState({
                         isSubmitting: false,
                     });

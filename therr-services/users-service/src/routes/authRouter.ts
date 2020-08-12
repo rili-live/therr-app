@@ -1,13 +1,5 @@
 import * as express from 'express';
 import {
-    authenticateUserTokenValidation,
-    authenticateUserValidation,
-    logoutUserValidation,
-} from '../validation/auth';
-import {
-    validate,
-} from '../validation';
-import {
     login,
     logout,
     verifyToken,
@@ -16,12 +8,12 @@ import {
 const router = express.Router();
 
 // Authenticate user
-router.post('/', authenticateUserValidation, validate, login);
+router.post('/', login);
 
 // Logout user
-router.post('/logout', logoutUserValidation, validate, logout);
+router.post('/logout', logout);
 
 // Verify user token (after login)
-router.post('/user-token/validate', authenticateUserTokenValidation, validate, verifyToken);
+router.post('/user-token/validate', verifyToken);
 
 export default router;

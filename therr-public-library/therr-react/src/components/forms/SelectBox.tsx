@@ -60,7 +60,6 @@ class SelectBox extends React.Component<any, any> {
         value: '',
     };
 
-
     constructor(props: any) {
         super(props);
 
