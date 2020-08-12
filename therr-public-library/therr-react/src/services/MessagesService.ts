@@ -9,7 +9,7 @@ import axios from 'axios';
 class MessagesService {
     searchMessages = (searchParams: any) => axios({
         method: 'post',
-        url: '/direct-messages',
+        url: '/messages-service/direct-messages',
         data: searchParams,
     })
 }

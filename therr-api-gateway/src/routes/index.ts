@@ -1,8 +1,11 @@
 import * as express from 'express';
+import messagesServiceRouter from '../services/messages/router';
+import usersServiceRouter from '../services/users/router';
 
 const router = express.Router();
 
 // READ
-router.get('/', (req, res) => res.status(201).send({ hello: 'api gateway' }));
+router.use('/messages-service', messagesServiceRouter);
+router.use('/users-service', usersServiceRouter);
 
 export default router;

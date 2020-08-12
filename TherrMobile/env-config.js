@@ -8,7 +8,7 @@ const hostProd = 'therr.app';
 // TODO: Find a way to import this from global config
 module.exports = {
     development: {
-        baseApiGatewayPort: `http://${hostDev}:${apiGatewayPort}/v1`,
+        baseApiGatewayRoute: `http://${hostDev}:${apiGatewayPort}/v1`,
         baseMessagesServiceRoute: `http://${hostDev}:${apiMessagesPort}/v1`,
         baseUsersServiceRoute: `http://${hostDev}:${apiUsersPort}/v1`,
         baseSocketUrl: `http://${hostDev}:7743`,
@@ -22,7 +22,7 @@ module.exports = {
         },
     },
     stage: {
-        baseApiGatewayPort: `https://api.${hostStage}/v1`,
+        baseApiGatewayRoute: `https://api.${hostStage}/v1`,
         baseMessagesServiceRoute: `https://messages-service.${hostStage}/v1`,
         baseUsersServiceRoute: `https://users-service.${hostStage}/v1`,
         baseSocketUrl: `https://${hostStage}`,
@@ -36,7 +36,7 @@ module.exports = {
         },
     },
     production: {
-        baseApiGatewayPort: `https://api.${hostProd}/v1`,
+        baseApiGatewayRoute: `https://api.${hostProd}/v1`,
         baseMessagesServiceRoute: `https://messages-service.${hostProd}/v1`,
         baseUsersServiceRoute: `https://users-service.${hostProd}/v1`,
         baseSocketUrl: `https://${hostProd}`,
