@@ -1,5 +1,4 @@
 import * as React from 'react';
-import axios from 'axios';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
