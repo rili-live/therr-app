@@ -1,17 +1,16 @@
 import axios from 'axios';
-// import {
-//     IAccess,
-//     AccessCheckType,
-//     IUserState,
-// } from '../types';
+import { getSearchQueryString } from 'therr-js-utilities/http';
+import { ISearchQuery } from '../types';
 
-// TODO: RSERV-36 - Configure types
 class MessagesService {
-    searchMessages = (searchParams: any) => axios({
-        method: 'post',
-        url: '/messages-service/direct-messages',
-        data: searchParams,
-    })
+    search = (query: ISearchQuery) => {
+        const queryString = getSearchQueryString(query);
+
+        return axios({
+            method: 'get',
+            url: `/messages-service/direct-messages${queryString}`,
+        });
+    }
 }
 
 export default new MessagesService();

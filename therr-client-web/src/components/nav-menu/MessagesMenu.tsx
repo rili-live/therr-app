@@ -7,7 +7,7 @@ import {
 } from 'therr-react/components';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import {
-    ISocketState,
+    IMessagesState,
     IUserState,
     IUserConnectionsState,
 } from 'therr-react/types';
@@ -20,7 +20,7 @@ interface IMessagesMenuDispatchProps {
 
 interface IStoreProps extends IMessagesMenuDispatchProps {
     history: any;
-    socket: ISocketState;
+    messages: IMessagesState;
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
@@ -37,7 +37,7 @@ interface IMessagesMenuState {
 }
 
 const mapStateToProps = (state: any) => ({
-    socket: state.socket,
+    messages: state.messages,
     user: state.user,
     userConnections: state.userConnections,
 });
@@ -129,7 +129,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
     }
 
     renderForumsContent = () => {
-        const { socket } = this.props;
+        const { messages } = this.props;
 
         return (
             <>
@@ -145,10 +145,10 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                         {this.translate('components.messagesMenu.buttons.createForum')}
                     </ButtonPrimary>
                     {
-                        socket && socket.forums.length > 0
+                        messages && messages.forums.length > 0
                         && <div className="realtime-forums-list">
                             {
-                                socket.forums.map((forum) => (
+                                messages.forums.map((forum) => (
                                     <ButtonPrimary
                                         id="nav_menu_forum_link"
                                         key={forum.roomKey}
@@ -182,7 +182,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
 
     render() {
         const { activeTab } = this.state;
-        const { socket, toggleNavMenu } = this.props;
+        const { toggleNavMenu } = this.props;
 
         return (
             <>
