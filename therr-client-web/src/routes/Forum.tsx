@@ -9,8 +9,8 @@ import {
 } from 'therr-react/components';
 import scrollTo from 'therr-js-utilities/scroll-to';
 import {
-    IMessage,
-    ISocketState,
+    IForumMsg,
+    IMessagesState,
     IUserState,
 } from 'therr-react/types';
 import translator from '../services/translator';
@@ -27,7 +27,7 @@ interface IForumDispatchProps {
 }
 
 interface IStoreProps extends IForumDispatchProps {
-    socket: ISocketState;
+    messages: IMessagesState;
     user: IUserState;
 }
 
@@ -44,7 +44,7 @@ interface IForumState {
 // const envVars = globalConfig[process.env.NODE_ENV];
 
 const mapStateToProps = (state: IForumState | any) => ({
-    socket: state.socket,
+    messages: state.messages,
     user: state.user,
 });
 
@@ -95,8 +95,8 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
 
     componentDidUpdate(prevProps: IForumProps) {
         const currentRoom = this.props.user.socketDetails.currentRoom;
-        const messages = this.props.socket.messages[currentRoom];
-        if (messages && messages.length > 3 && messages.length > prevProps.socket.messages[currentRoom].length) {
+        const messages = this.props.messages.forumMsgs[currentRoom];
+        if (messages && messages.length > 3 && messages.length > prevProps.messages.forumMsgs[currentRoom].length) {
             scrollTo(document.body.scrollHeight, 100);
         }
     }
@@ -151,8 +151,8 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
     }
 
     render() {
-        const { socket, user } = this.props;
-        const messages = socket.messages[user.socketDetails.currentRoom];
+        const { messages, user } = this.props;
+        const forumMessages = messages.forumMsgs[user.socketDetails.currentRoom];
 
         return (
             <div id="page_chat_forum">
@@ -181,13 +181,13 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
 
                 <h1 id="forumTitle">{this.translate('pages.chatForum.pageTitle')}: {user.socketDetails.currentRoom}</h1>
                 {
-                    socket && socket.forums
+                    messages && messages.forums
                     && <span id="forums_list">
                         {
-                            messages && messages.length > 0
+                            forumMessages && forumMessages.length > 0
                                 ? <span className="message-list">
                                     {
-                                        messages.map((message: IMessage) => <li key={message.key}>({message.time}) {message.text}</li>)
+                                        forumMessages.map((message: IForumMsg) => <li key={message.key}>({message.time}) {message.text}</li>)
                                     }
                                 </span>
                                 : <span>{this.translate('pages.chatForum.welcome')}</span>

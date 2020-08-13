@@ -6,11 +6,12 @@ import {
 import {
     IForum,
     IForumsArray,
-    IMessage,
-    IMessageList,
-    IMessages,
-    ISocketState,
-} from './socket';
+    IForumMsg,
+    IForumMsgList,
+    IForumMsgs,
+    IMessagesState,
+    MessageActionTypes,
+} from './messages';
 import {
     IUser,
     ISocketDetails,
@@ -44,18 +45,19 @@ export interface ISearchQuery {
 }
 
 export {
+    // Messages
+    IForum,
+    IForumsArray,
+    IForumMsg,
+    IForumMsgList,
+    IForumMsgs,
+    IMessagesState,
+    MessageActionTypes,
+
     // Notifications
     INotification,
     INotificationsState,
     NotificationActionTypes,
-
-    // Socket
-    IForum,
-    IForumsArray,
-    IMessage,
-    IMessageList,
-    IMessages,
-    ISocketState,
 
     // User
     IUser,
