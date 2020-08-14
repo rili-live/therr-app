@@ -9,6 +9,8 @@ const handleServiceRequest = ({
     const config: any = {
         headers: {
             'x-requestid': uuidv4(),
+            'x-localecode': req.headers['x-localecode'] || '',
+            'x-userid': req.headers['x-userid'] || '',
         },
         method,
         url: `${basePath}${req.url}`,

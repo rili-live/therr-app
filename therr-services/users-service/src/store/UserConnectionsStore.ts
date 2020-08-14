@@ -112,7 +112,7 @@ class Store {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
         let queryString: any = knex
-            .select([
+            .select(returning || [
                 `${USER_CONNECTIONS_TABLE_NAME}.id`,
                 `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId`,
                 `${USER_CONNECTIONS_TABLE_NAME}.acceptingUserId`,
@@ -121,7 +121,7 @@ class Store {
                 `${USER_CONNECTIONS_TABLE_NAME}.isConnectionBroken`,
                 `${USER_CONNECTIONS_TABLE_NAME}.createdAt`,
                 `${USER_CONNECTIONS_TABLE_NAME}.updatedAt`,
-            ] || returning)
+            ])
             .from(USER_CONNECTIONS_TABLE_NAME)
             .innerJoin(USERS_TABLE_NAME, function () {
                 this.on(function () {
