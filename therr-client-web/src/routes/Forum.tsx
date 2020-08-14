@@ -23,7 +23,7 @@ interface IForumRouterProps {
 interface IForumDispatchProps {
     joinForum: Function;
     leaveForum: Function;
-    sendMessage: Function;
+    sendForumMessage: Function;
 }
 
 interface IStoreProps extends IForumDispatchProps {
@@ -51,7 +51,7 @@ const mapStateToProps = (state: IForumState | any) => ({
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     joinForum: SocketActions.joinForum,
     leaveForum: SocketActions.leaveForum,
-    sendMessage: SocketActions.sendMessage,
+    sendForumMessage: SocketActions.sendForumMessage,
 }, dispatch);
 
 // TODO: Leaving a forume should emit an event to the server and leave the current forum
@@ -131,7 +131,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
         switch (event.target.id) {
             case 'enter_message':
             case 'message':
-                this.props.sendMessage({
+                this.props.sendForumMessage({
                     roomId: this.props.user.socketDetails.currentRoom,
                     message: this.state.inputs.message,
                     userName: this.props.user.details.userName,
@@ -143,7 +143,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
 
     shouldDisableInput = (buttonName: string) => {
         switch (buttonName) {
-            case 'sendMessage':
+            case 'sendForumMessage':
                 return !this.state.inputs.message;
             default:
                 return false;
@@ -174,7 +174,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                             id="enter_message"
                             text="Send"
                             onClick={this.onButtonClick}
-                            disabled={this.shouldDisableInput('sendMessage')}
+                            disabled={this.shouldDisableInput('sendForumMessage')}
                         />
                     </div>
                 </div>

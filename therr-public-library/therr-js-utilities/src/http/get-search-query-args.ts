@@ -9,7 +9,7 @@ export interface IReqQuery {
   order?: string;
 }
 
-export default (reqQuery: IReqQuery, integerColumns: string[]) => {
+export default (reqQuery: IReqQuery, integerColumns: string[]): [any, string[] | undefined] => {
     let returningArr;
     const {
         filterBy,

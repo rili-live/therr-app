@@ -4,7 +4,11 @@ import { ISearchQuery } from '../types';
 
 class MessagesService {
     search = (query: ISearchQuery) => {
-        const queryString = getSearchQueryString(query);
+        let queryString = getSearchQueryString(query);
+
+        if (query.shouldCheckReverse) {
+            queryString = `${queryString}&shouldCheckReverse=true`;
+        }
 
         return axios({
             method: 'get',
