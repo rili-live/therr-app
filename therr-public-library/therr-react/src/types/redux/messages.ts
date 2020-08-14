@@ -23,5 +23,5 @@ export interface IMessagesState extends Immutable.ImmutableObject<any> {
 }
 
 export enum MessageActionTypes {
-GET_MESSAGES = 'GET_MESSAGES',
+GET_DIRECT_MESSAGES = 'GET_DIRECT_MESSAGES',
 }

@@ -8,14 +8,14 @@ import {
 import { TransitionGroup as Animation } from 'react-transition-group';
 import { Location } from 'history';
 // import * as ReactGA from 'react-ga';
-import { IUserState, AccessCheckType } from 'therr-react/types';
+import { IMessagesState, IUserState, AccessCheckType } from 'therr-react/types';
 import {
     AccessControl,
     AuthRoute,
     RedirectWithStatus,
     SvgButton,
 } from 'therr-react/components';
-import { NotificationActions, SocketActions } from 'therr-react/redux/actions';
+import { NotificationActions, SocketActions, MessageActions } from 'therr-react/redux/actions';
 import { UsersService } from 'therr-react/services';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
@@ -42,10 +42,12 @@ interface ILayoutDispatchProps {
     // Add your dispatcher properties here
     logout: Function;
     refreshConnection: Function;
+    searchDms: Function;
     searchNotifications: Function;
 }
 
 interface IStoreProps extends ILayoutDispatchProps {
+    messages?: IMessagesState;
     user?: IUserState;
 }
 
@@ -64,12 +66,14 @@ interface ILayoutState {
 }
 
 const mapStateToProps = (state: any) => ({
+    messages: state.messages,
     redirectRoute: state.redirectRoute,
     user: state.user,
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
     logout: UsersActions.logout,
+    searchDms: MessageActions.search,
     refreshConnection: SocketActions.refreshConnection,
     searchNotifications: NotificationActions.search,
 }, dispatch);
@@ -221,9 +225,21 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
     };
 
     initMessaging = (e, connectionDetails) => {
+        const { searchDms, messages } = this.props;
         const { isMessagingOpen, isMsgContainerOpen } = this.state;
 
         // TODO: RSERV-36 - Search pre-existing messages
+        if (!messages.dms[connectionDetails.id]) {
+            searchDms({
+                filterBy: 'fromUserId',
+                query: connectionDetails.id,
+                itemsPerPage: 50,
+                pageNumber: 1,
+                orderBy: 'interactionCount',
+                order: 'desc',
+                shouldCheckReverse: true,
+            }, connectionDetails);
+        }
 
         const newState: any = {
             isNavMenuOpen: false,

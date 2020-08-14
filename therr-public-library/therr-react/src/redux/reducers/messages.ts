@@ -1,6 +1,6 @@
 import Immutable from 'seamless-immutable';
 import { SocketServerActionTypes } from 'therr-js-utilities/constants';
-import { IForumMsgList, IMessagesState } from '../../types/redux/messages';
+import { IForumMsgList, IMessagesState, MessageActionTypes } from '../../types/redux/messages';
 
 const initialState: IMessagesState = Immutable.from({
     forums: Immutable.from([]),
@@ -34,6 +34,8 @@ const messages = (state: IMessagesState = initialState, action: any) => {
         case SocketServerActionTypes.OTHER_JOINED_ROOM:
         case SocketServerActionTypes.SEND_MESSAGE:
             return state.setIn(['forumMsgs', action.data.roomId], updatedMessageList);
+        case MessageActionTypes.GET_DIRECT_MESSAGES:
+            return state.setIn(['dms', action.data.contextUserId], action.data.messages || []);
         case SocketServerActionTypes.SEND_DIRECT_MESSAGE:
             const directMessages = (state.dms[action.data.contextUserId] // eslint-disable-line no-case-declarations
                 && state.dms[action.data.contextUserId].asMutable()) || [];
