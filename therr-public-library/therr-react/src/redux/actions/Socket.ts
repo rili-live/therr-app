@@ -19,7 +19,7 @@ const Socket = {
             data,
         });
     },
-    sendMessage: (data) => (dispatch) => {
+    sendForumMessage: (data) => (dispatch) => {
         dispatch({
             type: SocketClientActionTypes.SEND_MESSAGE,
             data,
