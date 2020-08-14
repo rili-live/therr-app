@@ -32,6 +32,7 @@ const login = ({
     socket,
     data,
 }: ILoginArgs) => {
+    // TODO: RFRONT-25 - localize dates
     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
 
     if (socket.handshake && socket.handshake.headers && socket.handshake.headers.host) {
@@ -107,6 +108,7 @@ const logout = ({
     socket,
     data,
 }: ILogoutArgs) => {
+    // TODO: RFRONT-25 - localize dates
     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
     const promises: any[] = [];
 

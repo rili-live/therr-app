@@ -1,4 +1,3 @@
-
 interface IValidation {
     regex?: RegExp;
     errorMessageLocalizationKey: string;
