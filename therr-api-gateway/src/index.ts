@@ -88,6 +88,7 @@ interface WebpackHotModule {
 
 declare const module: WebpackHotModule;
 
+// Only in development
 if (process.env.NODE_ENV === 'development' && module.hot) {
     module.hot.accept();
     module.hot.dispose(() => server.close());
