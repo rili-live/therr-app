@@ -250,6 +250,15 @@ Promise.all(redisConnectPromises).then((responses: any[]) => {
 
     // Wait for both pub and sub redis instances to connect before starting Express/Socket.io server
     startExpressSocketIOServer();
+}).catch((e) => {
+    console.error(e);
+    printLogs({
+        level: 'verbose',
+        messageOrigin: 'REDIS_LOG',
+        messages: [e.message],
+        tracer: beeline,
+        traceArgs: {},
+    });
 });
 
 // Hot Module Reloading
