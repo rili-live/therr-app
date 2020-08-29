@@ -22,7 +22,8 @@ const initInterceptors = (
         const storedUser = store.getState().user;
         const token =
             storedUser && storedUser.details && storedUser.details.idToken;
-        const userId = storedUser && storedUser.details && storedUser.details.id;
+        const userId =
+            storedUser && storedUser.details && storedUser.details.id;
 
         if (token) {
             modifiedConfig.headers.authorization = `Bearer ${token}`;
