@@ -30,7 +30,7 @@ function safelyParse(input: any) {
 
 const getStore = async () => {
     // Get stored user details from session storage if they are already logged in
-    if (typeof Storage !== 'undefined' && typeof window !== 'undefined') {
+    if (typeof window !== 'undefined') {
         const therrSession = await AsyncStorage.getItem('therrSession');
         const storedSocketDetails = JSON.parse(therrSession);
         const therrUser = await AsyncStorage.getItem('therrUser');
