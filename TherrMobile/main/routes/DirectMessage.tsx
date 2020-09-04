@@ -1,9 +1,11 @@
 import React from 'react';
 import { SafeAreaView, FlatList, View, Text, StatusBar } from 'react-native';
+import { Button, Input } from 'react-native-elements';
 import 'react-native-gesture-handler';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { MessageActions } from 'therr-react/redux/actions';
+import { MessageActions, SocketActions } from 'therr-react/redux/actions';
 import { IUserState, IMessagesState } from 'therr-react/types';
 import styles from '../styles';
 import messageStyles from '../styles/messages';
@@ -11,6 +13,7 @@ import translator from '../services/translator';
 
 interface IDirectMessageDispatchProps {
     searchDms: Function;
+    sendDirectMessage: Function;
 }
 
 interface IStoreProps extends IDirectMessageDispatchProps {
@@ -24,7 +27,9 @@ export interface IDirectMessageProps extends IStoreProps {
     route: any;
 }
 
-interface IDirectMessageState {}
+interface IDirectMessageState {
+    msgInputVal: string;
+}
 
 const mapStateToProps = (state: any) => ({
     messages: state.messages,
@@ -32,12 +37,10 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) =>
-    bindActionCreators(
-        {
-            searchDms: MessageActions.search,
-        },
-        dispatch
-    );
+    bindActionCreators({
+        searchDms: MessageActions.search,
+        sendDirectMessage: SocketActions.sendDirectMessage,
+    }, dispatch);
 
 class DirectMessage extends React.Component<
     IDirectMessageProps,
@@ -48,7 +51,9 @@ class DirectMessage extends React.Component<
     constructor(props) {
         super(props);
 
-        this.state = {};
+        this.state = {
+            msgInputVal: '',
+        };
 
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
@@ -74,11 +79,34 @@ class DirectMessage extends React.Component<
         }
     }
 
+    handleInputChange = (val) => {
+        this.setState({
+            msgInputVal: val,
+        });
+    }
+
+    handleSend = () => {
+        const { msgInputVal } = this.state;
+        const { route, sendDirectMessage, user } = this.props;
+        const { connectionDetails } = route.params;
+
+        sendDirectMessage({
+            message: msgInputVal,
+            userId: user.details.id,
+            userName: user.details.userName,
+            to: connectionDetails,
+        });
+
+        this.setState({
+            msgInputVal: '',
+        });
+    }
+
     render() {
+        const { msgInputVal } = this.state;
         const { messages, route } = this.props;
         const { connectionDetails } = route.params;
         const dms = messages.dms[connectionDetails.id];
-        console.log('DMS', dms);
 
         return (
             <>
@@ -102,6 +130,31 @@ class DirectMessage extends React.Component<
                             >{`(${item.time}) ${item.text}`}</Text>
                         )}
                     />
+                    <View style={messageStyles.sendInputsContainer}>
+                        <Input
+                            value={msgInputVal}
+                            onChangeText={this.handleInputChange}
+                            placeholder={this.translate('pages.directMessage.inputPlaceholder')}
+                            inputStyle={{
+                                color: 'white',
+                            }}
+                            containerStyle={messageStyles.inputContainer}
+                        />
+                        <Button
+                            icon={
+                                <Icon
+                                    name="send"
+                                    size={25}
+                                    color="white"
+                                />
+                            }
+                            type='clear'
+                            buttonStyle={messageStyles.sendBtn}
+                            containerStyle={messageStyles.sendBtnContainer}
+                            onPress={this.handleSend}
+                            disabled={!msgInputVal}
+                        />
+                    </View>
                 </SafeAreaView>
             </>
         );
