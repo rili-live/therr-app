@@ -228,7 +228,6 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         const { searchDms, messages } = this.props;
         const { isMessagingOpen, isMsgContainerOpen } = this.state;
 
-        // TODO: RSERV-36 - Search pre-existing messages
         if (!messages.dms[connectionDetails.id]) {
             searchDms({
                 filterBy: 'fromUserId',

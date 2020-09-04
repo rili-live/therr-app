@@ -58,24 +58,34 @@ class UsersActions {
         });
     };
 
-    logout = (userDetails?: any) => (dispatch: any) => UsersService.logout(userDetails).then(() => {
-        // NOTE: Native Storage methods return a promise, but in this case we don't need to await
-        (this.NativeStorage || sessionStorage).removeItem('therrSession');
-        (this.NativeStorage || sessionStorage).removeItem('therrUser');
-        if (!this.NativeStorage) {
-            localStorage.removeItem('therrSession');
-            localStorage.removeItem('therrUser');
-        }
-        dispatch({
-            type: SocketClientActionTypes.LOGOUT,
-            data: {
-                id: userDetails && userDetails.id,
-                idToken: userDetails && userDetails.idToken,
-                userName: userDetails && userDetails.userName,
-            },
+    logout = (userDetails?: any) => (dispatch: any) => (this.NativeStorage || sessionStorage).getItem('therrUser')
+        .then(async () => {
+            // NOTE: Native Storage methods return a promise, but in this case we don't need to await
+            userDetails = userDetails // eslint-disable-line no-param-reassign
+                || JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || null);
+            console.log('HERE', userDetails);
+            return ((userDetails ? UsersService.logout(userDetails) : Promise.resolve()) as Promise<any>)
+                .then(() => userDetails);
+        })
+        .then((user) => {
+            (this.NativeStorage || sessionStorage).removeItem('therrSession');
+            (this.NativeStorage || sessionStorage).removeItem('therrUser');
+            if (!this.NativeStorage) {
+                localStorage.removeItem('therrSession');
+                localStorage.removeItem('therrUser');
+            }
+            if (user) {
+                dispatch({
+                    type: SocketClientActionTypes.LOGOUT,
+                    data: {
+                        id: user && user.id,
+                        idToken: user && user.idToken,
+                        userName: user && user.userName,
+                    },
+                });
+            }
+            // NOTE: Socket will disconnect in reducer after event response from server (SESSION_CLOSED)
         });
-        // NOTE: Socket will disconnect in reducer after event response from server (SESSION_CLOSED)
-    });
 
     register = (data: any) => (dispatch: any) => UsersService.create(data).then((response) => {
         const {
