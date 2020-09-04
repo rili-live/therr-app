@@ -95,6 +95,7 @@ const startExpressSocketIOServer = () => {
     io.adapter(redisAdapter);
 
     io.on('connection', (socket: socketio.Socket) => {
+        console.log('CONNECT');
         printLogs({
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',

@@ -4,6 +4,7 @@ import { RouteConfig, StackNavigationState } from '@react-navigation/native';
 import { StackNavigationOptions } from '@react-navigation/stack';
 import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/src/types';
 import Home from './Home';
+import DirectMessage from './DirectMessage';
 import Login from './Login';
 import { IAccess, AccessCheckType } from '../types';
 import Map from './Map';
@@ -33,6 +34,18 @@ const routes: RouteConfig<
         component: Home,
         options: ({}) => ({
             title: 'Home',
+            headerLeft: () => <View />,
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [],
+            },
+        }),
+    },
+    {
+        name: 'DirectMessage',
+        component: DirectMessage,
+        options: ({}) => ({
+            title: 'DirectMessage',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [],

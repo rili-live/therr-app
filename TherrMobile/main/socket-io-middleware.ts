@@ -7,14 +7,17 @@ import {
 } from 'therr-js-utilities/constants';
 import getConfig from './utilities/getConfig';
 
+
 // Socket IO Connection
+// NOTE: For local dev development, must use machine IP rather than localhost
+// When device is plugged into computer, device seems to work just fine
 export const socketIO = io(`${getConfig().baseSocketUrl}`, {
     autoConnect: false,
     secure: true,
     transports: ['websocket'],
     upgrade: false,
-    path: getConfig().socket.clientPath,
-    // rejectUnauthorized: false,
+    path: `${getConfig().socket.clientPath}`,
+    rejectUnauthorized: false,
 });
 
 export const updateSocketToken = (user, shouldConnect?: boolean) => {
