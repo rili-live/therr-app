@@ -67,7 +67,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                     shouldCheckReverse: true,
                 },
                 user.details && user.details.id
-            );
+            ).catch(() => {});
         }
     }
 

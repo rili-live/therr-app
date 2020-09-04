@@ -89,6 +89,9 @@
       "noForumsMessage": "No forums are currently active. Click 'Create Forum' to start a new one.",
       "pageTitle": "Forums"
     },
+    "directMessage": {
+      "inputPlaceholder": "Enter a message..."
+    },
     "login": {
       "pageTitle": "Login"
     },
