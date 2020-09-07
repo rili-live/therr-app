@@ -22,6 +22,18 @@ spec:
         ports:
         - containerPort: 7771
         env:
+        - name: AWS_SES_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: aws-ses-access-key-id
+              key: AWSSESACCESSKEYID
+        - name: AWS_SES_ACCESS_KEY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: aws-ses-access-key-secret
+              key: AWSSESACCESSKEYSECRET
+        - name: AWS_SES_REGION
+          value: "us-east-2"
         - name: USERS_SERVICE_API_PORT
           value: "7771"
         - name: URI_WHITELIST
@@ -39,19 +51,30 @@ spec:
           value: "redis-cluster-ip-service"
         - name: REDIS_NODE_ONE_PORT
           value: "6379"
-        - name: PG_USER
+        - name: DB_USER_MAIN_WRITE
           value: "postgres"
-        - name: PG_HOST
-          value: "postgres-cluster-ip-service"
-        - name: PG_PORT
+        - name: DB_HOST_MAIN_WRITE
+          value: "therr-db-main-us-east-2.chtozlwlmzlk.us-east-2.rds.amazonaws.com"
+        - name: DB_PORT_MAIN_WRITE
           value: "5432"
-        - name: USERS_SERVICE_PG_DATABASE
-          value: "therr_users"
-        - name: PG_PASSWORD
+        - name: DB_PASSWORD_MAIN_WRITE
           valueFrom:
             secretKeyRef:
-              name: pgpassword
-              key: PGPASSWORD
+              name: dbpasswordmainwrite
+              key: DBPASSWORD_MAINWRITE
+        - name: DB_USER_MAIN_READ
+          value: "postgres"
+        - name: DB_HOST_MAIN_READ
+          value: "therr-db-main-us-east-2.chtozlwlmzlk.us-east-2.rds.amazonaws.com"
+        - name: DB_PORT_MAIN_READ
+          value: "5432"
+        - name: DB_PASSWORD_MAIN_READ
+          valueFrom:
+            secretKeyRef:
+              name: dbpasswordmainread
+              key: DBPASSWORD_MAINREAD
+        - name: USERS_SERVICE_DATABASE
+          value: "therr_users_service_db"
         - name: JWT_SECRET
           valueFrom:
             secretKeyRef:
