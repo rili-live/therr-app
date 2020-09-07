@@ -6,11 +6,11 @@ module.exports = {
     development: {
         client: 'pg',
         connection: {
-            database: process.env.MESSAGES_SERVICE_PG_DATABASE,
-            host: process.env.PG_HOST,
-            user: process.env.PG_USER,
-            password: process.env.PG_PASSWORD,
-            port: Number(process.env.PG_PORT),
+            database: process.env.MESSAGES_SERVICE_DATABASE,
+            host: process.env.DB_HOST_MAIN_WRITE,
+            user: process.env.DB_USER_MAIN_WRITE,
+            password: process.env.DB_PASSWORD_MAIN_WRITE,
+            port: Number(process.env.DB_PORT_MAIN_WRITE),
         },
         migrations: {
             directory: './migrations',
@@ -22,11 +22,11 @@ module.exports = {
     production: {
         client: 'pg',
         connection: {
-            database: process.env.MESSAGES_SERVICE_PG_DATABASE,
-            host: process.env.PG_HOST,
-            user: process.env.PG_USER,
-            password: process.env.PG_PASSWORD,
-            port: Number(process.env.PG_PORT),
+            database: process.env.MESSAGES_SERVICE_DATABASE,
+            host: process.env.DB_HOST_MAIN_WRITE,
+            user: process.env.DB_USER_MAIN_WRITE,
+            password: process.env.DB_PASSWORD_MAIN_WRITE,
+            port: Number(process.env.DB_PORT_MAIN_WRITE),
         },
         migrations: {
             directory: './migrations',
