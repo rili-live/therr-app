@@ -11,6 +11,7 @@ spec:
     metadata:
       labels:
         component: server-api-gateway
+        tier: api-gateway
     spec:
       containers:
       - name: server-api-gateway
