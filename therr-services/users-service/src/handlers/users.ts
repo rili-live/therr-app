@@ -2,6 +2,7 @@ import { RequestHandler } from 'express';
 import handleHttpError from '../utilities/handleHttpError';
 import UsersStore from '../store/UsersStore';
 import { hashPassword } from '../utilities/userHelpers';
+import { sendVerificationEmail } from '../api/email';
 
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => UsersStore.findUser(req.body)
@@ -27,6 +28,14 @@ const createUser: RequestHandler = (req: any, res: any) => UsersStore.findUser(r
                 .then((results) => {
                     const user = results[0];
                     delete user.password;
+
+                    // return sendVerificationEmail(user)
+                    //     .then((emailResponse) => {
+                    //         // TODO: RAUTO-7: Validate response
+                    //         // Generate/store an email verification token
+                    //         console.log(emailResponse);
+                    //         return res.status(201).send(user);
+                    //     });
                     return res.status(201).send(user);
                 }));
     })

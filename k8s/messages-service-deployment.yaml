@@ -35,19 +35,30 @@ spec:
           value: "info"
         - name: LOGGING_DATASET
           value: "production"
-        - name: PG_USER
+        - name: DB_USER_MAIN_WRITE
           value: "postgres"
-        - name: PG_HOST
-          value: "postgres-cluster-ip-service"
-        - name: PG_PORT
+        - name: DB_HOST_MAIN_WRITE
+          value: "therr-db-main-us-east-2.chtozlwlmzlk.us-east-2.rds.amazonaws.com"
+        - name: DB_PORT_MAIN_WRITE
           value: "5432"
-        - name: MESSAGES_SERVICE_PG_DATABASE
-          value: "therr_messages"
-        - name: PG_PASSWORD
+        - name: DB_PASSWORD_MAIN_WRITE
           valueFrom:
             secretKeyRef:
-              name: pgpassword
-              key: PGPASSWORD
+              name: dbpasswordmainwrite
+              key: DBPASSWORD_MAINWRITE
+        - name: DB_USER_MAIN_READ
+          value: "postgres"
+        - name: DB_HOST_MAIN_READ
+          value: "therr-db-main-us-east-2.chtozlwlmzlk.us-east-2.rds.amazonaws.com"
+        - name: DB_PORT_MAIN_READ
+          value: "5432"
+        - name: DB_PASSWORD_MAIN_READ
+          valueFrom:
+            secretKeyRef:
+              name: dbpasswordmainread
+              key: DBPASSWORD_MAINREAD
+        - name: MESSAGES_SERVICE_DATABASE
+          value: "therr_messages_service_db"
         - name: JWT_SECRET
           valueFrom:
             secretKeyRef:
