@@ -11,6 +11,7 @@ spec:
     metadata:
       labels:
         component: server-websocket
+        tier: microservices
     spec:
       containers:
       - name: server-websocket
