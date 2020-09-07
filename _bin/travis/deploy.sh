@@ -105,6 +105,11 @@ if should_deploy_web_app; then
 else
   echo "Skipping client-web deployment (No Changes)"
 fi
+if should_deploy_service "therr-api-gateway"; then
+  kubectl set image deployments/api-gateway-service-deployment server-api-gateway=therrapp/api-gateway:$GIT_SHA
+else
+  echo "Skipping api-gateway deployment (No Changes)"
+fi
 if should_deploy_service "therr-services/messages-service"; then
   kubectl set image deployments/messages-service-deployment server-messages=therrapp/messages-service:$GIT_SHA
 else

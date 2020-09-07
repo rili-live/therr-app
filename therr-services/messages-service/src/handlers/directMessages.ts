@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express';
+import moment from 'moment';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import DirectMessagesStore from '../store/DirectMessagesStore';
@@ -20,15 +21,17 @@ const createDirectMessage = (req, res) => {
 
 // READ
 const searchDirectMessages: RequestHandler = (req: any, res: any) => {
+    const userId = req.headers['x-userid'];
     const {
         filterBy,
         query,
         itemsPerPage,
         pageNumber,
+        shouldCheckReverse,
     } = req.query;
     const integerColumns = ['toUserId', 'fromUserId'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
-    const searchPromise = DirectMessagesStore.searchDirectMessages(searchArgs[0]);
+    const searchPromise = DirectMessagesStore.searchDirectMessages(userId, searchArgs[0], searchArgs[1], shouldCheckReverse);
     const countPromise = DirectMessagesStore.countRecords({
         filterBy,
         query,
@@ -36,7 +39,8 @@ const searchDirectMessages: RequestHandler = (req: any, res: any) => {
 
     return Promise.all([searchPromise, countPromise]).then(([results, countResult]) => {
         const response = {
-            results,
+            results: results // TODO: RFRONT-25 - localize dates
+                .map((result) => ({ ...result, createdAt: moment(result.createdAt).format('MMMM D/YY, h:mma') })),
             pagination: {
                 totalItems: Number(countResult[0].count),
                 itemsPerPage: Number(itemsPerPage),

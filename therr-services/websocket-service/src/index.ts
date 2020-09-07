@@ -32,6 +32,7 @@ const leaveAndNotifyRooms = (socket: SocketIO.Socket) => {
         redisSessions.getUserBySocketId(socket.id).then((user: any) => {
             activeRooms.forEach((room) => {
                 if (user && user.userName) {
+                    // TODO: RFRONT-25 - localize dates
                     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
                     socket.broadcast.to(room).emit(SOCKET_MIDDLEWARE_ACTION, {
                         type: SocketServerActionTypes.LEFT_ROOM,
@@ -94,6 +95,7 @@ const startExpressSocketIOServer = () => {
     io.adapter(redisAdapter);
 
     io.on('connection', (socket: socketio.Socket) => {
+        console.log('CONNECT');
         printLogs({
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
@@ -176,7 +178,7 @@ const startExpressSocketIOServer = () => {
                     break;
                 case SocketClientActionTypes.SEND_MESSAGE:
                     if (isAuthenticated) {
-                        socketHandlers.sendMessage(socket, action.data);
+                        socketHandlers.sendForumMessage(socket, action.data);
                     }
                     break;
                 case SocketClientActionTypes.UPDATE_NOTIFICATION:
@@ -250,6 +252,15 @@ Promise.all(redisConnectPromises).then((responses: any[]) => {
 
     // Wait for both pub and sub redis instances to connect before starting Express/Socket.io server
     startExpressSocketIOServer();
+}).catch((e) => {
+    console.error(e);
+    printLogs({
+        level: 'verbose',
+        messageOrigin: 'REDIS_LOG',
+        messages: [e.message],
+        tracer: beeline,
+        traceArgs: {},
+    });
 });
 
 // Hot Module Reloading

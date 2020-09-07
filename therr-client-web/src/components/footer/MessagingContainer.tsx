@@ -8,8 +8,8 @@ import { SocketActions } from 'therr-react/redux/actions';
 import scrollTo from 'therr-js-utilities/scroll-to';
 import { bindActionCreators } from 'redux';
 import {
-    IMessage,
-    ISocketState,
+    IForumMsg,
+    IMessagesState,
     IUserState,
     IUserConnectionsState,
 } from 'therr-react/types';
@@ -25,7 +25,7 @@ interface IMessagingContainerDispatchProps {
 }
 
 interface IStoreProps extends IMessagingContainerDispatchProps {
-    socket: ISocketState;
+    messages: IMessagesState;
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
@@ -45,7 +45,7 @@ interface IMessagingContainerState {
 }
 
 const mapStateToProps = (state: any) => ({
-    socket: state.socket,
+    messages: state.messages,
     user: state.user,
     userConnections: state.userConnections,
 });
@@ -89,9 +89,9 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
     }
 
     componentDidUpdate(prevProps: IMessagingContainerProps) {
-        const { messagingContext, socket } = this.props;
-        const messages = socket.dms && socket.dms[messagingContext && messagingContext.id];
-        const prevMessages = prevProps.socket.dms && prevProps.socket.dms[messagingContext && messagingContext.id];
+        const { messagingContext, messages } = this.props;
+        const dms = messages.dms && messages.dms[messagingContext && messagingContext.id];
+        const prevMessages = prevProps.messages.dms && prevProps.messages.dms[messagingContext && messagingContext.id];
 
         const scrollDown = () => {
             const dmElements = document.getElementsByClassName('dms-body');
@@ -103,7 +103,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
         if (this.shouldShowMessagingCtnr()) {
             this.messageInputRef.current.inputEl.focus();
             scrollDown();
-        } else if (messages && messages.length > 3 && messages.length > prevMessages.length) {
+        } else if (dms && dms.length > 3 && dms.length > prevMessages.length) {
             scrollDown();
         }
     }
@@ -185,12 +185,12 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
         const {
             isMessagingOpen,
             messagingContext,
-            socket,
+            messages,
         } = this.props;
 
         const contextFirstName = messagingContext && messagingContext.firstName;
         const contextLastName = messagingContext && messagingContext.lastName;
-        const messages = socket.dms && socket.dms[messagingContext && messagingContext.id];
+        const dms = messages.dms && messages.dms[messagingContext && messagingContext.id];
 
         return (
             <>
@@ -214,10 +214,10 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
                     {
                         <span className="dms-body">
                             {
-                                messages && messages.length > 0
+                                dms && dms.length > 0
                                     ? <ul className="dms-list">
                                         {
-                                            messages.map((message: IMessage) => <li key={message.key}>({message.time}) {message.text}</li>)
+                                            dms.map((message: IForumMsg) => <li key={message.key}>({message.time}) {message.text}</li>)
                                         }
                                     </ul>
                                     : <span className="dms-first-info">{this.translate('components.messagingContainer.welcome')}</span>

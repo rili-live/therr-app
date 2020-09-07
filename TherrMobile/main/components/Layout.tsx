@@ -56,14 +56,21 @@ class Layout extends React.Component<any, any> {
                     })}
                 >
                     {routes
-                        .filter(
-                            (route: any) =>
+                        .filter((route: any) => {
+                            if (
+                                route.name === 'Login' &&
+                                user.isAuthenticated
+                            ) {
+                                return false;
+                            }
+                            return (
                                 !(route.options && route.options.access) ||
                                 UsersService.isAuthorized(
                                     route.options.access,
                                     user
                                 )
-                        )
+                            );
+                        })
                         .map((route: any) => {
                             if (route.options) {
                                 delete route.options.access;

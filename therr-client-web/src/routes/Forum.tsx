@@ -9,8 +9,8 @@ import {
 } from 'therr-react/components';
 import scrollTo from 'therr-js-utilities/scroll-to';
 import {
-    IMessage,
-    ISocketState,
+    IForumMsg,
+    IMessagesState,
     IUserState,
 } from 'therr-react/types';
 import translator from '../services/translator';
@@ -23,11 +23,11 @@ interface IForumRouterProps {
 interface IForumDispatchProps {
     joinForum: Function;
     leaveForum: Function;
-    sendMessage: Function;
+    sendForumMessage: Function;
 }
 
 interface IStoreProps extends IForumDispatchProps {
-    socket: ISocketState;
+    messages: IMessagesState;
     user: IUserState;
 }
 
@@ -44,14 +44,14 @@ interface IForumState {
 // const envVars = globalConfig[process.env.NODE_ENV];
 
 const mapStateToProps = (state: IForumState | any) => ({
-    socket: state.socket,
+    messages: state.messages,
     user: state.user,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     joinForum: SocketActions.joinForum,
     leaveForum: SocketActions.leaveForum,
-    sendMessage: SocketActions.sendMessage,
+    sendForumMessage: SocketActions.sendForumMessage,
 }, dispatch);
 
 // TODO: Leaving a forume should emit an event to the server and leave the current forum
@@ -95,8 +95,8 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
 
     componentDidUpdate(prevProps: IForumProps) {
         const currentRoom = this.props.user.socketDetails.currentRoom;
-        const messages = this.props.socket.messages[currentRoom];
-        if (messages && messages.length > 3 && messages.length > prevProps.socket.messages[currentRoom].length) {
+        const messages = this.props.messages.forumMsgs[currentRoom];
+        if (messages && messages.length > 3 && messages.length > prevProps.messages.forumMsgs[currentRoom].length) {
             scrollTo(document.body.scrollHeight, 100);
         }
     }
@@ -131,7 +131,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
         switch (event.target.id) {
             case 'enter_message':
             case 'message':
-                this.props.sendMessage({
+                this.props.sendForumMessage({
                     roomId: this.props.user.socketDetails.currentRoom,
                     message: this.state.inputs.message,
                     userName: this.props.user.details.userName,
@@ -143,7 +143,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
 
     shouldDisableInput = (buttonName: string) => {
         switch (buttonName) {
-            case 'sendMessage':
+            case 'sendForumMessage':
                 return !this.state.inputs.message;
             default:
                 return false;
@@ -151,8 +151,8 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
     }
 
     render() {
-        const { socket, user } = this.props;
-        const messages = socket.messages[user.socketDetails.currentRoom];
+        const { messages, user } = this.props;
+        const forumMessages = messages.forumMsgs[user.socketDetails.currentRoom];
 
         return (
             <div id="page_chat_forum">
@@ -174,20 +174,20 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                             id="enter_message"
                             text="Send"
                             onClick={this.onButtonClick}
-                            disabled={this.shouldDisableInput('sendMessage')}
+                            disabled={this.shouldDisableInput('sendForumMessage')}
                         />
                     </div>
                 </div>
 
                 <h1 id="forumTitle">{this.translate('pages.chatForum.pageTitle')}: {user.socketDetails.currentRoom}</h1>
                 {
-                    socket && socket.forums
+                    messages && messages.forums
                     && <span id="forums_list">
                         {
-                            messages && messages.length > 0
+                            forumMessages && forumMessages.length > 0
                                 ? <span className="message-list">
                                     {
-                                        messages.map((message: IMessage) => <li key={message.key}>({message.time}) {message.text}</li>)
+                                        forumMessages.map((message: IForumMsg) => <li key={message.key}>({message.time}) {message.text}</li>)
                                     }
                                 </span>
                                 : <span>{this.translate('pages.chatForum.welcome')}</span>

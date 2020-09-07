@@ -1,6 +1,6 @@
 import getCombinedReducers from 'therr-react/redux/reducers';
+import { socketIO } from '../../socket-io-middleware';
 
-// TODO: Use SocketIO
-const reducers = getCombinedReducers({});
+const reducers = getCombinedReducers(socketIO);
 
 export default reducers;
