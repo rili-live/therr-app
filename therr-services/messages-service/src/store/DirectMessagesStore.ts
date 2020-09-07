@@ -43,18 +43,22 @@ class Store {
     }
 
     // TODO
-    searchDirectMessages(conditions: any = {}) {
+    searchDirectMessages(userId, conditions: any = {}, returning, shouldCheckReverse?: string) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
         let queryString: any = knex
-            .select('*')
+            .select(returning || '*')
             .from(DIRECT_MESSAGES_TABLE_NAME)
             .orderBy(`${DIRECT_MESSAGES_TABLE_NAME}.updatedAt`);
 
         if (conditions.filterBy && conditions.query) {
             const operator = conditions.filterOperator || '=';
             const query = operator === 'like' ? `%${conditions.query}%` : conditions.query;
-            queryString = queryString.andWhere(conditions.filterBy, operator, query);
+            queryString = queryString.where('toUserId', userId).andWhere(conditions.filterBy, operator, query);
+            if (shouldCheckReverse === 'true' && conditions.filterBy === 'fromUserId') {
+                queryString = queryString.orWhere('fromUserId', userId)
+                    .andWhere('toUserId', operator, query);
+            }
         }
 
         queryString = queryString

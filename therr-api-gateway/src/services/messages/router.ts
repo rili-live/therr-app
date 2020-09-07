@@ -8,12 +8,12 @@ const messagesServiceRouter = express.Router();
 
 // Messages
 messagesServiceRouter.post('/direct-messages', createDirectMessageValidation, validate, handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
     method: 'post',
 }));
 
 messagesServiceRouter.get('/direct-messages', handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
     method: 'get',
 }));
 

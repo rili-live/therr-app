@@ -22,9 +22,13 @@ const initInterceptors = (
         const storedUser = store.getState().user;
         const token =
             storedUser && storedUser.details && storedUser.details.idToken;
+        const userId =
+            storedUser && storedUser.details && storedUser.details.id;
 
         if (token) {
             modifiedConfig.headers.authorization = `Bearer ${token}`;
+            modifiedConfig.headers['x-userid'] = userId;
+            // TODO: Also set user locale
         }
 
         numLoadings += 1;
@@ -66,15 +70,6 @@ const initInterceptors = (
                     //     type: 'error',
                     //     delay: 3000
                     // }));
-
-                    // Do not redirect when 401 occurs on a login page
-                    // The "home" page is also a login
-                    if (
-                        window.location.pathname !== '/' &&
-                        window.location.pathname !== '/login'
-                    ) {
-                        // history.push('/login');
-                    }
                 }
             }
 

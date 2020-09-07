@@ -1,7 +1,7 @@
 import { joinRoom, leaveRoom } from './rooms';
 import { login, logout } from './auth';
 import updateSession from './sessions';
-import { sendDirectMessage, sendMessage } from './messages';
+import { sendDirectMessage, sendForumMessage } from './messages';
 import updateNotification from './notifications';
 import { createConnection, updateConnection, loadActiveConnections } from './userConnections';
 
@@ -19,7 +19,7 @@ export {
 
     // Messages
     sendDirectMessage,
-    sendMessage,
+    sendForumMessage,
 
     // Notifications
     updateNotification,

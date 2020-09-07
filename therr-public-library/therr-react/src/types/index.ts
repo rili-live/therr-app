@@ -1,16 +1,24 @@
 import {
+    // Messages
+    IForum,
+    IForumsArray,
+    MessageActionTypes,
+    IForumMsg,
+    IForumMsgList,
+    IForumMsgs,
+    IMessagesState,
+
+    // Notifications
     INotification,
     INotificationsState,
     NotificationActionTypes,
-    IForum,
-    IForumsArray,
-    IMessage,
-    IMessageList,
-    IMessages,
-    ISocketState,
+
+    // Users
     IUser,
     ISocketDetails,
     IUserState,
+
+    // User Connections
     IUserConnection,
     IUserConnectionsState,
     UserConnectionActionTypes,
@@ -38,18 +46,19 @@ export interface ISearchQuery {
 }
 
 export {
+    // Messages
+    IMessagesState,
+    MessageActionTypes,
+    IForum,
+    IForumsArray,
+    IForumMsg,
+    IForumMsgList,
+    IForumMsgs,
+
     // Notifications
     INotification,
     INotificationsState,
     NotificationActionTypes,
-
-    // Socket
-    IForum,
-    IForumsArray,
-    IMessage,
-    IMessageList,
-    IMessages,
-    ISocketState,
 
     // User
     IUser,
