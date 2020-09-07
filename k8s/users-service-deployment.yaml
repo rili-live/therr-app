@@ -11,6 +11,7 @@ spec:
     metadata:
       labels:
         component: server-users
+        tier: microservices
     spec:
       containers:
       - name: server-users
