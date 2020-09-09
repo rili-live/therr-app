@@ -90,8 +90,8 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
 
     componentDidUpdate(prevProps: IMessagingContainerProps) {
         const { messagingContext, messages } = this.props;
-        const dms = messages.dms && messages.dms[messagingContext && messagingContext.id];
-        const prevMessages = prevProps.messages.dms && prevProps.messages.dms[messagingContext && messagingContext.id];
+        const dms = (messages.dms && messages.dms[messagingContext && messagingContext.id]) || [];
+        const prevMessages = (prevProps.messages.dms && prevProps.messages.dms[messagingContext && messagingContext.id]) || [];
 
         const scrollDown = () => {
             const dmElements = document.getElementsByClassName('dms-body');
@@ -138,10 +138,15 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
     handleClick = (event: any) => {
         if (this.props.isMsgContainerOpen) {
             const msgsMenuEl = document.getElementById('msgs_container');
+            const footerMsgingEl = document.getElementById('footer_messaging');
+            const footerMsgsEl = document.getElementById('footer_messages');
+            const navMenuEl = document.getElementById('nav_menu');
+            const userConEl = document.getElementById('user-connections-container');
             const isClickInsideNavMenu = msgsMenuEl.contains(event.target)
-                || document.getElementById('nav_menu').contains(event.target)
-                || document.getElementById('footer_messaging').contains(event.target)
-                || document.getElementById('footer_messages').contains(event.target);
+                || (navMenuEl && navMenuEl.contains(event.target))
+                || (footerMsgingEl && footerMsgingEl.contains(event.target))
+                || (userConEl && userConEl.contains(event.target))
+                || (footerMsgsEl && footerMsgsEl.contains(event.target));
 
             if (!isClickInsideNavMenu) {
                 this.onToggleMessaging(event);
@@ -175,7 +180,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
                 message: this.state.inputs.message,
                 userId: user.details.id,
                 userName: user.details.userName,
-                to: toUser,
+                to: toUser || messagingContext, // fallback for connections who were not active
             });
             this.onInputChange('message', '');
         }

@@ -88,6 +88,10 @@ $profileImgWidth: rem-calc(100px);
                         background: transparentize($therr-black, .5);
                     }
 
+                    &:hover {
+                        cursor: pointer;
+                    }
+
                     &:hover,
                     &:focus {
                         .name-tag {

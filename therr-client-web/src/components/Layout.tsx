@@ -23,7 +23,7 @@ import scrollTo from 'therr-js-utilities/scroll-to';
 import Header from './Header';
 import initInterceptors from '../interceptors';
 import * as globalConfig from '../../../global-config';
-import routes from '../routes';
+import getRoutes from '../routes';
 import { INavMenuContext } from '../types';
 import Footer from './footer/Footer';
 import UserMenu from './nav-menu/UserMenu';
@@ -224,7 +224,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         logout(user.details);
     };
 
-    initMessaging = (e, connectionDetails) => {
+    initMessaging = (e, connectionDetails, context) => {
         const { searchDms, messages } = this.props;
         const { isMessagingOpen, isMsgContainerOpen } = this.state;
 
@@ -348,7 +348,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                     >
                         <Switch>
                             {
-                                routes.map((route: any, i) => {
+                                getRoutes({ onInitMessaging: this.initMessaging }).map((route: any, i) => {
                                     if (route.access) {
                                         return (
                                             <AuthRoute
