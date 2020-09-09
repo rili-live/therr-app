@@ -9,7 +9,7 @@ import globalConfig from '../../../../global-config';
 const sendDirectMessage = (socket: socketio.Socket, data: any) => {
     restRequest({
         method: 'post',
-        url: `${globalConfig[process.env.NODE_ENV || 'development'].baseMessagesServiceRoute}/direct-messages`,
+        url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiGatewayRoute}/messages-service/direct-messages`,
         data: {
             message: data.message,
             toUserId: data.to.id,
@@ -30,17 +30,19 @@ const sendDirectMessage = (socket: socketio.Socket, data: any) => {
                 },
             },
         });
-        socket.broadcast.to(data.to.socketId).emit(SOCKET_MIDDLEWARE_ACTION, {
-            type: SocketServerActionTypes.SEND_DIRECT_MESSAGE,
-            data: {
-                contextUserId: data.userId,
-                message: {
-                    key: message.id,
-                    time: timeFormatted,
-                    text: `${data.userName}: ${data.message}`,
+        if (data.to.socketId) { // Null when user is not logged in
+            socket.broadcast.to(data.to.socketId).emit(SOCKET_MIDDLEWARE_ACTION, {
+                type: SocketServerActionTypes.SEND_DIRECT_MESSAGE,
+                data: {
+                    contextUserId: data.userId,
+                    message: {
+                        key: message.id,
+                        time: timeFormatted,
+                        text: `${data.userName}: ${data.message}`,
+                    },
                 },
-            },
-        });
+            });
+        }
         printLogs({
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',

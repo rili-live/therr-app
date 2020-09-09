@@ -107,22 +107,23 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                 <div className="messages-menu"></div>
                 {
                     userConnections && userConnections.activeConnections.length > 0
-                    && <div className="realtime-connections-list">
-                        {
-                            userConnections.activeConnections.map((activeUser) => (
-                                <ButtonPrimary
-                                    id="nav_menu_connection_link"
-                                    key={activeUser.id}
-                                    className={`connection-link-item right-icon ${activeUser.status === 'active' ? 'active' : 'away'}`}
-                                    name={activeUser.id}
-                                    onClick={(e) => onInitMessaging(e, activeUser)}
-                                    buttonType="primary">
-                                    {`${activeUser.firstName} ${activeUser.lastName}`}
-                                    <InlineSvg name="messages" />
-                                </ButtonPrimary>
-                            ))
-                        }
-                    </div>
+                        ? <div className="realtime-connections-list">
+                            {
+                                userConnections.activeConnections.map((activeUser) => (
+                                    <ButtonPrimary
+                                        id="nav_menu_connection_link"
+                                        key={activeUser.id}
+                                        className={`connection-link-item right-icon ${activeUser.status === 'active' ? 'active' : 'away'}`}
+                                        name={activeUser.id}
+                                        onClick={(e) => onInitMessaging(e, activeUser, 'messages-menu')}
+                                        buttonType="primary">
+                                        {`${activeUser.firstName} ${activeUser.lastName}`}
+                                        <InlineSvg name="messages" />
+                                    </ButtonPrimary>
+                                ))
+                            }
+                        </div>
+                        : <div className="realtime-connections-list"><i>{this.translate('components.messagesMenu.noActiveConnections')}</i></div>
                 }
             </>
         );

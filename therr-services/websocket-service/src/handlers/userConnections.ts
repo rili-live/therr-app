@@ -57,7 +57,7 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
 
     return restRequest({
         method: 'put',
-        url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/connections/${data.connection.requestingUserId}`,
+        url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiGatewayRoute}/users-service/users/connections/${data.connection.requestingUserId}`,
         data: data.connection,
     }, socket).then(({ data: connection }) => {
         redisSessions.getUserById(data.connection.requestingUserId).then((response) => {
@@ -84,7 +84,7 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
         if (connection.requestStatus === 'complete') { // Do not send notification when connection denied
             return restRequest({
                 method: 'post',
-                url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/notifications`,
+                url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiGatewayRoute}/users-service/users/notifications`,
                 data: {
                     userId: data.connection.requestingUserId,
                     type: Notifications.Types.CONNECTION_REQUEST_ACCEPTED,
