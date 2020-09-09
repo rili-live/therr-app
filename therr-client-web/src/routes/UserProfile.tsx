@@ -29,6 +29,7 @@ interface IStoreProps extends IUserProfileDispatchProps {
 
 // Regular component props
 interface IUserProfileProps extends RouteComponentProps<{}>, IStoreProps {
+    onInitMessaging?: Function;
 }
 
 interface IUserProfileState {
@@ -91,6 +92,12 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         }
     }
 
+    getConnectionDetails = (connection) => {
+        const { user } = this.props;
+
+        return connection.users.find((u) => u.id !== user.details.id);
+    }
+
     isFormValid() {
         const { hasValidationErrors, inputs } = this.state;
         if (inputs.connectionIdentifier === 'acceptingUserEmail') {
@@ -99,6 +106,11 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         }
 
         return isValidPhoneNumber(inputs.phoneNumber);
+    }
+
+    handleInitMessaging = (e, connection) => {
+        const { onInitMessaging } = this.props;
+        return onInitMessaging && onInitMessaging(e, this.getConnectionDetails(connection), 'user-profile');
     }
 
     onCreateForumClick = () => {
@@ -179,7 +191,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
     }
 
     public render(): JSX.Element | null {
-        const { user, userConnections } = this.props;
+        const { onInitMessaging, user, userConnections } = this.props;
         const {
             inputs,
             prevRequestError,
@@ -215,20 +227,21 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                     </div>
                     <div id="your_connections" className="account-section">
                         <h2>{this.translate('pages.userProfile.h2.connections')}</h2>
-                        <div className="user-connections-container account-section-content">
+                        <div id="user-connections-container" className="user-connections-container account-section-content">
                             {
                                 userConnections.connections.length
                                     ? userConnections.connections.slice(0, 10).map((connection: any) => (
                                         <div className="user-connection-icon" key={connection.id}>
                                             {
                                                 connection.users
-                                                && <span className="name-tag">{connection.users.find((u) => u.id !== user.details.id).firstName}</span>
+                                                && <span className="name-tag">{this.getConnectionDetails(connection).firstName}</span>
                                             }
                                             <img
                                                 src={`https://robohash.org/${connection.acceptingUserId === user.details.id
                                                     ? connection.requestingUserId
                                                     : connection.acceptingUserId}?size=100x100`}
                                                 alt="User Connection"
+                                                onClick={(e) => this.handleInitMessaging(e, connection)}
                                             />
                                         </div>
                                     ))

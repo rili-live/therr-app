@@ -115,7 +115,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                                         key={activeUser.id}
                                         className={`connection-link-item right-icon ${activeUser.status === 'active' ? 'active' : 'away'}`}
                                         name={activeUser.id}
-                                        onClick={(e) => onInitMessaging(e, activeUser)}
+                                        onClick={(e) => onInitMessaging(e, activeUser, 'messages-menu')}
                                         buttonType="primary">
                                         {`${activeUser.firstName} ${activeUser.lastName}`}
                                         <InlineSvg name="messages" />
