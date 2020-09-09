@@ -44,7 +44,6 @@ const login: RequestHandler = (req: any, res: any) => UsersStore
 // Logout user
 const logout: RequestHandler = (req: any, res: any) => UsersStore.getUsers({ userName: req.body.userName })
     .then((results) => {
-        console.log(req.originalUrl);
         if (!results.length) {
             return handleHttpError({
                 res,
