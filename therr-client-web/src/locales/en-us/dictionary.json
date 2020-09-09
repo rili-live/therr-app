@@ -40,7 +40,8 @@
         "forums": "Forums",
         "riliConnect": "Rili Connect",
         "locationMap": "Location Map"
-      }
+      },
+      "noActiveConnections": "No recently active connections"
     },
     "registerForm": {
       "buttons": {

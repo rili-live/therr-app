@@ -28,7 +28,7 @@ if (!process.env.BROWSER) {
     global.window = {}; // Temporarily define window for server-side
 }
 import Layout from './components/Layout'; // eslint-disable-line
-import routes, { IRoute } from './routes'; // eslint-disable-line
+import getRoutes, { IRoute } from './routes'; // eslint-disable-line
 
 // Initialize the server and configure support for handlebars templates
 const app = express();
@@ -65,7 +65,7 @@ routeConfig.forEach((config) => {
             ),
         );
 
-        routes.some((route: IRoute) => {
+        getRoutes().some((route: IRoute) => {
             const match = matchPath(req.url, route);
             if (match && route.fetchData) {
                 const Comp = route.component.WrappedComponent;

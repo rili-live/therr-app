@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { RouteProps } from 'react-router-dom';
 import { AccessCheckType, IAccess } from 'therr-react/types';
 import Forum from './Forum';
@@ -13,11 +14,16 @@ export interface IRoute extends RouteProps {
     exact?: boolean;
     fetchData?: Function;
     // Overriding this property allows us to add custom paramaters to React components
-    component: any;
+    component?: any;
     redirectPath?: string;
+    render?: any;
 }
 
-const routes: IRoute[] = [
+export interface IRoutePropsConfig {
+    onInitMessaging?: any;
+}
+
+const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
     {
         path: '/',
         component: Home,
@@ -54,7 +60,7 @@ const routes: IRoute[] = [
     },
     {
         path: '/user/profile',
-        component: UserProfile,
+        render: (routeProps) => <UserProfile onInitMessaging={routePropsConfig.onInitMessaging} {...routeProps} />, // eslint-disable-line react/display-name
         exact: true,
         access: {
             type: AccessCheckType.ALL,
@@ -68,4 +74,4 @@ const routes: IRoute[] = [
     },
 ];
 
-export default routes;
+export default getRoutes;
