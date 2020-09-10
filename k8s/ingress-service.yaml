@@ -20,6 +20,7 @@ spec:
       - therr.app
       - www.therr.app
       - api.therr.app
+      - maps-service.therr.app
       - messages-service.therr.app
       - users-service.therr.app
       - websocket-service.therr.app
@@ -39,6 +40,13 @@ spec:
         backend:
           serviceName: api-gateway-service-cluster-ip-service
           servicePort: 7770
+  - host: maps-service.therr.app
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          serviceName: maps-service-cluster-ip-service
+          servicePort: 7773
   - host: messages-service.therr.app
     http:
       paths:
