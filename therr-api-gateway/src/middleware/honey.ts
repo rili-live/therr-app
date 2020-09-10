@@ -1,3 +1,4 @@
+import os from 'os';
 import beeline from '../beeline';
 
 export default (req, res, next) => {
@@ -19,6 +20,7 @@ export default (req, res, next) => {
         'middleware.route': req.route,
         'middleware.secure': req.secure,
         'middleware.xhr': req.xhr,
+        'middleware.osHostname': os.hostname,
     });
 
     return next();
