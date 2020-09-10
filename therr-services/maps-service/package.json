@@ -1,7 +1,7 @@
 {
-  "name": "new-service",
+  "name": "maps-service",
   "version": "1.0.0",
-  "description": "New Service for ...",
+  "description": "Service for maps, location, and moments",
   "main": "build/index.js",
   "scripts": {
     "build": "../../node_modules/.bin/webpack --env production",
