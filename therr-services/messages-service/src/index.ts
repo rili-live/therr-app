@@ -8,6 +8,7 @@ import printLogs from 'therr-js-utilities/print-logs';
 import router from './routes';
 import honey from './middleware/honey';
 import { version as packageVersion } from '../package.json';
+import authenticate from './middleware/authenticate';
 
 const originWhitelist = (process.env.URI_WHITELIST || '').split(',');
 const corsOptions = {
@@ -40,6 +41,10 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Serves static files in the /build/static directory
 app.use(express.static(path.join(__dirname, 'static')));
+
+// TODO: RAUTO-27 - VPC
+// Temporary Authentication check before implementing private IPs
+app.use(authenticate.unless({}));
 
 // Configure routes
 app.get('/', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
