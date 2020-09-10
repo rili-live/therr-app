@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: maps-service-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: server-maps
+  template:
+    metadata:
+      labels:
+        component: server-maps
+        tier: microservices
+    spec:
+      containers:
+      - name: server-maps
+        image: therrapp/maps-service:latest
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "100m"
+        ports:
+        - containerPort: 7773
+        env:
+        - name: MAPS_SERVICE_API_PORT
+          value: "7773"
+        - name: URI_WHITELIST
+          value: "https://therr.app,https://www.therr.app"
+        - name: HONEYCOMB_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: honeycomb-writekey
+              key: HONEYCOMB
+        - name: LOG_LEVEL
+          value: "info"
+        - name: LOGGING_DATASET
+          value: "production"
+        - name: DB_USER_MAIN_WRITE
+          value: "postgres"
+        - name: DB_HOST_MAIN_WRITE
+          value: "therr-db-main-us-east-2.chtozlwlmzlk.us-east-2.rds.amazonaws.com"
+        - name: DB_PORT_MAIN_WRITE
+          value: "5432"
+        - name: DB_PASSWORD_MAIN_WRITE
+          valueFrom:
+            secretKeyRef:
+              name: dbpasswordmainwrite
+              key: DBPASSWORD_MAINWRITE
+        - name: DB_USER_MAIN_READ
+          value: "postgres"
+        - name: DB_HOST_MAIN_READ
+          value: "therr-db-main-us-east-2.chtozlwlmzlk.us-east-2.rds.amazonaws.com"
+        - name: DB_PORT_MAIN_READ
+          value: "5432"
+        - name: DB_PASSWORD_MAIN_READ
+          valueFrom:
+            secretKeyRef:
+              name: dbpasswordmainread
+              key: DBPASSWORD_MAINREAD
+        - name: MAPS_SERVICE_DATABASE
+          value: "therr_maps_service_db"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: therrjwtsecret
+              key: THERRJWT_SECRET

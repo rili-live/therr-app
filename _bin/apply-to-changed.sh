@@ -78,7 +78,7 @@ for i in "${arr[@]}"; do
 done
 
 # Services
-declare -a arr=("therr-api-gateway" "therr-services/messages-service" "therr-services/users-service" "therr-services/websocket-service")
+declare -a arr=("therr-api-gateway" "therr-services/maps-service" "therr-services/messages-service" "therr-services/users-service" "therr-services/websocket-service")
 for i in "${arr[@]}"; do
   if has_diff_changes $TARGET_BRANCH ${i} || "$HAS_UTILITIES_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILES_CHANGES" = true; then
     if [ -f package.json ]; then
