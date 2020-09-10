@@ -1,4 +1,5 @@
 const apiGatewayPort = 7770;
+const apiMapsPort = 7773;
 const apiMessagesPort = 7772;
 const apiUsersPort = 7771;
 const hostDev = '127.0.0.1';
@@ -8,6 +9,7 @@ const hostProd = 'therr.app';
 module.exports = {
     development: {
         baseApiGatewayRoute: `http://${hostDev}:${apiGatewayPort}/v1`,
+        baseMapsServiceRoute: `http://${hostDev}:${apiMapsPort}/v1`,
         baseMessagesServiceRoute: `http://${hostDev}:${apiMessagesPort}/v1`,
         baseUsersServiceRoute: `http://${hostDev}:${apiUsersPort}/v1`,
         baseSocketUrl: `http://${hostDev}:7743`,
@@ -22,6 +24,7 @@ module.exports = {
     },
     stage: {
         baseApiGatewayRoute: `https://api.${hostStage}/v1`,
+        baseMapsServiceRoute: `https://maps-service.apStage}/v1`,
         baseMessagesServiceRoute: `https://messages-service.${hostStage}/v1`,
         baseUsersServiceRoute: `https://users-service.${hostStage}/v1`,
         baseSocketUrl: `https://websocket-service.${hostStage}`,
@@ -36,6 +39,7 @@ module.exports = {
     },
     production: {
         baseApiGatewayRoute: `https://api.${hostProd}/v1`,
+        baseMapsServiceRoute: `https://maps-serviceaptProd}/v1`,
         baseMessagesServiceRoute: `https://messages-service.${hostProd}/v1`,
         baseUsersServiceRoute: `https://users-service.${hostProd}/v1`,
         baseSocketUrl: `https://websocket-service.${hostProd}`,
