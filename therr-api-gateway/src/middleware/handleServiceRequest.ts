@@ -8,6 +8,7 @@ const handleServiceRequest = ({
 }) => (req, res) => {
     const config: any = {
         headers: {
+            authorization: req.headers.authorization || '',
             'x-requestid': uuidv4(),
             'x-localecode': req.headers['x-localecode'] || '',
             'x-userid': req.headers['x-userid'] || '',
@@ -18,6 +19,11 @@ const handleServiceRequest = ({
 
     if (method !== 'get') {
         config.data = req.body;
+    }
+
+    // TODO: RAUTO-27: Remove this
+    if (req.headers.authorization) {
+        config.headers.authorization = req.headers.authorization;
     }
 
     return restRequest(config)

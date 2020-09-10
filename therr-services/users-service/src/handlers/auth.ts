@@ -52,7 +52,7 @@ const logout: RequestHandler = (req: any, res: any) => UsersStore.getUsers({ use
             });
         }
         // TODO: Invalidate token
-        res.status(204).send();
+        res.status(204).send(req.request);
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:AUTH_ROUTES:ERROR' }));
 

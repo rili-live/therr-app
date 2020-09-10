@@ -20,13 +20,9 @@ spec:
       - therr.app
       - www.therr.app
       - api.therr.app
-      - www.api.therr.app
       - messages-service.therr.app
-      - www.messages-service.therr.app
       - users-service.therr.app
-      - www.users-service.therr.app
       - websocket-service.therr.app
-      - www.websocket-service.therr.app
     secretName: therr-network
   rules:
   - host: therr.app
@@ -71,31 +67,4 @@ spec:
         backend:
           serviceName: client-cluster-ip-service
           servicePort: 7070
-  - host: www.api.therr.app
-    http:
-      paths:
-      - path: /?(.*)
-        backend:
-          serviceName: api-gateway-service-cluster-ip-service
-          servicePort: 7770
-  - host: www.messages-service.therr.app
-    http:
-      paths:
-      - path: /?(.*)
-        backend:
-          serviceName: messages-service-cluster-ip-service
-          servicePort: 7772
-  - host: www.users-service.therr.app
-    http:
-      paths:
-      - path: /?(.*)
-        backend:
-          serviceName: users-service-cluster-ip-service
-          servicePort: 7771
-  - host: www.websocket-service.therr.app
-    http:
-      paths:
-      - path: /?(.*)
-        backend:
-          serviceName: websocket-service-cluster-ip-service
-          servicePort: 7743
+          
