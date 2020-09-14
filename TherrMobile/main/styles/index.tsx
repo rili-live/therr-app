@@ -18,8 +18,8 @@ export default StyleSheet.create({
         color: '#fcfeff',
     },
     sectionContainer: {
-        marginTop: 32,
-        marginBottom: 32,
+        marginTop: 16,
+        marginBottom: 16,
         paddingHorizontal: 24,
     },
     sectionTitle: {

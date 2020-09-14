@@ -29,6 +29,7 @@ export interface IDirectMessageProps extends IStoreProps {
 
 interface IDirectMessageState {
     msgInputVal: string;
+    msgScrollPosition: number;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -37,22 +38,27 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) =>
-    bindActionCreators({
-        searchDms: MessageActions.search,
-        sendDirectMessage: SocketActions.sendDirectMessage,
-    }, dispatch);
+    bindActionCreators(
+        {
+            searchDms: MessageActions.search,
+            sendDirectMessage: SocketActions.sendDirectMessage,
+        },
+        dispatch
+    );
 
 class DirectMessage extends React.Component<
     IDirectMessageProps,
     IDirectMessageState
 > {
     private translate: Function; // eslint-disable-line react/sort-comp
+    private flatListRef: any;
 
     constructor(props) {
         super(props);
 
         this.state = {
             msgInputVal: '',
+            msgScrollPosition: 0,
         };
 
         this.translate = (key: string, params: any) =>
@@ -77,13 +83,62 @@ class DirectMessage extends React.Component<
                 connectionDetails
             );
         }
+
+        const { msgScrollPosition } = this.state;
+        // To prevent FlatList scrolls to top automatically,
+        // we have to delay scroll to the original position
+        setTimeout(() => {
+            msgScrollPosition
+                ? this.flatListRef.scrollToOffset({
+                    offset: msgScrollPosition,
+                    animated: true,
+                })
+                : this.flatListRef.scrollToIndex({
+                    index: this.flatListRef.props.data
+                        ? this.flatListRef.props.data.length - 1
+                        : 0,
+                    animated: true,
+                });
+        }, 500);
+    }
+
+    componentDidUpdate(prevProps: IDirectMessageProps) {
+        const { route, messages } = this.props;
+        const { connectionDetails } = route.params;
+        const dms =
+            (messages.dms &&
+                messages.dms[connectionDetails && connectionDetails.id]) ||
+            [];
+        const prevMessages =
+            (prevProps.messages.dms &&
+                prevProps.messages.dms[
+                    connectionDetails && connectionDetails.id
+                ]) ||
+            [];
+
+        if (dms && dms.length > 3 && dms.length > prevMessages.length) {
+            this.scrollToListEnd();
+        }
     }
 
     handleInputChange = (val) => {
         this.setState({
             msgInputVal: val,
         });
-    }
+    };
+
+    handleScroll = (event) => {
+        this.setState({ msgScrollPosition: event.nativeEvent.contentOffset.y });
+    };
+
+    handleScrollToIndexFailed = (info) => {
+        setTimeout(() => {
+            this.flatListRef.scrollToIndex({
+                index: info.index,
+                animated: true,
+            });
+        }, 500);
+    };
 
     handleSend = () => {
         const { msgInputVal } = this.state;
@@ -100,7 +155,17 @@ class DirectMessage extends React.Component<
         this.setState({
             msgInputVal: '',
         });
-    }
+    };
+
+    scrollToListEnd = () => {
+        console.log(this.flatListRef);
+        if (this.flatListRef) {
+            this.flatListRef.scrollToIndex({
+                index: this.flatListRef.props.data.length - 1,
+                animated: true,
+            });
+        }
+    };
 
     render() {
         const { msgInputVal } = this.state;
@@ -124,31 +189,31 @@ class DirectMessage extends React.Component<
                     <FlatList
                         data={dms}
                         keyExtractor={(item) => String(item.key)}
+                        onScroll={this.handleScroll}
                         renderItem={({ item }) => (
                             <Text
                                 style={messageStyles.item}
                             >{`(${item.time}) ${item.text}`}</Text>
                         )}
+                        ref={(component) => (this.flatListRef = component)}
+                        initialScrollIndex={0}
+                        onScrollToIndexFailed={this.handleScrollToIndexFailed}
                     />
                     <View style={messageStyles.sendInputsContainer}>
                         <Input
                             value={msgInputVal}
                             onChangeText={this.handleInputChange}
-                            placeholder={this.translate('pages.directMessage.inputPlaceholder')}
+                            placeholder={this.translate(
+                                'pages.directMessage.inputPlaceholder'
+                            )}
                             inputStyle={{
                                 color: 'white',
                             }}
                             containerStyle={messageStyles.inputContainer}
                         />
                         <Button
-                            icon={
-                                <Icon
-                                    name="send"
-                                    size={25}
-                                    color="white"
-                                />
-                            }
-                            type='clear'
+                            icon={<Icon name="send" size={25} color="white" />}
+                            type="clear"
                             buttonStyle={messageStyles.sendBtn}
                             containerStyle={messageStyles.sendBtnContainer}
                             onPress={this.handleSend}

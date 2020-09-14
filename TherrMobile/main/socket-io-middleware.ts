@@ -7,7 +7,6 @@ import {
 } from 'therr-js-utilities/constants';
 import getConfig from './utilities/getConfig';
 
-
 // Socket IO Connection
 // NOTE: For local dev development, must use machine IP rather than localhost
 // When device is plugged into computer, device seems to work just fine
