@@ -31,6 +31,7 @@ const handleServiceRequest = ({
         .catch((error) => {
             if (error && error.response && error.response.data) {
                 return handleHttpError({
+                    err: error,
                     res,
                     message: error.response.data.message,
                     statusCode: error.response.data.statusCode,

@@ -125,6 +125,7 @@
         "userName": "Username"
       },
       "pageTitle": "User Profile",
+      "noActiveConnections": "There are currently no active connections in your network",
       "requestRecommendation": "Send a request to make connections and build a network",
       "validationErrors": {
         "phoneNumber": "Invalid phone number"

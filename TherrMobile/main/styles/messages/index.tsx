@@ -14,7 +14,7 @@ export default StyleSheet.create({
         display: 'flex',
         flexDirection: 'row',
         width: '100%',
-        alignItems: 'center'
+        alignItems: 'center',
     },
     inputContainer: {
         flex: 1,
@@ -24,5 +24,5 @@ export default StyleSheet.create({
     },
     sendBtnContainer: {
         marginBottom: 15,
-    }
+    },
 });
