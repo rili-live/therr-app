@@ -1,5 +1,5 @@
 import Knex from 'knex';
-import connection, { IConnection } from './connection';
+import { IConnection } from './connection';
 
 const knex: Knex = Knex({ client: 'pg' });
 
@@ -12,6 +12,7 @@ export interface ICreateUserParams {
     password: string;
     phoneNumber: string;
     userName: string;
+    verificationCodes: string;
 }
 
 interface IFindUserArgs {
@@ -21,7 +22,7 @@ interface IFindUserArgs {
     phoneNumber?: string;
 }
 
-class Store {
+export default class UsersStore {
     db: IConnection;
 
     constructor(dbConnection) {
@@ -94,5 +95,3 @@ class Store {
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 }
-
-export default new Store(connection);

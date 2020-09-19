@@ -1,30 +1,10 @@
-import * as express from 'express';
+import { configureHandleHttpError, IErrorArgs } from 'therr-js-utilities/http';
 import beeline from '../beeline';
 
-interface IErrorArgs {
-    err?: Error;
-    res: express.Response;
-    message: string;
-    resBody?: any;
-    statusCode?: number;
-}
-
-const handleHttpError = ({
-    err,
-    res,
-    message,
-    resBody,
-    statusCode,
-}: IErrorArgs) => {
-    beeline.addContext({
-        errorMessage: err ? err.stack : message,
-    });
-
-    return res.status(statusCode || 500).send({
-        statusCode: statusCode || 500,
-        message,
-        ...resBody,
-    });
+export {
+    IErrorArgs,
 };
+
+const handleHttpError = configureHandleHttpError(beeline);
 
 export default handleHttpError;

@@ -1,4 +1,7 @@
+import debug from 'debug';
 import * as express from 'express';
+
+const debugHttp = debug('http');
 
 export interface IErrorArgs {
     err? : Error;
@@ -15,6 +18,7 @@ const configureHandleHttpError = (beeline: any) => ({
     resBody,
     statusCode,
 }: IErrorArgs) => {
+    debugHttp((err && err.message) || err || message);
     beeline.addContext({
         errorMessage: err ? err.stack : message,
     });

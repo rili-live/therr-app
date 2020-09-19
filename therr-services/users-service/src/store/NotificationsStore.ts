@@ -2,7 +2,7 @@ import Knex from 'knex';
 // import { Notifications } from 'therr-js-utilities/constants';
 import { getDbCountQueryString } from 'therr-js-utilities/db';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
-import connection, { IConnection } from './connection';
+import { IConnection } from './connection';
 import { USER_CONNECTIONS_TABLE_NAME } from './UserConnectionsStore';
 
 const knex: Knex = Knex({ client: 'pg' });
@@ -32,7 +32,7 @@ export interface IUpdateNotificationParams {
     messageParams?: any;
 }
 
-class Store {
+export default class NotificationsStore {
     db: IConnection;
 
     constructor(dbConnection) {
@@ -131,5 +131,3 @@ class Store {
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 }
-
-export default new Store(connection);

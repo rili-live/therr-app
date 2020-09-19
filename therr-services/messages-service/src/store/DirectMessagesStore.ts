@@ -24,7 +24,7 @@ export interface IUpdateDirectMessageParams {
     isUnread?: boolean;
 }
 
-class Store {
+export default class DirectMessagesStore {
     db: IConnection;
 
     constructor(dbConnection) {
@@ -81,5 +81,3 @@ class Store {
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 }
-
-export default new Store(connection);
