@@ -17,10 +17,10 @@ const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(
         }
 
         // TODO: Supply user agent to determine if web or mobile
-        // TODO: RSERV-47 - create JWT with user email
-        const codeDetails = generateCode({ email: req.body.email });
+        const codeDetails = generateCode({ email: req.body.email, type: 'email' });
+        const verificationCode = { type: codeDetails.type, code: codeDetails.code };
 
-        return Store.verificationCodes.createCode(codeDetails)
+        return Store.verificationCodes.createCode(verificationCode)
             .then(() => hashPassword(req.body.password))
             .then((hash) => Store.users.createUser({
                 email: req.body.email,
@@ -29,7 +29,7 @@ const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(
                 password: hash,
                 phoneNumber: req.body.phoneNumber,
                 userName: req.body.userName,
-                verificationCodes: JSON.stringify([{ type: codeDetails.type, code: codeDetails.code }]),
+                verificationCodes: JSON.stringify([verificationCode]),
             }))
             .then((results) => {
                 const user = results[0];
@@ -41,7 +41,7 @@ const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(
                 }, {
                     name: `${req.body.firstName} ${req.body.lastName}`,
                     userName: req.body.userName,
-                    verificationCode: codeDetails.code,
+                    verificationCodeToken: codeDetails.token,
                 })
                     .then(() => res.status(201).send(user))
                     .catch((error) => {
@@ -129,24 +129,61 @@ const deleteUser = (req, res) => Store.users.deleteUsers({ id: req.params.id })
 
 // TODO: RSERV-47 - decode jwt, then check for user and verification code match
 // Send an e-mail if verification passes
-const verifyUserAccount = (req, res) => Store.verificationCodes.getCode({
-    code: req.params.token,
-    type: req.body.type,
-})
-    .then((results) => {
-        if (!results.length) {
-            return handleHttpError({
-                res,
-                message: 'No verification code found.',
-                statusCode: 404,
-            });
-        }
+const verifyUserAccount = (req, res) => {
+    const {
+        token,
+    } = req.params;
 
-        return res.status(200).send({
-            message: 'Account successfully verified',
+    let decodedToken;
+
+    try {
+        decodedToken = token && Buffer.from(token, 'base64').toString('ascii');
+        decodedToken = JSON.parse(decodedToken);
+    } catch (e) {
+        return handleHttpError({ err: e, res, message: 'SQL:USER_ROUTES:ERROR' });
+    }
+
+    return Store.users.getUsers({ email: decodedToken.email })
+        .then((userDetails) => {
+            if (!userDetails.length) {
+                return handleHttpError({
+                    res,
+                    message: `No user found with email ${decodedToken.email}.`,
+                    statusCode: 404,
+                });
+            }
+            const userVerificationCodes = userDetails[0].verificationCodes;
+            Store.verificationCodes.getCode({
+                code: decodedToken.code,
+                type: req.body.type,
+            })
+                .then((codeResults) => {
+                    if (!codeResults.length) {
+                        return handleHttpError({
+                            res,
+                            message: 'No verification code found.',
+                            statusCode: 404,
+                        });
+                    }
+
+                    const codeMatches = !userVerificationCodes
+                        .find((code) => (code.type === codeResults[0].type && code.code === codeResults[0].type));
+
+                    // TODO: RSERV-47 - verify expiresAt value
+                    if (codeMatches) {
+                        // TODO: RSERV-47 - Delete verificationCode and update user
+                        return res.status(200).send({
+                            message: 'Account successfully verified',
+                        });
+                    }
+
+                    return res.status(400).send({
+                        message: 'Invalid token',
+                    });
+                })
+                .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
         });
-    })
-    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+};
 
 export {
     createUser,

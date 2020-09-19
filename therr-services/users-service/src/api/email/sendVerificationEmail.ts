@@ -1,4 +1,7 @@
+/* eslint-disable max-len */
+
 import sendEmail from './sendEmail';
+import * as globalConfig from '../../../../../global-config';
 
 export interface ISendVerificationEmailConfig {
     charset?: string;
@@ -9,7 +12,7 @@ export interface ISendVerificationEmailConfig {
 export interface ITemplateParams {
     name: string;
     userName: string;
-    verificationCode: string;
+    verificationCodeToken: string;
 }
 
 export default (emailParams: ISendVerificationEmailConfig, templateParams: ITemplateParams) => {
@@ -18,10 +21,10 @@ export default (emailParams: ISendVerificationEmailConfig, templateParams: ITemp
         <h2>Welcome, ${templateParams.name}!</h2>
         <h3>Username: ${templateParams.userName}</h3>
         <p>Click the following link to verify your account.</p>
-        <p><a href="https://www.therr.app/verify-account?code=${templateParams.verificationCode}">https://www.therr.app/verify-account</a></p>
+        <p><a href="${globalConfig[process.env.NODE_ENV].hostFull}/verify-account?token=${templateParams.verificationCodeToken}">${globalConfig[process.env.NODE_ENV].hostFull}/verify-account</a></p>
         <p></p>
         <p>If you are unable to click the link, copy paste the following URL in the browser:</p>
-        <p>https://www.therr.app/verify-account?code=${templateParams.verificationCode}</p>
+        <p>${globalConfig[process.env.NODE_ENV].hostFull}/verify-account?token=${templateParams.verificationCodeToken}</p>
     `;
 
     return sendEmail({
