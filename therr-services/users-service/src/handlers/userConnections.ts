@@ -2,10 +2,8 @@ import { RequestHandler } from 'express';
 import { Notifications } from 'therr-js-utilities/constants';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
 import beeline from '../beeline';
-import NotificationsStore from '../store/NotificationsStore';
+import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
-import UserConnectionsStore from '../store/UserConnectionsStore';
-import UsersStore from '../store/UsersStore';
 import translate from '../utilities/translator';
 import { translateNotification } from './notifications';
 
@@ -25,7 +23,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
 
     if (!acceptingUserId) {
         try {
-            const userResults = await UsersStore.findUser({
+            const userResults = await Store.users.findUser({
                 phoneNumber: acceptingUserPhoneNumber,
                 email: acceptingUserEmail,
             });
@@ -56,7 +54,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
     }
 
     // TODO: Make this one DB request
-    return UserConnectionsStore.getUserConnections({
+    return Store.userConnections.getUserConnections({
         requestingUserId,
         acceptingUserId: acceptingId,
     }, true)
@@ -69,11 +67,11 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 });
             }
 
-            return UserConnectionsStore.createUserConnection({
+            return Store.userConnections.createUserConnection({
                 requestingUserId,
                 acceptingUserId: acceptingId,
                 requestStatus: 'pending',
-            }).then(([userConnection]) => NotificationsStore.createNotification({
+            }).then(([userConnection]) => Store.notifications.createNotification({
                 userId: acceptingId,
                 type: Notifications.Types.CONNECTION_REQUEST_RECEIVED,
                 associationId: userConnection.id,
@@ -98,7 +96,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
 };
 
 // READ
-const getUserConnection = (req, res) => UserConnectionsStore.getUserConnections({
+const getUserConnection = (req, res) => Store.userConnections.getUserConnections({
     requestingUserId: req.params.requestingUserId,
     acceptingUserId: Number(req.query.acceptingUserId),
 })
@@ -124,8 +122,8 @@ const searchUserConnections: RequestHandler = (req: any, res: any) => {
     } = req.query;
     const integerColumns = ['requestingUserId', 'acceptingUserId', 'interactionCount'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
-    const searchPromise = UserConnectionsStore.searchUserConnections(searchArgs[0], searchArgs[1], shouldCheckReverse);
-    const countPromise = UserConnectionsStore.countRecords({
+    const searchPromise = Store.userConnections.searchUserConnections(searchArgs[0], searchArgs[1], shouldCheckReverse);
+    const countPromise = Store.userConnections.countRecords({
         filterBy,
         query,
     });
@@ -148,7 +146,7 @@ const searchUserConnections: RequestHandler = (req: any, res: any) => {
 // UPDATE
 // TODO: Assess security implications to prevent anyone from hacking this endpoint
 // TODO: RSERV-32 - return associated users (same as search userConnections does)
-const updateUserConnection = (req, res) => UserConnectionsStore.getUserConnections({
+const updateUserConnection = (req, res) => Store.userConnections.getUserConnections({
     requestingUserId: Number(req.params.requestingUserId),
     acceptingUserId: req.body.acceptingUserId,
 })
@@ -167,7 +165,7 @@ const updateUserConnection = (req, res) => UserConnectionsStore.getUserConnectio
             });
         }
 
-        return UserConnectionsStore
+        return Store.userConnections
             .updateUserConnection({
                 requestingUserId: req.params.requestingUserId,
                 acceptingUserId: req.body.acceptingUserId,
@@ -176,7 +174,7 @@ const updateUserConnection = (req, res) => UserConnectionsStore.getUserConnectio
                 isConnectionBroken,
                 requestStatus,
             })
-            .then(() => UserConnectionsStore.getExpandedUserConnections({
+            .then(() => Store.userConnections.getExpandedUserConnections({
                 requestingUserId: req.params.requestingUserId,
                 acceptingUserId: req.body.acceptingUserId,
             }))

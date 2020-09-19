@@ -1,7 +1,7 @@
 import Knex from 'knex';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { getDbCountQueryString } from 'therr-js-utilities/db';
-import connection, { IConnection } from './connection';
+import { IConnection } from './connection';
 import { USERS_TABLE_NAME } from './UsersStore';
 
 const knex: Knex = Knex({ client: 'pg' });
@@ -27,7 +27,7 @@ export interface IUpdateUserConnectionParams {
     requestStatus?: 'pending' | 'complete' | 'denied';
 }
 
-class Store {
+export default class UserConnectionsStore {
     db: IConnection;
 
     constructor(dbConnection) {
@@ -193,5 +193,3 @@ class Store {
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 }
-
-export default new Store(connection);
