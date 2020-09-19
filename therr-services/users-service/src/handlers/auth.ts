@@ -2,12 +2,12 @@ import * as bcrypt from 'bcrypt';
 import { RequestHandler } from 'express';
 import * as jwt from 'jsonwebtoken';
 import handleHttpError from '../utilities/handleHttpError';
-import UsersStore from '../store/UsersStore';
+import Store from '../store';
 import { createUserToken } from '../utilities/userHelpers';
 import translate from '../utilities/translator';
 
 // Authenticate user
-const login: RequestHandler = (req: any, res: any) => UsersStore
+const login: RequestHandler = (req: any, res: any) => Store.users
     .getUsers({ userName: req.body.userName }, { email: req.body.userName })
     .then((results) => {
         const locale = req.headers['x-localecode'] || 'en-us';
@@ -42,7 +42,7 @@ const login: RequestHandler = (req: any, res: any) => UsersStore
     .catch((err) => handleHttpError({ err, res, message: 'SQL:AUTH_ROUTES:ERROR' }));
 
 // Logout user
-const logout: RequestHandler = (req: any, res: any) => UsersStore.getUsers({ userName: req.body.userName })
+const logout: RequestHandler = (req: any, res: any) => Store.users.getUsers({ userName: req.body.userName })
     .then((results) => {
         if (!results.length) {
             return handleHttpError({

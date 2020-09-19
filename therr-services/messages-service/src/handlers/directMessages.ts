@@ -2,13 +2,13 @@ import { RequestHandler } from 'express';
 import moment from 'moment';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
-import DirectMessagesStore from '../store/DirectMessagesStore';
+import Store from '../store';
 
 // CREATE
 const createDirectMessage = (req, res) => {
     const locale = req.headers['x-localecode'] || 'en-us';
 
-    return DirectMessagesStore.createDirectMessage({
+    return Store.directMessages.createDirectMessage({
         message: req.body.message,
         toUserId: req.body.toUserId,
         fromUserId: req.body.fromUserId,
@@ -31,8 +31,8 @@ const searchDirectMessages: RequestHandler = (req: any, res: any) => {
     } = req.query;
     const integerColumns = ['toUserId', 'fromUserId'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
-    const searchPromise = DirectMessagesStore.searchDirectMessages(userId, searchArgs[0], searchArgs[1], shouldCheckReverse);
-    const countPromise = DirectMessagesStore.countRecords({
+    const searchPromise = Store.directMessages.searchDirectMessages(userId, searchArgs[0], searchArgs[1], shouldCheckReverse);
+    const countPromise = Store.directMessages.countRecords({
         filterBy,
         query,
     });
