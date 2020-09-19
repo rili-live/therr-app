@@ -1,44 +1,31 @@
-import { awsSES } from '../aws';
+import sendEmail from './sendEmail';
 
-export default (user: any) => new Promise((resolve, reject) => {
-    // TODO: RAUTO-7: Fill in values
-    const params = {
-        Content: {
-            Simple: {
-                Body: {
-                    Html: {
-                        Data: 'STRING_VALUE',
-                        Charset: 'STRING_VALUE',
-                    },
-                    Text: {
-                        Data: 'STRING_VALUE',
-                        Charset: 'STRING_VALUE',
-                    },
-                },
-                Subject: {
-                    Data: 'STRING_VALUE',
-                    Charset: 'STRING_VALUE',
-                },
-            },
-        },
-        Destination: {
-            BccAddresses: [
-                'STRING_VALUE',
-            ],
-            CcAddresses: [
-                'STRING_VALUE',
-            ],
-            ToAddresses: [
-                'STRING_VALUE',
-            ],
-        },
-    };
+export interface ISendVerificationEmailConfig {
+    charset?: string;
+    subject: string;
+    toAddresses: string[];
+}
 
-    awsSES.sendEmail(params, (err, data) => {
-        if (err) {
-            return reject(err);
-        }
+export interface ITemplateParams {
+    name: string;
+    userName: string;
+    verificationCode: string;
+}
 
-        return resolve(data);
+export default (emailParams: ISendVerificationEmailConfig, templateParams: ITemplateParams) => {
+    const html = `
+        <h1>Therr App: User Account Verification</h1>
+        <h2>Welcome, ${templateParams.name}!</h2>
+        <h3>Username: ${templateParams.userName}</h3>
+        <p>Click the following link to verify your account.</p>
+        <p><a href="https://www.therr.app/verify-account?code=${templateParams.verificationCode}">https://www.therr.app/verify-account</a></p>
+        <p></p>
+        <p>If you are unable to click the link, copy paste the following URL in the browser:</p>
+        <p>https://www.therr.app/verify-account?code=${templateParams.verificationCode}</p>
+    `;
+
+    return sendEmail({
+        ...emailParams,
+        html,
     });
-});
+};

@@ -7,7 +7,7 @@ import {
     logoutUserValidation,
     authenticateUserTokenValidation,
 } from './validation/auth';
-import { createUserValidation } from './validation/users';
+import { createUserValidation, verifyUserAccountValidation } from './validation/users';
 import {
     createUserConnectionValidation,
 } from './validation/userConnections';
@@ -54,12 +54,17 @@ usersServiceRouter.get('/users', handleServiceRequest({
 
 usersServiceRouter.put('/users/:id', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'puts',
+    method: 'put',
 }));
 
 usersServiceRouter.delete('/users/:id', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'delete',
+}));
+
+usersServiceRouter.post('/users/verify/:token', verifyUserAccountValidation, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
 }));
 
 // Connections
