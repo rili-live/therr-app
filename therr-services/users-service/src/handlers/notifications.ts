@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
-import NotificationsStore from '../store/NotificationsStore';
+import Store from '../store';
 import translate from '../utilities/translator';
 
 export const translateNotification = (notification, locale = 'en-us') => ({
@@ -10,7 +10,7 @@ export const translateNotification = (notification, locale = 'en-us') => ({
 });
 
 // CREATE
-const createNotification = (req, res) => NotificationsStore.createNotification({
+const createNotification = (req, res) => Store.notifications.createNotification({
     userId: req.body.userId,
     type: req.body.type,
     associationId: req.body.associationId,
@@ -26,7 +26,7 @@ const createNotification = (req, res) => NotificationsStore.createNotification({
     .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
 
 // READ
-const getNotification = (req, res) => NotificationsStore.getNotifications({
+const getNotification = (req, res) => Store.notifications.getNotifications({
     requestingUserId: req.params.notificationId,
 })
     .then((results) => {
@@ -53,8 +53,8 @@ const searchNotifications: RequestHandler = (req: any, res: any) => {
     } = req.query;
     const integerColumns = ['id', 'userId', 'associationId'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
-    const searchPromise = NotificationsStore.searchNotifications(searchArgs[0]);
-    const countPromise = NotificationsStore.countRecords({
+    const searchPromise = Store.notifications.searchNotifications(searchArgs[0]);
+    const countPromise = Store.notifications.countRecords({
         filterBy,
         query,
     });
@@ -75,7 +75,7 @@ const searchNotifications: RequestHandler = (req: any, res: any) => {
 };
 
 // UPDATE
-const updateNotification = (req, res) => NotificationsStore.getNotifications({
+const updateNotification = (req, res) => Store.notifications.getNotifications({
     id: req.params.notificationId,
 })
     .then((getResults) => {
@@ -92,7 +92,7 @@ const updateNotification = (req, res) => NotificationsStore.getNotifications({
             });
         }
 
-        return NotificationsStore
+        return Store.notifications
             .updateNotification({
                 id: req.params.notificationId,
             }, {

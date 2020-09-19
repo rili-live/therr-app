@@ -1,11 +1,11 @@
 import { RequestHandler } from 'express';
 import handleHttpError from '../utilities/handleHttpError';
-import UsersStore from '../store/UsersStore';
+import Store from '../store';
 import { hashPassword } from '../utilities/userHelpers';
 import { sendVerificationEmail } from '../api/email';
 
 // CREATE
-const createUser: RequestHandler = (req: any, res: any) => UsersStore.findUser(req.body)
+const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(req.body)
     .then((findResults) => {
         if (findResults.length) {
             return handleHttpError({
@@ -16,7 +16,7 @@ const createUser: RequestHandler = (req: any, res: any) => UsersStore.findUser(r
         }
 
         return hashPassword(req.body.password)
-            .then((hash) => UsersStore
+            .then((hash) => Store.users
                 .createUser({
                     email: req.body.email,
                     firstName: req.body.firstName,
@@ -46,7 +46,7 @@ const createUser: RequestHandler = (req: any, res: any) => UsersStore.findUser(r
     }));
 
 // READ
-const getUser = (req, res) => UsersStore.getUsers({ id: req.params.id })
+const getUser = (req, res) => Store.users.getUsers({ id: req.params.id })
     .then((results) => {
         if (!results.length) {
             return handleHttpError({
@@ -61,7 +61,7 @@ const getUser = (req, res) => UsersStore.getUsers({ id: req.params.id })
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
-const getUsers: RequestHandler = (req: any, res: any) => UsersStore.getUsers()
+const getUsers: RequestHandler = (req: any, res: any) => Store.users.getUsers()
     .then((results) => {
         res.status(200).send(results[0].map((user) => {
             delete user.password; // eslint-disable-line no-param-reassign
@@ -71,7 +71,7 @@ const getUsers: RequestHandler = (req: any, res: any) => UsersStore.getUsers()
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
 // UPDATE
-const updateUser = (req, res) => UsersStore.findUser({ id: req.params.id, ...req.body })
+const updateUser = (req, res) => Store.users.findUser({ id: req.params.id, ...req.body })
     .then((findResults) => {
         if (!findResults.length) {
             return handleHttpError({
@@ -81,7 +81,7 @@ const updateUser = (req, res) => UsersStore.findUser({ id: req.params.id, ...req
             });
         }
 
-        return UsersStore
+        return Store.users
             .updateUser({
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
@@ -99,7 +99,7 @@ const updateUser = (req, res) => UsersStore.findUser({ id: req.params.id, ...req
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
 // DELETE
-const deleteUser = (req, res) => UsersStore.deleteUsers({ id: req.params.id })
+const deleteUser = (req, res) => Store.users.deleteUsers({ id: req.params.id })
     .then((results) => {
         if (!results.length) {
             return handleHttpError({
