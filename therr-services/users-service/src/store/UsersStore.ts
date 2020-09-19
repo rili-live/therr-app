@@ -12,6 +12,7 @@ export interface ICreateUserParams {
     password: string;
     phoneNumber: string;
     userName: string;
+    verificationCodes: string;
 }
 
 interface IFindUserArgs {

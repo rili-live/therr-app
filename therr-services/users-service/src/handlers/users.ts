@@ -2,6 +2,7 @@ import { RequestHandler } from 'express';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { hashPassword } from '../utilities/userHelpers';
+import generateCode from '../utilities/generateCode';
 import { sendVerificationEmail } from '../api/email';
 
 // CREATE
@@ -15,29 +16,33 @@ const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(
             });
         }
 
-        return hashPassword(req.body.password)
-            .then((hash) => Store.users
-                .createUser({
-                    email: req.body.email,
-                    firstName: req.body.firstName,
-                    lastName: req.body.lastName,
-                    password: hash,
-                    phoneNumber: req.body.phoneNumber,
-                    userName: req.body.userName,
-                })
-                .then((results) => {
-                    const user = results[0];
-                    delete user.password;
+        // TODO: Supply user agent to determine if web or mobile
+        const codeDetails = generateCode({});
 
-                    // return sendVerificationEmail(user)
-                    //     .then((emailResponse) => {
-                    //         // TODO: RAUTO-7: Validate response
-                    //         // Generate/store an email verification token
-                    //         console.log(emailResponse);
-                    //         return res.status(201).send(user);
-                    //     });
-                    return res.status(201).send(user);
-                }));
+        return Store.verificationCodes.createCode(codeDetails)
+            .then(() => hashPassword(req.body.password))
+            .then((hash) => Store.users.createUser({
+                email: req.body.email,
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
+                password: hash,
+                phoneNumber: req.body.phoneNumber,
+                userName: req.body.userName,
+                verificationCodes: JSON.stringify([{ type: codeDetails.type, code: codeDetails.code }]),
+            }))
+            .then((results) => {
+                const user = results[0];
+                delete user.password;
+
+                // return sendVerificationEmail(user)
+                //     .then((emailResponse) => {
+                //         // TODO: RAUTO-7: Validate response
+                //         // Generate/store an email verification token
+                //         console.log(emailResponse);
+                //         return res.status(201).send(user);
+                //     });
+                return res.status(201).send(user);
+            });
     })
     .catch((err) => handleHttpError({
         err,

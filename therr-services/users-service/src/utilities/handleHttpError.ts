@@ -1,3 +1,4 @@
+import debug from 'debug';
 import * as express from 'express';
 import beeline from '../beeline';
 
@@ -9,6 +10,8 @@ interface IErrorArgs {
     statusCode?: number;
 }
 
+const debugHttp = debug('http');
+
 const handleHttpError = ({
     err,
     res,
@@ -16,6 +19,7 @@ const handleHttpError = ({
     resBody,
     statusCode,
 }: IErrorArgs) => {
+    debugHttp((err && err.message) || err);
     beeline.addContext({
         errorMessage: err ? err.stack : message,
     });

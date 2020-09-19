@@ -2,6 +2,7 @@ import connection, { IConnection } from './connection';
 import NotificationsStore from './NotificationsStore';
 import UserConnectionsStore from './UserConnectionsStore';
 import UsersStore from './UsersStore';
+import VerificationCodesStore from './VerificationCodesStore';
 
 class Store {
     db: IConnection;
@@ -12,12 +13,15 @@ class Store {
 
     notifications: NotificationsStore;
 
+    verificationCodes: VerificationCodesStore;
+
     constructor(dbConnection) {
         this.db = dbConnection;
 
         this.users = new UsersStore(this.db);
         this.userConnections = new UserConnectionsStore(this.db);
         this.notifications = new NotificationsStore(this.db);
+        this.verificationCodes = new VerificationCodesStore(this.db);
     }
 }
 
