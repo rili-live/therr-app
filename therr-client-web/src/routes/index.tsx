@@ -3,6 +3,7 @@ import { RouteProps } from 'react-router-dom';
 import { AccessCheckType, IAccess } from 'therr-react/types';
 import Forum from './Forum';
 import CreateForum from './CreateForum';
+import EmailVerification from './EmailVerification';
 import PageNotFound from './PageNotFound';
 import Register from './Register';
 import Home from './Home';
@@ -47,6 +48,11 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
             type: AccessCheckType.ALL,
             levels: ['user.default'],
         },
+    },
+    {
+        path: '/verify-account',
+        component: EmailVerification,
+        exact: true,
     },
     {
         path: '/login',

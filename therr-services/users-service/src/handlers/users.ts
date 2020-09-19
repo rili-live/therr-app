@@ -17,7 +17,8 @@ const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(
         }
 
         // TODO: Supply user agent to determine if web or mobile
-        const codeDetails = generateCode({});
+        // TODO: RSERV-47 - create JWT with user email
+        const codeDetails = generateCode({ email: req.body.email });
 
         return Store.verificationCodes.createCode(codeDetails)
             .then(() => hashPassword(req.body.password))
@@ -34,14 +35,20 @@ const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(
                 const user = results[0];
                 delete user.password;
 
-                // return sendVerificationEmail(user)
-                //     .then((emailResponse) => {
-                //         // TODO: RAUTO-7: Validate response
-                //         // Generate/store an email verification token
-                //         console.log(emailResponse);
-                //         return res.status(201).send(user);
-                //     });
-                return res.status(201).send(user);
+                return sendVerificationEmail({
+                    subject: '[Account Verification] Therr User Account',
+                    toAddresses: [req.body.email],
+                }, {
+                    name: `${req.body.firstName} ${req.body.lastName}`,
+                    userName: req.body.userName,
+                    verificationCode: codeDetails.code,
+                })
+                    .then(() => res.status(201).send(user))
+                    .catch((error) => {
+                        // Delete user to allow re-registration
+                        Store.users.deleteUsers({ id: user.id });
+                        throw error;
+                    });
             });
     })
     .catch((err) => handleHttpError({
@@ -120,10 +127,32 @@ const deleteUser = (req, res) => Store.users.deleteUsers({ id: req.params.id })
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
+// TODO: RSERV-47 - decode jwt, then check for user and verification code match
+// Send an e-mail if verification passes
+const verifyUserAccount = (req, res) => Store.verificationCodes.getCode({
+    code: req.params.token,
+    type: req.body.type,
+})
+    .then((results) => {
+        if (!results.length) {
+            return handleHttpError({
+                res,
+                message: 'No verification code found.',
+                statusCode: 404,
+            });
+        }
+
+        return res.status(200).send({
+            message: 'Account successfully verified',
+        });
+    })
+    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+
 export {
     createUser,
     getUser,
     getUsers,
     updateUser,
     deleteUser,
+    verifyUserAccount,
 };

@@ -79,6 +79,12 @@
       "welcome": "Welcome!",
       "inputPlaceholder": "Enter a message"
     },
+    "emailVerification": {
+      "pageTitle": "Account Verification",
+      "returnToLogin": "Return to login page",
+      "failedMessage": "Failed to verify your e-mail. Invalid verification code.",
+      "successMessage": "E-mail successfully verified!"
+    },
     "home": {
       "pageTitle": "Home"
     },
