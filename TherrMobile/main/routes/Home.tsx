@@ -56,24 +56,32 @@ class Home extends React.Component<IHomeProps, IHomeState> {
     componentDidMount() {
         const { user, userConnections } = this.props;
         if (!userConnections.connections.length) {
-            this.props.searchUserConnections(
-                {
-                    filterBy: 'acceptingUserId',
-                    query: user.details && user.details.id,
-                    itemsPerPage: 50,
-                    pageNumber: 1,
-                    orderBy: 'interactionCount',
-                    order: 'desc',
-                    shouldCheckReverse: true,
-                },
-                user.details && user.details.id
-            ).catch(() => {});
+            this.props
+                .searchUserConnections(
+                    {
+                        filterBy: 'acceptingUserId',
+                        query: user.details && user.details.id,
+                        itemsPerPage: 50,
+                        pageNumber: 1,
+                        orderBy: 'interactionCount',
+                        order: 'desc',
+                        shouldCheckReverse: true,
+                    },
+                    user.details && user.details.id
+                )
+                .catch(() => {});
         }
     }
 
     getConnectionDetails = (connection) => {
         const { user } = this.props;
 
+        // Active connection format
+        if (!connection.users) {
+            return connection;
+        }
+
+        // User <-> User connection format
         return (
             connection.users.find(
                 (u) => user.details && u.id !== user.details.id
@@ -148,48 +156,95 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                             </View>
                             <View style={styles.sectionContainer}>
                                 <Text style={styles.sectionTitle}>
-                                    Your Connections
+                                    Active Connections
                                 </Text>
-                                {userConnections.connections ? (
-                                    userConnections.connections.map(
-                                        (connection) => (
-                                            <ListItem
-                                                key={connection.id}
-                                                leftAvatar={{
-                                                    source: {
-                                                        uri: `https://robohash.org/${
-                                                            connection.acceptingUserId ===
+                                {userConnections.activeConnections &&
+                                userConnections.activeConnections.length ? (
+                                        userConnections.activeConnections.map(
+                                            (connection) => (
+                                                <ListItem
+                                                    key={connection.id}
+                                                    leftAvatar={{
+                                                        source: {
+                                                            uri: `https://robohash.org/${
+                                                                connection.acceptingUserId ===
                                                                 user.details &&
                                                             user.details.id
-                                                                ? connection.requestingUserId
-                                                                : connection.acceptingUserId
-                                                        }?size=100x100`,
-                                                    },
-                                                }}
-                                                onPress={() =>
-                                                    this.onConnectionPress(
+                                                                    ? connection.requestingUserId
+                                                                    : connection.acceptingUserId
+                                                            }?size=100x100`,
+                                                        },
+                                                    }}
+                                                    onPress={() =>
+                                                        this.onConnectionPress(
+                                                            connection
+                                                        )
+                                                    }
+                                                    title={
+                                                        this.getConnectionDetails(
+                                                            connection
+                                                        ).userName
+                                                    }
+                                                    subtitle={this.getConnectionSubtitle(
                                                         connection
-                                                    )
-                                                }
-                                                title={
-                                                    this.getConnectionDetails(
-                                                        connection
-                                                    ).userName
-                                                }
-                                                subtitle={this.getConnectionSubtitle(
-                                                    connection
-                                                )}
-                                                bottomDivider
-                                            />
+                                                    )}
+                                                    bottomDivider
+                                                />
+                                            )
                                         )
-                                    )
-                                ) : (
-                                    <Text>
-                                        {this.translate(
-                                            'pages.userProfile.requestRecommendation'
-                                        )}
-                                    </Text>
-                                )}
+                                    ) : (
+                                        <Text style={styles.sectionDescription}>
+                                            {this.translate(
+                                                'pages.userProfile.noActiveConnections'
+                                            )}
+                                        </Text>
+                                    )}
+                            </View>
+                            <View style={styles.sectionContainer}>
+                                <Text style={styles.sectionTitle}>
+                                    Connections
+                                </Text>
+                                {userConnections.connections &&
+                                userConnections.connections.length ? (
+                                        userConnections.connections.map(
+                                            (connection) => (
+                                                <ListItem
+                                                    key={connection.id}
+                                                    leftAvatar={{
+                                                        source: {
+                                                            uri: `https://robohash.org/${
+                                                                connection.acceptingUserId ===
+                                                                user.details &&
+                                                            user.details.id
+                                                                    ? connection.requestingUserId
+                                                                    : connection.acceptingUserId
+                                                            }?size=100x100`,
+                                                        },
+                                                    }}
+                                                    onPress={() =>
+                                                        this.onConnectionPress(
+                                                            connection
+                                                        )
+                                                    }
+                                                    title={
+                                                        this.getConnectionDetails(
+                                                            connection
+                                                        ).userName
+                                                    }
+                                                    subtitle={this.getConnectionSubtitle(
+                                                        connection
+                                                    )}
+                                                    bottomDivider
+                                                />
+                                            )
+                                        )
+                                    ) : (
+                                        <Text style={styles.sectionDescription}>
+                                            {this.translate(
+                                                'pages.userProfile.requestRecommendation'
+                                            )}
+                                        </Text>
+                                    )}
                             </View>
                         </View>
                     </ScrollView>

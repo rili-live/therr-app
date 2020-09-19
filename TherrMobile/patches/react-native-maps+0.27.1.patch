@@ -1,0 +1,62 @@
+diff --git a/node_modules/react-native-maps/lib/components/Geojson.js b/node_modules/react-native-maps/lib/components/Geojson.js
+index e72b56b..62fe68b 100644
+--- a/node_modules/react-native-maps/lib/components/Geojson.js
++++ b/node_modules/react-native-maps/lib/components/Geojson.js
+@@ -1,5 +1,7 @@
+ import React from 'react';
+-import MapView from './MapView';
++import Marker from './MapMarker';
++import Polyline from './MapPolyline';
++import Polygon from './MapPolygon';
+ 
+ export const makeOverlays = features => {
+   const points = features
+@@ -100,7 +102,7 @@ const Geojson = props => {
+       {overlays.map((overlay, index) => {
+         if (overlay.type === 'point') {
+           return (
+-            <MapView.Marker
++            <Marker
+               key={index}
+               coordinate={overlay.coordinates}
+               pinColor={props.color}
+@@ -109,7 +111,7 @@ const Geojson = props => {
+         }
+         if (overlay.type === 'polygon') {
+           return (
+-            <MapView.Polygon
++            <Polygon
+               key={index}
+               coordinates={overlay.coordinates}
+               holes={overlay.holes}
+@@ -121,7 +123,7 @@ const Geojson = props => {
+         }
+         if (overlay.type === 'polyline') {
+           return (
+-            <MapView.Polyline
++            <Polyline
+               key={index}
+               coordinates={overlay.coordinates}
+               strokeColor={props.strokeColor}
+diff --git a/node_modules/react-native-maps/lib/components/MapPolygon.js b/node_modules/react-native-maps/lib/components/MapPolygon.js
+index b3c3a7c..8231932 100644
+--- a/node_modules/react-native-maps/lib/components/MapPolygon.js
++++ b/node_modules/react-native-maps/lib/components/MapPolygon.js
+@@ -5,7 +5,7 @@ import decorateMapComponent, {
+   USES_DEFAULT_IMPLEMENTATION,
+   SUPPORTED,
+ } from './decorateMapComponent';
+-import MapView from './MapView';
++import * as ProviderConstants from './ProviderConstants';
+ 
+ // if ViewPropTypes is not defined fall back to View.propType (to support RN < 0.44)
+ const viewPropTypes = ViewPropTypes || View.propTypes;
+@@ -179,7 +179,7 @@ class MapPolygon extends React.Component {
+           this.polygon = ref;
+         }}
+         onLayout={
+-          this.context.provider === MapView.PROVIDER_GOOGLE
++          this.context.provider === ProviderConstants.PROVIDER_GOOGLE
+             ? this.updateNativeProps()
+             : undefined
+         }

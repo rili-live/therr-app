@@ -1,11 +1,10 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
-import { Button } from 'react-native-elements';
+import { StatusBar } from 'react-native';
+import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
-import styles from '../styles';
 import UsersActions from '../redux/actions/UsersActions';
 
 interface IMapDispatchProps {
@@ -54,25 +53,17 @@ class Map extends React.Component<IMapProps, IMapState> {
         return (
             <>
                 <StatusBar barStyle="dark-content" />
-                <SafeAreaView>
-                    <ScrollView
-                        contentInsetAdjustmentBehavior="automatic"
-                        style={styles.scrollView}
-                    >
-                        <View style={styles.body}>
-                            <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitle}>
-                                    Map Page
-                                </Text>
-                                <Text style={styles.sectionDescription}>
-                                    Welcome to the Map. This is a work in
-                                    progress...
-                                </Text>
-                                <Button title="Home" onPress={this.goToHome} />
-                            </View>
-                        </View>
-                    </ScrollView>
-                </SafeAreaView>
+                <MapView
+                    provider={PROVIDER_GOOGLE}
+                    style={{ flex: 1 }}
+                    region={{
+                        latitude: 32.8102631,
+                        longitude: -96.4683143,
+                        latitudeDelta: 0.0922,
+                        longitudeDelta: 0.0421,
+                    }}
+                    showsUserLocation={true}
+                />
             </>
         );
     }

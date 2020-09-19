@@ -2,6 +2,7 @@ const apiGatewayPort = 7770;
 const apiMapsPort = 7773;
 const apiMessagesPort = 7772;
 const apiUsersPort = 7771;
+const websocketPort = 7743;
 const hostDev = '127.0.0.1';
 const hostStage = 'stage.therr.app';
 const hostProd = 'therr.app';
@@ -12,7 +13,7 @@ module.exports = {
         baseMapsServiceRoute: `http://${hostDev}:${apiMapsPort}/v1`,
         baseMessagesServiceRoute: `http://${hostDev}:${apiMessagesPort}/v1`,
         baseUsersServiceRoute: `http://${hostDev}:${apiUsersPort}/v1`,
-        baseSocketUrl: `http://${hostDev}:7743`,
+        baseSocketUrl: `http://${hostDev}:${websocketPort}`,
         googleAnalyticsKey: '',
         host: hostDev,
         socket: {
