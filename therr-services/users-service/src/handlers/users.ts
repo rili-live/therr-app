@@ -4,6 +4,7 @@ import Store from '../store';
 import { hashPassword } from '../utilities/userHelpers';
 import generateCode from '../utilities/generateCode';
 import { sendVerificationEmail } from '../api/email';
+import accessLevels from '../constants/accessLevels';
 
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(req.body)
@@ -29,7 +30,11 @@ const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(
                 password: hash,
                 phoneNumber: req.body.phoneNumber,
                 userName: req.body.userName,
-                verificationCodes: JSON.stringify([verificationCode]),
+                verificationCodes: JSON.stringify({
+                    [codeDetails.type]: {
+                        code: codeDetails.code,
+                    },
+                }),
             }))
             .then((results) => {
                 const user = results[0];
@@ -161,27 +166,114 @@ const verifyUserAccount = (req, res) => {
                     if (!codeResults.length) {
                         return handleHttpError({
                             res,
-                            message: 'No verification code found.',
+                            message: 'No verification code found',
                             statusCode: 404,
                         });
                     }
 
-                    const codeMatches = !userVerificationCodes
-                        .find((code) => (code.type === codeResults[0].type && code.code === codeResults[0].type));
+                    const isExpired = codeResults[0].msExpiresAt <= Date.now();
 
-                    // TODO: RSERV-47 - verify expiresAt value
-                    if (codeMatches) {
-                        // TODO: RSERV-47 - Delete verificationCode and update user
+                    if (isExpired) {
+                        return handleHttpError({
+                            res,
+                            message: 'Token has expired',
+                            statusCode: 400,
+                        });
+                    }
+
+                    const userHasMatchingCode = userVerificationCodes[codeResults[0].type]
+                        && userVerificationCodes[codeResults[0].type].code
+                        && userVerificationCodes[codeResults[0].type].code === codeResults[0].code;
+
+                    if (userHasMatchingCode) {
+                        userVerificationCodes[codeResults[0].type] = {}; // clear out used code
+
+                        Store.users.updateUser({
+                            accessLevels: JSON.stringify([...userDetails[0].accessLevels, accessLevels.EMAIL_VERIFIED]),
+                            verificationCodes: JSON.stringify(userVerificationCodes),
+                        }, {
+                            email: decodedToken.email,
+                        });
+
+                        // Set expire rather than delete (gives a window for user to see if already verified)
+                        Store.verificationCodes.updateCode({ msExpiresAt: Date.now() }, { id: codeResults[0].id });
+
                         return res.status(200).send({
                             message: 'Account successfully verified',
                         });
                     }
 
-                    return res.status(400).send({
+                    return handleHttpError({
+                        res,
                         message: 'Invalid token',
+                        statusCode: 400,
                     });
                 })
                 .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+        });
+};
+
+const resendVerification: RequestHandler = (req: any, res: any) => {
+    // TODO: Supply user agent to determine if web or mobile
+    const codeDetails = generateCode({ email: req.body.email, type: req.body.type });
+    const verificationCode = { type: codeDetails.type, code: codeDetails.code };
+    let userVerificationCodes;
+
+    Store.users.getUsers({
+        email: req.body.email,
+    })
+        .then((users) => {
+            if (!users.length) {
+                return handleHttpError({
+                    res,
+                    message: 'User not found',
+                    statusCode: 404,
+                });
+            }
+
+            if (users[0].accessLevels.includes(accessLevels.EMAIL_VERIFIED)) {
+                return handleHttpError({
+                    res,
+                    message: 'Email already verified',
+                    statusCode: 400,
+                });
+            }
+
+            userVerificationCodes = users[0].verificationCodes;
+            userVerificationCodes[codeDetails.type] = {
+                code: codeDetails.code,
+            };
+
+            return Store.verificationCodes.createCode(verificationCode)
+                .then(() => Store.users.updateUser({
+                    verificationCodes: JSON.stringify(userVerificationCodes),
+                }, {
+                    email: req.body.email,
+                }))
+                .then((results) => {
+                    const user = results[0];
+                    delete user.password;
+
+                    return sendVerificationEmail({
+                        subject: '[Account Verification] Therr User Account',
+                        toAddresses: [req.body.email],
+                    }, {
+                        name: `${users[0].firstName} ${users[0].lastName}`,
+                        userName: users[0].userName,
+                        verificationCodeToken: codeDetails.token,
+                    })
+                        .then(() => res.status(200).send({ message: 'New verification E-mail sent' }))
+                        .catch((error) => {
+                            // Delete user to allow re-registration
+                            Store.users.deleteUsers({ id: user.id });
+                            throw error;
+                        });
+                })
+                .catch((err) => handleHttpError({
+                    err,
+                    res,
+                    message: 'SQL:USER_ROUTES:ERROR',
+                }));
         });
 };
 
@@ -192,4 +284,5 @@ export {
     updateUser,
     deleteUser,
     verifyUserAccount,
+    resendVerification,
 };

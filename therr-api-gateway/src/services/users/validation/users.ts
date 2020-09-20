@@ -18,3 +18,11 @@ export const verifyUserAccountValidation = [
     ]),
     param('token').exists().isString(),
 ];
+
+export const resendVerificationValidation = [
+    oneOf([
+        body('type').exists().isString().equals('email'),
+        body('type').exists().isString().equals('mobile'),
+    ]),
+    body('email').exists().isString(),
+];

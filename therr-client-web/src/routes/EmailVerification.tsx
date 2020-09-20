@@ -1,5 +1,9 @@
 import * as React from 'react';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
+import {
+    ButtonPrimary,
+    Input,
+} from 'therr-react/components';
 import translator from '../services/translator';
 import * as globalConfig from '../../../global-config';
 import VerificationCodesService from '../services/VerificationCodesService';
@@ -15,6 +19,8 @@ interface IEmailVerificationDispatchProps {
 }
 
 interface IEmailVerificationState {
+    email: string;
+    errorReason: string;
     verificationStatus: string;
 }
 
@@ -29,6 +35,8 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
         super(props);
 
         this.state = {
+            email: '',
+            errorReason: '',
             verificationStatus: 'pending',
         };
 
@@ -41,12 +49,24 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
         const queryParams = new URLSearchParams(window.location.search);
         const verificationToken = queryParams.get('token');
         VerificationCodesService.verifyEmail(verificationToken)
-            .then((response) => {
+            .then(() => {
                 this.setState({
                     verificationStatus: 'success',
+                }, () => {
+                    this.props.history.push({
+                        pathname: '/login',
+                        state: {
+                            successMessage: this.translate('pages.emailVerification.successVerifiedMessage'),
+                        },
+                    });
                 });
             })
             .catch((error) => {
+                if (error.message === 'Token has expired') {
+                    this.setState({
+                        errorReason: 'TokenExpired',
+                    });
+                }
                 this.setState({
                     verificationStatus: 'failed',
                 });
@@ -55,8 +75,39 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
 
     private translate: Function;
 
+    onSubmit = (event: any) => {
+        event.preventDefault();
+        VerificationCodesService.resendVerification(this.state.email)
+            .then(() => {
+                this.props.history.push({
+                    pathname: '/login',
+                    state: {
+                        successMessage: this.translate('pages.emailVerification.failedMessageVerificationResent', {
+                            email: this.state.email,
+                        }),
+                    },
+                });
+            })
+            .catch((error) => {
+                if (error.message === 'Email already verified') {
+                    this.props.history.push({
+                        pathname: '/login',
+                        state: {
+                            successMessage: this.translate('pages.emailVerification.failedMessageAlreadyVerified'),
+                        },
+                    });
+                }
+            });
+    }
+
+    onInputChange = (name: string, value: string) => {
+        this.setState({
+            email: value,
+        });
+    }
+
     render() {
-        const { verificationStatus } = this.state;
+        const { errorReason, verificationStatus } = this.state;
 
         return (
             <div id="page_email_verification">
@@ -69,16 +120,42 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                     }
                     {
                         verificationStatus === 'success'
-                        && <p>{this.translate('pages.emailVerification.successMessage')}</p>
+                        && <p className="alert-success">{this.translate('pages.emailVerification.successMessage')}</p>
                     }
                     {
-                        verificationStatus === 'failed'
-                        && <p>{this.translate('pages.emailVerification.failedMessage')}</p>
+                        verificationStatus === 'failed' && errorReason === 'TokenExpired'
+                        && <p className="alert-error">{this.translate('pages.emailVerification.failedMessageExpired')}</p>
+                    }
+                    {
+                        verificationStatus === 'failed' && errorReason !== 'TokenExpired'
+                        && <p className="alert-error">{this.translate('pages.emailVerification.failedMessage')}</p>
                     }
                     <div className="text-center">
                         <Link to="/login">{this.translate('pages.emailVerification.returnToLogin')}</Link>
                     </div>
                 </div>
+
+                {
+                    verificationStatus === 'failed'
+                    && <div className="form-field">
+                        <label htmlFor="email">{this.translate('pages.emailVerification.labels.email')}:</label>
+                        <Input
+                            type="text"
+                            id="email"
+                            name="email"
+                            value={this.state.email}
+                            onChange={this.onInputChange}
+                            onEnter={this.onSubmit}
+                            translate={this.translate}
+                            validations={['isRequired', 'email']}
+                        />
+
+                        <div className="form-field text-right">
+                            <ButtonPrimary
+                                id="email" text={this.translate('pages.emailVerification.buttons.send')} onClick={this.onSubmit} disabled={!this.state.email} />
+                        </div>
+                    </div>
+                }
             </div>
         );
     }
