@@ -2,7 +2,6 @@ import awsSDK from 'aws-sdk';
 
 awsSDK.config.apiVersions = {
     sesv2: '2019-09-27',
-    // other service API versions
 };
 
 awsSDK.config.sesv2 = {
