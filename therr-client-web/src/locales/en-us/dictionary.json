@@ -86,7 +86,8 @@
       "failedMessage": "Failed to verify your e-mail. Invalid verification code.",
       "failedMessageExpired": "Failed to verify your e-mail. Verification code has expired.",
       "failedMessageAlreadyVerified": "Your e-mail is already verified. Log in to continue.",
-      "failedMessageVerificationResent": "A new verification code has been sent to {email}",
+      "failedMessageVerificationResent": "A new verification code has been sent to {email}.",
+      "failedMessageUserNotFound": "No user found. Try a different e-mail or create an account to continue.",
       "labels": {
         "email": "E-mail"
       },
