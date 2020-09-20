@@ -1,6 +1,15 @@
 import axios from 'axios';
 
 class VerificationCodesService {
+    resendVerification = (email) => axios({
+        method: 'post',
+        url: '/users-service/users/verify/resend',
+        data: {
+            email,
+            type: 'email',
+        },
+    });
+
     verifyEmail = (token: string) => axios({
         method: 'post',
         url: `/users-service/users/verify/${token}`,
