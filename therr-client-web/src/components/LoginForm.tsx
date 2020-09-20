@@ -121,7 +121,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                     validations={['isRequired']}
                 />
 
-                <label htmlFor="passwork">{this.translate('components.loginForm.labels.password')}:</label>
+                <label htmlFor="password">{this.translate('components.loginForm.labels.password')}:</label>
                 <Input
                     type="password"
                     id="password"
