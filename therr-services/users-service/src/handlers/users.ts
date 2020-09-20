@@ -5,6 +5,8 @@ import { hashPassword } from '../utilities/userHelpers';
 import generateCode from '../utilities/generateCode';
 import { sendVerificationEmail } from '../api/email';
 import accessLevels from '../constants/accessLevels';
+import generateOneTimePassword from '../utilities/generateOneTimePassword';
+import sendOneTimePassword from '../api/email/sendOneTimePassword';
 
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(req.body)
@@ -132,8 +134,38 @@ const deleteUser = (req, res) => Store.users.deleteUsers({ id: req.params.id })
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
-// TODO: RSERV-47 - decode jwt, then check for user and verification code match
-// Send an e-mail if verification passes
+const createOneTimePassword = (req, res) => {
+    const { email } = req.body;
+
+    return Store.users.getUsers({ email })
+        .then((userDetails) => {
+            if (!userDetails.length) {
+                return handleHttpError({
+                    res,
+                    message: 'User not found',
+                    statusCode: 404,
+                });
+            }
+
+            const msExpiresAt = 1000 * 60 * 60 * 24; // 24 hours
+            const otPassword = generateOneTimePassword(8);
+
+            return Store.users.updateUser({
+                oneTimePassword: `${otPassword}:${msExpiresAt}`,
+            }, {
+                email,
+            })
+                .then(() => sendOneTimePassword({
+                    subject: '[Forgot Password?] Therr One-Time Password',
+                    toAddresses: [req.body.email],
+                }, {
+                    oneTimePassword: otPassword,
+                }))
+                .then(() => res.status(200).send({ message: 'One time password created and sent' }))
+                .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+        });
+};
+
 const verifyUserAccount = (req, res) => {
     const {
         token,
@@ -283,6 +315,7 @@ export {
     getUsers,
     updateUser,
     deleteUser,
+    createOneTimePassword,
     verifyUserAccount,
     resendVerification,
 };

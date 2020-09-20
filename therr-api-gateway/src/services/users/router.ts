@@ -9,6 +9,7 @@ import {
 } from './validation/auth';
 import {
     createUserValidation,
+    forgotPasswordValidation,
     resendVerificationValidation,
     verifyUserAccountValidation,
 } from './validation/users';
@@ -64,6 +65,11 @@ usersServiceRouter.put('/users/:id', handleServiceRequest({
 usersServiceRouter.delete('/users/:id', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'delete',
+}));
+
+usersServiceRouter.post('/users/forgot-password', forgotPasswordValidation, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
 }));
 
 usersServiceRouter.post('/users/verify/resend', resendVerificationValidation, handleServiceRequest({

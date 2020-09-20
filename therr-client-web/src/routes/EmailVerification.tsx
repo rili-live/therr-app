@@ -97,6 +97,12 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                         },
                     });
                 }
+
+                if (error.message === 'User not found') {
+                    this.setState({
+                        errorReason: 'UserNotFound',
+                    });
+                }
             });
     }
 
@@ -127,7 +133,11 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                         && <p className="alert-error">{this.translate('pages.emailVerification.failedMessageExpired')}</p>
                     }
                     {
-                        verificationStatus === 'failed' && errorReason !== 'TokenExpired'
+                        verificationStatus === 'failed' && errorReason === 'UserNotFound'
+                        && <p className="alert-error">{this.translate('pages.emailVerification.failedMessageUserNotFound')}</p>
+                    }
+                    {
+                        verificationStatus === 'failed' && errorReason !== 'TokenExpired' && errorReason !== 'UserNotFound'
                         && <p className="alert-error">{this.translate('pages.emailVerification.failedMessage')}</p>
                     }
                     <div className="text-center">
