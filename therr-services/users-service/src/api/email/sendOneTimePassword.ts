@@ -15,14 +15,11 @@ export interface ITemplateParams {
 
 export default (emailParams: ISendOneTimePasswordConfig, templateParams: ITemplateParams) => {
     const html = `
-        <h1>Therr App: User Account Verification</h1>
-        <h2>Welcome, ${templateParams.name}!</h2>
-        <h3>Username: ${templateParams.userName}</h3>
-        <p>Click the following link to verify your account.</p>
-        <p><a href="${globalConfig[process.env.NODE_ENV].hostFull}/verify-account?token=${templateParams.verificationCodeToken}">${globalConfig[process.env.NODE_ENV].hostFull}/verify-account</a></p>
+        <h1>Therr App: One-time Password</h1>
+        <h3>Your one time password: ${templateParams.oneTimePassword}</h3>
         <p></p>
-        <p>If you are unable to click the link, copy paste the following URL in the browser:</p>
-        <p>${globalConfig[process.env.NODE_ENV].hostFull}/verify-account?token=${templateParams.verificationCodeToken}</p>
+        <p>Use this password to login and update your forgotten password.</p>
+        <p><a href="${globalConfig[process.env.NODE_ENV].hostFull}/login">${globalConfig[process.env.NODE_ENV].hostFull}/login</a></p>
     `;
 
     return sendEmail({
