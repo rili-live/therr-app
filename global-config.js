@@ -2,6 +2,7 @@ const apiGatewayPort = 7770;
 const apiMapsPort = 7773;
 const apiMessagesPort = 7772;
 const apiUsersPort = 7771;
+const clientPort = 7070;
 const websocketPort = 7743;
 const hostDev = '127.0.0.1';
 const hostStage = 'stage.therr.app';
@@ -16,6 +17,7 @@ module.exports = {
         baseSocketUrl: `http://${hostDev}:${websocketPort}`,
         googleAnalyticsKey: '',
         host: hostDev,
+        hostFull: `http://${hostDev}:${clientPort}`,
         socket: {
             clientPath: '/socketio',
             pingInterval: 1000 * 10,
@@ -31,6 +33,7 @@ module.exports = {
         baseSocketUrl: `https://websocket-service.${hostStage}`,
         googleAnalyticsKey: '',
         host: hostStage,
+        hostFull: `https://${hostStage}`,
         socket: {
             clientPath: '/socketio',
             pingInterval: 1000 * 10,
@@ -46,6 +49,7 @@ module.exports = {
         baseSocketUrl: `https://websocket-service.${hostProd}`,
         googleAnalyticsKey: '',
         host: hostProd,
+        hostFull: `https://${hostProd}`,
         socket: {
             clientPath: '/socketio',
             pingInterval: 1000 * 10,

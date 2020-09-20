@@ -79,6 +79,22 @@
       "welcome": "Welcome!",
       "inputPlaceholder": "Enter a message"
     },
+    "emailVerification": {
+      "buttons": {
+        "send": "Send E-mail"
+      },
+      "failedMessage": "Failed to verify your e-mail. Invalid verification code.",
+      "failedMessageExpired": "Failed to verify your e-mail. Verification code has expired.",
+      "failedMessageAlreadyVerified": "Your e-mail is already verified. Log in to continue.",
+      "failedMessageVerificationResent": "A new verification code has been sent to {email}",
+      "labels": {
+        "email": "E-mail"
+      },
+      "pageTitle": "Account Verification",
+      "returnToLogin": "Return to login page",
+      "successMessage": "E-mail successfully verified!",
+      "successVerifiedMessage": "Your account has been verified. Log in to continue."
+    },
     "home": {
       "pageTitle": "Home"
     },
@@ -97,7 +113,8 @@
       "pageTitle": "Page Not Found"
     },
     "register": {
-      "pageTitle": "Register"
+      "pageTitle": "Register",
+      "registerSuccess": "Registration success! Check you e-mail for verification."
     },
     "template": {
       "pageTitle": "Template",

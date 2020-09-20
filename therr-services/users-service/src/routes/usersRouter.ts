@@ -5,6 +5,8 @@ import {
     getUsers,
     updateUser,
     deleteUser,
+    verifyUserAccount,
+    resendVerification,
 } from '../handlers/users';
 
 const router = express.Router();
@@ -21,5 +23,9 @@ router.put('/:id', updateUser);
 
 // DELETE
 router.delete('/:id', deleteUser);
+
+// OTHER
+router.post('/verify/resend', resendVerification);
+router.post('/verify/:token', verifyUserAccount);
 
 export default router;
