@@ -26,4 +26,20 @@ export default class VerificationCodesStore {
             .toString();
         return this.db.write.query(queryString).then((response) => response.rows);
     }
+
+    updateCode(params = {}, conditions = {}) {
+        const queryString = knex.update(params)
+            .into(VERIFICATION_CODES_TABLE_NAME)
+            .where(conditions)
+            .toString();
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
+    deleteCode(conditions = {}) {
+        const queryString = knex.delete()
+            .from(VERIFICATION_CODES_TABLE_NAME)
+            .where(conditions)
+            .toString();
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
 }

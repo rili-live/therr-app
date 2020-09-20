@@ -49,6 +49,7 @@ app.use(authenticate.unless({
         { url: '/v1/auth', methods: ['POST'] }, // login
         { url: '/v1/auth/logout', methods: ['POST'] },
         { url: '/v1/users', methods: ['POST'] }, // register
+        { url: new RegExp('/v1/users/verify/.*'), methods: ['POST'] }, // register
     ],
 }));
 

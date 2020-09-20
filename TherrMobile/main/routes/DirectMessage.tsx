@@ -158,7 +158,6 @@ class DirectMessage extends React.Component<
     };
 
     scrollToListEnd = () => {
-        console.log(this.flatListRef);
         if (this.flatListRef) {
             this.flatListRef.scrollToIndex({
                 index: this.flatListRef.props.data.length - 1,

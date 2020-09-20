@@ -5,6 +5,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { createUserToken } from '../utilities/userHelpers';
 import translate from '../utilities/translator';
+import accessLevels from '../constants/accessLevels';
 
 // Authenticate user
 const login: RequestHandler = (req: any, res: any) => Store.users
@@ -19,6 +20,15 @@ const login: RequestHandler = (req: any, res: any) => Store.users
                 statusCode: 404,
             });
         }
+
+        if (!results[0].accessLevels.includes(accessLevels.EMAIL_VERIFIED) && !results[0].accessLevels.includes(accessLevels.MOBILE_VERIFIED)) {
+            return handleHttpError({
+                res,
+                message: translate(locale, 'errorMessages.auth.accountNotVerified'),
+                statusCode: 401,
+            });
+        }
+
         return bcrypt
             .compare(req.body.password, results[0].password)
             .then((isValid) => {

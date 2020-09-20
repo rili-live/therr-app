@@ -58,7 +58,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
             this.props.history.push({
                 pathname: '/login',
                 state: {
-                    successMessage: 'Registration success! Login to continue.',
+                    successMessage: this.translate('pages.register.registerSuccess'),
                 },
             });
         }).catch((error: any) => {

@@ -1,5 +1,5 @@
 exports.up = (knex) => knex.schema.withSchema('main').alterTable('users', (table) => {
-    table.jsonb('verificationCodes').defaultTo(JSON.stringify([{}]));
+    table.jsonb('verificationCodes').defaultTo(JSON.stringify({ email: {}, mobile: {} }));
 });
 
 exports.down = (knex) => knex.schema.withSchema('main').alterTable('users', (table) => {
