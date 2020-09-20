@@ -1,7 +1,7 @@
 {
     "errorMessages": {
         "auth": {
-            "accountNotVerified": "Account not verified. Check you E-mail for verification or navigate to /verify-account to resend",
+            "accountNotVerified": "Account not verified. Check your E-mail for verification or navigate to /verify-account to resend",
             "noUserFound": "No user found with the entered username/e-mail",
             "incorrectUserPass": "Incorrect username/password combination"
         },
