@@ -11,6 +11,10 @@ export const createUserValidation = [
     body('userName').exists().isString(),
 ];
 
+export const forgotPasswordValidation = [
+    body('email').exists().isString(),
+];
+
 export const verifyUserAccountValidation = [
     oneOf([
         body('type').exists().isString().equals('email'),

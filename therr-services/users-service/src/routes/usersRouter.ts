@@ -5,6 +5,7 @@ import {
     getUsers,
     updateUser,
     deleteUser,
+    createOneTimePassword,
     verifyUserAccount,
     resendVerification,
 } from '../handlers/users';
@@ -25,6 +26,7 @@ router.put('/:id', updateUser);
 router.delete('/:id', deleteUser);
 
 // OTHER
+router.post('/forgot-password', createOneTimePassword);
 router.post('/verify/resend', resendVerification);
 router.post('/verify/:token', verifyUserAccount);
 

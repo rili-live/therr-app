@@ -102,8 +102,8 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
             <div className="login-container">
                 <h1 className="text-center">{ title || this.translate('components.loginForm.defaultTitle') }</h1>
                 {
-                    alert
-                     && <div className="text-center alert-success">{alert}</div>
+                    alert && !prevLoginError
+                    && <div className="text-center alert-success">{alert}</div>
                 }
                 {
                     prevLoginError
