@@ -6,6 +6,7 @@ import CreateForum from './CreateForum';
 import EmailVerification from './EmailVerification';
 import PageNotFound from './PageNotFound';
 import Register from './Register';
+import ResetPassword from './ResetPassword';
 import Home from './Home';
 import Login from './Login';
 import UserProfile from './UserProfile';
@@ -48,6 +49,11 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
             type: AccessCheckType.ALL,
             levels: ['user.default'],
         },
+    },
+    {
+        path: '/reset-password',
+        component: ResetPassword,
+        exact: true,
     },
     {
         path: '/verify-account',

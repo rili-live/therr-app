@@ -6,7 +6,7 @@ import generateCode from '../utilities/generateCode';
 import { sendVerificationEmail } from '../api/email';
 import accessLevels from '../constants/accessLevels';
 import generateOneTimePassword from '../utilities/generateOneTimePassword';
-import sendOneTimePassword from '../api/email/sendOneTimePassword';
+import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
 
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(req.body)
@@ -147,15 +147,16 @@ const createOneTimePassword = (req, res) => {
                 });
             }
 
-            const msExpiresAt = 1000 * 60 * 60 * 24; // 24 hours
+            const msExpiresAt = Date.now() + (1000 * 60 * 60 * 6); // 6 hours
             const otPassword = generateOneTimePassword(8);
 
-            return Store.users.updateUser({
-                oneTimePassword: `${hashPassword(otPassword)}:${msExpiresAt}`,
-            }, {
-                email,
-            })
-                .then(() => sendOneTimePassword({
+            return hashPassword(otPassword)
+                .then((hash) => Store.users.updateUser({
+                    oneTimePassword: `${hash}:${msExpiresAt}`,
+                }, {
+                    email,
+                }))
+                .then(() => sendOneTimePasswordEmail({
                     subject: '[Forgot Password?] Therr One-Time Password',
                     toAddresses: [req.body.email],
                 }, {
