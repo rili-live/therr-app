@@ -10,7 +10,7 @@ import accessLevels from '../constants/accessLevels';
 // Authenticate user
 const login: RequestHandler = (req: any, res: any) => Store.users
     .getUsers({ userName: req.body.userName }, { email: req.body.userName })
-    .then((results) => {
+    .then(async (results) => {
         const locale = req.headers['x-localecode'] || 'en-us';
 
         if (!results.length) {
@@ -29,13 +29,32 @@ const login: RequestHandler = (req: any, res: any) => Store.users
             });
         }
 
-        return bcrypt
-            .compare(req.body.password, results[0].password)
+        let isOtPasswordValid = false;
+
+        // First check oneTimePassword if exists
+        if (results[0].oneTimePassword) {
+            const split = results[0].oneTimePassword.split(':');
+            const otHashedPassword = split[0];
+            const msExpiresAt = split[1];
+            isOtPasswordValid = await bcrypt.compare(req.body.password, otHashedPassword);
+            if (isOtPasswordValid && msExpiresAt <= Date.now()) {
+                return handleHttpError({
+                    res,
+                    message: translate(locale, 'errorMessages.auth.oneTimeExpired'),
+                    statusCode: 403,
+                });
+            }
+        }
+
+        return Promise.resolve()
+            // Only compare user password if one-time password is null or incorrect
+            .then(() => isOtPasswordValid || bcrypt.compare(req.body.password, results[0].password))
             .then((isValid) => {
                 if (isValid) {
                     const idToken = createUserToken(results[0], req.body.rememberMe);
                     const user = results[0];
-                    delete user.password;
+                    delete user.password; // don't send these in response
+                    delete user.oneTimePassword; // don't send these in response
                     return res.status(201).send({
                         ...user,
                         idToken,
