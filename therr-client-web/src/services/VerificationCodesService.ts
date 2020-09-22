@@ -1,6 +1,14 @@
 import axios from 'axios';
 
 class VerificationCodesService {
+    requestOneTimePassword = (email) => axios({
+        method: 'post',
+        url: '/users-service/users/forgot-password',
+        data: {
+            email,
+        },
+    });
+
     resendVerification = (email) => axios({
         method: 'post',
         url: '/users-service/users/verify/resend',
