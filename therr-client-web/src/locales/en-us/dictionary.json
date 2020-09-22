@@ -15,14 +15,16 @@
     "loginForm": {
       "buttons": {
         "login": "Login",
-        "signUp": "Sign Up"
+        "signUp": "Create Account",
+        "forgotPassword": "Forgot Password?"
       },
       "defaultTitle": "Login",
       "labels": {
         "password": "Password",
         "userName": "Username"
       },
-      "backendErrorMessage": "Connection error. Please try again later."
+      "backendErrorMessage": "Connection error. Please try again later.",
+      "oneTimePasswordExpired": "Your one-time password has expired."
     },
     "messagingContainer": {
       "conversation": {
@@ -95,6 +97,20 @@
       "returnToLogin": "Return to login page",
       "successMessage": "E-mail successfully verified!",
       "successVerifiedMessage": "Your account has been verified. Log in to continue."
+    },
+    "resetPassword": {
+      "buttons": {
+        "send": "Send E-mail"
+      },
+      "failedMessage": "An error occurred while trying to reset your password.",
+      "failedMessageUserNotFound": "No user found. Try a different e-mail or create an account to continue.",
+      "instructions": "Enter your account e-mail to reset your password.",
+      "labels": {
+        "email": "E-mail"
+      },
+      "pageTitle": "Reset Password",
+      "returnToLogin": "Return to login page",
+      "successMessage": "Check your e-mail for a link to reset your password"
     },
     "home": {
       "pageTitle": "Home"
