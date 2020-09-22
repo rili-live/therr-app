@@ -18,8 +18,8 @@ spec:
         image: therrapp/messages-service:latest
         resources:
           limits:
-            memory: "256Mi"
-            cpu: "100m"
+            memory: "128Mi"
+            cpu: "75m"
         ports:
         - containerPort: 7772
         env:
