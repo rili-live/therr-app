@@ -151,7 +151,7 @@ const createOneTimePassword = (req, res) => {
             const otPassword = generateOneTimePassword(8);
 
             return Store.users.updateUser({
-                oneTimePassword: `${otPassword}:${msExpiresAt}`,
+                oneTimePassword: `${hashPassword(otPassword)}:${msExpiresAt}`,
             }, {
                 email,
             })
