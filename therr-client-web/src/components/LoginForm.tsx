@@ -1,3 +1,5 @@
+/* eslint-disable max-len */
+
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -60,6 +62,10 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                         if (error.statusCode === 401 || error.statusCode === 404) {
                             this.setState({
                                 prevLoginError: error.message,
+                            });
+                        } else if (error.statusCode === 403 && error.message === 'One-time password has expired') {
+                            this.setState({
+                                prevLoginError: this.translate('components.loginForm.oneTimePasswordExpired'),
                             });
                         } else {
                             this.setState({
@@ -133,13 +139,13 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                     validations={['isRequired']}
                 />
 
-                <div className="text-left">
-                    <Link to="/register">{this.translate('components.loginForm.buttons.signUp')}</Link>
-                </div>
-
-                <div className="form-field text-right">
+                <div className="form-field text-right" style={{ paddingTop: '.5rem' }}>
                     <ButtonPrimary
                         id="login" text={this.translate('components.loginForm.buttons.login')} onClick={this.onSubmit} disabled={this.isLoginFormDisabled()} />
+                </div>
+
+                <div className="text-center" style={{ padding: '.5rem 0 0 1rem' }}>
+                    <Link to="/reset-password">{this.translate('components.loginForm.buttons.forgotPassword')}</Link> | <Link to="/register">{this.translate('components.loginForm.buttons.signUp')}</Link>
                 </div>
             </div>
         );
