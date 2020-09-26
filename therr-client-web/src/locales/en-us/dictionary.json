@@ -1,4 +1,7 @@
 {
+  "branding": {
+    "motto": "This is our time, and these are our spaces. Share a moment."
+  },
   "validations": {
     "email": "Invalid email address",
     "isRequired": "This is a required field",
@@ -65,8 +68,9 @@
     },
     "userMenu": {
       "buttons": {
-        "viewProfile": "View Profile",
-        "editProfile": "Edit Profile"
+        "changePassword": "Change Password",
+        "editProfile": "Edit Profile",
+        "viewProfile": "View Profile"
       },
       "h2": {
         "accountSettings": "Account Settings",
@@ -93,7 +97,7 @@
         "newPassword": "New Password",
         "newPasswordRepeat": "Repeat New Password"
       },
-      "pageTitle": "Reset Password",
+      "pageTitle": "Change Password",
       "successMessage": "Your password has been updated!"
     },
     "emailVerification": {

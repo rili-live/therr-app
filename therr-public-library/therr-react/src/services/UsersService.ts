@@ -26,6 +26,8 @@ interface IRegisterCredentials {
 interface IChangePasswordArgs {
     oldPassword: string;
     newPassword: string;
+    email: string;
+    userName: string;
 }
 
 class UsersService {

@@ -1,18 +1,19 @@
 import * as React from 'react';
-import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
+import { connect } from 'react-redux';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { bindActionCreators } from 'redux';
 import {
     ButtonPrimary,
     Input,
 } from 'therr-react/components';
 import { UsersService } from 'therr-react/services';
+import { IUserState } from 'therr-react/types';
 import translator from '../services/translator';
 import * as globalConfig from '../../../global-config';
 
-interface IChangePasswordRouterProps {
-
+interface IStoreProps extends IChangePasswordDispatchProps {
+    user: IUserState;
 }
-
-type IChangePasswordProps = RouteComponentProps<IChangePasswordRouterProps>
 
 interface IChangePasswordDispatchProps {
 // Add your dispatcher properties here
@@ -24,8 +25,21 @@ interface IChangePasswordState {
     isSuccess: boolean;
 }
 
+interface IChangePasswordProps extends RouteComponentProps<{}>, IStoreProps {
+    inputs: any;
+    errorReason: string;
+    isSuccess: boolean;
+}
+
 // Environment Variables
 const envVars = globalConfig[process.env.NODE_ENV];
+
+const mapStateToProps = (state: any) => ({
+    user: state.user,
+});
+
+const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+}, dispatch);
 
 /**
  * ChangePassword
@@ -62,11 +76,13 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
         UsersService.changePassword({
             oldPassword: this.state.inputs.oldPassword,
             newPassword: this.state.inputs.newPassword,
+            email: this.props.user.details.email,
+            userName: this.props.user.details.userName,
         })
             .then(() => {
                 this.setState({
                     errorReason: '',
-                    isSuccess: true, // TODO: RFRONT-43 - Send notice email
+                    isSuccess: true,
                     inputs: {},
                 });
             })
@@ -169,4 +185,4 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
     }
 }
 
-export default withRouter(ChangePasswordComponent);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ChangePasswordComponent));
