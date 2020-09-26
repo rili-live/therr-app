@@ -3,9 +3,11 @@ import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { hashPassword } from '../utilities/userHelpers';
 import generateCode from '../utilities/generateCode';
-import { sendVerificationEmail } from '../api/email';
+import { sendPasswordChangeEmail, sendVerificationEmail } from '../api/email';
 import accessLevels from '../constants/accessLevels';
 import generateOneTimePassword from '../utilities/generateOneTimePassword';
+import translate from '../utilities/translator';
+import validatePassword from '../utilities/validatePassword';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
 
 // CREATE
@@ -113,6 +115,55 @@ const updateUser = (req, res) => Store.users.findUser({ id: req.params.id, ...re
                 const user = results[0];
                 delete user.password;
                 return res.status(200).send(user);
+            });
+    })
+    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+
+// UPDATE
+const updateUserPassword = (req, res) => Store.users.findUser({ id: req.headers['x-userid'] })
+    .then((findResults) => {
+        const locale = req.headers['x-localecode'] || 'en-us';
+        const userId = req.headers['x-userid'];
+
+        if (!findResults.length) {
+            return handleHttpError({
+                res,
+                message: 'User not found',
+                statusCode: 404,
+            });
+        }
+
+        return validatePassword({
+            hashedPassword: findResults[0].password,
+            inputPassword: req.body.oldPassword,
+            locale,
+            oneTimePassword: findResults[0].oneTimePassword,
+            res,
+        })
+            .then((isValid) => {
+                if (isValid) {
+                    return hashPassword(req.body.newPassword)
+                        .then((hash) => Store.users
+                            .updateUser({
+                                password: hash,
+                            }, {
+                                id: userId,
+                            })
+                            .then(() => sendPasswordChangeEmail({
+                                subject: '[Password Changed] Therr Account Settings',
+                                toAddresses: [req.body.email],
+                            }, {
+                                email: req.body.email,
+                                userName: req.body.userName,
+                            }))
+                            .then(() => res.status(204).send()));
+                }
+
+                return handleHttpError({
+                    res,
+                    message: translate(locale, 'User/password combination is incorrect'),
+                    statusCode: 400,
+                });
             });
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
@@ -315,6 +366,7 @@ export {
     getUser,
     getUsers,
     updateUser,
+    updateUserPassword,
     deleteUser,
     createOneTimePassword,
     verifyUserAccount,

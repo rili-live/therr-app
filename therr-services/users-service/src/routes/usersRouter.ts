@@ -4,6 +4,7 @@ import {
     getUser,
     getUsers,
     updateUser,
+    updateUserPassword,
     deleteUser,
     createOneTimePassword,
     verifyUserAccount,
@@ -20,6 +21,7 @@ router.get('/:id', getUser);
 router.get('/', getUsers);
 
 // UPDATE
+router.put('/change-password', updateUserPassword);
 router.put('/:id', updateUser);
 
 // DELETE
