@@ -1,4 +1,7 @@
 {
+  "branding": {
+    "motto": "This is our time, and these are our spaces. Share a moment."
+  },
   "validations": {
     "email": "Invalid email address",
     "isRequired": "This is a required field",
@@ -65,8 +68,9 @@
     },
     "userMenu": {
       "buttons": {
-        "viewProfile": "View Profile",
-        "editProfile": "Edit Profile"
+        "changePassword": "Change Password",
+        "editProfile": "Edit Profile",
+        "viewProfile": "View Profile"
       },
       "h2": {
         "accountSettings": "Account Settings",
@@ -80,6 +84,21 @@
       "pageTitle": "Forums",
       "welcome": "Welcome!",
       "inputPlaceholder": "Enter a message"
+    },
+    "changePassword": {
+      "buttons": {
+        "send": "Submit"
+      },
+      "failedMessage": "An error occurred while trying to reset your password.",
+      "failedMessageUserNotFound": "No user found. Logout and try again.",
+      "failedMessageIncorrectPassword": "The password you entered is incorrect.",
+      "labels": {
+        "oldPassword": "Old Password",
+        "newPassword": "New Password",
+        "newPasswordRepeat": "Repeat New Password"
+      },
+      "pageTitle": "Change Password",
+      "successMessage": "Your password has been updated!"
     },
     "emailVerification": {
       "buttons": {
@@ -95,7 +114,7 @@
       },
       "pageTitle": "Account Verification",
       "returnToLogin": "Return to login page",
-      "successMessage": "E-mail successfully verified!",
+      "successMessage": "Your!",
       "successVerifiedMessage": "Your account has been verified. Log in to continue."
     },
     "resetPassword": {

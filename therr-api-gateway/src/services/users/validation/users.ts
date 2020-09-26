@@ -11,6 +11,13 @@ export const createUserValidation = [
     body('userName').exists().isString(),
 ];
 
+export const changePasswordValidation = [
+    body('oldPassword').exists().isString(),
+    body('newPassword').exists().isString(),
+    body('email').exists().isString(),
+    body('userName').exists().isString(),
+];
+
 export const forgotPasswordValidation = [
     body('email').exists().isString(),
 ];

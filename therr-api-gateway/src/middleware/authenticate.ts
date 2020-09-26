@@ -5,7 +5,17 @@ import handleHttpError from '../utilities/handleHttpError';
 const authenticate = (req, res, next) => {
     try {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
-            jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET || '');
+            jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET || '', (err, decoded) => {
+                if (err) {
+                    return handleHttpError({
+                        res,
+                        message: 'Failed to decode token',
+                        statusCode: 401,
+                    });
+                }
+
+                req['x-userid'] = decoded.id;
+            });
             return next();
         }
 

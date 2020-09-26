@@ -10,6 +10,7 @@ import ResetPassword from './ResetPassword';
 import Home from './Home';
 import Login from './Login';
 import UserProfile from './UserProfile';
+import ChangePassword from './ChangePassword';
 
 export interface IRoute extends RouteProps {
     access?: IAccess;
@@ -44,6 +45,15 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
     {
         path: '/create-forum',
         component: CreateForum,
+        exact: true,
+        access: {
+            type: AccessCheckType.ALL,
+            levels: ['user.default'],
+        },
+    },
+    {
+        path: '/users/change-password',
+        component: ChangePassword,
         exact: true,
         access: {
             type: AccessCheckType.ALL,
