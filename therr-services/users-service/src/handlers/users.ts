@@ -6,6 +6,8 @@ import generateCode from '../utilities/generateCode';
 import { sendVerificationEmail } from '../api/email';
 import accessLevels from '../constants/accessLevels';
 import generateOneTimePassword from '../utilities/generateOneTimePassword';
+import translate from '../utilities/translator';
+import validatePassword from '../utilities/validatePassword';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
 
 // CREATE
@@ -113,6 +115,46 @@ const updateUser = (req, res) => Store.users.findUser({ id: req.params.id, ...re
                 const user = results[0];
                 delete user.password;
                 return res.status(200).send(user);
+            });
+    })
+    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+
+// UPDATE
+const updateUserPassword = (req, res) => Store.users.findUser({ id: req.headers['x-userid'] })
+    .then((findResults) => {
+        const locale = req.headers['x-localecode'] || 'en-us';
+
+        if (!findResults.length) {
+            return handleHttpError({
+                res,
+                message: `No user found with id, ${req.headers['x-userid']}.`,
+                statusCode: 404,
+            });
+        }
+
+        return validatePassword({
+            hashedPassword: findResults[0].password,
+            inputPassword: req.body.oldPassword,
+            locale,
+            oneTimePassword: findResults[0].oneTimePassword,
+            res,
+        })
+            .then((isValid) => {
+                if (isValid) {
+                    Store.users
+                        .updateUser({
+                            password: req.body.newPassword,
+                        }, {
+                            id: req.params.id,
+                        })
+                        .then(() => res.status(204).send());
+                }
+
+                return handleHttpError({
+                    res,
+                    message: translate(locale, 'errorMessages.auth.incorrectUserPass'),
+                    statusCode: 401,
+                });
             });
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
@@ -315,6 +357,7 @@ export {
     getUser,
     getUsers,
     updateUser,
+    updateUserPassword,
     deleteUser,
     createOneTimePassword,
     verifyUserAccount,
