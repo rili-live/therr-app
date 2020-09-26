@@ -21,6 +21,7 @@ router.get('/', getUsers);
 
 // UPDATE
 router.put('/:id', updateUser);
+router.put('/change-password', updateUser);
 
 // DELETE
 router.delete('/:id', deleteUser);

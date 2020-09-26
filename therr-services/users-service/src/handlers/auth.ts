@@ -1,10 +1,10 @@
-import * as bcrypt from 'bcrypt';
 import { RequestHandler } from 'express';
 import * as jwt from 'jsonwebtoken';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { createUserToken } from '../utilities/userHelpers';
 import translate from '../utilities/translator';
+import validatePassword from '../utilities/validatePassword';
 import accessLevels from '../constants/accessLevels';
 
 // Authenticate user
@@ -29,44 +29,30 @@ const login: RequestHandler = (req: any, res: any) => Store.users
             });
         }
 
-        let isOtPasswordValid = false;
-
-        // First check oneTimePassword if exists
-        if (results[0].oneTimePassword) {
-            const split = results[0].oneTimePassword.split(':');
-            const otHashedPassword = split[0];
-            const msExpiresAt = split[1];
-            isOtPasswordValid = await bcrypt.compare(req.body.password, otHashedPassword);
-            if (isOtPasswordValid && msExpiresAt <= Date.now()) {
-                return handleHttpError({
-                    res,
-                    message: translate(locale, 'errorMessages.auth.oneTimeExpired'),
-                    statusCode: 403,
+        return validatePassword({
+            hashedPassword: results[0].password,
+            inputPassword: req.body.password,
+            locale,
+            oneTimePassword: results[0].oneTimePassword,
+            res,
+        }).then((isValid) => {
+            if (isValid) {
+                const idToken = createUserToken(results[0], req.body.rememberMe);
+                const user = results[0];
+                delete user.password; // don't send these in response
+                delete user.oneTimePassword; // don't send these in response
+                return res.status(201).send({
+                    ...user,
+                    idToken,
                 });
             }
-        }
 
-        return Promise.resolve()
-            // Only compare user password if one-time password is null or incorrect
-            .then(() => isOtPasswordValid || bcrypt.compare(req.body.password, results[0].password))
-            .then((isValid) => {
-                if (isValid) {
-                    const idToken = createUserToken(results[0], req.body.rememberMe);
-                    const user = results[0];
-                    delete user.password; // don't send these in response
-                    delete user.oneTimePassword; // don't send these in response
-                    return res.status(201).send({
-                        ...user,
-                        idToken,
-                    });
-                }
-
-                return handleHttpError({
-                    res,
-                    message: translate(locale, 'errorMessages.auth.incorrectUserPass'),
-                    statusCode: 401,
-                });
+            return handleHttpError({
+                res,
+                message: translate(locale, 'errorMessages.auth.incorrectUserPass'),
+                statusCode: 401,
             });
+        });
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:AUTH_ROUTES:ERROR' }));
 
