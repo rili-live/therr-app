@@ -123,11 +123,12 @@ const updateUser = (req, res) => Store.users.findUser({ id: req.params.id, ...re
 const updateUserPassword = (req, res) => Store.users.findUser({ id: req.headers['x-userid'] })
     .then((findResults) => {
         const locale = req.headers['x-localecode'] || 'en-us';
+        const userId = req.headers['x-userid'];
 
         if (!findResults.length) {
             return handleHttpError({
                 res,
-                message: `No user found with id, ${req.headers['x-userid']}.`,
+                message: 'User not found',
                 statusCode: 404,
             });
         }
@@ -141,19 +142,20 @@ const updateUserPassword = (req, res) => Store.users.findUser({ id: req.headers[
         })
             .then((isValid) => {
                 if (isValid) {
-                    Store.users
-                        .updateUser({
-                            password: req.body.newPassword,
-                        }, {
-                            id: req.params.id,
-                        })
-                        .then(() => res.status(204).send());
+                    return hashPassword(req.body.newPassword)
+                        .then((hash) => Store.users
+                            .updateUser({
+                                password: hash,
+                            }, {
+                                id: userId,
+                            })
+                            .then(() => res.status(204).send()));
                 }
 
                 return handleHttpError({
                     res,
-                    message: translate(locale, 'errorMessages.auth.incorrectUserPass'),
-                    statusCode: 401,
+                    message: translate(locale, 'User/password combination is incorrect'),
+                    statusCode: 400,
                 });
             });
     })

@@ -23,10 +23,21 @@ interface IRegisterCredentials {
     password: string;
 }
 
+interface IChangePasswordArgs {
+    oldPassword: string;
+    newPassword: string;
+}
+
 class UsersService {
     authenticate = (data: ILoginCredentials) => axios({
         method: 'post',
         url: '/users-service/auth',
+        data,
+    })
+
+    changePassword = (data: IChangePasswordArgs) => axios({
+        method: 'put',
+        url: '/users-service/users/change-password',
         data,
     })
 
