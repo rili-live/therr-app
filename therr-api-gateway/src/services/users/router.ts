@@ -8,6 +8,7 @@ import {
     authenticateUserTokenValidation,
 } from './validation/auth';
 import {
+    changePasswordValidation,
     createUserValidation,
     forgotPasswordValidation,
     resendVerificationValidation,
@@ -58,6 +59,11 @@ usersServiceRouter.get('/users', handleServiceRequest({
 }));
 
 usersServiceRouter.put('/users/:id', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+
+usersServiceRouter.put('/users/change-password', changePasswordValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
 }));

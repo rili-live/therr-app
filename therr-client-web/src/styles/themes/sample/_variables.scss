@@ -10,6 +10,9 @@ $therr-off-white: #c8cbce !default;
 $therr-input-focus-color: #e2c5cf !default;
 $therr-input-focus-shadow: rgba(162, 52, 181, .1) !default;
 $therr-input-valid-shadow: rgba(0, 125, 44, .1) !default;
+$therr-background: #a92759 !default;
+$therr-text-a: $therr-off-white !default;
+$therr-text-b: $therr-black !default;
 
 // Therr Base Primary Colors
 $therr-primary-1: #DC0055 !default;
@@ -24,7 +27,7 @@ $therr-secondary-3: #95E934 !default;
 $therr-secondary-4: #2ABA69 !default;
 
 // Therr Base Tertiary Colors
-$therr-tertiary-1: #a92759 !default;
+$therr-tertiary-1: $therr-background !default;
 
 // Therr Base Alert Palette
 $therr-alert-success: #008C3D !default;
