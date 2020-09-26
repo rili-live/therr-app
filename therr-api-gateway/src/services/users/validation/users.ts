@@ -14,6 +14,8 @@ export const createUserValidation = [
 export const changePasswordValidation = [
     body('oldPassword').exists().isString(),
     body('newPassword').exists().isString(),
+    body('email').exists().isString(),
+    body('userName').exists().isString(),
 ];
 
 export const forgotPasswordValidation = [

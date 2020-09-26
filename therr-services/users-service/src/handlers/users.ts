@@ -3,7 +3,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { hashPassword } from '../utilities/userHelpers';
 import generateCode from '../utilities/generateCode';
-import { sendVerificationEmail } from '../api/email';
+import { sendPasswordChangeEmail, sendVerificationEmail } from '../api/email';
 import accessLevels from '../constants/accessLevels';
 import generateOneTimePassword from '../utilities/generateOneTimePassword';
 import translate from '../utilities/translator';
@@ -149,6 +149,13 @@ const updateUserPassword = (req, res) => Store.users.findUser({ id: req.headers[
                             }, {
                                 id: userId,
                             })
+                            .then(() => sendPasswordChangeEmail({
+                                subject: '[Password Changed] Therr Account Settings',
+                                toAddresses: [req.body.email],
+                            }, {
+                                email: req.body.email,
+                                userName: req.body.userName,
+                            }))
                             .then(() => res.status(204).send()));
                 }
 
