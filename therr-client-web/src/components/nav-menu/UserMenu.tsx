@@ -105,6 +105,8 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         this.props.toggleNavMenu(e);
 
         switch (destination) {
+            case 'change-password':
+                return this.props.history.push('/users/change-password');
             case 'view-profile':
                 return this.props.history.push('/');
             case 'edit-profile':
@@ -120,12 +122,12 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                 <ButtonPrimary
                     id="nav_menu_view_profile"
                     className="menu-item"
-                    name="View Profile"
+                    name={this.translate('components.userMenu.buttons.viewProfile')}
                     text={this.translate('components.userMenu.buttons.viewProfile')} onClick={this.navigate('view-profile')} buttonType="primary" />
                 <ButtonPrimary
                     id="nav_menu_edit_profile"
                     className="menu-item"
-                    name="Edit Profile"
+                    name={this.translate('components.userMenu.buttons.editProfile')}
                     text={this.translate('components.userMenu.buttons.editProfile')} onClick={this.navigate('edit-profile')} buttonType="primary" />
             </div>
         </>
@@ -156,6 +158,13 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
     renderAccountContent = () => (
         <>
             <h2>{this.translate('components.userMenu.h2.accountSettings')}</h2>
+            <div className="account-settings-menu">
+                <ButtonPrimary
+                    id="nav_menu_change_password"
+                    className="menu-item"
+                    name={this.translate('components.userMenu.buttons.changePassword')}
+                    text={this.translate('components.userMenu.buttons.changePassword')} onClick={this.navigate('change-password')} buttonType="primary" />
+            </div>
         </>
     )
 

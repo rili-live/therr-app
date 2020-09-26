@@ -14,7 +14,7 @@ header {
         display: flex;
         justify-content: center;
         align-items: center;
-        width: 5.5rem;
+        width: 7.5rem;
         font-size: rem-calc(21px);
         color: $therr-white;
         letter-spacing: .15rem;
@@ -23,6 +23,8 @@ header {
             background: transparent;
             padding: 0;
             width: rem-calc(34px);
+            border: 2px solid $therr-secondary-1;
+            margin-right: .5rem;
 
             .rili-icon {
                 path {

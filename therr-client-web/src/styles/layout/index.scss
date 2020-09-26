@@ -6,12 +6,12 @@
 @import '../pages';
 
 html {
-    background: $therr-black;
+    background: $therr-background;
 }
 
 html,
 body {
-    color: $therr-white;
+    color: $therr-text-a;
     font-family: sans-serif;
     font-size: 16px;
     margin: 0;
