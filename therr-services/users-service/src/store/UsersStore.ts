@@ -29,12 +29,13 @@ export default class UsersStore {
         this.db = dbConnection;
     }
 
-    getUsers(conditions = {}, orConditions = {}) {
+    getUsers(conditions = {}, orConditions = {}, anotherOrConditions = {}) {
         const queryString = knex.select('*')
             .from(USERS_TABLE_NAME)
             .orderBy('id')
             .where(conditions)
             .orWhere(orConditions)
+            .orWhere(anotherOrConditions)
             .toString();
         return this.db.read.query(queryString).then((response) => response.rows);
     }
