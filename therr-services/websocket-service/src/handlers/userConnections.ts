@@ -60,20 +60,41 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
         url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiGatewayRoute}/users-service/users/connections/${data.connection.requestingUserId}`,
         data: data.connection,
     }, socket).then(({ data: connection }) => {
-        redisSessions.getUserById(data.connection.requestingUserId).then((response) => {
-            const socketId = response && response.socketId;
-            if (socketId) {
-                requestingSocketId = socketId;
-
+        Promise.all([
+            redisSessions.getUserById(data.connection.requestingUserId),
+            redisSessions.getUserById(data.connection.acceptingUserId),
+        ]).then(([rUserResponse, aUserResponse]) => {
+            const rUserSocketId = rUserResponse && rUserResponse.socketId;
+            if (rUserSocketId) {
                 if (connection.requestStatus === 'complete') { // Do not send notification when connection denied
-                    socket.to(requestingSocketId).emit(SOCKET_MIDDLEWARE_ACTION, { // To user who sent request
+                    // TO USER WHO SENT REQUEST...
+                    socket.to(rUserSocketId).emit(SOCKET_MIDDLEWARE_ACTION, {
                         type: SocketServerActionTypes.USER_CONNECTION_UPDATED,
                         data: connection,
                     });
 
-                    socket.emit(SOCKET_MIDDLEWARE_ACTION, { // To user who accepted request
+                    const acceptingUser = {
+                        ...aUserResponse.user,
+                    };
+                    delete acceptingUser.idToken; // IMPORTANT - don't sent id token to another user
+                    socket.to(rUserSocketId).emit(SOCKET_MIDDLEWARE_ACTION, {
+                        type: SocketServerActionTypes.ACTIVE_CONNECTIONS_ADDED,
+                        data: acceptingUser,
+                    });
+
+                    // TO USER ACCEPTING REQUEST...
+                    socket.emit(SOCKET_MIDDLEWARE_ACTION, {
                         type: SocketServerActionTypes.USER_CONNECTION_UPDATED,
                         data: connection,
+                    });
+
+                    const requestingUser = {
+                        ...rUserResponse.user,
+                    };
+                    delete requestingUser.idToken; // IMPORTANT - don't sent id token to another user
+                    socket.emit(SOCKET_MIDDLEWARE_ACTION, {
+                        type: SocketServerActionTypes.ACTIVE_CONNECTIONS_ADDED,
+                        data: requestingUser,
                     });
                 }
             }
