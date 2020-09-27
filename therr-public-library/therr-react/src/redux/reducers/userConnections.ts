@@ -35,6 +35,9 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
             return state.setIn(['connections'], [...uniqueConnections, action.data]);
         case SocketServerActionTypes.USER_CONNECTION_UPDATED:
             return state.setIn(['connections'], [...uniqueConnections, action.data]);
+        case SocketServerActionTypes.ACTIVE_CONNECTIONS_ADDED:
+            activeConnections.unshift(action.data);
+            return state.setIn(['activeConnections'], activeConnections);
         case SocketServerActionTypes.ACTIVE_CONNECTIONS_LOADED:
             return state.setIn(['activeConnections'], action.data.activeUsers);
         case SocketServerActionTypes.ACTIVE_CONNECTION_DISCONNECTED:
