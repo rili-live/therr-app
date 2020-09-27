@@ -11,6 +11,10 @@ html {
   background-repeat: inherit;
 }
 
-.content-container {
-  background: transparentize($therr-primary-4, .75);
+button.primary {
+  background: $therr-background;
+
+  &:hover:not([disabled]) {
+    background: $therr-primary-4;
+  }
 }
