@@ -75,8 +75,6 @@ const login = ({
         });
     }
 
-    // TODO: RFRONT-33 - Notify activeConnections of login presence
-
     printLogs({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
