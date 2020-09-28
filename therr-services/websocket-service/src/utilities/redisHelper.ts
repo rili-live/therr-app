@@ -154,6 +154,16 @@ export class RedisHelper {
 
         return null;
     };
+
+    public throttleDmNotifications = async (toUserId, fromUser): Promise<any> => {
+        const key = `dmNotificationThrottles:${toUserId}:${fromUser}`;
+        const doesLockExist = await this.client.get(key);
+        if (doesLockExist) {
+            return false;
+        }
+        this.client.setex(key, 60 * 20, 1); // 20 minute expire
+        return true;
+    };
 }
 
 export default new RedisHelper(redisPub);

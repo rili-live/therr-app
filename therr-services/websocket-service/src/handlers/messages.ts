@@ -1,9 +1,15 @@
 import * as socketio from 'socket.io';
 import printLogs from 'therr-js-utilities/print-logs';
 import moment from 'moment';
-import { SocketServerActionTypes, SocketClientActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
+import {
+    Notifications,
+    SocketServerActionTypes,
+    SocketClientActionTypes,
+    SOCKET_MIDDLEWARE_ACTION,
+} from 'therr-js-utilities/constants';
 import beeline from '../beeline';
 import restRequest from '../utilities/restRequest';
+import redisHelper from '../utilities/redisHelper';
 import globalConfig from '../../../../global-config';
 
 const sendDirectMessage = (socket: socketio.Socket, data: any) => {
@@ -42,6 +48,27 @@ const sendDirectMessage = (socket: socketio.Socket, data: any) => {
                     },
                 },
             });
+        } else {
+            // Send new direct message notification
+            redisHelper.throttleDmNotifications(data.to.id, data.userId)
+                .then((shouldCreateNotification) => {
+                    if (shouldCreateNotification) {
+                        restRequest({
+                            method: 'post',
+                            url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiGatewayRoute}/users-service/users/notifications`,
+                            data: {
+                                userId: data.to.id,
+                                type: Notifications.Types.NEW_DM_RECEIVED,
+                                associationId: data.userId,
+                                isUnread: true,
+                                messageLocaleKey: Notifications.MessageKeys.NEW_DM_RECEIVED,
+                                messageParams: {
+                                    userName: data.userName,
+                                },
+                            },
+                        }, socket);
+                    }
+                });
         }
         printLogs({
             level: 'info',

@@ -11,7 +11,7 @@ const _timeout = 350; // eslint-disable-line no-underscore-dangle
 
 const initInterceptors = (
     history: any,
-    baseUrl = globalConfig[process.env.NODE_ENV].baseApiGatewayRoute, // TODO: RSERV-36 - Use base route of api-gateway
+    baseUrl = globalConfig[process.env.NODE_ENV].baseApiGatewayRoute,
     timeout = _timeout,
 ) => {
     // Global axios config
