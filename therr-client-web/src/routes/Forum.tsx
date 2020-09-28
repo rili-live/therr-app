@@ -54,7 +54,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     sendForumMessage: SocketActions.sendForumMessage,
 }, dispatch);
 
-// TODO: Leaving a forume should emit an event to the server and leave the current forum
+// TODO: Leaving a forum should emit an event to the server and leave the current forum
 /**
  * Forum
  */

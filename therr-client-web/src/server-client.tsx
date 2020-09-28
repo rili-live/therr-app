@@ -13,7 +13,7 @@ import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare from './socket-io-middleware';
 
-// TODO: RFRONT-9: Fix window is undefined hack
+// TODO: RFRONT-9: Fix window is undefined hack?
 /* eslint-disable */
 declare global {
     namespace NodeJS {

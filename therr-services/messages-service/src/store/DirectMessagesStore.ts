@@ -42,7 +42,6 @@ export default class DirectMessagesStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
-    // TODO
     searchDirectMessages(userId, conditions: any = {}, returning, shouldCheckReverse?: string) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;

@@ -76,14 +76,14 @@ export default class NotificationsStore {
                 `${NOTIFICATIONS_TABLE_NAME}.updatedAt`,
             ])
             .from(NOTIFICATIONS_TABLE_NAME)
-            .innerJoin(USER_CONNECTIONS_TABLE_NAME, `${NOTIFICATIONS_TABLE_NAME}.associationId`, `${USER_CONNECTIONS_TABLE_NAME}.id`)
+            .leftJoin(USER_CONNECTIONS_TABLE_NAME, `${NOTIFICATIONS_TABLE_NAME}.associationId`, `${USER_CONNECTIONS_TABLE_NAME}.id`)
             .columns([
                 `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId as userConnection.requestingUserId`,
                 `${USER_CONNECTIONS_TABLE_NAME}.acceptingUserId as userConnection.acceptingUserId`,
                 `${USER_CONNECTIONS_TABLE_NAME}.requestStatus as userConnection.requestStatus`,
                 `${USER_CONNECTIONS_TABLE_NAME}.updatedAt as userConnection.updatedAt`,
             ])
-            .orderBy(`${NOTIFICATIONS_TABLE_NAME}.updatedAt`);
+            .orderBy(`${NOTIFICATIONS_TABLE_NAME}.updatedAt`, conditions.order || 'asc');
 
         if (conditions.filterBy && conditions.query) {
             const operator = conditions.filterOperator || '=';
