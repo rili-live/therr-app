@@ -8,7 +8,6 @@ export interface ISendEmailConfig {
 }
 
 export default (config: ISendEmailConfig) => new Promise((resolve, reject) => {
-    // TODO: RAUTO-7: Fill in values
     const params = {
         Content: {
             Simple: {
