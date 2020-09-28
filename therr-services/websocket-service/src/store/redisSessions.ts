@@ -9,6 +9,8 @@ import { UserStatus } from '../constants';
 
 const defaultExpire = Number(globalConfig[process.env.NODE_ENV || 'development'].socket.userSocketSessionExpire) / 1000;
 
+// TODO: Determine if there is a better way to reuse connections
+// For example, constructor may be creating new instance of redis client every time
 /**
  * RedisSession
  */

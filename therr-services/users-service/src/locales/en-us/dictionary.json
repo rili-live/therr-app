@@ -14,7 +14,8 @@
     },
     "notifications": {
         "connectionRequestAccepted": "{firstName} {lastName} accepted your connnectionn request",
-        "connectionRequestReceived": "You have received a new connection request from {firstName} {lastName}"
+        "connectionRequestReceived": "You have received a new connection request from {firstName} {lastName}",
+        "newDmReceived": "New direct message from {userName} while you were away"
     },
     "validation": "The required parameters were not provided."
 }
