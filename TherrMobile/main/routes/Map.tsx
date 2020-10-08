@@ -1,12 +1,15 @@
 import React from 'react';
 import { PermissionsAndroid, StatusBar } from 'react-native';
-import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { PROVIDER_GOOGLE, Circle } from 'react-native-maps';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import Geolocation from '@react-native-community/geolocation';
 import UsersActions from '../redux/actions/UsersActions';
+
+const INITIAL_LATIUDE_DELTA = 0.00122;
+const INITIAL_LONGITUDE_DELTA = 0.00051;
 
 interface IMapDispatchProps {
     login: Function;
@@ -25,6 +28,7 @@ export interface IMapProps extends IStoreProps {
 interface IMapState {
     longitude: number;
     latitude: number;
+    circleCenter: any;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -47,6 +51,10 @@ class Map extends React.Component<IMapProps, IMapState> {
         this.state = {
             longitude: -96.4683143,
             latitude: 32.8102631,
+            circleCenter: {
+                longitude: -96.4683143,
+                latitude: 32.8102631,
+            },
         };
     }
 
@@ -66,11 +74,14 @@ class Map extends React.Component<IMapProps, IMapState> {
             .then((granted) => {
                 if (granted === PermissionsAndroid.RESULTS.GRANTED) {
                     Geolocation.getCurrentPosition((position) => {
-                        console.log(position);
                         if (position && position.coords) {
                             this.setState({
                                 latitude: position.coords.latitude,
                                 longitude: position.coords.longitude,
+                                circleCenter: {
+                                    latitude: position.coords.latitude,
+                                    longitude: position.coords.longitude,
+                                },
                             });
                         }
                     });
@@ -89,13 +100,17 @@ class Map extends React.Component<IMapProps, IMapState> {
         navigation.navigate('Home');
     };
 
-    onRegionChange = (region) => {
-        console.log('change', region);
+    onUserLocationChange = (event) => {
+        this.setState({
+            circleCenter: {
+                latitude: event.nativeEvent.coordinate.latitude,
+                longitude: event.nativeEvent.coordinate.longitude,
+            },
+        });
     };
 
     render() {
-        const { longitude, latitude } = this.state;
-        console.log(longitude, latitude);
+        const { circleCenter, longitude, latitude } = this.state;
 
         return (
             <>
@@ -103,15 +118,27 @@ class Map extends React.Component<IMapProps, IMapState> {
                 <MapView
                     provider={PROVIDER_GOOGLE}
                     style={{ flex: 1 }}
-                    region={{
+                    initialRegion={{
                         latitude,
                         longitude,
-                        latitudeDelta: 0.0922,
-                        longitudeDelta: 0.0421,
+                        latitudeDelta: INITIAL_LATIUDE_DELTA,
+                        longitudeDelta: INITIAL_LONGITUDE_DELTA,
                     }}
                     showsUserLocation={true}
-                    onRegionChange={this.onRegionChange}
-                />
+                    showsCompass={true}
+                    showsBuildings={true}
+                    // followsUserLocation={true}
+                    onUserLocationChange={this.onUserLocationChange}
+                    minZoomLevel={18}
+                >
+                    <Circle
+                        center={circleCenter}
+                        radius={20}
+                        strokeWidth={3}
+                        strokeColor="#388254"
+                        fillColor="rgba(56,130,84,0.15)"
+                    />
+                </MapView>
             </>
         );
     }
