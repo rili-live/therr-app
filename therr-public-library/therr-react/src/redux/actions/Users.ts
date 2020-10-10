@@ -64,9 +64,8 @@ class UsersActions {
             || JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || null);
         return ((userDetails ? UsersService.logout(userDetails) : Promise.resolve()) as Promise<any>)
             .then(() => userDetails)
-            .then((user) => {
-                (this.NativeStorage || sessionStorage).removeItem('therrSession');
-                (this.NativeStorage || sessionStorage).removeItem('therrUser');
+            .then(async (user) => {
+                (this.NativeStorage || sessionStorage).multiRemove(['therrSession', 'therrUser']);
                 if (!this.NativeStorage) {
                     localStorage.removeItem('therrSession');
                     localStorage.removeItem('therrUser');

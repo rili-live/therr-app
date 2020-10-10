@@ -53,7 +53,7 @@ const initInterceptors = (
     }, (error) => {
         if (error.response) {
             if (Number(error.response.status) === 401 || Number(error.response.data.statusCode) === 401) {
-                // store.dispatch(UserActions.setRedirect(window.location.pathname));
+                // store.dispatch(UsersActions.setRedirect(window.location.pathname));
                 store.dispatch(UsersActions.logout());
                 // store.dispatch(AlertActions.addAlert({
                 //     title: 'Not Authorized',
