@@ -40,18 +40,7 @@ const mapDispatchToProps = (dispatch: any) =>
 class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     constructor(props) {
         super(props);
-
-        this.state = {
-            isAuthenticating: false,
-        };
     }
-
-    login = (data) => {
-        this.setState({
-            isAuthenticating: true,
-        });
-        return this.props.login(data);
-    };
 
     render() {
         return (
@@ -64,7 +53,7 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                     >
                         <View style={styles.body}>
                             <View style={styles.sectionContainer} />
-                            <LoginForm login={this.login} />
+                            <LoginForm login={this.props.login} />
                         </View>
                     </ScrollView>
                 </SafeAreaView>

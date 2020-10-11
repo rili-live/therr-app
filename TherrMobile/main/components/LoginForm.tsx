@@ -72,7 +72,7 @@ export class LoginFormComponent extends React.Component<
                                     : ''
                             }`,
                         });
-                    } else if (error.statusCode === 500) {
+                    } else if (error.statusCode >= 500) {
                         this.setState({
                             prevLoginError: this.translate(
                                 'components.loginForm.backendErrorMessage'
