@@ -7,6 +7,7 @@ import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import Geolocation from '@react-native-community/geolocation';
 import UsersActions from '../redux/actions/UsersActions';
+import { ILocationState } from '../types/redux/location';
 
 const INITIAL_LATIUDE_DELTA = 0.00122;
 const INITIAL_LONGITUDE_DELTA = 0.00051;
@@ -17,6 +18,7 @@ interface IMapDispatchProps {
 }
 
 interface IStoreProps extends IMapDispatchProps {
+    location: ILocationState;
     user: IUserState;
 }
 
@@ -32,6 +34,7 @@ interface IMapState {
 }
 
 const mapStateToProps = (state: any) => ({
+    location: state.location,
     user: state.user,
 });
 
@@ -59,39 +62,69 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     componentDidMount = async () => {
-        PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-            {
-                title: 'Therr Mobile',
-                message:
-                    'Therr App needs access to your location ' +
-                    'so you can share moments with connections',
-                buttonNeutral: 'Ask Me Later',
-                buttonNegative: 'Cancel',
-                buttonPositive: 'OK',
-            }
-        )
-            .then((granted) => {
-                if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-                    Geolocation.getCurrentPosition((position) => {
-                        if (position && position.coords) {
-                            this.setState({
-                                latitude: position.coords.latitude,
-                                longitude: position.coords.longitude,
-                                circleCenter: {
-                                    latitude: position.coords.latitude,
-                                    longitude: position.coords.longitude,
-                                },
-                            });
-                        }
-                    });
-                } else {
-                    console.log('Location permission denied');
+        const { location } = this.props;
+
+        if (location.settings.isGpsEnabled) {
+            // TODO: Store location logic in Mobile only redux
+            // Also ask for permissions at login
+            PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+                {
+                    title: 'Therr Mobile',
+                    message:
+                        'Therr App needs access to your location ' +
+                        'so you can share moments with connections',
+                    buttonNeutral: 'Ask Me Later',
+                    buttonNegative: 'Cancel',
+                    buttonPositive: 'OK',
                 }
-            })
-            .catch((error) => {
-                console.log('error', error);
-            });
+            )
+                .then(
+                    (granted) =>
+                        new Promise((resolve, reject) => {
+                            if (
+                                granted === PermissionsAndroid.RESULTS.GRANTED
+                            ) {
+                                Geolocation.watchPosition(
+                                    (position) => {
+                                        if (position && position.coords) {
+                                            this.setState({
+                                                latitude:
+                                                    position.coords.latitude,
+                                                longitude:
+                                                    position.coords.longitude,
+                                                circleCenter: {
+                                                    latitude:
+                                                        position.coords
+                                                            .latitude,
+                                                    longitude:
+                                                        position.coords
+                                                            .longitude,
+                                                },
+                                            });
+                                        }
+                                        return resolve();
+                                    },
+                                    (error) => {
+                                        console.log('geolocation error');
+                                        return reject(error);
+                                    },
+                                    {
+                                        enableHighAccuracy: true,
+                                    }
+                                );
+                            } else {
+                                console.log('Location permission denied');
+                                return reject('permissionDenied');
+                            }
+                        })
+                )
+                .catch(() => {
+                    this.goToHome();
+                });
+        } else {
+            this.goToHome();
+        }
     };
 
     goToHome = () => {

@@ -42,7 +42,7 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         super(props);
 
         this.state = {
-            isAuthenticating: false
+            isAuthenticating: false,
         };
     }
 
@@ -51,7 +51,7 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
             isAuthenticating: true,
         });
         return this.props.login(data);
-    }
+    };
 
     render() {
         return (

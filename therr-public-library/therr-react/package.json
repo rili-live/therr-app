@@ -30,5 +30,7 @@
   ],
   "peerDependencies": {},
   "devDependencies": {},
-  "dependencies": {}
+  "dependencies": {
+    "react-native-android-location-services-dialog-box": "^2.8.2"
+  }
 }
