@@ -1,6 +1,6 @@
 import React from 'react';
 import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
-import { Button, ListItem } from 'react-native-elements';
+import { ListItem } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -96,24 +96,6 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         }`;
     };
 
-    goToMap = () => {
-        const { navigation } = this.props;
-
-        navigation.navigate('Map');
-    };
-
-    handleLogout = () => {
-        const { user, logout, navigation } = this.props;
-
-        logout(user.details)
-            .then(() => {
-                navigation.navigate('Login');
-            })
-            .catch((e) => {
-                console.log(e);
-            });
-    };
-
     onConnectionPress = (connection) => {
         const { navigation } = this.props;
 
@@ -137,22 +119,14 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                     >
                         <View style={styles.body}>
                             <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitle}>Actions</Text>
+                                <Text style={styles.sectionTitle}>
+                                    How It Works?
+                                </Text>
                                 <Text style={styles.sectionDescription}>
                                     Welcome to the homepage. This is a work in
-                                    progress...
+                                    progress...share a moment with your
+                                    connections from the map or send a DM.
                                 </Text>
-                                <Button
-                                    title="MAP"
-                                    onPress={this.goToMap}
-                                    containerStyle={{
-                                        marginBottom: 10,
-                                    }}
-                                />
-                                <Button
-                                    title="LOGOUT"
-                                    onPress={this.handleLogout}
-                                />
                             </View>
                             <View style={styles.sectionContainer}>
                                 <Text style={styles.sectionTitle}>

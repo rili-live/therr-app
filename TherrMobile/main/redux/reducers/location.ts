@@ -6,6 +6,7 @@ import {
 } from '../../types/redux/location';
 
 const initialState: ILocationState = Immutable.from({
+    permissions: {},
     settings: {},
 });
 
@@ -21,6 +22,11 @@ const locations = (state: ILocationState = initialState, action: any) => {
                 ['settings', 'isGpsEnabled'],
                 action.data && action.data.status === 'enabled'
             );
+        case LocationActionTypes.LOCATION_PERMISSIONS_UPDATED:
+            return state.setIn(['permissions'], {
+                ...state.permissions,
+                ...action.data,
+            });
         default:
             return state;
     }

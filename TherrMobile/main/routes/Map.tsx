@@ -8,6 +8,7 @@ import { IUserState } from 'therr-react/types';
 import Geolocation from '@react-native-community/geolocation';
 import UsersActions from '../redux/actions/UsersActions';
 import { ILocationState } from '../types/redux/location';
+import LocationActions from '../redux/actions/LocationActions';
 
 const INITIAL_LATIUDE_DELTA = 0.00122;
 const INITIAL_LONGITUDE_DELTA = 0.00051;
@@ -16,6 +17,7 @@ const MIN_ZOOM_LEVEL = 5;
 interface IMapDispatchProps {
     login: Function;
     logout: Function;
+    updateLocationPermissions: Function;
 }
 
 interface IStoreProps extends IMapDispatchProps {
@@ -45,6 +47,8 @@ const mapDispatchToProps = (dispatch: any) =>
         {
             login: UsersActions.login,
             logout: UsersActions.logout,
+            updateLocationPermissions:
+                LocationActions.updateLocationPermissions,
         },
         dispatch
     );
@@ -65,9 +69,10 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     componentDidMount = async () => {
-        const { location } = this.props;
+        const { location, updateLocationPermissions } = this.props;
 
         if (location.settings.isGpsEnabled) {
+            let grantStatus;
             // TODO: Store permissions response in Mobile only redux
             PermissionsAndroid.request(
                 PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
@@ -82,10 +87,15 @@ class Map extends React.Component<IMapProps, IMapState> {
                 }
             )
                 .then(
-                    (granted) =>
+                    (response) =>
                         new Promise((resolve, reject) => {
+                            grantStatus = response;
+                            updateLocationPermissions({
+                                accessFileLocation: grantStatus,
+                            });
                             if (
-                                granted === PermissionsAndroid.RESULTS.GRANTED
+                                grantStatus ===
+                                PermissionsAndroid.RESULTS.GRANTED
                             ) {
                                 this.mapWatchId = Geolocation.watchPosition(
                                     (position) => {
@@ -122,7 +132,12 @@ class Map extends React.Component<IMapProps, IMapState> {
                             }
                         })
                 )
-                .catch(() => {
+                .catch((error) => {
+                    if (error === 'permissionDenied') {
+                        updateLocationPermissions({
+                            accessFileLocation: grantStatus,
+                        });
+                    }
                     this.goToHome();
                 });
         } else {

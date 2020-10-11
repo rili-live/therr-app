@@ -9,6 +9,12 @@ const Location = {
             },
         });
     },
+    updateLocationPermissions: (permissions) => (dispatch: any) => {
+        dispatch({
+            type: LocationActionTypes.LOCATION_PERMISSIONS_UPDATED,
+            data: permissions,
+        });
+    },
 };
 
 export default Location;

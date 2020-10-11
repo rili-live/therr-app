@@ -13,11 +13,13 @@ import { bindActionCreators } from 'redux';
 import HeaderMenuRight from './HeaderMenuRight';
 import { AccessCheckType } from '../types';
 import LocationActions from '../redux/actions/LocationActions';
+import UsersActions from '../redux/actions/UsersActions';
 import { ILocationState } from '../types/redux/location';
 
 const Stack = createStackNavigator();
 
 interface ILayoutDispatchProps {
+    logout: Function;
     updateGpsStatus: Function;
 }
 
@@ -39,6 +41,7 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
+            logout: UsersActions.logout,
             updateGpsStatus: LocationActions.updateGpsStatus,
         },
         dispatch
@@ -93,7 +96,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     };
 
     render() {
-        const { user } = this.props;
+        const { logout, user } = this.props;
 
         return (
             <NavigationContainer theme={theme}>
@@ -103,6 +106,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             <HeaderMenuRight
                                 navigation={navigation}
                                 isVisible={this.shouldShowTopRightMenu()}
+                                logout={logout}
+                                user={user}
                             />
                         ),
                         headerTitleStyle: {

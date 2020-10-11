@@ -180,7 +180,7 @@ class DirectMessage extends React.Component<
                         <View style={styles.sectionContainer}>
                             <Text style={styles.sectionTitle}>
                                 {connectionDetails.firstName}{' '}
-                                {connectionDetails.lastName} -{' '}
+                                {connectionDetails.lastName}:{' '}
                                 {connectionDetails.userName}
                             </Text>
                         </View>
