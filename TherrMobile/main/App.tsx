@@ -7,6 +7,8 @@ import Layout from './components/Layout';
 import { loaderStyles } from './styles';
 import { MIN_LOAD_TIMEOUT } from './constants';
 
+const earthLoader = require('./assets/earth-loader.json');
+
 class App extends React.Component<any, any> {
     constructor(props) {
         super(props);
@@ -18,15 +20,20 @@ class App extends React.Component<any, any> {
 
         this.loadStorage();
 
-        setTimeout(() => {
+        this.timeoutId = setTimeout(() => {
             this.setState({
                 isMinLoadTimeComplete: true,
             });
         }, MIN_LOAD_TIMEOUT + 200);
     }
 
+    componentWillUnmount() {
+        clearTimeout(this.timeoutId);
+    }
+
     // TODO: Add typescript
     private store;
+    private timeoutId;
 
     loadStorage = async () => {
         this.store = await getStore();
@@ -44,7 +51,7 @@ class App extends React.Component<any, any> {
                 <AnimatedLoader
                     visible={true}
                     overlayColor="rgba(255,255,255,0.75)"
-                    source={require('./assets/earth-loader.json')}
+                    source={earthLoader}
                     animationStyle={loaderStyles.lottie}
                     speed={1.25}
                 />

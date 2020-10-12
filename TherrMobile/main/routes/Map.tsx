@@ -18,6 +18,8 @@ import {
 } from '../constants';
 import { loaderStyles } from '../styles';
 
+const earthLoader = require('../assets/earth-loader.json');
+
 interface IMapDispatchProps {
     login: Function;
     logout: Function;
@@ -77,7 +79,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     componentDidMount = async () => {
         const { location, updateLocationPermissions } = this.props;
 
-        setTimeout(() => {
+        this.timeoutId = setTimeout(() => {
             this.setState({
                 isMinLoadTimeComplete: true,
             });
@@ -159,9 +161,11 @@ class Map extends React.Component<IMapProps, IMapState> {
 
     componentWillUnmount() {
         Geolocation.clearWatch(this.mapWatchId);
+        clearTimeout(this.timeoutId);
     }
 
     private mapWatchId;
+    private timeoutId;
 
     goToHome = () => {
         const { navigation } = this.props;
@@ -194,7 +198,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                     <AnimatedLoader
                         visible={true}
                         overlayColor="rgba(255,255,255,0.75)"
-                        source={require('../assets/earth-loader.json')}
+                        source={earthLoader}
                         animationStyle={loaderStyles.lottie}
                         speed={1.25}
                     />
