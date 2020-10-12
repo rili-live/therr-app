@@ -5,11 +5,19 @@ export const theme = {
     colors: {
         primary: '#1b4a69',
         background: '#1f597d',
+        // background: '#46AEC200',
         card: '#1b4a69',
         text: '#fcfeff',
         border: '#143b54',
     },
 };
+
+const loaderStyles = StyleSheet.create({
+    lottie: {
+        width: 100,
+        height: 100,
+    },
+});
 
 export default StyleSheet.create({
     scrollView: {},
@@ -46,3 +54,5 @@ export default StyleSheet.create({
         textAlign: 'right',
     },
 });
+
+export { loaderStyles };

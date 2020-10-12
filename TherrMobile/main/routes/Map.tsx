@@ -1,18 +1,22 @@
 import React from 'react';
-import { PermissionsAndroid, StatusBar, Text } from 'react-native';
+import { PermissionsAndroid, StatusBar } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Circle } from 'react-native-maps';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import Geolocation from '@react-native-community/geolocation';
+import AnimatedLoader from 'react-native-animated-loader';
 import UsersActions from '../redux/actions/UsersActions';
 import { ILocationState } from '../types/redux/location';
 import LocationActions from '../redux/actions/LocationActions';
-
-const INITIAL_LATIUDE_DELTA = 0.00122;
-const INITIAL_LONGITUDE_DELTA = 0.00051;
-const MIN_ZOOM_LEVEL = 5;
+import {
+    INITIAL_LATIUDE_DELTA,
+    INITIAL_LONGITUDE_DELTA,
+    MIN_LOAD_TIMEOUT,
+    MIN_ZOOM_LEVEL,
+} from '../constants';
+import { loaderStyles } from '../styles';
 
 interface IMapDispatchProps {
     login: Function;
@@ -32,6 +36,7 @@ export interface IMapProps extends IStoreProps {
 
 interface IMapState {
     isLocationReady: boolean;
+    isMinLoadTimeComplete: boolean;
     longitude: number;
     latitude: number;
     circleCenter: any;
@@ -59,6 +64,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         this.state = {
             isLocationReady: false,
+            isMinLoadTimeComplete: false,
             longitude: -96.4683143,
             latitude: 32.8102631,
             circleCenter: {
@@ -70,6 +76,12 @@ class Map extends React.Component<IMapProps, IMapState> {
 
     componentDidMount = async () => {
         const { location, updateLocationPermissions } = this.props;
+
+        setTimeout(() => {
+            this.setState({
+                isMinLoadTimeComplete: true,
+            });
+        }, MIN_LOAD_TIMEOUT);
 
         if (location.settings.isGpsEnabled) {
             let grantStatus;
@@ -170,6 +182,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         const {
             circleCenter,
             isLocationReady,
+            isMinLoadTimeComplete,
             longitude,
             latitude,
         } = this.state;
@@ -177,8 +190,14 @@ class Map extends React.Component<IMapProps, IMapState> {
         return (
             <>
                 <StatusBar barStyle="dark-content" />
-                {!isLocationReady ? (
-                    <Text>Loading...</Text>
+                {!(isLocationReady && isMinLoadTimeComplete) ? (
+                    <AnimatedLoader
+                        visible={true}
+                        overlayColor="rgba(255,255,255,0.75)"
+                        source={require('../assets/earth-loader.json')}
+                        animationStyle={loaderStyles.lottie}
+                        speed={1.25}
+                    />
                 ) : (
                     <MapView
                         provider={PROVIDER_GOOGLE}

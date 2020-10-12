@@ -1,9 +1,11 @@
 import React from 'react';
 import { Provider } from 'shared/react-redux';
-import { Text } from 'react-native';
+import AnimatedLoader from 'react-native-animated-loader';
 import getStore from './getStore';
 import initInterceptors from './interceptors';
 import Layout from './components/Layout';
+import { loaderStyles } from './styles';
+import { MIN_LOAD_TIMEOUT } from './constants';
 
 class App extends React.Component<any, any> {
     constructor(props) {
@@ -11,9 +13,16 @@ class App extends React.Component<any, any> {
 
         this.state = {
             isLoading: true,
+            isMinLoadTimeComplete: false,
         };
 
         this.loadStorage();
+
+        setTimeout(() => {
+            this.setState({
+                isMinLoadTimeComplete: true,
+            });
+        }, MIN_LOAD_TIMEOUT + 200);
     }
 
     // TODO: Add typescript
@@ -28,10 +37,18 @@ class App extends React.Component<any, any> {
     };
 
     render() {
-        const { isLoading } = this.state;
+        const { isLoading, isMinLoadTimeComplete } = this.state;
 
-        if (isLoading || !this.store) {
-            return <Text>Loading...</Text>;
+        if (!isMinLoadTimeComplete || isLoading || !this.store) {
+            return (
+                <AnimatedLoader
+                    visible={true}
+                    overlayColor="rgba(255,255,255,0.75)"
+                    source={require('./assets/earth-loader.json')}
+                    animationStyle={loaderStyles.lottie}
+                    speed={1.25}
+                />
+            );
         }
 
         return (
