@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
+import ButtonMenu from '../components/ButtonMenu';
 import styles from '../styles';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
@@ -107,7 +108,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
     };
 
     render() {
-        const { user, userConnections } = this.props;
+        const { navigation, user, userConnections } = this.props;
 
         return (
             <>
@@ -223,6 +224,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                         </View>
                     </ScrollView>
                 </SafeAreaView>
+                <ButtonMenu navigation={navigation} user={user} />
             </>
         );
     }

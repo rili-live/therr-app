@@ -87,6 +87,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         if (location.settings.isGpsEnabled) {
             let grantStatus;
+
             // TODO: Store permissions response in Mobile only redux
             PermissionsAndroid.request(
                 PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
@@ -107,6 +108,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                             updateLocationPermissions({
                                 accessFileLocation: grantStatus,
                             });
+                            console.log(grantStatus);
                             if (
                                 grantStatus ===
                                 PermissionsAndroid.RESULTS.GRANTED

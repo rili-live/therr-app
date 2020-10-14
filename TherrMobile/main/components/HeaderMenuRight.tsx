@@ -70,9 +70,19 @@ class HeaderMenuRight extends React.Component<
             });
     };
 
+    getCurrentScreen = () => {
+        const navState = this.props.navigation.dangerouslyGetState();
+
+        return (
+            navState.routes[navState.routes.length - 1] &&
+            navState.routes[navState.routes.length - 1].name
+        );
+    };
+
     render() {
         const { isVisible } = this.props;
         const { isModalVisible } = this.state;
+        const currentScreen = this.getCurrentScreen();
 
         if (isVisible) {
             return (
@@ -103,19 +113,35 @@ class HeaderMenuRight extends React.Component<
                                 />
                             </View>
                             <Button
-                                titleStyle={headerMenuModal.buttons}
-                                buttonStyle={headerMenuModal.buttons}
+                                titleStyle={
+                                    currentScreen === 'Home'
+                                        ? headerMenuModal.buttonsTitleActive
+                                        : headerMenuModal.buttonsTitle
+                                }
+                                buttonStyle={
+                                    currentScreen === 'Home'
+                                        ? headerMenuModal.buttonsActive
+                                        : headerMenuModal.buttons
+                                }
                                 title="HOME"
                                 onPress={() => this.navTo('Home')}
                             />
                             <Button
-                                titleStyle={headerMenuModal.buttons}
-                                buttonStyle={headerMenuModal.buttons}
+                                titleStyle={
+                                    currentScreen === 'Map'
+                                        ? headerMenuModal.buttonsTitleActive
+                                        : headerMenuModal.buttonsTitle
+                                }
+                                buttonStyle={
+                                    currentScreen === 'Map'
+                                        ? headerMenuModal.buttonsActive
+                                        : headerMenuModal.buttons
+                                }
                                 title="MAP"
                                 onPress={() => this.navTo('Map')}
                             />
                             <Button
-                                titleStyle={headerMenuModal.buttons}
+                                titleStyle={headerMenuModal.buttonsTitle}
                                 buttonStyle={headerMenuModal.buttons}
                                 title="LOGOUT"
                                 onPress={this.handleLogout}
