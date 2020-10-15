@@ -15,8 +15,15 @@ import { AccessCheckType } from '../types';
 import LocationActions from '../redux/actions/LocationActions';
 import UsersActions from '../redux/actions/UsersActions';
 import { ILocationState } from '../types/redux/location';
+import HeaderMenuLeft from './HeaderMenuLeft';
 
 const Stack = createStackNavigator();
+
+const forFade = ({ current }) => ({
+    cardStyle: {
+        opacity: current.progress,
+    },
+});
 
 interface ILayoutDispatchProps {
     logout: Function;
@@ -102,6 +109,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             <NavigationContainer theme={theme}>
                 <Stack.Navigator
                     screenOptions={({ navigation }) => ({
+                        // animationEnabled: false,
+                        cardStyleInterpolator: forFade,
+                        headerLeft: () => (
+                            <HeaderMenuLeft navigation={navigation} />
+                        ),
                         headerRight: () => (
                             <HeaderMenuRight
                                 navigation={navigation}
@@ -125,18 +137,26 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             ) {
                                 return false;
                             }
-                            return (
-                                !(route.options && route.options.access) ||
-                                UsersService.isAuthorized(
-                                    route.options.access,
-                                    user
+                            if (
+                                !(
+                                    route.options &&
+                                    typeof route.options === 'function' &&
+                                    route.options().access
                                 )
+                            ) {
+                                return true;
+                            }
+
+                            const isAuthorized = UsersService.isAuthorized(
+                                route.options().access,
+                                user
                             );
+
+                            delete route.options.access;
+
+                            return isAuthorized;
                         })
                         .map((route: any) => {
-                            if (route.options) {
-                                delete route.options.access;
-                            }
                             return <Stack.Screen key={route.name} {...route} />;
                         })}
                 </Stack.Navigator>

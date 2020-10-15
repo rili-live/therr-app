@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { CommonActions } from '@react-navigation/native';
 // import { AlertActions } from './library/alerts';
 // import { LoaderActions } from './library/loader';
 import getConfig from './utilities/getConfig';
@@ -53,13 +54,26 @@ const initInterceptors = (
             }
             numLoadings -= 1;
 
+            store.dispatch(
+                CommonActions.reset({
+                    index: 1,
+                    routes: [
+                        {
+                            name: 'Login',
+                        },
+                    ],
+                })
+            );
+
             return response;
         },
         (error) => {
             if (error.response) {
                 if (
                     Number(error.response.status) === 401 ||
-                    Number(error.response.data.statusCode) === 401
+                    Number(error.response.data.statusCode) === 401 ||
+                    Number(error.response.status) === 403 ||
+                    Number(error.response.data.statusCode) === 403
                 ) {
                     // store.dispatch(UsersActions.setRedirect(window.location.pathname));
                     store.dispatch(UsersActions.logout());
@@ -69,7 +83,7 @@ const initInterceptors = (
                     // Please login to continue.',
                     //     type: 'error',
                     //     delay: 3000
-                    // }));
+                    // }));;
                 }
             }
 

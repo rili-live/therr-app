@@ -87,18 +87,20 @@ class DirectMessage extends React.Component<
         const { msgScrollPosition } = this.state;
         // To prevent FlatList scrolls to top automatically,
         // we have to delay scroll to the original position
-        setTimeout(() => {
-            msgScrollPosition
-                ? this.flatListRef.scrollToOffset({
-                    offset: msgScrollPosition,
-                    animated: true,
-                })
-                : this.flatListRef.scrollToIndex({
-                    index: this.flatListRef.props.data
-                        ? this.flatListRef.props.data.length - 1
-                        : 0,
-                    animated: true,
-                });
+        this.mountTimeoutId = setTimeout(() => {
+            if (this.flatListRef) {
+                msgScrollPosition
+                    ? this.flatListRef.scrollToOffset({
+                        offset: msgScrollPosition,
+                        animated: true,
+                    })
+                    : this.flatListRef.scrollToIndex({
+                        index: this.flatListRef.props.data
+                            ? this.flatListRef.props.data.length - 1
+                            : 0,
+                        animated: true,
+                    });
+            }
         }, 500);
     }
 
@@ -121,6 +123,14 @@ class DirectMessage extends React.Component<
         }
     }
 
+    componentWillUnmount = () => {
+        clearTimeout(this.mountTimeoutId);
+        clearTimeout(this.failTimeoutId);
+    };
+
+    private mountTimeoutId;
+    private failTimeoutId;
+
     handleInputChange = (val) => {
         this.setState({
             msgInputVal: val,
@@ -132,11 +142,13 @@ class DirectMessage extends React.Component<
     };
 
     handleScrollToIndexFailed = (info) => {
-        setTimeout(() => {
-            this.flatListRef.scrollToIndex({
-                index: info.index,
-                animated: true,
-            });
+        this.failTimeoutId = setTimeout(() => {
+            if (this.flatListRef) {
+                this.flatListRef.scrollToIndex({
+                    index: info.index,
+                    animated: true,
+                });
+            }
         }, 500);
     };
 

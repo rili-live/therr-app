@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { SafeAreaView, ScrollView, View, StatusBar } from 'react-native';
+import { SafeAreaView, View, StatusBar } from 'react-native';
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';
 import styles from '../styles';
@@ -47,15 +47,10 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
             <>
                 <StatusBar barStyle="dark-content" />
                 <SafeAreaView>
-                    <ScrollView
-                        contentInsetAdjustmentBehavior="automatic"
-                        style={styles.scrollView}
-                    >
-                        <View style={styles.body}>
-                            <View style={styles.sectionContainer} />
-                            <LoginForm login={this.props.login} />
-                        </View>
-                    </ScrollView>
+                    <View style={styles.body}>
+                        <View style={styles.sectionContainer} />
+                        <LoginForm login={this.props.login} />
+                    </View>
                 </SafeAreaView>
             </>
         );

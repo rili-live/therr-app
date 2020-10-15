@@ -21,9 +21,7 @@ class ButtonMenu extends React.Component<IButtonMenuProps, IButtonMenuState> {
     constructor(props) {
         super(props);
 
-        this.state = {
-            isModalVisible: false,
-        };
+        this.state = {};
     }
 
     navTo = (routeName) => {
@@ -66,7 +64,7 @@ class ButtonMenu extends React.Component<IButtonMenuProps, IButtonMenuState> {
                             color="white"
                         />
                     }
-                    onPress={() => this.navTo('Home')}
+                    onPress={() => this.navTo('Notifications')}
                 />
                 <Button
                     title="Connections"
@@ -82,7 +80,7 @@ class ButtonMenu extends React.Component<IButtonMenuProps, IButtonMenuState> {
                             : buttonMenu.buttonsTitle
                     }
                     icon={<Icon name="group-add" size={30} color="white" />}
-                    onPress={() => this.navTo('Home')}
+                    onPress={() => this.navTo('Connections')}
                 />
                 <Button
                     title="Moments"
@@ -98,7 +96,7 @@ class ButtonMenu extends React.Component<IButtonMenuProps, IButtonMenuState> {
                             : buttonMenu.buttonsTitle
                     }
                     icon={<Icon name="public" size={30} color="white" />}
-                    onPress={() => this.navTo('Home')}
+                    onPress={() => this.navTo('Map')}
                 />
                 <Button
                     title="Settings"
@@ -114,7 +112,7 @@ class ButtonMenu extends React.Component<IButtonMenuProps, IButtonMenuState> {
                             : buttonMenu.buttonsTitle
                     }
                     icon={<Icon name="tune" size={30} color="white" />}
-                    onPress={() => this.navTo('Home')}
+                    onPress={() => this.navTo('Settings')}
                 />
             </View>
         );

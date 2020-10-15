@@ -1,5 +1,3 @@
-import React from 'react';
-import { View } from 'react-native';
 import { RouteConfig, StackNavigationState } from '@react-navigation/native';
 import { StackNavigationOptions } from '@react-navigation/stack';
 import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/src/types';
@@ -8,6 +6,9 @@ import DirectMessage from './DirectMessage';
 import Login from './Login';
 import { IAccess, AccessCheckType } from '../types';
 import Map from './Map';
+import Connections from './Connections';
+import Notifications from './Notifications';
+import Settings from './Settings';
 
 export interface ExtendedRouteOptions extends StackNavigationOptions {
     access?: IAccess;
@@ -25,16 +26,24 @@ const routes: RouteConfig<
         component: Login,
         options: {
             title: 'Login',
-            headerLeft: () => <View />,
-            headerRight: () => <View />,
         },
     },
     {
         name: 'Home',
         component: Home,
-        options: ({}) => ({
+        options: () => ({
             title: 'Home',
-            headerLeft: () => <View />,
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [],
+            },
+        }),
+    },
+    {
+        name: 'Connections',
+        component: Connections,
+        options: () => ({
+            title: 'Connections',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [],
@@ -44,7 +53,7 @@ const routes: RouteConfig<
     {
         name: 'DirectMessage',
         component: DirectMessage,
-        options: ({}) => ({
+        options: () => ({
             title: 'DirectMessage',
             access: {
                 type: AccessCheckType.ALL,
@@ -55,8 +64,30 @@ const routes: RouteConfig<
     {
         name: 'Map',
         component: Map,
-        options: ({}) => ({
+        options: () => ({
             title: 'Map',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [],
+            },
+        }),
+    },
+    {
+        name: 'Notifications',
+        component: Notifications,
+        options: () => ({
+            title: 'Notifications',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [],
+            },
+        }),
+    },
+    {
+        name: 'Settings',
+        component: Settings,
+        options: () => ({
+            title: 'Settings',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [],
