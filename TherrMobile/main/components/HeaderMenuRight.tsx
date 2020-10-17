@@ -4,6 +4,7 @@ import { Button, Overlay, Text } from 'react-native-elements';
 import { CommonActions } from '@react-navigation/native';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { headerMenuModal } from '../styles/modal';
 
 interface IHeaderMenuRightDispatchProps {}
@@ -112,40 +113,63 @@ class HeaderMenuRight extends React.Component<
                                     type="clear"
                                 />
                             </View>
-                            <Button
-                                titleStyle={
-                                    currentScreen === 'Home'
-                                        ? headerMenuModal.buttonsTitleActive
-                                        : headerMenuModal.buttonsTitle
-                                }
-                                buttonStyle={
-                                    currentScreen === 'Home'
-                                        ? headerMenuModal.buttonsActive
-                                        : headerMenuModal.buttons
-                                }
-                                title="HOME"
-                                onPress={() => this.navTo('Home')}
-                            />
-                            <Button
-                                titleStyle={
-                                    currentScreen === 'Map'
-                                        ? headerMenuModal.buttonsTitleActive
-                                        : headerMenuModal.buttonsTitle
-                                }
-                                buttonStyle={
-                                    currentScreen === 'Map'
-                                        ? headerMenuModal.buttonsActive
-                                        : headerMenuModal.buttons
-                                }
-                                title="MAP"
-                                onPress={() => this.navTo('Map')}
-                            />
-                            <Button
-                                titleStyle={headerMenuModal.buttonsTitle}
-                                buttonStyle={headerMenuModal.buttons}
-                                title="LOGOUT"
-                                onPress={this.handleLogout}
-                            />
+                            <View style={headerMenuModal.body}>
+                                <Button
+                                    titleStyle={
+                                        currentScreen === 'Home'
+                                            ? headerMenuModal.buttonsTitleActive
+                                            : headerMenuModal.buttonsTitle
+                                    }
+                                    buttonStyle={
+                                        currentScreen === 'Home'
+                                            ? headerMenuModal.buttonsActive
+                                            : headerMenuModal.buttons
+                                    }
+                                    title="HOME"
+                                    icon={<FontAwesomeIcon style={headerMenuModal.iconStyle} name="home" size={22} color="#388254" />}
+                                    onPress={() => this.navTo('Home')}
+                                />
+                                <Button
+                                    titleStyle={
+                                        currentScreen === 'Map'
+                                            ? headerMenuModal.buttonsTitleActive
+                                            : headerMenuModal.buttonsTitle
+                                    }
+                                    buttonStyle={
+                                        currentScreen === 'Map'
+                                            ? headerMenuModal.buttonsActive
+                                            : headerMenuModal.buttons
+                                    }
+                                    title="MAP"
+                                    icon={<FontAwesomeIcon style={headerMenuModal.iconStyle} name="globe-americas" size={22} color="#388254" />}
+                                    onPress={() => this.navTo('Map')}
+                                />
+                                <Button
+                                    titleStyle={
+                                        currentScreen === 'Connections'
+                                            ? headerMenuModal.buttonsTitleActive
+                                            : headerMenuModal.buttonsTitle
+                                    }
+                                    buttonStyle={
+                                        currentScreen === 'Connections'
+                                            ? headerMenuModal.buttonsActive
+                                            : headerMenuModal.buttons
+                                    }
+                                    title="CONNECTIONS"
+                                    icon={<FontAwesomeIcon style={headerMenuModal.iconStyle} name="users" size={22} color="#388254" />}
+                                    onPress={() => this.navTo('Connections')}
+                                />
+                            </View>
+                            <View style={headerMenuModal.footer}>
+                                <Button
+                                    titleStyle={headerMenuModal.buttonsTitle}
+                                    buttonStyle={headerMenuModal.buttons}
+                                    title="LOGOUT"
+                                    iconRight
+                                    icon={<FontAwesomeIcon name="sign-out-alt" size={22} color="#388254" />}
+                                    onPress={this.handleLogout}
+                                />
+                            </View>
                         </>
                     </Overlay>
                 </>

@@ -1,7 +1,14 @@
 import React from 'react';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
+import therrIconConfig from '../assets/therr-icon-config.json';
+
+const LogoIcon = createIconSetFromIcoMoon(
+    therrIconConfig,
+    'TherrFont',
+    'TherrFont.ttf'
+);
 
 interface IHeaderMenuLeftDispatchProps {}
 
@@ -9,6 +16,7 @@ interface IStoreProps extends IHeaderMenuLeftDispatchProps {}
 
 // Regular component props
 export interface IHeaderMenuLeftProps extends IStoreProps {
+    isAuthenticated: boolean;
     navigation: any;
 }
 
@@ -25,8 +33,10 @@ class HeaderMenuLeft extends React.Component<
     }
 
     handlePress = () => {
-        const { navigation } = this.props;
-        navigation.navigate('Home');
+        const { isAuthenticated, navigation } = this.props;
+        if (isAuthenticated) {
+            navigation.navigate('Home');
+        }
     };
 
     render() {
@@ -34,9 +44,9 @@ class HeaderMenuLeft extends React.Component<
             <Button
                 type="clear"
                 icon={
-                    <Icon
-                        name="public"
-                        size={30}
+                    <LogoIcon
+                        name="therr-logo"
+                        size={28}
                         color="white"
                         onPress={this.handlePress}
                     />

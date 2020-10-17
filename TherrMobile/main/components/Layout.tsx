@@ -112,7 +112,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         // animationEnabled: false,
                         cardStyleInterpolator: forFade,
                         headerLeft: () => (
-                            <HeaderMenuLeft navigation={navigation} />
+                            <HeaderMenuLeft navigation={navigation} isAuthenticated={user.isAuthenticated} />
                         ),
                         headerRight: () => (
                             <HeaderMenuRight

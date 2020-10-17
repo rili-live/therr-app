@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { buttonMenu } from '../styles/navigation';
 
 interface IButtonMenuDispatchProps {}
@@ -45,28 +45,6 @@ class ButtonMenu extends React.Component<IButtonMenuProps, IButtonMenuState> {
         return (
             <View style={buttonMenu.container}>
                 <Button
-                    title="Notifications"
-                    buttonStyle={
-                        currentScreen === 'Notifications'
-                            ? buttonMenu.buttonsActive
-                            : buttonMenu.buttons
-                    }
-                    containerStyle={buttonMenu.buttonContainer}
-                    titleStyle={
-                        currentScreen === 'Notifications'
-                            ? buttonMenu.buttonsTitleActive
-                            : buttonMenu.buttonsTitle
-                    }
-                    icon={
-                        <Icon
-                            name="notifications-active"
-                            size={30}
-                            color="white"
-                        />
-                    }
-                    onPress={() => this.navTo('Notifications')}
-                />
-                <Button
                     title="Connections"
                     buttonStyle={
                         currentScreen === 'Connections'
@@ -79,7 +57,7 @@ class ButtonMenu extends React.Component<IButtonMenuProps, IButtonMenuState> {
                             ? buttonMenu.buttonsTitleActive
                             : buttonMenu.buttonsTitle
                     }
-                    icon={<Icon name="group-add" size={30} color="white" />}
+                    icon={<FontAwesomeIcon name="users" size={26} color="white" />}
                     onPress={() => this.navTo('Connections')}
                 />
                 <Button
@@ -95,7 +73,7 @@ class ButtonMenu extends React.Component<IButtonMenuProps, IButtonMenuState> {
                             ? buttonMenu.buttonsTitleActive
                             : buttonMenu.buttonsTitle
                     }
-                    icon={<Icon name="public" size={30} color="white" />}
+                    icon={<FontAwesomeIcon name="globe-americas" size={26} color="white" />}
                     onPress={() => this.navTo('Map')}
                 />
                 <Button
@@ -111,8 +89,26 @@ class ButtonMenu extends React.Component<IButtonMenuProps, IButtonMenuState> {
                             ? buttonMenu.buttonsTitleActive
                             : buttonMenu.buttonsTitle
                     }
-                    icon={<Icon name="tune" size={30} color="white" />}
+                    icon={<FontAwesomeIcon name="user-cog" size={26} color="white" />}
                     onPress={() => this.navTo('Settings')}
+                />
+                <Button
+                    title="Notifications"
+                    buttonStyle={
+                        currentScreen === 'Notifications'
+                            ? buttonMenu.buttonsActive
+                            : buttonMenu.buttons
+                    }
+                    containerStyle={buttonMenu.buttonContainer}
+                    titleStyle={
+                        currentScreen === 'Notifications'
+                            ? buttonMenu.buttonsTitleActive
+                            : buttonMenu.buttonsTitle
+                    }
+                    icon={
+                        <FontAwesomeIcon name="bell" size={26} color="white" />
+                    }
+                    onPress={() => this.navTo('Notifications')}
                 />
             </View>
         );

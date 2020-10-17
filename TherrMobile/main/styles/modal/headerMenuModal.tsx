@@ -1,5 +1,8 @@
 import { StyleSheet } from 'react-native';
 
+const containerBackgroundColor = '#fcfeff';
+// const brandingYellow = '#ebc300';
+
 export default StyleSheet.create({
     buttons: {
         backgroundColor: 'transparent',
@@ -10,13 +13,21 @@ export default StyleSheet.create({
     buttonsTitle: {
         backgroundColor: 'transparent',
         color: '#388254',
+        paddingRight: 10,
+        paddingLeft: 10
     },
     buttonsTitleActive: {
         backgroundColor: 'transparent',
         color: '#388254',
-        textDecorationLine: 'underline',
+        paddingRight: 10,
+        paddingLeft: 10,
+    },
+    iconStyle: {
+        // position: 'absolute',
+        // left: 20
     },
     container: {
+        backgroundColor: containerBackgroundColor,
         display: 'flex',
         height: '100%',
         width: '90%',
@@ -39,4 +50,17 @@ export default StyleSheet.create({
         alignContent: 'center',
         fontSize: 18,
     },
+    body: {
+        position: 'relative',
+        width: '100%',
+        flex: 1
+    },
+    footer: {
+        display: 'flex',
+        paddingBottom: 8,
+        position: 'absolute',
+        bottom: 0,
+        alignItems: 'center',
+        width: '100%'
+    }
 });
