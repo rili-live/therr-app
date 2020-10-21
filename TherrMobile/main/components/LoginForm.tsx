@@ -110,6 +110,14 @@ export class LoginFormComponent extends React.Component<
 
         return (
             <View style={styles.loginContainer}>
+                <Text
+                    style={{
+                        textAlign: 'center',
+                        color: '#AA0042',
+                    }}
+                >
+                    {prevLoginError}
+                </Text>
                 <Input
                     inputStyle={{
                         color: 'white',
@@ -144,14 +152,6 @@ export class LoginFormComponent extends React.Component<
                         disabled={this.isLoginFormDisabled()}
                     />
                 </View>
-                <Text
-                    style={{
-                        textAlign: 'center',
-                        color: '#AA0042',
-                    }}
-                >
-                    {prevLoginError}
-                </Text>
             </View>
         );
     }

@@ -6,15 +6,17 @@ const containerBackgroundColor = '#fcfeff';
 export default StyleSheet.create({
     buttons: {
         backgroundColor: 'transparent',
+        height: 50,
     },
     buttonsActive: {
         backgroundColor: 'transparent',
+        height: 50,
     },
     buttonsTitle: {
         backgroundColor: 'transparent',
         color: '#388254',
         paddingRight: 10,
-        paddingLeft: 10
+        paddingLeft: 10,
     },
     buttonsTitleActive: {
         backgroundColor: 'transparent',
@@ -53,7 +55,7 @@ export default StyleSheet.create({
     body: {
         position: 'relative',
         width: '100%',
-        flex: 1
+        flex: 1,
     },
     footer: {
         display: 'flex',
@@ -61,6 +63,6 @@ export default StyleSheet.create({
         position: 'absolute',
         bottom: 0,
         alignItems: 'center',
-        width: '100%'
-    }
+        width: '100%',
+    },
 });

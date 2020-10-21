@@ -6,6 +6,7 @@ import { bindActionCreators } from 'redux';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import styles from '../styles';
 import translator from '../services/translator';
+import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 
 interface INotificationsDispatchProps {
     logout: Function;
@@ -39,13 +40,20 @@ class Notifications extends React.Component<
 
         this.state = {};
 
-        this.translate = (key: string, params: any) =>
+        this.translate = (key: string, params: any): string =>
             translator('en-us', key, params);
     }
 
-    componentDidMount() {}
+    componentDidMount() {
+        this.props.navigation.setOptions({
+            title: this.translate('pages.notifications.headerTitle'),
+        });
+    }
 
     render() {
+        const { navigation, user } = this.props;
+        const pageTitle = this.translate('pages.notifications.pageTitle');
+
         return (
             <>
                 <StatusBar barStyle="dark-content" />
@@ -57,12 +65,13 @@ class Notifications extends React.Component<
                         <View style={styles.body}>
                             <View style={styles.sectionContainer}>
                                 <Text style={styles.sectionTitle}>
-                                    Notifications
+                                    {pageTitle.toString()}
                                 </Text>
                             </View>
                         </View>
                     </ScrollView>
                 </SafeAreaView>
+                <MainButtonMenu navigation={navigation} user={user} />
             </>
         );
     }

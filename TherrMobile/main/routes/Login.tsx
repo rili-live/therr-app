@@ -7,6 +7,7 @@ import styles from '../styles';
 import LoginForm from '../components/LoginForm';
 import { bindActionCreators } from 'redux';
 import UsersActions from '../redux/actions/UsersActions';
+import translator from '../services/translator';
 
 interface ILoginDispatchProps {
     login: Function;
@@ -40,7 +41,18 @@ const mapDispatchToProps = (dispatch: any) =>
 class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     constructor(props) {
         super(props);
+
+        this.translate = (key: string, params: any): string =>
+            translator('en-us', key, params);
     }
+
+    componentDidMount() {
+        this.props.navigation.setOptions({
+            title: this.translate('pages.login.headerTitle'),
+        });
+    }
+
+    private translate;
 
     render() {
         return (

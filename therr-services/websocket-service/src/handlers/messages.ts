@@ -24,7 +24,7 @@ const sendDirectMessage = (socket: socketio.Socket, data: any) => {
         },
     }, socket).then(({ data: message }) => {
         // TODO: RFRONT-25 - localize dates
-        const timeFormatted = moment(message.updatedAt).format('MMMM D/YY, h:mma'); // TODO: RFRONT-25 - localize dates
+        const timeFormatted = moment(message.updatedAt).format('M/D/YY, h:mma'); // TODO: RFRONT-25 - localize dates
         socket.emit('action', {
             type: SocketServerActionTypes.SEND_DIRECT_MESSAGE,
             data: {
@@ -95,7 +95,7 @@ const sendForumMessage = (socket: socketio.Socket, data: any) => {
         messages: `${SocketClientActionTypes.SEND_MESSAGE}: ${data.toString()}`,
     });
     // TODO: RFRONT-25 - localize dates
-    const now = moment(Date.now()).format('MMMM D/YY, h:mma');
+    const now = moment(Date.now()).format('M/D/YY, h:mma');
     socket.emit('action', {
         type: SocketServerActionTypes.SEND_MESSAGE,
         data: {

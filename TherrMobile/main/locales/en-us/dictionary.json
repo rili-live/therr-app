@@ -7,6 +7,9 @@
     "numbersOnly": "Input only accepts numeric values"
   },
   "components": {
+    "activeConnections": {
+      "title": "Active Connections"
+    },
     "header": {
       "buttons": {
         "login": "Login"
@@ -78,8 +81,10 @@
       "welcome": "Welcome!",
       "inputPlaceholder": "Enter a message"
     },
-    "home": {
-      "pageTitle": "Home"
+    "connections": {
+      "headerTitle": "Connections",
+      "pageHeaderActive": "Active Connections",
+      "pageHeaderSearch": "Search Connections"
     },
     "createForum": {
       "labels": {
@@ -92,14 +97,30 @@
     "directMessage": {
       "inputPlaceholder": "Enter a message..."
     },
+    "home": {
+      "headerTitle": "Home",
+      "pageTitle": "Home"
+    },
+    "notifications": {
+      "headerTitle": "Notifications",
+      "pageTitle": "Notifications"
+    },
     "login": {
+      "headerTitle": "Login",
       "pageTitle": "Login"
+    },
+    "map": {
+      "headerTitle": "Map"
     },
     "pageNotFound": {
       "pageTitle": "Page Not Found"
     },
     "register": {
       "pageTitle": "Register"
+    },
+    "settings": {
+      "headerTitle": "Settings",
+      "pageTitle": "Settings"
     },
     "template": {
       "pageTitle": "Template",

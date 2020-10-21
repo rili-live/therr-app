@@ -6,7 +6,8 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
-import ButtonMenu from '../components/ButtonMenu';
+import ActiveConnections from '../components/ActiveConnections';
+import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import styles from '../styles';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
@@ -55,7 +56,12 @@ class Home extends React.Component<IHomeProps, IHomeState> {
     }
 
     componentDidMount() {
-        const { user, userConnections } = this.props;
+        const { navigation, user, userConnections } = this.props;
+
+        navigation.setOptions({
+            title: this.translate('pages.home.headerTitle'),
+        });
+
         if (!userConnections.connections.length) {
             this.props
                 .searchUserConnections(
@@ -129,52 +135,16 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                     connections from the map or send a DM.
                                 </Text>
                             </View>
-                            <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitle}>
-                                    Active Connections
-                                </Text>
-                                {userConnections.activeConnections &&
-                                userConnections.activeConnections.length ? (
-                                        userConnections.activeConnections.map(
-                                            (connection) => (
-                                                <ListItem
-                                                    key={connection.id}
-                                                    leftAvatar={{
-                                                        source: {
-                                                            uri: `https://robohash.org/${
-                                                                connection.acceptingUserId ===
-                                                                user.details &&
-                                                            user.details.id
-                                                                    ? connection.requestingUserId
-                                                                    : connection.acceptingUserId
-                                                            }?size=100x100`,
-                                                        },
-                                                    }}
-                                                    onPress={() =>
-                                                        this.onConnectionPress(
-                                                            connection
-                                                        )
-                                                    }
-                                                    title={
-                                                        this.getConnectionDetails(
-                                                            connection
-                                                        ).userName
-                                                    }
-                                                    subtitle={this.getConnectionSubtitle(
-                                                        connection
-                                                    )}
-                                                    bottomDivider
-                                                />
-                                            )
-                                        )
-                                    ) : (
-                                        <Text style={styles.sectionDescription}>
-                                            {this.translate(
-                                                'pages.userProfile.noActiveConnections'
-                                            )}
-                                        </Text>
-                                    )}
-                            </View>
+                            <ActiveConnections
+                                getConnectionDetails={this.getConnectionDetails}
+                                getConnectionSubtitle={
+                                    this.getConnectionSubtitle
+                                }
+                                onConnectionPress={this.onConnectionPress}
+                                translate={this.translate}
+                                userConnections={userConnections}
+                                user={user}
+                            />
                             <View style={styles.sectionContainer}>
                                 <Text style={styles.sectionTitle}>
                                     Connections
@@ -224,7 +194,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                         </View>
                     </ScrollView>
                 </SafeAreaView>
-                <ButtonMenu navigation={navigation} user={user} />
+                <MainButtonMenu navigation={navigation} user={user} />
             </>
         );
     }

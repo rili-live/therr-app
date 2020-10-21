@@ -10,7 +10,7 @@ interface IRoomData {
 }
 
 const joinRoom = (socket: socketio.Socket, data: IRoomData) => {
-    const now = moment(Date.now()).format('MMMM D/YY, h:mma'); // TODO: RFRONT-25 - localize dates
+    const now = moment(Date.now()).format('M/D/YY, h:mma'); // TODO: RFRONT-25 - localize dates
 
     socket.join(data.roomId, () => {
         printLogs({

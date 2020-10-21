@@ -1,14 +1,22 @@
 import { StyleSheet } from 'react-native';
 
+const buttonStyles: any = {
+    backgroundColor: 'transparent',
+    display: 'flex',
+    flexDirection: 'column',
+    flex: 1,
+};
+
+const buttonsTitleStyle: any = {
+    backgroundColor: 'transparent',
+    color: 'white',
+    fontSize: 10,
+};
+
 export default StyleSheet.create({
-    buttons: {
-        backgroundColor: 'transparent',
-        display: 'flex',
-        flexDirection: 'column',
-        flex: 1,
-    },
+    buttons: buttonStyles,
     buttonsActive: {
-        backgroundColor: 'transparent',
+        ...buttonStyles,
     },
     buttonContainer: {
         display: 'flex',
@@ -17,14 +25,9 @@ export default StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    buttonsTitle: {
-        backgroundColor: 'transparent',
-        color: 'white',
-        fontSize: 10,
-    },
+    buttonsTitle: buttonsTitleStyle,
     buttonsTitleActive: {
-        backgroundColor: 'transparent',
-        color: 'white',
+        ...buttonsTitleStyle,
         textDecorationLine: 'underline',
     },
     container: {

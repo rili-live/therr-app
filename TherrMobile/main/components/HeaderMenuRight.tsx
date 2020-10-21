@@ -115,48 +115,69 @@ class HeaderMenuRight extends React.Component<
                             </View>
                             <View style={headerMenuModal.body}>
                                 <Button
-                                    titleStyle={
-                                        currentScreen === 'Home'
-                                            ? headerMenuModal.buttonsTitleActive
-                                            : headerMenuModal.buttonsTitle
-                                    }
                                     buttonStyle={
                                         currentScreen === 'Home'
                                             ? headerMenuModal.buttonsActive
                                             : headerMenuModal.buttons
                                     }
+                                    titleStyle={
+                                        currentScreen === 'Home'
+                                            ? headerMenuModal.buttonsTitleActive
+                                            : headerMenuModal.buttonsTitle
+                                    }
                                     title="HOME"
-                                    icon={<FontAwesomeIcon style={headerMenuModal.iconStyle} name="home" size={22} color="#388254" />}
+                                    icon={
+                                        <FontAwesomeIcon
+                                            style={headerMenuModal.iconStyle}
+                                            name="home"
+                                            size={22}
+                                            color="#388254"
+                                        />
+                                    }
                                     onPress={() => this.navTo('Home')}
                                 />
                                 <Button
-                                    titleStyle={
-                                        currentScreen === 'Map'
-                                            ? headerMenuModal.buttonsTitleActive
-                                            : headerMenuModal.buttonsTitle
-                                    }
                                     buttonStyle={
                                         currentScreen === 'Map'
                                             ? headerMenuModal.buttonsActive
                                             : headerMenuModal.buttons
                                     }
+                                    titleStyle={
+                                        currentScreen === 'Map'
+                                            ? headerMenuModal.buttonsTitleActive
+                                            : headerMenuModal.buttonsTitle
+                                    }
                                     title="MAP"
-                                    icon={<FontAwesomeIcon style={headerMenuModal.iconStyle} name="globe-americas" size={22} color="#388254" />}
+                                    icon={
+                                        <FontAwesomeIcon
+                                            style={headerMenuModal.iconStyle}
+                                            name="globe-americas"
+                                            size={22}
+                                            color="#388254"
+                                        />
+                                    }
                                     onPress={() => this.navTo('Map')}
                                 />
                                 <Button
-                                    titleStyle={
-                                        currentScreen === 'Connections'
-                                            ? headerMenuModal.buttonsTitleActive
-                                            : headerMenuModal.buttonsTitle
-                                    }
                                     buttonStyle={
                                         currentScreen === 'Connections'
                                             ? headerMenuModal.buttonsActive
                                             : headerMenuModal.buttons
                                     }
+                                    titleStyle={
+                                        currentScreen === 'Connections'
+                                            ? headerMenuModal.buttonsTitleActive
+                                            : headerMenuModal.buttonsTitle
+                                    }
                                     title="CONNECTIONS"
-                                    icon={<FontAwesomeIcon style={headerMenuModal.iconStyle} name="users" size={22} color="#388254" />}
+                                    icon={
+                                        <FontAwesomeIcon
+                                            style={headerMenuModal.iconStyle}
+                                            name="users"
+                                            size={22}
+                                            color="#388254"
+                                        />
+                                    }
                                     onPress={() => this.navTo('Connections')}
                                 />
                             </View>
@@ -166,7 +187,13 @@ class HeaderMenuRight extends React.Component<
                                     buttonStyle={headerMenuModal.buttons}
                                     title="LOGOUT"
                                     iconRight
-                                    icon={<FontAwesomeIcon name="sign-out-alt" size={22} color="#388254" />}
+                                    icon={
+                                        <FontAwesomeIcon
+                                            name="sign-out-alt"
+                                            size={22}
+                                            color="#388254"
+                                        />
+                                    }
                                     onPress={this.handleLogout}
                                 />
                             </View>

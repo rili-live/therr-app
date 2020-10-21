@@ -48,6 +48,9 @@ class HeaderMenuLeft extends React.Component<
                         name="therr-logo"
                         size={28}
                         color="white"
+                        style={{
+                            marginLeft: 2,
+                        }}
                         onPress={this.handlePress}
                     />
                 }

@@ -16,6 +16,7 @@ import LocationActions from '../redux/actions/LocationActions';
 import UsersActions from '../redux/actions/UsersActions';
 import { ILocationState } from '../types/redux/location';
 import HeaderMenuLeft from './HeaderMenuLeft';
+import translator from '../services/translator';
 
 const Stack = createStackNavigator();
 
@@ -60,6 +61,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         this.state = {};
 
+        this.translate = (key: string, params: any) =>
+            translator('en-us', key, params);
+
         if (!props.location.settings.isGpsEnabled) {
             LocationServicesDialogBox.checkLocationServicesIsEnabled({
                 message:
@@ -92,6 +96,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         // LocationServicesDialogBox.stopListener(); // Stop the "locationProviderStatusChange" listener
     }
 
+    private translate;
+
+
     shouldShowTopRightMenu = () => {
         return UsersService.isAuthorized(
             {
@@ -112,7 +119,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         // animationEnabled: false,
                         cardStyleInterpolator: forFade,
                         headerLeft: () => (
-                            <HeaderMenuLeft navigation={navigation} isAuthenticated={user.isAuthenticated} />
+                            <HeaderMenuLeft
+                                navigation={navigation}
+                                isAuthenticated={user.isAuthenticated}
+                            />
                         ),
                         headerRight: () => (
                             <HeaderMenuRight
@@ -157,6 +167,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             return isAuthorized;
                         })
                         .map((route: any) => {
+                            route.name = this.translate(route.name);
                             return <Stack.Screen key={route.name} {...route} />;
                         })}
                 </Stack.Navigator>

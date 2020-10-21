@@ -40,7 +40,7 @@ const searchDirectMessages: RequestHandler = (req: any, res: any) => {
     return Promise.all([searchPromise, countPromise]).then(([results, countResult]) => {
         const response = {
             results: results // TODO: RFRONT-25 - localize dates
-                .map((result) => ({ ...result, createdAt: moment(result.createdAt).format('MMMM D/YY, h:mma') })),
+                .map((result) => ({ ...result, createdAt: moment(result.createdAt).format('M/D/YY, h:mma') })),
             pagination: {
                 totalItems: Number(countResult[0].count),
                 itemsPerPage: Number(itemsPerPage),

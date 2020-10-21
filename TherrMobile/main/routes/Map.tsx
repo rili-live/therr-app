@@ -10,6 +10,7 @@ import AnimatedLoader from 'react-native-animated-loader';
 import UsersActions from '../redux/actions/UsersActions';
 import { ILocationState } from '../types/redux/location';
 import LocationActions from '../redux/actions/LocationActions';
+import translator from '../services/translator';
 import {
     INITIAL_LATIUDE_DELTA,
     INITIAL_LONGITUDE_DELTA,
@@ -74,10 +75,17 @@ class Map extends React.Component<IMapProps, IMapState> {
                 latitude: 32.8102631,
             },
         };
+
+        this.translate = (key: string, params: any) =>
+            translator('en-us', key, params);
     }
 
     componentDidMount = async () => {
-        const { location, updateLocationPermissions } = this.props;
+        const { location, navigation, updateLocationPermissions } = this.props;
+
+        navigation.setOptions({
+            title: this.translate('pages.map.headerTitle'),
+        });
 
         this.timeoutId = setTimeout(() => {
             this.setState({
@@ -108,7 +116,6 @@ class Map extends React.Component<IMapProps, IMapState> {
                             updateLocationPermissions({
                                 accessFileLocation: grantStatus,
                             });
-                            console.log(grantStatus);
                             if (
                                 grantStatus ===
                                 PermissionsAndroid.RESULTS.GRANTED
@@ -168,6 +175,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
     private mapWatchId;
     private timeoutId;
+    private translate: Function;
 
     goToHome = () => {
         const { navigation } = this.props;
