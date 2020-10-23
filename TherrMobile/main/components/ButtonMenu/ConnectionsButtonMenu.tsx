@@ -14,7 +14,9 @@ class ConnectionsButtonMenu extends ButtonMenu {
     }
 
     handleButtonPress = (name: string) => {
-        console.log(name);
+        const { onButtonPress } = this.props;
+
+        onButtonPress && onButtonPress(name);
     };
 
     render() {
@@ -23,33 +25,42 @@ class ConnectionsButtonMenu extends ButtonMenu {
         return (
             <View style={buttonMenu.container}>
                 <Button
-                    title="Active"
+                    title="Active Connections"
                     buttonStyle={
-                        currentScreen === 'Active'
+                        currentScreen === 'ActiveConnections'
                             ? buttonMenu.buttonsActive
                             : buttonMenu.buttons
                     }
                     containerStyle={buttonMenu.buttonContainer}
                     titleStyle={
-                        currentScreen === 'Active'
+                        currentScreen === 'ActiveConnections'
                             ? buttonMenu.buttonsTitleActive
                             : buttonMenu.buttonsTitle
                     }
                     icon={
-                        <FontAwesomeIcon name="users" size={26} color="white" />
+                        <FontAwesomeIcon
+                            name="users"
+                            size={26}
+                            color="white"
+                            style={
+                                currentScreen === 'ActiveConnections'
+                                    ? buttonMenu.buttonIconActive
+                                    : buttonMenu.buttonIcon
+                            }
+                        />
                     }
-                    onPress={() => this.handleButtonPress('Active')}
+                    onPress={() => this.navTo('ActiveConnections')}
                 />
                 <Button
-                    title="Search"
+                    title="Search Contacts"
                     buttonStyle={
-                        currentScreen === 'Search'
+                        currentScreen === 'Contacts'
                             ? buttonMenu.buttonsActive
                             : buttonMenu.buttons
                     }
                     containerStyle={buttonMenu.buttonContainer}
                     titleStyle={
-                        currentScreen === 'Search'
+                        currentScreen === 'Contacts'
                             ? buttonMenu.buttonsTitleActive
                             : buttonMenu.buttonsTitle
                     }
@@ -58,9 +69,14 @@ class ConnectionsButtonMenu extends ButtonMenu {
                             name="search"
                             size={26}
                             color="white"
+                            style={
+                                currentScreen === 'Contacts'
+                                    ? buttonMenu.buttonIconActive
+                                    : buttonMenu.buttonIcon
+                            }
                         />
                     }
-                    onPress={() => this.handleButtonPress('Search')}
+                    onPress={() => this.navTo('Contacts')}
                 />
             </View>
         );

@@ -32,7 +32,7 @@ export default StyleSheet.create({
         backgroundColor: containerBackgroundColor,
         display: 'flex',
         height: '100%',
-        width: '90%',
+        width: '92%',
         alignSelf: 'flex-end',
         flexDirection: 'column',
         borderRadius: 0,

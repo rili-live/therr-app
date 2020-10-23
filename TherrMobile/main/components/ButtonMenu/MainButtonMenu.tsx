@@ -32,9 +32,18 @@ class MainButtonMenu extends ButtonMenu {
                             : buttonMenu.buttonsTitle
                     }
                     icon={
-                        <FontAwesomeIcon name="users" size={26} color="white" />
+                        <FontAwesomeIcon
+                            name="users"
+                            size={26}
+                            color="white"
+                            style={
+                                currentScreen === 'Connections'
+                                    ? buttonMenu.buttonIconActive
+                                    : buttonMenu.buttonIcon
+                            }
+                        />
                     }
-                    onPress={() => this.navTo('Connections')}
+                    onPress={() => this.navTo('ActiveConnections')}
                 />
                 <Button
                     title="Moments"
@@ -54,6 +63,11 @@ class MainButtonMenu extends ButtonMenu {
                             name="globe-americas"
                             size={26}
                             color="white"
+                            style={
+                                currentScreen === 'Moments'
+                                    ? buttonMenu.buttonIconActive
+                                    : buttonMenu.buttonIcon
+                            }
                         />
                     }
                     onPress={() => this.navTo('Map')}
@@ -76,6 +90,11 @@ class MainButtonMenu extends ButtonMenu {
                             name="user-cog"
                             size={26}
                             color="white"
+                            style={
+                                currentScreen === 'Settings'
+                                    ? buttonMenu.buttonIconActive
+                                    : buttonMenu.buttonIcon
+                            }
                         />
                     }
                     onPress={() => this.navTo('Settings')}
@@ -94,7 +113,16 @@ class MainButtonMenu extends ButtonMenu {
                             : buttonMenu.buttonsTitle
                     }
                     icon={
-                        <FontAwesomeIcon name="bell" size={26} color="white" />
+                        <FontAwesomeIcon
+                            name="bell"
+                            size={26}
+                            color="white"
+                            style={
+                                currentScreen === 'Notifications'
+                                    ? buttonMenu.buttonIconActive
+                                    : buttonMenu.buttonIcon
+                            }
+                        />
                     }
                     onPress={() => this.navTo('Notifications')}
                 />

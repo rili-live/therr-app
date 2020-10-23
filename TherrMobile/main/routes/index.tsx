@@ -6,7 +6,8 @@ import DirectMessage from './DirectMessage';
 import Login from './Login';
 import { IAccess, AccessCheckType } from '../types';
 import Map from './Map';
-import Connections from './Connections';
+import ActiveConnections from './ActiveConnections';
+import Contacts from './Contacts';
 import Notifications from './Notifications';
 import Settings from './Settings';
 
@@ -40,10 +41,21 @@ const routes: RouteConfig<
         }),
     },
     {
-        name: 'Connections',
-        component: Connections,
+        name: 'ActiveConnections',
+        component: ActiveConnections,
         options: () => ({
-            title: 'Connections',
+            title: 'ActiveConnections',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [],
+            },
+        }),
+    },
+    {
+        name: 'Contacts',
+        component: Contacts,
+        options: () => ({
+            title: 'Contacts',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [],

@@ -8,7 +8,12 @@
   },
   "components": {
     "activeConnections": {
+      "noActiveConnections": "There are currently no active connections in your network",
       "title": "Active Connections"
+    },
+    "contactsSearch": {
+      "noContactsFound": "No contacts found",
+      "title": "Contacts"
     },
     "header": {
       "buttons": {
@@ -81,10 +86,11 @@
       "welcome": "Welcome!",
       "inputPlaceholder": "Enter a message"
     },
-    "connections": {
-      "headerTitle": "Connections",
-      "pageHeaderActive": "Active Connections",
-      "pageHeaderSearch": "Search Connections"
+    "activeConnections": {
+      "headerTitle": "Connections"
+    },
+    "contacts": {
+      "headerTitle": "Connections"
     },
     "createForum": {
       "labels": {

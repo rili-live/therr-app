@@ -8,24 +8,24 @@ import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import ConnectionsButtonMenu from '../components/ButtonMenu/ConnectionsButtonMenu';
 import styles from '../styles';
 import translator from '../services/translator';
-import ActiveConnections from '../components/ActiveConnections';
+import ContactsSearch from '../components/ContactsSearch';
 
-interface IConnectionsDispatchProps {
+interface IContactsDispatchProps {
     logout: Function;
     searchUserConnections: Function;
 }
 
-interface IStoreProps extends IConnectionsDispatchProps {
+interface IStoreProps extends IContactsDispatchProps {
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
 
 // Regular component props
-export interface IConnectionsProps extends IStoreProps {
+export interface IContactsProps extends IStoreProps {
     navigation: any;
 }
 
-interface IConnectionsState {}
+interface IContactsState {}
 
 const mapStateToProps = (state) => ({
     user: state.user,
@@ -40,10 +40,7 @@ const mapDispatchToProps = (dispatch: any) =>
         dispatch
     );
 
-class Connections extends React.Component<
-    IConnectionsProps,
-    IConnectionsState
-> {
+class Contacts extends React.Component<IContactsProps, IContactsState> {
     private translate: Function; // eslint-disable-line react/sort-comp
 
     constructor(props) {
@@ -59,7 +56,7 @@ class Connections extends React.Component<
         const { navigation, user, userConnections } = this.props;
 
         navigation.setOptions({
-            title: this.translate('pages.connections.headerTitle'),
+            title: this.translate('pages.contacts.headerTitle'),
         });
 
         if (!userConnections.connections.length) {
@@ -125,7 +122,7 @@ class Connections extends React.Component<
                         style={styles.scrollView}
                     >
                         <View style={styles.body}>
-                            <ActiveConnections
+                            <ContactsSearch
                                 getConnectionDetails={this.getConnectionDetails}
                                 getConnectionSubtitle={
                                     this.getConnectionSubtitle
@@ -144,4 +141,4 @@ class Connections extends React.Component<
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Connections);
+export default connect(mapStateToProps, mapDispatchToProps)(Contacts);

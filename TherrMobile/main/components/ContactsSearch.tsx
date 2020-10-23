@@ -4,7 +4,7 @@ import { ListItem } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import styles from '../styles';
 
-interface IActiveConnectionsProps {
+interface IContactsSearchProps {
     getConnectionDetails: any;
     getConnectionSubtitle: any;
     onConnectionPress: any;
@@ -13,7 +13,7 @@ interface IActiveConnectionsProps {
     user: any;
 }
 
-const ActiveConnections: React.FunctionComponent<IActiveConnectionsProps> = ({
+const ContactsSearch: React.FunctionComponent<IContactsSearchProps> = ({
     getConnectionDetails,
     getConnectionSubtitle,
     onConnectionPress,
@@ -24,11 +24,11 @@ const ActiveConnections: React.FunctionComponent<IActiveConnectionsProps> = ({
     return (
         <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>
-                {translate('components.activeConnections.title')}
+                {translate('components.contactsSearch.title')}
             </Text>
-            {userConnections.activeConnections &&
-            userConnections.activeConnections.length ? (
-                    userConnections.activeConnections.map((connection) => (
+            {userConnections.connections &&
+            userConnections.connections.length ? (
+                    userConnections.connections.map((connection) => (
                         <ListItem
                             key={connection.id}
                             leftAvatar={{
@@ -49,13 +49,11 @@ const ActiveConnections: React.FunctionComponent<IActiveConnectionsProps> = ({
                     ))
                 ) : (
                     <Text style={styles.sectionDescription}>
-                        {translate(
-                            'components.activeConnections.noActiveConnections'
-                        )}
+                        {translate('components.contactsSearch.noContactsFound')}
                     </Text>
                 )}
         </View>
     );
 };
 
-export default ActiveConnections;
+export default ContactsSearch;

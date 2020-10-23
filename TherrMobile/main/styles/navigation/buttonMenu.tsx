@@ -1,22 +1,33 @@
 import { StyleSheet } from 'react-native';
 
-const buttonStyles: any = {
+const buttonStyle: any = {
     backgroundColor: 'transparent',
     display: 'flex',
     flexDirection: 'column',
     flex: 1,
 };
 
+const iconStyle: any = {
+    textShadowOffset: {
+        width: 2,
+        height: 2,
+    },
+    textShadowColor: '#rgba(27, 74, 105, .75)',
+    textShadowRadius: 4,
+};
+
 const buttonsTitleStyle: any = {
     backgroundColor: 'transparent',
     color: 'white',
     fontSize: 10,
+    marginTop: 5,
+    ...iconStyle,
 };
 
 export default StyleSheet.create({
-    buttons: buttonStyles,
+    buttons: buttonStyle,
     buttonsActive: {
-        ...buttonStyles,
+        ...buttonStyle,
     },
     buttonContainer: {
         display: 'flex',
@@ -28,7 +39,10 @@ export default StyleSheet.create({
     buttonsTitle: buttonsTitleStyle,
     buttonsTitleActive: {
         ...buttonsTitleStyle,
-        textDecorationLine: 'underline',
+        textShadowOffset: {
+            width: 0,
+            height: 0,
+        },
     },
     container: {
         position: 'absolute',
@@ -54,5 +68,14 @@ export default StyleSheet.create({
         justifyContent: 'center',
         alignContent: 'center',
         fontSize: 18,
+    },
+    buttonIcon: iconStyle,
+    buttonIconActive: {
+        ...iconStyle,
+        textShadowOffset: {
+            width: 0,
+            height: 0,
+        },
+        textShadowRadius: 0,
     },
 });

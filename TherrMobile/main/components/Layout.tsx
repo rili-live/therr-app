@@ -98,7 +98,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
     private translate;
 
-
     shouldShowTopRightMenu = () => {
         return UsersService.isAuthorized(
             {
