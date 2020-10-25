@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import loginForm from './loginForm';
+import settingsForm from './settingsForm';
 
 export default StyleSheet.create({
     button: {
@@ -7,4 +8,7 @@ export default StyleSheet.create({
     },
 });
 
-export { loginForm };
+export {
+    loginForm,
+    settingsForm,
+};

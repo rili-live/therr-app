@@ -36,6 +36,9 @@ enum SocketServerActionTypes {
     // Messages
     SEND_DIRECT_MESSAGE = 'SERVER:SEND_DIRECT_MESSAGE',
     SEND_MESSAGE = 'SERVER:SEND_MESSAGE',
+
+    // User
+    UPDATE_USER = 'SERVER:UPDATE_USER',
 }
 
 export default SocketServerActionTypes;

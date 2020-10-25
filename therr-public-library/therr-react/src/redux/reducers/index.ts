@@ -7,7 +7,7 @@ import notifications from './notifications';
 import userConnections from './userConnections';
 import getUserReducer from './user';
 
-export default (socketIO, additionalReducers) => combineReducers({
+export default (socketIO, additionalReducers = {}) => combineReducers({
     routing,
 
     // library

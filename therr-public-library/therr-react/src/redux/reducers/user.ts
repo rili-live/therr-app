@@ -36,6 +36,11 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
         case SocketServerActionTypes.SESSION_CLOSED:
             socketIO.disconnect();
             return state.setIn(['socketDetails', 'session'], {});
+        case SocketClientActionTypes.UPDATE_USER:
+            return state.setIn(['details'], {
+                ...state.details,
+                ...action.data,
+            });
         default:
             return state;
     }

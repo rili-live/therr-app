@@ -23,6 +23,15 @@ interface IRegisterCredentials {
     password: string;
 }
 
+interface IUpdateUser {
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    userName: string;
+    password?: string;
+    newPassword?: string;
+}
+
 interface IChangePasswordArgs {
     oldPassword: string;
     newPassword: string;
@@ -46,6 +55,12 @@ class UsersService {
     create = (data: IRegisterCredentials) => axios({
         method: 'post',
         url: '/users-service/users',
+        data,
+    })
+
+    update = (userId: string, data: IUpdateUser) => axios({
+        method: 'put',
+        url: `/users-service/users/${userId}`,
         data,
     })
 

@@ -65,10 +65,11 @@ class UsersActions {
         return ((userDetails ? UsersService.logout(userDetails) : Promise.resolve()) as Promise<any>)
             .then(() => userDetails)
             .then(async (user) => {
-                (this.NativeStorage || sessionStorage).multiRemove(['therrSession', 'therrUser']);
                 if (!this.NativeStorage) {
                     localStorage.removeItem('therrSession');
                     localStorage.removeItem('therrUser');
+                } else {
+                    this.NativeStorage.multiRemove(['therrSession', 'therrUser']);
                 }
                 if (user) {
                     dispatch({
@@ -96,6 +97,35 @@ class UsersActions {
                 accessLevels,
                 email,
                 id,
+                userName,
+            },
+        });
+        return { email, id, userName };
+    });
+
+    update = (id: string, data: any) => (dispatch: any) => UsersService.update(id, data).then(async (response) => {
+        const {
+            email,
+            firstName,
+            lastName,
+            userName,
+        } = response && response.data;
+        // TODO: Determine if it is necessary to dispatch anything after user registers
+        // set current user?
+        const userDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || {});
+        const userData: IUser = Immutable.from({
+            ...userDetails,
+            ...response.data,
+        });
+        (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
+
+        dispatch({
+            type: SocketClientActionTypes.UPDATE_USER,
+            data: {
+                email,
+                id,
+                firstName,
+                lastName,
                 userName,
             },
         });

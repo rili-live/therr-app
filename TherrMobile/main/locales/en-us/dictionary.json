@@ -20,18 +20,6 @@
         "login": "Login"
       }
     },
-    "loginForm": {
-      "buttons": {
-        "login": "Login",
-        "signUp": "Sign Up"
-      },
-      "defaultTitle": "Login",
-      "labels": {
-        "password": "Password",
-        "userName": "Username"
-      },
-      "backendErrorMessage": "Connection error. Please try again later."
-    },
     "messagingContainer": {
       "conversation": {
         "to": "To: {firstName} {lastName}"
@@ -80,6 +68,36 @@
       }
     }
   },
+  "forms": {
+    "loginForm": {
+      "buttons": {
+        "login": "Login",
+        "signUp": "Sign Up"
+      },
+      "defaultTitle": "Login",
+      "labels": {
+        "password": "Password",
+        "userName": "Username"
+      },
+      "backendErrorMessage": "Connection error. Please try again later."
+    },
+    "settings": {
+      "buttons": {
+        "submit": "Save"
+      },
+      "labels": {
+        "email": "E-mail",
+        "password": "Password",
+        "newPassword": "New Password",
+        "repeatPassword": "Repeat Password",
+        "firstName": "Firstname",
+        "lastName": "Lastname",
+        "userName": "Username"
+      },
+      "backendSuccessMessage": "User settings successfully updated!",
+      "backendErrorMessage": "Connection error. Please try again later."
+    }
+  },
   "pages": {
     "chatForum": {
       "pageTitle": "Forums",
@@ -126,7 +144,8 @@
     },
     "settings": {
       "headerTitle": "Settings",
-      "pageTitle": "Settings"
+      "pageHeaderUser": "User Settings",
+      "pageHeaderPassword": "Update Password"
     },
     "template": {
       "pageTitle": "Template",

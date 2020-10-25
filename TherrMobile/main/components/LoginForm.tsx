@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { View } from 'react-native';
-import { Button, Input, Text } from 'react-native-elements';
+import { Button, Input } from 'react-native-elements';
 import translator from '../services/translator';
 import { loginForm as styles } from '../styles/forms';
+import Alert from '../components/Alert';
 
 // Regular component props
 interface ILoginFormProps {
@@ -68,14 +69,14 @@ export class LoginFormComponent extends React.Component<
                         this.setState({
                             prevLoginError: `${error.message}${
                                 error.parameters
-                                    ? '(' + error.parameters.toString() + ')'
+                                    ? ' error (' + error.parameters.toString() + ')'
                                     : ''
                             }`,
                         });
                     } else if (error.statusCode >= 500) {
                         this.setState({
                             prevLoginError: this.translate(
-                                'components.loginForm.backendErrorMessage'
+                                'forms.loginForm.backendErrorMessage'
                             ),
                         });
                     }
@@ -110,20 +111,20 @@ export class LoginFormComponent extends React.Component<
 
         return (
             <View style={styles.loginContainer}>
-                <Text
-                    style={{
-                        textAlign: 'center',
-                        color: '#AA0042',
+                <Alert
+                    containerStyles={{
+                        marginBottom: 24,
                     }}
-                >
-                    {prevLoginError}
-                </Text>
+                    isVisible={!!prevLoginError}
+                    message={prevLoginError}
+                    type={'error'}
+                />
                 <Input
                     inputStyle={{
                         color: 'white',
                     }}
                     label={this.translate(
-                        'components.loginForm.labels.userName'
+                        'forms.loginForm.labels.userName'
                     )}
                     value={this.state.inputs.userName}
                     onChangeText={(text) =>
@@ -135,7 +136,7 @@ export class LoginFormComponent extends React.Component<
                         color: 'white',
                     }}
                     label={this.translate(
-                        'components.loginForm.labels.password'
+                        'forms.loginForm.labels.password'
                     )}
                     value={this.state.inputs.password}
                     onChangeText={(text) =>
@@ -146,7 +147,7 @@ export class LoginFormComponent extends React.Component<
                 <View style={{ marginBottom: 20 }}>
                     <Button
                         title={this.translate(
-                            'components.loginForm.buttons.login'
+                            'forms.loginForm.buttons.login'
                         )}
                         onPress={this.onSubmit}
                         disabled={this.isLoginFormDisabled()}

@@ -3,11 +3,11 @@ import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { hashPassword } from '../utilities/userHelpers';
 import generateCode from '../utilities/generateCode';
-import { sendPasswordChangeEmail, sendVerificationEmail } from '../api/email';
+import { sendVerificationEmail } from '../api/email';
 import accessLevels from '../constants/accessLevels';
 import generateOneTimePassword from '../utilities/generateOneTimePassword';
 import translate from '../utilities/translator';
-import validatePassword from '../utilities/validatePassword';
+import { updatePassword } from '../utilities/passwordUtils';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
 
 // CREATE
@@ -94,6 +94,15 @@ const getUsers: RequestHandler = (req: any, res: any) => Store.users.getUsers()
 // UPDATE
 const updateUser = (req, res) => Store.users.findUser({ id: req.params.id, ...req.body })
     .then((findResults) => {
+        const locale = req.headers['x-localecode'] || 'en-us';
+        const userId = req.headers['x-userid'];
+        const {
+            email,
+            password,
+            oldPassword,
+            userName,
+        } = req.body;
+
         if (!findResults.length) {
             return handleHttpError({
                 res,
@@ -102,28 +111,58 @@ const updateUser = (req, res) => Store.users.findUser({ id: req.params.id, ...re
             });
         }
 
-        return Store.users
-            .updateUser({
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
-                phoneNumber: req.body.phoneNumber,
-                userName: req.body.userName,
-            }, {
-                id: req.params.id,
-            })
-            .then((results) => {
-                const user = results[0];
-                delete user.password;
-                return res.status(200).send(user);
+        // TODO: If password, validate and update password
+        let passwordPromise: Promise<any> = Promise.resolve();
+
+        if (password && oldPassword) {
+            passwordPromise = updatePassword({
+                hashedPassword: findResults[0].password,
+                inputPassword: oldPassword,
+                locale,
+                oneTimePassword: findResults[0].oneTimePassword,
+                res,
+                emailArgs: {
+                    email,
+                    userName,
+                },
+                newPassword: password,
+                userId,
             });
+        }
+
+        passwordPromise
+            .then(() => Store.users
+                .updateUser({
+                    firstName: req.body.firstName,
+                    lastName: req.body.lastName,
+                    phoneNumber: req.body.phoneNumber,
+                    userName: req.body.userName,
+                }, {
+                    id: req.params.id,
+                })
+                .then((results) => {
+                    const user = results[0];
+                    delete user.password;
+                    return res.status(202).send(user);
+                }))
+            .catch((e) => handleHttpError({
+                res,
+                message: translate(locale, 'User/password combination is incorrect'),
+                statusCode: 400,
+            }));
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
-// UPDATE
+// UPDATE PASSWORD
 const updateUserPassword = (req, res) => Store.users.findUser({ id: req.headers['x-userid'] })
     .then((findResults) => {
         const locale = req.headers['x-localecode'] || 'en-us';
         const userId = req.headers['x-userid'];
+        const {
+            email,
+            newPassword,
+            userName,
+        } = req.body;
 
         if (!findResults.length) {
             return handleHttpError({
@@ -133,38 +172,25 @@ const updateUserPassword = (req, res) => Store.users.findUser({ id: req.headers[
             });
         }
 
-        return validatePassword({
+        return updatePassword({
             hashedPassword: findResults[0].password,
             inputPassword: req.body.oldPassword,
             locale,
             oneTimePassword: findResults[0].oneTimePassword,
             res,
+            emailArgs: {
+                email,
+                userName,
+            },
+            newPassword,
+            userId,
         })
-            .then((isValid) => {
-                if (isValid) {
-                    return hashPassword(req.body.newPassword)
-                        .then((hash) => Store.users
-                            .updateUser({
-                                password: hash,
-                            }, {
-                                id: userId,
-                            })
-                            .then(() => sendPasswordChangeEmail({
-                                subject: '[Password Changed] Therr Account Settings',
-                                toAddresses: [req.body.email],
-                            }, {
-                                email: req.body.email,
-                                userName: req.body.userName,
-                            }))
-                            .then(() => res.status(204).send()));
-                }
-
-                return handleHttpError({
-                    res,
-                    message: translate(locale, 'User/password combination is incorrect'),
-                    statusCode: 400,
-                });
-            });
+            .then(() => res.status(204).send())
+            .catch(() => handleHttpError({
+                res,
+                message: translate(locale, 'User/password combination is incorrect'),
+                statusCode: 400,
+            }));
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
@@ -209,7 +235,7 @@ const createOneTimePassword = (req, res) => {
                 }))
                 .then(() => sendOneTimePasswordEmail({
                     subject: '[Forgot Password?] Therr One-Time Password',
-                    toAddresses: [req.body.email],
+                    toAddresses: [email],
                 }, {
                     oneTimePassword: otPassword,
                 }))

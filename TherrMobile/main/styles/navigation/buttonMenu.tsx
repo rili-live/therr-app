@@ -9,11 +9,11 @@ const buttonStyle: any = {
 
 const iconStyle: any = {
     textShadowOffset: {
-        width: 2,
-        height: 2,
+        width: 1,
+        height: 1,
     },
     textShadowColor: '#rgba(27, 74, 105, .75)',
-    textShadowRadius: 4,
+    textShadowRadius: 3,
 };
 
 const buttonsTitleStyle: any = {
@@ -47,7 +47,7 @@ export default StyleSheet.create({
     container: {
         position: 'absolute',
         display: 'flex',
-        height: '15%',
+        height: 74,
         width: '100%',
         alignSelf: 'flex-end',
         flexDirection: 'row',

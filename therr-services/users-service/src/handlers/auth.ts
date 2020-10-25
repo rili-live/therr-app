@@ -4,7 +4,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { createUserToken } from '../utilities/userHelpers';
 import translate from '../utilities/translator';
-import validatePassword from '../utilities/validatePassword';
+import { validatePassword } from '../utilities/passwordUtils';
 import accessLevels from '../constants/accessLevels';
 
 // Authenticate user

@@ -69,7 +69,7 @@ export default class UsersStore {
             ...params,
             userName: params.userName.toLowerCase(),
         };
-        const queryString = knex.insert(params)
+        const queryString = knex.insert(sanitizedParams)
             .into(USERS_TABLE_NAME)
             .returning(['email', 'id', 'userName', 'accessLevels'])
             .toString();
@@ -78,7 +78,29 @@ export default class UsersStore {
     }
 
     updateUser(params, conditions = {}) {
-        const queryString = knex.update(params)
+        const modifiedParams: any = {};
+
+        if (params.firstName) {
+            modifiedParams.firstName = params.firstName;
+        }
+
+        if (params.lastName) {
+            modifiedParams.lastName = params.lastName;
+        }
+
+        if (params.oneTimePassword) {
+            modifiedParams.oneTimePassword = params.oneTimePassword;
+        }
+
+        if (params.password) {
+            modifiedParams.password = params.password;
+        }
+
+        if (params.userName) {
+            modifiedParams.userName = params.userName;
+        }
+
+        const queryString = knex.update(modifiedParams)
             .into(USERS_TABLE_NAME)
             .where(conditions)
             .returning('*')
