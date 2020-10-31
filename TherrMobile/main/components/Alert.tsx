@@ -14,7 +14,7 @@ export default ({
     }
 
     // Styles
-    let constainerStyle = type === 'error' ? alertMsg.containerError : alertMsg.containerSuccess;
+    let containerStyle = type === 'error' ? alertMsg.containerError : alertMsg.containerSuccess;
     let messageStyle = type === 'error' ? alertMsg.error : alertMsg.success;
     let iconStyle = type === 'error' ? alertMsg.iconError : alertMsg.iconSuccess;
 
@@ -22,7 +22,7 @@ export default ({
 
     return (
         <View style={{
-            ...constainerStyle,
+            ...containerStyle,
             ...containerStyles,
         }}>
             <FontAwesomeIcon

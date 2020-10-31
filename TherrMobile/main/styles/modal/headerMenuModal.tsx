@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import * as therrTheme from '../themes/ocean';
 
 const containerBackgroundColor = '#fcfeff';
 // const brandingYellow = '#ebc300';
@@ -14,13 +15,13 @@ export default StyleSheet.create({
     },
     buttonsTitle: {
         backgroundColor: 'transparent',
-        color: '#388254',
+        color: therrTheme.colors.secondary,
         paddingRight: 10,
         paddingLeft: 10,
     },
     buttonsTitleActive: {
         backgroundColor: 'transparent',
-        color: '#388254',
+        color: therrTheme.colors.secondary,
         paddingRight: 10,
         paddingLeft: 10,
     },
@@ -39,18 +40,30 @@ export default StyleSheet.create({
         padding: 0,
     },
     header: {
-        paddingTop: 4,
+        marginTop: 4,
+        marginBottom: 4,
+        paddingBottom: 4,
         display: 'flex',
         flexDirection: 'row',
-        color: '#388254',
+        color: therrTheme.colors.secondary,
+        borderBottomWidth: 2,
+        borderBottomColor: '#4950571c',
     },
     headerTitle: {
-        color: '#388254',
         display: 'flex',
+        flexDirection: 'row',
         flex: 1,
-        justifyContent: 'center',
-        alignContent: 'center',
-        fontSize: 18,
+        alignItems: 'center',
+        marginLeft: 20,
+    },
+    headerTitleText: {
+        color: 'black',
+        fontSize: 20,
+        letterSpacing: 3,
+    },
+    headerTitleIcon: {
+        color: 'black',
+        marginRight: 10,
     },
     body: {
         position: 'relative',

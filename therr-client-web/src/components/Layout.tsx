@@ -87,6 +87,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                 query: nextProps.user.details.id,
                 itemsPerPage: 20,
                 pageNumber: 1,
+                order: 'desc',
             });
 
             return {

@@ -1,3 +1,4 @@
+
 {
   "validations": {
     "email": "Invalid email address",
@@ -20,6 +21,14 @@
         "login": "Login"
       }
     },
+    "headerMenuRight": {
+      "menuItems": {
+        "connections": "CONNECTIONS",
+        "home": "HOME",
+        "logout": "LOGOUT",
+        "map": "MAP"
+      }
+    },
     "messagingContainer": {
       "conversation": {
         "to": "To: {firstName} {lastName}"
@@ -36,6 +45,12 @@
         "forums": "Forums",
         "riliConnect": "Rili Connect",
         "locationMap": "Location Map"
+      }
+    },
+    "notification": {
+      "buttons": {
+        "accept": "Accept",
+        "reject": "Reject"
       }
     },
     "registerForm": {

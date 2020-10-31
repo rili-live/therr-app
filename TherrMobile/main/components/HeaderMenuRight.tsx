@@ -6,6 +6,7 @@ import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { headerMenuModal } from '../styles/modal';
+import translator from '../services/translator';
 
 interface IHeaderMenuRightDispatchProps {}
 
@@ -27,12 +28,16 @@ class HeaderMenuRight extends React.Component<
     IHeaderMenuRightProps,
     IHeaderMenuRightState
 > {
+    private translate: Function;
+
     constructor(props) {
         super(props);
 
         this.state = {
             isModalVisible: false,
         };
+
+        this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
     toggleOverlay = () => {
@@ -81,7 +86,7 @@ class HeaderMenuRight extends React.Component<
     };
 
     render() {
-        const { isVisible } = this.props;
+        const { isVisible, user } = this.props;
         const { isModalVisible } = this.state;
         const currentScreen = this.getCurrentScreen();
 
@@ -100,13 +105,22 @@ class HeaderMenuRight extends React.Component<
                     >
                         <>
                             <View style={headerMenuModal.header}>
-                                <Text style={headerMenuModal.headerTitle} />
+                                <View style={headerMenuModal.headerTitle}>
+                                    <FontAwesomeIcon
+                                        style={headerMenuModal.headerTitleIcon}
+                                        name="user-circle"
+                                        size={25}
+                                    />
+                                    <Text style={headerMenuModal.headerTitleText}>
+                                        {user.details?.userName}
+                                    </Text>
+                                </View>
                                 <Button
                                     icon={
                                         <Icon
                                             name="close"
                                             size={30}
-                                            color="#388254"
+                                            color="black"
                                         />
                                     }
                                     onPress={this.toggleOverlay}
@@ -125,7 +139,7 @@ class HeaderMenuRight extends React.Component<
                                             ? headerMenuModal.buttonsTitleActive
                                             : headerMenuModal.buttonsTitle
                                     }
-                                    title="HOME"
+                                    title={this.translate('components.headerMenuRight.menuItems.home')}
                                     icon={
                                         <FontAwesomeIcon
                                             style={headerMenuModal.iconStyle}
@@ -147,7 +161,7 @@ class HeaderMenuRight extends React.Component<
                                             ? headerMenuModal.buttonsTitleActive
                                             : headerMenuModal.buttonsTitle
                                     }
-                                    title="MAP"
+                                    title={this.translate('components.headerMenuRight.menuItems.map')}
                                     icon={
                                         <FontAwesomeIcon
                                             style={headerMenuModal.iconStyle}
@@ -169,7 +183,7 @@ class HeaderMenuRight extends React.Component<
                                             ? headerMenuModal.buttonsTitleActive
                                             : headerMenuModal.buttonsTitle
                                     }
-                                    title="CONNECTIONS"
+                                    title={this.translate('components.headerMenuRight.menuItems.connections')}
                                     icon={
                                         <FontAwesomeIcon
                                             style={headerMenuModal.iconStyle}
@@ -185,7 +199,7 @@ class HeaderMenuRight extends React.Component<
                                 <Button
                                     titleStyle={headerMenuModal.buttonsTitle}
                                     buttonStyle={headerMenuModal.buttons}
-                                    title="LOGOUT"
+                                    title={this.translate('components.headerMenuRight.menuItems.logout')}
                                     iconRight
                                     icon={
                                         <FontAwesomeIcon

@@ -42,7 +42,7 @@ interface IStoreProps extends ILayoutDispatchProps {
 export interface ILayoutProps extends IStoreProps {}
 
 interface ILayoutState {
-    userId: number;
+    userId: number | null;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -68,6 +68,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 query: nextProps.user.details.id,
                 itemsPerPage: 20,
                 pageNumber: 1,
+                order: 'desc',
             });
 
             return {

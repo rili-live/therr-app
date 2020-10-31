@@ -15,6 +15,7 @@ import {
 import styles from '../styles';
 import translator from '../services/translator';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
+import Notification from '../components/Notification';
 
 interface INotificationsDispatchProps {
     logout: Function;
@@ -38,6 +39,7 @@ interface INotificationsState {}
 
 const mapStateToProps = (state) => ({
     notifications: state.notifications,
+    user: state.user,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
@@ -72,8 +74,7 @@ class Notifications extends React.Component<
         clearTimeout(this.failTimeoutId);
     };
 
-    handleConnectionRequestAction = (e, notification, isAccepted) => {
-        e.stopPropagation();
+    handleConnectionRequestAction = (e: any, notification, isAccepted) => {
         const { user, updateUserConnection } = this.props;
 
         const updatedUserConnection = {
@@ -127,24 +128,39 @@ class Notifications extends React.Component<
         return (
             <>
                 <StatusBar barStyle="dark-content" />
-                <SafeAreaView>
+                <SafeAreaView style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flex: 1,
+                    margin: 10,
+                }}>
                     <View style={styles.body}>
                         <View style={styles.sectionContainer}>
                             <Text style={styles.sectionTitle}>
                                 {pageTitle.toString()}
                             </Text>
                         </View>
-                        <FlatList
-                            data={notifications.messages}
-                            keyExtractor={(item) => String(item.id)}
-                            renderItem={({ item }) => (
-                                <Text>{item.message}</Text>
-                            )}
-                            ref={(component) => (this.flatListRef = component)}
-                            initialScrollIndex={0}
-                            onScrollToIndexFailed={this.handleScrollToIndexFailed}
-                        />
                     </View>
+                    <FlatList
+                        data={notifications.messages}
+                        keyExtractor={(item) => String(item.id)}
+                        renderItem={({ item, index }) => (
+                            <Notification
+                                acknowledgeRequest={this.handleConnectionRequestAction}
+                                handlePress={(e) => this.markNotificationAsRead(e, item, false)}
+                                isUnread={item.isUnread}
+                                notification={item}
+                                containerStyles={index === 0 ? { borderTopWidth: 2 } : {}}
+                                translate={this.translate}
+                            />
+                        )}
+                        ref={(component) => (this.flatListRef = component)}
+                        initialScrollIndex={0}
+                        onScrollToIndexFailed={this.handleScrollToIndexFailed}
+                        style={{
+                            marginBottom: 65,
+                        }}
+                    />
                 </SafeAreaView>
                 <MainButtonMenu navigation={navigation} user={user} />
             </>

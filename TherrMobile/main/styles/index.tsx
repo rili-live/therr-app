@@ -1,14 +1,14 @@
 import { StyleSheet } from 'react-native';
+import * as therrTheme from './themes/ocean';
 
 export const theme = {
     dark: true,
     colors: {
-        primary: '#1b4a69',
-        background: '#1f597d',
-        // background: '#46AEC200',
-        card: '#1b4a69',
-        text: '#fcfeff',
-        border: '#143b54',
+        primary: therrTheme.colors.primary,
+        background: therrTheme.colors.background,
+        card: therrTheme.colors.card,
+        text: therrTheme.colors.text,
+        border: therrTheme.colors.border,
     },
 };
 

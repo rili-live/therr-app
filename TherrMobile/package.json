@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@react-native-community/eslint-config": "^1.0.0",
-    "@types/react-native": "^0.62.18",
+    "@types/react-native": "^0.63.0",
     "@types/react-native-dotenv": "^0.2.0",
     "@types/react-native-maps": "^0.24.0",
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",

@@ -82,14 +82,15 @@ export default class NotificationsStore {
                 `${USER_CONNECTIONS_TABLE_NAME}.acceptingUserId as userConnection.acceptingUserId`,
                 `${USER_CONNECTIONS_TABLE_NAME}.requestStatus as userConnection.requestStatus`,
                 `${USER_CONNECTIONS_TABLE_NAME}.updatedAt as userConnection.updatedAt`,
-            ])
-            .orderBy(`${NOTIFICATIONS_TABLE_NAME}.updatedAt`, conditions.order || 'asc');
+            ]);
 
         if (conditions.filterBy && conditions.query) {
             const operator = conditions.filterOperator || '=';
             const query = operator === 'like' ? `%${conditions.query}%` : conditions.query;
             queryString = queryString.andWhere(conditions.filterBy, operator, query);
         }
+
+        queryString = queryString.orderBy(`${NOTIFICATIONS_TABLE_NAME}.updatedAt`, conditions.order || 'asc');
 
         queryString = queryString
             .limit(limit)
