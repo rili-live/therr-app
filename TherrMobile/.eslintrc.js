@@ -1,7 +1,6 @@
 const path = require('path');
 
 module.exports = {
-    root: true,
     env: {
         jest: true
     },
@@ -14,7 +13,7 @@ module.exports = {
         'react/sort-comp': [
             2,
             {
-                order: ['static-methods', 'lifecycle', 'everything-else', 'render']
+                order: ['static-variables', 'static-methods', 'instance-variables', 'constructor', 'lifecycle', 'everything-else', 'render']
             }
         ],
         'indent': [2, 4, {
@@ -23,17 +22,21 @@ module.exports = {
         'max-len': [2, {
             code: 160
         }],
+        'prettier/prettier': 'off',
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/interface-name-prefix': 0,
         '@typescript-eslint/no-empty-interface': 0,
         'consistent-return': 'off',
         'prefer-destructuring': 'off',
-        "prettier/prettier": ["warn", {
-            "singleQuote": true,
-            "parser": "typescript"
-        }],
-        'import/prefer-default-export': 'off'
+        // "prettier/prettier": ["warn", {
+        //     "singleQuote": true,
+        //     "parser": "typescript"
+        // }],
+        'import/prefer-default-export': 'off',
+        'semi': 'error',
+        'comma-dangle': 'error',
+        'no-trailing-spaces': 'error'
     },
     settings: {
         'import/external-module-folders': ['../node_modules', '../node_modules/@types'],

@@ -10,6 +10,11 @@ import { MIN_LOAD_TIMEOUT } from './constants';
 const earthLoader = require('./assets/earth-loader.json');
 
 class App extends React.Component<any, any> {
+    // TODO: Add typescript
+
+    private store;
+    private timeoutId;
+
     constructor(props) {
         super(props);
 
@@ -30,10 +35,6 @@ class App extends React.Component<any, any> {
     componentWillUnmount() {
         clearTimeout(this.timeoutId);
     }
-
-    // TODO: Add typescript
-    private store;
-    private timeoutId;
 
     loadStorage = async () => {
         this.store = await getStore();

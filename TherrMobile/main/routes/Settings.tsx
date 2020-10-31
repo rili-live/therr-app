@@ -41,7 +41,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 class Settings extends React.Component<ISettingsProps, ISettingsState> {
-    private translate: Function; // eslint-disable-line react/sort-comp
+    private scrollViewRef;
+    private translate: Function;
 
     constructor(props) {
         super(props);
@@ -67,8 +68,6 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
             title: this.translate('pages.settings.headerTitle'),
         });
     }
-
-    private scrollViewRef;
 
     isFormDisabled() {
         const { inputs, isSubmitting } = this.state;
@@ -105,7 +104,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
         }
 
         console.log(updateArgs);
-    
+
         if (!this.isFormDisabled()) {
             this.setState({
                 isSubmitting: true,
@@ -114,7 +113,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 .updateUser(user.details.id, updateArgs)
                 .then(() => {
                     this.setState({
-                        successMsg: this.translate('forms.settings.backendSuccessMessage')
+                        successMsg: this.translate('forms.settings.backendSuccessMessage'),
                     });
                 })
                 .catch((error: any) => {

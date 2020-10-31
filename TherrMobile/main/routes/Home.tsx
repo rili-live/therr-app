@@ -44,7 +44,7 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class Home extends React.Component<IHomeProps, IHomeState> {
-    private translate: Function; // eslint-disable-line react/sort-comp
+    private translate: Function;
 
     constructor(props) {
         super(props);

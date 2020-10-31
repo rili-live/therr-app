@@ -35,5 +35,5 @@ export default ({
                 {message}
             </Text>
         </View>
-    )
-}
+    );
+};

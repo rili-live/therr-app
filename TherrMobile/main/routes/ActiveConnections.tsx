@@ -44,7 +44,7 @@ class ActiveConnectionsComponent extends React.Component<
     IActiveConnectionsProps,
     IActiveConnectionsState
 > {
-    private translate: Function; // eslint-disable-line react/sort-comp
+    private translate: Function;
 
     constructor(props) {
         super(props);

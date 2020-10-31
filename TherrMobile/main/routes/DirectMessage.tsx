@@ -50,8 +50,10 @@ class DirectMessage extends React.Component<
     IDirectMessageProps,
     IDirectMessageState
 > {
-    private translate: Function; // eslint-disable-line react/sort-comp
     private flatListRef: any;
+    private mountTimeoutId;
+    private failTimeoutId;
+    private translate: Function;
 
     constructor(props) {
         super(props);
@@ -69,7 +71,7 @@ class DirectMessage extends React.Component<
         const { messages, route, searchDms } = this.props;
         const { connectionDetails } = route.params;
 
-        if (!messages.dms[connectionDetails.id]) {
+        if (connectionDetails && !messages.dms[connectionDetails.id]) {
             searchDms(
                 {
                     filterBy: 'fromUserId',
@@ -88,7 +90,7 @@ class DirectMessage extends React.Component<
         // To prevent FlatList scrolls to top automatically,
         // we have to delay scroll to the original position
         this.mountTimeoutId = setTimeout(() => {
-            if (this.flatListRef) {
+            if (this.flatListRef && this.flatListRef.props.data && this.flatListRef.props.data.length) {
                 msgScrollPosition
                     ? this.flatListRef.scrollToOffset({
                         offset: msgScrollPosition,
@@ -128,9 +130,6 @@ class DirectMessage extends React.Component<
         clearTimeout(this.failTimeoutId);
     };
 
-    private mountTimeoutId;
-    private failTimeoutId;
-
     handleInputChange = (val) => {
         this.setState({
             msgInputVal: val,
@@ -159,8 +158,8 @@ class DirectMessage extends React.Component<
 
         sendDirectMessage({
             message: msgInputVal,
-            userId: user.details.id,
-            userName: user.details.userName,
+            userId: user.details && user.details.id,
+            userName: user.details && user.details.userName,
             to: connectionDetails,
         });
 

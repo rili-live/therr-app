@@ -6,15 +6,13 @@ const Messages = {
         dispatch({
             type: MessageActionTypes.GET_DIRECT_MESSAGES,
             data: { // TODO: Consider doing this mapping on the server side
-                messages: response.data.results.map((directMessage, idx) => {
-                    return {
-                        key: idx,
-                        text: directMessage.fromUserId === contextUserDetails.id
-                            ? `${contextUserDetails.userName}: ${directMessage.message}`
-                            : `You: ${directMessage.message}`,
-                        time: `${directMessage.createdAt}`, // TODO: Format date with locale timezone in mind
-                    };
-                }),
+                messages: response.data.results.map((directMessage, idx) => ({
+                    key: idx,
+                    text: directMessage.fromUserId === contextUserDetails.id
+                        ? `${contextUserDetails.userName}: ${directMessage.message}`
+                        : `You: ${directMessage.message}`,
+                    time: `${directMessage.createdAt}`, // TODO: Format date with locale timezone in mind
+                })),
                 contextUserId: query.query,
             },
         });

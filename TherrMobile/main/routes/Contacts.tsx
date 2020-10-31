@@ -41,7 +41,7 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class Contacts extends React.Component<IContactsProps, IContactsState> {
-    private translate: Function; // eslint-disable-line react/sort-comp
+    private translate: Function;
 
     constructor(props) {
         super(props);

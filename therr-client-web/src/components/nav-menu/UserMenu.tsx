@@ -10,7 +10,6 @@ import {
 } from 'therr-react/redux/actions';
 import { IUserState, INotificationsState, INotification } from 'therr-react/types';
 import { bindActionCreators } from 'redux';
-
 import Notification from './Notification';
 import translator from '../../services/translator';
 

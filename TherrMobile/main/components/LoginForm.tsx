@@ -25,6 +25,8 @@ export class LoginFormComponent extends React.Component<
     ILoginFormProps,
     ILoginFormState
 > {
+    private translate: Function;
+
     constructor(props: ILoginFormProps) {
         super(props);
 
@@ -37,8 +39,6 @@ export class LoginFormComponent extends React.Component<
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
-
-    private translate: Function;
 
     isLoginFormDisabled() {
         return (

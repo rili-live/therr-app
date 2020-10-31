@@ -15,7 +15,8 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
 
     const activeConnections = [...state.activeConnections]; // eslint-disable-line no-case-declarations
     let uniqueConnections = [...state.connections]; // eslint-disable-line no-case-declarations
-    const contextUserId = activeConnections.findIndex((con) => con.id === action.data.id); // eslint-disable-line no-case-declarations
+    const contextUserId = activeConnections
+        .findIndex((con) => action.data && con.id === action.data.id); // eslint-disable-line no-case-declarations
 
     switch (action.type) {
         case UserConnectionActionTypes.GET_USER_CONNECTIONS:

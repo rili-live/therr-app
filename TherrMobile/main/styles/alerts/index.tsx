@@ -7,12 +7,12 @@ const containerStyle: any = {
     justifyContent: 'center',
     padding: 7,
     paddingLeft: 35,
-    borderRadius: 0
+    borderRadius: 0,
 };
 
 const iconStyle: any = {
     position: 'absolute',
-    left: 10
+    left: 10,
 };
 
 const messageStyle: any = {
@@ -44,5 +44,5 @@ export const alertMsg = StyleSheet.create({
     iconSuccess: {
         ...iconStyle,
         color: '#008C3D',
-    }
+    },
 });

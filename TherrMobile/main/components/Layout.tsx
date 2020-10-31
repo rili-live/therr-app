@@ -3,6 +3,7 @@ import React from 'react';
 import LocationServicesDialogBox from 'react-native-android-location-services-dialog-box';
 import { UsersService } from 'therr-react/services';
 import { IUserState } from 'therr-react/types';
+import { NotificationActions } from 'therr-react/redux/actions';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
@@ -28,6 +29,7 @@ const forFade = ({ current }) => ({
 
 interface ILayoutDispatchProps {
     logout: Function;
+    searchNotifications: Function;
     updateGpsStatus: Function;
 }
 
@@ -39,7 +41,9 @@ interface IStoreProps extends ILayoutDispatchProps {
 // Regular component props
 export interface ILayoutProps extends IStoreProps {}
 
-interface ILayoutState {}
+interface ILayoutState {
+    userId: number;
+}
 
 const mapStateToProps = (state: any) => ({
     location: state.location,
@@ -50,16 +54,37 @@ const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
             logout: UsersActions.logout,
+            searchNotifications: NotificationActions.search,
             updateGpsStatus: LocationActions.updateGpsStatus,
         },
         dispatch
     );
 
 class Layout extends React.Component<ILayoutProps, ILayoutState> {
+    static getDerivedStateFromProps(nextProps: ILayoutProps, nextState: ILayoutState) {
+        if (nextProps.user.details && nextProps.user.details.id !== nextState.userId) {
+            nextProps.searchNotifications({
+                filterBy: 'userId',
+                query: nextProps.user.details.id,
+                itemsPerPage: 20,
+                pageNumber: 1,
+            });
+
+            return {
+                userId: nextProps.user.details.id,
+            };
+        }
+        return {};
+    }
+
+    private translate;
+
     constructor(props) {
         super(props);
 
-        this.state = {};
+        this.state = {
+            userId: null,
+        };
 
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
@@ -95,8 +120,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         // used only when "providerListener" is enabled
         // LocationServicesDialogBox.stopListener(); // Stop the "locationProviderStatusChange" listener
     }
-
-    private translate;
 
     shouldShowTopRightMenu = () => {
         return UsersService.isAuthorized(

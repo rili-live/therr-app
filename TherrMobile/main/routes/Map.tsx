@@ -62,6 +62,10 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class Map extends React.Component<IMapProps, IMapState> {
+    private mapWatchId;
+    private timeoutId;
+    private translate: Function;
+
     constructor(props) {
         super(props);
 
@@ -172,10 +176,6 @@ class Map extends React.Component<IMapProps, IMapState> {
         Geolocation.clearWatch(this.mapWatchId);
         clearTimeout(this.timeoutId);
     }
-
-    private mapWatchId;
-    private timeoutId;
-    private translate: Function;
 
     goToHome = () => {
         const { navigation } = this.props;

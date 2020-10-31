@@ -39,6 +39,8 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class LoginComponent extends React.Component<ILoginProps, ILoginState> {
+    private translate;
+
     constructor(props) {
         super(props);
 
@@ -51,8 +53,6 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
             title: this.translate('pages.login.headerTitle'),
         });
     }
-
-    private translate;
 
     render() {
         return (
