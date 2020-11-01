@@ -35,7 +35,6 @@ class MainButtonMenu extends ButtonMenu {
                         <FontAwesomeIcon
                             name="users"
                             size={26}
-                            color="white"
                             style={
                                 currentScreen === 'Connections'
                                     ? buttonMenu.buttonIconActive
@@ -62,7 +61,6 @@ class MainButtonMenu extends ButtonMenu {
                         <FontAwesomeIcon
                             name="globe-americas"
                             size={26}
-                            color="white"
                             style={
                                 currentScreen === 'Moments'
                                     ? buttonMenu.buttonIconActive
@@ -89,7 +87,6 @@ class MainButtonMenu extends ButtonMenu {
                         <FontAwesomeIcon
                             name="user-cog"
                             size={26}
-                            color="white"
                             style={
                                 currentScreen === 'Settings'
                                     ? buttonMenu.buttonIconActive
@@ -116,7 +113,6 @@ class MainButtonMenu extends ButtonMenu {
                         <FontAwesomeIcon
                             name="bell"
                             size={26}
-                            color="white"
                             style={
                                 currentScreen === 'Notifications'
                                     ? buttonMenu.buttonIconActive

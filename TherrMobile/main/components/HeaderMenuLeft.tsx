@@ -3,6 +3,7 @@ import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import therrIconConfig from '../assets/therr-icon-config.json';
+import styles from '../styles';
 
 const LogoIcon = createIconSetFromIcoMoon(
     therrIconConfig,
@@ -47,10 +48,7 @@ class HeaderMenuLeft extends React.Component<
                     <LogoIcon
                         name="therr-logo"
                         size={28}
-                        color="white"
-                        style={{
-                            marginLeft: 2,
-                        }}
+                        style={styles.logoIcon}
                         onPress={this.handlePress}
                     />
                 }

@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import * as therrTheme from '../themes/ocean';
 
 const containerStyle: any = {
     display: 'flex',
@@ -11,6 +12,7 @@ const containerStyle: any = {
 };
 
 const iconStyle: any = {
+    color: therrTheme.colors.textWhite,
     position: 'absolute',
     left: 10,
 };

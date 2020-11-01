@@ -9,6 +9,7 @@ import { MessageActions, SocketActions } from 'therr-react/redux/actions';
 import { IUserState, IMessagesState } from 'therr-react/types';
 import styles from '../styles';
 import messageStyles from '../styles/messages';
+import formStyles from '../styles/forms';
 import translator from '../services/translator';
 
 interface IDirectMessageDispatchProps {
@@ -216,13 +217,11 @@ class DirectMessage extends React.Component<
                             placeholder={this.translate(
                                 'pages.directMessage.inputPlaceholder'
                             )}
-                            inputStyle={{
-                                color: 'white',
-                            }}
+                            inputStyle={formStyles.input}
                             containerStyle={messageStyles.inputContainer}
                         />
                         <Button
-                            icon={<Icon name="send" size={25} color="white" />}
+                            icon={<Icon name="send" size={25} style={messageStyles.icon} />}
                             type="clear"
                             buttonStyle={messageStyles.sendBtn}
                             containerStyle={messageStyles.sendBtnContainer}

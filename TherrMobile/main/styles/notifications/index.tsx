@@ -30,10 +30,16 @@ const rootStyle: any = {
     borderColor: '#4950571c',
 };
 
+export const notifications = StyleSheet.create({
+    container: {
+        marginBottom: 65,
+    },
+});
+
 export const notification = StyleSheet.create({
     rootUnread: {
         ...rootStyle,
-        backgroundColor: 'white',
+        backgroundColor: therrTheme.colors.backgroundWhite,
     },
     rootRead: {
         ...rootStyle,

@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import * as therrTheme from '../themes/ocean';
 
-const containerBackgroundColor = '#fcfeff';
+const containerBackgroundColor = therrTheme.colors.textWhite;
 // const brandingYellow = '#ebc300';
 
 export default StyleSheet.create({
@@ -26,6 +26,7 @@ export default StyleSheet.create({
         paddingLeft: 10,
     },
     iconStyle: {
+        color: therrTheme.colors.secondary,
         // position: 'absolute',
         // left: 20
     },
@@ -77,5 +78,8 @@ export default StyleSheet.create({
         bottom: 0,
         alignItems: 'center',
         width: '100%',
+    },
+    toggleIcon: {
+        color: therrTheme.colors.textWhite,
     },
 });

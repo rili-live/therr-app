@@ -41,7 +41,6 @@ class ConnectionsButtonMenu extends ButtonMenu {
                         <FontAwesomeIcon
                             name="users"
                             size={26}
-                            color="white"
                             style={
                                 currentScreen === 'ActiveConnections'
                                     ? buttonMenu.buttonIconActive
@@ -68,7 +67,6 @@ class ConnectionsButtonMenu extends ButtonMenu {
                         <FontAwesomeIcon
                             name="search"
                             size={26}
-                            color="white"
                             style={
                                 currentScreen === 'Contacts'
                                     ? buttonMenu.buttonIconActive

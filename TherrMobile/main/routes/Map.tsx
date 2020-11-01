@@ -17,7 +17,9 @@ import {
     MIN_LOAD_TIMEOUT,
     MIN_ZOOM_LEVEL,
 } from '../constants';
+import * as therrTheme from '../styles/themes/ocean';
 import { loaderStyles } from '../styles';
+import mapStyles from '../styles/map';
 
 const earthLoader = require('../assets/earth-loader.json');
 
@@ -215,7 +217,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                 ) : (
                     <MapView
                         provider={PROVIDER_GOOGLE}
-                        style={{ flex: 1 }}
+                        style={mapStyles.mapView}
                         initialRegion={{
                             latitude,
                             longitude,
@@ -234,7 +236,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                             center={circleCenter}
                             radius={20}
                             strokeWidth={3}
-                            strokeColor="#388254"
+                            strokeColor={therrTheme.colors.secondary}
                             fillColor="rgba(56,130,84,0.15)"
                         />
                     </MapView>

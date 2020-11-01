@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import * as therrTheme from '../themes/ocean';
 
 const buttonStyle: any = {
     backgroundColor: 'transparent',
@@ -8,6 +9,7 @@ const buttonStyle: any = {
 };
 
 const iconStyle: any = {
+    color: therrTheme.colors.textWhite,
     textShadowOffset: {
         width: 1,
         height: 1,
@@ -18,7 +20,7 @@ const iconStyle: any = {
 
 const buttonsTitleStyle: any = {
     backgroundColor: 'transparent',
-    color: 'white',
+    color: therrTheme.colors.textWhite,
     fontSize: 10,
     marginTop: 5,
     ...iconStyle,
@@ -54,20 +56,6 @@ export default StyleSheet.create({
         borderRadius: 0,
         padding: 0,
         bottom: 0,
-    },
-    header: {
-        paddingTop: 4,
-        display: 'flex',
-        flexDirection: 'row',
-        color: 'white',
-    },
-    headerTitle: {
-        color: 'white',
-        display: 'flex',
-        flex: 1,
-        justifyContent: 'center',
-        alignContent: 'center',
-        fontSize: 18,
     },
     buttonIcon: iconStyle,
     buttonIconActive: {

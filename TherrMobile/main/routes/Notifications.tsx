@@ -13,6 +13,7 @@ import {
     INotificationsState as IStoreNotificationsState,
 } from 'therr-react/types';
 import styles from '../styles';
+import { notifications as notificationStyles } from '../styles/notifications';
 import translator from '../services/translator';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import Notification from '../components/Notification';
@@ -103,6 +104,7 @@ class Notifications extends React.Component<
     };
 
     markNotificationAsRead = (event, notification, userConnection?: any) => {
+        console.log(event, notification, userConnection);
         if (notification.isUnread || userConnection) {
             const { updateNotification, user } = this.props;
 
@@ -128,12 +130,7 @@ class Notifications extends React.Component<
         return (
             <>
                 <StatusBar barStyle="dark-content" />
-                <SafeAreaView style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    flex: 1,
-                    margin: 10,
-                }}>
+                <SafeAreaView>
                     <View style={styles.body}>
                         <View style={styles.sectionContainer}>
                             <Text style={styles.sectionTitle}>
@@ -157,9 +154,7 @@ class Notifications extends React.Component<
                         ref={(component) => (this.flatListRef = component)}
                         initialScrollIndex={0}
                         onScrollToIndexFailed={this.handleScrollToIndexFailed}
-                        style={{
-                            marginBottom: 65,
-                        }}
+                        style={notificationStyles.container}
                     />
                 </SafeAreaView>
                 <MainButtonMenu navigation={navigation} user={user} />

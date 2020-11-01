@@ -7,7 +7,7 @@ import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import styles from '../styles';
-import { settingsForm as formStyles } from '../styles/forms';
+import formStyles, { settingsForm as settingsFormStyles } from '../styles/forms';
 import translator from '../services/translator';
 import UsersActions from '../redux/actions/UsersActions';
 import Alert from '../components/Alert';
@@ -182,7 +182,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     {pageHeaderUser}
                                 </Text>
                             </View>
-                            <View style={formStyles.userContainer}>
+                            <View style={settingsFormStyles.userContainer}>
                                 <Alert
                                     containerStyles={{
                                         marginBottom: 24,
@@ -192,9 +192,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     type={errorMsg ? 'error' : 'success'}
                                 />
                                 <Input
-                                    inputStyle={{
-                                        color: 'white',
-                                    }}
+                                    inputStyle={formStyles.input}
                                     label={this.translate(
                                         'forms.settings.labels.userName'
                                     )}
@@ -204,9 +202,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                 />
                                 <Input
-                                    inputStyle={{
-                                        color: 'white',
-                                    }}
+                                    inputStyle={formStyles.input}
                                     label={this.translate(
                                         'forms.settings.labels.firstName'
                                     )}
@@ -216,9 +212,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                 />
                                 <Input
-                                    inputStyle={{
-                                        color: 'white',
-                                    }}
+                                    inputStyle={formStyles.input}
                                     label={this.translate(
                                         'forms.settings.labels.lastName'
                                     )}
@@ -229,9 +223,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                 />
                                 <Input
                                     disabled
-                                    inputStyle={{
-                                        color: 'white',
-                                    }}
+                                    inputStyle={formStyles.input}
                                     label={this.translate(
                                         'forms.settings.labels.email'
                                     )}
@@ -246,11 +238,9 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     {pageHeaderPassword}
                                 </Text>
                             </View>
-                            <View style={formStyles.passwordContainer}>
+                            <View style={settingsFormStyles.passwordContainer}>
                                 <Input
-                                    inputStyle={{
-                                        color: 'white',
-                                    }}
+                                    inputStyle={formStyles.input}
                                     label={this.translate(
                                         'forms.settings.labels.password'
                                     )}
@@ -261,9 +251,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     secureTextEntry={true}
                                 />
                                 <Input
-                                    inputStyle={{
-                                        color: 'white',
-                                    }}
+                                    inputStyle={formStyles.input}
                                     label={this.translate(
                                         'forms.settings.labels.newPassword'
                                     )}
@@ -274,9 +262,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     secureTextEntry={true}
                                 />
                                 <Input
-                                    inputStyle={{
-                                        color: 'white',
-                                    }}
+                                    inputStyle={formStyles.input}
                                     label={this.translate(
                                         'forms.settings.labels.repeatPassword'
                                     )}
@@ -286,7 +272,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                     secureTextEntry={true}
                                 />
-                                <View style={{ marginBottom: 20, marginTop: 20 }}>
+                                <View style={settingsFormStyles.submitButtonContainer}>
                                     <Button
                                         title={this.translate(
                                             'forms.settings.buttons.submit'

@@ -28,7 +28,6 @@ export default ({
             <FontAwesomeIcon
                 name={iconName}
                 size={23}
-                color="white"
                 style={iconStyle}
             />
             <Text style={messageStyle}>

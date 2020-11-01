@@ -5,10 +5,10 @@ export const theme = {
     dark: true,
     colors: {
         primary: therrTheme.colors.primary,
-        background: therrTheme.colors.background,
-        card: therrTheme.colors.card,
-        text: therrTheme.colors.text,
-        border: therrTheme.colors.border,
+        background: therrTheme.colors.primary2,
+        card: therrTheme.colors.primary,
+        text: therrTheme.colors.textWhite,
+        border: therrTheme.colors.primary3,
     },
 };
 
@@ -23,7 +23,11 @@ export default StyleSheet.create({
     scrollView: {},
     body: {
         backgroundColor: '#1f597d',
-        color: '#fcfeff',
+        color: therrTheme.colors.textWhite,
+    },
+    logoIcon: {
+        color: therrTheme.colors.textWhite,
+        marginLeft: 2,
     },
     sectionContainer: {
         marginTop: 16,
@@ -34,19 +38,19 @@ export default StyleSheet.create({
         marginBottom: 8,
         fontSize: 24,
         fontWeight: '600',
-        color: '#fcfeff',
+        color: therrTheme.colors.textWhite,
     },
     sectionDescription: {
         marginBottom: 10,
         fontSize: 18,
         fontWeight: '400',
-        color: '#fcfeff',
+        color: therrTheme.colors.textWhite,
     },
     highlight: {
         fontWeight: '700',
     },
     footer: {
-        color: '#fcfeff',
+        color: therrTheme.colors.textWhite,
         fontSize: 12,
         fontWeight: '600',
         padding: 4,

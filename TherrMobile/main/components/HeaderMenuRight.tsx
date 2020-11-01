@@ -94,7 +94,7 @@ class HeaderMenuRight extends React.Component<
             return (
                 <>
                     <Button
-                        icon={<Icon name="menu" size={30} color="white" />}
+                        icon={<Icon name="menu" size={30} style={headerMenuModal.toggleIcon} />}
                         onPress={this.toggleOverlay}
                         type="clear"
                     />
@@ -145,7 +145,6 @@ class HeaderMenuRight extends React.Component<
                                             style={headerMenuModal.iconStyle}
                                             name="home"
                                             size={22}
-                                            color="#388254"
                                         />
                                     }
                                     onPress={() => this.navTo('Home')}
@@ -167,7 +166,6 @@ class HeaderMenuRight extends React.Component<
                                             style={headerMenuModal.iconStyle}
                                             name="globe-americas"
                                             size={22}
-                                            color="#388254"
                                         />
                                     }
                                     onPress={() => this.navTo('Map')}
@@ -189,7 +187,6 @@ class HeaderMenuRight extends React.Component<
                                             style={headerMenuModal.iconStyle}
                                             name="users"
                                             size={22}
-                                            color="#388254"
                                         />
                                     }
                                     onPress={() => this.navTo('Connections')}
@@ -203,9 +200,9 @@ class HeaderMenuRight extends React.Component<
                                     iconRight
                                     icon={
                                         <FontAwesomeIcon
+                                            style={headerMenuModal.iconStyle}
                                             name="sign-out-alt"
                                             size={22}
-                                            color="#388254"
                                         />
                                     }
                                     onPress={this.handleLogout}

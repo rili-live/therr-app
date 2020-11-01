@@ -26,4 +26,8 @@ export default StyleSheet.create({
     button: {
         backgroundColor: '#1d5b69',
     },
+    submitButtonContainer: {
+        marginBottom: 20,
+        marginTop: 20,
+    },
 });
