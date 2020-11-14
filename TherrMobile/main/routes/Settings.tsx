@@ -103,8 +103,6 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
             updateArgs.oldPassword = oldPassword;
         }
 
-        console.log(updateArgs);
-
         if (!this.isFormDisabled()) {
             this.setState({
                 isSubmitting: true,

@@ -69,6 +69,27 @@ const initInterceptors = (
                     history.push('/login');
                 }
             }
+        } else if (error) {
+            if (
+                Number(error.statusCode) === 401
+                || Number(error.statusCode) === 403
+            ) {
+                // store.dispatch(UsersActions.setRedirect(window.location.pathname));
+                store.dispatch(UsersActions.logout());
+                // store.dispatch(AlertActions.addAlert({
+                //     title: 'Not Authorized',
+                //     message: 'Redirected: You do not have authorization to view this content or your session has expired.
+                // Please login to continue.',
+                //     type: 'error',
+                //     delay: 3000
+                // }));
+
+                // Do not redirect when 401 occurs on a login page
+                // The "home" page is also a login
+                if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
+                    history.push('/login');
+                }
+            }
         }
 
         if (numLoadings === 0) {
