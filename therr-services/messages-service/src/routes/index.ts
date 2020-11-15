@@ -1,8 +1,8 @@
 import * as express from 'express';
-import directMesssagesRouter from './directMessagesRouter';
+import directMessagesRouter from './directMessagesRouter';
 
 const router = express.Router();
 
-router.use('/direct-messages', directMesssagesRouter);
+router.use('/direct-messages', directMessagesRouter);
 
 export default router;
