@@ -68,12 +68,28 @@ const initInterceptors = (
             return response;
         },
         (error) => {
+            console.log(error, error.response, error.message);
             if (error.response) {
                 if (
                     Number(error.response.status) === 401 ||
                     Number(error.response.data.statusCode) === 401 ||
                     Number(error.response.status) === 403 ||
                     Number(error.response.data.statusCode) === 403
+                ) {
+                    // store.dispatch(UsersActions.setRedirect(window.location.pathname));
+                    store.dispatch(UsersActions.logout());
+                    // store.dispatch(AlertActions.addAlert({
+                    //     title: 'Not Authorized',
+                    //     message: 'Redirected: You do not have authorization to view this content or your session has expired.
+                    // Please login to continue.',
+                    //     type: 'error',
+                    //     delay: 3000
+                    // }));;
+                }
+            } else if (error) {
+                if (
+                    Number(error.statusCode) === 401 ||
+                    Number(error.statusCode) === 403
                 ) {
                     // store.dispatch(UsersActions.setRedirect(window.location.pathname));
                     store.dispatch(UsersActions.logout());

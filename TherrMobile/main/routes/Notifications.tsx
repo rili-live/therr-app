@@ -104,7 +104,6 @@ class Notifications extends React.Component<
     };
 
     markNotificationAsRead = (event, notification, userConnection?: any) => {
-        console.log(event, notification, userConnection);
         if (notification.isUnread || userConnection) {
             const { updateNotification, user } = this.props;
 

@@ -16,7 +16,7 @@ const createDirectMessage = (req, res) => {
         locale,
     })
         .then(([directMessage]) => res.status(201).send(directMessage))
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:DIRECT_MESSAGES_ROUTES:ERROR' }));
 };
 
 // READ
