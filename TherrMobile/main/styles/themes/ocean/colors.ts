@@ -4,7 +4,9 @@ const colors = {
     primary3: '#143b54',
 
     secondary: '#388254',
+    ternary: '#e0c845',
 
+    textBlack: '#363636',
     textWhite: '#fcfeff',
 
     backgroundWhite: '#ffffff',

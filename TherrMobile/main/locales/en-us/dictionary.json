@@ -47,6 +47,9 @@
         "locationMap": "Location Map"
       }
     },
+    "momentsOverlay": {
+      "headerTitle": "Create a Moment"
+    },
     "notification": {
       "buttons": {
         "accept": "Accept",
