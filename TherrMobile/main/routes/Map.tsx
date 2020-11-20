@@ -197,7 +197,6 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     handleAddMoment = () => {
-        console.log('HMMM');
         this.setState({
             isEditMomentVisible: true,
         });

@@ -10,6 +10,7 @@ const colors = {
     textWhite: '#fcfeff',
 
     backgroundWhite: '#ffffff',
+    borderLight: 'gray',
 };
 
 export default colors;

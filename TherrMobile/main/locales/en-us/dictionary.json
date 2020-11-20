@@ -48,7 +48,8 @@
       }
     },
     "momentsOverlay": {
-      "headerTitle": "Create a Moment"
+      "headerTitle": "Create a Moment",
+      "formHeaderContent": "Content"
     },
     "notification": {
       "buttons": {
@@ -97,6 +98,20 @@
         "password": "Password",
         "userName": "Username"
       },
+      "backendErrorMessage": "Connection error. Please try again later."
+    },
+    "editMoment": {
+      "buttons": {
+        "submit": "Save"
+      },
+      "labels": {
+        "message": "Share something unique...",
+        "notificationMsg": "Notification text...",
+        "hashTags": "Tags (ie. #my_tag)",
+        "maxViews": "Max Views (per person)",
+        "expiresAt": "Expires after..."
+      },
+      "backendSuccessMessage": "Your moment was successfully saved!",
       "backendErrorMessage": "Connection error. Please try again later."
     },
     "settings": {

@@ -68,8 +68,9 @@ export default StyleSheet.create({
     },
     body: {
         position: 'relative',
-        width: '100%',
         flex: 1,
+        margin: 10,
+        marginTop: 15,
     },
     footer: {
         display: 'flex',
