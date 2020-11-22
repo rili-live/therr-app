@@ -37,7 +37,7 @@ spec:
         - name: LOGGING_DATASET
           value: "production"
         - name: DB_USER_MAIN_WRITE
-          value: "postgres"
+          value: "app"
         - name: DB_HOST_MAIN_WRITE
           value: "db-write-us-east-2-main.therr.app"
         - name: DB_PORT_MAIN_WRITE
@@ -45,10 +45,10 @@ spec:
         - name: DB_PASSWORD_MAIN_WRITE
           valueFrom:
             secretKeyRef:
-              name: dbpasswordmainwrite
-              key: DBPASSWORD_MAINWRITE
+              name: dbpasswordappwrite
+              key: DBPASSWORD_APPWRITE
         - name: DB_USER_MAIN_READ
-          value: "postgres"
+          value: "app"
         - name: DB_HOST_MAIN_READ
           value: "db-write-us-east-2-main.therr.app"
         - name: DB_PORT_MAIN_READ
@@ -56,8 +56,8 @@ spec:
         - name: DB_PASSWORD_MAIN_READ
           valueFrom:
             secretKeyRef:
-              name: dbpasswordmainread
-              key: DBPASSWORD_MAINREAD
+              name: dbpasswordappread
+              key: DBPASSWORD_APPREAD
         - name: MESSAGES_SERVICE_DATABASE
           value: "therr_messages_service_db"
         - name: JWT_SECRET
