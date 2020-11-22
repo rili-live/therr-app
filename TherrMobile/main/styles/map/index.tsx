@@ -4,8 +4,8 @@ import * as therrTheme from '../themes/ocean';
 export default StyleSheet.create({
     addMoment: {
         position: 'absolute',
-        right: 14,
-        bottom: 14,
+        right: 18,
+        bottom: 18,
         shadowColor: therrTheme.colors.textBlack,
         shadowOffset: {
             height: 1,
@@ -16,7 +16,7 @@ export default StyleSheet.create({
         padding: 0,
     },
     addMomentBtn: {
-        backgroundColor: therrTheme.colors.backgroundWhite,
+        backgroundColor: therrTheme.colors.beemo1,
         borderRadius: 100,
         padding: 0,
         borderWidth: 0,
@@ -29,7 +29,7 @@ export default StyleSheet.create({
         flex: 1,
     },
     editMomentOverlay: {
-        backgroundColor: therrTheme.colors.backgroundWhite,
+        backgroundColor: therrTheme.colors.beemo1,
         display: 'flex',
         height: '100%',
         width: '100%',

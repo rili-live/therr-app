@@ -22,7 +22,7 @@ import {
 import * as therrTheme from '../styles/themes/ocean';
 import { loaderStyles } from '../styles';
 import mapStyles from '../styles/map';
-import EditMoment from '../components/moments/EditMoment';
+import EditMoment, { DEFAULT_RADIUS } from '../components/moments/EditMoment';
 
 const earthLoader = require('../assets/earth-loader.json');
 
@@ -253,7 +253,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                         >
                             <Circle
                                 center={circleCenter}
-                                radius={20}
+                                radius={DEFAULT_RADIUS}
                                 strokeWidth={3}
                                 strokeColor={therrTheme.colors.secondary}
                                 fillColor="rgba(56,130,84,0.15)"
@@ -264,7 +264,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 buttonStyle={mapStyles.addMomentBtn}
                                 icon={
                                     <FontAwesomeIcon
-                                        name="plus-circle"
+                                        name="marker"
                                         size={44}
                                         style={mapStyles.addMomentBtnIcon}
                                     />
@@ -280,6 +280,8 @@ class Map extends React.Component<IMapProps, IMapState> {
                         >
                             <EditMoment
                                 closeOverlay={this.cancelEditMoment}
+                                latitude={circleCenter.latitude}
+                                longitude={circleCenter.longitude}
                                 translate={this.translate}
                             />
                         </Overlay>

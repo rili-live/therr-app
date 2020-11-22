@@ -1,15 +1,18 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { View, ScrollView, Text, TextInput } from 'react-native';
+import { Keyboard, View, ScrollView, Text, TextInput } from 'react-native';
 import { Button, Input } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { MapActions } from 'therr-react/redux/actions';
 import { IUserState } from 'therr-react/types';
 import { editMomentModal } from '../../styles/modal';
-import formStyles, { editMomentForm as editMomentFormStyles } from '../../styles/forms';
+import { editMomentForm as editMomentFormStyles } from '../../styles/forms';
 import Alert from '../Alert';
 import { bindActionCreators } from 'redux';
+import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
+
+export const DEFAULT_RADIUS = 10;
 
 interface IEditMomentDispatchProps {
     createMoment: Function;
@@ -21,7 +24,9 @@ interface IStoreProps extends IEditMomentDispatchProps {
 
 // Regular component props
 export interface IEditMomentProps extends IStoreProps {
-    closeOverlay: any
+    closeOverlay: any;
+    latitude: any;
+    longitude: string;
     translate: any;
 }
 
@@ -72,6 +77,8 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
             expiresAt,
         } = this.state.inputs;
         const {
+            latitude,
+            longitude,
             user,
             translate,
         } = this.props;
@@ -81,7 +88,10 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
             message,
             notificationMsg,
             hashTags,
+            latitude: String(latitude),
+            longitude: String(longitude),
             maxViews,
+            radius: String(DEFAULT_RADIUS),
             expiresAt,
         };
 
@@ -90,13 +100,14 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                 isSubmitting: true,
             });
             this.props
-                .createMoment(user.details.id, createArgs)
+                .createMoment(createArgs)
                 .then(() => {
                     this.setState({
                         successMsg: translate('forms.editMoment.backendSuccessMessage'),
                     });
                 })
                 .catch((error: any) => {
+                    console.log(error);
                     if (
                         error.statusCode === 400 ||
                         error.statusCode === 401 ||
@@ -116,7 +127,8 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                     }
                 })
                 .finally(() => {
-                    this.scrollViewRef.scrollTo({y: 0});
+                    Keyboard.dismiss();
+                    this.scrollViewRef.scrollToEnd({ animated: true });
                 });
         }
     };
@@ -173,16 +185,8 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                     style={editMomentModal.body}
                 >
                     <View style={editMomentFormStyles.momentContainer}>
-                        <Alert
-                            containerStyles={{
-                                marginBottom: 24,
-                            }}
-                            isVisible={!!(errorMsg || successMsg)}
-                            message={successMsg || errorMsg}
-                            type={errorMsg ? 'error' : 'success'}
-                        />
                         <TextInput
-                            style={formStyles.textInputAlt}
+                            style={editMomentFormStyles.textInputAlt}
                             placeholder={translate(
                                 'forms.editMoment.labels.message'
                             )}
@@ -194,17 +198,7 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                             multiline={true}
                         />
                         <Input
-                            inputStyle={formStyles.inputAlt}
-                            placeholder={translate(
-                                'forms.editMoment.labels.notificationMsg'
-                            )}
-                            value={inputs.notificationMsg}
-                            onChangeText={(text) =>
-                                this.onInputChange('notificationMsg', text)
-                            }
-                        />
-                        <Input
-                            inputStyle={formStyles.inputAlt}
+                            inputStyle={editMomentFormStyles.inputAlt}
                             placeholder={translate(
                                 'forms.editMoment.labels.hashTags'
                             )}
@@ -214,7 +208,25 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                             }
                         />
                         <Input
-                            inputStyle={formStyles.inputAlt}
+                            inputStyle={editMomentFormStyles.inputAlt}
+                            placeholder={translate(
+                                'forms.editMoment.labels.notificationMsg'
+                            )}
+                            value={inputs.notificationMsg}
+                            onChangeText={(text) =>
+                                this.onInputChange('notificationMsg', text)
+                            }
+                        />
+                        <Alert
+                            containerStyles={{
+                                marginBottom: 24,
+                            }}
+                            isVisible={!!(errorMsg || successMsg)}
+                            message={successMsg || errorMsg}
+                            type={errorMsg ? 'error' : 'success'}
+                        />
+                        {/* <Input
+                            inputStyle={editMomentFormStyles.inputAlt}
                             placeholder={translate(
                                 'forms.editMoment.labels.maxViews'
                             )}
@@ -224,7 +236,7 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                             }
                         />
                         <Input
-                            inputStyle={formStyles.inputAlt}
+                            inputStyle={editMomentFormStyles.inputAlt}
                             placeholder={translate(
                                 'forms.editMoment.labels.expiresAt'
                             )}
@@ -232,10 +244,31 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                             onChangeText={(text) =>
                                 this.onInputChange('expiresAt', text)
                             }
-                        />
+                        /> */}
                     </View>
                 </ScrollView>
-                <View style={editMomentModal.footer} />
+                <View style={editMomentModal.footer}>
+                    <Button
+                        buttonStyle={editMomentFormStyles.submitButton}
+                        disabledStyle={editMomentFormStyles.submitButtonDisabled}
+                        disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
+                        titleStyle={editMomentFormStyles.submitButtonTitle}
+                        containerStyle={editMomentFormStyles.submitButtonContainer}
+                        title={translate(
+                            'forms.editMoment.buttons.submit'
+                        )}
+                        icon={
+                            <FontAwesome5Icon
+                                name="paper-plane"
+                                size={25}
+                                color={this.isFormDisabled() ? 'grey' : 'black'}
+                                style={editMomentFormStyles.submitButtonIcon}
+                            />
+                        }
+                        onPress={this.onSubmit}
+                        disabled={this.isFormDisabled()}
+                    />
+                </View>
             </>
         );
     }

@@ -13,10 +13,10 @@ export const createMomentValidation = [
     body('mentionIds').isString().optional(),
     body('hashTags').isString().optional(),
     body('maxViews').isNumeric().optional(),
-    body('latitude').isString().optional(),
-    body('longitude').isString().optional(),
+    body('latitude').isDecimal().exists(),
+    body('longitude').isDecimal().exists(),
     oneOf([
-        body('radius').isString().exists(),
+        body('radius').isDecimal().exists(),
         body('polygonCoords').custom((polygonCoords, { req }) => {
             if (!Array.isArray(polygonCoords)) {
                 return Promise.reject('polygonCoords must be an array'); // eslint-disable-line prefer-promise-reject-errors
@@ -37,4 +37,9 @@ export const createMomentValidation = [
             return invalid ? Promise.reject((req as any).errorMessage) : Promise.resolve();
         }),
     ]),
+];
+
+export const searchMomentsValidation = [
+    body('longitude').exists(),
+    body('latitude').exists(),
 ];

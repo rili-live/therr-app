@@ -49,6 +49,7 @@ export default StyleSheet.create({
         color: therrTheme.colors.secondary,
         borderBottomWidth: 2,
         borderBottomColor: '#4950571c',
+        backgroundColor: therrTheme.colors.beemo1,
     },
     headerTitle: {
         display: 'flex',
@@ -71,13 +72,16 @@ export default StyleSheet.create({
         flex: 1,
         margin: 10,
         marginTop: 15,
+        backgroundColor: therrTheme.colors.beemo1,
     },
     footer: {
         display: 'flex',
+        flex: 1,
+        padding: 40,
         paddingBottom: 8,
         position: 'absolute',
         bottom: 0,
-        alignItems: 'center',
+        alignItems: 'flex-end',
         width: '100%',
     },
     toggleIcon: {

@@ -3,23 +3,15 @@ import editMomentForm from './editMomentForm';
 import loginForm from './loginForm';
 import settingsForm from './settingsForm';
 import * as therrTheme from '../themes/ocean';
-
-const textInputStyle: any = {
-    marginLeft: 10,
-    marginRight: 10,
-    marginBottom: 20,
-    fontSize: 19,
-    borderColor: therrTheme.colors.borderLight,
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: 10,
-};
+import { inputStyle, textInputStyle } from './base';
 
 export default StyleSheet.create({
     input: {
+        ...inputStyle,
         color: therrTheme.colors.textWhite,
     },
     inputAlt: {
+        ...inputStyle,
         color: therrTheme.colors.textBlack,
     },
     textInput: {

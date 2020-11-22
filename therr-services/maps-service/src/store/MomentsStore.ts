@@ -10,6 +10,8 @@ const MOMENTS_TABLE_NAME = 'main.moments';
 
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
 
+const MOMENT_PROXIMITY_METERS = 25;
+
 export interface ICreateMomentParams {
     expiresAt?: any;
     fromUserId: number;
@@ -49,14 +51,17 @@ export default class MomentsStore {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
         let queryString: any = knex
-            .select(returning || '*')
+            .select([...returning, 'geom'] || '*')
             .from(MOMENTS_TABLE_NAME)
             .orderBy(`${MOMENTS_TABLE_NAME}.updatedAt`);
 
         if (conditions.filterBy && conditions.query) {
             const operator = conditions.filterOperator || '=';
             const query = operator === 'like' ? `%${conditions.query}%` : conditions.query;
-            queryString = queryString.where(conditions.filterBy, operator, query); // TODO: RSERV-49 select where distance is within x miles
+            // NOTE: Cast to a geography type to search distance within n meters
+            queryString = queryString
+                .where(knex.raw(`ST_DWithin(geom, ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${MOMENT_PROXIMITY_METERS});`)) // eslint-disable-line quotes, max-len
+                .andWhere(conditions.filterBy, operator, query);
         }
 
         queryString = queryString
