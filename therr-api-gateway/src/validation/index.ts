@@ -11,14 +11,22 @@ export const validate = (req: any, res: any, next: any) => {
 
     if (!result.isEmpty()) {
         let parameters: any = Object.keys(result.mapped());
+        let nestedErrors;
+
         if (parameters[0] === '') {
             parameters = undefined;
+        } else if (parameters[0] === '_error') {
+            const mapped: any = result.mapped()['_error']; // eslint-disable-line dot-notation
+            req.errorMessage = mapped.msg;
+            parameters = mapped.nestedErrors.map((e: any) => e.param);
+            nestedErrors = JSON.stringify(mapped.nestedErrors);
         }
         return handleHttpError({
             res,
-            message: req.errorMessage || translate(locale, 'validation'),
+            message: req.errorMessage || translate(locale, 'validation.defaultMessage'),
             resBody: {
                 parameters,
+                nestedErrors,
             },
             statusCode: 400,
         });

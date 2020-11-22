@@ -1,7 +1,9 @@
 import React from 'react';
-import { PermissionsAndroid, StatusBar } from 'react-native';
+import { PermissionsAndroid, StatusBar, View } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Circle } from 'react-native-maps';
+import { Button, Overlay } from 'react-native-elements';
 import 'react-native-gesture-handler';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
@@ -20,6 +22,7 @@ import {
 import * as therrTheme from '../styles/themes/ocean';
 import { loaderStyles } from '../styles';
 import mapStyles from '../styles/map';
+import EditMoment, { DEFAULT_RADIUS } from '../components/moments/EditMoment';
 
 const earthLoader = require('../assets/earth-loader.json');
 
@@ -40,6 +43,7 @@ export interface IMapProps extends IStoreProps {
 }
 
 interface IMapState {
+    isEditMomentVisible: boolean;
     isLocationReady: boolean;
     isMinLoadTimeComplete: boolean;
     longitude: number;
@@ -72,6 +76,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         super(props);
 
         this.state = {
+            isEditMomentVisible: false,
             isLocationReady: false,
             isMinLoadTimeComplete: false,
             longitude: -96.4683143,
@@ -185,6 +190,18 @@ class Map extends React.Component<IMapProps, IMapState> {
         navigation.navigate('Home');
     };
 
+    cancelEditMoment = () => {
+        this.setState({
+            isEditMomentVisible: false,
+        });
+    }
+
+    handleAddMoment = () => {
+        this.setState({
+            isEditMomentVisible: true,
+        });
+    };
+
     onUserLocationChange = (event) => {
         this.setState({
             circleCenter: {
@@ -199,6 +216,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             circleCenter,
             isLocationReady,
             isMinLoadTimeComplete,
+            isEditMomentVisible,
             longitude,
             latitude,
         } = this.state;
@@ -215,31 +233,59 @@ class Map extends React.Component<IMapProps, IMapState> {
                         speed={1.25}
                     />
                 ) : (
-                    <MapView
-                        provider={PROVIDER_GOOGLE}
-                        style={mapStyles.mapView}
-                        initialRegion={{
-                            latitude,
-                            longitude,
-                            latitudeDelta: INITIAL_LATIUDE_DELTA,
-                            longitudeDelta: INITIAL_LONGITUDE_DELTA,
-                        }}
-                        showsUserLocation={true}
-                        showsCompass={true}
-                        showsBuildings={true}
-                        showsMyLocationButton={true}
-                        // followsUserLocation={true}
-                        onUserLocationChange={this.onUserLocationChange}
-                        minZoomLevel={MIN_ZOOM_LEVEL}
-                    >
-                        <Circle
-                            center={circleCenter}
-                            radius={20}
-                            strokeWidth={3}
-                            strokeColor={therrTheme.colors.secondary}
-                            fillColor="rgba(56,130,84,0.15)"
-                        />
-                    </MapView>
+                    <>
+                        <MapView
+                            provider={PROVIDER_GOOGLE}
+                            style={mapStyles.mapView}
+                            initialRegion={{
+                                latitude,
+                                longitude,
+                                latitudeDelta: INITIAL_LATIUDE_DELTA,
+                                longitudeDelta: INITIAL_LONGITUDE_DELTA,
+                            }}
+                            showsUserLocation={true}
+                            showsCompass={true}
+                            showsBuildings={true}
+                            showsMyLocationButton={true}
+                            // followsUserLocation={true}
+                            onUserLocationChange={this.onUserLocationChange}
+                            minZoomLevel={MIN_ZOOM_LEVEL}
+                        >
+                            <Circle
+                                center={circleCenter}
+                                radius={DEFAULT_RADIUS}
+                                strokeWidth={3}
+                                strokeColor={therrTheme.colors.secondary}
+                                fillColor="rgba(56,130,84,0.15)"
+                            />
+                        </MapView>
+                        <View style={mapStyles.addMoment}>
+                            <Button
+                                buttonStyle={mapStyles.addMomentBtn}
+                                icon={
+                                    <FontAwesomeIcon
+                                        name="marker"
+                                        size={44}
+                                        style={mapStyles.addMomentBtnIcon}
+                                    />
+                                }
+                                raised={true}
+                                onPress={this.handleAddMoment}
+                            />
+                        </View>
+                        <Overlay
+                            isVisible={isEditMomentVisible}
+                            onBackdropPress={() => {}}
+                            overlayStyle={mapStyles.editMomentOverlay}
+                        >
+                            <EditMoment
+                                closeOverlay={this.cancelEditMoment}
+                                latitude={circleCenter.latitude}
+                                longitude={circleCenter.longitude}
+                                translate={this.translate}
+                            />
+                        </Overlay>
+                    </>
                 )}
             </>
         );

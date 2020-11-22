@@ -12,6 +12,12 @@ export const theme = {
     },
 };
 
+const sectionTitle: any = {
+    marginBottom: 8,
+    fontSize: 24,
+    fontWeight: '600',
+};
+
 const loaderStyles = StyleSheet.create({
     lottie: {
         width: 100,
@@ -34,11 +40,18 @@ export default StyleSheet.create({
         marginBottom: 16,
         paddingHorizontal: 24,
     },
+    sectionContainerAlt: {
+        marginTop: 4,
+        marginBottom: 12,
+        paddingHorizontal: 12,
+    },
     sectionTitle: {
-        marginBottom: 8,
-        fontSize: 24,
-        fontWeight: '600',
+        ...sectionTitle,
         color: therrTheme.colors.textWhite,
+    },
+    sectionTitleAlt: {
+        ...sectionTitle,
+        color: therrTheme.colors.textBlack,
     },
     sectionDescription: {
         marginBottom: 10,

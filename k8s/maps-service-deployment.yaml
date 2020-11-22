@@ -39,7 +39,7 @@ spec:
         - name: DB_USER_MAIN_WRITE
           value: "postgres"
         - name: DB_HOST_MAIN_WRITE
-          value: "therr-db-main-us-east-2.chtozlwlmzlk.us-east-2.rds.amazonaws.com"
+          value: "db-write-us-east-2-main.therr.app"
         - name: DB_PORT_MAIN_WRITE
           value: "5432"
         - name: DB_PASSWORD_MAIN_WRITE
@@ -50,7 +50,7 @@ spec:
         - name: DB_USER_MAIN_READ
           value: "postgres"
         - name: DB_HOST_MAIN_READ
-          value: "therr-db-main-us-east-2.chtozlwlmzlk.us-east-2.rds.amazonaws.com"
+          value: "db-write-us-east-2-main.therr.app"
         - name: DB_PORT_MAIN_READ
           value: "5432"
         - name: DB_PASSWORD_MAIN_READ

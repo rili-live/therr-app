@@ -4,6 +4,10 @@ import {
     NotificationActionTypes,
 } from './notifications';
 import {
+    IMomentsState,
+    MapActionTypes,
+} from './maps';
+import {
     IForum,
     IForumsArray,
     IForumMsg,
@@ -45,6 +49,10 @@ export interface ISearchQuery {
 }
 
 export {
+    // Maps
+    IMomentsState,
+    MapActionTypes,
+
     // Messages
     IForum,
     IForumsArray,
