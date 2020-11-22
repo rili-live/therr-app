@@ -62,7 +62,7 @@ const mapDispatchToProps = (dispatch: any) =>
 
 class Layout extends React.Component<ILayoutProps, ILayoutState> {
     static getDerivedStateFromProps(nextProps: ILayoutProps, nextState: ILayoutState) {
-        if (nextProps.user.details && nextProps.user.isAuthenticated &&nextProps.user.details.id !== nextState.userId) {
+        if (nextProps.user.details && nextProps.user.isAuthenticated && nextProps.user.details.id !== nextState.userId) {
             nextProps.searchNotifications({
                 filterBy: 'userId',
                 query: nextProps.user.details.id,

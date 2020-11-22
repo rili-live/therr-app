@@ -189,7 +189,7 @@ class HeaderMenuRight extends React.Component<
                                             size={22}
                                         />
                                     }
-                                    onPress={() => this.navTo('Connections')}
+                                    onPress={() => this.navTo('ActiveConnections')}
                                 />
                             </View>
                             <View style={headerMenuModal.footer}>

@@ -47,6 +47,10 @@
         "locationMap": "Location Map"
       }
     },
+    "momentsOverlay": {
+      "headerTitle": "Create a Moment",
+      "formHeaderContent": "Content"
+    },
     "notification": {
       "buttons": {
         "accept": "Accept",
@@ -94,6 +98,20 @@
         "password": "Password",
         "userName": "Username"
       },
+      "backendErrorMessage": "Connection error. Please try again later."
+    },
+    "editMoment": {
+      "buttons": {
+        "submit": "Send"
+      },
+      "labels": {
+        "message": "Share something unique...",
+        "notificationMsg": "Push notification summary",
+        "hashTags": "Tags (ie. #my_tag)",
+        "maxViews": "Max views (per person)",
+        "expiresAt": "Countdown"
+      },
+      "backendSuccessMessage": "Your moment was successfully saved!",
       "backendErrorMessage": "Connection error. Please try again later."
     },
     "settings": {

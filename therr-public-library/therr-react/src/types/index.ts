@@ -1,4 +1,8 @@
 import {
+    // Maps
+    IMomentsState,
+    MapActionTypes,
+
     // Messages
     IForum,
     IForumsArray,
@@ -46,6 +50,10 @@ export interface ISearchQuery {
 }
 
 export {
+    // Maps
+    IMomentsState,
+    MapActionTypes,
+
     // Messages
     IMessagesState,
     MessageActionTypes,

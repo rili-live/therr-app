@@ -68,7 +68,6 @@ const initInterceptors = (
             return response;
         },
         (error) => {
-            console.log(error, error.response, error.message);
             if (error.response) {
                 if (
                     Number(error.response.status) === 401 ||
