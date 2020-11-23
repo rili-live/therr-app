@@ -88,11 +88,6 @@ usersServiceRouter.post('/users/verify/:token', verifyUserAccountValidation, han
     method: 'post',
 }));
 
-usersServiceRouter.post('/users/verify/:token', verifyUserAccountValidation, handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'post',
-}));
-
 // Connections
 usersServiceRouter.post('/users/connections', createUserConnectionValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,

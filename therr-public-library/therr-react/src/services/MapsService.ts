@@ -10,7 +10,7 @@ interface ICreateMomentBody {
     message: string;
     notificationMsg?: string;
     mediaIds?: string;
-    mentionIds?: string;
+    mentionsIds?: string;
     hashTags?: string;
     maxViews?: number;
     latitude: string;

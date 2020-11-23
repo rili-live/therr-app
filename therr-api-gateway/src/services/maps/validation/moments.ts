@@ -10,7 +10,7 @@ export const createMomentValidation = [
     body('message').isString().exists(),
     body('notificationMsg').isString().optional(),
     body('mediaIds').isString().optional(),
-    body('mentionIds').isString().optional(),
+    body('mentionsIds').isString().optional(),
     body('hashTags').isString().optional(),
     body('maxViews').isNumeric().optional(),
     body('latitude').isDecimal().exists(),

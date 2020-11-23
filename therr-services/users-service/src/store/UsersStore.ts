@@ -79,6 +79,11 @@ export default class UsersStore {
 
     updateUser(params, conditions = {}) {
         const modifiedParams: any = {};
+        console.log(params);
+
+        if (params.accessLevels) {
+            modifiedParams.accessLevels = params.accessLevels;
+        }
 
         if (params.firstName) {
             modifiedParams.firstName = params.firstName;
@@ -98,6 +103,10 @@ export default class UsersStore {
 
         if (params.userName) {
             modifiedParams.userName = params.userName;
+        }
+
+        if (params.verificationCodes) {
+            modifiedParams.verificationCodes = params.verificationCodes;
         }
 
         const queryString = knex.update(modifiedParams)

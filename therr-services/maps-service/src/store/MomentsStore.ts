@@ -20,7 +20,7 @@ export interface ICreateMomentParams {
     message: string;
     notificationMsg?: string;
     mediaIds?: string;
-    mentionIds?: string;
+    mentionsIds?: string;
     hashTags?: string;
     maxViews?: number;
     latitude: string;
@@ -85,14 +85,15 @@ export default class MomentsStore {
             message: params.message,
             notificationMsg: params.notificationMsg ? `${params.notificationMsg.substring(0, 25)}...` : `${params.message.substring(0, 25)}...`,
             mediaIds: params.mediaIds || '',
-            mentionIds: params.mentionIds || '',
+            mentionsIds: params.mentionsIds || '',
             hashTags: params.hashTags || '',
             maxViews: params.maxViews || 0,
             latitude: params.latitude,
             longitude: params.longitude,
             radius: params.radius,
-            region,
+            region: region.code,
             polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
+            geom: knex.raw(`ST_SetSRID(ST_MakePoint(${params.longitude}, ${params.latitude}), 4326)`),
         };
 
         const queryString = knex.insert(modifiedParams)

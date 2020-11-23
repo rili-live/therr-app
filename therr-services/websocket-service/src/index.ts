@@ -156,10 +156,12 @@ const startExpressSocketIOServer = () => {
                     });
                     break;
                 case SocketClientActionTypes.LOGOUT:
-                    socketHandlers.logout({
-                        socket,
-                        data: action.data,
-                    });
+                    if (action.data) {
+                        socketHandlers.logout({
+                            socket,
+                            data: action.data,
+                        });
+                    }
                     break;
                 case SocketClientActionTypes.UPDATE_SESSION:
                     if (isAuthenticated) {
