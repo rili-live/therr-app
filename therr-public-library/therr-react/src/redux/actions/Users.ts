@@ -62,27 +62,27 @@ class UsersActions {
         // NOTE: Native Storage methods return a promise, but in this case we don't need to await
         userDetails = userDetails // eslint-disable-line no-param-reassign
             || JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || null);
-        return ((userDetails ? UsersService.logout(userDetails) : Promise.resolve()) as Promise<any>)
-            .then(() => userDetails)
-            .then(async (user) => {
-                if (!this.NativeStorage) {
-                    localStorage.removeItem('therrSession');
-                    localStorage.removeItem('therrUser');
-                } else {
-                    this.NativeStorage.multiRemove(['therrSession', 'therrUser']);
-                }
-                if (user) {
-                    dispatch({
-                        type: SocketClientActionTypes.LOGOUT,
-                        data: {
-                            id: user && user.id,
-                            idToken: user && user.idToken,
-                            userName: user && user.userName,
-                        },
-                    });
-                }
-                // NOTE: Socket will disconnect in reducer after event response from server (SESSION_CLOSED)
-            });
+        let user;
+        try {
+            user = await ((userDetails ? UsersService.logout(userDetails) : Promise.resolve()) as Promise<any>);
+        } catch (err) {
+            console.log(err);
+        }
+        if (!this.NativeStorage) {
+            localStorage.removeItem('therrSession');
+            localStorage.removeItem('therrUser');
+        } else {
+            this.NativeStorage.multiRemove(['therrSession', 'therrUser']);
+        }
+        dispatch({
+            type: SocketClientActionTypes.LOGOUT,
+            data: {
+                id: user && user.id,
+                idToken: user && user.idToken,
+                userName: user && user.userName,
+            },
+        });
+        // NOTE: Socket will disconnect in reducer after event response from server (SESSION_CLOSED)
     }
 
     register = (data: any) => (dispatch: any) => UsersService.create(data).then((response) => {
