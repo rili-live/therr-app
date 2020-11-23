@@ -88,10 +88,10 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
             message,
             notificationMsg,
             hashTags,
-            latitude: String(latitude),
-            longitude: String(longitude),
+            latitude,
+            longitude,
             maxViews,
-            radius: String(DEFAULT_RADIUS),
+            radius: DEFAULT_RADIUS,
             expiresAt,
         };
 

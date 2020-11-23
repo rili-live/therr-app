@@ -49,16 +49,16 @@ app.use(authenticate.unless({}));
 app.get('/', (req, res) => { res.status(200).json('OK'); }); // Healthcheck
 app.use(API_BASE_ROUTE, router);
 
-const { NEW_SERVICE_API_PORT } = process.env;
+const { MAPS_SERVICE_API_PORT } = process.env;
 
-const server = app.listen(NEW_SERVICE_API_PORT, () => {
+const server = app.listen(MAPS_SERVICE_API_PORT, () => {
     printLogs({
         level: 'info',
         messageOrigin: 'API_SERVER',
-        messages: [`Server running on port ${NEW_SERVICE_API_PORT} with process id`, process.pid],
+        messages: [`Server running on port ${MAPS_SERVICE_API_PORT} with process id`, process.pid],
         tracer: beeline,
         traceArgs: {
-            port: NEW_SERVICE_API_PORT,
+            port: MAPS_SERVICE_API_PORT,
             processId: process.pid,
         },
     });

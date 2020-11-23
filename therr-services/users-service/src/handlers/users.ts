@@ -268,11 +268,11 @@ const verifyUserAccount = (req, res) => {
                 });
             }
             const userVerificationCodes = userDetails[0].verificationCodes;
-            Store.verificationCodes.getCode({
+            return Store.verificationCodes.getCode({
                 code: decodedToken.code,
                 type: req.body.type,
             })
-                .then((codeResults) => {
+                .then(async (codeResults) => {
                     if (!codeResults.length) {
                         return handleHttpError({
                             res,
@@ -298,7 +298,7 @@ const verifyUserAccount = (req, res) => {
                     if (userHasMatchingCode) {
                         userVerificationCodes[codeResults[0].type] = {}; // clear out used code
 
-                        Store.users.updateUser({
+                        await Store.users.updateUser({
                             accessLevels: JSON.stringify([...userDetails[0].accessLevels, accessLevels.EMAIL_VERIFIED]),
                             verificationCodes: JSON.stringify(userVerificationCodes),
                         }, {
@@ -306,7 +306,7 @@ const verifyUserAccount = (req, res) => {
                         });
 
                         // Set expire rather than delete (gives a window for user to see if already verified)
-                        Store.verificationCodes.updateCode({ msExpiresAt: Date.now() }, { id: codeResults[0].id });
+                        await Store.verificationCodes.updateCode({ msExpiresAt: Date.now() }, { id: codeResults[0].id });
 
                         return res.status(200).send({
                             message: 'Account successfully verified',
