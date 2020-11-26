@@ -1,23 +1,23 @@
 import * as Immutable from 'seamless-immutable';
-import { IMomentsState, MapActionTypes } from '../../types/redux/maps';
+import { IMapState, MapActionTypes } from '../../types/redux/maps';
 
-const initialState: IMomentsState = Immutable.from({
+const initialState: IMapState = Immutable.from({
     moments: Immutable.from([]),
     myMoments: Immutable.from([]),
 });
 
-const moments = (state: IMomentsState = initialState, action: any) => {
+const map = (state: IMapState = initialState, action: any) => {
     // If state is initialized by server-side rendering, it may not be a proper immutable object yet
     if (!state.setIn) {
         state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
     }
 
-    let modifiedMoment = [...state.moments];
+    let modifiedMoment = [...state.myMoments];
 
     switch (action.type) {
         // TODO: Rethink this
         case MapActionTypes.GET_MOMENTS:
-            return state.setIn(['moments'], action.data);
+            return state.setIn(['moments'], action.data.results);
         case MapActionTypes.MOMENT_CREATED:
             modifiedMoment.unshift(action.data);
             return state.setIn(['myMoments'], modifiedMoment);
@@ -38,4 +38,4 @@ const moments = (state: IMomentsState = initialState, action: any) => {
     }
 };
 
-export default moments;
+export default map;

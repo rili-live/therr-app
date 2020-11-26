@@ -1,6 +1,5 @@
 import Knex from 'knex';
 import * as countryGeo from 'country-reverse-geocoding';
-import { getDbCountQueryString } from 'therr-js-utilities/db';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { IConnection } from './connection';
 
@@ -10,7 +9,7 @@ const MOMENTS_TABLE_NAME = 'main.moments';
 
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
 
-const MOMENT_PROXIMITY_METERS = 25;
+const MOMENT_PROXIMITY_METERS = 50;
 
 export interface ICreateMomentParams {
     expiresAt?: any;
@@ -23,8 +22,9 @@ export interface ICreateMomentParams {
     mentionsIds?: string;
     hashTags?: string;
     maxViews?: number;
-    latitude: string;
-    longitude: string;
+    minProximity?: number;
+    latitude: number;
+    longitude: number;
     radius?: string;
     polygonCoords?: string;
 }
@@ -37,31 +37,38 @@ export default class MomentsStore {
     }
 
     countRecords(params) {
-        const queryString = getDbCountQueryString({
-            queryBuilder: knex,
-            tableName: MOMENTS_TABLE_NAME,
-            params,
-            defaultConditions: {},
-        });
+        let queryString = knex
+            .count('*')
+            .from(MOMENTS_TABLE_NAME)
+            .where(knex.raw(`ST_DWithin(geom, ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${MOMENT_PROXIMITY_METERS});`));
 
-        return this.db.read.query(queryString).then((response) => response.rows);
+        if (params.filterBy && params.query) {
+            queryString = queryString.andWhere({
+                [params.filterBy]: params.query || '',
+            });
+        }
+
+        return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
     searchMoments(conditions: any = {}, returning) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
+        let proximityMax = MOMENT_PROXIMITY_METERS;
+        if ((conditions.filterBy && conditions.filterBy === 'distance') && conditions.query) {
+            proximityMax = conditions.query;
+        }
         let queryString: any = knex
-            .select([...returning, 'geom'] || '*')
+            .select(returning || '*')
             .from(MOMENTS_TABLE_NAME)
-            .orderBy(`${MOMENTS_TABLE_NAME}.updatedAt`);
+            .orderBy(`${MOMENTS_TABLE_NAME}.updatedAt`)
+            .where(knex.raw(`ST_DWithin(geom, ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${proximityMax})`)); // eslint-disable-line quotes, max-len
 
-        if (conditions.filterBy && conditions.query) {
+        if ((conditions.filterBy && conditions.filterBy !== 'distance') && conditions.query) {
             const operator = conditions.filterOperator || '=';
             const query = operator === 'like' ? `%${conditions.query}%` : conditions.query;
             // NOTE: Cast to a geography type to search distance within n meters
-            queryString = queryString
-                .where(knex.raw(`ST_DWithin(geom, ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${MOMENT_PROXIMITY_METERS});`)) // eslint-disable-line quotes, max-len
-                .andWhere(conditions.filterBy, operator, query);
+            queryString = queryString.andWhere(conditions.filterBy, operator, query);
         }
 
         queryString = queryString
@@ -88,6 +95,7 @@ export default class MomentsStore {
             mentionsIds: params.mentionsIds || '',
             hashTags: params.hashTags || '',
             maxViews: params.maxViews || 0,
+            minProximity: params.minProximity,
             latitude: params.latitude,
             longitude: params.longitude,
             radius: params.radius,

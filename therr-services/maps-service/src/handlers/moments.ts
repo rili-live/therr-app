@@ -22,14 +22,18 @@ const searchMoments: RequestHandler = (req: any, res: any) => {
         filterBy,
         query,
         itemsPerPage,
+        longitude,
+        latitude,
         pageNumber,
     } = req.query;
-    const integerColumns = ['fromUserId', 'maxViews'];
+    const integerColumns = ['fromUserId', 'maxViews', 'longitude', 'latitude'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
     const searchPromise = Store.moments.searchMoments(searchArgs[0], searchArgs[1]);
     const countPromise = Store.moments.countRecords({
         filterBy,
         query,
+        longitude,
+        latitude,
     });
 
     return Promise.all([searchPromise, countPromise]).then(([results, countResult]) => {

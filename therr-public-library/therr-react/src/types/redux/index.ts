@@ -4,7 +4,7 @@ import {
     NotificationActionTypes,
 } from './notifications';
 import {
-    IMomentsState,
+    IMapState,
     MapActionTypes,
 } from './maps';
 import {
@@ -46,11 +46,13 @@ export interface ISearchQuery {
     pageNumber?: number;
     returning?: string;
     shouldCheckReverse?: string;
+    longitude?: number;
+    latitude?: number;
 }
 
 export {
     // Maps
-    IMomentsState,
+    IMapState,
     MapActionTypes,
 
     // Messages

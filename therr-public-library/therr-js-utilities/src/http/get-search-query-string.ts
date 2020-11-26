@@ -11,6 +11,8 @@ export default (reqQuery: IReqQuery) => {
         returning,
         orderBy,
         order,
+        longitude,
+        latitude,
     } = reqQuery;
 
     const sanitizedQuery: any = {
@@ -22,6 +24,8 @@ export default (reqQuery: IReqQuery) => {
         returning,
         orderBy,
         order,
+        longitude,
+        latitude,
     };
 
     Object.keys(sanitizedQuery).forEach((key) => {

@@ -22,6 +22,11 @@ const colors = {
 
     backgroundWhite: '#ffffff',
     borderLight: 'gray',
+
+    map: {
+        momentsCircleFill: 'rgba(56,130,84,0.15)',
+        userCircleFill: 'rgba(31,89,125,0.25)',
+    },
 };
 
 export default colors;

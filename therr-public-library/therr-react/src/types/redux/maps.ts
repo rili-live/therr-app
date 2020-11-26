@@ -1,6 +1,6 @@
 import * as Immutable from 'seamless-immutable';
 
-export interface IMomentsState extends Immutable.ImmutableObject<any> {
+export interface IMapState extends Immutable.ImmutableObject<any> {
     moments: any;
     myMoments: any;
 }

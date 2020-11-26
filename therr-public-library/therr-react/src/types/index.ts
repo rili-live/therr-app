@@ -1,6 +1,9 @@
 import {
+    // Index
+    ISearchQuery,
+
     // Maps
-    IMomentsState,
+    IMapState,
     MapActionTypes,
 
     // Messages
@@ -39,19 +42,12 @@ export interface IAccess {
     levels: Array<string>;
 }
 
-export interface ISearchQuery {
-    filterBy?: string;
-    filterOperator?: string;
-    query?: string;
-    itemsPerPage?: number;
-    pageNumber?: number;
-    returning?: string;
-    shouldCheckReverse?: string;
-}
-
 export {
+    // Index
+    ISearchQuery,
+
     // Maps
-    IMomentsState,
+    IMapState,
     MapActionTypes,
 
     // Messages

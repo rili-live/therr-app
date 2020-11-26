@@ -6,7 +6,8 @@ import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { IUserState } from 'therr-react/types';
+import { IMapState, IUserState } from 'therr-react/types';
+import { MapActions } from 'therr-react/redux/actions';
 import Geolocation from '@react-native-community/geolocation';
 import AnimatedLoader from 'react-native-animated-loader';
 import UsersActions from '../redux/actions/UsersActions';
@@ -17,23 +18,27 @@ import {
     INITIAL_LATIUDE_DELTA,
     INITIAL_LONGITUDE_DELTA,
     MIN_LOAD_TIMEOUT,
+    DEFAULT_MOMENT_PROXIMITY,
     MIN_ZOOM_LEVEL,
 } from '../constants';
 import * as therrTheme from '../styles/themes/ocean';
 import { loaderStyles } from '../styles';
 import mapStyles from '../styles/map';
-import EditMoment, { DEFAULT_RADIUS } from '../components/moments/EditMoment';
+import EditMoment from '../components/moments/EditMoment';
 
 const earthLoader = require('../assets/earth-loader.json');
+// const mapStyle = require('../styles/map/style.json');
 
 interface IMapDispatchProps {
     login: Function;
     logout: Function;
+    searchMoments: Function;
     updateLocationPermissions: Function;
 }
 
 interface IStoreProps extends IMapDispatchProps {
     location: ILocationState;
+    map: IMapState;
     user: IUserState;
 }
 
@@ -53,6 +58,7 @@ interface IMapState {
 
 const mapStateToProps = (state: any) => ({
     location: state.location,
+    map: state.map,
     user: state.user,
 });
 
@@ -61,6 +67,7 @@ const mapDispatchToProps = (dispatch: any) =>
         {
             login: UsersActions.login,
             logout: UsersActions.logout,
+            searchMoments: MapActions.searchMoments,
             updateLocationPermissions:
                 LocationActions.updateLocationPermissions,
         },
@@ -92,7 +99,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     componentDidMount = async () => {
-        const { location, navigation, updateLocationPermissions } = this.props;
+        const { location, navigation, searchMoments, updateLocationPermissions } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.map.headerTitle'),
@@ -150,7 +157,14 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 },
                                             });
                                         }
-                                        return resolve();
+                                        return resolve({
+                                            latitude:
+                                                position.coords
+                                                    .latitude,
+                                            longitude:
+                                                position.coords
+                                                    .longitude,
+                                        });
                                     },
                                     (error) => {
                                         console.log('geolocation error');
@@ -166,6 +180,16 @@ class Map extends React.Component<IMapProps, IMapState> {
                             }
                         })
                 )
+                .then((coords: any) => {
+                    searchMoments({
+                        query: '',
+                        itemsPerPage: 20,
+                        pageNumber: 1,
+                        order: 'desc',
+                        longitude: coords.longitude,
+                        latitude: coords.latitude,
+                    });
+                })
                 .catch((error) => {
                     if (error === 'permissionDenied') {
                         updateLocationPermissions({
@@ -220,6 +244,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             longitude,
             latitude,
         } = this.state;
+        const { map } = this.props;
 
         return (
             <>
@@ -237,6 +262,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                         <MapView
                             provider={PROVIDER_GOOGLE}
                             style={mapStyles.mapView}
+                            // customMapStyle={mapStyle}
                             initialRegion={{
                                 latitude,
                                 longitude,
@@ -253,11 +279,30 @@ class Map extends React.Component<IMapProps, IMapState> {
                         >
                             <Circle
                                 center={circleCenter}
-                                radius={DEFAULT_RADIUS}
-                                strokeWidth={3}
-                                strokeColor={therrTheme.colors.secondary}
-                                fillColor="rgba(56,130,84,0.15)"
+                                radius={DEFAULT_MOMENT_PROXIMITY} /* meters */
+                                strokeWidth={1}
+                                strokeColor={therrTheme.colors.primary2}
+                                fillColor={therrTheme.colors.map.userCircleFill}
+                                zIndex={0}
                             />
+                            {
+                                map.moments.map((moment) => {
+                                    return (
+                                        <Circle
+                                            key={moment.id}
+                                            center={{
+                                                longitude: moment.longitude,
+                                                latitude: moment.latitude,
+                                            }}
+                                            radius={moment.minProximity} /* meters */
+                                            strokeWidth={0}
+                                            strokeColor={therrTheme.colors.secondary}
+                                            fillColor={therrTheme.colors.map.momentsCircleFill}
+                                            zIndex={1}
+                                        />
+                                    );
+                                })
+                            }
                         </MapView>
                         <View style={mapStyles.addMoment}>
                             <Button
