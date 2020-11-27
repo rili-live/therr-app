@@ -37,12 +37,16 @@ export default class MomentsStore {
     }
 
     countRecords(params) {
+        let proximityMax = MOMENT_PROXIMITY_METERS;
+        if ((params.filterBy && params.filterBy === 'distance') && params.query) {
+            proximityMax = params.query;
+        }
         let queryString = knex
             .count('*')
             .from(MOMENTS_TABLE_NAME)
-            .where(knex.raw(`ST_DWithin(geom, ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${MOMENT_PROXIMITY_METERS});`));
+            .where(knex.raw(`ST_DWithin(geom, ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${proximityMax});`));
 
-        if (params.filterBy && params.query) {
+        if ((params.filterBy && params.filterBy !== 'distance') && params.query) {
             queryString = queryString.andWhere({
                 [params.filterBy]: params.query || '',
             });

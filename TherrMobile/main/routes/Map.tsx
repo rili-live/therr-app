@@ -4,6 +4,7 @@ import MapView, { PROVIDER_GOOGLE, Circle } from 'react-native-maps';
 import { Button, Overlay } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IMapState as IMapReduxState, IUserState } from 'therr-react/types';
@@ -26,6 +27,7 @@ import * as therrTheme from '../styles/themes';
 import { loaderStyles } from '../styles';
 import mapStyles from '../styles/map';
 import EditMoment from '../components/moments/EditMoment';
+import { insideCircle } from 'geolocation-utils';
 
 const earthLoader = require('../assets/earth-loader.json');
 const mapCustomStyle = require('../styles/map/style.json');
@@ -50,12 +52,11 @@ export interface IMapProps extends IStoreProps {
 }
 
 interface IMapState {
+    areButtonsVisible: boolean;
     isEditMomentVisible: boolean;
     isLocationReady: boolean;
     isMinLoadTimeComplete: boolean;
     lastMomentsRefresh?: number,
-    longitude: number;
-    latitude: number;
     circleCenter: any;
 }
 
@@ -79,6 +80,7 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class Map extends React.Component<IMapProps, IMapState> {
+    private mapRef;
     private mapWatchId;
     private timeoutId;
     private translate: Function;
@@ -87,11 +89,10 @@ class Map extends React.Component<IMapProps, IMapState> {
         super(props);
 
         this.state = {
+            areButtonsVisible: true,
             isEditMomentVisible: false,
             isLocationReady: false,
             isMinLoadTimeComplete: false,
-            longitude: -96.4683143,
-            latitude: 32.8102631,
             circleCenter: {
                 longitude: -96.4683143,
                 latitude: 32.8102631,
@@ -159,10 +160,6 @@ class Map extends React.Component<IMapProps, IMapState> {
                                         };
                                         this.setState({
                                             isLocationReady: true,
-                                            latitude:
-                                                position.coords.latitude,
-                                            longitude:
-                                                position.coords.longitude,
                                             circleCenter: coords,
                                         });
                                         updateCoordinates(coords);
@@ -184,6 +181,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                 )
                 .then((coords: any) => {
                     this.handleRefreshMoments(true, coords);
+                    Geolocation.clearWatch(this.mapWatchId);
                 })
                 .catch((error) => {
                     if (error === 'permissionDenied') {
@@ -221,6 +219,37 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     };
 
+    handleCompassRealign = () => {
+        this.mapRef.animateCamera({ heading: 0 });
+    };
+
+    handleGpsRecenter = () => {
+        const { circleCenter } = this.state;
+        const loc = {
+            latitude: circleCenter.latitude,
+            longitude: circleCenter.longitude,
+            latitudeDelta: INITIAL_LATIUDE_DELTA,
+            longitudeDelta: INITIAL_LONGITUDE_DELTA,
+        };
+        this.mapRef.animateToRegion(loc, 2000);
+    };
+
+    handleMapPress = ({ nativeEvent }) => {
+        const { map } = this.props;
+        const pressedMoments = map.moments.filter((moment) => {
+            return insideCircle(nativeEvent.coordinate, {
+                lon: moment.longitude,
+                lat: moment.latitude,
+            }, moment.radius);
+        });
+
+        if (pressedMoments.length) {
+            console.log(pressedMoments[0]);
+        }
+    };
+
+    handleLayersPress = () => {}
+
     handleRefreshMoments = (overrideThrottle = false, coords?: any) => {
         if (!overrideThrottle && this.state.lastMomentsRefresh &&
             (Date.now() - this.state.lastMomentsRefresh <= MOMENTS_REFRESH_THROTTLE_MS)) {
@@ -232,10 +261,11 @@ class Map extends React.Component<IMapProps, IMapState> {
             latitude: map.latitude,
         };
         searchMoments({
-            query: '',
+            query: '1000',
             itemsPerPage: 20,
             pageNumber: 1,
             order: 'desc',
+            filterBy: 'distance',
             ...userCoords,
         });
         this.setState({
@@ -248,20 +278,26 @@ class Map extends React.Component<IMapProps, IMapState> {
             latitude: event.nativeEvent.coordinate.latitude,
             longitude: event.nativeEvent.coordinate.longitude,
         };
+        // TODO: Add throttle
         this.props.updateCoordinates(coords);
         this.setState({
             circleCenter: coords,
         });
     };
 
+    toggleMomentBtns = () => {
+        this.setState({
+            areButtonsVisible: !this.state.areButtonsVisible,
+        });
+    }
+
     render() {
         const {
+            areButtonsVisible,
             circleCenter,
             isLocationReady,
             isMinLoadTimeComplete,
             isEditMomentVisible,
-            longitude,
-            latitude,
         } = this.state;
         const { map } = this.props;
 
@@ -279,17 +315,18 @@ class Map extends React.Component<IMapProps, IMapState> {
                 ) : (
                     <>
                         <MapView
+                            ref={(ref) => (this.mapRef = ref)}
                             provider={PROVIDER_GOOGLE}
                             style={mapStyles.mapView}
                             customMapStyle={mapCustomStyle}
                             initialRegion={{
-                                latitude,
-                                longitude,
+                                latitude: circleCenter.latitude,
+                                longitude: circleCenter.longitude,
                                 latitudeDelta: INITIAL_LATIUDE_DELTA,
                                 longitudeDelta: INITIAL_LONGITUDE_DELTA,
                             }}
+                            onPress={this.handleMapPress}
                             showsUserLocation={true}
-                            showsCompass={true}
                             showsBuildings={true}
                             showsMyLocationButton={true}
                             // followsUserLocation={true}
@@ -313,7 +350,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 longitude: moment.longitude,
                                                 latitude: moment.latitude,
                                             }}
-                                            radius={moment.minProximity} /* meters */
+                                            radius={moment.radius} /* meters */
                                             strokeWidth={0}
                                             strokeColor={therrTheme.colors.secondary}
                                             fillColor={therrTheme.colors.map.momentsCircleFill}
@@ -323,34 +360,96 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 })
                             }
                         </MapView>
-                        <View style={mapStyles.refreshMoments}>
+                        <View style={mapStyles.collapse}>
                             <Button
                                 buttonStyle={mapStyles.momentBtn}
                                 icon={
                                     <FontAwesomeIcon
-                                        name="sync"
-                                        size={44}
+                                        name="ellipsis-h"
+                                        size={20}
                                         style={mapStyles.momentBtnIcon}
                                     />
                                 }
                                 raised={true}
-                                onPress={() => this.handleRefreshMoments(false)}
+                                onPress={() => this.toggleMomentBtns()}
                             />
                         </View>
-                        <View style={mapStyles.addMoment}>
-                            <Button
-                                buttonStyle={mapStyles.momentBtn}
-                                icon={
-                                    <FontAwesomeIcon
-                                        name="marker"
-                                        size={44}
-                                        style={mapStyles.momentBtnIcon}
-                                    />
-                                }
-                                raised={true}
-                                onPress={this.handleAddMoment}
-                            />
-                        </View>
+                        {
+                            areButtonsVisible && (
+                                <>
+                                    <View style={mapStyles.momentLayers}>
+                                        <Button
+                                            buttonStyle={mapStyles.momentBtn}
+                                            icon={
+                                                <MaterialIcon
+                                                    name="layers"
+                                                    size={44}
+                                                    style={mapStyles.momentBtnIcon}
+                                                />
+                                            }
+                                            raised={true}
+                                            onPress={() => this.handleLayersPress()}
+                                        />
+                                    </View>
+                                    <View style={mapStyles.refreshMoments}>
+                                        <Button
+                                            buttonStyle={mapStyles.momentBtn}
+                                            icon={
+                                                <FontAwesomeIcon
+                                                    name="sync"
+                                                    size={44}
+                                                    style={mapStyles.momentBtnIcon}
+                                                />
+                                            }
+                                            raised={true}
+                                            onPress={() => this.handleRefreshMoments(false)}
+                                        />
+                                    </View>
+                                    <View style={mapStyles.addMoment}>
+                                        <Button
+                                            buttonStyle={mapStyles.momentBtn}
+                                            icon={
+                                                <FontAwesomeIcon
+                                                    name="marker"
+                                                    size={44}
+                                                    style={mapStyles.momentBtnIcon}
+                                                />
+                                            }
+                                            raised={true}
+                                            onPress={this.handleAddMoment}
+                                        />
+                                    </View>
+                                    <View style={mapStyles.compass}>
+                                        <Button
+                                            buttonStyle={mapStyles.momentBtn}
+                                            icon={
+                                                <FontAwesomeIcon
+                                                    name="compass"
+                                                    size={28}
+                                                    style={mapStyles.momentBtnIcon}
+                                                />
+                                            }
+                                            raised={true}
+                                            onPress={this.handleCompassRealign}
+                                        />
+                                    </View>
+                                    <View style={mapStyles.recenter}>
+                                        <Button
+                                            buttonStyle={mapStyles.momentBtn}
+                                            icon={
+                                                <MaterialIcon
+                                                    name="gps-fixed"
+                                                    size={28}
+                                                    style={mapStyles.momentBtnIcon}
+                                                />
+                                            }
+                                            raised={true}
+                                            onPress={this.handleGpsRecenter}
+                                        />
+                                    </View>
+                                </>
+                            )
+                        }
                         <Overlay
                             isVisible={isEditMomentVisible}
                             onBackdropPress={() => {}}
