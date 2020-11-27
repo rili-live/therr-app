@@ -3,7 +3,7 @@ import { GestureResponderEvent, Pressable, Text, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { notification as notificationStyles } from '../styles/notifications';
-import * as therrTheme from '../styles/themes/ocean';
+import * as therrTheme from '../styles/themes';
 
 interface INotificationProps {
     acknowledgeRequest: any;

@@ -105,7 +105,7 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                     this.setState({
                         successMsg: translate('forms.editMoment.backendSuccessMessage'),
                     });
-                    setTimeout(this.props.closeOverlay, 500);
+                    setTimeout(this.props.closeOverlay, 750);
                 })
                 .catch((error: any) => {
                     console.log(error);

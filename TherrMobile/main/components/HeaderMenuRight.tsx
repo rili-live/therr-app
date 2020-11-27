@@ -17,6 +17,7 @@ export interface IHeaderMenuRightProps extends IStoreProps {
     logout: Function;
     navigation: any;
     isVisible: boolean;
+    isHeaderTransparent: boolean;
     user: any;
 }
 
@@ -86,15 +87,16 @@ class HeaderMenuRight extends React.Component<
     };
 
     render() {
-        const { isVisible, user } = this.props;
+        const { isHeaderTransparent, isVisible, user } = this.props;
         const { isModalVisible } = this.state;
         const currentScreen = this.getCurrentScreen();
+        console.log(currentScreen);
 
         if (isVisible) {
             return (
                 <>
                     <Button
-                        icon={<Icon name="menu" size={30} style={headerMenuModal.toggleIcon} />}
+                        icon={<Icon name="menu" size={30} style={isHeaderTransparent ? headerMenuModal.toggleIconDark : headerMenuModal.toggleIcon} />}
                         onPress={this.toggleOverlay}
                         type="clear"
                     />
@@ -142,7 +144,11 @@ class HeaderMenuRight extends React.Component<
                                     title={this.translate('components.headerMenuRight.menuItems.home')}
                                     icon={
                                         <FontAwesomeIcon
-                                            style={headerMenuModal.iconStyle}
+                                            style={
+                                                currentScreen === 'Home'
+                                                    ? headerMenuModal.iconStyleActive
+                                                    : headerMenuModal.iconStyle
+                                            }
                                             name="home"
                                             size={22}
                                         />
@@ -163,7 +169,11 @@ class HeaderMenuRight extends React.Component<
                                     title={this.translate('components.headerMenuRight.menuItems.map')}
                                     icon={
                                         <FontAwesomeIcon
-                                            style={headerMenuModal.iconStyle}
+                                            style={
+                                                currentScreen === 'Map'
+                                                    ? headerMenuModal.iconStyleActive
+                                                    : headerMenuModal.iconStyle
+                                            }
                                             name="globe-americas"
                                             size={22}
                                         />
@@ -172,19 +182,23 @@ class HeaderMenuRight extends React.Component<
                                 />
                                 <Button
                                     buttonStyle={
-                                        currentScreen === 'Connections'
+                                        currentScreen === 'ActiveConnections'
                                             ? headerMenuModal.buttonsActive
                                             : headerMenuModal.buttons
                                     }
                                     titleStyle={
-                                        currentScreen === 'Connections'
+                                        currentScreen === 'ActiveConnections'
                                             ? headerMenuModal.buttonsTitleActive
                                             : headerMenuModal.buttonsTitle
                                     }
                                     title={this.translate('components.headerMenuRight.menuItems.connections')}
                                     icon={
                                         <FontAwesomeIcon
-                                            style={headerMenuModal.iconStyle}
+                                            style={
+                                                currentScreen === 'ActiveConnections'
+                                                    ? headerMenuModal.iconStyleActive
+                                                    : headerMenuModal.iconStyle
+                                            }
                                             name="users"
                                             size={22}
                                         />

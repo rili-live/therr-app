@@ -8,6 +8,12 @@ const Maps = {
             data: response.data,
         });
     }),
+    updateCoordinates: (data: any) => (dispatch: any) => {
+        dispatch({
+            type: MapActionTypes.UPDATE_COORDS,
+            data,
+        });
+    },
     searchMoments: (query: any) => (dispatch: any) => MapsService.searchMoments(query).then((response: any) => {
         dispatch({
             type: MapActionTypes.GET_MOMENTS,

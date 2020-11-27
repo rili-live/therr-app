@@ -142,6 +142,7 @@ export class LoginFormComponent extends React.Component<
                 />
                 <View style={styles.submitButtonContainer}>
                     <Button
+                        buttonStyle={styles.button}
                         title={this.translate(
                             'forms.loginForm.buttons.login'
                         )}

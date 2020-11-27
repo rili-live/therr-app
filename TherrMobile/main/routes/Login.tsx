@@ -57,7 +57,7 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     render() {
         return (
             <>
-                <StatusBar barStyle="dark-content" />
+                <StatusBar barStyle="light-content" animated={true} translucent={true} />
                 <SafeAreaView>
                     <View style={styles.body}>
                         <View style={styles.sectionContainer} />

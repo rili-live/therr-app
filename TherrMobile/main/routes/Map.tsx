@@ -6,7 +6,7 @@ import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { IMapState, IUserState } from 'therr-react/types';
+import { IMapState as IMapReduxState, IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
 import Geolocation from '@react-native-community/geolocation';
 import AnimatedLoader from 'react-native-animated-loader';
@@ -20,25 +20,27 @@ import {
     MIN_LOAD_TIMEOUT,
     DEFAULT_MOMENT_PROXIMITY,
     MIN_ZOOM_LEVEL,
+    MOMENTS_REFRESH_THROTTLE_MS,
 } from '../constants';
-import * as therrTheme from '../styles/themes/ocean';
+import * as therrTheme from '../styles/themes';
 import { loaderStyles } from '../styles';
 import mapStyles from '../styles/map';
 import EditMoment from '../components/moments/EditMoment';
 
 const earthLoader = require('../assets/earth-loader.json');
-// const mapStyle = require('../styles/map/style.json');
+const mapCustomStyle = require('../styles/map/style.json');
 
 interface IMapDispatchProps {
     login: Function;
     logout: Function;
+    updateCoordinates: Function;
     searchMoments: Function;
     updateLocationPermissions: Function;
 }
 
 interface IStoreProps extends IMapDispatchProps {
     location: ILocationState;
-    map: IMapState;
+    map: IMapReduxState;
     user: IUserState;
 }
 
@@ -51,6 +53,7 @@ interface IMapState {
     isEditMomentVisible: boolean;
     isLocationReady: boolean;
     isMinLoadTimeComplete: boolean;
+    lastMomentsRefresh?: number,
     longitude: number;
     latitude: number;
     circleCenter: any;
@@ -67,6 +70,7 @@ const mapDispatchToProps = (dispatch: any) =>
         {
             login: UsersActions.login,
             logout: UsersActions.logout,
+            updateCoordinates: MapActions.updateCoordinates,
             searchMoments: MapActions.searchMoments,
             updateLocationPermissions:
                 LocationActions.updateLocationPermissions,
@@ -99,7 +103,12 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     componentDidMount = async () => {
-        const { location, navigation, searchMoments, updateLocationPermissions } = this.props;
+        const {
+            location,
+            navigation,
+            updateCoordinates,
+            updateLocationPermissions,
+        } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.map.headerTitle'),
@@ -140,31 +149,24 @@ class Map extends React.Component<IMapProps, IMapState> {
                             ) {
                                 this.mapWatchId = Geolocation.watchPosition(
                                     (position) => {
-                                        if (position && position.coords) {
-                                            this.setState({
-                                                isLocationReady: true,
-                                                latitude:
-                                                    position.coords.latitude,
-                                                longitude:
-                                                    position.coords.longitude,
-                                                circleCenter: {
-                                                    latitude:
-                                                        position.coords
-                                                            .latitude,
-                                                    longitude:
-                                                        position.coords
-                                                            .longitude,
-                                                },
-                                            });
-                                        }
-                                        return resolve({
+                                        const coords = {
                                             latitude:
                                                 position.coords
                                                     .latitude,
                                             longitude:
                                                 position.coords
                                                     .longitude,
+                                        };
+                                        this.setState({
+                                            isLocationReady: true,
+                                            latitude:
+                                                position.coords.latitude,
+                                            longitude:
+                                                position.coords.longitude,
+                                            circleCenter: coords,
                                         });
+                                        updateCoordinates(coords);
+                                        return resolve(coords);
                                     },
                                     (error) => {
                                         console.log('geolocation error');
@@ -181,14 +183,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                         })
                 )
                 .then((coords: any) => {
-                    searchMoments({
-                        query: '',
-                        itemsPerPage: 20,
-                        pageNumber: 1,
-                        order: 'desc',
-                        longitude: coords.longitude,
-                        latitude: coords.latitude,
-                    });
+                    this.handleRefreshMoments(true, coords);
                 })
                 .catch((error) => {
                     if (error === 'permissionDenied') {
@@ -226,12 +221,36 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     };
 
-    onUserLocationChange = (event) => {
+    handleRefreshMoments = (overrideThrottle = false, coords?: any) => {
+        if (!overrideThrottle && this.state.lastMomentsRefresh &&
+            (Date.now() - this.state.lastMomentsRefresh <= MOMENTS_REFRESH_THROTTLE_MS)) {
+            return;
+        }
+        const { map, searchMoments } = this.props;
+        const userCoords = coords || {
+            longitude: map.longitude,
+            latitude: map.latitude,
+        };
+        searchMoments({
+            query: '',
+            itemsPerPage: 20,
+            pageNumber: 1,
+            order: 'desc',
+            ...userCoords,
+        });
         this.setState({
-            circleCenter: {
-                latitude: event.nativeEvent.coordinate.latitude,
-                longitude: event.nativeEvent.coordinate.longitude,
-            },
+            lastMomentsRefresh: Date.now(),
+        });
+    };
+
+    onUserLocationChange = (event) => {
+        const coords = {
+            latitude: event.nativeEvent.coordinate.latitude,
+            longitude: event.nativeEvent.coordinate.longitude,
+        };
+        this.props.updateCoordinates(coords);
+        this.setState({
+            circleCenter: coords,
         });
     };
 
@@ -248,7 +267,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         return (
             <>
-                <StatusBar barStyle="dark-content" />
+                <StatusBar barStyle="light-content" animated={true} translucent={true} />
                 {!(isLocationReady && isMinLoadTimeComplete) ? (
                     <AnimatedLoader
                         visible={true}
@@ -262,7 +281,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                         <MapView
                             provider={PROVIDER_GOOGLE}
                             style={mapStyles.mapView}
-                            // customMapStyle={mapStyle}
+                            customMapStyle={mapCustomStyle}
                             initialRegion={{
                                 latitude,
                                 longitude,
@@ -304,14 +323,28 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 })
                             }
                         </MapView>
+                        <View style={mapStyles.refreshMoments}>
+                            <Button
+                                buttonStyle={mapStyles.momentBtn}
+                                icon={
+                                    <FontAwesomeIcon
+                                        name="sync"
+                                        size={44}
+                                        style={mapStyles.momentBtnIcon}
+                                    />
+                                }
+                                raised={true}
+                                onPress={() => this.handleRefreshMoments(false)}
+                            />
+                        </View>
                         <View style={mapStyles.addMoment}>
                             <Button
-                                buttonStyle={mapStyles.addMomentBtn}
+                                buttonStyle={mapStyles.momentBtn}
                                 icon={
                                     <FontAwesomeIcon
                                         name="marker"
                                         size={44}
-                                        style={mapStyles.addMomentBtnIcon}
+                                        style={mapStyles.momentBtnIcon}
                                     />
                                 }
                                 raised={true}

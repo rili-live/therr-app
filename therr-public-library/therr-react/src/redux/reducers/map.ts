@@ -33,6 +33,10 @@ const map = (state: IMapState = initialState, action: any) => {
                 return moment;
             });
             return state.setIn(['myMoments'], modifiedMoment);
+        case MapActionTypes.UPDATE_COORDS:
+            return state
+                .setIn(['longitude'], action.data.longitude)
+                .setIn(['latitude'], action.data.latitude);
         default:
             return state;
     }

@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import * as therrTheme from '../themes/ocean';
+import * as therrTheme from '../themes';
 import { inputStyle, textInputStyle } from './base';
 
 const submitButtonStyles: any = {
@@ -17,7 +17,7 @@ export default StyleSheet.create({
         flex: 1,
     },
     button: {
-        backgroundColor: '#1d5b69',
+        backgroundColor: therrTheme.colors.primary3,
     },
     submitButton: {
         ...submitButtonStyles,

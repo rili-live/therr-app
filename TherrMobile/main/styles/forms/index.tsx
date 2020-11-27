@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import editMomentForm from './editMomentForm';
 import loginForm from './loginForm';
 import settingsForm from './settingsForm';
-import * as therrTheme from '../themes/ocean';
+import * as therrTheme from '../themes';
 import { inputStyle, textInputStyle } from './base';
 
 export default StyleSheet.create({
@@ -23,7 +23,7 @@ export default StyleSheet.create({
         color: therrTheme.colors.textBlack,
     },
     button: {
-        backgroundColor: '#1d5b69',
+        backgroundColor: therrTheme.colors.primary3,
     },
 });
 

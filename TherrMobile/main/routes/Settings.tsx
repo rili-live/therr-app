@@ -167,7 +167,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
 
         return (
             <>
-                <StatusBar barStyle="dark-content" />
+                <StatusBar barStyle="light-content" animated={true} translucent={true} />
                 <SafeAreaView>
                     <ScrollView
                         contentInsetAdjustmentBehavior="automatic"
@@ -272,6 +272,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                 />
                                 <View style={settingsFormStyles.submitButtonContainer}>
                                     <Button
+                                        buttonStyle={formStyles.button}
                                         title={this.translate(
                                             'forms.settings.buttons.submit'
                                         )}

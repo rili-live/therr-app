@@ -128,7 +128,7 @@ class Notifications extends React.Component<
 
         return (
             <>
-                <StatusBar barStyle="dark-content" />
+                <StatusBar barStyle="light-content" animated={true} translucent={true} />
                 <SafeAreaView>
                     <View style={styles.body}>
                         <View style={styles.sectionContainer}>
@@ -137,24 +137,35 @@ class Notifications extends React.Component<
                             </Text>
                         </View>
                     </View>
-                    <FlatList
-                        data={notifications.messages}
-                        keyExtractor={(item) => String(item.id)}
-                        renderItem={({ item, index }) => (
-                            <Notification
-                                acknowledgeRequest={this.handleConnectionRequestAction}
-                                handlePress={(e) => this.markNotificationAsRead(e, item, false)}
-                                isUnread={item.isUnread}
-                                notification={item}
-                                containerStyles={index === 0 ? { borderTopWidth: 2 } : {}}
-                                translate={this.translate}
+                    {
+                        notifications.messages.length ? (
+                            <FlatList
+                                data={notifications.messages}
+                                keyExtractor={(item) => String(item.id)}
+                                renderItem={({ item, index }) => (
+                                    <Notification
+                                        acknowledgeRequest={this.handleConnectionRequestAction}
+                                        handlePress={(e) => this.markNotificationAsRead(e, item, false)}
+                                        isUnread={item.isUnread}
+                                        notification={item}
+                                        containerStyles={index === 0 ? { borderTopWidth: 2 } : {}}
+                                        translate={this.translate}
+                                    />
+                                )}
+                                ref={(component) => (this.flatListRef = component)}
+                                initialScrollIndex={0}
+                                onScrollToIndexFailed={this.handleScrollToIndexFailed}
+                                style={notificationStyles.container}
                             />
-                        )}
-                        ref={(component) => (this.flatListRef = component)}
-                        initialScrollIndex={0}
-                        onScrollToIndexFailed={this.handleScrollToIndexFailed}
-                        style={notificationStyles.container}
-                    />
+                        ) :
+                            <View style={styles.sectionContainer}>
+                                <Text style={styles.sectionDescription}>
+                                    {this.translate(
+                                        'pages.notifications.noNotifications'
+                                    )}
+                                </Text>
+                            </View>
+                    }
                 </SafeAreaView>
                 <MainButtonMenu navigation={navigation} user={user} />
             </>

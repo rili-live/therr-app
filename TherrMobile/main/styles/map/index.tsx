@@ -1,11 +1,11 @@
 import { StyleSheet } from 'react-native';
-import * as therrTheme from '../themes/ocean';
+import * as therrTheme from '../themes';
 
 export default StyleSheet.create({
     addMoment: {
         position: 'absolute',
         right: 18,
-        bottom: 18,
+        bottom: 38,
         shadowColor: therrTheme.colors.textBlack,
         shadowOffset: {
             height: 1,
@@ -15,13 +15,26 @@ export default StyleSheet.create({
         borderRadius: 100,
         padding: 0,
     },
-    addMomentBtn: {
+    refreshMoments: {
+        position: 'absolute',
+        right: 18,
+        bottom: 110,
+        shadowColor: therrTheme.colors.textBlack,
+        shadowOffset: {
+            height: 1,
+            width: 1,
+        },
+        shadowRadius: 4,
+        borderRadius: 100,
+        padding: 0,
+    },
+    momentBtn: {
         backgroundColor: therrTheme.colors.beemo1,
         borderRadius: 100,
         padding: 0,
         borderWidth: 0,
     },
-    addMomentBtnIcon: {
+    momentBtnIcon: {
         color: therrTheme.colors.ternary,
         padding: 0,
     },

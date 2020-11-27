@@ -82,6 +82,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [],
             },
+            headerTransparent: true,
         }),
     },
     {
