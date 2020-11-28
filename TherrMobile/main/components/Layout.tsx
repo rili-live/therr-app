@@ -143,7 +143,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     };
 
     render() {
-        const { logout, user } = this.props;
+        const { location, logout, updateGpsStatus, user } = this.props;
 
         return (
             <NavigationContainer theme={theme}>
@@ -166,7 +166,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     navigation={navigation}
                                     isHeaderTransparent={isHeaderTransparent}
                                     isVisible={this.shouldShowTopRightMenu()}
+                                    location={location}
                                     logout={logout}
+                                    updateGpsStatus={updateGpsStatus}
                                     user={user}
                                 />
                             ),
@@ -174,7 +176,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 alignSelf: 'center',
                                 textAlign: 'center',
                                 flex: 1,
-                                color: isHeaderTransparent ? therrTheme.colors.textBlack : therrTheme.colors.textWhite,
+                                color: isHeaderTransparent ? therrTheme.colors.primary3 : therrTheme.colors.textWhite,
                             },
                         });
                     }}

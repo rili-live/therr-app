@@ -63,12 +63,12 @@ export default StyleSheet.create({
         marginLeft: 20,
     },
     headerTitleText: {
-        color: 'black',
+        color: therrTheme.colors.primary3,
         fontSize: 20,
         letterSpacing: 3,
     },
     headerTitleIcon: {
-        color: 'black',
+        color: therrTheme.colors.primary3,
         marginRight: 10,
     },
     body: {
@@ -88,6 +88,6 @@ export default StyleSheet.create({
         color: therrTheme.colors.textWhite,
     },
     toggleIconDark: {
-        color: therrTheme.colors.textBlack,
+        color: therrTheme.colors.primary3,
     },
 });

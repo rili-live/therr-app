@@ -24,7 +24,8 @@ const colors = {
     borderLight: 'gray',
 
     map: {
-        momentsCircleFill: 'rgba(56,130,84,0.15)',
+        momentsCircleFill: 'rgba(56,130,84,0.2)',
+        momentsCircleFillActive: 'rgba(56,130,84,0.5)',
         userCircleFill: 'rgba(31,89,125,0.25)',
     },
 };

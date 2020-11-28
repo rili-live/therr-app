@@ -52,6 +52,7 @@ export interface IMapProps extends IStoreProps {
 }
 
 interface IMapState {
+    activeButtonId?: number;
     areButtonsVisible: boolean;
     isEditMomentVisible: boolean;
     isLocationReady: boolean;
@@ -231,7 +232,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             latitudeDelta: INITIAL_LATIUDE_DELTA,
             longitudeDelta: INITIAL_LONGITUDE_DELTA,
         };
-        this.mapRef.animateToRegion(loc, 2000);
+        this.mapRef.animateToRegion(loc, 750);
     };
 
     handleMapPress = ({ nativeEvent }) => {
@@ -245,6 +246,13 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         if (pressedMoments.length) {
             console.log(pressedMoments[0]);
+            this.setState({
+                activeButtonId: pressedMoments[0].id,
+            });
+        } else {
+            this.setState({
+                activeButtonId: undefined,
+            });
         }
     };
 
@@ -293,6 +301,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
     render() {
         const {
+            activeButtonId,
             areButtonsVisible,
             circleCenter,
             isLocationReady,
@@ -328,7 +337,8 @@ class Map extends React.Component<IMapProps, IMapState> {
                             onPress={this.handleMapPress}
                             showsUserLocation={true}
                             showsBuildings={true}
-                            showsMyLocationButton={true}
+                            showsMyLocationButton={false}
+                            showsCompass={false}
                             // followsUserLocation={true}
                             onUserLocationChange={this.onUserLocationChange}
                             minZoomLevel={MIN_ZOOM_LEVEL}
@@ -353,7 +363,9 @@ class Map extends React.Component<IMapProps, IMapState> {
                                             radius={moment.radius} /* meters */
                                             strokeWidth={0}
                                             strokeColor={therrTheme.colors.secondary}
-                                            fillColor={therrTheme.colors.map.momentsCircleFill}
+                                            fillColor={moment.id === activeButtonId ?
+                                                therrTheme.colors.map.momentsCircleFillActive :
+                                                therrTheme.colors.map.momentsCircleFill}
                                             zIndex={1}
                                         />
                                     );

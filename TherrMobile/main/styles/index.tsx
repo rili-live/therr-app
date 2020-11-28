@@ -37,7 +37,7 @@ export default StyleSheet.create({
         marginLeft: 2,
     },
     logoIconDark: {
-        color: therrTheme.colors.textBlack,
+        color: therrTheme.colors.primary3,
         marginLeft: 2,
     },
     sectionContainer: {
@@ -63,6 +63,10 @@ export default StyleSheet.create({
         fontSize: 18,
         fontWeight: '400',
         color: therrTheme.colors.textWhite,
+    },
+    spacer: {
+        marginTop: '16%',
+        marginBottom: '16%',
     },
     highlight: {
         fontWeight: '700',

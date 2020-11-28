@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { Button, Input } from 'react-native-elements';
 import translator from '../services/translator';
 import formStyles, { loginForm as styles } from '../styles/forms';
+import * as therrTheme from '../styles/themes';
 import Alert from '../components/Alert';
 
 // Regular component props
@@ -121,17 +122,18 @@ export class LoginFormComponent extends React.Component<
                 />
                 <Input
                     inputStyle={formStyles.input}
-                    label={this.translate(
+                    placeholder={this.translate(
                         'forms.loginForm.labels.userName'
                     )}
                     value={this.state.inputs.userName}
                     onChangeText={(text) =>
                         this.onInputChange('userName', text)
                     }
+                    selectionColor={therrTheme.colors.ternary}
                 />
                 <Input
                     inputStyle={formStyles.input}
-                    label={this.translate(
+                    placeholder={this.translate(
                         'forms.loginForm.labels.password'
                     )}
                     value={this.state.inputs.password}
@@ -139,6 +141,7 @@ export class LoginFormComponent extends React.Component<
                         this.onInputChange('password', text)
                     }
                     secureTextEntry={true}
+                    selectionColor={therrTheme.colors.ternary}
                 />
                 <View style={styles.submitButtonContainer}>
                     <Button

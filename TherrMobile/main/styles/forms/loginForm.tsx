@@ -16,6 +16,7 @@ export default StyleSheet.create({
         backgroundColor: therrTheme.colors.primary3,
     },
     submitButtonContainer: {
+        marginTop: 18,
         marginBottom: 20,
     },
 });

@@ -27,6 +27,7 @@ const routes: RouteConfig<
         component: Login,
         options: {
             title: 'Login',
+            headerTransparent: true,
         },
     },
     {
