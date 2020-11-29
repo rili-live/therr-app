@@ -69,6 +69,36 @@ export default StyleSheet.create({
         borderRadius: 100,
         padding: 0,
     },
+    momentLayerOption1: {
+        position: 'absolute',
+        left: 96,
+        bottom: 100,
+        shadowColor: therrTheme.colors.textBlack,
+        shadowOffset: {
+            height: 1,
+            width: 1,
+        },
+        shadowRadius: 4,
+        borderRadius: 100,
+        padding: 0,
+        height: 32,
+        width: 32,
+    },
+    momentLayerOption2: {
+        position: 'absolute',
+        left: 96,
+        bottom: 144,
+        shadowColor: therrTheme.colors.textBlack,
+        shadowOffset: {
+            height: 1,
+            width: 1,
+        },
+        shadowRadius: 4,
+        borderRadius: 100,
+        padding: 0,
+        height: 32,
+        width: 32,
+    },
     refreshMoments: {
         position: 'absolute',
         left: 18,
@@ -90,6 +120,10 @@ export default StyleSheet.create({
     },
     momentBtnIcon: {
         color: therrTheme.colors.ternary,
+        padding: 0,
+    },
+    momentBtnIconInactive: {
+        color: therrTheme.colors.primary3,
         padding: 0,
     },
     mapView: {

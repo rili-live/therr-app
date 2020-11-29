@@ -18,6 +18,8 @@ const map = (state: IMapState = initialState, action: any) => {
         // TODO: Rethink this
         case MapActionTypes.GET_MOMENTS:
             return state.setIn(['moments'], action.data.results);
+        case MapActionTypes.GET_MY_MOMENTS:
+            return state.setIn(['myMoments'], action.data.results);
         case MapActionTypes.MOMENT_CREATED:
             modifiedMoment.unshift(action.data);
             return state.setIn(['myMoments'], modifiedMoment);

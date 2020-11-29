@@ -15,10 +15,19 @@ const Maps = {
         });
     },
     searchMoments: (query: any) => (dispatch: any) => MapsService.searchMoments(query).then((response: any) => {
-        dispatch({
-            type: MapActionTypes.GET_MOMENTS,
-            data: response.data,
-        });
+        if (query.query === 'connections') {
+            dispatch({
+                type: MapActionTypes.GET_MOMENTS,
+                data: response.data,
+            });
+        }
+
+        if (query.query === 'me') {
+            dispatch({
+                type: MapActionTypes.GET_MY_MOMENTS,
+                data: response.data,
+            });
+        }
     }),
 };
 

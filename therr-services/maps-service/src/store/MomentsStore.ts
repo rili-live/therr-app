@@ -9,7 +9,7 @@ const MOMENTS_TABLE_NAME = 'main.moments';
 
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
 
-const MOMENT_PROXIMITY_METERS = 50;
+const MOMENT_PROXIMITY_METERS = 1000;
 
 export interface ICreateMomentParams {
     expiresAt?: any;
@@ -36,7 +36,7 @@ export default class MomentsStore {
         this.db = dbConnection;
     }
 
-    countRecords(params) {
+    countRecords(params, fromUserIds) {
         let proximityMax = MOMENT_PROXIMITY_METERS;
         if ((params.filterBy && params.filterBy === 'distance') && params.query) {
             proximityMax = params.query;
@@ -44,18 +44,25 @@ export default class MomentsStore {
         let queryString = knex
             .count('*')
             .from(MOMENTS_TABLE_NAME)
-            .where(knex.raw(`ST_DWithin(geom, ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${proximityMax});`));
+            // NOTE: Cast to a geography type to search distance within n meters
+            .where(knex.raw(`ST_DWithin(geom, ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${proximityMax})`));
 
         if ((params.filterBy && params.filterBy !== 'distance') && params.query) {
-            queryString = queryString.andWhere({
-                [params.filterBy]: params.query || '',
-            });
+            if (params.filterBy === 'fromUserIds') {
+                queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
+                    builder.whereIn('fromUserId', fromUserIds);
+                });
+            } else {
+                queryString = queryString.andWhere({
+                    [params.filterBy]: params.query || '',
+                });
+            }
         }
 
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
-    searchMoments(conditions: any = {}, returning) {
+    searchMoments(conditions: any = {}, returning, fromUserIds = []) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
         let proximityMax = MOMENT_PROXIMITY_METERS;
@@ -66,13 +73,20 @@ export default class MomentsStore {
             .select(returning || '*')
             .from(MOMENTS_TABLE_NAME)
             .orderBy(`${MOMENTS_TABLE_NAME}.updatedAt`)
+            // NOTE: Cast to a geography type to search distance within n meters
             .where(knex.raw(`ST_DWithin(geom, ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${proximityMax})`)); // eslint-disable-line quotes, max-len
 
         if ((conditions.filterBy && conditions.filterBy !== 'distance') && conditions.query) {
             const operator = conditions.filterOperator || '=';
             const query = operator === 'like' ? `%${conditions.query}%` : conditions.query;
-            // NOTE: Cast to a geography type to search distance within n meters
-            queryString = queryString.andWhere(conditions.filterBy, operator, query);
+
+            if (conditions.filterBy === 'fromUserIds') {
+                queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
+                    builder.whereIn('fromUserId', fromUserIds);
+                });
+            } else {
+                queryString = queryString.andWhere(conditions.filterBy, operator, query);
+            }
         }
 
         queryString = queryString

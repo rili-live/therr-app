@@ -54,10 +54,12 @@ export interface IMapProps extends IStoreProps {
 interface IMapState {
     activeButtonId?: number;
     areButtonsVisible: boolean;
+    areLayersVisible: boolean;
     isEditMomentVisible: boolean;
     isLocationReady: boolean;
     isMinLoadTimeComplete: boolean;
     lastMomentsRefresh?: number,
+    layers: any
     circleCenter: any;
 }
 
@@ -91,9 +93,14 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         this.state = {
             areButtonsVisible: true,
+            areLayersVisible: false,
             isEditMomentVisible: false,
             isLocationReady: false,
             isMinLoadTimeComplete: false,
+            layers: {
+                myMoments: false,
+                connectionsMoments: true,
+            },
             circleCenter: {
                 longitude: -96.4683143,
                 latitude: 32.8102631,
@@ -181,7 +188,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                         })
                 )
                 .then((coords: any) => {
-                    this.handleRefreshMoments(true, coords);
+                    this.handleRefreshMoments(true, coords, true);
                     Geolocation.clearWatch(this.mapWatchId);
                 })
                 .catch((error) => {
@@ -216,12 +223,16 @@ class Map extends React.Component<IMapProps, IMapState> {
 
     handleAddMoment = () => {
         this.setState({
+            areLayersVisible: false,
             isEditMomentVisible: true,
         });
     };
 
     handleCompassRealign = () => {
         this.mapRef.animateCamera({ heading: 0 });
+        this.setState({
+            areLayersVisible: false,
+        });
     };
 
     handleGpsRecenter = () => {
@@ -233,11 +244,22 @@ class Map extends React.Component<IMapProps, IMapState> {
             longitudeDelta: INITIAL_LONGITUDE_DELTA,
         };
         this.mapRef.animateToRegion(loc, 750);
+        this.setState({
+            areLayersVisible: false,
+        });
     };
 
     handleMapPress = ({ nativeEvent }) => {
         const { map } = this.props;
-        const pressedMoments = map.moments.filter((moment) => {
+        const { layers } = this.state;
+        let visibleMoments: any[] = [];
+        if (layers.connectionsMoments) {
+            visibleMoments = visibleMoments.concat(map.moments);
+        }
+        if (layers.myMoments) {
+            visibleMoments = visibleMoments.concat(map.myMoments);
+        }
+        const pressedMoments = visibleMoments.filter((moment) => {
             return insideCircle(nativeEvent.coordinate, {
                 lon: moment.longitude,
                 lat: moment.latitude,
@@ -248,17 +270,22 @@ class Map extends React.Component<IMapProps, IMapState> {
             console.log(pressedMoments[0]);
             this.setState({
                 activeButtonId: pressedMoments[0].id,
+                areLayersVisible: false,
             });
         } else {
             this.setState({
                 activeButtonId: undefined,
+                areLayersVisible: false,
             });
         }
     };
 
-    handleLayersPress = () => {}
+    handleRefreshMoments = (overrideThrottle = false, coords?: any, shouldSearchAll = false) => {
+        const { layers } = this.state;
 
-    handleRefreshMoments = (overrideThrottle = false, coords?: any) => {
+        this.setState({
+            areLayersVisible: false,
+        });
         if (!overrideThrottle && this.state.lastMomentsRefresh &&
             (Date.now() - this.state.lastMomentsRefresh <= MOMENTS_REFRESH_THROTTLE_MS)) {
             return;
@@ -268,14 +295,27 @@ class Map extends React.Component<IMapProps, IMapState> {
             longitude: map.longitude,
             latitude: map.latitude,
         };
-        searchMoments({
-            query: '1000',
-            itemsPerPage: 20,
-            pageNumber: 1,
-            order: 'desc',
-            filterBy: 'distance',
-            ...userCoords,
-        });
+        // TODO: Consider making this one, dynamic request to add efficiency
+        if (shouldSearchAll || layers.myMoments) {
+            searchMoments({
+                query: 'me',
+                itemsPerPage: 20,
+                pageNumber: 1,
+                order: 'desc',
+                filterBy: 'fromUserIds',
+                ...userCoords,
+            });
+        }
+        if (shouldSearchAll || layers.connectionsMoments) {
+            searchMoments({
+                query: 'connections',
+                itemsPerPage: 20,
+                pageNumber: 1,
+                order: 'desc',
+                filterBy: 'fromUserIds',
+                ...userCoords,
+            });
+        }
         this.setState({
             lastMomentsRefresh: Date.now(),
         });
@@ -293,9 +333,25 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     };
 
+    toggleLayers = () => {
+        this.setState({
+            areLayersVisible: !this.state.areLayersVisible,
+        });
+    }
+
+    toggleLayer = (layerName) => {
+        const { layers } = this.state;
+        layers[layerName] = !layers[layerName];
+
+        this.setState({
+            layers,
+        });
+    }
+
     toggleMomentBtns = () => {
         this.setState({
             areButtonsVisible: !this.state.areButtonsVisible,
+            areLayersVisible: false,
         });
     }
 
@@ -303,10 +359,12 @@ class Map extends React.Component<IMapProps, IMapState> {
         const {
             activeButtonId,
             areButtonsVisible,
+            areLayersVisible,
             circleCenter,
             isLocationReady,
             isMinLoadTimeComplete,
             isEditMomentVisible,
+            layers,
         } = this.state;
         const { map } = this.props;
 
@@ -352,6 +410,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 zIndex={0}
                             />
                             {
+                                layers.connectionsMoments &&
                                 map.moments.map((moment) => {
                                     return (
                                         <Circle
@@ -366,6 +425,27 @@ class Map extends React.Component<IMapProps, IMapState> {
                                             fillColor={moment.id === activeButtonId ?
                                                 therrTheme.colors.map.momentsCircleFillActive :
                                                 therrTheme.colors.map.momentsCircleFill}
+                                            zIndex={1}
+                                        />
+                                    );
+                                })
+                            }
+                            {
+                                layers.myMoments &&
+                                map.myMoments.map((moment) => {
+                                    return (
+                                        <Circle
+                                            key={moment.id}
+                                            center={{
+                                                longitude: moment.longitude,
+                                                latitude: moment.latitude,
+                                            }}
+                                            radius={moment.radius} /* meters */
+                                            strokeWidth={0}
+                                            strokeColor={therrTheme.colors.secondary}
+                                            fillColor={moment.id === activeButtonId ?
+                                                therrTheme.colors.map.myMomentsCircleFillActive :
+                                                therrTheme.colors.map.myMomentsCircleFill}
                                             zIndex={1}
                                         />
                                     );
@@ -400,9 +480,42 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 />
                                             }
                                             raised={true}
-                                            onPress={() => this.handleLayersPress()}
+                                            onPress={() => this.toggleLayers()}
                                         />
                                     </View>
+                                    {
+                                        areLayersVisible &&
+                                        <>
+                                            <View style={mapStyles.momentLayerOption1}>
+                                                <Button
+                                                    buttonStyle={mapStyles.momentBtn}
+                                                    icon={
+                                                        <FontAwesomeIcon
+                                                            name="globe"
+                                                            size={28}
+                                                            style={layers.connectionsMoments ? mapStyles.momentBtnIcon : mapStyles.momentBtnIconInactive}
+                                                        />
+                                                    }
+                                                    raised={true}
+                                                    onPress={() => this.toggleLayer('connectionsMoments')}
+                                                />
+                                            </View>
+                                            <View style={mapStyles.momentLayerOption2}>
+                                                <Button
+                                                    buttonStyle={mapStyles.momentBtn}
+                                                    icon={
+                                                        <FontAwesomeIcon
+                                                            name="child"
+                                                            size={28}
+                                                            style={layers.myMoments ? mapStyles.momentBtnIcon : mapStyles.momentBtnIconInactive}
+                                                        />
+                                                    }
+                                                    raised={true}
+                                                    onPress={() => this.toggleLayer('myMoments')}
+                                                />
+                                            </View>
+                                        </>
+                                    }
                                     <View style={mapStyles.refreshMoments}>
                                         <Button
                                             buttonStyle={mapStyles.momentBtn}

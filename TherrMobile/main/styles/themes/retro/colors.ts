@@ -26,6 +26,8 @@ const colors = {
     map: {
         momentsCircleFill: 'rgba(56,130,84,0.2)',
         momentsCircleFillActive: 'rgba(56,130,84,0.5)',
+        myMomentsCircleFill: 'rgba(31,89,125,0.2)',
+        myMomentsCircleFillActive: 'rgba(31,89,125,0.5)',
         userCircleFill: 'rgba(31,89,125,0.25)',
     },
 };
