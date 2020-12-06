@@ -150,4 +150,12 @@ export default StyleSheet.create({
         top: 0,
         left: 0,
     },
+    momentAlertOverlay: {
+        backgroundColor: therrTheme.colors.beemo1,
+        display: 'flex',
+        flexDirection: 'column',
+        borderRadius: 0,
+        padding: 0,
+        zIndex: 10000,
+    },
 });

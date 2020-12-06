@@ -11,6 +11,7 @@ import { IMapState as IMapReduxState, IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
 import Geolocation from '@react-native-community/geolocation';
 import AnimatedLoader from 'react-native-animated-loader';
+import Alert from '../components/Alert';
 import UsersActions from '../redux/actions/UsersActions';
 import { ILocationState } from '../types/redux/location';
 import LocationActions from '../redux/actions/LocationActions';
@@ -27,7 +28,8 @@ import * as therrTheme from '../styles/themes';
 import { loaderStyles } from '../styles';
 import mapStyles from '../styles/map';
 import EditMoment from '../components/moments/EditMoment';
-import { insideCircle } from 'geolocation-utils';
+import ViewMoment from '../components/moments/ViewMoment';
+import { distanceTo, insideCircle } from 'geolocation-utils';
 
 const earthLoader = require('../assets/earth-loader.json');
 const mapCustomStyle = require('../styles/map/style.json');
@@ -52,10 +54,12 @@ export interface IMapProps extends IStoreProps {
 }
 
 interface IMapState {
-    activeButtonId?: number;
+    activeMoment: any;
     areButtonsVisible: boolean;
     areLayersVisible: boolean;
     isEditMomentVisible: boolean;
+    isMomentAlertVisible: boolean;
+    isViewMomentVisible: boolean;
     isLocationReady: boolean;
     isMinLoadTimeComplete: boolean;
     lastMomentsRefresh?: number,
@@ -92,9 +96,12 @@ class Map extends React.Component<IMapProps, IMapState> {
         super(props);
 
         this.state = {
+            activeMoment: {},
             areButtonsVisible: true,
             areLayersVisible: false,
             isEditMomentVisible: false,
+            isMomentAlertVisible: false,
+            isViewMomentVisible: false,
             isLocationReady: false,
             isMinLoadTimeComplete: false,
             layers: {
@@ -221,6 +228,18 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     }
 
+    cancelViewMoment = () => {
+        this.setState({
+            isViewMomentVisible: false,
+        });
+    }
+
+    cancelMomentAlert = () => {
+        this.setState({
+            isMomentAlertVisible: false,
+        });
+    }
+
     handleAddMoment = () => {
         this.setState({
             areLayersVisible: false,
@@ -250,9 +269,14 @@ class Map extends React.Component<IMapProps, IMapState> {
     };
 
     handleMapPress = ({ nativeEvent }) => {
-        const { map } = this.props;
-        const { layers } = this.state;
+        const { map, user } = this.props;
+        const { circleCenter, layers } = this.state;
         let visibleMoments: any[] = [];
+
+        this.setState({
+            areLayersVisible: false,
+        });
+
         if (layers.connectionsMoments) {
             visibleMoments = visibleMoments.concat(map.moments);
         }
@@ -267,15 +291,31 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
 
         if (pressedMoments.length) {
-            console.log(pressedMoments[0]);
-            this.setState({
-                activeButtonId: pressedMoments[0].id,
-                areLayersVisible: false,
+            const selectedMoment = pressedMoments[0];
+            const distToCenter = distanceTo({
+                lon: circleCenter.longitude,
+                lat: circleCenter.latitude,
+            }, {
+                lon: selectedMoment.longitude,
+                lat: selectedMoment.latitude,
             });
+            const isProximitySatisfied = distToCenter - selectedMoment.radius <= selectedMoment.minProximity;
+            if (!isProximitySatisfied && selectedMoment.fromUserId !== user.details.id) {
+                this.showMomentAlert();
+            } else {
+                console.log(selectedMoment);
+                this.setState({
+                    activeMoment: selectedMoment,
+                });
+                setTimeout(() => {
+                    this.setState({
+                        isViewMomentVisible: true,
+                    });
+                }, 50);
+            }
         } else {
             this.setState({
-                activeButtonId: undefined,
-                areLayersVisible: false,
+                activeMoment: {},
             });
         }
     };
@@ -333,6 +373,18 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     };
 
+    showMomentAlert = () => {
+        this.setState({
+            isMomentAlertVisible: true,
+        });
+
+        setTimeout(() => {
+            this.setState({
+                isMomentAlertVisible: false,
+            });
+        }, 2000);
+    };
+
     toggleLayers = () => {
         this.setState({
             areLayersVisible: !this.state.areLayersVisible,
@@ -357,13 +409,15 @@ class Map extends React.Component<IMapProps, IMapState> {
 
     render() {
         const {
-            activeButtonId,
+            activeMoment,
             areButtonsVisible,
             areLayersVisible,
             circleCenter,
             isLocationReady,
             isMinLoadTimeComplete,
             isEditMomentVisible,
+            isMomentAlertVisible,
+            isViewMomentVisible,
             layers,
         } = this.state;
         const { map } = this.props;
@@ -422,7 +476,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                             radius={moment.radius} /* meters */
                                             strokeWidth={0}
                                             strokeColor={therrTheme.colors.secondary}
-                                            fillColor={moment.id === activeButtonId ?
+                                            fillColor={moment.id === activeMoment.id ?
                                                 therrTheme.colors.map.momentsCircleFillActive :
                                                 therrTheme.colors.map.momentsCircleFill}
                                             zIndex={1}
@@ -443,7 +497,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                             radius={moment.radius} /* meters */
                                             strokeWidth={0}
                                             strokeColor={therrTheme.colors.secondary}
-                                            fillColor={moment.id === activeButtonId ?
+                                            fillColor={moment.id === activeMoment.id ?
                                                 therrTheme.colors.map.myMomentsCircleFillActive :
                                                 therrTheme.colors.map.myMomentsCircleFill}
                                             zIndex={1}
@@ -585,6 +639,29 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 latitude={circleCenter.latitude}
                                 longitude={circleCenter.longitude}
                                 translate={this.translate}
+                            />
+                        </Overlay>
+                        <Overlay
+                            isVisible={isViewMomentVisible}
+                            onBackdropPress={() => {}}
+                            overlayStyle={mapStyles.editMomentOverlay}
+                        >
+                            <ViewMoment
+                                closeOverlay={this.cancelViewMoment}
+                                translate={this.translate}
+                                moment={activeMoment}
+                            />
+                        </Overlay>
+                        <Overlay
+                            isVisible={isMomentAlertVisible}
+                            onBackdropPress={this.cancelMomentAlert}
+                            overlayStyle={mapStyles.momentAlertOverlay}
+                        >
+                            <Alert
+                                containerStyles={{}}
+                                isVisible={isMomentAlertVisible}
+                                message={this.translate('pages.map.momentAlerts.walkCloser')}
+                                type="error"
                             />
                         </Overlay>
                     </>

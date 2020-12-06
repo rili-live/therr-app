@@ -47,7 +47,7 @@
         "locationMap": "Location Map"
       }
     },
-    "momentsOverlay": {
+    "editMomentOverlay": {
       "headerTitle": "Create a Moment",
       "formHeaderContent": "Content"
     },
@@ -168,7 +168,10 @@
       "pageTitle": "Login"
     },
     "map": {
-      "headerTitle": "Map"
+      "headerTitle": "Map",
+      "momentAlerts": {
+        "walkCloser": "Walk closer to activate this moment"
+      }
     },
     "pageNotFound": {
       "pageTitle": "Page Not Found"

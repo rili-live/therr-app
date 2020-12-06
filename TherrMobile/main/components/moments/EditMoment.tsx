@@ -165,7 +165,7 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                 <View style={editMomentModal.header}>
                     <View style={editMomentModal.headerTitle}>
                         <Text style={editMomentModal.headerTitleText}>
-                            {translate('components.momentsOverlay.headerTitle')}
+                            {translate('components.editMomentOverlay.headerTitle')}
                         </Text>
                     </View>
                     <Button
