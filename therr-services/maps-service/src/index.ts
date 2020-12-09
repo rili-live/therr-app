@@ -42,7 +42,8 @@ if (process.env.NODE_ENV !== 'production') {
 // Serves static files in the /build/static directory
 app.use(express.static(path.join(__dirname, 'static')));
 
-// Authentication
+// TODO: RAUTO-27 - VPC
+// Temporary Authentication check before implementing private IPs
 app.use(authenticate.unless({}));
 
 // Configure routes
