@@ -27,7 +27,7 @@ module.exports = {
     },
     stage: {
         baseApiGatewayRoute: `https://api.${hostStage}/v1`,
-        baseMapsServiceRoute: `https://maps-service.apStage}/v1`,
+        baseMapsServiceRoute: `https://maps-service.${hostStage}/v1`,
         baseMessagesServiceRoute: `https://messages-service.${hostStage}/v1`,
         baseUsersServiceRoute: `https://users-service.${hostStage}/v1`,
         baseSocketUrl: `https://websocket-service.${hostStage}`,
@@ -43,7 +43,7 @@ module.exports = {
     },
     production: {
         baseApiGatewayRoute: `https://api.${hostProd}/v1`,
-        baseMapsServiceRoute: `https://maps-serviceaptProd}/v1`,
+        baseMapsServiceRoute: `https://maps-service.${hostProd}/v1`,
         baseMessagesServiceRoute: `https://messages-service.${hostProd}/v1`,
         baseUsersServiceRoute: `https://users-service.${hostProd}/v1`,
         baseSocketUrl: `https://websocket-service.${hostProd}`,
