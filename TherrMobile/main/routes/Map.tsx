@@ -242,7 +242,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     }
 
-    getMomentDetails = (moment) => new Promise((resolve, reject) => {
+    getMomentDetails = (moment) => new Promise((resolve) => {
         const { user } = this.props;
         const details: any = {};
 
@@ -324,11 +324,10 @@ class Map extends React.Component<IMapProps, IMapState> {
                             isViewMomentVisible: true,
                         });
                     })
-                    .catch((error) => {
+                    .catch(() => {
                         // TODO: Add error handling
                         console.log('Failed to get moment details!');
                     });
-                
             }
         } else {
             this.setState({
