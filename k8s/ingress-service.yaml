@@ -33,7 +33,7 @@ spec:
       - messages-service.therr.app
       - users-service.therr.app
       - websocket-service.therr.app
-    secretName: therr-network
+    secretName: therr-network-secret
   rules:
   - host: therr.app
     http:
