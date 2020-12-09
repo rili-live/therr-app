@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import * as therrTheme from './themes/ocean';
+import * as therrTheme from './themes';
 
 export const theme = {
     dark: true,
@@ -9,6 +9,7 @@ export const theme = {
         card: therrTheme.colors.primary,
         text: therrTheme.colors.textWhite,
         border: therrTheme.colors.primary3,
+        notification: therrTheme.colors.primary3,
     },
 };
 
@@ -28,11 +29,15 @@ const loaderStyles = StyleSheet.create({
 export default StyleSheet.create({
     scrollView: {},
     body: {
-        backgroundColor: '#1f597d',
+        backgroundColor: therrTheme.colors.primary2,
         color: therrTheme.colors.textWhite,
     },
     logoIcon: {
         color: therrTheme.colors.textWhite,
+        marginLeft: 2,
+    },
+    logoIconDark: {
+        color: therrTheme.colors.primary3,
         marginLeft: 2,
     },
     sectionContainer: {
@@ -58,6 +63,10 @@ export default StyleSheet.create({
         fontSize: 18,
         fontWeight: '400',
         color: therrTheme.colors.textWhite,
+    },
+    spacer: {
+        marginTop: '16%',
+        marginBottom: '16%',
     },
     highlight: {
         fontWeight: '700',

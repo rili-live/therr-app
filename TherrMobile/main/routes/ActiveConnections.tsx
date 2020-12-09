@@ -118,7 +118,7 @@ class ActiveConnectionsComponent extends React.Component<
 
         return (
             <>
-                <StatusBar barStyle="dark-content" />
+                <StatusBar barStyle="light-content" animated={true} translucent={true} />
                 <SafeAreaView>
                     <ScrollView
                         contentInsetAdjustmentBehavior="automatic"

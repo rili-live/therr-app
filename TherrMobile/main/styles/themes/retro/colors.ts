@@ -1,6 +1,6 @@
 const colors = {
-    primary: '#1b4a69',
-    primary2: '#1f597d',
+    primary: '#1d6f79',
+    primary2: '#387a82',
     primary3: '#143b54',
 
     secondary: '#388254',
@@ -24,7 +24,10 @@ const colors = {
     borderLight: 'gray',
 
     map: {
-        momentsCircleFill: 'rgba(56,130,84,0.15)',
+        momentsCircleFill: 'rgba(56,130,84,0.2)',
+        momentsCircleFillActive: 'rgba(56,130,84,0.5)',
+        myMomentsCircleFill: 'rgba(31,89,125,0.2)',
+        myMomentsCircleFillActive: 'rgba(31,89,125,0.5)',
         userCircleFill: 'rgba(31,89,125,0.25)',
     },
 };

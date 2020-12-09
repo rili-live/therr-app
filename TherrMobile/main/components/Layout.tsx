@@ -18,6 +18,7 @@ import UsersActions from '../redux/actions/UsersActions';
 import { ILocationState } from '../types/redux/location';
 import HeaderMenuLeft from './HeaderMenuLeft';
 import translator from '../services/translator';
+import * as therrTheme from '../styles/themes';
 
 const Stack = createStackNavigator();
 
@@ -122,6 +123,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         // LocationServicesDialogBox.stopListener(); // Stop the "locationProviderStatusChange" listener
     }
 
+    getCurrentScreen = (navigation) => {
+        const navState = navigation.dangerouslyGetState();
+
+        return (
+            navState.routes[navState.routes.length - 1] &&
+            navState.routes[navState.routes.length - 1].name
+        );
+    };
+
     shouldShowTopRightMenu = () => {
         return UsersService.isAuthorized(
             {
@@ -133,34 +143,43 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     };
 
     render() {
-        const { logout, user } = this.props;
+        const { location, logout, updateGpsStatus, user } = this.props;
 
         return (
             <NavigationContainer theme={theme}>
                 <Stack.Navigator
-                    screenOptions={({ navigation }) => ({
-                        // animationEnabled: false,
-                        cardStyleInterpolator: forFade,
-                        headerLeft: () => (
-                            <HeaderMenuLeft
-                                navigation={navigation}
-                                isAuthenticated={user.isAuthenticated}
-                            />
-                        ),
-                        headerRight: () => (
-                            <HeaderMenuRight
-                                navigation={navigation}
-                                isVisible={this.shouldShowTopRightMenu()}
-                                logout={logout}
-                                user={user}
-                            />
-                        ),
-                        headerTitleStyle: {
-                            alignSelf: 'center',
-                            textAlign: 'center',
-                            flex: 1,
-                        },
-                    })}
+                    screenOptions={({ navigation }) => {
+                        const isHeaderTransparent = this.getCurrentScreen(navigation) === 'Map';
+
+                        return ({
+                            // animationEnabled: false,
+                            cardStyleInterpolator: forFade,
+                            headerLeft: () => (
+                                <HeaderMenuLeft
+                                    isHeaderTransparent={isHeaderTransparent}
+                                    navigation={navigation}
+                                    isAuthenticated={user.isAuthenticated}
+                                />
+                            ),
+                            headerRight: () => (
+                                <HeaderMenuRight
+                                    navigation={navigation}
+                                    isHeaderTransparent={isHeaderTransparent}
+                                    isVisible={this.shouldShowTopRightMenu()}
+                                    location={location}
+                                    logout={logout}
+                                    updateGpsStatus={updateGpsStatus}
+                                    user={user}
+                                />
+                            ),
+                            headerTitleStyle: {
+                                alignSelf: 'center',
+                                textAlign: 'center',
+                                flex: 1,
+                                color: isHeaderTransparent ? therrTheme.colors.primary3 : therrTheme.colors.textWhite,
+                            },
+                        });
+                    }}
                 >
                     {routes
                         .filter((route: any) => {

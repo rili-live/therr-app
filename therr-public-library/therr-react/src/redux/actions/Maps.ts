@@ -8,11 +8,26 @@ const Maps = {
             data: response.data,
         });
     }),
-    searchMoments: (query: any) => (dispatch: any) => MapsService.searchMoments(query).then((response: any) => {
+    updateCoordinates: (data: any) => (dispatch: any) => {
         dispatch({
-            type: MapActionTypes.GET_MOMENTS,
-            data: response.data,
+            type: MapActionTypes.UPDATE_COORDS,
+            data,
         });
+    },
+    searchMoments: (query: any) => (dispatch: any) => MapsService.searchMoments(query).then((response: any) => {
+        if (query.query === 'connections') {
+            dispatch({
+                type: MapActionTypes.GET_MOMENTS,
+                data: response.data,
+            });
+        }
+
+        if (query.query === 'me') {
+            dispatch({
+                type: MapActionTypes.GET_MY_MOMENTS,
+                data: response.data,
+            });
+        }
     }),
 };
 

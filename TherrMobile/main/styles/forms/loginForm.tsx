@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import * as therrTheme from '../themes';
 
 export default StyleSheet.create({
     loginContainer: {
@@ -12,9 +13,10 @@ export default StyleSheet.create({
         paddingTop: 16,
     },
     button: {
-        backgroundColor: '#1d5b69',
+        backgroundColor: therrTheme.colors.primary3,
     },
     submitButtonContainer: {
+        marginTop: 18,
         marginBottom: 20,
     },
 });

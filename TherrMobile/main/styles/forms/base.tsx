@@ -1,4 +1,4 @@
-import * as therrTheme from '../themes/ocean';
+import * as therrTheme from '../themes';
 
 const textInputStyle: any = {
     marginLeft: 10,

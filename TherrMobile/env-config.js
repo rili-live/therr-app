@@ -3,7 +3,7 @@ const apiMapsPort = 7773;
 const apiMessagesPort = 7772;
 const apiUsersPort = 7771;
 const websocketPort = 7743;
-const hostDev = '192.168.127.142'; // Must use computer's ip address for dev to connect socket.io
+const hostDev = '192.168.1.70'; // Must use computer's ip address for dev to connect socket.io
 const hostStage = 'stage.therr.app';
 const hostProd = 'therr.app';
 

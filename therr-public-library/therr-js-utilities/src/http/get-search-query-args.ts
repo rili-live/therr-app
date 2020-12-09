@@ -7,30 +7,36 @@ export interface IReqQuery {
   returning?: string;
   orderBy?: string;
   order?: string;
+  longitude?: number;
+  latitude?: number;
 }
 
-export default (reqQuery: IReqQuery, integerColumns: string[]): [any, string[] | undefined] => {
-    let returningArr;
+export default (reqQuery: IReqQuery, numberColumns: string[]): [any, string[] | undefined] => {
+    let returningArr: any[] = [];
     const {
-        filterBy,
+        filterBy = '',
         filterOperator = '=',
-        query,
+        query = '',
         itemsPerPage,
         pageNumber,
         returning,
         orderBy,
         order,
+        longitude,
+        latitude,
     } = reqQuery;
     const searchConditions = {
         filterBy,
         filterOperator,
-        query: integerColumns.includes(filterBy) ? (query && Number(query)) : query,
+        query: numberColumns.includes(filterBy) ? (query && Number(query)) : query,
         pagination: {
             itemsPerPage: itemsPerPage || 100,
             pageNumber: pageNumber || 1,
         },
         order: (order && order.toLowerCase()) || 'asc',
         orderBy,
+        longitude: Number(longitude),
+        latitude: Number(latitude),
     };
 
     if (returning) {

@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import * as therrTheme from '../themes/ocean';
+import * as therrTheme from '../themes';
 
 const messageContainerStyle: any = {
     display: 'flex',

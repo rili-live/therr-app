@@ -1,36 +1,68 @@
+import axios from 'axios';
+import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
 import { RequestHandler } from 'express';
-import { getSearchQueryArgs } from 'therr-js-utilities/http';
+import * as globalConfig from '../../../../global-config';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 
 // CREATE
 const createMoment = (req, res) => {
     const locale = req.headers['x-localecode'] || 'en-us';
+    const userId = req.headers['x-userid'];
 
     return Store.moments.createMoment({
         ...req.body,
         locale,
+        fromUserId: userId,
     })
         .then(([moments]) => res.status(201).send(moments))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
 
 // READ
-const searchMoments: RequestHandler = (req: any, res: any) => {
+const searchMoments: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
     const {
         filterBy,
         query,
         itemsPerPage,
+        longitude,
+        latitude,
         pageNumber,
     } = req.query;
-    const integerColumns = ['fromUserId', 'maxViews'];
+    const integerColumns = ['maxViews', 'longitude', 'latitude'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
-    const searchPromise = Store.moments.searchMoments(searchArgs[0], searchArgs[1]);
+    let fromUserIds;
+    if (query === 'me') {
+        fromUserIds = [userId];
+    } else if (query === 'connections') {
+        let queryString = getSearchQueryString({
+            filterBy: 'acceptingUserId',
+            query: userId,
+            itemsPerPage: 50,
+            pageNumber: 1,
+            orderBy: 'interactionCount',
+            order: 'desc',
+        });
+        queryString = `${queryString}&shouldCheckReverse=true`;
+        const connectionsResponse: any = await axios({
+            method: 'get',
+            url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/connections${queryString}`,
+            headers: {
+                authorization: req.headers.authorization,
+                'x-localecode': req.headers['x-localecode'] || 'en-us',
+                'x-userid': userId,
+            },
+        });
+        fromUserIds = connectionsResponse.data.results;
+    }
+    const searchPromise = Store.moments.searchMoments(searchArgs[0], searchArgs[1], fromUserIds);
     const countPromise = Store.moments.countRecords({
         filterBy,
         query,
-    });
+        longitude,
+        latitude,
+    }, fromUserIds);
 
     return Promise.all([searchPromise, countPromise]).then(([results, countResult]) => {
         const response = {

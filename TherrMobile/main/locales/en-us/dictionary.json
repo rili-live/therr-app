@@ -47,7 +47,7 @@
         "locationMap": "Location Map"
       }
     },
-    "momentsOverlay": {
+    "editMomentOverlay": {
       "headerTitle": "Create a Moment",
       "formHeaderContent": "Content"
     },
@@ -160,14 +160,18 @@
     },
     "notifications": {
       "headerTitle": "Notifications",
-      "pageTitle": "Notifications"
+      "pageTitle": "Notifications",
+      "noNotifications": "You have no notifications at this time"
     },
     "login": {
       "headerTitle": "Login",
       "pageTitle": "Login"
     },
     "map": {
-      "headerTitle": "Map"
+      "headerTitle": "Map",
+      "momentAlerts": {
+        "walkCloser": "Walk closer to activate this moment"
+      }
     },
     "pageNotFound": {
       "pageTitle": "Page Not Found"
