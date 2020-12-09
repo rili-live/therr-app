@@ -29,7 +29,7 @@ module.exports = {
         baseMapsServiceRoute: `https://maps-service.${hostStage}/v1`,
         baseMessagesServiceRoute: `https://messages-service.${hostStage}/v1`,
         baseUsersServiceRoute: `https://users-service.${hostStage}/v1`,
-        baseSocketUrl: `https://${hostStage}`,
+        baseSocketUrl: `https://websocket-service.${hostStage}`,
         googleAnalyticsKey: '',
         host: hostStage,
         socket: {
@@ -44,7 +44,7 @@ module.exports = {
         baseMapsServiceRoute: `https://maps-service.${hostProd}/v1`,
         baseMessagesServiceRoute: `https://messages-service.${hostProd}/v1`,
         baseUsersServiceRoute: `https://users-service.${hostProd}/v1`,
-        baseSocketUrl: `https://${hostProd}`,
+        baseSocketUrl: `https://websocket-service.${hostProd}`,
         googleAnalyticsKey: '',
         host: hostProd,
         socket: {
