@@ -55,6 +55,7 @@ export interface IMapProps extends IStoreProps {
 
 interface IMapState {
     activeMoment: any;
+    activeMomentDetails: any;
     areButtonsVisible: boolean;
     areLayersVisible: boolean;
     isEditMomentVisible: boolean;
@@ -97,6 +98,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         this.state = {
             activeMoment: {},
+            activeMomentDetails: {},
             areButtonsVisible: true,
             areLayersVisible: false,
             isEditMomentVisible: false,
@@ -240,6 +242,17 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     }
 
+    getMomentDetails = (moment) => new Promise((resolve) => {
+        const { user } = this.props;
+        const details: any = {};
+
+        if (moment.fromUserId === user.details.id) {
+            details.userDetails = user.details;
+        }
+
+        return resolve(details);
+    });
+
     handleAddMoment = () => {
         this.setState({
             areLayersVisible: false,
@@ -303,19 +316,23 @@ class Map extends React.Component<IMapProps, IMapState> {
             if (!isProximitySatisfied && selectedMoment.fromUserId !== user.details.id) {
                 this.showMomentAlert();
             } else {
-                console.log(selectedMoment);
-                this.setState({
-                    activeMoment: selectedMoment,
-                });
-                setTimeout(() => {
-                    this.setState({
-                        isViewMomentVisible: true,
+                this.getMomentDetails(selectedMoment)
+                    .then((details) => {
+                        this.setState({
+                            activeMoment: selectedMoment,
+                            activeMomentDetails: details,
+                            isViewMomentVisible: true,
+                        });
+                    })
+                    .catch(() => {
+                        // TODO: Add error handling
+                        console.log('Failed to get moment details!');
                     });
-                }, 50);
             }
         } else {
             this.setState({
                 activeMoment: {},
+                activeMomentDetails: {},
             });
         }
     };
@@ -410,6 +427,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     render() {
         const {
             activeMoment,
+            activeMomentDetails,
             areButtonsVisible,
             areLayersVisible,
             circleCenter,
@@ -650,6 +668,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 closeOverlay={this.cancelViewMoment}
                                 translate={this.translate}
                                 moment={activeMoment}
+                                momentDetails={activeMomentDetails}
                             />
                         </Overlay>
                         <Overlay

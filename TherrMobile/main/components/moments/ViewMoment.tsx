@@ -5,11 +5,14 @@ import { Button, Image } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { IUserState } from 'therr-react/types';
-import { editMomentModal } from '../../styles/modal';
-import { editMomentForm as editMomentFormStyles } from '../../styles/forms';
+import { viewMomentModal } from '../../styles/modal';
 import { bindActionCreators } from 'redux';
 
 export const DEFAULT_RADIUS = 10;
+
+interface IMomentDetails {
+    userDetails?: any;
+}
 
 interface IViewMomentDispatchProps {}
 
@@ -21,6 +24,7 @@ interface IStoreProps extends IViewMomentDispatchProps {
 export interface IViewMomentProps extends IStoreProps {
     closeOverlay: any;
     moment: any;
+    momentDetails: IMomentDetails;
     translate: any;
 }
 
@@ -42,17 +46,18 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
     }
 
     render() {
-        const { closeOverlay, moment } = this.props;
+        const { closeOverlay, moment, momentDetails } = this.props;
 
         return (
             <>
-                <View style={editMomentModal.header}>
+                <View style={viewMomentModal.header}>
                     <Button
                         icon={
                             <Icon
                                 name="close"
                                 size={30}
                                 color="black"
+                                style={viewMomentModal.headerTitleIcon}
                             />
                         }
                         onPress={closeOverlay}
@@ -62,16 +67,19 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
                 <ScrollView
                     contentInsetAdjustmentBehavior="automatic"
                     ref={(component) => (this.scrollViewRef = component)}
-                    style={editMomentModal.body}
+                    style={viewMomentModal.body}
                 >
-                    <View style={editMomentFormStyles.momentContainer}>
+                    <View style={viewMomentModal.momentContainer}>
                         <Image
                             source={{ uri: `https://robohash.org/${moment.fromUserId}?size=200x200` }}
-                            style={{ width: 200, height: 200 }}
+                            style={viewMomentModal.momentUserAvatarImg}
                             PlaceholderContent={<ActivityIndicator />}
                         />
-                        <Text>{moment.notificationMsg}</Text>
-                        <Text>{moment.message}</Text>
+                        {
+                            momentDetails.userDetails &&
+                            <Text style={viewMomentModal.momentUserName}>{`${momentDetails.userDetails.firstName} ${momentDetails.userDetails.lastName}`}</Text>
+                        }
+                        <Text style={viewMomentModal.momentMessage}>{moment.message}</Text>
                     </View>
                 </ScrollView>
             </>
