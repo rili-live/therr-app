@@ -31,6 +31,10 @@ local.properties
 *.iml
 *.hprof
 
+# Android - App Center
+#
+android/app/src/main/assets/appcenter-config.json
+
 # Visual Studio Code
 #
 .vscode/
