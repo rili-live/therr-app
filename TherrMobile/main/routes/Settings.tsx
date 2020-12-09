@@ -7,6 +7,7 @@ import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import styles from '../styles';
+import * as therrTheme from '../styles/themes';
 import formStyles, { settingsForm as settingsFormStyles } from '../styles/forms';
 import translator from '../services/translator';
 import UsersActions from '../redux/actions/UsersActions';
@@ -167,7 +168,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
 
         return (
             <>
-                <StatusBar barStyle="dark-content" />
+                <StatusBar barStyle="light-content" animated={true} translucent={true} />
                 <SafeAreaView>
                     <ScrollView
                         contentInsetAdjustmentBehavior="automatic"
@@ -198,6 +199,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     onChangeText={(text) =>
                                         this.onInputChange('userName', text)
                                     }
+                                    selectionColor={therrTheme.colors.ternary}
                                 />
                                 <Input
                                     inputStyle={formStyles.input}
@@ -208,6 +210,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     onChangeText={(text) =>
                                         this.onInputChange('firstName', text)
                                     }
+                                    selectionColor={therrTheme.colors.ternary}
                                 />
                                 <Input
                                     inputStyle={formStyles.input}
@@ -218,6 +221,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     onChangeText={(text) =>
                                         this.onInputChange('lastName', text)
                                     }
+                                    selectionColor={therrTheme.colors.ternary}
                                 />
                                 <Input
                                     disabled
@@ -229,6 +233,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     onChangeText={(text) =>
                                         this.onInputChange('email', text)
                                     }
+                                    selectionColor={therrTheme.colors.ternary}
                                 />
                             </View>
                             <View style={styles.sectionContainer}>
@@ -247,6 +252,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         this.onInputChange('oldPassword', text)
                                     }
                                     secureTextEntry={true}
+                                    selectionColor={therrTheme.colors.ternary}
                                 />
                                 <Input
                                     inputStyle={formStyles.input}
@@ -258,6 +264,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         this.onInputChange('password', text)
                                     }
                                     secureTextEntry={true}
+                                    selectionColor={therrTheme.colors.ternary}
                                 />
                                 <Input
                                     inputStyle={formStyles.input}
@@ -269,9 +276,11 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         this.onInputChange('repeatPassword', text)
                                     }
                                     secureTextEntry={true}
+                                    selectionColor={therrTheme.colors.ternary}
                                 />
                                 <View style={settingsFormStyles.submitButtonContainer}>
                                     <Button
+                                        buttonStyle={formStyles.button}
                                         title={this.translate(
                                             'forms.settings.buttons.submit'
                                         )}

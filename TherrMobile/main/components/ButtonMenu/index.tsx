@@ -1,11 +1,20 @@
 import React from 'react';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
 import { View } from 'react-native';
 import 'react-native-gesture-handler';
+import LocationActions from '../../redux/actions/LocationActions';
+import { ILocationState } from '../../types/redux/location';
 import { buttonMenu } from '../../styles/navigation';
 
-interface IButtonMenuDispatchProps {}
 
-interface IStoreProps extends IButtonMenuDispatchProps {}
+interface IButtonMenuDispatchProps {
+    updateGpsStatus: Function;
+}
+
+interface IStoreProps extends IButtonMenuDispatchProps {
+    location: ILocationState;
+}
 
 // Regular component props
 export interface IButtonMenuProps extends IStoreProps {
@@ -16,7 +25,19 @@ export interface IButtonMenuProps extends IStoreProps {
 
 interface IButtonMenuState {}
 
-class ButtonMenu extends React.Component<IButtonMenuProps, IButtonMenuState> {
+export const mapStateToProps = (state: any) => ({
+    location: state.location,
+});
+
+export const mapDispatchToProps = (dispatch: any) =>
+    bindActionCreators(
+        {
+            updateGpsStatus: LocationActions.updateGpsStatus,
+        },
+        dispatch
+    );
+
+export class ButtonMenu extends React.Component<IButtonMenuProps, IButtonMenuState> {
     constructor(props) {
         super(props);
 
@@ -43,4 +64,4 @@ class ButtonMenu extends React.Component<IButtonMenuProps, IButtonMenuState> {
     }
 }
 
-export default ButtonMenu;
+export default connect(mapStateToProps, mapDispatchToProps)(ButtonMenu);

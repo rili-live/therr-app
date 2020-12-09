@@ -18,6 +18,7 @@ interface IStoreProps extends IHeaderMenuLeftDispatchProps {}
 // Regular component props
 export interface IHeaderMenuLeftProps extends IStoreProps {
     isAuthenticated: boolean;
+    isHeaderTransparent: boolean;
     navigation: any;
 }
 
@@ -41,6 +42,8 @@ class HeaderMenuLeft extends React.Component<
     };
 
     render() {
+        const { isHeaderTransparent } = this.props;
+
         return (
             <Button
                 type="clear"
@@ -48,7 +51,7 @@ class HeaderMenuLeft extends React.Component<
                     <LogoIcon
                         name="therr-logo"
                         size={28}
-                        style={styles.logoIcon}
+                        style={isHeaderTransparent ? styles.logoIconDark : styles.logoIcon}
                         onPress={this.handlePress}
                     />
                 }

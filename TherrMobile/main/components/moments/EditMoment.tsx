@@ -105,6 +105,7 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                     this.setState({
                         successMsg: translate('forms.editMoment.backendSuccessMessage'),
                     });
+                    setTimeout(this.props.closeOverlay, 750);
                 })
                 .catch((error: any) => {
                     console.log(error);
@@ -164,7 +165,7 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                 <View style={editMomentModal.header}>
                     <View style={editMomentModal.headerTitle}>
                         <Text style={editMomentModal.headerTitleText}>
-                            {translate('components.momentsOverlay.headerTitle')}
+                            {translate('components.editMomentOverlay.headerTitle')}
                         </Text>
                     </View>
                     <Button
@@ -224,6 +225,16 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                             isVisible={!!(errorMsg || successMsg)}
                             message={successMsg || errorMsg}
                             type={errorMsg ? 'error' : 'success'}
+                        />
+                        {/* <Input
+                            inputStyle={editMomentFormStyles.inputAlt}
+                            placeholder={translate(
+                                'forms.editMoment.labels.minProximity'
+                            )}
+                            value={inputs.minProximity}
+                            onChangeText={(text) =>
+                                this.onInputChange('minProximity', text)
+                            }
                         />
                         {/* <Input
                             inputStyle={editMomentFormStyles.inputAlt}

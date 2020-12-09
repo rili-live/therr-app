@@ -1,6 +1,7 @@
 import {
     body,
     oneOf,
+    query,
 } from 'express-validator/check'; // eslint-disable-line import/extensions
 
 export const createMomentValidation = [
@@ -13,6 +14,7 @@ export const createMomentValidation = [
     body('mentionsIds').isString().optional(),
     body('hashTags').isString().optional(),
     body('maxViews').isNumeric().optional(),
+    body('minProximity').isDecimal().optional(),
     body('latitude').isDecimal().exists(),
     body('longitude').isDecimal().exists(),
     oneOf([
@@ -40,6 +42,6 @@ export const createMomentValidation = [
 ];
 
 export const searchMomentsValidation = [
-    body('longitude').exists(),
-    body('latitude').exists(),
+    query('longitude').exists(),
+    query('latitude').exists(),
 ];

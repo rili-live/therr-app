@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import * as therrTheme from '../themes/ocean';
+import * as therrTheme from '../themes';
 
 const containerBackgroundColor = therrTheme.colors.textWhite;
 // const brandingYellow = '#ebc300';
@@ -21,12 +21,17 @@ export default StyleSheet.create({
     },
     buttonsTitleActive: {
         backgroundColor: 'transparent',
-        color: therrTheme.colors.secondary,
+        color: therrTheme.colors.beemo3,
         paddingRight: 10,
         paddingLeft: 10,
     },
     iconStyle: {
         color: therrTheme.colors.secondary,
+        // position: 'absolute',
+        // left: 20
+    },
+    iconStyleActive: {
+        color: therrTheme.colors.beemo3,
         // position: 'absolute',
         // left: 20
     },
@@ -46,7 +51,7 @@ export default StyleSheet.create({
         paddingBottom: 4,
         display: 'flex',
         flexDirection: 'row',
-        color: therrTheme.colors.secondary,
+        color: therrTheme.colors.beemo3,
         borderBottomWidth: 2,
         borderBottomColor: '#4950571c',
     },
@@ -58,12 +63,12 @@ export default StyleSheet.create({
         marginLeft: 20,
     },
     headerTitleText: {
-        color: 'black',
+        color: therrTheme.colors.primary3,
         fontSize: 20,
         letterSpacing: 3,
     },
     headerTitleIcon: {
-        color: 'black',
+        color: therrTheme.colors.primary3,
         marginRight: 10,
     },
     body: {
@@ -81,5 +86,8 @@ export default StyleSheet.create({
     },
     toggleIcon: {
         color: therrTheme.colors.textWhite,
+    },
+    toggleIconDark: {
+        color: therrTheme.colors.primary3,
     },
 });

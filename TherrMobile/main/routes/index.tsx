@@ -27,6 +27,7 @@ const routes: RouteConfig<
         component: Login,
         options: {
             title: 'Login',
+            headerTransparent: true,
         },
     },
     {
@@ -82,6 +83,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [],
             },
+            headerTransparent: true,
         }),
     },
     {
