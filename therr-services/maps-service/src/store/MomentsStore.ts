@@ -124,7 +124,7 @@ export default class MomentsStore {
 
         const queryString = knex.insert(modifiedParams)
             .into(MOMENTS_TABLE_NAME)
-            .returning(['id'])
+            .returning('*')
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);

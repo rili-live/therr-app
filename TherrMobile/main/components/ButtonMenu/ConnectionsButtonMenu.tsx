@@ -1,9 +1,10 @@
 import React from 'react';
+import { connect } from 'react-redux';
 import { View } from 'react-native';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import { ButtonMenu } from './index';
+import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './index';
 import { buttonMenu } from '../../styles/navigation';
 
 class ConnectionsButtonMenu extends ButtonMenu {
@@ -81,4 +82,4 @@ class ConnectionsButtonMenu extends ButtonMenu {
     }
 }
 
-export default ConnectionsButtonMenu;
+export default connect(mapStateToProps, mapDispatchToProps)(ConnectionsButtonMenu);
