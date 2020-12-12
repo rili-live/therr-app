@@ -5,6 +5,9 @@ master: [![Build Status](https://travis-ci.org/rili-live/therr-app.svg?branch=ma
 master: [![Build status](https://build.appcenter.ms/v0.1/apps/0f4a527c-5807-47dc-bea5-ff66fbdab26c/branches/master/badge)](https://appcenter.ms)
 #
 
+## Description
+A social network that connects people by proximity through the distance of time
+
 ## Documentation
 Documentation is mantained within the repo to align with a mentality of inline documentation,
 knowledge share, self documenting code, and consolidation of information/configrations.
