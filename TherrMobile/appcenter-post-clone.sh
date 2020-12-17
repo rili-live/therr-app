@@ -3,18 +3,17 @@
 # Install parent node_modules one directory above the current directory
 # npm install --prefix ../ ../
 
-pushd ../
+cd ../
+ls
 npm install
-popd 
 
-pushd ../therr-public-libary/therr-styles
+cd therr-public-libary/therr-styles
 npm install
-popd
 
-pushd ../therr-public-libary/therr-js-utilities
+cd ../../therr-public-libary/therr-js-utilities
 npm install
-popd
 
-pushd ../therr-public-libary/therr-react
+cd ../../therr-public-libary/therr-react
 npm install
-popd
+
+cd ../../TherrMobile
