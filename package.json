@@ -1,5 +1,5 @@
 {
-  "name": "",
+  "name": "therr-app",
   "version": "0.0.1",
   "description": "The main Therr app root",
   "main": "index.js",
