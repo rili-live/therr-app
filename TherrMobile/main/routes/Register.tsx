@@ -4,26 +4,25 @@ import { SafeAreaView, ScrollView, StatusBar } from 'react-native';
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';
 import styles from '../styles';
-import LoginForm from '../components/LoginForm';
+import RegisterForm from '../components/RegisterForm';
 import { bindActionCreators } from 'redux';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
 
-interface ILoginDispatchProps {
-    login: Function;
+interface IRegisterDispatchProps {
+    register: Function;
 }
 
-interface IStoreProps extends ILoginDispatchProps {
+interface IStoreProps extends IRegisterDispatchProps {
     user: IUserState;
 }
 
 // Regular component props
-export interface ILoginProps extends IStoreProps {
+export interface IRegisterProps extends IStoreProps {
     navigation: any;
-    route: any;
 }
 
-interface ILoginState {
+interface IRegisterState {
     isAuthenticating: boolean;
 }
 
@@ -34,12 +33,12 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
-            login: UsersActions.login,
+            register: UsersActions.register,
         },
         dispatch
     );
 
-class LoginComponent extends React.Component<ILoginProps, ILoginState> {
+class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> {
     private translate;
 
     constructor(props) {
@@ -51,20 +50,23 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
 
     componentDidMount() {
         this.props.navigation.setOptions({
-            title: this.translate('pages.login.headerTitle'),
+            title: this.translate('pages.register.headerTitle'),
+        });
+    }
+
+    onSuccess = () => {
+        this.props.navigation.navigate('Login', {
+            userMessage: this.translate('pages.login.userAlerts.registerSuccess'),
         });
     }
 
     render() {
-        const { route } = this.props;
-        const userMessage = route.params && route.params.userMessage;
-
         return (
             <>
                 <StatusBar barStyle="light-content" animated={true} translucent={true} />
                 <SafeAreaView>
                     <ScrollView style={styles.bodyFlex} contentContainerStyle={styles.bodyScroll}>
-                        <LoginForm login={this.props.login} navigation={this.props.navigation} userMessage={userMessage} />
+                        <RegisterForm register={this.props.register} onSuccess={this.onSuccess}/>
                     </ScrollView>
                 </SafeAreaView>
             </>
@@ -72,4 +74,4 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(LoginComponent);
+export default connect(mapStateToProps, mapDispatchToProps)(RegisterComponent);

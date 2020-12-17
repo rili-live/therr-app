@@ -32,6 +32,18 @@ export default StyleSheet.create({
         backgroundColor: therrTheme.colors.primary2,
         color: therrTheme.colors.textWhite,
     },
+    bodyFlex: {
+        marginTop: 80,
+        marginBottom: 0,
+        display: 'flex',
+    },
+    bodyScroll: {
+        backgroundColor: therrTheme.colors.primary2,
+        color: therrTheme.colors.textWhite,
+        justifyContent: 'center',
+        display: 'flex',
+        minHeight: '75%',
+    },
     logoIcon: {
         color: therrTheme.colors.textWhite,
         marginLeft: 2,

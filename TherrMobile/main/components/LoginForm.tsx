@@ -10,6 +10,8 @@ import Alert from '../components/Alert';
 interface ILoginFormProps {
     alert?: string;
     login: Function;
+    navigation: any;
+    userMessage?: string;
     title?: string;
 }
 
@@ -108,7 +110,7 @@ export class LoginFormComponent extends React.Component<
 
     public render(): JSX.Element | null {
         const { prevLoginError } = this.state;
-        // const { alert, title } = this.props;
+        const { navigation, userMessage } = this.props;
 
         return (
             <View style={styles.loginContainer}>
@@ -116,9 +118,9 @@ export class LoginFormComponent extends React.Component<
                     containerStyles={{
                         marginBottom: 24,
                     }}
-                    isVisible={!!prevLoginError}
-                    message={prevLoginError}
-                    type={'error'}
+                    isVisible={!!userMessage}
+                    message={userMessage}
+                    type={'success'}
                 />
                 <Input
                     inputStyle={formStyles.input}
@@ -151,6 +153,24 @@ export class LoginFormComponent extends React.Component<
                         )}
                         onPress={this.onSubmit}
                         disabled={this.isLoginFormDisabled()}
+                    />
+                </View>
+                <Alert
+                    containerStyles={{
+                        marginBottom: 24,
+                    }}
+                    isVisible={!!prevLoginError}
+                    message={prevLoginError}
+                    type={'error'}
+                />
+                <View style={styles.moreLinksContainer}>
+                    <Button
+                        type='clear'
+                        titleStyle={styles.buttonLink}
+                        title={this.translate(
+                            'forms.loginForm.buttons.signUp'
+                        )}
+                        onPress={() => navigation.navigate('Register')}
                     />
                 </View>
             </View>

@@ -9,6 +9,7 @@ import Map from './Map';
 import ActiveConnections from './ActiveConnections';
 import Contacts from './Contacts';
 import Notifications from './Notifications';
+import Register from './Register';
 import Settings from './Settings';
 
 export interface ExtendedRouteOptions extends StackNavigationOptions {
@@ -18,7 +19,7 @@ export interface ExtendedRouteOptions extends StackNavigationOptions {
 const routes: RouteConfig<
     Record<string, object>,
     any,
-    StackNavigationState,
+    StackNavigationState<any>,
     ExtendedRouteOptions,
     StackNavigationEventMap
 >[] = [
@@ -96,6 +97,14 @@ const routes: RouteConfig<
                 levels: [],
             },
         }),
+    },
+    {
+        name: 'Register',
+        component: Register,
+        options: {
+            title: 'Create Account',
+            headerTransparent: true,
+        },
     },
     {
         name: 'Settings',

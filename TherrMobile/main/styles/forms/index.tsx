@@ -14,6 +14,21 @@ export default StyleSheet.create({
         ...inputStyle,
         color: therrTheme.colors.textBlack,
     },
+    phoneInput: {
+        ...inputStyle,
+        color: therrTheme.colors.textWhite,
+        flex: 1,
+        padding: 0,
+        paddingBottom: 20,
+        marginRight: 10,
+    },
+    phoneInputText: {
+        color: therrTheme.colors.textWhite,
+        fontSize: 19,
+        padding: 10,
+        borderBottomColor: '#78909b',
+        borderBottomWidth: 1,
+    },
     textInput: {
         ...textInputStyle,
         color: therrTheme.colors.textWhite,

@@ -68,7 +68,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
                 });
             } else {
                 this.setState({
-                    errorMessage: 'Oops, something went wrong',
+                    errorMessage: this.translate('pages.register.registerError'),
                 });
             }
         });
