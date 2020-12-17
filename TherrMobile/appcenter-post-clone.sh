@@ -3,17 +3,33 @@
 # Install parent node_modules one directory above the current directory
 # npm install --prefix ../ ../
 
-cd ../
-ls
+echo "----------------------"
+echo "Installing root level dependencies"
+echo "----------------------"
+pushd ../
 npm install
+popd
 
-cd therr-public-libary/therr-styles
+echo "----------------------"
+echo "Installing therr library styles"
+echo "----------------------"
+pushd ../therr-public-library/therr-styles
 npm install
+npm run build
+popd
 
-cd ../../therr-public-libary/therr-js-utilities
+echo "----------------------"
+echo "Installing therr js library utilities"
+echo "----------------------"
+pushd ../therr-public-library/therr-js-utilities
 npm install
+npm run build
+popd
 
-cd ../../therr-public-libary/therr-react
+echo "----------------------"
+echo "Installing therr library react utilities"
+echo "----------------------"
+pushd ../therr-public-library/therr-react
 npm install
-
-cd ../../TherrMobile
+npm run build
+popd
