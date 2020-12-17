@@ -1,3 +1,6 @@
 #!/usr/bin/env bash
 
-npm install
+ls
+
+# Install parent node_modules one directory above the current directory
+npm install --prefix ../ ../
