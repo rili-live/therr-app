@@ -57,24 +57,6 @@
         "reject": "Reject"
       }
     },
-    "registerForm": {
-      "buttons": {
-        "backToLogin": "Back to Login",
-        "register": "Register"
-      },
-      "labels": {
-        "email": "E-mail",
-        "firstName": "First Name",
-        "lastName": "Last Name",
-        "mobilePhone": "Mobile Phone #",
-        "password": "Password",
-        "repeatPassword": "Repeat Password",
-        "userName": "Username"
-      },
-      "validationErrors": {
-        "phoneNumber": "Invalid phone number"
-      }
-    },
     "userMenu": {
       "buttons": {
         "viewProfile": "View Profile",
@@ -91,7 +73,7 @@
     "loginForm": {
       "buttons": {
         "login": "Login",
-        "signUp": "Sign Up"
+        "signUp": "Create an Account?"
       },
       "defaultTitle": "Login",
       "labels": {
@@ -113,6 +95,30 @@
       },
       "backendSuccessMessage": "Your moment was successfully saved!",
       "backendErrorMessage": "Connection error. Please try again later."
+    },
+    "registerForm": {
+      "buttons": {
+        "backToLogin": "Back to Login",
+        "register": "Create"
+      },
+      "defaultTitle": "Create an Account",
+      "errorMessages": {
+        "invalidPhoneNumber": "Phone number is invalid",
+        "repeatPassword": "Passwords do not match"
+      },
+      "labels": {
+        "email": "E-mail",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "mobilePhone": "Mobile Phone #",
+        "password": "Password",
+        "repeatPassword": "Repeat Password",
+        "userName": "Username"
+      },
+      "backendErrorMessage": "Connection error. Please try again later.",
+      "validationErrors": {
+        "phoneNumber": "Invalid phone number"
+      }
     },
     "settings": {
       "buttons": {
@@ -165,7 +171,10 @@
     },
     "login": {
       "headerTitle": "Login",
-      "pageTitle": "Login"
+      "pageTitle": "Login",
+      "userAlerts": {
+        "registerSuccess": "Registration success! Check your e-mail for verification."
+      }
     },
     "map": {
       "headerTitle": "Map",
@@ -177,7 +186,8 @@
       "pageTitle": "Page Not Found"
     },
     "register": {
-      "pageTitle": "Register"
+      "headerTitle": "Create Account",
+      "pageTitle": "Create Account"
     },
     "settings": {
       "headerTitle": "Settings",
