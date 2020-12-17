@@ -150,7 +150,8 @@
     },
     "register": {
       "pageTitle": "Register",
-      "registerSuccess": "Registration success! Check your e-mail for verification."
+      "registerSuccess": "Registration success! Check your e-mail for verification.",
+      "registerError": "Oops, something went wrong"
     },
     "template": {
       "pageTitle": "Template",
