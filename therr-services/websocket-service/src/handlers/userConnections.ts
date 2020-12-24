@@ -134,7 +134,8 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
 const loadActiveConnections = (socket: socketio.Socket, data: any) => {
     const users = data.connections
         .map((connection) => {
-            const contextUserId = connection.acceptingUserId === data.userId ? connection.requestingUserId : connection.acceptingUserId;
+            const contextUserId = connection.users[0].id === data.userId ? connection.users[1].id : connection.users[0].id;
+
             return connection.users.find((user) => user.id === contextUserId);
         });
 

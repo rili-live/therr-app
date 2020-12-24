@@ -1,11 +1,10 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { ListItem } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import styles from '../styles';
+import ConnectionItem from './ConnectionItem';
 
 interface IActiveConnectionsProps {
-    getConnectionDetails: any;
     getConnectionSubtitle: any;
     onConnectionPress: any;
     translate: any;
@@ -14,12 +13,10 @@ interface IActiveConnectionsProps {
 }
 
 const ActiveConnections: React.FunctionComponent<IActiveConnectionsProps> = ({
-    getConnectionDetails,
     getConnectionSubtitle,
     onConnectionPress,
     translate,
     userConnections,
-    user,
 }) => {
     return (
         <View style={styles.sectionContainer}>
@@ -29,22 +26,11 @@ const ActiveConnections: React.FunctionComponent<IActiveConnectionsProps> = ({
             {userConnections.activeConnections &&
             userConnections.activeConnections.length ? (
                     userConnections.activeConnections.map((connection) => (
-                        <ListItem
+                        <ConnectionItem
                             key={connection.id}
-                            leftAvatar={{
-                                source: {
-                                    uri: `https://robohash.org/${
-                                        connection.acceptingUserId ===
-                                        user.details && user.details.id
-                                            ? connection.requestingUserId
-                                            : connection.acceptingUserId
-                                    }?size=100x100`,
-                                },
-                            }}
-                            onPress={() => onConnectionPress(connection)}
-                            title={getConnectionDetails(connection).userName}
-                            subtitle={getConnectionSubtitle(connection)}
-                            bottomDivider
+                            connectionDetails={connection}
+                            getConnectionSubtitle={getConnectionSubtitle}
+                            onConnectionPress={onConnectionPress}
                         />
                     ))
                 ) : (
