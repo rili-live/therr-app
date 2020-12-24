@@ -29,7 +29,7 @@ export default (socket, userDetails, actionType, shouldReturnActiveConnections =
     }) => {
         const users = searchResults && searchResults.results
             .map((connection) => {
-                const contextUserId = connection.acceptingUserId === userDetails.id ? connection.requestingUserId : connection.acceptingUserId;
+                const contextUserId = connection.users[0].id === userDetails.id ? connection.users[1].id : connection.users[0].id;
                 return connection.users.find((user) => user.id === contextUserId);
             });
 

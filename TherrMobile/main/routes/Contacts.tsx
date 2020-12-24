@@ -93,20 +93,17 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         );
     };
 
-    getConnectionSubtitle = (connection) => {
-        const connectionDetails = this.getConnectionDetails(connection);
+    getConnectionSubtitle = (connectionDetails) => {
         return `${connectionDetails.firstName || ''} ${
             connectionDetails.lastName || ''
         }`;
     };
 
-    onConnectionPress = (connection) => {
+    onConnectionPress = (connectionDetails) => {
         const { navigation } = this.props;
 
-        const details = this.getConnectionDetails(connection);
-
         navigation.navigate('DirectMessage', {
-            connectionDetails: details,
+            connectionDetails,
         });
     };
 
