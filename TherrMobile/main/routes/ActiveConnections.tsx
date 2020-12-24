@@ -97,19 +97,16 @@ class ActiveConnectionsComponent extends React.Component<
     };
 
     getConnectionSubtitle = (connection) => {
-        const connectionDetails = this.getConnectionDetails(connection);
-        return `${connectionDetails.firstName || ''} ${
-            connectionDetails.lastName || ''
+        return `${connection.firstName || ''} ${
+            connection.lastName || ''
         }`;
     };
 
     onConnectionPress = (connection) => {
         const { navigation } = this.props;
 
-        const details = this.getConnectionDetails(connection);
-
         navigation.navigate('DirectMessage', {
-            connectionDetails: details,
+            connectionDetails: connection,
         });
     };
 
@@ -126,10 +123,7 @@ class ActiveConnectionsComponent extends React.Component<
                     >
                         <View style={styles.body}>
                             <ActiveConnections
-                                getConnectionDetails={this.getConnectionDetails}
-                                getConnectionSubtitle={
-                                    this.getConnectionSubtitle
-                                }
+                                getConnectionSubtitle={this.getConnectionSubtitle}
                                 onConnectionPress={this.onConnectionPress}
                                 translate={this.translate}
                                 userConnections={userConnections}

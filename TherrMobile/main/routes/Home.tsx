@@ -1,6 +1,5 @@
 import React from 'react';
 import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
-import { ListItem } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -11,6 +10,7 @@ import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import styles from '../styles';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
+import ConnectionItem from '../components/ConnectionItem';
 
 interface IHomeDispatchProps {
     logout: Function;
@@ -96,20 +96,17 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         );
     };
 
-    getConnectionSubtitle = (connection) => {
-        const connectionDetails = this.getConnectionDetails(connection);
+    getConnectionSubtitle = (connectionDetails) => {
         return `${connectionDetails.firstName || ''} ${
             connectionDetails.lastName || ''
         }`;
     };
 
-    onConnectionPress = (connection) => {
+    onConnectionPress = (connectionDetails) => {
         const { navigation } = this.props;
 
-        const details = this.getConnectionDetails(connection);
-
         navigation.navigate('DirectMessage', {
-            connectionDetails: details,
+            connectionDetails,
         });
     };
 
@@ -136,7 +133,6 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                 </Text>
                             </View>
                             <ActiveConnections
-                                getConnectionDetails={this.getConnectionDetails}
                                 getConnectionSubtitle={
                                     this.getConnectionSubtitle
                                 }
@@ -152,36 +148,18 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                 {userConnections.connections &&
                                 userConnections.connections.length ? (
                                         userConnections.connections.map(
-                                            (connection) => (
-                                                <ListItem
-                                                    key={connection.id}
-                                                    leftAvatar={{
-                                                        source: {
-                                                            uri: `https://robohash.org/${
-                                                                connection.acceptingUserId ===
-                                                                user.details &&
-                                                            user.details.id
-                                                                    ? connection.requestingUserId
-                                                                    : connection.acceptingUserId
-                                                            }?size=100x100`,
-                                                        },
-                                                    }}
-                                                    onPress={() =>
-                                                        this.onConnectionPress(
-                                                            connection
-                                                        )
-                                                    }
-                                                    title={
-                                                        this.getConnectionDetails(
-                                                            connection
-                                                        ).userName
-                                                    }
-                                                    subtitle={this.getConnectionSubtitle(
-                                                        connection
-                                                    )}
-                                                    bottomDivider
-                                                />
-                                            )
+                                            (connection) => {
+                                                const connectionDetails = this.getConnectionDetails(connection);
+
+                                                return (
+                                                    <ConnectionItem
+                                                        key={connectionDetails.id}
+                                                        connectionDetails={connectionDetails}
+                                                        getConnectionSubtitle={this.getConnectionSubtitle}
+                                                        onConnectionPress={this.onConnectionPress}
+                                                    />
+                                                );
+                                            }
                                         )
                                     ) : (
                                         <Text style={styles.sectionDescription}>

@@ -54,7 +54,8 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
                 'x-userid': userId,
             },
         });
-        fromUserIds = connectionsResponse.data.results;
+        fromUserIds = connectionsResponse.data.results
+            .map((connection: any) => connection.users.filter((user: any) => user.id != userId)[0].id); // eslint-disable-line eqeqeq
     }
     const searchPromise = Store.moments.searchMoments(searchArgs[0], searchArgs[1], fromUserIds);
     const countPromise = Store.moments.countRecords({

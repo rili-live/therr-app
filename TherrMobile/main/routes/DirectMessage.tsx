@@ -8,6 +8,7 @@ import { bindActionCreators } from 'redux';
 import { MessageActions, SocketActions } from 'therr-react/redux/actions';
 import { IUserState, IMessagesState } from 'therr-react/types';
 import styles from '../styles';
+import * as therrTheme from '../styles/themes';
 import messageStyles from '../styles/messages';
 import formStyles from '../styles/forms';
 import translator from '../services/translator';
@@ -157,6 +158,13 @@ class DirectMessage extends React.Component<
         const { route, sendDirectMessage, user } = this.props;
         const { connectionDetails } = route.params;
 
+        console.log({
+            message: msgInputVal,
+            userId: user.details && user.details.id,
+            userName: user.details && user.details.userName,
+            to: connectionDetails,
+        });
+
         sendDirectMessage({
             message: msgInputVal,
             userId: user.details && user.details.id,
@@ -219,6 +227,7 @@ class DirectMessage extends React.Component<
                             )}
                             inputStyle={formStyles.input}
                             containerStyle={messageStyles.inputContainer}
+                            selectionColor={therrTheme.colors.ternary}
                         />
                         <Button
                             icon={<Icon name="send" size={25} style={messageStyles.icon} />}

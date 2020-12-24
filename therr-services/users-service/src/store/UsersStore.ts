@@ -79,7 +79,6 @@ export default class UsersStore {
 
     updateUser(params, conditions = {}) {
         const modifiedParams: any = {};
-        console.log(params);
 
         if (params.accessLevels) {
             modifiedParams.accessLevels = params.accessLevels;

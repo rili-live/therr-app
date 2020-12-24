@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { ListItem } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import styles from '../styles';
+import ConnectionItem from './ConnectionItem';
 
 interface IContactsSearchProps {
     getConnectionDetails: any;
@@ -19,7 +19,6 @@ const ContactsSearch: React.FunctionComponent<IContactsSearchProps> = ({
     onConnectionPress,
     translate,
     userConnections,
-    user,
 }) => {
     return (
         <View style={styles.sectionContainer}>
@@ -28,25 +27,17 @@ const ContactsSearch: React.FunctionComponent<IContactsSearchProps> = ({
             </Text>
             {userConnections.connections &&
             userConnections.connections.length ? (
-                    userConnections.connections.map((connection) => (
-                        <ListItem
-                            key={connection.id}
-                            leftAvatar={{
-                                source: {
-                                    uri: `https://robohash.org/${
-                                        connection.acceptingUserId ===
-                                        user.details && user.details.id
-                                            ? connection.requestingUserId
-                                            : connection.acceptingUserId
-                                    }?size=100x100`,
-                                },
-                            }}
-                            onPress={() => onConnectionPress(connection)}
-                            title={getConnectionDetails(connection).userName}
-                            subtitle={getConnectionSubtitle(connection)}
-                            bottomDivider
-                        />
-                    ))
+                    userConnections.connections.map((connection) => {
+                        const connectionDetails = getConnectionDetails(connection);
+                        return (
+                            <ConnectionItem
+                                key={connectionDetails.id}
+                                connectionDetails={connectionDetails}
+                                getConnectionSubtitle={getConnectionSubtitle}
+                                onConnectionPress={onConnectionPress}
+                            />
+                        );
+                    })
                 ) : (
                     <Text style={styles.sectionDescription}>
                         {translate('components.contactsSearch.noContactsFound')}

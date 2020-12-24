@@ -39,7 +39,7 @@ export default StyleSheet.create({
         backgroundColor: containerBackgroundColor,
         display: 'flex',
         height: '100%',
-        width: '92%',
+        width: '75%',
         alignSelf: 'flex-end',
         flexDirection: 'column',
         borderRadius: 0,
