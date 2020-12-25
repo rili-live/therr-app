@@ -38,6 +38,8 @@ class HeaderMenuLeft extends React.Component<
         const { isAuthenticated, navigation } = this.props;
         if (isAuthenticated) {
             navigation.navigate('Home');
+        } else {
+            navigation.navigate('Login');
         }
     };
 
