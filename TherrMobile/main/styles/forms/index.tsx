@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import editMomentForm from './editMomentForm';
+import forgotPasswordForm from './forgotPasswordForm';
 import loginForm from './loginForm';
 import settingsForm from './settingsForm';
 import * as therrTheme from '../themes';
@@ -44,6 +45,7 @@ export default StyleSheet.create({
 
 export {
     editMomentForm,
+    forgotPasswordForm,
     loginForm,
     settingsForm,
 };

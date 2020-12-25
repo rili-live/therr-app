@@ -19,6 +19,11 @@ const sectionTitle: any = {
     fontWeight: '600',
 };
 
+const bodyStyle: any = {
+    backgroundColor: therrTheme.colors.primary2,
+    color: therrTheme.colors.textWhite,
+};
+
 const loaderStyles = StyleSheet.create({
     lottie: {
         width: 100,
@@ -29,10 +34,10 @@ const loaderStyles = StyleSheet.create({
 export default StyleSheet.create({
     scrollView: {},
     body: {
-        backgroundColor: therrTheme.colors.primary2,
-        color: therrTheme.colors.textWhite,
+        ...bodyStyle,
     },
     bodyFlex: {
+        ...bodyStyle,
         marginTop: 80,
         marginBottom: 0,
         display: 'flex',

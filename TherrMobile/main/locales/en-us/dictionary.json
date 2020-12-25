@@ -73,7 +73,8 @@
     "loginForm": {
       "buttons": {
         "login": "Login",
-        "signUp": "Create an Account?"
+        "signUp": "Create an Account?",
+        "forgotPassword": "Forgot Password?"
       },
       "defaultTitle": "Login",
       "labels": {
@@ -94,6 +95,16 @@
         "expiresAt": "Countdown"
       },
       "backendSuccessMessage": "Your moment was successfully saved!",
+      "backendErrorMessage": "Connection error. Please try again later."
+    },
+    "forgotPassword": {
+      "buttons": {
+        "submit": "Send E-mail"
+      },
+      "labels": {
+        "email": "E-mail"
+      },
+      "backendSuccessMessage": "Check your e-mail for further instructions to reset your password.",
       "backendErrorMessage": "Connection error. Please try again later."
     },
     "registerForm": {
@@ -159,6 +170,11 @@
     },
     "directMessage": {
       "inputPlaceholder": "Enter a message..."
+    },
+    "forgotPassword": {
+      "headerTitle": "Password Reset",
+      "instructions": "Enter your account e-mail below, and we'll send you a temporary password.",
+      "pageHeader": "Forgot Your Password?"
     },
     "home": {
       "headerTitle": "Home",
