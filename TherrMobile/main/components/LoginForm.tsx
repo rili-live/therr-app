@@ -172,6 +172,14 @@ export class LoginFormComponent extends React.Component<
                         )}
                         onPress={() => navigation.navigate('Register')}
                     />
+                    <Button
+                        type='clear'
+                        titleStyle={styles.buttonLink}
+                        title={this.translate(
+                            'forms.loginForm.buttons.forgotPassword'
+                        )}
+                        onPress={() => navigation.navigate('ForgotPassword')}
+                    />
                 </View>
             </View>
         );

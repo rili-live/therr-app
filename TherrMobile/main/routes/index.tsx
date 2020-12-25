@@ -8,6 +8,7 @@ import { IAccess, AccessCheckType } from '../types';
 import Map from './Map';
 import ActiveConnections from './ActiveConnections';
 import Contacts from './Contacts';
+import ForgotPassword from './ForgotPassword';
 import Notifications from './Notifications';
 import Register from './Register';
 import Settings from './Settings';
@@ -86,6 +87,14 @@ const routes: RouteConfig<
             },
             headerTransparent: true,
         }),
+    },
+    {
+        name: 'ForgotPassword',
+        component: ForgotPassword,
+        options: {
+            title: 'Password Reset',
+            headerTransparent: true,
+        },
     },
     {
         name: 'Notifications',

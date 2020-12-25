@@ -10,7 +10,6 @@ export default StyleSheet.create({
         maxWidth: '100%',
         minWidth: '98%',
         padding: 24,
-        paddingTop: 16,
     },
     button: {
         backgroundColor: therrTheme.colors.primary3,
