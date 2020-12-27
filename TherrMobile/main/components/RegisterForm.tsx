@@ -4,7 +4,7 @@ import { Button, Input } from 'react-native-elements';
 import CountryPicker, { CountryCode } from 'react-native-country-picker-modal';
 import PhoneInput from 'react-native-phone-input';
 import translator from '../services/translator';
-import formStyles, { loginForm as styles } from '../styles/forms';
+import formStyles, { loginForm as styles, phoneInput as phoneStyles } from '../styles/forms';
 import * as therrTheme from '../styles/themes';
 import Alert from './Alert';
 
@@ -224,7 +224,7 @@ export class RegisterFormComponent extends React.Component<
                     }
                     selectionColor={therrTheme.colors.ternary}
                 />
-                <View style={styles.phoneInputContainer}>
+                <View style={phoneStyles.phoneInputContainer}>
                     <PhoneInput
                         autoFormat={true}
                         ref={(ref) => { this.phone = ref; }}
@@ -240,10 +240,10 @@ export class RegisterFormComponent extends React.Component<
                             placeholderTextColor: '#78909b',
                         }}
                     />
-                    <View style={styles.countryFlagContainer}>
+                    <View style={phoneStyles.countryFlagContainer}>
                         <CountryPicker
-                            closeButtonStyle={styles.pickerCloseButton}
-                            containerButtonStyle={styles.countryFlag}
+                            closeButtonStyle={phoneStyles.pickerCloseButton}
+                            containerButtonStyle={phoneStyles.countryFlag}
                             onSelect={(value)=> this.onCountryCodeSelect(value)}
                             translation="common"
                             countryCode={countryCode}

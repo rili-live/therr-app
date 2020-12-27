@@ -53,41 +53,39 @@ export class LoginFormComponent extends React.Component<
 
     onSubmit = () => {
         const { password, rememberMe, userName } = this.state.inputs;
-        if (!this.isLoginFormDisabled()) {
-            this.setState({
-                isSubmitting: true,
-            });
-            this.props
-                .login({
-                    userName,
-                    password,
-                    rememberMe,
-                })
-                .catch((error: any) => {
-                    if (
-                        error.statusCode === 400 ||
-                        error.statusCode === 401 ||
-                        error.statusCode === 404
-                    ) {
-                        this.setState({
-                            prevLoginError: `${error.message}${
-                                error.parameters
-                                    ? ' error (' + error.parameters.toString() + ')'
-                                    : ''
-                            }`,
-                        });
-                    } else if (error.statusCode >= 500) {
-                        this.setState({
-                            prevLoginError: this.translate(
-                                'forms.loginForm.backendErrorMessage'
-                            ),
-                        });
-                    }
+        this.setState({
+            isSubmitting: true,
+        });
+        this.props
+            .login({
+                userName,
+                password,
+                rememberMe,
+            })
+            .catch((error: any) => {
+                if (
+                    error.statusCode === 400 ||
+                    error.statusCode === 401 ||
+                    error.statusCode === 404
+                ) {
                     this.setState({
-                        isSubmitting: false,
+                        prevLoginError: `${error.message}${
+                            error.parameters
+                                ? ' (' + error.parameters.join(', ') + ')'
+                                : ''
+                        }`,
                     });
+                } else if (error.statusCode >= 500) {
+                    this.setState({
+                        prevLoginError: this.translate(
+                            'forms.loginForm.backendErrorMessage'
+                        ),
+                    });
+                }
+                this.setState({
+                    isSubmitting: false,
                 });
-        }
+            });
     };
 
     onInputChange = (name: string, value: string) => {
@@ -109,7 +107,7 @@ export class LoginFormComponent extends React.Component<
     };
 
     public render(): JSX.Element | null {
-        const { prevLoginError } = this.state;
+        const { isSubmitting, prevLoginError } = this.state;
         const { navigation, userMessage } = this.props;
 
         return (
@@ -148,11 +146,14 @@ export class LoginFormComponent extends React.Component<
                 <View style={styles.submitButtonContainer}>
                     <Button
                         buttonStyle={styles.button}
+                        disabledTitleStyle={formStyles.buttonTitleDisabled}
+                        disabledStyle={formStyles.buttonDisabled}
                         title={this.translate(
                             'forms.loginForm.buttons.login'
                         )}
                         onPress={this.onSubmit}
-                        disabled={this.isLoginFormDisabled()}
+                        loading={isSubmitting}
+                        raised={true}
                     />
                 </View>
                 <Alert

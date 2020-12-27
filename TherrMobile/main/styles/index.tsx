@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { buttonMenuHeight } from './navigation/buttonMenu';
 import * as therrTheme from './themes';
 
 export const theme = {
@@ -32,7 +33,9 @@ const loaderStyles = StyleSheet.create({
 });
 
 export default StyleSheet.create({
-    scrollView: {},
+    scrollView: {
+        marginBottom: buttonMenuHeight,
+    },
     body: {
         ...bodyStyle,
     },
@@ -66,6 +69,11 @@ export default StyleSheet.create({
         marginTop: 4,
         marginBottom: 12,
         paddingHorizontal: 12,
+    },
+    sectionForm: {
+        color: therrTheme.colors.textWhite,
+        backgroundColor: 'transparent',
+        marginTop: 0,
     },
     sectionTitle: {
         ...sectionTitle,
