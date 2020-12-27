@@ -286,6 +286,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         )}
                                         onPress={this.onSubmit}
                                         disabled={this.isFormDisabled()}
+                                        raised={true}
                                     />
                                 </View>
                             </View>

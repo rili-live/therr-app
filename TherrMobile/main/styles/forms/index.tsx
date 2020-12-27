@@ -2,6 +2,7 @@ import { StyleSheet } from 'react-native';
 import editMomentForm from './editMomentForm';
 import forgotPasswordForm from './forgotPasswordForm';
 import loginForm from './loginForm';
+import phoneInput from './phoneInput';
 import settingsForm from './settingsForm';
 import * as therrTheme from '../themes';
 import { inputStyle, textInputStyle } from './base';
@@ -14,6 +15,11 @@ export default StyleSheet.create({
     inputAlt: {
         ...inputStyle,
         color: therrTheme.colors.textBlack,
+    },
+    picker: {
+        height: 50,
+        width: '100%',
+        color: therrTheme.colors.textWhite,
     },
     phoneInput: {
         ...inputStyle,
@@ -41,11 +47,18 @@ export default StyleSheet.create({
     button: {
         backgroundColor: therrTheme.colors.primary3,
     },
+    buttonDisabled: {
+        backgroundColor: therrTheme.colors.primary3Faded,
+    },
+    buttonTitleDisabled: {
+        color: therrTheme.colors.textGray,
+    },
 });
 
 export {
     editMomentForm,
     forgotPasswordForm,
     loginForm,
+    phoneInput,
     settingsForm,
 };

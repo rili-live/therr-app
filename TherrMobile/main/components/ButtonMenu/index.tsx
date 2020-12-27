@@ -3,6 +3,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { View } from 'react-native';
 import 'react-native-gesture-handler';
+import { INotificationsState } from 'therr-react/types';
 import LocationActions from '../../redux/actions/LocationActions';
 import { ILocationState } from '../../types/redux/location';
 import { buttonMenu } from '../../styles/navigation';
@@ -14,6 +15,7 @@ interface IButtonMenuDispatchProps {
 
 interface IStoreProps extends IButtonMenuDispatchProps {
     location: ILocationState;
+    notifications: INotificationsState;
 }
 
 // Regular component props
@@ -27,6 +29,7 @@ interface IButtonMenuState {}
 
 export const mapStateToProps = (state: any) => ({
     location: state.location,
+    notifications: state.notifications,
 });
 
 export const mapDispatchToProps = (dispatch: any) =>

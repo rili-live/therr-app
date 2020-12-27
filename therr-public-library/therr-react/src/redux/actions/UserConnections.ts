@@ -16,12 +16,15 @@ const UserConnections = {
             data: response.data.results,
         });
     }),
-    create: (data: any) => (dispatch: any) => {
+    create: (data: any, user) => (dispatch: any) => UserConnectionsService.create(data).then((response) => {
         dispatch({
             type: SocketClientActionTypes.CREATE_USER_CONNECTION,
-            data,
+            data: {
+                connection: response && response.data,
+                user,
+            },
         });
-    },
+    }),
     update: (data: any) => (dispatch: any) => {
         dispatch({
             type: SocketClientActionTypes.UPDATE_USER_CONNECTION,

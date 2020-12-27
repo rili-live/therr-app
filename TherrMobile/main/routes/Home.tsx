@@ -1,18 +1,26 @@
 import React from 'react';
 import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
+import { Button, Input } from 'react-native-elements';
+import { Picker } from '@react-native-picker/picker';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
+import PhoneInput from 'react-native-phone-input';
+import CountryPicker, { CountryCode } from 'react-native-country-picker-modal';
+import isEmail from 'validator/es/lib/isEmail';
+import Alert from '../components/Alert';
+import * as therrTheme from '../styles/themes';
+import styles from '../styles';
+import formStyles, { phoneInput as phoneStyles } from '../styles/forms';
 import ActiveConnections from '../components/ActiveConnections';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
-import styles from '../styles';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
-import ConnectionItem from '../components/ConnectionItem';
 
 interface IHomeDispatchProps {
+    createUserConnection: Function;
     logout: Function;
     searchUserConnections: Function;
 }
@@ -27,7 +35,16 @@ export interface IHomeProps extends IStoreProps {
     navigation: any;
 }
 
-interface IHomeState {}
+interface IHomeState {
+    connectionContext: any;
+    countryCode: CountryCode;
+    emailErrorMessage: string;
+    inputs: any;
+    prevConnReqSuccess: string;
+    prevConnReqError: string;
+    isCountryPickerVisible: boolean;
+    isSubmitting: boolean;
+}
 
 const mapStateToProps = (state: any) => ({
     user: state.user,
@@ -37,6 +54,7 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
+            createUserConnection: UserConnectionsActions.create,
             logout: UsersActions.logout,
             searchUserConnections: UserConnectionsActions.search,
         },
@@ -46,10 +64,21 @@ const mapDispatchToProps = (dispatch: any) =>
 class Home extends React.Component<IHomeProps, IHomeState> {
     private translate: Function;
 
+    private phone: any;
+
     constructor(props) {
         super(props);
 
-        this.state = {};
+        this.state = {
+            connectionContext: 'phone',
+            countryCode: 'US',
+            emailErrorMessage: '',
+            inputs: {},
+            prevConnReqError: '',
+            prevConnReqSuccess: '',
+            isCountryPickerVisible: false,
+            isSubmitting: false,
+        };
 
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
@@ -102,6 +131,16 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         }`;
     };
 
+    isConnReqFormDisabled = () => {
+        const { connectionContext } = this.state;
+
+        return connectionContext === 'email' && !this.isEmailValid();
+    };
+
+    isEmailValid = () => {
+        return isEmail(this.state.inputs.email || '');
+    }
+
     onConnectionPress = (connectionDetails) => {
         const { navigation } = this.props;
 
@@ -110,7 +149,111 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         });
     };
 
+    onInputChange = (name: string, value: string) => {
+        let emailErrorMessage = '';
+
+        const newInputChanges = {
+            [name]: value,
+        };
+
+        if (name === 'email') {
+            if (!this.isEmailValid()) {
+                emailErrorMessage = this.translate('forms.createConnection.errorMessages.invalidEmail');
+            }
+        }
+
+        this.setState({
+            inputs: {
+                ...this.state.inputs,
+                ...newInputChanges,
+            },
+            emailErrorMessage,
+            prevConnReqError: '',
+            prevConnReqSuccess: '',
+            isSubmitting: false,
+        });
+    };
+
+    onSubmit = () => {
+        const { connectionContext, inputs } = this.state;
+        const { createUserConnection, user } = this.props;
+
+        if (connectionContext === 'phone' && (!this.phone || !this.phone.isValidNumber())) {
+            this.setState({
+                prevConnReqError: this.translate('forms.createConnection.errorMessages.invalidPhoneNumber'),
+            });
+            return;
+        }
+
+        const reqBody: any = {
+            requestingUserId: user.details.id,
+            requestingUserFirstName: user.details.firstName,
+            requestingUserLastName: user.details.lastName,
+        };
+
+        if (connectionContext === 'email') {
+            reqBody.acceptingUserEmail = inputs.email;
+        }
+        if (connectionContext === 'phone') {
+            reqBody.acceptingUserPhoneNumber = this.phone.getValue();
+        }
+
+        createUserConnection(reqBody, user.details)
+            .then(() => {
+                this.setState({
+                    inputs: {
+                        email: '',
+                        phone: '',
+                    },
+                    prevConnReqSuccess: this.translate('forms.createConnection.successMessages.connectionSent'),
+                });
+            })
+            .catch((error) => {
+                if (error.statusCode === 400 || error.statusCode === 404) {
+                    this.setState({
+                        prevConnReqError: error.message,
+                    });
+                }
+            });
+    };
+
+    onCountryCodeSelect = (country) => {
+        this.phone.selectCountry(country.cca2.toLowerCase());
+        this.setState({
+            countryCode: country.cca2,
+            isCountryPickerVisible: false,
+            prevConnReqError: '',
+            prevConnReqSuccess: '',
+        });
+    }
+
+    onPhoneInputChange = (value: string) => {
+        this.setState({
+            inputs: {
+                ...this.state.inputs,
+                phone: value,
+            },
+            prevConnReqError: '',
+            prevConnReqSuccess: '',
+        });
+    }
+
+    onPressFlag = () => {
+        this.setState({
+            isCountryPickerVisible: true,
+        });
+    }
+
     render() {
+        const {
+            connectionContext,
+            countryCode,
+            emailErrorMessage,
+            inputs,
+            isCountryPickerVisible,
+            prevConnReqError,
+            prevConnReqSuccess,
+        } = this.state;
         const { navigation, user, userConnections } = this.props;
 
         return (
@@ -124,13 +267,107 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                         <View style={styles.body}>
                             <View style={styles.sectionContainer}>
                                 <Text style={styles.sectionTitle}>
-                                    How It Works?
+                                    {this.translate('pages.userProfile.h2.howItWorks')}
                                 </Text>
                                 <Text style={styles.sectionDescription}>
-                                    Welcome to the homepage. This is a work in
-                                    progress...share a moment with your
-                                    connections from the map or send a DM.
+                                    {this.translate('pages.userProfile.siteDescription')}
                                 </Text>
+                            </View>
+                            <View style={styles.sectionContainer}>
+                                <Text style={styles.sectionTitle}>
+                                    {this.translate('pages.userProfile.h2.createConnection')}
+                                </Text>
+                                <View style={styles.sectionForm}>
+                                    <Picker
+                                        selectedValue={connectionContext}
+                                        style={formStyles.picker}
+                                        onValueChange={(itemValue) =>
+                                            this.setState({ connectionContext: itemValue })
+                                        }>
+                                        <Picker.Item label={this.translate(
+                                            'forms.createConnection.labels.phone'
+                                        )} value="phone" />
+                                        <Picker.Item label={this.translate(
+                                            'forms.createConnection.labels.email'
+                                        )} value="email" />
+                                    </Picker>
+                                    {
+                                        connectionContext === 'email' &&
+                                        <Input
+                                            inputStyle={formStyles.input}
+                                            placeholder={this.translate(
+                                                'forms.createConnection.placeholders.email'
+                                            )}
+                                            value={inputs.email}
+                                            onChangeText={(text) =>
+                                                this.onInputChange('email', text)
+                                            }
+                                            selectionColor={therrTheme.colors.ternary}
+                                            errorMessage={emailErrorMessage}
+                                        />
+                                    }
+                                    {
+                                        connectionContext === 'phone' &&
+                                        <View style={phoneStyles.phoneInputContainer}>
+                                            <PhoneInput
+                                                autoFormat={true}
+                                                ref={(ref) => { this.phone = ref; }}
+                                                onPressFlag={this.onPressFlag}
+                                                offset={0}
+                                                onChangePhoneNumber={this.onPhoneInputChange}
+                                                flagStyle={{ display: 'none' }}
+                                                style={formStyles.phoneInput}
+                                                textProps={{
+                                                    placeholder: this.translate('forms.createConnection.placeholders.phone'),
+                                                    selectionColor: therrTheme.colors.ternary,
+                                                    style: {...formStyles.phoneInputText},
+                                                    placeholderTextColor: '#78909b',
+                                                }}
+                                            />
+                                            <View style={phoneStyles.countryFlagContainer}>
+                                                <CountryPicker
+                                                    closeButtonStyle={phoneStyles.pickerCloseButton}
+                                                    containerButtonStyle={phoneStyles.countryFlag}
+                                                    onSelect={(value)=> this.onCountryCodeSelect(value)}
+                                                    translation="common"
+                                                    countryCode={countryCode}
+                                                    // onSelect={this.onCountryCodeSelect}
+                                                    visible={isCountryPickerVisible}
+                                                    withAlphaFilter={true}
+                                                />
+                                            </View>
+                                        </View>
+                                    }
+                                    <View>
+                                        <Alert
+                                            containerStyles={{
+                                                marginBottom: 24,
+                                            }}
+                                            isVisible={!!prevConnReqError}
+                                            message={prevConnReqError}
+                                            type={'error'}
+                                        />
+                                        <Alert
+                                            containerStyles={{
+                                                marginBottom: 24,
+                                            }}
+                                            isVisible={!!prevConnReqSuccess}
+                                            message={prevConnReqSuccess}
+                                            type={'success'}
+                                        />
+                                        <Button
+                                            buttonStyle={formStyles.button}
+                                            disabledTitleStyle={formStyles.buttonTitleDisabled}
+                                            disabledStyle={formStyles.buttonDisabled}
+                                            title={this.translate(
+                                                'forms.createConnection.buttons.submit'
+                                            )}
+                                            onPress={this.onSubmit}
+                                            disabled={this.isConnReqFormDisabled()}
+                                            raised={true}
+                                        />
+                                    </View>
+                                </View>
                             </View>
                             <ActiveConnections
                                 getConnectionSubtitle={
@@ -141,34 +378,6 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                 userConnections={userConnections}
                                 user={user}
                             />
-                            <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitle}>
-                                    Connections
-                                </Text>
-                                {userConnections.connections &&
-                                userConnections.connections.length ? (
-                                        userConnections.connections.map(
-                                            (connection) => {
-                                                const connectionDetails = this.getConnectionDetails(connection);
-
-                                                return (
-                                                    <ConnectionItem
-                                                        key={connectionDetails.id}
-                                                        connectionDetails={connectionDetails}
-                                                        getConnectionSubtitle={this.getConnectionSubtitle}
-                                                        onConnectionPress={this.onConnectionPress}
-                                                    />
-                                                );
-                                            }
-                                        )
-                                    ) : (
-                                        <Text style={styles.sectionDescription}>
-                                            {this.translate(
-                                                'pages.userProfile.requestRecommendation'
-                                            )}
-                                        </Text>
-                                    )}
-                            </View>
                         </View>
                     </ScrollView>
                 </SafeAreaView>
