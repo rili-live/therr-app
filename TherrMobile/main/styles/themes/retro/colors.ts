@@ -2,6 +2,7 @@ const colors = {
     primary: '#1d6f79',
     primary2: '#387a82',
     primary3: '#143b54',
+    primary3Faded: '#355469',
 
     secondary: '#388254',
     ternary: '#e0c845',
@@ -18,6 +19,7 @@ const colors = {
     beemoLime: '#00f729',
 
     textBlack: '#363636',
+    textGray: '#bfc7d5',
     textWhite: '#fcfeff',
 
     backgroundWhite: '#ffffff',

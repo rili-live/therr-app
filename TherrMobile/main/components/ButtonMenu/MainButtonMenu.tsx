@@ -45,7 +45,9 @@ class MainButtonMenu extends ButtonMenu {
     };
 
     render() {
+        const { notifications } = this.props;
         const currentScreen = this.getCurrentScreen();
+        const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
 
         return (
             <View style={buttonMenu.container}>
@@ -142,7 +144,7 @@ class MainButtonMenu extends ButtonMenu {
                     }
                     icon={
                         <FontAwesomeIcon
-                            name="bell"
+                            name={hasNotifications ? 'bell' : 'bell-slash'}
                             size={26}
                             style={
                                 currentScreen === 'Notifications'
@@ -153,6 +155,9 @@ class MainButtonMenu extends ButtonMenu {
                     }
                     onPress={() => this.navTo('Notifications')}
                 />
+                {
+                    hasNotifications && <View style={buttonMenu.notificationCircle} />
+                }
             </View>
         );
     }

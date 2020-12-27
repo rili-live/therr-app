@@ -17,7 +17,7 @@
     },
     "loginForm": {
       "buttons": {
-        "login": "Login",
+        "login": "Log In",
         "signUp": "Create Account",
         "forgotPassword": "Forgot Password?"
       },
@@ -162,7 +162,7 @@
         "createAForum": "Create a Forum",
         "sendRequest": "Send Request"
       },
-      "connectionSent": "A connection request was successfully delivered",
+      "connectionSent": "You connection request is on the way!",
       "h2": {
         "accountDetails": "Account Details",
         "addConnection": "Add New Connection",

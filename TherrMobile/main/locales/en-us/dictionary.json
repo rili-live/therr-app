@@ -70,9 +70,29 @@
     }
   },
   "forms": {
+    "createConnection": {
+      "buttons": {
+        "submit": "Send"
+      },
+      "errorMessages": {
+        "invalidEmail": "Invalid e-mail",
+        "invalidPhoneNumber": "Phone number is invalid."
+      },
+      "successMessages": {
+        "connectionSent": "You connection request is on the way!"
+      },
+      "labels": {
+        "phone": "Phone",
+        "email": "E-mail"
+      },
+      "placeholders": {
+        "phone": "Connection's Phone #",
+        "email": "Connection's E-mail"
+      }
+    },
     "loginForm": {
       "buttons": {
-        "login": "Login",
+        "login": "Log In",
         "signUp": "Create an Account?",
         "forgotPassword": "Forgot Password?"
       },
@@ -114,7 +134,7 @@
       },
       "defaultTitle": "Create an Account",
       "errorMessages": {
-        "invalidPhoneNumber": "Phone number is invalid",
+        "invalidPhoneNumber": "Phone number is invalid.",
         "repeatPassword": "Passwords do not match"
       },
       "labels": {
@@ -219,11 +239,12 @@
         "createAForum": "Create a Forum",
         "sendRequest": "Send Request"
       },
-      "connectionSent": "A connection request was successfully delivered",
+      "connectionSent": "You connection request is on the way!",
       "h2": {
         "accountDetails": "Account Details",
-        "addConnection": "Add New Connection",
-        "connections": "Connections"
+        "connections": "Connections",
+        "createConnection": "Create a Connection",
+        "howItWorks": "So, how does it work?"
       },
       "labels": {
         "email": "E-mail",
@@ -234,6 +255,7 @@
         "userName": "Username"
       },
       "pageTitle": "User Profile",
+      "siteDescription": "Welcome to the homepage. This is a work in progress...share a moment with your connections on the map or send a DM.",
       "noActiveConnections": "There are currently no active connections in your network",
       "requestRecommendation": "Send a request to make connections and build a network",
       "validationErrors": {

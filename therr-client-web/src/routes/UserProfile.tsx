@@ -10,7 +10,6 @@ import {
     SvgButton,
 } from 'therr-react/components';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
-import { UserConnectionsService } from 'therr-react/services';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import translator from '../services/translator';
 
@@ -133,12 +132,8 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                 reqBody.acceptingUserPhoneNumber = inputs.phoneNumber;
             }
 
-            UserConnectionsService.create(reqBody)
-                .then((response) => {
-                    createUserConnection({
-                        connection: response && response.data,
-                        user: user.details,
-                    });
+            createUserConnection(reqBody, user.details)
+                .then(() => {
                     this.setState({
                         inputs: {
                             connectionIdentifier: '',
@@ -191,7 +186,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
     }
 
     public render(): JSX.Element | null {
-        const { onInitMessaging, user, userConnections } = this.props;
+        const { user, userConnections } = this.props;
         const {
             inputs,
             prevRequestError,
