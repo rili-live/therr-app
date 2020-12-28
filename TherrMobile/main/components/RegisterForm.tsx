@@ -179,7 +179,7 @@ export class RegisterFormComponent extends React.Component<
         // const { alert, title } = this.props;
 
         return (
-            <View style={styles.loginContainer}>
+            <>
                 <Input
                     inputStyle={formStyles.input}
                     placeholder={this.translate(
@@ -296,7 +296,7 @@ export class RegisterFormComponent extends React.Component<
                         disabled={this.isRegisterFormDisabled()}
                     />
                 </View>
-            </View>
+            </>
         );
     }
 }

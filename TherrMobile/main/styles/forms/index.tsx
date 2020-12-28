@@ -16,6 +16,17 @@ export default StyleSheet.create({
         ...inputStyle,
         color: therrTheme.colors.textBlack,
     },
+    inputContainer: {
+        paddingLeft: 10,
+        paddingRight: 10,
+        borderRadius: 25,
+        shadowColor: 'black',
+        shadowOffset: { width: 1, height: 2 },
+        shadowOpacity: 0.99,
+        shadowRadius: 2,
+        elevation: 1,
+        borderBottomWidth: 0,
+    },
     picker: {
         height: 50,
         width: '100%',
@@ -52,6 +63,11 @@ export default StyleSheet.create({
     },
     buttonTitleDisabled: {
         color: therrTheme.colors.textGray,
+    },
+    buttonIcon: {
+        color: therrTheme.colors.textWhite,
+        marginRight: 10,
+        marginLeft: 10,
     },
 });
 
