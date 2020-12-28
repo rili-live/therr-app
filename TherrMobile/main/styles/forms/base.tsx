@@ -1,5 +1,11 @@
 import * as therrTheme from '../themes';
 
+const containerStyles: any = {
+    marginTop: 18,
+    marginBottom: 20,
+    marginHorizontal: 10,
+};
+
 const textInputStyle: any = {
     marginLeft: 10,
     marginRight: 10,
@@ -17,6 +23,7 @@ const inputStyle: any = {
 };
 
 export {
+    containerStyles,
     textInputStyle,
     inputStyle,
 };

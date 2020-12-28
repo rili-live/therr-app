@@ -1,23 +1,15 @@
 import { StyleSheet } from 'react-native';
 import * as therrTheme from '../themes';
+import { containerStyles } from './base';
 
 export default StyleSheet.create({
     inputsContainer: {
-        backgroundColor: 'transparent',
-        borderRadius: 16,
-        marginTop: 0,
-        marginBottom: '4%',
-        maxWidth: '100%',
-        minWidth: '98%',
-        padding: 24,
-        paddingBottom: 58,
-        paddingTop: 4,
+        marginTop: 10,
     },
     button: {
         backgroundColor: therrTheme.colors.primary3,
     },
     submitButtonContainer: {
-        marginBottom: 20,
-        marginTop: 20,
+        ...containerStyles,
     },
 });
