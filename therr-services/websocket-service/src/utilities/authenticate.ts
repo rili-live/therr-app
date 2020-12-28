@@ -5,7 +5,7 @@ import beeline from '../beeline';
 
 export default (socket) => new Promise((resolve) => {
     if (!socket.handshake || !socket.handshake.query || !socket.handshake.query.token) {
-        return resolve();
+        return resolve(false);
     }
 
     jwt.verify(socket.handshake.query.token, (process.env.JWT_SECRET || ''), (err, decoded) => {
@@ -25,7 +25,7 @@ export default (socket) => new Promise((resolve) => {
                     message: 'Unable to autheticate websocket request',
                 },
             });
-            return resolve();
+            return resolve(false);
         }
         return resolve(decoded);
     });
