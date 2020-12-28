@@ -10,7 +10,7 @@ import accessLevels from '../constants/accessLevels';
 // Authenticate user
 const login: RequestHandler = (req: any, res: any) => Store.users
     .getUsers({ userName: req.body.userName }, { email: req.body.userName }, { phoneNumber: req.body.userName.replace(/\s/g, '') })
-    .then(async (results) => {
+    .then((results) => {
         const locale = req.headers['x-localecode'] || 'en-us';
 
         if (!results.length) {
