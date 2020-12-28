@@ -1,4 +1,4 @@
-ARG NODE_VERSION=12.16.3
+ARG NODE_VERSION=14.5.0
 FROM node:$NODE_VERSION
 
 # Run install in development for devDependencies/dependencies to be installed correctly
