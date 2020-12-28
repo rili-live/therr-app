@@ -47,7 +47,7 @@ export default StyleSheet.create({
     },
     header: {
         marginTop: 4,
-        marginBottom: 4,
+        marginBottom: 10,
         paddingBottom: 4,
         display: 'flex',
         flexDirection: 'row',
@@ -68,8 +68,11 @@ export default StyleSheet.create({
         letterSpacing: 3,
     },
     headerTitleIcon: {
-        color: therrTheme.colors.primary3,
+        // color: therrTheme.colors.primary3,
         marginRight: 10,
+        height: 30,
+        width: 30,
+        borderRadius: 15,
     },
     body: {
         position: 'relative',
@@ -85,9 +88,13 @@ export default StyleSheet.create({
         width: '100%',
     },
     toggleIcon: {
-        color: therrTheme.colors.textWhite,
+        height: 30,
+        width: 30,
+        borderRadius: 15,
     },
     toggleIconDark: {
-        color: therrTheme.colors.primary3,
+        height: 30,
+        width: 30,
+        borderRadius: 15,
     },
 });

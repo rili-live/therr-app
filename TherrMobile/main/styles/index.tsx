@@ -43,14 +43,21 @@ export default StyleSheet.create({
         ...bodyStyle,
         marginTop: 80,
         marginBottom: 0,
-        display: 'flex',
+        padding: 20,
     },
     bodyScroll: {
         backgroundColor: therrTheme.colors.primary2,
         color: therrTheme.colors.textWhite,
         justifyContent: 'center',
         display: 'flex',
-        minHeight: '75%',
+        minHeight: '90%',
+    },
+    bodyScrollSmall: {
+        backgroundColor: therrTheme.colors.primary2,
+        color: therrTheme.colors.textWhite,
+        justifyContent: 'center',
+        display: 'flex',
+        minHeight: '70%',
     },
     logoIcon: {
         color: therrTheme.colors.textWhite,

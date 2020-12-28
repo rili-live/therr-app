@@ -139,8 +139,8 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
             <>
                 <StatusBar barStyle="light-content" animated={true} translucent={true} />
                 <SafeAreaView>
-                    <ScrollView style={styles.bodyFlex} contentContainerStyle={styles.bodyScroll}>
-                        <View style={styles.sectionContainer}>
+                    <ScrollView style={styles.bodyFlex} contentContainerStyle={styles.bodyScrollSmall}>
+                        <View style={styles.sectionContainerAlt}>
                             <Text style={styles.sectionDescription}>
                                 {pageHeader}
                             </Text>
@@ -151,7 +151,8 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
                         <View style={forgotPasswordFormStyles.inputsContainer}>
                             <Input
                                 inputStyle={formStyles.input}
-                                label={this.translate(
+                                inputContainerStyle={formStyles.inputContainer}
+                                placeholder={this.translate(
                                     'forms.forgotPassword.labels.email'
                                 )}
                                 value={inputs.email}
@@ -168,16 +169,16 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
                                 message={successMsg || errorMsg}
                                 type={errorMsg ? 'error' : 'success'}
                             />
-                            <View style={forgotPasswordFormStyles.submitButtonContainer}>
-                                <Button
-                                    buttonStyle={formStyles.button}
-                                    title={this.translate(
-                                        'forms.forgotPassword.buttons.submit'
-                                    )}
-                                    onPress={this.onSubmit}
-                                    disabled={this.isFormDisabled()}
-                                />
-                            </View>
+                        </View>
+                        <View style={forgotPasswordFormStyles.submitButtonContainer}>
+                            <Button
+                                buttonStyle={formStyles.button}
+                                title={this.translate(
+                                    'forms.forgotPassword.buttons.submit'
+                                )}
+                                onPress={this.onSubmit}
+                                disabled={this.isFormDisabled()}
+                            />
                         </View>
                     </ScrollView>
                 </SafeAreaView>

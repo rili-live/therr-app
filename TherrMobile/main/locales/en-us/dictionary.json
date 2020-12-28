@@ -23,6 +23,7 @@
     },
     "headerMenuRight": {
       "menuItems": {
+        "account": "MY ACCOUNT",
         "connections": "CONNECTIONS",
         "home": "HOME",
         "logout": "LOGOUT",
@@ -92,7 +93,7 @@
     },
     "loginForm": {
       "buttons": {
-        "login": "Log In",
+        "login": "Sign In",
         "signUp": "Create an Account?",
         "forgotPassword": "Forgot Password?"
       },

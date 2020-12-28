@@ -1,6 +1,6 @@
 import React from 'react';
-import { View } from 'react-native';
-import { Button, Overlay, Text } from 'react-native-elements';
+import { ActivityIndicator, View } from 'react-native';
+import { Button, Image, Overlay, Text } from 'react-native-elements';
 import { CommonActions } from '@react-navigation/native';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -124,7 +124,12 @@ class HeaderMenuRight extends React.Component<
             return (
                 <>
                     <Button
-                        icon={<Icon name="menu" size={30} style={isHeaderTransparent ? headerMenuModal.toggleIconDark : headerMenuModal.toggleIcon} />}
+                        icon={
+                            <Image
+                                source={{ uri: `https://robohash.org/${user.details?.id}?size=25x25` }}
+                                style={isHeaderTransparent ? headerMenuModal.toggleIconDark : headerMenuModal.toggleIcon}
+                                PlaceholderContent={<ActivityIndicator />}
+                            />}
                         onPress={this.toggleOverlay}
                         type="clear"
                     />
@@ -136,10 +141,10 @@ class HeaderMenuRight extends React.Component<
                         <>
                             <View style={headerMenuModal.header}>
                                 <View style={headerMenuModal.headerTitle}>
-                                    <FontAwesomeIcon
+                                    <Image
+                                        source={{ uri: `https://robohash.org/${user.details?.id}?size=30x30` }}
                                         style={headerMenuModal.headerTitleIcon}
-                                        name="user-circle"
-                                        size={25}
+                                        PlaceholderContent={<ActivityIndicator />}
                                     />
                                     <Text style={headerMenuModal.headerTitleText}>
                                         {user.details?.userName}
@@ -232,6 +237,31 @@ class HeaderMenuRight extends React.Component<
                                         />
                                     }
                                     onPress={() => this.navTo('ActiveConnections')}
+                                />
+                                <Button
+                                    buttonStyle={
+                                        currentScreen === 'Settings'
+                                            ? headerMenuModal.buttonsActive
+                                            : headerMenuModal.buttons
+                                    }
+                                    titleStyle={
+                                        currentScreen === 'Settings'
+                                            ? headerMenuModal.buttonsTitleActive
+                                            : headerMenuModal.buttonsTitle
+                                    }
+                                    title={this.translate('components.headerMenuRight.menuItems.account')}
+                                    icon={
+                                        <FontAwesomeIcon
+                                            style={
+                                                currentScreen === 'Settings'
+                                                    ? headerMenuModal.iconStyleActive
+                                                    : headerMenuModal.iconStyle
+                                            }
+                                            name="user-cog"
+                                            size={22}
+                                        />
+                                    }
+                                    onPress={() => this.navTo('Settings')}
                                 />
                             </View>
                             <View style={headerMenuModal.footer}>

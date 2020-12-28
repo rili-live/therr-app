@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { View } from 'react-native';
 import { Button, Input } from 'react-native-elements';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import translator from '../services/translator';
 import formStyles, { loginForm as styles } from '../styles/forms';
 import * as therrTheme from '../styles/themes';
@@ -111,7 +112,7 @@ export class LoginFormComponent extends React.Component<
         const { navigation, userMessage } = this.props;
 
         return (
-            <View style={styles.loginContainer}>
+            <>
                 <Alert
                     containerStyles={{
                         marginBottom: 24,
@@ -122,6 +123,7 @@ export class LoginFormComponent extends React.Component<
                 />
                 <Input
                     inputStyle={formStyles.input}
+                    inputContainerStyle={formStyles.inputContainer}
                     placeholder={this.translate(
                         'forms.loginForm.labels.userName'
                     )}
@@ -133,6 +135,7 @@ export class LoginFormComponent extends React.Component<
                 />
                 <Input
                     inputStyle={formStyles.input}
+                    inputContainerStyle={formStyles.inputContainer}
                     placeholder={this.translate(
                         'forms.loginForm.labels.password'
                     )}
@@ -154,6 +157,14 @@ export class LoginFormComponent extends React.Component<
                         onPress={this.onSubmit}
                         loading={isSubmitting}
                         raised={true}
+                        icon={
+                            <FontAwesomeIcon
+                                name="sign-in-alt"
+                                size={18}
+                                style={formStyles.buttonIcon}
+                            />
+                        }
+                        iconRight
                     />
                 </View>
                 <Alert
@@ -182,7 +193,7 @@ export class LoginFormComponent extends React.Component<
                         onPress={() => navigation.navigate('ForgotPassword')}
                     />
                 </View>
-            </View>
+            </>
         );
     }
 }
