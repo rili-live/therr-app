@@ -34,9 +34,9 @@ spec:
           value: "info"
         - name: LOGGING_DATASET
           value: "production"
-        - name: REDIS_NODE_ONE_HOST
+        - name: REDIS_PUB_HOST
           value: "redis-cluster-ip-service"
-        - name: REDIS_NODE_ONE_PORT
+        - name: REDIS_PUB_PORT
           value: "6379"
         - name: SOCKET_PORT
           value: "7743"

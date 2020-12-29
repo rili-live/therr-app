@@ -14,13 +14,6 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "360"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "360"
     nginx.ingress.kubernetes.io/use-regex: "true"
-    # Socket.io
-    # TODO: Create separate ingress just for socket.io
-    # nginx.ingress.kubernetes.io/affinity: “cookie”
-    # nginx.ingress.kubernetes.io/session-cookie-name: “route”
-    # nginx.ingress.kubernetes.io/session-cookie-hash: “sha1”
-    # nginx.ingress.kubernetes.io/session-cookie-expires: “172800”
-    # nginx.ingress.kubernetes.io/session-cookie-max-age: “172800”
     # nginx.ingress.kubernetes.io/proxy-read-timeout: “3600”
     # nginx.ingress.kubernetes.io/proxy-send-timeout: “3600”
 spec:
