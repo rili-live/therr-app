@@ -11,6 +11,7 @@ import beeline from '../beeline';
 import restRequest from '../utilities/restRequest';
 import redisHelper from '../utilities/redisHelper';
 import globalConfig from '../../../../global-config';
+import { FORUM_PREFIX } from './rooms';
 
 const sendDirectMessage = (socket: socketio.Socket, data: any) => {
     restRequest({
@@ -107,7 +108,7 @@ const sendForumMessage = (socket: socketio.Socket, data: any) => {
             },
         },
     });
-    socket.broadcast.to(data.roomId).emit(SOCKET_MIDDLEWARE_ACTION, {
+    socket.broadcast.to(`${FORUM_PREFIX}${data.roomId}`).emit(SOCKET_MIDDLEWARE_ACTION, {
         type: SocketServerActionTypes.SEND_MESSAGE,
         data: {
             roomId: data.roomId,

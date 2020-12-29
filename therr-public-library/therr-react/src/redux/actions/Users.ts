@@ -45,16 +45,17 @@ class UsersActions {
                 if (data.rememberMe && !this.NativeStorage) {
                     localStorage.setItem('therrSession', JSON.stringify({ id: this.socketIO.id }));
                 }
+
+                dispatch({
+                    type: SocketClientActionTypes.LOGIN,
+                    data: userData,
+                });
             });
             this.socketIO.connect();
             (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
             if (data.rememberMe && !this.NativeStorage) {
                 localStorage.setItem('therrUser', JSON.stringify(userData));
             }
-            dispatch({
-                type: SocketClientActionTypes.LOGIN,
-                data: userData,
-            });
         });
     };
 
@@ -71,6 +72,8 @@ class UsersActions {
         if (!this.NativeStorage) {
             localStorage.removeItem('therrSession');
             localStorage.removeItem('therrUser');
+            sessionStorage.removeItem('therrSession');
+            sessionStorage.removeItem('therrUser');
         } else {
             this.NativeStorage.multiRemove(['therrSession', 'therrUser']);
         }

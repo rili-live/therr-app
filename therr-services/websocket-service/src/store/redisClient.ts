@@ -46,6 +46,26 @@ redisSub.on('error', (error: string) => {
     });
 });
 
+redisSub.on('subscribe', (channel: any, count: any) => {
+    printLogs({
+        level: 'verbose',
+        messageOrigin: 'REDIS_SUB_CLIENT',
+        messages: `Subscribed to ${channel}. Now subscribed to ${count} channel(s).`,
+        tracer: beeline,
+        traceArgs: {},
+    });
+});
+
+redisSub.on('message', (channel: any, message: any) => {
+    printLogs({
+        level: 'verbose',
+        messageOrigin: 'REDIS_SUB_CLIENT',
+        messages: `Message from channel ${channel}: ${message}`,
+        tracer: beeline,
+        traceArgs: {},
+    });
+});
+
 export {
     redisPub,
     redisSub,
