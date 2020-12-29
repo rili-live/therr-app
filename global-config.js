@@ -43,9 +43,9 @@ module.exports = {
     },
     production: {
         baseApiGatewayRoute: `https://api.${hostProd}/v1`,
-        baseMapsServiceRoute: `https://maps-service.${hostProd}/v1`,
-        baseMessagesServiceRoute: `https://messages-service.${hostProd}/v1`,
-        baseUsersServiceRoute: `https://users-service.${hostProd}/v1`,
+        baseMapsServiceRoute: `http://maps-service-cluster-ip-service:${apiMapsPort}/v1`,
+        baseMessagesServiceRoute: `http://messages-service-cluster-ip-service${apiMessagesPort}/v1`,
+        baseUsersServiceRoute: `http://users-service-cluster-ip-service${apiUsersPort}/v1`,
         baseSocketUrl: `https://websocket-service.${hostProd}`,
         googleAnalyticsKey: '',
         host: hostProd,
