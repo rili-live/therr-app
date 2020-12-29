@@ -2,6 +2,7 @@ apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
   name: therr-network-tls
+  namespace: default
 spec:
   secretName: therr-network-secret
   issuerRef:
