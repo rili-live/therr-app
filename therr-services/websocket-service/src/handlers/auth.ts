@@ -35,11 +35,11 @@ const login = ({
     // TODO: RFRONT-25 - localize dates
     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
 
-    if (socket.handshake && socket.handshake.headers && socket.handshake.headers.host) {
+    if (socket.handshake && (socket.handshake.headers as any) && (socket.handshake.headers as any).host) {
         redisSessions.createOrUpdate({
             app: appName,
             socketId: socket.id,
-            ip: socket.handshake.headers.host.split(':')[0],
+            ip: (socket.handshake.headers as any).host.split(':')[0],
             // 30 minutes
             ttl: 60 * 1000 * 30,
             data: {
@@ -67,7 +67,7 @@ const login = ({
                 tracer: beeline,
                 traceArgs: {
                     appName,
-                    ip: socket.handshake.headers.host.split(':')[0],
+                    ip: (socket.handshake.headers as any).host.split(':')[0],
                     socketId: socket.id,
                     userName: data.userName,
                 },
@@ -82,7 +82,7 @@ const login = ({
         tracer: beeline,
         traceArgs: {
             appName,
-            ip: socket.handshake.headers.host.split(':')[0],
+            ip: (socket.handshake.headers as any).host.split(':')[0],
             socketId: socket.id,
             userName: data.userName,
         },
@@ -116,7 +116,7 @@ const logout = ({
         promises.push(promise);
     }
 
-    if (socket.handshake && socket.handshake.headers && socket.handshake.headers.host) {
+    if (socket.handshake && (socket.handshake.headers as any) && (socket.handshake.headers as any).host) {
         Promise.all(promises).then(() => {
             redisSessions.remove(socket.id).catch((err: any) => {
                 printLogs({
@@ -125,7 +125,7 @@ const logout = ({
                     messages: err.toString(),
                     tracer: beeline,
                     traceArgs: {
-                        ip: socket.handshake.headers.host.split(':')[0],
+                        ip: (socket.handshake.headers as any).host.split(':')[0],
                         socketId: socket.id,
                         userId: data && data.id,
                         userName: data && data.userName,
@@ -159,7 +159,7 @@ const logout = ({
         messages: `User, ${data ? data.userName : 'unknown'} with socketId ${socket.id}, has LOGGED OUT.`,
         tracer: beeline,
         traceArgs: {
-            ip: socket.handshake.headers.host.split(':')[0],
+            ip: (socket.handshake.headers as any).host.split(':')[0],
             socketId: socket.id,
             userName: data && data.userName,
         },

@@ -1,20 +1,28 @@
-import * as socketio from 'socket.io';
+import { Server } from 'socket.io';
+import { FORUM_PREFIX } from '../handlers/rooms';
 
-const getSocketRoomsList = (rooms: socketio.Rooms) => {
-    const roomsArray: any[] = [];
+const getSocketRoomsList = (io: Server, rooms: Set<any>) => {
+    const roomPromises: Promise<any>[] = [];
+    const forumRoomKeys: any[] = [...rooms].filter((id) => id.includes(FORUM_PREFIX));
 
-    const roomKeys: any = Object.keys(rooms).filter((roomKey: string) => rooms[roomKey].length !== 1 || roomKey !== Object.keys(rooms[roomKey].sockets)[0]);
+    forumRoomKeys.forEach((roomKey) => {
+        const promise = (io.in(roomKey) as any).allSockets()
+            .then((socketIds) => ({
+                roomKey,
+                socketIds: [...socketIds],
+            }));
+        roomPromises.push(promise);
+    });
 
-    roomKeys.forEach((roomKey: string) => roomsArray.push({
-        roomKey,
-        length: rooms[roomKey].length,
-        sockets: Object.keys(rooms[roomKey].sockets).map((socketId: any) => ({
-            socketId,
-            active: rooms[roomKey].sockets[socketId],
-        })),
-    }));
-
-    return roomsArray;
+    return Promise.all(roomPromises)
+        .then((responses) => responses.map(({ roomKey, socketIds }) => ({
+            roomKey: roomKey.replace(FORUM_PREFIX, ''),
+            length: socketIds.length,
+            sockets: socketIds.map((socketId: any) => ({
+                socketId,
+                active: true,
+            })),
+        })));
 };
 
 export default getSocketRoomsList;

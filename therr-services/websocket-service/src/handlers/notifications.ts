@@ -1,4 +1,4 @@
-import * as socketio from 'socket.io';
+import { Socket } from 'socket.io';
 import printLogs from 'therr-js-utilities/print-logs';
 import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
 import beeline from '../beeline';
@@ -10,7 +10,7 @@ interface IUpdateNotificationData {
     userName: string;
 }
 
-const updateNotification = (socket: socketio.Socket, data: IUpdateNotificationData) => {
+const updateNotification = (socket: Socket, data: IUpdateNotificationData) => {
     printLogs({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',

@@ -2,7 +2,7 @@ import beeline from './beeline'; // eslint-disable-line import/order
 import express from 'express';
 import * as http from 'http';
 import moment from 'moment';
-import socketio from 'socket.io';
+import { Server as SocketIOServer, Socket } from 'socket.io';
 import {
     LogLevelMap,
     SocketServerActionTypes,
@@ -19,13 +19,14 @@ import { redisPub, redisSub } from './store/redisClient';
 import authenticate from './utilities/authenticate';
 import notifyConnections from './utilities/notify-connections';
 import { UserStatus } from './constants';
+import { FORUM_PREFIX } from './handlers/rooms';
 
 export const rsAppName = 'therrChat';
 
 let serverObj: http.Server;
 
-const leaveAndNotifyRooms = (socket: SocketIO.Socket) => {
-    const activeRooms = Object.keys(socket.rooms)
+const leaveAndNotifyRooms = (socket: Socket) => {
+    const activeRooms = [...socket.rooms]
         .filter((room) => room !== socket.id);
 
     if (activeRooms.length) {
@@ -37,7 +38,7 @@ const leaveAndNotifyRooms = (socket: SocketIO.Socket) => {
                     socket.broadcast.to(room).emit(SOCKET_MIDDLEWARE_ACTION, {
                         type: SocketServerActionTypes.LEFT_ROOM,
                         data: {
-                            roomId: room,
+                            roomId: room.replace(FORUM_PREFIX, ''),
                             message: {
                                 key: Date.now().toString(),
                                 time: now,
@@ -80,7 +81,7 @@ const startExpressSocketIOServer = () => {
         });
     });
     // NOTE: engine.io config options https://github.com/socketio/engine.io#methods-1
-    const io = socketio(server, {
+    const io = new SocketIOServer(server, {
         path: globalConfig[process.env.NODE_ENV].socket.clientPath,
         // how many ms before sending a new ping packet
         pingInterval: Number(globalConfig[process.env.NODE_ENV || 'development'].socket.pingInterval),
@@ -88,13 +89,13 @@ const startExpressSocketIOServer = () => {
         pingTimeout: Number(globalConfig[process.env.NODE_ENV || 'development'].socket.pingTimeout),
     });
 
-    io.on('error', (error: string) => {
+    io.on('connect_error', (error: string) => {
         console.log(error); // eslint-disable-line no-console
     });
 
     io.adapter(redisAdapter);
 
-    io.on('connection', (socket: socketio.Socket) => {
+    io.on('connection', async (socket: Socket) => {
         printLogs({
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
@@ -105,10 +106,13 @@ const startExpressSocketIOServer = () => {
             },
         });
 
+        const allRooms = await (io.of('/').adapter as any).allRooms();
+        const roomsList = await getSocketRoomsList(io, allRooms);
+
         printLogs({
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
-            messages: `All Rooms: ${JSON.stringify(getSocketRoomsList(io.sockets.adapter.rooms))}`,
+            messages: `All Rooms: ${JSON.stringify(roomsList)}`,
             tracer: beeline,
             traceArgs: {
                 socketId: socket.id,
@@ -118,7 +122,7 @@ const startExpressSocketIOServer = () => {
         // Send a list of the currently active chat rooms when user connects
         socket.emit(SOCKET_MIDDLEWARE_ACTION, {
             type: SocketServerActionTypes.SEND_ROOMS_LIST,
-            data: getSocketRoomsList(io.sockets.adapter.rooms),
+            data: roomsList,
         });
 
         // Event sent from socket.io, redux store middleware
@@ -132,7 +136,7 @@ const startExpressSocketIOServer = () => {
                         // Notify all users
                         socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
                             type: SocketServerActionTypes.SEND_ROOMS_LIST,
-                            data: getSocketRoomsList(io.sockets.adapter.rooms),
+                            data: roomsList,
                         });
                     }
 
@@ -143,7 +147,7 @@ const startExpressSocketIOServer = () => {
                         // Notify all users
                         socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
                             type: SocketServerActionTypes.SEND_ROOMS_LIST,
-                            data: getSocketRoomsList(io.sockets.adapter.rooms),
+                            data: roomsList,
                         });
                     }
 
