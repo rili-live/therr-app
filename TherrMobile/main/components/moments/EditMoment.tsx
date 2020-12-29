@@ -108,7 +108,6 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                     setTimeout(this.props.closeOverlay, 750);
                 })
                 .catch((error: any) => {
-                    console.log(error);
                     if (
                         error.statusCode === 400 ||
                         error.statusCode === 401 ||

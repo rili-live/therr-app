@@ -38,7 +38,7 @@ const update = ({
         messages: `User, ${user.userName} with socketId ${socket.id}, has refreshed the page. Updating socket.`,
         tracer: beeline,
         traceArgs: {
-            ip: socket.handshake.headers.host.split(':')[0],
+            ip: (socket.handshake.headers as any).host.split(':')[0],
             socketId: socket.id,
             userName: user.userName,
             firstName: user.firstName,
@@ -47,11 +47,11 @@ const update = ({
         },
     });
 
-    if (socket.handshake && socket.handshake.headers && socket.handshake.headers.host && data.isAuthenticated) {
+    if (socket.handshake && (socket.handshake.headers as any) && (socket.handshake.headers as any).host && data.isAuthenticated) {
         redisSessions.update({
             app: appName,
             socketId: socket.id,
-            ip: socket.handshake.headers.host.split(':')[0],
+            ip: (socket.handshake.headers as any).host.split(':')[0],
             // 30 minutes
             ttl: 60 * 1000 * 30,
             data: {
@@ -81,7 +81,7 @@ const update = ({
                 tracer: beeline,
                 traceArgs: {
                     appName,
-                    ip: socket.handshake.headers.host.split(':')[0],
+                    ip: (socket.handshake.headers as any).host.split(':')[0],
                     socketId: socket.id,
                     userName: user.userName,
                 },

@@ -225,21 +225,23 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                         <div id="user-connections-container" className="user-connections-container account-section-content">
                             {
                                 userConnections.connections.length
-                                    ? userConnections.connections.slice(0, 10).map((connection: any) => (
-                                        <div className="user-connection-icon" key={connection.id}>
-                                            {
-                                                connection.users
-                                                && <span className="name-tag">{this.getConnectionDetails(connection).firstName}</span>
-                                            }
-                                            <img
-                                                src={`https://robohash.org/${connection.acceptingUserId === user.details.id
-                                                    ? connection.requestingUserId
-                                                    : connection.acceptingUserId}?size=100x100`}
-                                                alt="User Connection"
-                                                onClick={(e) => this.handleInitMessaging(e, connection)}
-                                            />
-                                        </div>
-                                    ))
+                                    ? userConnections.connections.slice(0, 10).map((connection: any) => {
+                                        const connectionDetails = this.getConnectionDetails(connection);
+
+                                        return (
+                                            <div className="user-connection-icon" key={connectionDetails.id}>
+                                                {
+                                                    connection.users
+                                                    && <span className="name-tag">{connectionDetails.firstName}</span>
+                                                }
+                                                <img
+                                                    src={`https://robohash.org/${connectionDetails.id}?size=100x100`}
+                                                    alt="User Connection"
+                                                    onClick={(e) => this.handleInitMessaging(e, connection)}
+                                                />
+                                            </div>
+                                        );
+                                    })
                                     : <span><i>{this.translate('pages.userProfile.requestRecommendation')}</i></span>
                             }
                         </div>

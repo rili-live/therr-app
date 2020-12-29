@@ -158,13 +158,6 @@ class DirectMessage extends React.Component<
         const { route, sendDirectMessage, user } = this.props;
         const { connectionDetails } = route.params;
 
-        console.log({
-            message: msgInputVal,
-            userId: user.details && user.details.id,
-            userName: user.details && user.details.userName,
-            to: connectionDetails,
-        });
-
         sendDirectMessage({
             message: msgInputVal,
             userId: user.details && user.details.id,
