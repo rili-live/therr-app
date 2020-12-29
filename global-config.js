@@ -27,9 +27,9 @@ module.exports = {
     },
     stage: {
         baseApiGatewayRoute: `https://api.${hostStage}/v1`,
-        baseMapsServiceRoute: `https://maps-service.${hostStage}/v1`,
-        baseMessagesServiceRoute: `https://messages-service.${hostStage}/v1`,
-        baseUsersServiceRoute: `https://users-service.${hostStage}/v1`,
+        baseMapsServiceRoute: `http://maps-service-cluster-ip-service:${apiMapsPort}/v1`,
+        baseMessagesServiceRoute: `http://messages-service-cluster-ip-service:${apiMessagesPort}/v1`,
+        baseUsersServiceRoute: `http://users-service-cluster-ip-service:${apiUsersPort}/v1`,
         baseSocketUrl: `https://websocket-service.${hostStage}`,
         googleAnalyticsKey: '',
         host: hostStage,
