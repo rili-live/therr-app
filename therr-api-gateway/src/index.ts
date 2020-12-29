@@ -1,4 +1,5 @@
 import beeline from './beeline'; // eslint-disable-line import/order
+import axios from 'axios';
 import * as bodyParser from 'body-parser';
 import express from 'express';
 import cors from 'cors';
@@ -9,6 +10,9 @@ import router from './routes';
 import honey from './middleware/honey';
 import { version as packageVersion } from '../package.json';
 import authenticate from './middleware/authenticate';
+
+// Axios defaults
+axios.defaults.timeout = 1000 * 10; // 10 Second Request timeout
 
 const originWhitelist = (process.env.URI_WHITELIST || '').split(',');
 const corsOptions = {

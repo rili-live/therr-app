@@ -4,8 +4,8 @@ import beeline from '../beeline'; // eslint-disable-line import/order
 
 const nodes = [
     {
-        host: process.env.REDIS_NODE_ONE_HOST,
-        port: Number(process.env.REDIS_NODE_ONE_PORT),
+        host: process.env.REDIS_PUB_HOST,
+        port: Number(process.env.REDIS_PUB_PORT),
     },
 ];
 
@@ -19,8 +19,9 @@ const redisPub: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
     lazyConnect: true,
 });
 
+// TODO: Use separate publish and subscribe Redis hosts
 const redisSub: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
-    connectionName: 'redisSocketPub',
+    connectionName: 'redisSocketSub',
     lazyConnect: true,
 });
 
