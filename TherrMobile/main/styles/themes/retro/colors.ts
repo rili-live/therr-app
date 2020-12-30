@@ -8,6 +8,7 @@ const colors = {
     ternary: '#e0c845',
 
     beemo1: '#5cb19e',
+    beemo1Fade: '#97c5bb',
     beemo2: '#cbffdc',
     beemo3: '#218a35',
     beemoTextBlack: '#001226',
@@ -23,6 +24,7 @@ const colors = {
     textWhite: '#fcfeff',
 
     backgroundWhite: '#ffffff',
+    backgroundGray: '#fafafa',
     borderLight: 'gray',
 
     map: {

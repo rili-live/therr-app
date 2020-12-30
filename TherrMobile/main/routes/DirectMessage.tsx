@@ -12,6 +12,7 @@ import * as therrTheme from '../styles/themes';
 import messageStyles from '../styles/messages';
 import formStyles from '../styles/forms';
 import translator from '../services/translator';
+import TextMessage from '../components/TextMessage';
 
 interface IDirectMessageDispatchProps {
     searchDms: Function;
@@ -211,9 +212,10 @@ class DirectMessage extends React.Component<
                         keyExtractor={(item) => String(item.key)}
                         onScroll={this.handleScroll}
                         renderItem={({ item }) => (
-                            <Text
-                                style={messageStyles.item}
-                            >{`(${item.time}) ${item.text}`}</Text>
+                            <TextMessage
+                                message={item}
+                                isLeft={item.text.includes('You: ')}
+                            />
                         )}
                         ref={(component) => (this.flatListRef = component)}
                         initialScrollIndex={0}
