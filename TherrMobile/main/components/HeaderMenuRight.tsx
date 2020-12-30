@@ -21,7 +21,7 @@ export interface IHeaderMenuRightProps extends IStoreProps {
     logout: Function;
     navigation: any;
     isVisible: boolean;
-    isHeaderTransparent: boolean;
+    shouldUseDarkText: boolean;
     updateGpsStatus: Function;
     user: any;
 }
@@ -116,7 +116,7 @@ class HeaderMenuRight extends React.Component<
     };
 
     render() {
-        const { isHeaderTransparent, isVisible, user } = this.props;
+        const { shouldUseDarkText, isVisible, user } = this.props;
         const { isModalVisible } = this.state;
         const currentScreen = this.getCurrentScreen();
 
@@ -126,8 +126,8 @@ class HeaderMenuRight extends React.Component<
                     <Button
                         icon={
                             <Image
-                                source={{ uri: `https://robohash.org/${user.details?.id}?size=25x25` }}
-                                style={isHeaderTransparent ? headerMenuModal.toggleIconDark : headerMenuModal.toggleIcon}
+                                source={{ uri: `https://robohash.org/${user.details?.id}?size=50x50` }}
+                                style={shouldUseDarkText ? headerMenuModal.toggleIconDark : headerMenuModal.toggleIcon}
                                 PlaceholderContent={<ActivityIndicator />}
                             />}
                         onPress={this.toggleOverlay}
@@ -142,7 +142,7 @@ class HeaderMenuRight extends React.Component<
                             <View style={headerMenuModal.header}>
                                 <View style={headerMenuModal.headerTitle}>
                                     <Image
-                                        source={{ uri: `https://robohash.org/${user.details?.id}?size=30x30` }}
+                                        source={{ uri: `https://robohash.org/${user.details?.id}?size=50x50` }}
                                         style={headerMenuModal.headerTitleIcon}
                                         PlaceholderContent={<ActivityIndicator />}
                                     />

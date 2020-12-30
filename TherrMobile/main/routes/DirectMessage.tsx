@@ -1,6 +1,6 @@
 import React from 'react';
-import { SafeAreaView, FlatList, View, Text, StatusBar } from 'react-native';
-import { Button, Input } from 'react-native-elements';
+import { ActivityIndicator, SafeAreaView, FlatList, View, Text, StatusBar } from 'react-native';
+import { Button, Image, Input } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { connect } from 'react-redux';
@@ -70,8 +70,12 @@ class DirectMessage extends React.Component<
     }
 
     componentDidMount() {
-        const { messages, route, searchDms } = this.props;
+        const { messages, navigation, route, searchDms } = this.props;
         const { connectionDetails } = route.params;
+
+        navigation.setOptions({
+            title: connectionDetails.userName,
+        });
 
         if (connectionDetails && !messages.dms[connectionDetails.id]) {
             searchDms(
@@ -190,11 +194,15 @@ class DirectMessage extends React.Component<
                 <StatusBar barStyle="light-content" animated={true} translucent={true} />
                 <SafeAreaView style={messageStyles.container}>
                     <View style={styles.body}>
-                        <View style={styles.sectionContainer}>
+                        <View style={messageStyles.sectionContainer}>
+                            <Image
+                                source={{ uri: `https://robohash.org/${connectionDetails.id}?size=50x50` }}
+                                style={messageStyles.userImage}
+                                PlaceholderContent={<ActivityIndicator />}
+                            />
                             <Text style={styles.sectionTitle}>
                                 {connectionDetails.firstName}{' '}
-                                {connectionDetails.lastName}:{' '}
-                                {connectionDetails.userName}
+                                {connectionDetails.lastName}
                             </Text>
                         </View>
                     </View>

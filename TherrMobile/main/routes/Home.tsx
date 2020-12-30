@@ -88,7 +88,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         const { navigation, user, userConnections } = this.props;
 
         navigation.setOptions({
-            title: this.translate('pages.home.headerTitle'),
+            title: 'Therr',
         });
 
         if (!userConnections.connections.length) {

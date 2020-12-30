@@ -14,6 +14,8 @@ export const theme = {
     },
 };
 
+const HEADER_HEIGHT_MARGIN = 80;
+
 const sectionTitle: any = {
     marginBottom: 8,
     fontSize: 24,
@@ -23,6 +25,15 @@ const sectionTitle: any = {
 const bodyStyle: any = {
     backgroundColor: therrTheme.colors.primary2,
     color: therrTheme.colors.textWhite,
+    marginTop: 0,
+};
+
+const headerStyles: any = {
+    backgroundColor: bodyStyle.backgroundColor,
+    shadowOpacity: 0,
+    elevation: 0,
+    shadowColor: 'transparent',
+    borderBottomColor: therrTheme.colors.primary,
 };
 
 const loaderStyles = StyleSheet.create({
@@ -39,9 +50,12 @@ export default StyleSheet.create({
     body: {
         ...bodyStyle,
     },
+    bodyShift: {
+        ...bodyStyle,
+        marginTop: HEADER_HEIGHT_MARGIN,
+    },
     bodyFlex: {
         ...bodyStyle,
-        marginTop: 80,
         marginBottom: 0,
         padding: 20,
     },
@@ -99,6 +113,13 @@ export default StyleSheet.create({
     spacer: {
         marginTop: '16%',
         marginBottom: '16%',
+    },
+    headerStyle: {
+        ...headerStyles,
+        borderBottomWidth: 1,
+    },
+    headerStyleAlt: {
+        ...headerStyles,
     },
     highlight: {
         fontWeight: '700',
