@@ -1,5 +1,5 @@
 import Knex from 'knex';
-// import { Notifications } from 'therr-js-utilities/constants';
+import { Notifications } from 'therr-js-utilities/constants';
 import { getDbCountQueryString } from 'therr-js-utilities/db';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { IConnection } from './connection';
@@ -60,6 +60,7 @@ export default class NotificationsStore {
     }
 
     // TODO: RSERV:25 - Make this dynamic to support various associationIds
+    // WARNING: This could become a potential bottleneck
     searchNotifications(conditions: any = {}) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
@@ -76,7 +77,16 @@ export default class NotificationsStore {
                 `${NOTIFICATIONS_TABLE_NAME}.updatedAt`,
             ])
             .from(NOTIFICATIONS_TABLE_NAME)
-            .leftJoin(USER_CONNECTIONS_TABLE_NAME, `${NOTIFICATIONS_TABLE_NAME}.associationId`, `${USER_CONNECTIONS_TABLE_NAME}.id`)
+            .leftJoin(USER_CONNECTIONS_TABLE_NAME, function () {
+                this.on(knex.raw(`
+                    "main"."notifications"."associationId" = "main"."userConnections".id
+                    AND (
+                        ${NOTIFICATIONS_TABLE_NAME}.type = '${Notifications.Types.CONNECTION_REQUEST_ACCEPTED}'
+                        OR
+                        ${NOTIFICATIONS_TABLE_NAME}.type = '${Notifications.Types.CONNECTION_REQUEST_RECEIVED}'
+                    )
+                `));
+            })
             .columns([
                 `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId as userConnection.requestingUserId`,
                 `${USER_CONNECTIONS_TABLE_NAME}.acceptingUserId as userConnection.acceptingUserId`,

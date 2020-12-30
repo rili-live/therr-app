@@ -78,8 +78,13 @@ export default StyleSheet.create({
         marginLeft: 2,
     },
     logoIconDark: {
-        color: therrTheme.colors.primary3,
+        color: therrTheme.colors.secondary,
         marginLeft: 2,
+        elevation: 1,
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 5,
+        height: 32,
+        width: 32,
     },
     sectionContainer: {
         marginTop: 16,
@@ -123,6 +128,13 @@ export default StyleSheet.create({
     },
     highlight: {
         fontWeight: '700',
+    },
+    overlay: {
+        height: '100%',
+        width: '100%',
+        padding: 0,
+        margin: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.35)',
     },
     footer: {
         color: therrTheme.colors.textWhite,

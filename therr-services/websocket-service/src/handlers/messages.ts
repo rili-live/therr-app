@@ -60,7 +60,7 @@ const sendDirectMessage = (socket: socketio.Socket, data: any) => {
                             data: {
                                 userId: data.to.id,
                                 type: Notifications.Types.NEW_DM_RECEIVED,
-                                associationId: data.userId,
+                                associationId: null,
                                 isUnread: true,
                                 messageLocaleKey: Notifications.MessageKeys.NEW_DM_RECEIVED,
                                 messageParams: {

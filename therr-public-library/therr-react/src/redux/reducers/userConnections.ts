@@ -37,6 +37,7 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
         case SocketServerActionTypes.USER_CONNECTION_UPDATED:
             return state.setIn(['connections'], [...uniqueConnections, action.data]);
         case SocketServerActionTypes.ACTIVE_CONNECTIONS_ADDED:
+            // TODO: Make sure that multiple connections with the same id are not added
             activeConnections.unshift(action.data);
             return state.setIn(['activeConnections'], activeConnections);
         case SocketServerActionTypes.ACTIVE_CONNECTIONS_LOADED:

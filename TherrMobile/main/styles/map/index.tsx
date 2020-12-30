@@ -136,7 +136,7 @@ export default StyleSheet.create({
         justifyContent: 'flex-end',
         alignItems: 'center',
     },
-    editMomentOverlay: {
+    editMomentOverlayContainer: {
         backgroundColor: therrTheme.colors.beemo1,
         display: 'flex',
         height: '100%',
@@ -150,8 +150,7 @@ export default StyleSheet.create({
         top: 0,
         left: 0,
     },
-    momentAlertOverlay: {
-        backgroundColor: therrTheme.colors.beemo1,
+    momentAlertOverlayContainer: {
         display: 'flex',
         flexDirection: 'column',
         borderRadius: 0,
