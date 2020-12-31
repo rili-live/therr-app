@@ -80,6 +80,9 @@ export default StyleSheet.create({
         width: 150,
         borderRadius: 75,
     },
+    listItemCard: {
+        backgroundColor: therrTheme.colors.backgroundGray,
+    },
     logoIcon: {
         color: therrTheme.colors.textWhite,
         marginLeft: 2,

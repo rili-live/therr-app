@@ -92,6 +92,8 @@ class Map extends React.Component<IMapProps, IMapState> {
     private mapRef;
     private mapWatchId;
     private timeoutId;
+    private timeoutIdRefreshMoments;
+    private timeoutIdShowMoment;
     private translate: Function;
 
     constructor(props) {
@@ -230,6 +232,8 @@ class Map extends React.Component<IMapProps, IMapState> {
     componentWillUnmount() {
         Geolocation.clearWatch(this.mapWatchId);
         clearTimeout(this.timeoutId);
+        clearTimeout(this.timeoutIdRefreshMoments);
+        clearTimeout(this.timeoutIdShowMoment);
     }
 
     goToHome = () => {
@@ -355,12 +359,14 @@ class Map extends React.Component<IMapProps, IMapState> {
         const { isMinLoadTimeComplete, layers } = this.state;
 
         if (!isMinLoadTimeComplete) {
-            setTimeout(() => {
+            this.timeoutIdRefreshMoments = setTimeout(() => {
                 this.handleRefreshMoments(overrideThrottle, coords, shouldSearchAll);
             }, 50);
 
             return;
         }
+
+        clearTimeout(this.timeoutIdRefreshMoments);
 
         this.setState({
             areLayersVisible: false,
@@ -417,7 +423,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             isMomentAlertVisible: true,
         });
 
-        setTimeout(() => {
+        this.timeoutIdShowMoment = setTimeout(() => {
             this.setState({
                 isMomentAlertVisible: false,
             });

@@ -38,6 +38,8 @@ class HeaderMenuRight extends React.Component<
     IHeaderMenuRightProps,
     IHeaderMenuRightState
 > {
+    private timeoutId: any;
+
     private translate: Function;
 
     constructor(props) {
@@ -48,6 +50,10 @@ class HeaderMenuRight extends React.Component<
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
+    }
+
+    componentWillUnmount = () => {
+        clearTimeout(this.timeoutId);
     }
 
     toggleOverlay = () => {
@@ -94,7 +100,7 @@ class HeaderMenuRight extends React.Component<
 
         hideModal();
 
-        setTimeout(() => { // Wait for overlay animation
+        this.timeoutId = setTimeout(() => { // Wait for overlay animation
             logout(user.details)
                 .then(() => {
                     navigation.dispatch(

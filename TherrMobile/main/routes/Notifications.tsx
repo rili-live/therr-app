@@ -124,19 +124,11 @@ class Notifications extends React.Component<
 
     render() {
         const { navigation, notifications, user } = this.props;
-        const pageTitle = this.translate('pages.notifications.pageTitle');
 
         return (
             <>
                 <StatusBar barStyle="light-content" animated={true} translucent={true} />
                 <SafeAreaView>
-                    <View style={styles.body}>
-                        <View style={styles.sectionContainer}>
-                            <Text style={styles.sectionTitle}>
-                                {pageTitle.toString()}
-                            </Text>
-                        </View>
-                    </View>
                     {
                         notifications.messages.length ? (
                             <FlatList
@@ -148,7 +140,7 @@ class Notifications extends React.Component<
                                         handlePress={(e) => this.markNotificationAsRead(e, item, false)}
                                         isUnread={item.isUnread}
                                         notification={item}
-                                        containerStyles={index === 0 ? { borderTopWidth: 2 } : {}}
+                                        containerStyles={index === 0 ? { borderTopWidth: 1 } : {}}
                                         translate={this.translate}
                                     />
                                 )}

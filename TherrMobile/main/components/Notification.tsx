@@ -46,13 +46,17 @@ export default ({
                     {notification.message}
                 </Text>
                 {
-                    isUnread &&
-                    <FontAwesomeIcon
-                        name="dot-circle"
-                        size={14}
-                        color="black"
-                        style={iconStyle}
-                    />
+                    isUnread ?
+                        <FontAwesomeIcon
+                            name="dot-circle"
+                            size={14}
+                            style={iconStyle}
+                        /> :
+                        <FontAwesomeIcon
+                            name="check"
+                            size={14}
+                            style={iconStyle}
+                        />
                 }
             </View>
             {

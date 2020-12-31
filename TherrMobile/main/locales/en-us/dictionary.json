@@ -133,11 +133,11 @@
   "components": {
     "activeConnections": {
       "noActiveConnections": "There are currently no active connections in your network",
-      "title": "Active Connections"
+      "title": "Active Contacts"
     },
     "contactsSearch": {
       "noContactsFound": "No contacts found",
-      "title": "Contacts"
+      "title": "All Contacts"
     },
     "header": {
       "buttons": {
