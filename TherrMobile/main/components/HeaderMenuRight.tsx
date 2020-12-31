@@ -1,15 +1,19 @@
 import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { Button, Image, Overlay, Text } from 'react-native-elements';
+import { Button, Image, Text } from 'react-native-elements';
+import Overlay from 'react-native-modal-overlay';
 import { CommonActions } from '@react-navigation/native';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import LocationServicesDialogBox from 'react-native-android-location-services-dialog-box';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
+import styles from '../styles';
 import { headerMenuModal } from '../styles/modal';
 import * as therrTheme from '../styles/themes';
 import translator from '../services/translator';
 import { ILocationState } from '../types/redux/location';
+
+const ANIMATION_DURATION = 200;
 
 interface IHeaderMenuRightDispatchProps {}
 
@@ -21,7 +25,7 @@ export interface IHeaderMenuRightProps extends IStoreProps {
     logout: Function;
     navigation: any;
     isVisible: boolean;
-    isHeaderTransparent: boolean;
+    shouldUseDarkText: boolean;
     updateGpsStatus: Function;
     user: any;
 }
@@ -88,22 +92,26 @@ class HeaderMenuRight extends React.Component<
     handleLogout = () => {
         const { user, logout, navigation } = this.props;
 
-        logout(user.details)
-            .then(() => {
-                navigation.dispatch(
-                    CommonActions.reset({
-                        index: 1,
-                        routes: [
-                            {
-                                name: 'Login',
-                            },
-                        ],
-                    })
-                );
-            })
-            .catch((e) => {
-                console.log(e);
-            });
+        this.toggleOverlay();
+
+        setTimeout(() => { // Wait for overlay animation
+            logout(user.details)
+                .then(() => {
+                    navigation.dispatch(
+                        CommonActions.reset({
+                            index: 1,
+                            routes: [
+                                {
+                                    name: 'Login',
+                                },
+                            ],
+                        })
+                    );
+                })
+                .catch((e) => {
+                    console.log(e);
+                });
+        });
     };
 
     getCurrentScreen = () => {
@@ -116,7 +124,7 @@ class HeaderMenuRight extends React.Component<
     };
 
     render() {
-        const { isHeaderTransparent, isVisible, user } = this.props;
+        const { shouldUseDarkText, isVisible, user } = this.props;
         const { isModalVisible } = this.state;
         const currentScreen = this.getCurrentScreen();
 
@@ -126,23 +134,28 @@ class HeaderMenuRight extends React.Component<
                     <Button
                         icon={
                             <Image
-                                source={{ uri: `https://robohash.org/${user.details?.id}?size=25x25` }}
-                                style={isHeaderTransparent ? headerMenuModal.toggleIconDark : headerMenuModal.toggleIcon}
+                                source={{ uri: `https://robohash.org/${user.details?.id}?size=50x50` }}
+                                style={shouldUseDarkText ? headerMenuModal.toggleIconDark : headerMenuModal.toggleIcon}
                                 PlaceholderContent={<ActivityIndicator />}
                             />}
                         onPress={this.toggleOverlay}
                         type="clear"
                     />
                     <Overlay
-                        isVisible={isModalVisible}
-                        onBackdropPress={this.toggleOverlay}
-                        overlayStyle={headerMenuModal.container}
+                        animationType='slideInRight'
+                        animationDuration={ANIMATION_DURATION}
+                        easing='ease-in-out-sine'
+                        visible={isModalVisible}
+                        onClose={this.toggleOverlay}
+                        closeOnTouchOutside
+                        containerStyle={styles.overlay}
+                        childrenWrapperStyle={headerMenuModal.overlayContainer}
                     >
                         <>
                             <View style={headerMenuModal.header}>
                                 <View style={headerMenuModal.headerTitle}>
                                     <Image
-                                        source={{ uri: `https://robohash.org/${user.details?.id}?size=30x30` }}
+                                        source={{ uri: `https://robohash.org/${user.details?.id}?size=50x50` }}
                                         style={headerMenuModal.headerTitleIcon}
                                         PlaceholderContent={<ActivityIndicator />}
                                     />

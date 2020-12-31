@@ -51,6 +51,11 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
         return (
             <>
                 <View style={viewMomentModal.header}>
+                    <View style={viewMomentModal.headerTitle}>
+                        <Text style={viewMomentModal.headerTitleText}>
+                            {moment.notificationMsg}
+                        </Text>
+                    </View>
                     <Button
                         icon={
                             <Icon

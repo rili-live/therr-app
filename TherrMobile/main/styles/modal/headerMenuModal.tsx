@@ -15,27 +15,27 @@ export default StyleSheet.create({
     },
     buttonsTitle: {
         backgroundColor: 'transparent',
-        color: therrTheme.colors.secondary,
+        color: therrTheme.colors.beemoAlt,
         paddingRight: 10,
         paddingLeft: 10,
     },
     buttonsTitleActive: {
         backgroundColor: 'transparent',
-        color: therrTheme.colors.beemo3,
+        color: therrTheme.colors.primary,
         paddingRight: 10,
         paddingLeft: 10,
     },
     iconStyle: {
-        color: therrTheme.colors.secondary,
+        color: therrTheme.colors.beemoAlt,
         // position: 'absolute',
         // left: 20
     },
     iconStyleActive: {
-        color: therrTheme.colors.beemo3,
+        color: therrTheme.colors.primary,
         // position: 'absolute',
         // left: 20
     },
-    container: {
+    overlayContainer: {
         backgroundColor: containerBackgroundColor,
         display: 'flex',
         height: '100%',
@@ -68,7 +68,7 @@ export default StyleSheet.create({
         letterSpacing: 3,
     },
     headerTitleIcon: {
-        // color: therrTheme.colors.primary3,
+        // color: therrTheme.colors.beemoAlt,
         marginRight: 10,
         height: 30,
         width: 30,

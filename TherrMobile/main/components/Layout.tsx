@@ -18,6 +18,7 @@ import UsersActions from '../redux/actions/UsersActions';
 import { ILocationState } from '../types/redux/location';
 import HeaderMenuLeft from './HeaderMenuLeft';
 import translator from '../services/translator';
+import styles from '../styles';
 import * as therrTheme from '../styles/themes';
 
 const Stack = createStackNavigator();
@@ -149,14 +150,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             <NavigationContainer theme={theme}>
                 <Stack.Navigator
                     screenOptions={({ navigation }) => {
-                        const isHeaderTransparent = this.getCurrentScreen(navigation) === 'Map';
+                        const isMap = this.getCurrentScreen(navigation) === 'Map';
 
                         return ({
                             // animationEnabled: false,
                             cardStyleInterpolator: forFade,
                             headerLeft: () => (
                                 <HeaderMenuLeft
-                                    isHeaderTransparent={isHeaderTransparent}
+                                    shouldUseDarkText={isMap}
                                     navigation={navigation}
                                     isAuthenticated={user.isAuthenticated}
                                 />
@@ -164,7 +165,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             headerRight: () => (
                                 <HeaderMenuRight
                                     navigation={navigation}
-                                    isHeaderTransparent={isHeaderTransparent}
+                                    shouldUseDarkText={isMap}
                                     isVisible={this.shouldShowTopRightMenu()}
                                     location={location}
                                     logout={logout}
@@ -176,8 +177,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 alignSelf: 'center',
                                 textAlign: 'center',
                                 flex: 1,
-                                color: isHeaderTransparent ? therrTheme.colors.primary3 : therrTheme.colors.textWhite,
+                                color: isMap ? therrTheme.colors.secondaryFaded : therrTheme.colors.textWhite,
+                                textShadowOffset: isMap ? { width: 1, height: 1 } : { width: 0, height: 0 },
+                                textShadowRadius: isMap ? 1 : 0,
+                                letterSpacing: 4,
                             },
+                            headerStyle: styles.headerStyle,
+                            headerTransparent: false,
                         });
                     }}
                 >

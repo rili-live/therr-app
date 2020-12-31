@@ -12,6 +12,7 @@ import ForgotPassword from './ForgotPassword';
 import Notifications from './Notifications';
 import Register from './Register';
 import Settings from './Settings';
+import styles from '../styles';
 
 export interface ExtendedRouteOptions extends StackNavigationOptions {
     access?: IAccess;
@@ -29,7 +30,7 @@ const routes: RouteConfig<
         component: Login,
         options: {
             title: 'Login',
-            headerTransparent: true,
+            headerStyle: styles.headerStyleAlt,
         },
     },
     {
@@ -93,7 +94,7 @@ const routes: RouteConfig<
         component: ForgotPassword,
         options: {
             title: 'Password Reset',
-            headerTransparent: true,
+            headerStyle: styles.headerStyleAlt,
         },
     },
     {
@@ -112,7 +113,6 @@ const routes: RouteConfig<
         component: Register,
         options: {
             title: 'Create Account',
-            headerTransparent: true,
         },
     },
     {

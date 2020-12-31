@@ -286,7 +286,7 @@ export class RegisterFormComponent extends React.Component<
                     message={prevRegisterError}
                     type={'error'}
                 />
-                <View style={styles.submitButtonContainer}>
+                <View style={styles.registerButtonContainer}>
                     <Button
                         buttonStyle={styles.button}
                         title={this.translate(

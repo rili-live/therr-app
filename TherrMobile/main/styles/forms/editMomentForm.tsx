@@ -9,6 +9,7 @@ const submitButtonStyles: any = {
 
 export default StyleSheet.create({
     momentContainer: {
+        width: '100%',
         marginTop: 0,
         marginBottom: 4,
         padding: 20,
