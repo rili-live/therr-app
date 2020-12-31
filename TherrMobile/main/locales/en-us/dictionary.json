@@ -1,5 +1,128 @@
 
 {
+  "quoteOfTheDay": "Quote of the Day",
+  "dailyQuotes": [
+    {
+      "quote": "Over every mountain there is a path, although it may not be seen from the valley.",
+      "author": "Theodore Roethke"
+    },
+    {
+      "quote": "Someday is not a day of the week.",
+      "author": "Denise Brennan-Nelson"
+    },
+    {
+      "quote": "Your time is limited, so don't waste it living someone else's life.",
+      "author": "Steve Jobs"
+    },
+    {
+      "quote": "If you cannot do great things, do small things in a great way.",
+      "author": "Napoleon Hill"
+    },
+    {
+      "quote": "Without hustle, talent will only carry you so far.",
+      "author": "Gary Vaynerchuk"
+    },
+    {
+      "quote": "You always pass failure on the way to success.",
+      "author": "Mickey Rooney"
+    },
+    {
+      "quote": "No one is perfect. That’s why pencils have erasers.",
+      "author": "Wolfgang Riebe"
+    },
+    {
+      "quote": "A journey of a thousand miles begins with a single step.",
+      "author": "Chinese Proverb"
+    },
+    {
+      "quote": "Be not afraid of growing slowly, be afraid only of standing still.",
+      "author": "Chinese Proverb"
+    },
+    {
+      "quote": "Better a diamond with a flaw than a pebble without one.",
+      "author": "Chinese Proverb"
+    },
+    {
+      "quote": "A closed mind is like a closed book; just a block of wood.",
+      "author": "Chinese Proverb"
+    },
+    {
+      "quote": "Better to light a candle than to curse the darkness.",
+      "author": "Chinese Proverb"
+    },
+    {
+      "quote": "He who cheats the earth will be cheated by the earth.",
+      "author": "Chinese Proverb"
+    },
+    {
+      "quote": "Nobody can make you feel inferior without your permission.",
+      "author": "Eleanor Roosevelt"
+    },
+    {
+      "quote": "The two most important days in your life are the day you are born and the day you find out why.",
+      "author": "Mark Twain"
+    },
+    {
+      "quote": "Educating the mind without educating the heart is no education at all.",
+      "author": "Aristotle"
+    },
+    {
+      "quote": "In the end, it’s not the years in your life that count. It’s the life in your years.",
+      "author": "Abraham Lincoln"
+    },
+    {
+      "quote": "Life is not a problem to be solved, but a reality to be experienced.",
+      "author": "Soren Kierkegaard"
+    },
+    {
+      "quote": "Life is ten percent what happens to you and ninety percent how you respond to it.",
+      "author": "Lou Holtz"
+    },
+    {
+      "quote": "The only disability in life is a bad attitude.",
+      "author": "Scott Hamilton"
+    },
+    {
+      "quote": "There is more to life than increasing its speed.",
+      "author": "Mahatma Gandhi"
+    },
+    {
+      "quote": "Life is really simple, but we insist on making it complicated.",
+      "author": "Confucius"
+    },
+    {
+      "quote": "Only a life lived for others is a life worthwhile.",
+      "author": "Albert Einstein"
+    },
+    {
+      "quote": "Many of life's failures are people who did not realize how close they were to success when they gave up.",
+      "author": "Thomas A. Edison"
+    },
+    {
+      "quote": "Each person must live their life as a model for others.",
+      "author": "Rosa Parks"
+    },
+    {
+      "quote": "Life is not about how fast you run or how high you climb, but how well you bounce.",
+      "author": "Vivian Komori"
+    },
+    {
+      "quote": "Do not dwell in the past, do not dream of the future, concentrate the mind on the present moment.",
+      "author": "Buddha"
+    },
+    {
+      "quote": "Don't find fault. Find a remedy.",
+      "author": "Henry Ford"
+    },
+    {
+      "quote": "Science without religion is lame, religion without science is blind.",
+      "author": "Albert Einstein"
+    },
+    {
+      "quote": "Winning is fun, but those moments that you can touch someone’s life in a very positive way are better.",
+      "author": "Tim Howard"
+    }
+  ],
   "validations": {
     "email": "Invalid email address",
     "isRequired": "This is a required field",
@@ -245,7 +368,8 @@
         "accountDetails": "Account Details",
         "connections": "Connections",
         "createConnection": "Create a Connection",
-        "howItWorks": "So, how does it work?"
+        "quoteOfTheDay": "Words of Wisdom",
+        "howItWorks": "Welcome back!"
       },
       "labels": {
         "email": "E-mail",
@@ -256,7 +380,7 @@
         "userName": "Username"
       },
       "pageTitle": "User Profile",
-      "siteDescription": "Welcome to the homepage. This is a work in progress...share a moment with your connections on the map or send a DM.",
+      "siteDescription": "Share a moment with your connections on the map or send a quick DM. Moments are proximity activated and entirely customizable.",
       "noActiveConnections": "There are currently no active connections in your network",
       "requestRecommendation": "Send a request to make connections and build a network",
       "validationErrors": {

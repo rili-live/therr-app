@@ -89,10 +89,10 @@ class HeaderMenuRight extends React.Component<
         }
     };
 
-    handleLogout = () => {
+    handleLogout = (hideModal) => {
         const { user, logout, navigation } = this.props;
 
-        this.toggleOverlay();
+        hideModal();
 
         setTimeout(() => { // Wait for overlay animation
             logout(user.details)
@@ -136,164 +136,168 @@ class HeaderMenuRight extends React.Component<
                             <Image
                                 source={{ uri: `https://robohash.org/${user.details?.id}?size=50x50` }}
                                 style={shouldUseDarkText ? headerMenuModal.toggleIconDark : headerMenuModal.toggleIcon}
-                                PlaceholderContent={<ActivityIndicator />}
+                                PlaceholderContent={<ActivityIndicator size="small" color={therrTheme.colors.primary} />}
                             />}
                         onPress={this.toggleOverlay}
                         type="clear"
                     />
                     <Overlay
-                        animationType='slideInRight'
+                        animationType="slideInRight"
                         animationDuration={ANIMATION_DURATION}
-                        easing='ease-in-out-sine'
+                        easing="ease-in-out-sine"
                         visible={isModalVisible}
                         onClose={this.toggleOverlay}
                         closeOnTouchOutside
                         containerStyle={styles.overlay}
                         childrenWrapperStyle={headerMenuModal.overlayContainer}
                     >
-                        <>
-                            <View style={headerMenuModal.header}>
-                                <View style={headerMenuModal.headerTitle}>
-                                    <Image
-                                        source={{ uri: `https://robohash.org/${user.details?.id}?size=50x50` }}
-                                        style={headerMenuModal.headerTitleIcon}
-                                        PlaceholderContent={<ActivityIndicator />}
-                                    />
-                                    <Text style={headerMenuModal.headerTitleText}>
-                                        {user.details?.userName}
-                                    </Text>
-                                </View>
-                                <Button
-                                    icon={
-                                        <Icon
-                                            name="close"
-                                            size={30}
-                                            color={therrTheme.colors.primary3}
+                        {
+                            (hideModal) => (
+                                <>
+                                    <View style={headerMenuModal.header}>
+                                        <View style={headerMenuModal.headerTitle}>
+                                            <Image
+                                                source={{ uri: `https://robohash.org/${user.details?.id}?size=50x50` }}
+                                                style={headerMenuModal.headerTitleIcon}
+                                                transition={false}
+                                            />
+                                            <Text style={headerMenuModal.headerTitleText}>
+                                                {user.details?.userName}
+                                            </Text>
+                                        </View>
+                                        <Button
+                                            icon={
+                                                <Icon
+                                                    name="close"
+                                                    size={30}
+                                                    color={therrTheme.colors.primary3}
+                                                />
+                                            }
+                                            onPress={hideModal}
+                                            type="clear"
                                         />
-                                    }
-                                    onPress={this.toggleOverlay}
-                                    type="clear"
-                                />
-                            </View>
-                            <View style={headerMenuModal.body}>
-                                <Button
-                                    buttonStyle={
-                                        currentScreen === 'Home'
-                                            ? headerMenuModal.buttonsActive
-                                            : headerMenuModal.buttons
-                                    }
-                                    titleStyle={
-                                        currentScreen === 'Home'
-                                            ? headerMenuModal.buttonsTitleActive
-                                            : headerMenuModal.buttonsTitle
-                                    }
-                                    title={this.translate('components.headerMenuRight.menuItems.home')}
-                                    icon={
-                                        <FontAwesomeIcon
-                                            style={
+                                    </View>
+                                    <View style={headerMenuModal.body}>
+                                        <Button
+                                            buttonStyle={
                                                 currentScreen === 'Home'
-                                                    ? headerMenuModal.iconStyleActive
-                                                    : headerMenuModal.iconStyle
+                                                    ? headerMenuModal.buttonsActive
+                                                    : headerMenuModal.buttons
                                             }
-                                            name="home"
-                                            size={22}
+                                            titleStyle={
+                                                currentScreen === 'Home'
+                                                    ? headerMenuModal.buttonsTitleActive
+                                                    : headerMenuModal.buttonsTitle
+                                            }
+                                            title={this.translate('components.headerMenuRight.menuItems.home')}
+                                            icon={
+                                                <FontAwesomeIcon
+                                                    style={
+                                                        currentScreen === 'Home'
+                                                            ? headerMenuModal.iconStyleActive
+                                                            : headerMenuModal.iconStyle
+                                                    }
+                                                    name="home"
+                                                    size={22}
+                                                />
+                                            }
+                                            onPress={() => this.navTo('Home')}
                                         />
-                                    }
-                                    onPress={() => this.navTo('Home')}
-                                />
-                                <Button
-                                    buttonStyle={
-                                        currentScreen === 'Map'
-                                            ? headerMenuModal.buttonsActive
-                                            : headerMenuModal.buttons
-                                    }
-                                    titleStyle={
-                                        currentScreen === 'Map'
-                                            ? headerMenuModal.buttonsTitleActive
-                                            : headerMenuModal.buttonsTitle
-                                    }
-                                    title={this.translate('components.headerMenuRight.menuItems.map')}
-                                    icon={
-                                        <FontAwesomeIcon
-                                            style={
+                                        <Button
+                                            buttonStyle={
                                                 currentScreen === 'Map'
-                                                    ? headerMenuModal.iconStyleActive
-                                                    : headerMenuModal.iconStyle
+                                                    ? headerMenuModal.buttonsActive
+                                                    : headerMenuModal.buttons
                                             }
-                                            name="globe-americas"
-                                            size={22}
+                                            titleStyle={
+                                                currentScreen === 'Map'
+                                                    ? headerMenuModal.buttonsTitleActive
+                                                    : headerMenuModal.buttonsTitle
+                                            }
+                                            title={this.translate('components.headerMenuRight.menuItems.map')}
+                                            icon={
+                                                <FontAwesomeIcon
+                                                    style={
+                                                        currentScreen === 'Map'
+                                                            ? headerMenuModal.iconStyleActive
+                                                            : headerMenuModal.iconStyle
+                                                    }
+                                                    name="globe-americas"
+                                                    size={22}
+                                                />
+                                            }
+                                            onPress={() => this.navTo('Map')}
                                         />
-                                    }
-                                    onPress={() => this.navTo('Map')}
-                                />
-                                <Button
-                                    buttonStyle={
-                                        currentScreen === 'ActiveConnections'
-                                            ? headerMenuModal.buttonsActive
-                                            : headerMenuModal.buttons
-                                    }
-                                    titleStyle={
-                                        currentScreen === 'ActiveConnections'
-                                            ? headerMenuModal.buttonsTitleActive
-                                            : headerMenuModal.buttonsTitle
-                                    }
-                                    title={this.translate('components.headerMenuRight.menuItems.connections')}
-                                    icon={
-                                        <FontAwesomeIcon
-                                            style={
+                                        <Button
+                                            buttonStyle={
                                                 currentScreen === 'ActiveConnections'
-                                                    ? headerMenuModal.iconStyleActive
-                                                    : headerMenuModal.iconStyle
+                                                    ? headerMenuModal.buttonsActive
+                                                    : headerMenuModal.buttons
                                             }
-                                            name="users"
-                                            size={22}
+                                            titleStyle={
+                                                currentScreen === 'ActiveConnections'
+                                                    ? headerMenuModal.buttonsTitleActive
+                                                    : headerMenuModal.buttonsTitle
+                                            }
+                                            title={this.translate('components.headerMenuRight.menuItems.connections')}
+                                            icon={
+                                                <FontAwesomeIcon
+                                                    style={
+                                                        currentScreen === 'ActiveConnections'
+                                                            ? headerMenuModal.iconStyleActive
+                                                            : headerMenuModal.iconStyle
+                                                    }
+                                                    name="users"
+                                                    size={22}
+                                                />
+                                            }
+                                            onPress={() => this.navTo('ActiveConnections')}
                                         />
-                                    }
-                                    onPress={() => this.navTo('ActiveConnections')}
-                                />
-                                <Button
-                                    buttonStyle={
-                                        currentScreen === 'Settings'
-                                            ? headerMenuModal.buttonsActive
-                                            : headerMenuModal.buttons
-                                    }
-                                    titleStyle={
-                                        currentScreen === 'Settings'
-                                            ? headerMenuModal.buttonsTitleActive
-                                            : headerMenuModal.buttonsTitle
-                                    }
-                                    title={this.translate('components.headerMenuRight.menuItems.account')}
-                                    icon={
-                                        <FontAwesomeIcon
-                                            style={
+                                        <Button
+                                            buttonStyle={
                                                 currentScreen === 'Settings'
-                                                    ? headerMenuModal.iconStyleActive
-                                                    : headerMenuModal.iconStyle
+                                                    ? headerMenuModal.buttonsActive
+                                                    : headerMenuModal.buttons
                                             }
-                                            name="user-cog"
-                                            size={22}
+                                            titleStyle={
+                                                currentScreen === 'Settings'
+                                                    ? headerMenuModal.buttonsTitleActive
+                                                    : headerMenuModal.buttonsTitle
+                                            }
+                                            title={this.translate('components.headerMenuRight.menuItems.account')}
+                                            icon={
+                                                <FontAwesomeIcon
+                                                    style={
+                                                        currentScreen === 'Settings'
+                                                            ? headerMenuModal.iconStyleActive
+                                                            : headerMenuModal.iconStyle
+                                                    }
+                                                    name="user-cog"
+                                                    size={22}
+                                                />
+                                            }
+                                            onPress={() => this.navTo('Settings')}
                                         />
-                                    }
-                                    onPress={() => this.navTo('Settings')}
-                                />
-                            </View>
-                            <View style={headerMenuModal.footer}>
-                                <Button
-                                    titleStyle={headerMenuModal.buttonsTitle}
-                                    buttonStyle={headerMenuModal.buttons}
-                                    title={this.translate('components.headerMenuRight.menuItems.logout')}
-                                    iconRight
-                                    icon={
-                                        <FontAwesomeIcon
-                                            style={headerMenuModal.iconStyle}
-                                            name="sign-out-alt"
-                                            size={22}
+                                    </View>
+                                    <View style={headerMenuModal.footer}>
+                                        <Button
+                                            titleStyle={headerMenuModal.buttonsTitle}
+                                            buttonStyle={headerMenuModal.buttons}
+                                            title={this.translate('components.headerMenuRight.menuItems.logout')}
+                                            iconRight
+                                            icon={
+                                                <FontAwesomeIcon
+                                                    style={headerMenuModal.iconStyle}
+                                                    name="sign-out-alt"
+                                                    size={22}
+                                                />
+                                            }
+                                            onPress={() => this.handleLogout(hideModal)}
                                         />
-                                    }
-                                    onPress={this.handleLogout}
-                                />
-                            </View>
-                        </>
+                                    </View>
+                                </>
+                            )
+                        }
                     </Overlay>
                 </>
             );

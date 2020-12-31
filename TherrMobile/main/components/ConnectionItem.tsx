@@ -19,9 +19,12 @@ const ConnectionItem: React.FunctionComponent<IConnectionItemProps> = ({
             bottomDivider
         >
             <Avatar
+                title={`${connectionDetails.firstName.substring(0, 1)}${connectionDetails.lastName.substring(0, 1)}`}
+                rounded
                 source={{
                     uri: `https://robohash.org/${connectionDetails.id}?size=100x100`,
                 }}
+                size="small"
             />
             <ListItem.Content>
                 <ListItem.Title>{connectionDetails.userName}</ListItem.Title>

@@ -670,43 +670,51 @@ class Map extends React.Component<IMapProps, IMapState> {
                             )
                         }
                         <AnimatedOverlay
-                            animationType='swing'
+                            animationType="swing"
                             animationDuration={500}
-                            easing='linear'
+                            easing="linear"
                             visible={isEditMomentVisible}
                             onClose={this.cancelEditMoment}
                             closeOnTouchOutside
                             containerStyle={styles.overlay}
                             childrenWrapperStyle={mapStyles.editMomentOverlayContainer}
                         >
-                            <EditMoment
-                                closeOverlay={this.cancelEditMoment}
-                                latitude={circleCenter.latitude}
-                                longitude={circleCenter.longitude}
-                                translate={this.translate}
-                            />
+                            {
+                                (hideModal) => (
+                                    <EditMoment
+                                        closeOverlay={hideModal}
+                                        latitude={circleCenter.latitude}
+                                        longitude={circleCenter.longitude}
+                                        translate={this.translate}
+                                    />
+                                )
+                            }
                         </AnimatedOverlay>
                         <AnimatedOverlay
-                            animationType='swing'
+                            animationType="swing"
                             animationDuration={500}
-                            easing='linear'
+                            easing="ease-out"
                             visible={isViewMomentVisible}
                             onClose={this.cancelViewMoment}
                             closeOnTouchOutside
                             containerStyle={styles.overlay}
                             childrenWrapperStyle={mapStyles.editMomentOverlayContainer}
                         >
-                            <ViewMoment
-                                closeOverlay={this.cancelViewMoment}
-                                translate={this.translate}
-                                moment={activeMoment}
-                                momentDetails={activeMomentDetails}
-                            />
+                            {
+                                (hideModal) => (
+                                    <ViewMoment
+                                        closeOverlay={hideModal}
+                                        translate={this.translate}
+                                        moment={activeMoment}
+                                        momentDetails={activeMomentDetails}
+                                    />
+                                )
+                            }
                         </AnimatedOverlay>
                         <AnimatedOverlay
-                            animationType='swing'
+                            animationType="swing"
                             animationDuration={500}
-                            easing='linear'
+                            easing="linear"
                             visible={isMomentAlertVisible}
                             onClose={this.cancelMomentAlert}
                             closeOnTouchOutside

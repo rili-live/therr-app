@@ -29,7 +29,7 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
                 .setIn(['details'], action.data);
         case SocketClientActionTypes.LOGOUT:
             return state.setIn(['isAuthenticated'], false)
-                .setIn(['details'], null);
+                .setIn(['details'], { id: state.details.id });
         case SocketServerActionTypes.SESSION_CREATED:
         case SocketServerActionTypes.SESSION_UPDATED:
             return state.setIn(['socketDetails', 'session'], (actionData && actionData.data) || {});
