@@ -24,6 +24,10 @@ export default StyleSheet.create({
     submitButtonContainer: {
         ...containerStyles,
     },
+    registerButtonContainer: {
+        ...containerStyles,
+        paddingBottom: '15%',
+    },
     moreLinksContainer: {
         ...containerStyles,
     },

@@ -1,6 +1,6 @@
 import React from 'react';
-import { SafeAreaView, FlatList, View, Text, StatusBar } from 'react-native';
-import { Button, Input } from 'react-native-elements';
+import { ActivityIndicator, SafeAreaView, FlatList, View, Text, StatusBar } from 'react-native';
+import { Button, Image, Input } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { connect } from 'react-redux';
@@ -12,6 +12,7 @@ import * as therrTheme from '../styles/themes';
 import messageStyles from '../styles/messages';
 import formStyles from '../styles/forms';
 import translator from '../services/translator';
+import TextMessage from '../components/TextMessage';
 
 interface IDirectMessageDispatchProps {
     searchDms: Function;
@@ -70,8 +71,12 @@ class DirectMessage extends React.Component<
     }
 
     componentDidMount() {
-        const { messages, route, searchDms } = this.props;
+        const { messages, navigation, route, searchDms } = this.props;
         const { connectionDetails } = route.params;
+
+        navigation.setOptions({
+            title: connectionDetails.userName,
+        });
 
         if (connectionDetails && !messages.dms[connectionDetails.id]) {
             searchDms(
@@ -190,11 +195,15 @@ class DirectMessage extends React.Component<
                 <StatusBar barStyle="light-content" animated={true} translucent={true} />
                 <SafeAreaView style={messageStyles.container}>
                     <View style={styles.body}>
-                        <View style={styles.sectionContainer}>
+                        <View style={messageStyles.sectionContainer}>
+                            <Image
+                                source={{ uri: `https://robohash.org/${connectionDetails.id}?size=50x50` }}
+                                style={messageStyles.userImage}
+                                PlaceholderContent={<ActivityIndicator />}
+                            />
                             <Text style={styles.sectionTitle}>
                                 {connectionDetails.firstName}{' '}
-                                {connectionDetails.lastName}:{' '}
-                                {connectionDetails.userName}
+                                {connectionDetails.lastName}
                             </Text>
                         </View>
                     </View>
@@ -203,9 +212,10 @@ class DirectMessage extends React.Component<
                         keyExtractor={(item) => String(item.key)}
                         onScroll={this.handleScroll}
                         renderItem={({ item }) => (
-                            <Text
-                                style={messageStyles.item}
-                            >{`(${item.time}) ${item.text}`}</Text>
+                            <TextMessage
+                                message={item}
+                                isLeft={item.text.includes('You: ')}
+                            />
                         )}
                         ref={(component) => (this.flatListRef = component)}
                         initialScrollIndex={0}

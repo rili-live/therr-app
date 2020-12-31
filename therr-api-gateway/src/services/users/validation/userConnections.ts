@@ -5,10 +5,14 @@ import {
 
 export const createUserConnectionValidation = [
     body('requestingUserId').isNumeric().exists(),
+    body('requestingUserFirstName').isNumeric().exists(),
+    body('requestingUserLastName').isNumeric().exists(),
     oneOf([
-        body('requestingUserId').exists(),
-        body('acceptingUserPhoneNumber').exists().isString().isMobilePhone('any'),
-        body('acceptingUserPhoneEmail')
+        body('acceptingUserPhoneNumber')
+            .exists()
+            .isString()
+            .isMobilePhone('any'),
+        body('acceptingUserEmail')
             .exists()
             .isString()
             .isEmail()

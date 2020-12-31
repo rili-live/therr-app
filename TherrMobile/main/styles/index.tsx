@@ -14,6 +14,8 @@ export const theme = {
     },
 };
 
+const HEADER_HEIGHT_MARGIN = 80;
+
 const sectionTitle: any = {
     marginBottom: 8,
     fontSize: 24,
@@ -23,6 +25,15 @@ const sectionTitle: any = {
 const bodyStyle: any = {
     backgroundColor: therrTheme.colors.primary2,
     color: therrTheme.colors.textWhite,
+    marginTop: 0,
+};
+
+const headerStyles: any = {
+    backgroundColor: bodyStyle.backgroundColor,
+    shadowOpacity: 0,
+    elevation: 0,
+    shadowColor: 'transparent',
+    borderBottomColor: therrTheme.colors.primary,
 };
 
 const loaderStyles = StyleSheet.create({
@@ -39,9 +50,12 @@ export default StyleSheet.create({
     body: {
         ...bodyStyle,
     },
+    bodyShift: {
+        ...bodyStyle,
+        marginTop: HEADER_HEIGHT_MARGIN,
+    },
     bodyFlex: {
         ...bodyStyle,
-        marginTop: 80,
         marginBottom: 0,
         padding: 20,
     },
@@ -64,8 +78,13 @@ export default StyleSheet.create({
         marginLeft: 2,
     },
     logoIconDark: {
-        color: therrTheme.colors.primary3,
+        color: therrTheme.colors.secondary,
         marginLeft: 2,
+        elevation: 1,
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 5,
+        height: 32,
+        width: 32,
     },
     sectionContainer: {
         marginTop: 16,
@@ -100,8 +119,22 @@ export default StyleSheet.create({
         marginTop: '16%',
         marginBottom: '16%',
     },
+    headerStyle: {
+        ...headerStyles,
+        borderBottomWidth: 1,
+    },
+    headerStyleAlt: {
+        ...headerStyles,
+    },
     highlight: {
         fontWeight: '700',
+    },
+    overlay: {
+        height: '100%',
+        width: '100%',
+        padding: 0,
+        margin: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.35)',
     },
     footer: {
         color: therrTheme.colors.textWhite,

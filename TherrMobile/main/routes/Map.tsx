@@ -1,7 +1,8 @@
 import React from 'react';
 import { PermissionsAndroid, StatusBar, View } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Circle } from 'react-native-maps';
-import { Button, Overlay } from 'react-native-elements';
+import { Button } from 'react-native-elements';
+import AnimatedOverlay from 'react-native-modal-overlay';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -25,7 +26,7 @@ import {
     MOMENTS_REFRESH_THROTTLE_MS,
 } from '../constants';
 import * as therrTheme from '../styles/themes';
-import { loaderStyles } from '../styles';
+import styles, { loaderStyles } from '../styles';
 import mapStyles from '../styles/map';
 import EditMoment from '../components/moments/EditMoment';
 import ViewMoment from '../components/moments/ViewMoment';
@@ -165,30 +166,42 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 grantStatus ===
                                 PermissionsAndroid.RESULTS.GRANTED
                             ) {
+                                const positionSuccessCallback = (position) => {
+                                    const coords = {
+                                        latitude:
+                                            position.coords
+                                                .latitude,
+                                        longitude:
+                                            position.coords
+                                                .longitude,
+                                    };
+                                    this.setState({
+                                        isLocationReady: true,
+                                        circleCenter: coords,
+                                    });
+                                    updateCoordinates(coords);
+                                    return resolve(coords);
+                                };
+                                const positionErrorCallback = (error) => {
+                                    console.log('geolocation error', error);
+                                    return reject(error);
+                                };
+                                const positionOptions = {
+                                    enableHighAccuracy: true,
+                                };
+
+                                // If this is not cached, response can be slow
+                                Geolocation.getCurrentPosition(
+                                    positionSuccessCallback,
+                                    positionErrorCallback,
+                                    positionOptions,
+                                );
+
+                                // Sometimes watch is faster than get, so we'll call both and cancel after one resolves first
                                 this.mapWatchId = Geolocation.watchPosition(
-                                    (position) => {
-                                        const coords = {
-                                            latitude:
-                                                position.coords
-                                                    .latitude,
-                                            longitude:
-                                                position.coords
-                                                    .longitude,
-                                        };
-                                        this.setState({
-                                            isLocationReady: true,
-                                            circleCenter: coords,
-                                        });
-                                        updateCoordinates(coords);
-                                        return resolve(coords);
-                                    },
-                                    (error) => {
-                                        console.log('geolocation error');
-                                        return reject(error);
-                                    },
-                                    {
-                                        enableHighAccuracy: true,
-                                    }
+                                    positionSuccessCallback,
+                                    positionErrorCallback,
+                                    positionOptions,
                                 );
                             } else {
                                 console.log('Location permission denied');
@@ -197,8 +210,9 @@ class Map extends React.Component<IMapProps, IMapState> {
                         })
                 )
                 .then((coords: any) => {
-                    this.handleRefreshMoments(true, coords, true);
                     Geolocation.clearWatch(this.mapWatchId);
+                    Geolocation.stopObserving();
+                    this.handleRefreshMoments(true, coords, true);
                 })
                 .catch((error) => {
                     if (error === 'permissionDenied') {
@@ -338,7 +352,15 @@ class Map extends React.Component<IMapProps, IMapState> {
     };
 
     handleRefreshMoments = (overrideThrottle = false, coords?: any, shouldSearchAll = false) => {
-        const { layers } = this.state;
+        const { isMinLoadTimeComplete, layers } = this.state;
+
+        if (!isMinLoadTimeComplete) {
+            setTimeout(() => {
+                this.handleRefreshMoments(overrideThrottle, coords, shouldSearchAll);
+            }, 50);
+
+            return;
+        }
 
         this.setState({
             areLayersVisible: false,
@@ -647,10 +669,15 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 </>
                             )
                         }
-                        <Overlay
-                            isVisible={isEditMomentVisible}
-                            onBackdropPress={() => {}}
-                            overlayStyle={mapStyles.editMomentOverlay}
+                        <AnimatedOverlay
+                            animationType='swing'
+                            animationDuration={500}
+                            easing='linear'
+                            visible={isEditMomentVisible}
+                            onClose={this.cancelEditMoment}
+                            closeOnTouchOutside
+                            containerStyle={styles.overlay}
+                            childrenWrapperStyle={mapStyles.editMomentOverlayContainer}
                         >
                             <EditMoment
                                 closeOverlay={this.cancelEditMoment}
@@ -658,11 +685,16 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 longitude={circleCenter.longitude}
                                 translate={this.translate}
                             />
-                        </Overlay>
-                        <Overlay
-                            isVisible={isViewMomentVisible}
-                            onBackdropPress={() => {}}
-                            overlayStyle={mapStyles.editMomentOverlay}
+                        </AnimatedOverlay>
+                        <AnimatedOverlay
+                            animationType='swing'
+                            animationDuration={500}
+                            easing='linear'
+                            visible={isViewMomentVisible}
+                            onClose={this.cancelViewMoment}
+                            closeOnTouchOutside
+                            containerStyle={styles.overlay}
+                            childrenWrapperStyle={mapStyles.editMomentOverlayContainer}
                         >
                             <ViewMoment
                                 closeOverlay={this.cancelViewMoment}
@@ -670,11 +702,16 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 moment={activeMoment}
                                 momentDetails={activeMomentDetails}
                             />
-                        </Overlay>
-                        <Overlay
-                            isVisible={isMomentAlertVisible}
-                            onBackdropPress={this.cancelMomentAlert}
-                            overlayStyle={mapStyles.momentAlertOverlay}
+                        </AnimatedOverlay>
+                        <AnimatedOverlay
+                            animationType='swing'
+                            animationDuration={500}
+                            easing='linear'
+                            visible={isMomentAlertVisible}
+                            onClose={this.cancelMomentAlert}
+                            closeOnTouchOutside
+                            containerStyle={styles.overlay}
+                            childrenWrapperStyle={mapStyles.momentAlertOverlayContainer}
                         >
                             <Alert
                                 containerStyles={{}}
@@ -682,7 +719,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 message={this.translate('pages.map.momentAlerts.walkCloser')}
                                 type="error"
                             />
-                        </Overlay>
+                        </AnimatedOverlay>
                     </>
                 )}
             </>

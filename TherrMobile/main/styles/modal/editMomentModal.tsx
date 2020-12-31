@@ -73,6 +73,7 @@ export default StyleSheet.create({
         margin: 10,
         marginTop: 15,
         backgroundColor: therrTheme.colors.beemo1,
+        width: '100%',
     },
     footer: {
         display: 'flex',

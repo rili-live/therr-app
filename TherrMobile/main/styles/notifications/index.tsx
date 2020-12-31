@@ -32,7 +32,7 @@ const rootStyle: any = {
 
 export const notifications = StyleSheet.create({
     container: {
-        marginBottom: 65,
+        marginBottom: 145,
     },
 });
 
