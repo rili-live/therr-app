@@ -59,7 +59,7 @@ export class LoginFormComponent extends React.Component<
         });
         this.props
             .login({
-                userName,
+                userName: userName.toLowerCase(),
                 password,
                 rememberMe,
             })
@@ -93,10 +93,6 @@ export class LoginFormComponent extends React.Component<
         const newInputChanges = {
             [name]: value,
         };
-
-        if (name === 'userName') {
-            newInputChanges[name] = value.toLowerCase();
-        }
 
         this.setState({
             inputs: {

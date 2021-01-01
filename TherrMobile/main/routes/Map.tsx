@@ -184,9 +184,11 @@ class Map extends React.Component<IMapProps, IMapState> {
                                     updateCoordinates(coords);
                                     return resolve(coords);
                                 };
-                                const positionErrorCallback = (error) => {
-                                    console.log('geolocation error', error);
-                                    return reject(error);
+                                const positionErrorCallback = (error, type) => {
+                                    console.log('geolocation error', error.code, type);
+                                    if (type !== 'watch' && error.code !== error.TIMEOUT) {
+                                        return reject(error);
+                                    }
                                 };
                                 const positionOptions = {
                                     enableHighAccuracy: true,
@@ -195,14 +197,14 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 // If this is not cached, response can be slow
                                 Geolocation.getCurrentPosition(
                                     positionSuccessCallback,
-                                    positionErrorCallback,
+                                    (error) => positionErrorCallback(error, 'get'),
                                     positionOptions,
                                 );
 
                                 // Sometimes watch is faster than get, so we'll call both and cancel after one resolves first
                                 this.mapWatchId = Geolocation.watchPosition(
                                     positionSuccessCallback,
-                                    positionErrorCallback,
+                                    (error) => positionErrorCallback(error, 'watch'),
                                     positionOptions,
                                 );
                             } else {

@@ -96,7 +96,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
             email: user.details.email,
             firstName,
             lastName,
-            userName,
+            userName: userName.toLowerCase(),
         };
 
         if (oldPassword && password === repeatPassword) {
@@ -144,10 +144,6 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const newInputChanges = {
             [name]: value,
         };
-
-        if (name === 'userName') {
-            newInputChanges[name] = value.toLowerCase();
-        }
 
         this.setState({
             inputs: {
