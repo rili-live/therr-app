@@ -279,6 +279,9 @@
       "buttons": {
         "submit": "Save"
       },
+      "errorMessages": {
+        "repeatPassword": "Passwords do not match"
+      },
       "labels": {
         "email": "E-mail",
         "password": "Password",

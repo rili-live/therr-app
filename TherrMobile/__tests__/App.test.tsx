@@ -13,6 +13,11 @@ beforeEach(() => {
     jest.useFakeTimers();
 });
 
+afterEach(() => {
+    jest.clearAllMocks();
+    jest.clearAllTimers();
+});
+
 it('renders correctly', async () => {
     AsyncStorageMock.getItem = jest.fn((key, callback) => {
         // do something here to retrieve data

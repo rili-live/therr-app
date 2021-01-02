@@ -1,17 +1,17 @@
 import React from 'react';
 import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
 import { Button, Input }  from 'react-native-elements';
-import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
+import UsersActions from '../redux/actions/UsersActions';
+import Alert from '../components/Alert';
+import translator from '../services/translator';
 import styles from '../styles';
 import * as therrTheme from '../styles/themes';
 import formStyles, { settingsForm as settingsFormStyles } from '../styles/forms';
-import translator from '../services/translator';
-import UsersActions from '../redux/actions/UsersActions';
-import Alert from '../components/Alert';
+
 
 interface ISettingsDispatchProps {
     updateUser: Function;
@@ -31,6 +31,7 @@ interface ISettingsState {
     successMsg: string;
     inputs: any;
     isSubmitting: boolean;
+    passwordErrorMessage: string;
 }
 
 const mapStateToProps = (state) => ({
@@ -41,7 +42,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     updateUser: UsersActions.update,
 }, dispatch);
 
-class Settings extends React.Component<ISettingsProps, ISettingsState> {
+export class Settings extends React.Component<ISettingsProps, ISettingsState> {
     private scrollViewRef;
     private translate: Function;
 
@@ -58,6 +59,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 userName: props.user.details.userName,
             },
             isSubmitting: false,
+            passwordErrorMessage: '',
         };
 
         this.translate = (key: string, params: any) =>
@@ -141,24 +143,33 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
     };
 
     onInputChange = (name: string, value: string) => {
+        let passwordErrorMessage = '';
+        const { inputs } = this.state;
         const newInputChanges = {
             [name]: value,
         };
 
+        if (name === 'repeatPassword' && inputs.oldPassword) {
+            if (inputs.password !== newInputChanges.repeatPassword) {
+                passwordErrorMessage = this.translate('forms.settings.errorMessages.repeatPassword');
+            }
+        }
+
         this.setState({
             inputs: {
-                ...this.state.inputs,
+                ...inputs,
                 ...newInputChanges,
             },
             errorMsg: '',
             successMsg: '',
             isSubmitting: false,
+            passwordErrorMessage,
         });
     };
 
     render() {
         const { navigation, user } = this.props;
-        const { errorMsg, successMsg, inputs } = this.state;
+        const { errorMsg, successMsg, inputs, passwordErrorMessage } = this.state;
         const pageHeaderUser = this.translate('pages.settings.pageHeaderUser');
         const pageHeaderPassword = this.translate('pages.settings.pageHeaderPassword');
 
@@ -273,6 +284,7 @@ class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                     secureTextEntry={true}
                                     selectionColor={therrTheme.colors.ternary}
+                                    errorMessage={passwordErrorMessage}
                                 />
                                 <View style={settingsFormStyles.submitButtonContainer}>
                                     <Button

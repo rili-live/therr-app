@@ -12,6 +12,11 @@ beforeEach(() => {
     jest.useFakeTimers();
 });
 
+afterEach(() => {
+    jest.clearAllMocks();
+    jest.clearAllTimers();
+});
+
 describe('RegisterForm', () => {
     beforeEach(() => {
     });
@@ -20,6 +25,14 @@ describe('RegisterForm', () => {
         const mockRegister = jest.fn();
         const onSuccessMock = jest.fn();
         const component = renderer.create(<RegisterForm register={mockRegister} onSuccess={onSuccessMock} />);
-        expect(component.getInstance().isRegisterFormDisabled()).toEqual(true);
+        const instance = component.getInstance();
+        expect(instance.isRegisterFormDisabled()).toEqual(true);
+        instance.onInputChange('password', 'mockPassword');
+        instance.onInputChange('repeatPassword', 'mockPassword2');
+        expect(instance.isFormValid()).toEqual(false);
+        expect(instance.state.passwordErrorMessage).toEqual('Passwords do not match');
+        instance.onInputChange('repeatPassword', 'mockPassword');
+        expect(instance.isFormValid()).toEqual(true);
+        expect(instance.state.passwordErrorMessage.length).toEqual(0);
     });
 });
