@@ -27,6 +27,13 @@ export const configureTranslator = (translations: any) => {
             }
         });
 
+        // Easter Eag
+        if (propertyArray[0] === 'quoteOfTheDay') {
+            const totalQuotes = translations[locale].dailyQuotes.length - 1;
+            const index = Math.floor(Math.random() * totalQuotes);
+            return `${translations[locale].dailyQuotes[index].quote} - ${translations[locale].dailyQuotes[index].author}`; // eslint-disable-line max-len
+        }
+
         if (translatedValue && typeof params === 'object') {
             Object.keys(params).forEach((param) => {
                 translatedValue = translatedValue.replace(`{${param}}`, params[param]);

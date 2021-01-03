@@ -6,6 +6,7 @@ import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { IUserState } from 'therr-react/types';
 import { viewMomentModal } from '../../styles/modal';
+import * as therrTheme from '../../styles/themes';
 import { bindActionCreators } from 'redux';
 
 export const DEFAULT_RADIUS = 10;
@@ -78,7 +79,8 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
                         <Image
                             source={{ uri: `https://robohash.org/${moment.fromUserId}?size=200x200` }}
                             style={viewMomentModal.momentUserAvatarImg}
-                            PlaceholderContent={<ActivityIndicator />}
+                            PlaceholderContent={<ActivityIndicator size="large" color={therrTheme.colors.primary}/>}
+                            transition={false}
                         />
                         {
                             momentDetails.userDetails &&

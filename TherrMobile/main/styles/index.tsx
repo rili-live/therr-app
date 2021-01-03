@@ -73,6 +73,16 @@ export default StyleSheet.create({
         display: 'flex',
         minHeight: '70%',
     },
+    imageContainer: {
+        flex: 1,
+        justifyContent: 'space-around',
+        height: 150,
+        width: 150,
+        borderRadius: 75,
+    },
+    listItemCard: {
+        backgroundColor: therrTheme.colors.backgroundGray,
+    },
     logoIcon: {
         color: therrTheme.colors.textWhite,
         marginLeft: 2,
@@ -87,8 +97,8 @@ export default StyleSheet.create({
         width: 32,
     },
     sectionContainer: {
-        marginTop: 16,
-        marginBottom: 16,
+        marginTop: 8,
+        marginBottom: 8,
         paddingHorizontal: 24,
     },
     sectionContainerAlt: {
@@ -114,6 +124,17 @@ export default StyleSheet.create({
         fontSize: 18,
         fontWeight: '400',
         color: therrTheme.colors.textWhite,
+    },
+    sectionQuote: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        fontStyle: 'italic',
+        marginBottom: 18,
+        fontSize: 16,
+        fontWeight: '400',
+        color: therrTheme.colors.textWhite,
+        textAlign: 'center',
+        opacity: 0.85,
     },
     spacer: {
         marginTop: '16%',

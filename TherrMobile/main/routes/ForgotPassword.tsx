@@ -80,7 +80,7 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
             this.setState({
                 isSubmitting: true,
             });
-            VerificationCodesService.requestOneTimePassword(email)
+            VerificationCodesService.requestOneTimePassword(email.toLowerCase())
                 .then(() => {
                     this.setState({
                         inputs: {
@@ -115,10 +115,6 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
         const newInputChanges = {
             [name]: value,
         };
-
-        if (name === 'userName') {
-            newInputChanges[name] = value.toLowerCase();
-        }
 
         this.setState({
             inputs: {

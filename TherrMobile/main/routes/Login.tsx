@@ -1,9 +1,11 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { SafeAreaView, ScrollView, StatusBar } from 'react-native';
+import { View, SafeAreaView, ScrollView, StatusBar } from 'react-native';
+import Image from '../components/BaseImage';
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';
 import styles from '../styles';
+import mixins from '../styles/mixins';
 import LoginForm from '../components/LoginForm';
 import { bindActionCreators } from 'redux';
 import UsersActions from '../redux/actions/UsersActions';
@@ -41,12 +43,14 @@ const mapDispatchToProps = (dispatch: any) =>
 
 class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     private translate;
+    private cachedUserId;
 
     constructor(props) {
         super(props);
 
         this.translate = (key: string, params: any): string =>
             translator('en-us', key, params);
+        this.cachedUserId = (props.user && props.user.details && props.user.details.id);
     }
 
     componentDidMount() {
@@ -64,6 +68,12 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                 <StatusBar barStyle="light-content" animated={true} translucent={true} />
                 <SafeAreaView>
                     <ScrollView style={styles.bodyFlex} contentContainerStyle={styles.bodyScroll}>
+                        {
+                            this.cachedUserId
+                            && <View style={[mixins.flexCenter, mixins.marginMediumBot]}>
+                                <Image source={{ uri: `https://robohash.org/${this.cachedUserId}?size=200x200` }} loaderSize="large" />
+                            </View>
+                        }
                         <LoginForm login={this.props.login} navigation={this.props.navigation} userMessage={userMessage} />
                     </ScrollView>
                 </SafeAreaView>
