@@ -14,7 +14,6 @@ import Alert from '../components/Alert';
 import * as therrTheme from '../styles/themes';
 import styles from '../styles';
 import formStyles, { phoneInput as phoneStyles } from '../styles/forms';
-import ActiveConnections from '../components/ActiveConnections';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
@@ -66,6 +65,10 @@ class Home extends React.Component<IHomeProps, IHomeState> {
 
     private phone: any;
 
+    private quote: string;
+
+    private quoteAuthor: string;
+
     constructor(props) {
         super(props);
 
@@ -82,6 +85,11 @@ class Home extends React.Component<IHomeProps, IHomeState> {
 
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
+
+        const quote = this.translate('quoteOfTheDay');
+        const quoteSplit = quote.split(' - ');
+        this.quote = quoteSplit[0];
+        this.quoteAuthor = quoteSplit[1];
     }
 
     componentDidMount() {
@@ -254,7 +262,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
             prevConnReqError,
             prevConnReqSuccess,
         } = this.state;
-        const { navigation, user, userConnections } = this.props;
+        const { navigation, user } = this.props;
 
         return (
             <>
@@ -271,6 +279,14 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                 </Text>
                                 <Text style={styles.sectionDescription}>
                                     {this.translate('pages.userProfile.siteDescription')}
+                                </Text>
+                            </View>
+                            <View style={styles.sectionContainer}>
+                                <Text style={styles.sectionTitle}>
+                                    {this.translate('pages.userProfile.h2.quoteOfTheDay')}
+                                </Text>
+                                <Text style={styles.sectionQuote}>
+                                    {`"${this.quote}" - ${this.quoteAuthor}`}
                                 </Text>
                             </View>
                             <View style={styles.sectionContainer}>
@@ -338,46 +354,38 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                             </View>
                                         </View>
                                     }
-                                    <View>
-                                        <Alert
-                                            containerStyles={{
-                                                marginBottom: 24,
-                                            }}
-                                            isVisible={!!prevConnReqError}
-                                            message={prevConnReqError}
-                                            type={'error'}
-                                        />
-                                        <Alert
-                                            containerStyles={{
-                                                marginBottom: 24,
-                                            }}
-                                            isVisible={!!prevConnReqSuccess}
-                                            message={prevConnReqSuccess}
-                                            type={'success'}
-                                        />
-                                        <Button
-                                            buttonStyle={formStyles.button}
-                                            disabledTitleStyle={formStyles.buttonTitleDisabled}
-                                            disabledStyle={formStyles.buttonDisabled}
-                                            title={this.translate(
-                                                'forms.createConnection.buttons.submit'
-                                            )}
-                                            onPress={this.onSubmit}
-                                            disabled={this.isConnReqFormDisabled()}
-                                            raised={true}
-                                        />
-                                    </View>
+                                    <Alert
+                                        containerStyles={{
+                                            marginBottom: 24,
+                                        }}
+                                        isVisible={!!prevConnReqError}
+                                        message={prevConnReqError}
+                                        type={'error'}
+                                    />
+                                    <Alert
+                                        containerStyles={{
+                                            marginBottom: 24,
+                                        }}
+                                        isVisible={!!prevConnReqSuccess}
+                                        message={prevConnReqSuccess}
+                                        type={'success'}
+                                    />
+                                    <Button
+                                        containerStyle={{
+                                            marginBottom: 18,
+                                        }}
+                                        buttonStyle={formStyles.button}
+                                        disabledTitleStyle={formStyles.buttonTitleDisabled}
+                                        disabledStyle={formStyles.buttonDisabled}
+                                        title={this.translate(
+                                            'forms.createConnection.buttons.submit'
+                                        )}
+                                        onPress={this.onSubmit}
+                                        disabled={this.isConnReqFormDisabled()}
+                                        raised={true}
+                                    />
                                 </View>
                             </View>
-                            <ActiveConnections
-                                getConnectionSubtitle={
-                                    this.getConnectionSubtitle
-                                }
-                                onConnectionPress={this.onConnectionPress}
-                                translate={this.translate}
-                                userConnections={userConnections}
-                                user={user}
-                            />
                         </View>
                     </ScrollView>
                 </SafeAreaView>

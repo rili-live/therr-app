@@ -6,7 +6,7 @@ export default ({
     isLeft,
     message,
 }) => {
-    return(
+    return (
         <View style={isLeft ? messageStyles.messageContainerLeft : messageStyles.messageContainerRight}>
             <Text style={isLeft ? messageStyles.messageTextLeft : messageStyles.messageTextRight}>
                 {message.text}

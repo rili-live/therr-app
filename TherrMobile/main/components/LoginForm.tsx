@@ -59,7 +59,7 @@ export class LoginFormComponent extends React.Component<
         });
         this.props
             .login({
-                userName,
+                userName: userName.toLowerCase(),
                 password,
                 rememberMe,
             })
@@ -93,10 +93,6 @@ export class LoginFormComponent extends React.Component<
         const newInputChanges = {
             [name]: value,
         };
-
-        if (name === 'userName') {
-            newInputChanges[name] = value.toLowerCase();
-        }
 
         this.setState({
             inputs: {
@@ -177,7 +173,7 @@ export class LoginFormComponent extends React.Component<
                 />
                 <View style={styles.moreLinksContainer}>
                     <Button
-                        type='clear'
+                        type="clear"
                         titleStyle={styles.buttonLink}
                         title={this.translate(
                             'forms.loginForm.buttons.signUp'
@@ -185,7 +181,7 @@ export class LoginFormComponent extends React.Component<
                         onPress={() => navigation.navigate('Register')}
                     />
                     <Button
-                        type='clear'
+                        type="clear"
                         titleStyle={styles.buttonLink}
                         title={this.translate(
                             'forms.loginForm.buttons.forgotPassword'

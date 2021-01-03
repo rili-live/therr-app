@@ -92,6 +92,8 @@ class Map extends React.Component<IMapProps, IMapState> {
     private mapRef;
     private mapWatchId;
     private timeoutId;
+    private timeoutIdRefreshMoments;
+    private timeoutIdShowMoment;
     private translate: Function;
 
     constructor(props) {
@@ -182,9 +184,11 @@ class Map extends React.Component<IMapProps, IMapState> {
                                     updateCoordinates(coords);
                                     return resolve(coords);
                                 };
-                                const positionErrorCallback = (error) => {
-                                    console.log('geolocation error', error);
-                                    return reject(error);
+                                const positionErrorCallback = (error, type) => {
+                                    console.log('geolocation error', error.code, type);
+                                    if (type !== 'watch' && error.code !== error.TIMEOUT) {
+                                        return reject(error);
+                                    }
                                 };
                                 const positionOptions = {
                                     enableHighAccuracy: true,
@@ -193,14 +197,14 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 // If this is not cached, response can be slow
                                 Geolocation.getCurrentPosition(
                                     positionSuccessCallback,
-                                    positionErrorCallback,
+                                    (error) => positionErrorCallback(error, 'get'),
                                     positionOptions,
                                 );
 
                                 // Sometimes watch is faster than get, so we'll call both and cancel after one resolves first
                                 this.mapWatchId = Geolocation.watchPosition(
                                     positionSuccessCallback,
-                                    positionErrorCallback,
+                                    (error) => positionErrorCallback(error, 'watch'),
                                     positionOptions,
                                 );
                             } else {
@@ -230,6 +234,8 @@ class Map extends React.Component<IMapProps, IMapState> {
     componentWillUnmount() {
         Geolocation.clearWatch(this.mapWatchId);
         clearTimeout(this.timeoutId);
+        clearTimeout(this.timeoutIdRefreshMoments);
+        clearTimeout(this.timeoutIdShowMoment);
     }
 
     goToHome = () => {
@@ -355,12 +361,14 @@ class Map extends React.Component<IMapProps, IMapState> {
         const { isMinLoadTimeComplete, layers } = this.state;
 
         if (!isMinLoadTimeComplete) {
-            setTimeout(() => {
+            this.timeoutIdRefreshMoments = setTimeout(() => {
                 this.handleRefreshMoments(overrideThrottle, coords, shouldSearchAll);
             }, 50);
 
             return;
         }
+
+        clearTimeout(this.timeoutIdRefreshMoments);
 
         this.setState({
             areLayersVisible: false,
@@ -417,7 +425,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             isMomentAlertVisible: true,
         });
 
-        setTimeout(() => {
+        this.timeoutIdShowMoment = setTimeout(() => {
             this.setState({
                 isMomentAlertVisible: false,
             });
@@ -670,43 +678,51 @@ class Map extends React.Component<IMapProps, IMapState> {
                             )
                         }
                         <AnimatedOverlay
-                            animationType='swing'
+                            animationType="swing"
                             animationDuration={500}
-                            easing='linear'
+                            easing="linear"
                             visible={isEditMomentVisible}
                             onClose={this.cancelEditMoment}
                             closeOnTouchOutside
                             containerStyle={styles.overlay}
                             childrenWrapperStyle={mapStyles.editMomentOverlayContainer}
                         >
-                            <EditMoment
-                                closeOverlay={this.cancelEditMoment}
-                                latitude={circleCenter.latitude}
-                                longitude={circleCenter.longitude}
-                                translate={this.translate}
-                            />
+                            {
+                                (hideModal) => (
+                                    <EditMoment
+                                        closeOverlay={hideModal}
+                                        latitude={circleCenter.latitude}
+                                        longitude={circleCenter.longitude}
+                                        translate={this.translate}
+                                    />
+                                )
+                            }
                         </AnimatedOverlay>
                         <AnimatedOverlay
-                            animationType='swing'
+                            animationType="swing"
                             animationDuration={500}
-                            easing='linear'
+                            easing="ease-out"
                             visible={isViewMomentVisible}
                             onClose={this.cancelViewMoment}
                             closeOnTouchOutside
                             containerStyle={styles.overlay}
                             childrenWrapperStyle={mapStyles.editMomentOverlayContainer}
                         >
-                            <ViewMoment
-                                closeOverlay={this.cancelViewMoment}
-                                translate={this.translate}
-                                moment={activeMoment}
-                                momentDetails={activeMomentDetails}
-                            />
+                            {
+                                (hideModal) => (
+                                    <ViewMoment
+                                        closeOverlay={hideModal}
+                                        translate={this.translate}
+                                        moment={activeMoment}
+                                        momentDetails={activeMomentDetails}
+                                    />
+                                )
+                            }
                         </AnimatedOverlay>
                         <AnimatedOverlay
-                            animationType='swing'
+                            animationType="swing"
                             animationDuration={500}
-                            easing='linear'
+                            easing="linear"
                             visible={isMomentAlertVisible}
                             onClose={this.cancelMomentAlert}
                             closeOnTouchOutside

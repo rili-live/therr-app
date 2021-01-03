@@ -80,6 +80,7 @@ export class RegisterFormComponent extends React.Component<
         if (!this.isRegisterFormDisabled()) {
             const creds = {
                 ...inputs,
+                userName: inputs.userName.toLowerCase(),
                 phoneNumber: sanitizedPhoneNumber,
             };
             delete creds.repeatPassword;
@@ -148,10 +149,6 @@ export class RegisterFormComponent extends React.Component<
         const newInputChanges = {
             [name]: value,
         };
-
-        if (name === 'userName') {
-            newInputChanges[name] = value.toLowerCase();
-        }
 
         if (name === 'repeatPassword') {
             if (inputs.password !== newInputChanges.repeatPassword) {

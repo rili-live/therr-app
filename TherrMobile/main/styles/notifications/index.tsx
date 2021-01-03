@@ -26,12 +26,13 @@ const rootStyle: any = {
     paddingBottom: 12,
     paddingTop: 12,
     borderRadius: 0,
-    borderBottomWidth: 2,
-    borderColor: '#4950571c',
+    borderBottomWidth: 1,
+    borderColor: therrTheme.colors.beemoAlt,
 };
 
 export const notifications = StyleSheet.create({
     container: {
+        marginTop: 40,
         marginBottom: 145,
     },
 });
@@ -39,11 +40,11 @@ export const notifications = StyleSheet.create({
 export const notification = StyleSheet.create({
     rootUnread: {
         ...rootStyle,
-        backgroundColor: therrTheme.colors.backgroundWhite,
+        backgroundColor: therrTheme.colors.backgroundGray,
     },
     rootRead: {
         ...rootStyle,
-        backgroundColor: '#f2f2f2',
+        backgroundColor: 'transparent',
     },
     actionsContainer: {
         display: 'flex',
@@ -63,15 +64,15 @@ export const notification = StyleSheet.create({
     },
     messageContainerRead: {
         ...messageContainerStyle,
-        paddingRight: messageContainerStyle.paddiing,
+        paddingRight: 35,
     },
     unread: {
         ...notificationStyle,
-        color: 'black',
+        color: therrTheme.colors.primary,
     },
     read: {
         ...notificationStyle,
-        color: '#868686',
+        color: therrTheme.colors.textWhite,
     },
     iconUnread: {
         ...iconStyle,
@@ -79,6 +80,6 @@ export const notification = StyleSheet.create({
     },
     iconRead: {
         ...iconStyle,
-        color: 'black',
+        color: therrTheme.colors.beemo1Fade,
     },
 });

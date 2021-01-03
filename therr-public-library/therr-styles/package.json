@@ -9,7 +9,8 @@
     "build:watch": "../../node_modules/.bin/sass --watch lib:lib",
     "lint:fix": "../../node_modules/.bin/sass-lint --verbose --no-exit",
     "lint": "../../node_modules/.bin/sass-lint --no-exit",
-    "test": "echo \"Error: no test specified\" && exit 0"
+    "test": "echo \"Error: no test specified\" && exit 0",
+    "test:coverage": "echo \"Error: no test:coverage specified\" && exit 0"
   },
   "keywords": [
     "therr",
