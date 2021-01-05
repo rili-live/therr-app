@@ -46,7 +46,7 @@ export default class DirectMessagesStore {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
         let queryString: any = knex
-            .select(returning || '*')
+            .select((returning && returning.length) ? returning : '*')
             .from(DIRECT_MESSAGES_TABLE_NAME)
             .orderBy(`${DIRECT_MESSAGES_TABLE_NAME}.updatedAt`);
 
