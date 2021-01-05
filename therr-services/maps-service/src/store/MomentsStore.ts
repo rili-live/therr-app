@@ -70,7 +70,7 @@ export default class MomentsStore {
             proximityMax = conditions.query;
         }
         let queryString: any = knex
-            .select(returning || '*')
+            .select((returning && returning.length) ? returning : '*')
             .from(MOMENTS_TABLE_NAME)
             .orderBy(`${MOMENTS_TABLE_NAME}.updatedAt`)
             // NOTE: Cast to a geography type to search distance within n meters

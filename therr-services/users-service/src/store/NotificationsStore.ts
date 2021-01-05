@@ -7,7 +7,7 @@ import { USER_CONNECTIONS_TABLE_NAME } from './UserConnectionsStore';
 
 const knex: Knex = Knex({ client: 'pg' });
 
-const NOTIFICATIONS_TABLE_NAME = 'main.notifications';
+export const NOTIFICATIONS_TABLE_NAME = 'main.notifications';
 
 export interface ICreateNotificationParams {
     userId: number;
@@ -39,7 +39,8 @@ export default class NotificationsStore {
         this.db = dbConnection;
     }
 
-    // TODO: Verify that the count is correct after adding custom search method
+    // TODO: This value is incorrect
+    // Need to make the search query a transaction and include the count there
     countRecords(params) {
         const queryString = getDbCountQueryString({
             queryBuilder: knex,
@@ -78,14 +79,7 @@ export default class NotificationsStore {
             ])
             .from(NOTIFICATIONS_TABLE_NAME)
             .leftJoin(USER_CONNECTIONS_TABLE_NAME, function () {
-                this.on(knex.raw(`
-                    "main"."notifications"."associationId" = "main"."userConnections".id
-                    AND (
-                        ${NOTIFICATIONS_TABLE_NAME}.type = '${Notifications.Types.CONNECTION_REQUEST_ACCEPTED}'
-                        OR
-                        ${NOTIFICATIONS_TABLE_NAME}.type = '${Notifications.Types.CONNECTION_REQUEST_RECEIVED}'
-                    )
-                `));
+                this.on(knex.raw(`"main"."notifications"."associationId" = "main"."userConnections".id AND (${NOTIFICATIONS_TABLE_NAME}.type = '${Notifications.Types.CONNECTION_REQUEST_ACCEPTED}' OR ${NOTIFICATIONS_TABLE_NAME}.type = '${Notifications.Types.CONNECTION_REQUEST_RECEIVED}')`)); // eslint-disable-line max-len
             })
             .columns([
                 `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId as userConnection.requestingUserId`,

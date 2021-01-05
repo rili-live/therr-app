@@ -34,17 +34,34 @@ export default class UserConnectionsStore {
         this.db = dbConnection;
     }
 
-    // TODO: Verify that the count is correct after adding custom search method
-    countRecords(params) {
-        const queryString = getDbCountQueryString({
-            queryBuilder: knex,
-            tableName: USER_CONNECTIONS_TABLE_NAME,
-            params,
-            defaultConditions: {
+    // TODO: This value is incorrect
+    // Need to make the search query a transaction and include the count there
+    countRecords(params, shouldCheckReverse?: string) {
+        let queryString: any = knex.count('*')
+            .from(USER_CONNECTIONS_TABLE_NAME)
+            .innerJoin(USERS_TABLE_NAME, function () {
+                this.on(function () {
+                    this.on(`${USERS_TABLE_NAME}.id`, '=', `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId`);
+                    this.orOn(`${USERS_TABLE_NAME}.id`, '=', `${USER_CONNECTIONS_TABLE_NAME}.acceptingUserId`);
+                });
+            })
+            .where({
                 isConnectionBroken: false,
                 requestStatus: 'complete',
-            },
-        });
+            });
+
+        if (params.filterBy && params.query) {
+            const operator = params.filterOperator || '=';
+            const query = operator === 'like' ? `%${params.query}%` : params.query;
+            queryString = queryString.andWhere((builder) => {
+                builder.where('requestingUserId', operator, query);
+                if (shouldCheckReverse === 'true') {
+                    builder.orWhere('acceptingUserId', operator, query);
+                }
+            });
+        }
+
+        queryString = queryString.toString();
 
         return this.db.read.query(queryString).then((response) => response.rows);
     }
@@ -112,7 +129,7 @@ export default class UserConnectionsStore {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
         let queryString: any = knex
-            .select(returning || [
+            .select((returning && returning.length) ? returning : [
                 `${USER_CONNECTIONS_TABLE_NAME}.id`,
                 `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId`,
                 `${USER_CONNECTIONS_TABLE_NAME}.acceptingUserId`,
@@ -143,16 +160,12 @@ export default class UserConnectionsStore {
         if (conditions.filterBy && conditions.query) {
             const operator = conditions.filterOperator || '=';
             const query = operator === 'like' ? `%${conditions.query}%` : conditions.query;
-            if (shouldCheckReverse === 'true') {
-                queryString = queryString.andWhere('requestingUserId', operator, query)
-                    .orWhere({
-                        isConnectionBroken: false,
-                        requestStatus: 'complete',
-                    })
-                    .andWhere('acceptingUserId', operator, query);
-            } else {
-                queryString = queryString.andWhere(conditions.filterBy, operator, query);
-            }
+            queryString = queryString.andWhere((builder) => {
+                builder.where('requestingUserId', operator, query);
+                if (shouldCheckReverse === 'true') {
+                    builder.orWhere('acceptingUserId', operator, query);
+                }
+            });
         }
 
         // if (groupBy) {
@@ -168,6 +181,7 @@ export default class UserConnectionsStore {
             .offset(offset)
             .toString();
 
+        // TODO: This is not grouping users correctly
         return this.db.read.query(queryString).then((response) => formatSQLJoinAsJSON(response.rows, ['users']));
     }
 
