@@ -115,6 +115,7 @@ const getUserConnection = (req, res) => Store.userConnections.getUserConnections
 const searchUserConnections: RequestHandler = (req: any, res: any) => {
     const {
         filterBy,
+        filterOperator,
         query,
         itemsPerPage,
         pageNumber,
@@ -125,8 +126,9 @@ const searchUserConnections: RequestHandler = (req: any, res: any) => {
     const searchPromise = Store.userConnections.searchUserConnections(searchArgs[0], searchArgs[1], shouldCheckReverse);
     const countPromise = Store.userConnections.countRecords({
         filterBy,
+        filterOperator,
         query,
-    });
+    }, shouldCheckReverse);
 
     return Promise.all([searchPromise, countPromise]).then(([results, countResult]) => {
         const response = {
