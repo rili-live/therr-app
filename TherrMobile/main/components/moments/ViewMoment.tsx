@@ -2,11 +2,12 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { ActivityIndicator, View, ScrollView, Text } from 'react-native';
 import { Button, Image } from 'react-native-elements';
-import 'react-native-gesture-handler';
+import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { IUserState } from 'therr-react/types';
 import { viewMomentModal } from '../../styles/modal';
 import * as therrTheme from '../../styles/themes';
+import styles from '../../styles';
 import { bindActionCreators } from 'redux';
 
 export const DEFAULT_RADIUS = 10;
@@ -86,7 +87,13 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
                             momentDetails.userDetails &&
                             <Text style={viewMomentModal.momentUserName}>{`${momentDetails.userDetails.firstName} ${momentDetails.userDetails.lastName}`}</Text>
                         }
-                        <Text style={viewMomentModal.momentMessage}>{moment.message}</Text>
+                        <Text style={viewMomentModal.momentMessage}>
+                            <Autolink
+                                text={moment.message}
+                                linkStyle={styles.link}
+                                phone="sms"
+                            />
+                        </Text>
                     </View>
                 </ScrollView>
             </>

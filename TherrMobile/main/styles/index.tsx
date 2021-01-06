@@ -150,6 +150,9 @@ export default StyleSheet.create({
     highlight: {
         fontWeight: '700',
     },
+    link: {
+        color: therrTheme.colors.hyperlink,
+    },
     overlay: {
         height: '100%',
         width: '100%',
