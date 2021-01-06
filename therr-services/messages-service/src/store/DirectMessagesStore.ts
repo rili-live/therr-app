@@ -5,7 +5,7 @@ import { IConnection } from './connection';
 
 const knex: Knex = Knex({ client: 'pg' });
 
-const DIRECT_MESSAGES_TABLE_NAME = 'main.directMessages';
+export const DIRECT_MESSAGES_TABLE_NAME = 'main.directMessages';
 
 export interface ICreateDirectMessageParams {
     message: string;

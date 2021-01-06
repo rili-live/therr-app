@@ -15,8 +15,8 @@ export default ({
     defaultConditions,
 }: ICountDbRecords) => {
     const where: any = defaultConditions;
-    if (params.filterBy && params.query) {
-        where[params.filterBy] = params.query || '';
+    if (params.filterBy && params.query != undefined) { // eslint-disable-line eqeqeq
+        where[params.filterBy] = params.query;
     }
 
     const queryString = queryBuilder
