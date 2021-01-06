@@ -234,7 +234,7 @@
       "labels": {
         "message": "Share something unique...",
         "notificationMsg": "Push notification summary",
-        "hashTags": "Tags (ie. #my_tag)",
+        "hashTags": "Tags (ie. my_tag, myTag)",
         "maxViews": "Max views (per person)",
         "expiresAt": "Countdown"
       },

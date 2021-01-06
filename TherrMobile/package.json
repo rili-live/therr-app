@@ -42,6 +42,7 @@
     "react-native": "0.63.2",
     "react-native-android-location-services-dialog-box": "^2.8.2",
     "react-native-animated-loader": "0.0.8",
+    "react-native-autolink": "^3.0.0",
     "react-native-country-picker-modal": "^2.0.0",
     "react-native-device-info": "^6.2.0",
     "react-native-dotenv": "^2.4.0",

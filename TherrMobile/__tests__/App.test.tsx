@@ -8,6 +8,7 @@ import renderer from 'react-test-renderer';
 
 jest.mock('react-native-country-picker-modal');
 jest.mock('react-native-phone-input');
+jest.mock('react-native-autolink');
 
 beforeEach(() => {
     jest.useFakeTimers();

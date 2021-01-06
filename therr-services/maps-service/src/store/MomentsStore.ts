@@ -5,7 +5,7 @@ import { IConnection } from './connection';
 
 const knex: Knex = Knex({ client: 'pg' });
 
-const MOMENTS_TABLE_NAME = 'main.moments';
+export const MOMENTS_TABLE_NAME = 'main.moments';
 
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
 
@@ -36,6 +36,7 @@ export default class MomentsStore {
         this.db = dbConnection;
     }
 
+    // Combine with search to avoid getting count out of sync
     countRecords(params, fromUserIds) {
         let proximityMax = MOMENT_PROXIMITY_METERS;
         if ((params.filterBy && params.filterBy === 'distance') && params.query) {
@@ -47,12 +48,12 @@ export default class MomentsStore {
             // NOTE: Cast to a geography type to search distance within n meters
             .where(knex.raw(`ST_DWithin(geom, ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${proximityMax})`));
 
-        if ((params.filterBy && params.filterBy !== 'distance') && params.query) {
+        if ((params.filterBy && params.filterBy !== 'distance')) {
             if (params.filterBy === 'fromUserIds') {
                 queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
                     builder.whereIn('fromUserId', fromUserIds);
                 });
-            } else {
+            } else if (params.query != undefined) { // eslint-disable-line eqeqeq
                 queryString = queryString.andWhere({
                     [params.filterBy]: params.query || '',
                 });
@@ -76,7 +77,7 @@ export default class MomentsStore {
             // NOTE: Cast to a geography type to search distance within n meters
             .where(knex.raw(`ST_DWithin(geom, ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${proximityMax})`)); // eslint-disable-line quotes, max-len
 
-        if ((conditions.filterBy && conditions.filterBy !== 'distance') && conditions.query) {
+        if ((conditions.filterBy && conditions.filterBy !== 'distance') && conditions.query != undefined) { // eslint-disable-line eqeqeq
             const operator = conditions.filterOperator || '=';
             const query = operator === 'like' ? `%${conditions.query}%` : conditions.query;
 

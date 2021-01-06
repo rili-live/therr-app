@@ -1,6 +1,5 @@
 import Knex from 'knex';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
-import { getDbCountQueryString } from 'therr-js-utilities/db';
 import { IConnection } from './connection';
 import { USERS_TABLE_NAME } from './UsersStore';
 
@@ -181,7 +180,6 @@ export default class UserConnectionsStore {
             .offset(offset)
             .toString();
 
-        // TODO: This is not grouping users correctly
         return this.db.read.query(queryString).then((response) => formatSQLJoinAsJSON(response.rows, ['users']));
     }
 

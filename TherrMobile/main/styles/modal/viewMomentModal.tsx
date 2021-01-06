@@ -88,6 +88,7 @@ export default StyleSheet.create({
     },
     momentMessage: {
         fontSize: 20,
+        marginBottom: 20,
     },
     momentUserAvatarImg: {
         height: 200,
