@@ -8,6 +8,7 @@ import { MapActions } from 'therr-react/redux/actions';
 import { IUserState } from 'therr-react/types';
 import { editMomentModal } from '../../styles/modal';
 import { editMomentForm as editMomentFormStyles } from '../../styles/forms';
+import userContentStyles from '../../styles/user-content';
 import Alert from '../Alert';
 import { bindActionCreators } from 'redux';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
@@ -33,6 +34,7 @@ export interface IEditMomentProps extends IStoreProps {
 interface IEditMomentState {
     errorMsg: string;
     successMsg: string;
+    hashtags: string[];
     inputs: any;
     isSubmitting: boolean;
 }
@@ -54,6 +56,7 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
         this.state = {
             errorMsg: '',
             successMsg: '',
+            hashtags: [],
             inputs: {},
             isSubmitting: false,
         };
@@ -69,10 +72,10 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
     }
 
     onSubmit = () => {
+        const { hashtags } = this.state;
         const {
             message,
             notificationMsg,
-            hashTags,
             maxViews,
             expiresAt,
         } = this.state.inputs;
@@ -87,7 +90,7 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
             fromUserId: user.details.id,
             message,
             notificationMsg,
-            hashTags,
+            hashTags: hashtags.join(', '),
             latitude,
             longitude,
             maxViews,
@@ -134,17 +137,30 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
     };
 
     onInputChange = (name: string, value: string) => {
+        const { hashtags } = this.state;
+        const modifiedHastags = [ ...hashtags ];
+        let modifiedValue = value;
         const newInputChanges = {
-            [name]: value,
+            [name]: modifiedValue,
         };
 
         if (name === 'hashTags') {
-            let modifiedValue = value.replace(/#/g, '');
-            modifiedValue = `#${modifiedValue}`;
+            modifiedValue = modifiedValue.replace(/[^\w_,\s]/gi, '');
+
+            const lastCharacter = modifiedValue.substring(modifiedValue.length - 1, modifiedValue.length);
+            if (lastCharacter === ',' || lastCharacter === ' ') {
+                const tag = modifiedValue.substring(0, modifiedValue.length - 1);
+                if (modifiedHastags.length < 100 && !modifiedHastags.includes(tag)) {
+                    modifiedHastags.push(modifiedValue.substring(0, modifiedValue.length - 1));
+                }
+                modifiedValue = '';
+            }
+
             newInputChanges[name] = modifiedValue.trim();
         }
 
         this.setState({
+            hashtags: modifiedHastags,
             inputs: {
                 ...this.state.inputs,
                 ...newInputChanges,
@@ -155,9 +171,39 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
         });
     };
 
+    renderHashtagPill = (tag, key) => {
+        return (
+            <Button
+                key={key}
+                buttonStyle={userContentStyles.buttonPill}
+                containerStyle={userContentStyles.buttonPillContainer}
+                titleStyle={userContentStyles.buttonPillTitle}
+                title={`#${tag}`}
+                icon={
+                    <FontAwesome5Icon
+                        name="times"
+                        size={14}
+                        style={userContentStyles.buttonPillIcon}
+                    />
+                }
+                iconRight={true}
+                onPress={() => this.handleHashtagPress(tag)}
+            />
+        );
+    };
+
+    handleHashtagPress = (tag) => {
+        const { hashtags } = this.state;
+        let modifiedHastags = hashtags.filter(t => t !== tag);
+
+        this.setState({
+            hashtags: modifiedHastags,
+        });
+    }
+
     render() {
         const { closeOverlay, translate } = this.props;
-        const { errorMsg, successMsg, inputs } = this.state;
+        const { errorMsg, successMsg, hashtags, inputs } = this.state;
 
         return (
             <>
@@ -199,6 +245,9 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                         />
                         <Input
                             inputStyle={editMomentFormStyles.inputAlt}
+                            errorStyle={{
+                                display: 'none',
+                            }}
                             placeholder={translate(
                                 'forms.editMoment.labels.hashTags'
                             )}
@@ -207,6 +256,13 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                                 this.onInputChange('hashTags', text)
                             }
                         />
+                        {
+                            <View style={userContentStyles.hashtagsContainer}>
+                                {
+                                    hashtags.map((tag, i) => this.renderHashtagPill(tag, i))
+                                }
+                            </View>
+                        }
                         <Input
                             inputStyle={editMomentFormStyles.inputAlt}
                             placeholder={translate(

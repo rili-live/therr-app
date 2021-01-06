@@ -8,6 +8,7 @@ import { IUserState } from 'therr-react/types';
 import { viewMomentModal } from '../../styles/modal';
 import * as therrTheme from '../../styles/themes';
 import styles from '../../styles';
+import userContentStyles from '../../styles/user-content';
 import { bindActionCreators } from 'redux';
 
 export const DEFAULT_RADIUS = 10;
@@ -39,13 +40,29 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({}, dispatch);
 
 class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
+    private hashtags;
+
     private scrollViewRef;
 
     constructor(props) {
         super(props);
 
         this.state = {};
+
+        this.hashtags = (props.moment.hashTags || []).split(', ');
     }
+
+    renderHashtagPill = (tag, key) => {
+        return (
+            <Button
+                key={key}
+                buttonStyle={userContentStyles.buttonPill}
+                containerStyle={userContentStyles.buttonPillContainer}
+                titleStyle={userContentStyles.buttonPillTitle}
+                title={`#${tag}`}
+            />
+        );
+    };
 
     render() {
         const { closeOverlay, moment, momentDetails } = this.props;
@@ -94,6 +111,13 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
                                 phone="sms"
                             />
                         </Text>
+                        <View>
+                            <View style={userContentStyles.hashtagsContainer}>
+                                {
+                                    this.hashtags.map((tag, i) => this.renderHashtagPill(tag, i))
+                                }
+                            </View>
+                        </View>
                     </View>
                 </ScrollView>
             </>
