@@ -9,6 +9,16 @@ const colors = {
     secondaryFaded: '#4e8e67',
     ternary: '#e0c845',
 
+    textBlack: '#363636',
+    textGray: '#bfc7d5',
+    textWhite: '#fcfeff',
+
+    backgroundWhite: '#ffffff',
+    backgroundGray: '#fafafa',
+    borderLight: 'gray',
+
+    hyperlink: '#0e01b3',
+
     beemo1: '#5cb19e',
     beemo1Fade: '#97c5bb',
     beemo2: '#cbffdc',
@@ -21,14 +31,6 @@ const colors = {
     beemoPurple: '#0e01b3',
     beemoTeal: '#00def3',
     beemoLime: '#00f729',
-
-    textBlack: '#363636',
-    textGray: '#bfc7d5',
-    textWhite: '#fcfeff',
-
-    backgroundWhite: '#ffffff',
-    backgroundGray: '#fafafa',
-    borderLight: 'gray',
 
     map: {
         momentsCircleFill: 'rgba(56,130,84,0.2)',
