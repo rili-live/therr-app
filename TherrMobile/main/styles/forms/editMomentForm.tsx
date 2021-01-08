@@ -20,6 +20,16 @@ export default StyleSheet.create({
     button: {
         backgroundColor: therrTheme.colors.primary3,
     },
+    previewContainer: {
+        paddingHorizontal: 30,
+    },
+    preview: {
+
+    },
+    previewHeader: {
+        fontSize: 14,
+        paddingBottom: 6,
+    },
     submitButton: {
         ...submitButtonStyles,
         backgroundColor: therrTheme.colors.beemoTeal,

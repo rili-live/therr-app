@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { Button, Image, Text } from 'react-native-elements';
 import Overlay from 'react-native-modal-overlay';
 import { CommonActions } from '@react-navigation/native';
@@ -67,7 +67,7 @@ class HeaderMenuRight extends React.Component<
     navTo = (routeName) => {
         const { location, navigation, updateGpsStatus } = this.props;
 
-        if (routeName === 'Map' && !location.settings.isGpsEnabled) {
+        if (Platform.OS !== 'ios' && routeName === 'Map' && !location.settings.isGpsEnabled) {
             LocationServicesDialogBox.checkLocationServicesIsEnabled({
                 message:
                     "<h2 style='color: #0af13e'>Use Location?</h2>This app wants to change your device settings:<br/><br/>" +

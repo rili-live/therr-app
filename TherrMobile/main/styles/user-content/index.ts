@@ -36,4 +36,7 @@ export default StyleSheet.create({
     buttonPillTitle: {
         color: therrTheme.colors.beemoTextBlack,
     },
+    preview: {
+        paddingHorizontal: 20,
+    },
 });

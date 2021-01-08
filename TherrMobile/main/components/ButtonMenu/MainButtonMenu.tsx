@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import LocationServicesDialogBox from 'react-native-android-location-services-dialog-box';
@@ -18,7 +18,7 @@ class MainButtonMenu extends ButtonMenu {
     navTo = (routeName) => {
         const { location, navigation, updateGpsStatus } = this.props;
 
-        if (routeName === 'Map' && !location.settings.isGpsEnabled) {
+        if (Platform.OS !== 'ios' && routeName === 'Map' && !location.settings.isGpsEnabled) {
             LocationServicesDialogBox.checkLocationServicesIsEnabled({
                 message:
                     "<h2 style='color: #0af13e'>Use Location?</h2>This app wants to change your device settings:<br/><br/>" +

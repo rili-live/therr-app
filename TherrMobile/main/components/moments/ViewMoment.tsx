@@ -1,15 +1,17 @@
 import React from 'react';
+import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { ActivityIndicator, View, ScrollView, Text } from 'react-native';
 import { Button, Image } from 'react-native-elements';
 import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import YoutubePlayer from 'react-native-youtube-iframe';
 import { IUserState } from 'therr-react/types';
 import { viewMomentModal } from '../../styles/modal';
 import * as therrTheme from '../../styles/themes';
 import styles from '../../styles';
 import userContentStyles from '../../styles/user-content';
-import { bindActionCreators } from 'redux';
+import { youtubeLinkRegex } from '../../constants';
 
 export const DEFAULT_RADIUS = 10;
 
@@ -26,12 +28,16 @@ interface IStoreProps extends IViewMomentDispatchProps {
 // Regular component props
 export interface IViewMomentProps extends IStoreProps {
     closeOverlay: any;
+    handleFullScreen: Function;
     moment: any;
     momentDetails: IMomentDetails;
     translate: any;
 }
 
-interface IViewMomentState {}
+interface IViewMomentState {
+    previewLinkId?: string;
+    previewStyleState: any;
+}
 
 const mapStateToProps = (state) => ({
     user: state.user,
@@ -47,9 +53,14 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
     constructor(props) {
         super(props);
 
-        this.state = {};
+        const youtubeMatches = (props.moment.message || '').match(youtubeLinkRegex);
 
-        this.hashtags = (props.moment.hashTags || []).split(', ');
+        this.state = {
+            previewStyleState: {},
+            previewLinkId: youtubeMatches && youtubeMatches[1],
+        };
+
+        this.hashtags = props.moment.hashTags ? props.moment.hashTags.split(', ') : [];
     }
 
     renderHashtagPill = (tag, key) => {
@@ -64,8 +75,25 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
         );
     };
 
+    handlePreviewFullScreen = (isFullScreen) => {
+        const previewStyleState = isFullScreen ? {
+            top: 0,
+            left: 0,
+            padding: 0,
+            margin: 0,
+            position: 'absolute',
+            zIndex: 20,
+        } : {};
+        this.setState({
+            previewStyleState,
+        });
+        this.props.handleFullScreen(isFullScreen);
+    }
+
     render() {
+        const { previewLinkId, previewStyleState } = this.state;
         const { closeOverlay, moment, momentDetails } = this.props;
+        console.log(previewLinkId);
 
         return (
             <>
@@ -92,6 +120,7 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
                     contentInsetAdjustmentBehavior="automatic"
                     ref={(component) => (this.scrollViewRef = component)}
                     style={viewMomentModal.body}
+                    contentContainerStyle={viewMomentModal.bodyScroll}
                 >
                     <View style={viewMomentModal.momentContainer}>
                         <Image
@@ -119,6 +148,17 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
                             </View>
                         </View>
                     </View>
+                    {
+                        previewLinkId
+                        && <View style={[userContentStyles.preview, previewStyleState]}>
+                            <YoutubePlayer
+                                height={300}
+                                play={false}
+                                videoId={previewLinkId}
+                                onFullScreenChange={this.handlePreviewFullScreen}
+                            />
+                        </View>
+                    }
                 </ScrollView>
             </>
         );

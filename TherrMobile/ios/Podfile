@@ -75,7 +75,6 @@ target 'Therr' do
   pod 'React-jsinspector', :path => '../node_modules/react-native/ReactCommon/jsinspector'
   # pod 'ReactCommon/callinvoker', :path => "../node_modules/react-native/ReactCommon"
   pod 'ReactCommon/turbomodule/core', :path => "../node_modules/react-native/ReactCommon"
-  pod 'RNVectorIcons', :path => "../node_modules/react-native-vector-icons"
   pod 'Yoga', :path => '../node_modules/react-native/ReactCommon/yoga', :modular_headers => true
 
   pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
@@ -84,9 +83,7 @@ target 'Therr' do
 
 
 
-  pod 'react-native-maps', :path => '../node_modules/react-native-maps'
 
-  pod 'react-native-geolocation', :path => '../node_modules/@react-native-community/geolocation'
 
 
   target 'TherrTests' do

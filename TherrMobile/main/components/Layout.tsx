@@ -1,5 +1,5 @@
 import React from 'react';
-// import { DeviceEventEmitter } from 'react-native';
+import { Platform } from 'react-native';
 import LocationServicesDialogBox from 'react-native-android-location-services-dialog-box';
 import { UsersService } from 'therr-react/services';
 import { IUserState } from 'therr-react/types';
@@ -92,7 +92,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
 
-        if (!props.location.settings.isGpsEnabled) {
+        if (Platform.OS !== 'ios' && !props.location.settings.isGpsEnabled) {
             LocationServicesDialogBox.checkLocationServicesIsEnabled({
                 message:
                     "<h2 style='color: #0af13e'>Use Location?</h2>This app wants to change your device settings:<br/><br/>" +

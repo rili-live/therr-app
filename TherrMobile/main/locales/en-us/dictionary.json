@@ -173,7 +173,8 @@
     },
     "editMomentOverlay": {
       "headerTitle": "Create a Moment",
-      "formHeaderContent": "Content"
+      "formHeaderContent": "Content",
+      "previewHeader": "Preview:"
     },
     "notification": {
       "buttons": {
