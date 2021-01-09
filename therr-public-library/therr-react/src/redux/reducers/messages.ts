@@ -1,5 +1,5 @@
 import Immutable from 'seamless-immutable';
-import { SocketServerActionTypes } from 'therr-js-utilities/constants';
+import { SocketClientActionTypes, SocketServerActionTypes } from 'therr-js-utilities/constants';
 import { IForumMsgList, IMessagesState, MessageActionTypes } from '../../types/redux/messages';
 
 const initialState: IMessagesState = Immutable.from({
@@ -41,6 +41,9 @@ const messages = (state: IMessagesState = initialState, action: any) => {
                 && state.dms[action.data.contextUserId].asMutable()) || [];
             directMessages.push(action.data.message);
             return state.setIn(['dms', action.data.contextUserId], directMessages);
+        case SocketClientActionTypes.LOGOUT:
+            return state.setIn(['dms'], Immutable.from([]))
+                .setIn(['forumMsgs'], Immutable.from([]));
         default:
             return state;
     }

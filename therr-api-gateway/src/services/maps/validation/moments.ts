@@ -14,7 +14,7 @@ export const createMomentValidation = [
     body('mentionsIds').isString().optional(),
     body('hashTags').isString().optional(),
     body('maxViews').isNumeric().optional(),
-    body('minProximity').isDecimal().optional(),
+    body('maxProximity').isDecimal().optional(),
     body('latitude').isDecimal().exists(),
     body('longitude').isDecimal().exists(),
     oneOf([

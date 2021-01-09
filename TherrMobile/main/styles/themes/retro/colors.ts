@@ -1,3 +1,5 @@
+import Color from 'color';
+
 const colors = {
     primary: '#1d6f79',
     primary2: '#387a82',
@@ -28,6 +30,7 @@ const colors = {
     beemoTextWhite: '#fafafa',
     beemoRed: '#fe0156',
     beemoYellow: '#fed61e',
+    beemoBlue: '#17657D',
     beemoPurple: '#0e01b3',
     beemoTeal: '#00def3',
     beemoLime: '#00f729',
@@ -41,4 +44,13 @@ const colors = {
     },
 };
 
+const colorVariations = {
+    beemoBlueLightFade: new Color(colors.beemoBlue).fade(0.2).toString(),
+    beemoBlueHeavyFade: new Color(colors.beemoBlue).fade(0.7).toString(),
+};
+
 export default colors;
+
+export {
+    colorVariations,
+};

@@ -36,6 +36,14 @@ const headerStyles: any = {
     borderBottomColor: therrTheme.colors.primary,
 };
 
+const overlayStyles: any = {
+    height: '100%',
+    width: '100%',
+    padding: 0,
+    margin: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+};
+
 const loaderStyles = StyleSheet.create({
     lottie: {
         width: 100,
@@ -154,11 +162,12 @@ export default StyleSheet.create({
         color: therrTheme.colors.hyperlink,
     },
     overlay: {
-        height: '100%',
-        width: '100%',
-        padding: 0,
-        margin: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.35)',
+        ...overlayStyles,
+    },
+    overlayInvisible: {
+        ...overlayStyles,
+        height: 0,
+        width: 0,
     },
     footer: {
         color: therrTheme.colors.textWhite,

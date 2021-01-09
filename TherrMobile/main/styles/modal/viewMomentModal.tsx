@@ -74,6 +74,15 @@ export default StyleSheet.create({
         margin: 10,
         marginTop: 15,
         backgroundColor: therrTheme.colors.beemo1,
+        width: '100%',
+    },
+    bodyScroll: {
+        color: therrTheme.colors.textWhite,
+        justifyContent: 'center',
+        display: 'flex',
+        minHeight: '90%',
+        width: '100%',
+        paddingBottom: 40,
     },
     momentContainer: {
         display: 'flex',

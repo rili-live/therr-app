@@ -5,6 +5,10 @@ const DEFAULT_MOMENT_PROXIMITY = 25;
 const MIN_ZOOM_LEVEL = 5;
 const MOMENTS_REFRESH_THROTTLE_MS = 10 * 1000;
 
+// RegEx
+const youtubeLinkRegex = /(?:http(?:s?):\/\/)?(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?‌​=]*)?/mi;
+
+
 export {
     INITIAL_LATIUDE_DELTA,
     INITIAL_LONGITUDE_DELTA,
@@ -12,4 +16,7 @@ export {
     DEFAULT_MOMENT_PROXIMITY,
     MIN_ZOOM_LEVEL,
     MOMENTS_REFRESH_THROTTLE_MS,
+
+    // RegEx
+    youtubeLinkRegex,
 };

@@ -5,7 +5,7 @@ import loginForm from './loginForm';
 import phoneInput from './phoneInput';
 import settingsForm from './settingsForm';
 import * as therrTheme from '../themes';
-import { inputStyle, textInputStyle } from './base';
+import { containerStyles, inputStyle, textInputStyle } from './base';
 
 export default StyleSheet.create({
     input: {
@@ -26,6 +26,19 @@ export default StyleSheet.create({
         shadowRadius: 2,
         elevation: 1,
         borderBottomWidth: 0,
+    },
+    inputLabelLight: {
+        paddingHorizontal: 2,
+        fontSize: 14,
+        color: therrTheme.colors.beemoTextWhite,
+    },
+    inputLabelDark: {
+        paddingHorizontal: 2,
+        fontSize: 14,
+        color: therrTheme.colors.beemoTextBlack,
+    },
+    inputSliderContainer: {
+        ...containerStyles,
     },
     picker: {
         height: 50,
