@@ -1,19 +1,26 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Keyboard, View, ScrollView, Text, TextInput } from 'react-native';
-import { Button, Input } from 'react-native-elements';
+import { Button, Input, Slider } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import YoutubePlayer from 'react-native-youtube-iframe';
 import { MapActions } from 'therr-react/redux/actions';
 import { IUserState } from 'therr-react/types';
 import { editMomentModal } from '../../styles/modal';
-import { editMomentForm as editMomentFormStyles } from '../../styles/forms';
+import * as therrTheme from '../../styles/themes';
+import formStyles, { editMomentForm as editMomentFormStyles } from '../../styles/forms';
 import userContentStyles from '../../styles/user-content';
 import Alert from '../Alert';
 import { bindActionCreators } from 'redux';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
+import { youtubeLinkRegex } from '../../constants';
 
 export const DEFAULT_RADIUS = 10;
+export const MIN_RADIUS_PRIVATE = 3;
+export const MAX_RADIUS_PRIVATE = 25;
+export const MIN_RADIUS_PUBLIC = 3;
+export const MAX_RADIUS_PUBLIC = 50;
 
 interface IEditMomentDispatchProps {
     createMoment: Function;
@@ -26,6 +33,7 @@ interface IStoreProps extends IEditMomentDispatchProps {
 // Regular component props
 export interface IEditMomentProps extends IStoreProps {
     closeOverlay: any;
+    handleFullScreen: Function;
     latitude: any;
     longitude: string;
     translate: any;
@@ -37,6 +45,8 @@ interface IEditMomentState {
     hashtags: string[];
     inputs: any;
     isSubmitting: boolean;
+    previewLinkId?: string;
+    previewStyleState: any;
 }
 
 const mapStateToProps = (state) => ({
@@ -57,8 +67,11 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
             errorMsg: '',
             successMsg: '',
             hashtags: [],
-            inputs: {},
+            inputs: {
+                radius: DEFAULT_RADIUS,
+            },
             isSubmitting: false,
+            previewStyleState: {},
         };
     }
 
@@ -78,6 +91,7 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
             notificationMsg,
             maxViews,
             expiresAt,
+            radius,
         } = this.state.inputs;
         const {
             latitude,
@@ -94,7 +108,7 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
             latitude,
             longitude,
             maxViews,
-            radius: DEFAULT_RADIUS,
+            radius,
             expiresAt,
         };
 
@@ -159,6 +173,14 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
             newInputChanges[name] = modifiedValue.trim();
         }
 
+        if (name === 'message') {
+            const match = value.match(youtubeLinkRegex);
+            const previewLinkId = (match && match[1]) || undefined;
+            this.setState({
+                previewLinkId,
+            });
+        }
+
         this.setState({
             hashtags: modifiedHastags,
             inputs: {
@@ -170,6 +192,22 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
             isSubmitting: false,
         });
     };
+
+    onSliderChange = (name, value) => {
+        const newInputChanges = {
+            [name]: value,
+        };
+
+        this.setState({
+            inputs: {
+                ...this.state.inputs,
+                ...newInputChanges,
+            },
+            errorMsg: '',
+            successMsg: '',
+            isSubmitting: false,
+        });
+    }
 
     renderHashtagPill = (tag, key) => {
         return (
@@ -201,9 +239,24 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
         });
     }
 
+    handlePreviewFullScreen = (isFullScreen) => {
+        const previewStyleState = isFullScreen ? {
+            top: 0,
+            left: 0,
+            padding: 0,
+            margin: 0,
+            position: 'absolute',
+            zIndex: 20,
+        } : {};
+        this.setState({
+            previewStyleState,
+        });
+        this.props.handleFullScreen(isFullScreen);
+    }
+
     render() {
         const { closeOverlay, translate } = this.props;
-        const { errorMsg, successMsg, hashtags, inputs } = this.state;
+        const { errorMsg, successMsg, hashtags, inputs, previewLinkId, previewStyleState } = this.state;
 
         return (
             <>
@@ -229,6 +282,7 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                     contentInsetAdjustmentBehavior="automatic"
                     ref={(component) => (this.scrollViewRef = component)}
                     style={editMomentModal.body}
+                    contentContainerStyle={editMomentModal.bodyScroll}
                 >
                     <View style={editMomentFormStyles.momentContainer}>
                         <TextInput
@@ -273,6 +327,21 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                                 this.onInputChange('notificationMsg', text)
                             }
                         />
+                        <View style={formStyles.inputSliderContainer}>
+                            <Text style={formStyles.inputLabelDark}>
+                                {`${translate('forms.editMoment.labels.radius', { meters: inputs.radius })}`}
+                            </Text>
+                            <Slider
+                                value={inputs.radius}
+                                onValueChange={(value) => this.onSliderChange('radius', value)}
+                                maximumValue={MAX_RADIUS_PRIVATE}
+                                minimumValue={MIN_RADIUS_PRIVATE}
+                                step={1}
+                                thumbStyle={{ backgroundColor: therrTheme.colors.beemoBlue }}
+                                minimumTrackTintColor={therrTheme.colorVariations.beemoBlueLightFade}
+                                maximumTrackTintColor={therrTheme.colorVariations.beemoBlueHeavyFade}
+                            />
+                        </View>
                         <Alert
                             containerStyles={{
                                 marginBottom: 24,
@@ -284,11 +353,11 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                         {/* <Input
                             inputStyle={editMomentFormStyles.inputAlt}
                             placeholder={translate(
-                                'forms.editMoment.labels.minProximity'
+                                'forms.editMoment.labels.maxProximity'
                             )}
-                            value={inputs.minProximity}
+                            value={inputs.maxProximity}
                             onChangeText={(text) =>
-                                this.onInputChange('minProximity', text)
+                                this.onInputChange('maxProximity', text)
                             }
                         />
                         {/* <Input
@@ -312,6 +381,20 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                             }
                         /> */}
                     </View>
+                    {
+                        !!previewLinkId
+                        && <View style={[userContentStyles.preview, editMomentFormStyles.previewContainer, previewStyleState]}>
+                            <Text style={editMomentFormStyles.previewHeader}>{translate('components.editMomentOverlay.previewHeader')}</Text>
+                            <View style={editMomentFormStyles.preview}>
+                                <YoutubePlayer
+                                    height={300}
+                                    play={false}
+                                    videoId={previewLinkId}
+                                    onFullScreenChange={this.handlePreviewFullScreen}
+                                />
+                            </View>
+                        </View>
+                    }
                 </ScrollView>
                 <View style={editMomentModal.footer}>
                     <Button

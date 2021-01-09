@@ -1,6 +1,20 @@
 import { StyleSheet } from 'react-native';
 import * as therrTheme from '../themes';
 
+const overlayContainerStyles: any = {
+    height: '100%',
+    width: '100%',
+    alignSelf: 'flex-end',
+    flexDirection: 'column',
+    borderRadius: 0,
+    padding: 0,
+    zIndex: 10,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    opacity: 1,
+};
+
 export default StyleSheet.create({
     addMoment: {
         position: 'absolute',
@@ -139,16 +153,14 @@ export default StyleSheet.create({
     editMomentOverlayContainer: {
         backgroundColor: therrTheme.colors.beemo1,
         display: 'flex',
-        height: '100%',
-        width: '100%',
-        alignSelf: 'flex-end',
-        flexDirection: 'column',
-        borderRadius: 0,
-        padding: 0,
-        zIndex: 10000,
-        position: 'absolute',
-        top: 0,
-        left: 0,
+        ...overlayContainerStyles,
+    },
+    editContainerInvisible: {
+        ...overlayContainerStyles,
+        position: 'relative',
+        height: 0,
+        width: 0,
+        overflow: 'visible',
     },
     momentAlertOverlayContainer: {
         display: 'flex',

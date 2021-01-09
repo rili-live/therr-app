@@ -1,5 +1,6 @@
-import colors from './colors';
+import colors, { colorVariations } from './colors';
 
 export {
     colors,
+    colorVariations,
 };

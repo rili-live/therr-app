@@ -64,6 +64,7 @@ interface IMapState {
     isViewMomentVisible: boolean;
     isLocationReady: boolean;
     isMinLoadTimeComplete: boolean;
+    isFullScreen: boolean;
     lastMomentsRefresh?: number,
     layers: any
     circleCenter: any;
@@ -105,6 +106,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             areButtonsVisible: true,
             areLayersVisible: false,
             isEditMomentVisible: false,
+            isFullScreen: false,
             isMomentAlertVisible: false,
             isViewMomentVisible: false,
             isLocationReady: false,
@@ -252,6 +254,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
     cancelViewMoment = () => {
         this.setState({
+            isFullScreen: false,
             isViewMomentVisible: false,
         });
     }
@@ -286,6 +289,10 @@ class Map extends React.Component<IMapProps, IMapState> {
             areLayersVisible: false,
         });
     };
+
+    handleFullScreen = (isFullScreen) => {
+        this.setState({ isFullScreen });
+    }
 
     handleGpsRecenter = () => {
         const { circleCenter } = this.state;
@@ -332,7 +339,10 @@ class Map extends React.Component<IMapProps, IMapState> {
                 lon: selectedMoment.longitude,
                 lat: selectedMoment.latitude,
             });
-            const isProximitySatisfied = distToCenter - selectedMoment.radius <= selectedMoment.minProximity;
+            const isProximitySatisfied = distToCenter - selectedMoment.radius <= selectedMoment.maxProximity;
+            console.log('distToCenter', distToCenter);
+            console.log('selectedMoment.radius', selectedMoment.radius);
+            console.log('selectedMoment.maxProximity', selectedMoment.maxProximity);
             if (!isProximitySatisfied && selectedMoment.fromUserId !== user.details.id) {
                 this.showMomentAlert();
             } else {
@@ -461,6 +471,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             areButtonsVisible,
             areLayersVisible,
             circleCenter,
+            isFullScreen,
             isLocationReady,
             isMinLoadTimeComplete,
             isEditMomentVisible,
@@ -683,14 +694,15 @@ class Map extends React.Component<IMapProps, IMapState> {
                             easing="linear"
                             visible={isEditMomentVisible}
                             onClose={this.cancelEditMoment}
-                            closeOnTouchOutside
-                            containerStyle={styles.overlay}
-                            childrenWrapperStyle={mapStyles.editMomentOverlayContainer}
+                            closeOnTouchOutside={isFullScreen ? false : true}
+                            containerStyle={isFullScreen ? styles.overlayInvisible : styles.overlay}
+                            childrenWrapperStyle={isFullScreen ? mapStyles.editContainerInvisible : mapStyles.editMomentOverlayContainer}
                         >
                             {
                                 (hideModal) => (
                                     <EditMoment
                                         closeOverlay={hideModal}
+                                        handleFullScreen={this.handleFullScreen}
                                         latitude={circleCenter.latitude}
                                         longitude={circleCenter.longitude}
                                         translate={this.translate}
@@ -704,14 +716,15 @@ class Map extends React.Component<IMapProps, IMapState> {
                             easing="ease-out"
                             visible={isViewMomentVisible}
                             onClose={this.cancelViewMoment}
-                            closeOnTouchOutside
-                            containerStyle={styles.overlay}
-                            childrenWrapperStyle={mapStyles.editMomentOverlayContainer}
+                            closeOnTouchOutside={isFullScreen ? false : true}
+                            containerStyle={isFullScreen ? styles.overlayInvisible : styles.overlay}
+                            childrenWrapperStyle={isFullScreen ? mapStyles.editContainerInvisible : mapStyles.editMomentOverlayContainer}
                         >
                             {
                                 (hideModal) => (
                                     <ViewMoment
                                         closeOverlay={hideModal}
+                                        handleFullScreen={this.handleFullScreen}
                                         translate={this.translate}
                                         moment={activeMoment}
                                         momentDetails={activeMomentDetails}

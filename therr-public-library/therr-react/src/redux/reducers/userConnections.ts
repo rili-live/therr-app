@@ -1,4 +1,4 @@
-import { SocketServerActionTypes } from 'therr-js-utilities/constants';
+import { SocketClientActionTypes, SocketServerActionTypes } from 'therr-js-utilities/constants';
 import * as Immutable from 'seamless-immutable';
 import { IUserConnectionsState, UserConnectionActionTypes } from '../../types/redux/userConnections';
 
@@ -62,6 +62,9 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
                 activeConnections.unshift(action.data);
             }
             return state.setIn(['activeConnections'], activeConnections);
+        case SocketClientActionTypes.LOGOUT:
+            return state.setIn(['connections'], Immutable.from([]))
+                .setIn(['activeConnections'], Immutable.from([]));
         case SocketServerActionTypes.SESSION_CLOSED:
             return state.setIn(['connections'], Immutable.from([]))
                 .setIn(['activeConnections'], Immutable.from([]));

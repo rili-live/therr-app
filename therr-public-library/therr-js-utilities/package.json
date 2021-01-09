@@ -13,7 +13,9 @@
   },
   "author": "",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "react-native-autolink": "^3.0.0"
+  },
   "devDependencies": {},
   "files": [
     "lib/"
