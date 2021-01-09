@@ -339,7 +339,10 @@ class Map extends React.Component<IMapProps, IMapState> {
                 lon: selectedMoment.longitude,
                 lat: selectedMoment.latitude,
             });
-            const isProximitySatisfied = distToCenter - selectedMoment.radius <= selectedMoment.minProximity;
+            const isProximitySatisfied = distToCenter - selectedMoment.radius <= selectedMoment.maxProximity;
+            console.log('distToCenter', distToCenter);
+            console.log('selectedMoment.radius', selectedMoment.radius);
+            console.log('selectedMoment.maxProximity', selectedMoment.maxProximity);
             if (!isProximitySatisfied && selectedMoment.fromUserId !== user.details.id) {
                 this.showMomentAlert();
             } else {

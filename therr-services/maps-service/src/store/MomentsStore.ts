@@ -22,7 +22,7 @@ export interface ICreateMomentParams {
     mentionsIds?: string;
     hashTags?: string;
     maxViews?: number;
-    minProximity?: number;
+    maxProximity?: number;
     latitude: number;
     longitude: number;
     radius?: string;
@@ -114,7 +114,7 @@ export default class MomentsStore {
             mentionsIds: params.mentionsIds || '',
             hashTags: params.hashTags || '',
             maxViews: params.maxViews || 0,
-            minProximity: params.minProximity,
+            maxProximity: params.maxProximity,
             latitude: params.latitude,
             longitude: params.longitude,
             radius: params.radius,

@@ -1,4 +1,5 @@
 import * as Immutable from 'seamless-immutable';
+import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { IMapState, MapActionTypes } from '../../types/redux/maps';
 
 const initialState: IMapState = Immutable.from({
@@ -39,6 +40,9 @@ const map = (state: IMapState = initialState, action: any) => {
             return state
                 .setIn(['longitude'], action.data.longitude)
                 .setIn(['latitude'], action.data.latitude);
+        case SocketClientActionTypes.LOGOUT:
+            return state.setIn(['dms'], Immutable.from([]))
+                .setIn(['forumMsgs'], Immutable.from([]));
         default:
             return state;
     }

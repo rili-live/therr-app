@@ -237,7 +237,8 @@
         "notificationMsg": "Push notification summary",
         "hashTags": "Tags (ie. my_tag, myTag)",
         "maxViews": "Max views (per person)",
-        "expiresAt": "Countdown"
+        "expiresAt": "Countdown",
+        "radius": "Radius: {meters} meters"
       },
       "backendSuccessMessage": "Your moment was successfully saved!",
       "backendErrorMessage": "Connection error. Please try again later."
