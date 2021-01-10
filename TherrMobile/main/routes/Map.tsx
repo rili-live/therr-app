@@ -90,6 +90,7 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class Map extends React.Component<IMapProps, IMapState> {
+    private localeShort = 'en'; // TODO: Derive from user locale
     private mapRef;
     private mapWatchId;
     private timeoutId;
@@ -340,9 +341,6 @@ class Map extends React.Component<IMapProps, IMapState> {
                 lat: selectedMoment.latitude,
             });
             const isProximitySatisfied = distToCenter - selectedMoment.radius <= selectedMoment.maxProximity;
-            console.log('distToCenter', distToCenter);
-            console.log('selectedMoment.radius', selectedMoment.radius);
-            console.log('selectedMoment.maxProximity', selectedMoment.maxProximity);
             if (!isProximitySatisfied && selectedMoment.fromUserId !== user.details.id) {
                 this.showMomentAlert();
             } else {
@@ -726,6 +724,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                         closeOverlay={hideModal}
                                         handleFullScreen={this.handleFullScreen}
                                         translate={this.translate}
+                                        localeShort={this.localeShort}
                                         moment={activeMoment}
                                         momentDetails={activeMomentDetails}
                                     />

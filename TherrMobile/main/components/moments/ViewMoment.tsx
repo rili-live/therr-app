@@ -29,6 +29,7 @@ interface IStoreProps extends IViewMomentDispatchProps {
 export interface IViewMomentProps extends IStoreProps {
     closeOverlay: any;
     handleFullScreen: Function;
+    localeShort: string;
     moment: any;
     momentDetails: IMomentDetails;
     translate: any;
@@ -46,6 +47,8 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({}, dispatch);
 
 class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
+    private date;
+
     private hashtags;
 
     private scrollViewRef;
@@ -61,6 +64,15 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
         };
 
         this.hashtags = props.moment.hashTags ? props.moment.hashTags.split(', ') : [];
+
+        const date = new Date(props.moment.updatedAt);
+        const year = new Intl.DateTimeFormat(props.localeShort, { year: 'numeric' }).format(date);
+        const month = new Intl.DateTimeFormat(props.localeShort, { month: 'short' }).format(date);
+        const day = new Intl.DateTimeFormat(props.localeShort, { day: 'numeric' }).format(date);
+        const hourSplit = new Intl.DateTimeFormat(props.localeShort, { hour: 'numeric' }).format(date).split(' ');
+        const minute = new Intl.DateTimeFormat(props.localeShort, { hour: '2-digit' }).format(date);
+
+        this.date = `${day}-${month}-${year} ${hourSplit[0]}:${minute}`;
     }
 
     renderHashtagPill = (tag, key) => {
@@ -93,7 +105,6 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
     render() {
         const { previewLinkId, previewStyleState } = this.state;
         const { closeOverlay, moment, momentDetails } = this.props;
-        console.log(previewLinkId);
 
         return (
             <>
@@ -139,6 +150,9 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
                                 linkStyle={styles.link}
                                 phone="sms"
                             />
+                        </Text>
+                        <Text style={viewMomentModal.dateTime}>
+                            {this.date}
                         </Text>
                         <View>
                             <View style={userContentStyles.hashtagsContainer}>
