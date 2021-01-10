@@ -27,7 +27,7 @@ spec:
         - name: API_GATEWAY_PORT
           value: "7770"
         - name: URI_WHITELIST
-          value: "https://therr.app,https://www.therr.app"
+          value: "https://therr.com,https://www.therr.com"
         - name: HONEYCOMB_API_KEY
           valueFrom:
             secretKeyRef:

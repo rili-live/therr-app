@@ -335,8 +335,7 @@
       "noNotifications": "You have no notifications at this time"
     },
     "login": {
-      "headerTitle": "Login",
-      "pageTitle": "Login",
+      "headerTitle": "Therr",
       "userAlerts": {
         "registerSuccess": "Registration success! Check your e-mail for verification."
       }

@@ -19,6 +19,10 @@ interface ICreateMomentBody {
     polygonCoords?: string;
 }
 
+interface IDeleteMomentsBody {
+    ids: string[];
+}
+
 class MapsService {
     createMoment = (data: ICreateMomentBody) => axios({
         method: 'post',
@@ -34,6 +38,12 @@ class MapsService {
             url: `/maps-service/moments${queryString}`,
         });
     }
+
+    deleteMoments = (data: IDeleteMomentsBody) => axios({
+        method: 'delete',
+        url: '/maps-service/moments',
+        data,
+    })
 }
 
 export default new MapsService();

@@ -45,3 +45,7 @@ export const searchMomentsValidation = [
     query('longitude').exists(),
     query('latitude').exists(),
 ];
+
+export const deleteMomentsValidation = [
+    body('ids').isArray(),
+];

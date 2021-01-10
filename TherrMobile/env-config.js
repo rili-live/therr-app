@@ -4,8 +4,8 @@ const apiMessagesPort = 7772;
 const apiUsersPort = 7771;
 const websocketPort = 7743;
 const hostDev = '192.168.1.70'; // Must use computer's ip address for dev to connect socket.io
-const hostStage = 'stage.therr.app';
-const hostProd = 'therr.app';
+const hostStage = 'stage.therr.com';
+const hostProd = 'therr.com';
 
 // TODO: Find a way to import this from global config
 module.exports = {
