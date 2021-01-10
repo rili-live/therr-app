@@ -41,7 +41,7 @@ spec:
         - name: USERS_SERVICE_API_PORT
           value: "7771"
         - name: URI_WHITELIST
-          value: "https://therr.app,https://www.therr.app"
+          value: "https://therr.com,https://www.therr.com"
         - name: HONEYCOMB_API_KEY
           valueFrom:
             secretKeyRef:
@@ -58,7 +58,7 @@ spec:
         - name: DB_USER_MAIN_WRITE
           value: "app"
         - name: DB_HOST_MAIN_WRITE
-          value: "db-write-us-east-2-main.therr.app"
+          value: "db-write-us-east-2-main.therr.com"
         - name: DB_PORT_MAIN_WRITE
           value: "5432"
         - name: DB_PASSWORD_MAIN_WRITE
@@ -69,7 +69,7 @@ spec:
         - name: DB_USER_MAIN_READ
           value: "app"
         - name: DB_HOST_MAIN_READ
-          value: "db-write-us-east-2-main.therr.app"
+          value: "db-write-us-east-2-main.therr.com"
         - name: DB_PORT_MAIN_READ
           value: "5432"
         - name: DB_PASSWORD_MAIN_READ

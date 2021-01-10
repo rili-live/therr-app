@@ -5,8 +5,8 @@ const apiUsersPort = 7771;
 const clientPort = 7070;
 const websocketPort = 7743;
 const hostDev = '127.0.0.1';
-const hostStage = 'stage.therr.app';
-const hostProd = 'therr.app';
+const hostStage = 'stage.therr.com';
+const hostProd = 'therr.com';
 
 module.exports = {
     development: {

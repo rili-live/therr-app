@@ -18,4 +18,4 @@ spec:
           class: nginx
       selector:
         dnsZones:
-        - 'therr.app'
+        - 'therr.com'

@@ -25,6 +25,10 @@ export default StyleSheet.create({
         paddingRight: 10,
         paddingLeft: 10,
     },
+    dateTime: {
+        marginBottom: 8,
+        color: therrTheme.colorVariations.beemoTextBlack,
+    },
     iconStyle: {
         color: therrTheme.colors.secondary,
         // position: 'absolute',

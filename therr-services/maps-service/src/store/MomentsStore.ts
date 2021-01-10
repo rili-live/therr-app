@@ -29,6 +29,11 @@ export interface ICreateMomentParams {
     polygonCoords?: string;
 }
 
+interface IDeleteMomentsParams {
+    fromUserId: string;
+    ids: string[];
+}
+
 export default class MomentsStore {
     db: IConnection;
 
@@ -126,6 +131,16 @@ export default class MomentsStore {
         const queryString = knex.insert(modifiedParams)
             .into(MOMENTS_TABLE_NAME)
             .returning('*')
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
+    deleteMoments(params: IDeleteMomentsParams) {
+        const queryString = knex.delete()
+            .from(MOMENTS_TABLE_NAME)
+            .where('fromUserId', params.fromUserId)
+            .whereIn('id', params.ids)
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);

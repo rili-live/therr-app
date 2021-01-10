@@ -47,6 +47,7 @@ const colors = {
 const colorVariations = {
     beemoBlueLightFade: new Color(colors.beemoBlue).fade(0.2).toString(),
     beemoBlueHeavyFade: new Color(colors.beemoBlue).fade(0.7).toString(),
+    beemoTextBlack: new Color(colors.beemoTextBlack).lighten(0.25).toString(),
 };
 
 export default colors;
