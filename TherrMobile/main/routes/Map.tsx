@@ -90,7 +90,7 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class Map extends React.Component<IMapProps, IMapState> {
-    private localeShort = 'en'; // TODO: Derive from user locale
+    private localeShort = 'en-US'; // TODO: Derive from user locale
     private mapRef;
     private mapWatchId;
     private timeoutId;

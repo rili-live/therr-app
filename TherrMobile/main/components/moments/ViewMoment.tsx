@@ -15,6 +15,9 @@ import { youtubeLinkRegex } from '../../constants';
 
 export const DEFAULT_RADIUS = 10;
 
+
+const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dev'];
+
 interface IMomentDetails {
     userDetails?: any;
 }
@@ -66,13 +69,15 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
         this.hashtags = props.moment.hashTags ? props.moment.hashTags.split(', ') : [];
 
         const date = new Date(props.moment.updatedAt);
-        const year = new Intl.DateTimeFormat(props.localeShort, { year: 'numeric' }).format(date);
-        const month = new Intl.DateTimeFormat(props.localeShort, { month: 'short' }).format(date);
-        const day = new Intl.DateTimeFormat(props.localeShort, { day: 'numeric' }).format(date);
-        const hourSplit = new Intl.DateTimeFormat(props.localeShort, { hour: 'numeric' }).format(date).split(' ');
-        const minute = new Intl.DateTimeFormat(props.localeShort, { hour: '2-digit' }).format(date);
+        const year = date.getFullYear();
+        const month = MONTHS[date.getMonth() - 1];
+        const day = date.getDay();
+        let hours = date.getHours();
+        hours = hours >= 12 ? hours - 11 : hours;
+        const amPm = hours >= 12 ? 'PM' : 'AM';
+        const minute = date.getMinutes().toString();
 
-        this.date = `${day}-${month}-${year} ${hourSplit[0]}:${minute}`;
+        this.date = `${day}-${month}-${year} ${hours}:${minute.padStart(2, '0')} ${amPm}`;
     }
 
     renderHashtagPill = (tag, key) => {

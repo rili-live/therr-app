@@ -92,7 +92,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
 
-        if (Platform.OS !== 'ios' && !props.location.settings.isGpsEnabled) {
+        if (Platform.OS !== 'ios' && !props.location.settings.isGpsEnabled && props.user.details && props.user.isAuthenticated) {
             LocationServicesDialogBox.checkLocationServicesIsEnabled({
                 message:
                     "<h2 style='color: #0af13e'>Use Location?</h2>This app wants to change your device settings:<br/><br/>" +
