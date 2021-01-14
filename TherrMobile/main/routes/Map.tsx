@@ -40,6 +40,7 @@ interface IMapDispatchProps {
     logout: Function;
     updateCoordinates: Function;
     searchMoments: Function;
+    deleteMoment: Function;
     updateLocationPermissions: Function;
 }
 
@@ -83,6 +84,7 @@ const mapDispatchToProps = (dispatch: any) =>
             logout: UsersActions.logout,
             updateCoordinates: MapActions.updateCoordinates,
             searchMoments: MapActions.searchMoments,
+            deleteMoment: MapActions.deleteMoment,
             updateLocationPermissions:
                 LocationActions.updateLocationPermissions,
         },
@@ -151,13 +153,11 @@ class Map extends React.Component<IMapProps, IMapState> {
             PermissionsAndroid.request(
                 PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
                 {
-                    title: 'Therr Mobile',
-                    message:
-                        'Therr App needs access to your location ' +
-                        'so you can share moments with connections',
-                    buttonNeutral: 'Ask Me Later',
-                    buttonNegative: 'Cancel',
-                    buttonPositive: 'OK',
+                    title: this.translate('permissions.accessFineLocation.title'),
+                    message: this.translate('permissions.accessFineLocation.message'),
+                    buttonNeutral: this.translate('permissions.accessFineLocation.buttonNeutral'),
+                    buttonNegative: this.translate('permissions.accessFineLocation.buttonNegative'),
+                    buttonPositive: this.translate('permissions.accessFineLocation.buttonPositive'),
                 }
             )
                 .then(
@@ -416,6 +416,19 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     };
 
+    onDeleteMoment = (moment) => {
+        const { deleteMoment, user } = this.props;
+        if (moment.fromUserId === user.details.id) {
+            deleteMoment({ ids: [moment.id] })
+                .then(() => {
+                    console.log('Moment successfully deleted');
+                })
+                .catch((err) => {
+                    console.log('Error deleting moment', err);
+                });
+        }
+    };
+
     onUserLocationChange = (event) => {
         const coords = {
             latitude: event.nativeEvent.coordinate.latitude,
@@ -477,7 +490,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             isViewMomentVisible,
             layers,
         } = this.state;
-        const { map } = this.props;
+        const { map, user } = this.props;
 
         return (
             <>
@@ -723,6 +736,8 @@ class Map extends React.Component<IMapProps, IMapState> {
                                     <ViewMoment
                                         closeOverlay={hideModal}
                                         handleFullScreen={this.handleFullScreen}
+                                        isMyMoment={activeMoment.fromUserId === user.details.id}
+                                        onDelete={() => this.onDeleteMoment(activeMoment)}
                                         translate={this.translate}
                                         localeShort={this.localeShort}
                                         moment={activeMoment}

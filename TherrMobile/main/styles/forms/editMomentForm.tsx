@@ -34,8 +34,25 @@ export default StyleSheet.create({
         ...submitButtonStyles,
         backgroundColor: therrTheme.colors.beemoTeal,
     },
+    submitDeleteButton: {
+        ...submitButtonStyles,
+        backgroundColor: therrTheme.colors.beemoRed,
+    },
+    submitConfirmButton: {
+        ...submitButtonStyles,
+        backgroundColor: therrTheme.colors.beemoPurple,
+        color: therrTheme.colors.beemoTextWhite,
+    },
+    submitCancelButton: {
+        ...submitButtonStyles,
+        backgroundColor: therrTheme.colors.beemoYellow,
+        marginRight: 20,
+    },
     submitButtonTitle: {
-        color: therrTheme.colors.textBlack,
+        color: therrTheme.colors.beemoTextBlack,
+    },
+    submitButtonTitleLight: {
+        color: therrTheme.colors.beemoTextWhite,
     },
     submitDisabledButtonTitle: {
     },
@@ -45,6 +62,12 @@ export default StyleSheet.create({
     submitButtonContainer: {
         marginBottom: 20,
         marginTop: 20,
+    },
+    submitConfirmContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
     },
     submitButtonIcon: {
         marginRight: 10,

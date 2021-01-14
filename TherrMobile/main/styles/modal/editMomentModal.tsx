@@ -50,6 +50,7 @@ export default StyleSheet.create({
         borderBottomWidth: 2,
         borderBottomColor: '#4950571c',
         backgroundColor: therrTheme.colors.beemo1,
+        width: '100%',
     },
     headerTitle: {
         display: 'flex',
@@ -81,7 +82,7 @@ export default StyleSheet.create({
         display: 'flex',
         minHeight: '90%',
         width: '100%',
-        paddingBottom: 40,
+        paddingBottom: 80,
     },
     footer: {
         display: 'flex',
