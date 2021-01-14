@@ -25,7 +25,7 @@ const map = (state: IMapState = initialState, action: any) => {
             modifiedMoment.unshift(action.data);
             return state.setIn(['myMoments'], modifiedMoment);
         case MapActionTypes.MOMENT_UPDATED:
-            modifiedMoment = state.moments.map((moment) => { // eslint-disable-line no-case-declarations
+            modifiedMoment = state.myMoments.map((moment) => { // eslint-disable-line no-case-declarations
                 if (moment.id === action.data.id) {
                     return {
                         ...moment,
@@ -34,6 +34,14 @@ const map = (state: IMapState = initialState, action: any) => {
                 }
 
                 return moment;
+            });
+            return state.setIn(['myMoments'], modifiedMoment);
+        case MapActionTypes.MOMENT_DELETED:
+            modifiedMoment = state.myMoments.filter((moment) => { // eslint-disable-line no-case-declarations
+                if (!action.data || !action.data.ids) {
+                    return true;
+                }
+                return !action.data.ids.includes(moment.id);
             });
             return state.setIn(['myMoments'], modifiedMoment);
         case MapActionTypes.UPDATE_COORDS:

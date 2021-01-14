@@ -200,6 +200,8 @@ export class RegisterFormComponent extends React.Component<
                     selectionColor={therrTheme.colors.ternary}
                 />
                 <Input
+                    autoCapitalize="none"
+                    autoCorrect={false}
                     inputStyle={formStyles.input}
                     placeholder={this.translate(
                         'forms.registerForm.labels.userName'
@@ -211,6 +213,8 @@ export class RegisterFormComponent extends React.Component<
                     selectionColor={therrTheme.colors.ternary}
                 />
                 <Input
+                    autoCapitalize="none"
+                    autoCorrect={false}
                     inputStyle={formStyles.input}
                     placeholder={this.translate(
                         'forms.registerForm.labels.email'
@@ -251,6 +255,8 @@ export class RegisterFormComponent extends React.Component<
                     </View>
                 </View>
                 <Input
+                    autoCapitalize="none"
+                    autoCorrect={false}
                     inputStyle={formStyles.input}
                     placeholder={this.translate(
                         'forms.registerForm.labels.password'
@@ -263,6 +269,8 @@ export class RegisterFormComponent extends React.Component<
                     selectionColor={therrTheme.colors.ternary}
                 />
                 <Input
+                    autoCapitalize="none"
+                    autoCorrect={false}
                     inputStyle={formStyles.input}
                     placeholder={this.translate(
                         'forms.registerForm.labels.repeatPassword'

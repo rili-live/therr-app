@@ -5,11 +5,13 @@ import { ActivityIndicator, View, ScrollView, Text } from 'react-native';
 import { Button, Image } from 'react-native-elements';
 import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import { IUserState } from 'therr-react/types';
 import { viewMomentModal } from '../../styles/modal';
 import * as therrTheme from '../../styles/themes';
 import styles from '../../styles';
+import { editMomentForm as editMomentFormStyles } from '../../styles/forms';
 import userContentStyles from '../../styles/user-content';
 import { youtubeLinkRegex } from '../../constants';
 
@@ -32,13 +34,17 @@ interface IStoreProps extends IViewMomentDispatchProps {
 export interface IViewMomentProps extends IStoreProps {
     closeOverlay: any;
     handleFullScreen: Function;
+    isMyMoment: boolean;
     localeShort: string;
+    onDelete: Function;
     moment: any;
     momentDetails: IMomentDetails;
     translate: any;
 }
 
 interface IViewMomentState {
+    isDeleting: boolean;
+    isVerifyingDelete: boolean;
     previewLinkId?: string;
     previewStyleState: any;
 }
@@ -52,6 +58,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({}, dispatch);
 class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
     private date;
 
+    private notificationMsg;
+
     private hashtags;
 
     private scrollViewRef;
@@ -62,15 +70,18 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
         const youtubeMatches = (props.moment.message || '').match(youtubeLinkRegex);
 
         this.state = {
+            isDeleting: false,
+            isVerifyingDelete: false,
             previewStyleState: {},
             previewLinkId: youtubeMatches && youtubeMatches[1],
         };
 
+        this.notificationMsg = (props.moment.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
         this.hashtags = props.moment.hashTags ? props.moment.hashTags.split(', ') : [];
 
         const date = new Date(props.moment.updatedAt);
         const year = date.getFullYear();
-        const month = MONTHS[date.getMonth() - 1];
+        const month = MONTHS[date.getMonth()];
         const day = date.getDay();
         let hours = date.getHours();
         hours = hours >= 12 ? hours - 11 : hours;
@@ -107,16 +118,36 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
         this.props.handleFullScreen(isFullScreen);
     }
 
+    onDelete = () => {
+        this.setState({
+            isVerifyingDelete: true,
+        });
+    }
+
+    onDeleteCancel = () => {
+        this.setState({
+            isVerifyingDelete: false,
+        });
+    }
+
+    onDeleteConfirm = () => {
+        this.setState({
+            isDeleting: true,
+        });
+        this.props.closeOverlay();
+        this.props.onDelete();
+    }
+
     render() {
-        const { previewLinkId, previewStyleState } = this.state;
-        const { closeOverlay, moment, momentDetails } = this.props;
+        const { isDeleting, isVerifyingDelete, previewLinkId, previewStyleState } = this.state;
+        const { closeOverlay, moment, momentDetails, translate } = this.props;
 
         return (
             <>
                 <View style={viewMomentModal.header}>
                     <View style={viewMomentModal.headerTitle}>
                         <Text style={viewMomentModal.headerTitleText}>
-                            {moment.notificationMsg}
+                            {this.notificationMsg}
                         </Text>
                     </View>
                     <Button
@@ -179,6 +210,59 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
                         </View>
                     }
                 </ScrollView>
+                <View style={viewMomentModal.footer}>
+                    {
+                        !isVerifyingDelete &&
+                        <Button
+                            buttonStyle={editMomentFormStyles.submitDeleteButton}
+                            disabledStyle={editMomentFormStyles.submitButtonDisabled}
+                            disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
+                            titleStyle={editMomentFormStyles.submitButtonTitle}
+                            containerStyle={editMomentFormStyles.submitButtonContainer}
+                            title={translate(
+                                'forms.editMoment.buttons.delete'
+                            )}
+                            icon={
+                                <FontAwesome5Icon
+                                    name="trash-alt"
+                                    size={25}
+                                    color={'black'}
+                                    style={editMomentFormStyles.submitButtonIcon}
+                                />
+                            }
+                            onPress={this.onDelete}
+                        />
+                    }
+                    {
+                        isVerifyingDelete &&
+                        <View style={editMomentFormStyles.submitConfirmContainer}>
+                            <Button
+                                buttonStyle={editMomentFormStyles.submitCancelButton}
+                                disabledStyle={editMomentFormStyles.submitButtonDisabled}
+                                disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
+                                titleStyle={editMomentFormStyles.submitButtonTitle}
+                                containerStyle={editMomentFormStyles.submitButtonContainer}
+                                title={translate(
+                                    'forms.editMoment.buttons.cancel'
+                                )}
+                                onPress={this.onDeleteCancel}
+                                disabled={isDeleting}
+                            />
+                            <Button
+                                buttonStyle={editMomentFormStyles.submitConfirmButton}
+                                disabledStyle={editMomentFormStyles.submitButtonDisabled}
+                                disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
+                                titleStyle={editMomentFormStyles.submitButtonTitleLight}
+                                containerStyle={editMomentFormStyles.submitButtonContainer}
+                                title={translate(
+                                    'forms.editMoment.buttons.confirm'
+                                )}
+                                onPress={this.onDeleteConfirm}
+                                disabled={isDeleting}
+                            />
+                        </View>
+                    }
+                </View>
             </>
         );
     }

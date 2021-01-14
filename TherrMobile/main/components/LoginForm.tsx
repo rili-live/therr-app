@@ -118,6 +118,8 @@ export class LoginFormComponent extends React.Component<
                     type={'success'}
                 />
                 <Input
+                    autoCapitalize="none"
+                    autoCompleteType="email"
                     inputStyle={formStyles.input}
                     inputContainerStyle={formStyles.inputContainer}
                     placeholder={this.translate(
@@ -130,6 +132,9 @@ export class LoginFormComponent extends React.Component<
                     selectionColor={therrTheme.colors.ternary}
                 />
                 <Input
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    autoCompleteType="password"
                     inputStyle={formStyles.input}
                     inputContainerStyle={formStyles.inputContainer}
                     placeholder={this.translate(

@@ -29,6 +29,14 @@ const Maps = {
             });
         }
     }),
+    deleteMoment: (args: { ids: string[] }) => (dispatch: any) => MapsService.deleteMoments(args).then(() => {
+        dispatch({
+            type: MapActionTypes.MOMENT_DELETED,
+            data: {
+                ids: args.ids,
+            },
+        });
+    }),
 };
 
 export default Maps;
