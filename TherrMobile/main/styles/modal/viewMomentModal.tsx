@@ -81,12 +81,13 @@ export default StyleSheet.create({
         width: '100%',
     },
     bodyScroll: {
+        flex: 1,
         color: therrTheme.colors.textWhite,
         justifyContent: 'center',
         display: 'flex',
         minHeight: '90%',
         width: '100%',
-        paddingBottom: 40,
+        paddingBottom: 100,
     },
     momentContainer: {
         display: 'flex',
@@ -116,12 +117,13 @@ export default StyleSheet.create({
     },
     footer: {
         display: 'flex',
+        height: 80,
         flex: 1,
-        padding: 40,
-        paddingBottom: 8,
+        paddingRight: 40,
         position: 'absolute',
         bottom: 0,
         alignItems: 'flex-end',
+        justifyContent: 'center',
         width: '100%',
     },
     toggleIcon: {

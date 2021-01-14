@@ -34,6 +34,8 @@ interface IDeleteMomentsParams {
     ids: string[];
 }
 
+const sanitizeNotificationMsg = (message = '') => message.replace(/\r?\n+|\r+/gm, ' ');
+
 export default class MomentsStore {
     db: IConnection;
 
@@ -114,7 +116,9 @@ export default class MomentsStore {
             locale: params.locale,
             isPublic: !!params.isPublic,
             message: params.message,
-            notificationMsg: params.notificationMsg ? `${params.notificationMsg.substring(0, 25)}...` : `${params.message.substring(0, 25)}...`,
+            notificationMsg: params.notificationMsg
+                ? `${sanitizeNotificationMsg(params.notificationMsg).substring(0, 25)}...`
+                : `${sanitizeNotificationMsg(params.message).substring(0, 25)}...`,
             mediaIds: params.mediaIds || '',
             mentionsIds: params.mentionsIds || '',
             hashTags: params.hashTags || '',

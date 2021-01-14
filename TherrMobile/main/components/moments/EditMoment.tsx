@@ -4,6 +4,7 @@ import { Keyboard, View, ScrollView, Text, TextInput } from 'react-native';
 import { Button, Input, Slider } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import { MapActions } from 'therr-react/redux/actions';
 import { IUserState } from 'therr-react/types';
@@ -13,7 +14,6 @@ import formStyles, { editMomentForm as editMomentFormStyles } from '../../styles
 import userContentStyles from '../../styles/user-content';
 import Alert from '../Alert';
 import { bindActionCreators } from 'redux';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { youtubeLinkRegex } from '../../constants';
 
 export const DEFAULT_RADIUS = 10;
@@ -298,6 +298,7 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                             multiline={true}
                         />
                         <Input
+                            autoCorrect={false}
                             inputStyle={editMomentFormStyles.inputAlt}
                             errorStyle={{
                                 display: 'none',

@@ -230,7 +230,10 @@
     },
     "editMoment": {
       "buttons": {
-        "submit": "Send"
+        "submit": "Send",
+        "delete": "Delete?",
+        "confirm": "Delete",
+        "cancel": "Cancel"
       },
       "labels": {
         "message": "Share something unique...",
@@ -390,6 +393,23 @@
       "validationErrors": {
         "phoneNumber": "Invalid phone number"
       }
+    }
+  },
+  "permissions": {
+    "accessFineLocation": {
+      "title": "Therr Mobile",
+      "message": "Allow Therr to acces this device's location?",
+      "buttonNeutral": "Only this time",
+      "buttonNegative": "Deny",
+      "buttonPositive": "While using the app"
+    },
+    "locationGps": {
+      "header": "User Location?",
+      "description1": "This app wants to change your device settings:",
+      "description2": "Use GPS, Wi-Fi, and cell network for location",
+      "link": "Learn more",
+      "no": "NO",
+      "yes": "YES"
     }
   }
 }
