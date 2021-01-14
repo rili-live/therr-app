@@ -140,7 +140,7 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
 
     render() {
         const { isDeleting, isVerifyingDelete, previewLinkId, previewStyleState } = this.state;
-        const { closeOverlay, moment, momentDetails, translate } = this.props;
+        const { closeOverlay, isMyMoment, moment, momentDetails, translate } = this.props;
 
         return (
             <>
@@ -210,59 +210,62 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
                         </View>
                     }
                 </ScrollView>
-                <View style={viewMomentModal.footer}>
-                    {
-                        !isVerifyingDelete &&
-                        <Button
-                            buttonStyle={editMomentFormStyles.submitDeleteButton}
-                            disabledStyle={editMomentFormStyles.submitButtonDisabled}
-                            disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
-                            titleStyle={editMomentFormStyles.submitButtonTitle}
-                            containerStyle={editMomentFormStyles.submitButtonContainer}
-                            title={translate(
-                                'forms.editMoment.buttons.delete'
-                            )}
-                            icon={
-                                <FontAwesome5Icon
-                                    name="trash-alt"
-                                    size={25}
-                                    color={'black'}
-                                    style={editMomentFormStyles.submitButtonIcon}
-                                />
-                            }
-                            onPress={this.onDelete}
-                        />
-                    }
-                    {
-                        isVerifyingDelete &&
-                        <View style={editMomentFormStyles.submitConfirmContainer}>
+                {
+                    isMyMoment &&
+                    <View style={viewMomentModal.footer}>
+                        {
+                            !isVerifyingDelete &&
                             <Button
-                                buttonStyle={editMomentFormStyles.submitCancelButton}
+                                buttonStyle={editMomentFormStyles.submitDeleteButton}
                                 disabledStyle={editMomentFormStyles.submitButtonDisabled}
                                 disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
                                 titleStyle={editMomentFormStyles.submitButtonTitle}
                                 containerStyle={editMomentFormStyles.submitButtonContainer}
                                 title={translate(
-                                    'forms.editMoment.buttons.cancel'
+                                    'forms.editMoment.buttons.delete'
                                 )}
-                                onPress={this.onDeleteCancel}
-                                disabled={isDeleting}
+                                icon={
+                                    <FontAwesome5Icon
+                                        name="trash-alt"
+                                        size={25}
+                                        color={'black'}
+                                        style={editMomentFormStyles.submitButtonIcon}
+                                    />
+                                }
+                                onPress={this.onDelete}
                             />
-                            <Button
-                                buttonStyle={editMomentFormStyles.submitConfirmButton}
-                                disabledStyle={editMomentFormStyles.submitButtonDisabled}
-                                disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
-                                titleStyle={editMomentFormStyles.submitButtonTitleLight}
-                                containerStyle={editMomentFormStyles.submitButtonContainer}
-                                title={translate(
-                                    'forms.editMoment.buttons.confirm'
-                                )}
-                                onPress={this.onDeleteConfirm}
-                                disabled={isDeleting}
-                            />
-                        </View>
-                    }
-                </View>
+                        }
+                        {
+                            isVerifyingDelete &&
+                            <View style={editMomentFormStyles.submitConfirmContainer}>
+                                <Button
+                                    buttonStyle={editMomentFormStyles.submitCancelButton}
+                                    disabledStyle={editMomentFormStyles.submitButtonDisabled}
+                                    disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
+                                    titleStyle={editMomentFormStyles.submitButtonTitle}
+                                    containerStyle={editMomentFormStyles.submitButtonContainer}
+                                    title={translate(
+                                        'forms.editMoment.buttons.cancel'
+                                    )}
+                                    onPress={this.onDeleteCancel}
+                                    disabled={isDeleting}
+                                />
+                                <Button
+                                    buttonStyle={editMomentFormStyles.submitConfirmButton}
+                                    disabledStyle={editMomentFormStyles.submitButtonDisabled}
+                                    disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
+                                    titleStyle={editMomentFormStyles.submitButtonTitleLight}
+                                    containerStyle={editMomentFormStyles.submitButtonContainer}
+                                    title={translate(
+                                        'forms.editMoment.buttons.confirm'
+                                    )}
+                                    onPress={this.onDeleteConfirm}
+                                    disabled={isDeleting}
+                                />
+                            </View>
+                        }
+                    </View>
+                }
             </>
         );
     }
