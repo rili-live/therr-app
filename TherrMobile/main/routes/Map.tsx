@@ -35,6 +35,8 @@ import { distanceTo, insideCircle } from 'geolocation-utils';
 const earthLoader = require('../assets/earth-loader.json');
 const mapCustomStyle = require('../styles/map/style.json');
 
+const ANIMATE_TO_REGION_DURATION = 750;
+
 interface IMapDispatchProps {
     login: Function;
     logout: Function;
@@ -60,8 +62,10 @@ interface IMapState {
     activeMomentDetails: any;
     areButtonsVisible: boolean;
     areLayersVisible: boolean;
+    followsUserLocation: boolean;
     isEditMomentVisible: boolean;
     isMomentAlertVisible: boolean;
+    isScrollEnabled: boolean;
     isViewMomentVisible: boolean;
     isLocationReady: boolean;
     isMinLoadTimeComplete: boolean;
@@ -93,7 +97,7 @@ const mapDispatchToProps = (dispatch: any) =>
 
 class Map extends React.Component<IMapProps, IMapState> {
     private localeShort = 'en-US'; // TODO: Derive from user locale
-    private mapRef;
+    private mapRef: MapView | undefined;
     private mapWatchId;
     private timeoutId;
     private timeoutIdRefreshMoments;
@@ -108,6 +112,8 @@ class Map extends React.Component<IMapProps, IMapState> {
             activeMomentDetails: {},
             areButtonsVisible: true,
             areLayersVisible: false,
+            followsUserLocation: false,
+            isScrollEnabled: true,
             isEditMomentVisible: false,
             isFullScreen: false,
             isMomentAlertVisible: false,
@@ -285,7 +291,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     };
 
     handleCompassRealign = () => {
-        this.mapRef.animateCamera({ heading: 0 });
+        this.mapRef && this.mapRef.animateCamera({ heading: 0 });
         this.setState({
             areLayersVisible: false,
         });
@@ -303,7 +309,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             latitudeDelta: INITIAL_LATIUDE_DELTA,
             longitudeDelta: INITIAL_LONGITUDE_DELTA,
         };
-        this.mapRef.animateToRegion(loc, 750);
+        this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION);
         this.setState({
             areLayersVisible: false,
         });
@@ -430,6 +436,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     };
 
     onUserLocationChange = (event) => {
+        console.log(event.nativeEvent);
         const coords = {
             latitude: event.nativeEvent.coordinate.latitude,
             longitude: event.nativeEvent.coordinate.longitude,
@@ -452,6 +459,28 @@ class Map extends React.Component<IMapProps, IMapState> {
             });
         }, 2000);
     };
+
+    toggleMapFollow = () => {
+        const {
+            followsUserLocation,
+            isScrollEnabled,
+        } = this.state;
+        const { map } = this.props;
+
+        if (followsUserLocation === false) {
+            this.mapRef && this.mapRef.animateToRegion({
+                longitude: map.longitude,
+                latitude: map.latitude,
+                latitudeDelta: INITIAL_LATIUDE_DELTA,
+                longitudeDelta: INITIAL_LONGITUDE_DELTA,
+            }, ANIMATE_TO_REGION_DURATION);
+        }
+
+        this.setState({
+            followsUserLocation: !followsUserLocation,
+            isScrollEnabled: !isScrollEnabled,
+        });
+    }
 
     toggleLayers = () => {
         this.setState({
@@ -482,11 +511,13 @@ class Map extends React.Component<IMapProps, IMapState> {
             areButtonsVisible,
             areLayersVisible,
             circleCenter,
+            followsUserLocation,
             isFullScreen,
             isLocationReady,
             isMinLoadTimeComplete,
             isEditMomentVisible,
             isMomentAlertVisible,
+            isScrollEnabled,
             isViewMomentVisible,
             layers,
         } = this.state;
@@ -506,7 +537,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                 ) : (
                     <>
                         <MapView
-                            ref={(ref) => (this.mapRef = ref)}
+                            ref={(ref: MapView) => (this.mapRef = ref)}
                             provider={PROVIDER_GOOGLE}
                             style={mapStyles.mapView}
                             customMapStyle={mapCustomStyle}
@@ -521,7 +552,8 @@ class Map extends React.Component<IMapProps, IMapState> {
                             showsBuildings={true}
                             showsMyLocationButton={false}
                             showsCompass={false}
-                            // followsUserLocation={true}
+                            followsUserLocation={followsUserLocation}
+                            scrollEnabled={isScrollEnabled}
                             onUserLocationChange={this.onUserLocationChange}
                             minZoomLevel={MIN_ZOOM_LEVEL}
                         >
@@ -593,6 +625,20 @@ class Map extends React.Component<IMapProps, IMapState> {
                         {
                             areButtonsVisible && (
                                 <>
+                                    <View style={mapStyles.toggleFollow}>
+                                        <Button
+                                            buttonStyle={mapStyles.momentBtn}
+                                            icon={
+                                                <MaterialIcon
+                                                    name={followsUserLocation ? 'near-me' : 'navigation'}
+                                                    size={28}
+                                                    style={mapStyles.momentBtnIcon}
+                                                />
+                                            }
+                                            raised={true}
+                                            onPress={() => this.toggleMapFollow()}
+                                        />
+                                    </View>
                                     <View style={mapStyles.momentLayers}>
                                         <Button
                                             buttonStyle={mapStyles.momentBtn}
