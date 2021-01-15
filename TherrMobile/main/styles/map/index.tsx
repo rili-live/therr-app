@@ -15,6 +15,12 @@ const overlayContainerStyles: any = {
     opacity: 1,
 };
 
+const momentBtnStyles: any = {
+    borderRadius: 100,
+    padding: 0,
+    borderWidth: 0,
+};
+
 export default StyleSheet.create({
     addMoment: {
         position: 'absolute',
@@ -48,6 +54,19 @@ export default StyleSheet.create({
         position: 'absolute',
         right: 84,
         bottom: 44,
+        shadowColor: therrTheme.colors.textBlack,
+        shadowOffset: {
+            height: 1,
+            width: 1,
+        },
+        shadowRadius: 4,
+        borderRadius: 100,
+        padding: 0,
+    },
+    toggleFollow: {
+        position: 'absolute',
+        left: 18,
+        bottom: 110,
         shadowColor: therrTheme.colors.textBlack,
         shadowOffset: {
             height: 1,
@@ -127,10 +146,12 @@ export default StyleSheet.create({
         padding: 0,
     },
     momentBtn: {
+        ...momentBtnStyles,
         backgroundColor: therrTheme.colors.beemo1,
-        borderRadius: 100,
-        padding: 0,
-        borderWidth: 0,
+    },
+    momentBtnClear: {
+        ...momentBtnStyles,
+        backgroundColor: 'transparent',
     },
     momentBtnIcon: {
         color: therrTheme.colors.ternary,
