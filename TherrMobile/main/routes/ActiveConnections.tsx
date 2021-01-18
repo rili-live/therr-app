@@ -132,7 +132,7 @@ class ActiveConnectionsComponent extends React.Component<
                         </View>
                     </ScrollView>
                 </SafeAreaView>
-                <ConnectionsButtonMenu navigation={navigation} user={user} />
+                <ConnectionsButtonMenu navigation={navigation} translate={this.translate} user={user} />
             </>
         );
     }

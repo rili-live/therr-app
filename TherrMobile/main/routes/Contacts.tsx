@@ -132,7 +132,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         </View>
                     </ScrollView>
                 </SafeAreaView>
-                <ConnectionsButtonMenu navigation={navigation} user={user} />
+                <ConnectionsButtonMenu navigation={navigation} translate={this.translate} user={user} />
             </>
         );
     }

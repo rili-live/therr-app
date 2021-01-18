@@ -68,18 +68,24 @@ class HeaderMenuRight extends React.Component<
         const { location, navigation, updateGpsStatus } = this.props;
 
         if (Platform.OS !== 'ios' && routeName === 'Map' && !location.settings.isGpsEnabled) {
+            const permissionHeader = this.translate('permissions.locationGps.header');
+            const permissionDescription1 = this.translate('permissions.locationGps.description1');
+            const permissionDescription2 = this.translate('permissions.locationGps.description2');
+            const permissionLink = this.translate('permissions.locationGps.link');
+            const permissionYes = this.translate('permissions.locationGps.yes');
+            const permissionNo = this.translate('permissions.locationGps.no');
             LocationServicesDialogBox.checkLocationServicesIsEnabled({
                 message:
-                    "<h2 style='color: #0af13e'>Use Location?</h2>This app wants to change your device settings:<br/><br/>" +
-                    "Use GPS, Wi-Fi, and cell network for location<br/><br/><a href='https://support.google.com/maps/answer/7326816'>Learn more</a>",
-                ok: 'YES',
-                cancel: 'NO',
+                    `<h2 style='color: #0af13e'>${permissionHeader}</h2>${permissionDescription1}<br/><br/>` +
+                    `${permissionDescription2}<br/><br/><a href='https://support.google.com/maps/answer/7326816'>${permissionLink}</a>`,
+                ok: permissionYes,
+                cancel: permissionNo,
                 enableHighAccuracy: true, // true => GPS AND NETWORK PROVIDER, false => GPS OR NETWORK PROVIDER
                 showDialog: true, // false => Opens the Location access page directly
                 openLocationServices: true, // false => Directly catch method is called if location services are turned off
                 preventOutSideTouch: false, // true => To prevent the location services window from closing when it is clicked outside
                 preventBackClick: false, // true => To prevent the location services popup from closing when it is clicked back button
-                providerListener: false, // true ==> Trigger locationProviderStatusChange listener when the location state changes
+                providerListener: true, // true ==> Trigger locationProviderStatusChange listener when the location state changes
             })
                 .then((success) => {
                     updateGpsStatus(success.status);
