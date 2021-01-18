@@ -1,6 +1,6 @@
 import React from 'react';
-import { Platform } from 'react-native';
-import LocationServicesDialogBox from 'react-native-android-location-services-dialog-box';
+import { DeviceEventEmitter, PermissionsAndroid, Platform } from 'react-native';
+import LocationServicesDialogBox  from 'react-native-android-location-services-dialog-box';
 import { UsersService } from 'therr-react/services';
 import { IUserState } from 'therr-react/types';
 import { NotificationActions } from 'therr-react/redux/actions';
@@ -33,6 +33,7 @@ interface ILayoutDispatchProps {
     logout: Function;
     searchNotifications: Function;
     updateGpsStatus: Function;
+    updateLocationPermissions: Function;
 }
 
 interface IStoreProps extends ILayoutDispatchProps {
@@ -58,6 +59,7 @@ const mapDispatchToProps = (dispatch: any) =>
             logout: UsersActions.logout,
             searchNotifications: NotificationActions.search,
             updateGpsStatus: LocationActions.updateGpsStatus,
+            updateLocationPermissions: LocationActions.updateLocationPermissions,
         },
         dispatch
     );
@@ -72,6 +74,21 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 pageNumber: 1,
                 order: 'desc',
             });
+
+            if (Platform.OS !== 'ios') {
+                PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION)
+                    .then((grantStatus) => {
+                        nextProps.updateLocationPermissions({
+                            [PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION]: grantStatus,
+                        });
+                    });
+                PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
+                    .then((grantStatus) => {
+                        nextProps.updateLocationPermissions({
+                            [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]: grantStatus,
+                        });
+                    });
+            }
 
             return {
                 userId: nextProps.user.details.id,
@@ -92,42 +109,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
 
-        if (Platform.OS !== 'ios' && !props.location.settings.isGpsEnabled && props.user.details && props.user.isAuthenticated) {
-            const permissionHeader = this.translate('permissions.locationGps.header');
-            const permissionDescription1 = this.translate('permissions.locationGps.description1');
-            const permissionDescription2 = this.translate('permissions.locationGps.description2');
-            const permissionLink = this.translate('permissions.locationGps.link');
-            const permissionYes = this.translate('permissions.locationGps.yes');
-            const permissionNo = this.translate('permissions.locationGps.no');
-            LocationServicesDialogBox.checkLocationServicesIsEnabled({
-                message:
-                    `<h2 style='color: #0af13e'>${permissionHeader}</h2>${permissionDescription1}<br/><br/>` +
-                    `${permissionDescription2}<br/><br/><a href='https://support.google.com/maps/answer/7326816'>${permissionLink}</a>`,
-                ok: permissionYes,
-                cancel: permissionNo,
-                enableHighAccuracy: true, // true => GPS AND NETWORK PROVIDER, false => GPS OR NETWORK PROVIDER
-                showDialog: true, // false => Opens the Location access page directly
-                openLocationServices: true, // false => Directly catch method is called if location services are turned off
-                preventOutSideTouch: false, // true => To prevent the location services window from closing when it is clicked outside
-                preventBackClick: false, // true => To prevent the location services popup from closing when it is clicked back button
-                providerListener: false, // true ==> Trigger locationProviderStatusChange listener when the location state changes
-            })
-                .then((success) => {
-                    props.updateGpsStatus(success.status);
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
-        }
-
-        // DeviceEventEmitter.addListener('locationProviderStatusChange', function(status) { // only trigger when "providerListener" is enabled
-        //     console.log('locationProviderStatusChange', status); //  status => {enabled: false, status: "disabled"} or {enabled: true, status: "enabled"}
-        // });
+        DeviceEventEmitter.addListener('locationProviderStatusChange', function(status) { // only trigger when "providerListener" is enabled
+            props.updateGpsStatus(status);
+        });
     }
 
     componentWillUnmount() {
-        // used only when "providerListener" is enabled
-        // LocationServicesDialogBox.stopListener(); // Stop the "locationProviderStatusChange" listener
+        LocationServicesDialogBox.stopListener();
     }
 
     getCurrentScreen = (navigation) => {

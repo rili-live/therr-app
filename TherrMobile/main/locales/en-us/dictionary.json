@@ -300,6 +300,22 @@
       "backendErrorMessage": "Connection error. Please try again later."
     }
   },
+  "menus": {
+    "main": {
+      "buttons": {
+        "connections": "Connections",
+        "moments": "Moments",
+        "settings": "Settings",
+        "notifications": "Notifications"
+      }
+    },
+    "connections": {
+      "buttons": {
+        "activeConnections": "Active Connections",
+        "searchContacts": "Search Contacts"
+      }
+    }
+  },
   "pages": {
     "chatForum": {
       "pageTitle": "Forums",
