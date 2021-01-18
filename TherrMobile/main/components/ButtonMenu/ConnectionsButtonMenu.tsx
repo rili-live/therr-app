@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './index';
+import { ButtonMenu, mapStateToProps, mapDispatchToProps } from '../ButtonMenu';
 import { buttonMenu } from '../../styles/navigation';
 
 class ConnectionsButtonMenu extends ButtonMenu {
@@ -21,12 +21,13 @@ class ConnectionsButtonMenu extends ButtonMenu {
     };
 
     render() {
+        const { translate } = this.props;
         const currentScreen = this.getCurrentScreen();
 
         return (
             <View style={buttonMenu.container}>
                 <Button
-                    title="Active Connections"
+                    title={translate('menus.connections.buttons.activeConnections')}
                     buttonStyle={
                         currentScreen === 'ActiveConnections'
                             ? buttonMenu.buttonsActive
@@ -52,7 +53,7 @@ class ConnectionsButtonMenu extends ButtonMenu {
                     onPress={() => this.navTo('ActiveConnections')}
                 />
                 <Button
-                    title="Search Contacts"
+                    title={translate('menus.connections.buttons.searchContacts')}
                     buttonStyle={
                         currentScreen === 'Contacts'
                             ? buttonMenu.buttonsActive

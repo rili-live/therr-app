@@ -36,6 +36,7 @@ const earthLoader = require('../assets/earth-loader.json');
 const mapCustomStyle = require('../styles/map/style.json');
 
 const ANIMATE_TO_REGION_DURATION = 750;
+const ANIMATE_TO_REGION_DURATION_FAST = 500;
 
 interface IMapDispatchProps {
     login: Function;
@@ -43,6 +44,7 @@ interface IMapDispatchProps {
     updateCoordinates: Function;
     searchMoments: Function;
     deleteMoment: Function;
+    updateGpsStatus: Function;
     updateLocationPermissions: Function;
 }
 
@@ -89,8 +91,8 @@ const mapDispatchToProps = (dispatch: any) =>
             updateCoordinates: MapActions.updateCoordinates,
             searchMoments: MapActions.searchMoments,
             deleteMoment: MapActions.deleteMoment,
-            updateLocationPermissions:
-                LocationActions.updateLocationPermissions,
+            updateGpsStatus: LocationActions.updateGpsStatus,
+            updateLocationPermissions: LocationActions.updateLocationPermissions,
         },
         dispatch
     );
@@ -153,30 +155,18 @@ class Map extends React.Component<IMapProps, IMapState> {
         }, MIN_LOAD_TIMEOUT);
 
         if (location.settings.isGpsEnabled) {
-            let grantStatus;
+            let permissions;
 
-            // TODO: Store permissions response in Mobile only redux
-            PermissionsAndroid.request(
+            PermissionsAndroid.requestMultiple([
+                PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
                 PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-                {
-                    title: this.translate('permissions.accessFineLocation.title'),
-                    message: this.translate('permissions.accessFineLocation.message'),
-                    buttonNeutral: this.translate('permissions.accessFineLocation.buttonNeutral'),
-                    buttonNegative: this.translate('permissions.accessFineLocation.buttonNegative'),
-                    buttonPositive: this.translate('permissions.accessFineLocation.buttonPositive'),
-                }
-            )
+            ])
                 .then(
-                    (response) =>
+                    (grantedPermissions) =>
                         new Promise((resolve, reject) => {
-                            grantStatus = response;
-                            updateLocationPermissions({
-                                accessFileLocation: grantStatus,
-                            });
-                            if (
-                                grantStatus ===
-                                PermissionsAndroid.RESULTS.GRANTED
-                            ) {
+                            permissions = grantedPermissions;
+                            updateLocationPermissions(permissions);
+                            if (permissions[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]) {
                                 const positionSuccessCallback = (position) => {
                                     const coords = {
                                         latitude:
@@ -229,9 +219,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                 })
                 .catch((error) => {
                     if (error === 'permissionDenied') {
-                        updateLocationPermissions({
-                            accessFileLocation: grantStatus,
-                        });
+                        updateLocationPermissions(permissions);
                     }
                     this.goToHome();
                 });
@@ -436,7 +424,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     };
 
     onUserLocationChange = (event) => {
-        console.log(event.nativeEvent);
+        const { followsUserLocation } = this.state;
         const coords = {
             latitude: event.nativeEvent.coordinate.latitude,
             longitude: event.nativeEvent.coordinate.longitude,
@@ -446,6 +434,16 @@ class Map extends React.Component<IMapProps, IMapState> {
         this.setState({
             circleCenter: coords,
         });
+
+        if (followsUserLocation) {
+            const loc = {
+                latitude: coords.latitude,
+                longitude: coords.longitude,
+                latitudeDelta: INITIAL_LATIUDE_DELTA,
+                longitudeDelta: INITIAL_LONGITUDE_DELTA,
+            };
+            this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_FAST);
+        }
     };
 
     showMomentAlert = () => {
