@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { Ref } from 'react';
 import { PermissionsAndroid, StatusBar, View } from 'react-native';
-import MapView, { PROVIDER_GOOGLE, Circle } from 'react-native-maps';
+import MapView from 'react-native-map-clustering';
+import { PROVIDER_GOOGLE, Circle, Marker } from 'react-native-maps';
 import { Button } from 'react-native-elements';
 import AnimatedOverlay from 'react-native-modal-overlay';
 import 'react-native-gesture-handler';
@@ -99,7 +100,7 @@ const mapDispatchToProps = (dispatch: any) =>
 
 class Map extends React.Component<IMapProps, IMapState> {
     private localeShort = 'en-US'; // TODO: Derive from user locale
-    private mapRef: MapView | undefined;
+    private mapRef: any;
     private mapWatchId;
     private timeoutId;
     private timeoutIdRefreshMoments;
@@ -535,7 +536,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                 ) : (
                     <>
                         <MapView
-                            ref={(ref: MapView) => (this.mapRef = ref)}
+                            mapRef={(ref: Ref<MapView>) => { this.mapRef = ref; }}
                             provider={PROVIDER_GOOGLE}
                             style={mapStyles.mapView}
                             customMapStyle={mapCustomStyle}
@@ -567,20 +568,29 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 layers.connectionsMoments &&
                                 map.moments.map((moment) => {
                                     return (
-                                        <Circle
-                                            key={moment.id}
-                                            center={{
-                                                longitude: moment.longitude,
-                                                latitude: moment.latitude,
-                                            }}
-                                            radius={moment.radius} /* meters */
-                                            strokeWidth={0}
-                                            strokeColor={therrTheme.colors.secondary}
-                                            fillColor={moment.id === activeMoment.id ?
-                                                therrTheme.colors.map.momentsCircleFillActive :
-                                                therrTheme.colors.map.momentsCircleFill}
-                                            zIndex={1}
-                                        />
+                                        <>
+                                            <Marker
+                                                key={`marker-${moment.id}`}
+                                                coordinate={{
+                                                    longitude: moment.longitude,
+                                                    latitude: moment.latitude,
+                                                }}
+                                            />
+                                            <Circle
+                                                key={moment.id}
+                                                center={{
+                                                    longitude: moment.longitude,
+                                                    latitude: moment.latitude,
+                                                }}
+                                                radius={moment.radius} /* meters */
+                                                strokeWidth={0}
+                                                strokeColor={therrTheme.colors.secondary}
+                                                fillColor={moment.id === activeMoment.id ?
+                                                    therrTheme.colors.map.momentsCircleFillActive :
+                                                    therrTheme.colors.map.momentsCircleFill}
+                                                zIndex={1}
+                                            />
+                                        </>
                                     );
                                 })
                             }
@@ -588,20 +598,29 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 layers.myMoments &&
                                 map.myMoments.map((moment) => {
                                     return (
-                                        <Circle
-                                            key={moment.id}
-                                            center={{
-                                                longitude: moment.longitude,
-                                                latitude: moment.latitude,
-                                            }}
-                                            radius={moment.radius} /* meters */
-                                            strokeWidth={0}
-                                            strokeColor={therrTheme.colors.secondary}
-                                            fillColor={moment.id === activeMoment.id ?
-                                                therrTheme.colors.map.myMomentsCircleFillActive :
-                                                therrTheme.colors.map.myMomentsCircleFill}
-                                            zIndex={1}
-                                        />
+                                        <>
+                                            <Marker
+                                                key={`marker-${moment.id}`}
+                                                coordinate={{
+                                                    longitude: moment.longitude,
+                                                    latitude: moment.latitude,
+                                                }}
+                                            />
+                                            <Circle
+                                                key={moment.id}
+                                                center={{
+                                                    longitude: moment.longitude,
+                                                    latitude: moment.latitude,
+                                                }}
+                                                radius={moment.radius} /* meters */
+                                                strokeWidth={0}
+                                                strokeColor={therrTheme.colors.secondary}
+                                                fillColor={moment.id === activeMoment.id ?
+                                                    therrTheme.colors.map.myMomentsCircleFillActive :
+                                                    therrTheme.colors.map.myMomentsCircleFill}
+                                                zIndex={1}
+                                            />
+                                        </>
                                     );
                                 })
                             }
