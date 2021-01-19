@@ -360,7 +360,7 @@
       }
     },
     "map": {
-      "headerTitle": "Map",
+      "headerTitle": " ",
       "momentAlerts": {
         "walkCloser": "Walk closer to activate this moment"
       }
