@@ -159,7 +159,7 @@ class Notifications extends React.Component<
                             </View>
                     }
                 </SafeAreaView>
-                <MainButtonMenu navigation={navigation} user={user} />
+                <MainButtonMenu navigation={navigation} translate={this.translate} user={user} />
             </>
         );
     }

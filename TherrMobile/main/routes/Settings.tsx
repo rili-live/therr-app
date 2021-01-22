@@ -301,7 +301,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                         </View>
                     </ScrollView>
                 </SafeAreaView>
-                <MainButtonMenu navigation={navigation} user={user} />
+                <MainButtonMenu navigation={navigation} translate={this.translate} user={user} />
             </>
         );
     }
