@@ -568,16 +568,14 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 layers.connectionsMoments &&
                                 map.moments.map((moment) => {
                                     return (
-                                        <>
+                                        <React.Fragment key={moment.id}>
                                             <Marker
-                                                key={`marker-${moment.id}`}
                                                 coordinate={{
                                                     longitude: moment.longitude,
                                                     latitude: moment.latitude,
                                                 }}
                                             />
                                             <Circle
-                                                key={moment.id}
                                                 center={{
                                                     longitude: moment.longitude,
                                                     latitude: moment.latitude,
@@ -590,7 +588,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                     therrTheme.colors.map.momentsCircleFill}
                                                 zIndex={1}
                                             />
-                                        </>
+                                        </React.Fragment>
                                     );
                                 })
                             }
@@ -598,16 +596,14 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 layers.myMoments &&
                                 map.myMoments.map((moment) => {
                                     return (
-                                        <>
+                                        <React.Fragment key={moment.id}>
                                             <Marker
-                                                key={`marker-${moment.id}`}
                                                 coordinate={{
                                                     longitude: moment.longitude,
                                                     latitude: moment.latitude,
                                                 }}
                                             />
                                             <Circle
-                                                key={moment.id}
                                                 center={{
                                                     longitude: moment.longitude,
                                                     latitude: moment.latitude,
@@ -620,7 +616,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                     therrTheme.colors.map.myMomentsCircleFill}
                                                 zIndex={1}
                                             />
-                                        </>
+                                        </React.Fragment>
                                     );
                                 })
                             }
