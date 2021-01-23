@@ -14,6 +14,7 @@ spec:
         component: server-messages
         tier: microservices
     spec:
+      serviceAccountName: therr-k8s-service-account
       containers:
       - name: server-messages
         image: therrapp/messages-service:latest
