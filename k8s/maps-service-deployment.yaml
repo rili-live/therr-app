@@ -14,6 +14,7 @@ spec:
         component: server-maps
         tier: microservices
     spec:
+      serviceAccountName: therr-k8s-service-account
       containers:
       - name: server-maps
         image: therrapp/maps-service:latest

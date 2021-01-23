@@ -14,6 +14,7 @@ spec:
         component: server-users
         tier: microservices
     spec:
+      serviceAccountName: therr-k8s-service-account
       containers:
       - name: server-users
         image: therrapp/users-service:latest
