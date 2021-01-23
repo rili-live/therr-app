@@ -41,25 +41,25 @@ spec:
         - name: DB_USER_MAIN_WRITE
           value: "app"
         - name: DB_HOST_MAIN_WRITE
-          value: "db-write-us-east-2-main.therr.com"
+          value: "127.0.0.1"
         - name: DB_PORT_MAIN_WRITE
           value: "5432"
         - name: DB_PASSWORD_MAIN_WRITE
           valueFrom:
             secretKeyRef:
-              name: dbpasswordappwrite
-              key: DBPASSWORD_APPWRITE
+              name: db-password-app
+              key: DB_PASSWORD_APP_WRITE
         - name: DB_USER_MAIN_READ
           value: "app"
         - name: DB_HOST_MAIN_READ
-          value: "db-write-us-east-2-main.therr.com"
+          value: "127.0.0.1"
         - name: DB_PORT_MAIN_READ
           value: "5432"
         - name: DB_PASSWORD_MAIN_READ
           valueFrom:
             secretKeyRef:
-              name: dbpasswordappread
-              key: DBPASSWORD_APPREAD
+              name: db-password-app
+              key: DB_PASSWORD_APP_READ
         - name: MAPS_SERVICE_DATABASE
           value: "therr_maps_service_db"
         - name: JWT_SECRET
