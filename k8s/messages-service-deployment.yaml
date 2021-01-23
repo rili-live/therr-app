@@ -39,7 +39,7 @@ spec:
         - name: LOGGING_DATASET
           value: "production"
         - name: DB_USER_MAIN_WRITE
-          value: "app"
+          value: "therrAppUser"
         - name: DB_HOST_MAIN_WRITE
           value: "127.0.0.1"
         - name: DB_PORT_MAIN_WRITE
@@ -50,7 +50,7 @@ spec:
               name: db-password-app
               key: DB_PASSWORD_APP_WRITE
         - name: DB_USER_MAIN_READ
-          value: "app"
+          value: "therrAppUser"
         - name: DB_HOST_MAIN_READ
           value: "127.0.0.1"
         - name: DB_PORT_MAIN_READ
