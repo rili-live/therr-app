@@ -1,12 +1,14 @@
 import * as React from 'react';
 import { View } from 'react-native';
-import { Button, Input } from 'react-native-elements';
+import { Button } from 'react-native-elements';
 import CountryPicker, { CountryCode } from 'react-native-country-picker-modal';
 import PhoneInput from 'react-native-phone-input';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import translator from '../services/translator';
 import formStyles, { loginForm as styles, phoneInput as phoneStyles } from '../styles/forms';
 import * as therrTheme from '../styles/themes';
 import Alert from './Alert';
+import SquareInput from './Input/Square';
 
 // Regular component props
 interface IRegisterFormProps {
@@ -177,8 +179,7 @@ export class RegisterFormComponent extends React.Component<
 
         return (
             <>
-                <Input
-                    inputStyle={formStyles.input}
+                <SquareInput
                     placeholder={this.translate(
                         'forms.registerForm.labels.firstName'
                     )}
@@ -186,10 +187,15 @@ export class RegisterFormComponent extends React.Component<
                     onChangeText={(text) =>
                         this.onInputChange('firstName', text)
                     }
-                    selectionColor={therrTheme.colors.ternary}
+                    rightIcon={
+                        <FontAwesomeIcon
+                            name='smile'
+                            size={22}
+                            color={therrTheme.colors.primary3Faded}
+                        />
+                    }
                 />
-                <Input
-                    inputStyle={formStyles.input}
+                <SquareInput
                     placeholder={this.translate(
                         'forms.registerForm.labels.lastName'
                     )}
@@ -197,12 +203,17 @@ export class RegisterFormComponent extends React.Component<
                     onChangeText={(text) =>
                         this.onInputChange('lastName', text)
                     }
-                    selectionColor={therrTheme.colors.ternary}
+                    rightIcon={
+                        <FontAwesomeIcon
+                            name='smile-beam'
+                            size={22}
+                            color={therrTheme.colors.primary3Faded}
+                        />
+                    }
                 />
-                <Input
+                <SquareInput
                     autoCapitalize="none"
                     autoCorrect={false}
-                    inputStyle={formStyles.input}
                     placeholder={this.translate(
                         'forms.registerForm.labels.userName'
                     )}
@@ -210,12 +221,17 @@ export class RegisterFormComponent extends React.Component<
                     onChangeText={(text) =>
                         this.onInputChange('userName', text)
                     }
-                    selectionColor={therrTheme.colors.ternary}
+                    rightIcon={
+                        <FontAwesomeIcon
+                            name='user'
+                            size={22}
+                            color={therrTheme.colors.primary3Faded}
+                        />
+                    }
                 />
-                <Input
+                <SquareInput
                     autoCapitalize="none"
                     autoCorrect={false}
-                    inputStyle={formStyles.input}
                     placeholder={this.translate(
                         'forms.registerForm.labels.email'
                     )}
@@ -223,7 +239,13 @@ export class RegisterFormComponent extends React.Component<
                     onChangeText={(text) =>
                         this.onInputChange('email', text)
                     }
-                    selectionColor={therrTheme.colors.ternary}
+                    rightIcon={
+                        <FontAwesomeIcon
+                            name='envelope'
+                            size={22}
+                            color={therrTheme.colors.primary3Faded}
+                        />
+                    }
                 />
                 <View style={phoneStyles.phoneInputContainer}>
                     <PhoneInput
@@ -254,10 +276,9 @@ export class RegisterFormComponent extends React.Component<
                         />
                     </View>
                 </View>
-                <Input
+                <SquareInput
                     autoCapitalize="none"
                     autoCorrect={false}
-                    inputStyle={formStyles.input}
                     placeholder={this.translate(
                         'forms.registerForm.labels.password'
                     )}
@@ -266,12 +287,17 @@ export class RegisterFormComponent extends React.Component<
                         this.onInputChange('password', text)
                     }
                     secureTextEntry={true}
-                    selectionColor={therrTheme.colors.ternary}
+                    rightIcon={
+                        <FontAwesomeIcon
+                            name='lock'
+                            size={22}
+                            color={therrTheme.colors.primary3Faded}
+                        />
+                    }
                 />
-                <Input
+                <SquareInput
                     autoCapitalize="none"
                     autoCorrect={false}
-                    inputStyle={formStyles.input}
                     placeholder={this.translate(
                         'forms.registerForm.labels.repeatPassword'
                     )}
@@ -281,7 +307,13 @@ export class RegisterFormComponent extends React.Component<
                     }
                     errorMessage={passwordErrorMessage}
                     secureTextEntry={true}
-                    selectionColor={therrTheme.colors.ternary}
+                    rightIcon={
+                        <FontAwesomeIcon
+                            name='lock'
+                            size={22}
+                            color={therrTheme.colors.primary3Faded}
+                        />
+                    }
                 />
                 <Alert
                     containerStyles={{

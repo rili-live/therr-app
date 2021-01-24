@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActivityIndicator, SafeAreaView, FlatList, View, Text, StatusBar } from 'react-native';
-import { Button, Image, Input } from 'react-native-elements';
+import { Button, Image } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { connect } from 'react-redux';
@@ -8,11 +8,10 @@ import { bindActionCreators } from 'redux';
 import { MessageActions, SocketActions } from 'therr-react/redux/actions';
 import { IUserState, IMessagesState } from 'therr-react/types';
 import styles from '../styles';
-import * as therrTheme from '../styles/themes';
 import messageStyles from '../styles/messages';
-import formStyles from '../styles/forms';
 import translator from '../services/translator';
 import TextMessage from '../components/TextMessage';
+import RoundInput from '../components/Input/Round';
 
 interface IDirectMessageDispatchProps {
     searchDms: Function;
@@ -160,19 +159,22 @@ class DirectMessage extends React.Component<
 
     handleSend = () => {
         const { msgInputVal } = this.state;
-        const { route, sendDirectMessage, user } = this.props;
-        const { connectionDetails } = route.params;
 
-        sendDirectMessage({
-            message: msgInputVal,
-            userId: user.details && user.details.id,
-            userName: user.details && user.details.userName,
-            to: connectionDetails,
-        });
+        if (msgInputVal) {
+            const { route, sendDirectMessage, user } = this.props;
+            const { connectionDetails } = route.params;
 
-        this.setState({
-            msgInputVal: '',
-        });
+            sendDirectMessage({
+                message: msgInputVal,
+                userId: user.details && user.details.id,
+                userName: user.details && user.details.userName,
+                to: connectionDetails,
+            });
+
+            this.setState({
+                msgInputVal: '',
+            });
+        }
     };
 
     scrollToListEnd = () => {
@@ -220,25 +222,23 @@ class DirectMessage extends React.Component<
                         ref={(component) => (this.flatListRef = component)}
                         initialScrollIndex={0}
                         onScrollToIndexFailed={this.handleScrollToIndexFailed}
+                        style={{ flex: 1 }}
                     />
                     <View style={messageStyles.sendInputsContainer}>
-                        <Input
+                        <RoundInput
                             value={msgInputVal}
                             onChangeText={this.handleInputChange}
                             placeholder={this.translate(
                                 'pages.directMessage.inputPlaceholder'
                             )}
-                            inputStyle={formStyles.input}
                             containerStyle={messageStyles.inputContainer}
-                            selectionColor={therrTheme.colors.ternary}
+                            errorStyle={{ display: 'none' }}
                         />
                         <Button
-                            icon={<Icon name="send" size={25} style={messageStyles.icon} />}
-                            type="clear"
+                            icon={<Icon name="send" size={26} style={messageStyles.icon} />}
                             buttonStyle={messageStyles.sendBtn}
                             containerStyle={messageStyles.sendBtnContainer}
                             onPress={this.handleSend}
-                            disabled={!msgInputVal}
                         />
                     </View>
                 </SafeAreaView>

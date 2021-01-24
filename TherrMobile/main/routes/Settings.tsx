@@ -1,9 +1,10 @@
 import React from 'react';
 import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
-import { Button, Input }  from 'react-native-elements';
+import { Button }  from 'react-native-elements';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
 import Alert from '../components/Alert';
@@ -11,6 +12,7 @@ import translator from '../services/translator';
 import styles from '../styles';
 import * as therrTheme from '../styles/themes';
 import formStyles, { settingsForm as settingsFormStyles } from '../styles/forms';
+import SquareInput from '../components/Input/Square';
 
 
 interface ISettingsDispatchProps {
@@ -197,19 +199,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     message={successMsg || errorMsg}
                                     type={errorMsg ? 'error' : 'success'}
                                 />
-                                <Input
-                                    inputStyle={formStyles.input}
-                                    label={this.translate(
-                                        'forms.settings.labels.userName'
-                                    )}
-                                    value={inputs.userName}
-                                    onChangeText={(text) =>
-                                        this.onInputChange('userName', text)
-                                    }
-                                    selectionColor={therrTheme.colors.ternary}
-                                />
-                                <Input
-                                    inputStyle={formStyles.input}
+                                <SquareInput
                                     label={this.translate(
                                         'forms.settings.labels.firstName'
                                     )}
@@ -217,10 +207,15 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     onChangeText={(text) =>
                                         this.onInputChange('firstName', text)
                                     }
-                                    selectionColor={therrTheme.colors.ternary}
+                                    rightIcon={
+                                        <FontAwesomeIcon
+                                            name='smile'
+                                            size={22}
+                                            color={therrTheme.colors.primary3Faded}
+                                        />
+                                    }
                                 />
-                                <Input
-                                    inputStyle={formStyles.input}
+                                <SquareInput
                                     label={this.translate(
                                         'forms.settings.labels.lastName'
                                     )}
@@ -228,11 +223,32 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     onChangeText={(text) =>
                                         this.onInputChange('lastName', text)
                                     }
-                                    selectionColor={therrTheme.colors.ternary}
+                                    rightIcon={
+                                        <FontAwesomeIcon
+                                            name='smile-beam'
+                                            size={22}
+                                            color={therrTheme.colors.primary3Faded}
+                                        />
+                                    }
                                 />
-                                <Input
+                                <SquareInput
+                                    label={this.translate(
+                                        'forms.settings.labels.userName'
+                                    )}
+                                    value={inputs.userName}
+                                    onChangeText={(text) =>
+                                        this.onInputChange('userName', text)
+                                    }
+                                    rightIcon={
+                                        <FontAwesomeIcon
+                                            name='user'
+                                            size={22}
+                                            color={therrTheme.colors.primary3Faded}
+                                        />
+                                    }
+                                />
+                                <SquareInput
                                     disabled
-                                    inputStyle={formStyles.input}
                                     label={this.translate(
                                         'forms.settings.labels.email'
                                     )}
@@ -240,7 +256,13 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     onChangeText={(text) =>
                                         this.onInputChange('email', text)
                                     }
-                                    selectionColor={therrTheme.colors.ternary}
+                                    rightIcon={
+                                        <FontAwesomeIcon
+                                            name='envelope'
+                                            size={22}
+                                            color={therrTheme.colors.primary3Faded}
+                                        />
+                                    }
                                 />
                             </View>
                             <View style={styles.sectionContainer}>
@@ -249,8 +271,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                 </Text>
                             </View>
                             <View style={settingsFormStyles.passwordContainer}>
-                                <Input
-                                    inputStyle={formStyles.input}
+                                <SquareInput
                                     label={this.translate(
                                         'forms.settings.labels.password'
                                     )}
@@ -259,10 +280,15 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         this.onInputChange('oldPassword', text)
                                     }
                                     secureTextEntry={true}
-                                    selectionColor={therrTheme.colors.ternary}
+                                    rightIcon={
+                                        <FontAwesomeIcon
+                                            name='key'
+                                            size={22}
+                                            color={therrTheme.colors.primary3Faded}
+                                        />
+                                    }
                                 />
-                                <Input
-                                    inputStyle={formStyles.input}
+                                <SquareInput
                                     label={this.translate(
                                         'forms.settings.labels.newPassword'
                                     )}
@@ -271,10 +297,15 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         this.onInputChange('password', text)
                                     }
                                     secureTextEntry={true}
-                                    selectionColor={therrTheme.colors.ternary}
+                                    rightIcon={
+                                        <FontAwesomeIcon
+                                            name='lock'
+                                            size={22}
+                                            color={therrTheme.colors.primary3Faded}
+                                        />
+                                    }
                                 />
-                                <Input
-                                    inputStyle={formStyles.input}
+                                <SquareInput
                                     label={this.translate(
                                         'forms.settings.labels.repeatPassword'
                                     )}
@@ -283,8 +314,14 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         this.onInputChange('repeatPassword', text)
                                     }
                                     secureTextEntry={true}
-                                    selectionColor={therrTheme.colors.ternary}
                                     errorMessage={passwordErrorMessage}
+                                    rightIcon={
+                                        <FontAwesomeIcon
+                                            name='lock'
+                                            size={22}
+                                            color={therrTheme.colors.primary3Faded}
+                                        />
+                                    }
                                 />
                                 <View style={settingsFormStyles.submitButtonContainer}>
                                     <Button

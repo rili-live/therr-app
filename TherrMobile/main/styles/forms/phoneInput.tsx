@@ -10,6 +10,7 @@ export default StyleSheet.create({
         width: '100%',
         padding: 0,
         margin: 0,
+        marginBottom: 6,
     },
     countryFlag: {
         position: 'relative',
@@ -30,7 +31,7 @@ export default StyleSheet.create({
     countryFlagContainer: {
         marginBottom: 20,
         position: 'absolute',
-        right: 20,
-        bottom: 10,
+        right: 12,
+        bottom: 14,
     },
 });
