@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { View } from 'react-native';
-import { Button, Input } from 'react-native-elements';
+import { Button } from 'react-native-elements';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import translator from '../services/translator';
 import formStyles, { loginForm as styles } from '../styles/forms';
 import * as therrTheme from '../styles/themes';
 import Alert from '../components/Alert';
+import RoundInput from './Input/Round';
 
 // Regular component props
 interface ILoginFormProps {
@@ -59,7 +60,7 @@ export class LoginFormComponent extends React.Component<
         });
         this.props
             .login({
-                userName: userName.toLowerCase(),
+                userName: userName && userName.toLowerCase(),
                 password,
                 rememberMe,
             })
@@ -117,11 +118,9 @@ export class LoginFormComponent extends React.Component<
                     message={userMessage}
                     type={'success'}
                 />
-                <Input
+                <RoundInput
                     autoCapitalize="none"
                     autoCompleteType="email"
-                    inputStyle={formStyles.input}
-                    inputContainerStyle={formStyles.inputContainer}
                     placeholder={this.translate(
                         'forms.loginForm.labels.userName'
                     )}
@@ -129,14 +128,18 @@ export class LoginFormComponent extends React.Component<
                     onChangeText={(text) =>
                         this.onInputChange('userName', text)
                     }
-                    selectionColor={therrTheme.colors.ternary}
+                    rightIcon={
+                        <FontAwesomeIcon
+                            name='user'
+                            size={22}
+                            color={therrTheme.colors.primary3}
+                        />
+                    }
                 />
-                <Input
+                <RoundInput
                     autoCapitalize="none"
                     autoCorrect={false}
                     autoCompleteType="password"
-                    inputStyle={formStyles.input}
-                    inputContainerStyle={formStyles.inputContainer}
                     placeholder={this.translate(
                         'forms.loginForm.labels.password'
                     )}
@@ -145,7 +148,13 @@ export class LoginFormComponent extends React.Component<
                         this.onInputChange('password', text)
                     }
                     secureTextEntry={true}
-                    selectionColor={therrTheme.colors.ternary}
+                    rightIcon={
+                        <FontAwesomeIcon
+                            name='lock'
+                            size={22}
+                            color={therrTheme.colors.primary3}
+                        />
+                    }
                 />
                 <View style={styles.submitButtonContainer}>
                     <Button

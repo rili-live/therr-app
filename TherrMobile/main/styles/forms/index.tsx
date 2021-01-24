@@ -7,6 +7,11 @@ import settingsForm from './settingsForm';
 import * as therrTheme from '../themes';
 import { containerStyles, inputStyle, textInputStyle } from './base';
 
+const inputContainerBaseStyles = {
+    borderBottomColor: therrTheme.colors.textDarkGray,
+    borderBottomWidth: 1,
+};
+
 export default StyleSheet.create({
     input: {
         ...inputStyle,
@@ -16,7 +21,19 @@ export default StyleSheet.create({
         ...inputStyle,
         color: therrTheme.colors.textBlack,
     },
-    inputContainer: {
+    phoneInput: {
+        ...inputStyle,
+        color: therrTheme.colors.textWhite,
+        flex: 1,
+        padding: 0,
+        paddingBottom: 20,
+        marginRight: 10,
+    },
+    inputContainerSquare: {
+        ...inputContainerBaseStyles,
+    },
+    inputContainerRound: {
+        ...inputContainerBaseStyles,
         paddingLeft: 10,
         paddingRight: 10,
         borderRadius: 25,
@@ -40,25 +57,19 @@ export default StyleSheet.create({
     inputSliderContainer: {
         ...containerStyles,
     },
+    icon: {
+        marginHorizontal: 5,
+    },
     picker: {
         height: 50,
         width: '100%',
         color: therrTheme.colors.textWhite,
     },
-    phoneInput: {
-        ...inputStyle,
-        color: therrTheme.colors.textWhite,
-        flex: 1,
-        padding: 0,
-        paddingBottom: 20,
-        marginRight: 10,
-    },
     phoneInputText: {
+        ...inputContainerBaseStyles,
         color: therrTheme.colors.textWhite,
         fontSize: 19,
         padding: 10,
-        borderBottomColor: '#78909b',
-        borderBottomWidth: 1,
     },
     textInput: {
         ...textInputStyle,

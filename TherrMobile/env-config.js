@@ -47,6 +47,7 @@ module.exports = {
         baseSocketUrl: `https://websocket-service.${hostProd}`,
         googleAnalyticsKey: '',
         host: hostProd,
+        hostFull: `https://${hostProd}`,
         socket: {
             clientPath: '/socketio',
             pingInterval: 1000 * 10,
