@@ -1,7 +1,8 @@
 import React from 'react';
 import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
-import { Button, Input }  from 'react-native-elements';
+import { Button }  from 'react-native-elements';
 import 'react-native-gesture-handler';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import styles from '../styles';
@@ -11,6 +12,7 @@ import translator from '../services/translator';
 import UsersActions from '../redux/actions/UsersActions';
 import Alert from '../components/Alert';
 import VerificationCodesService from '../services/VerificationCodesService';
+import RoundInput from '../components/Input/Round';
 
 interface IForgotPasswordDispatchProps {
     updateUser: Function;
@@ -145,9 +147,9 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
                             </Text>
                         </View>
                         <View style={forgotPasswordFormStyles.inputsContainer}>
-                            <Input
-                                inputStyle={formStyles.input}
-                                inputContainerStyle={formStyles.inputContainer}
+                            <RoundInput
+                                autoCapitalize="none"
+                                autoCompleteType="email"
                                 placeholder={this.translate(
                                     'forms.forgotPassword.labels.email'
                                 )}
@@ -155,7 +157,13 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
                                 onChangeText={(text) =>
                                     this.onInputChange('email', text)
                                 }
-                                selectionColor={therrTheme.colors.ternary}
+                                rightIcon={
+                                    <FontAwesomeIcon
+                                        name='envelope'
+                                        size={22}
+                                        color={therrTheme.colors.primary3}
+                                    />
+                                }
                             />
                             <Alert
                                 containerStyles={{

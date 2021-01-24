@@ -1,12 +1,13 @@
 import React from 'react';
 import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
-import { Button, Input } from 'react-native-elements';
+import { Button } from 'react-native-elements';
 import { Picker } from '@react-native-picker/picker';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import PhoneInput from 'react-native-phone-input';
 import CountryPicker, { CountryCode } from 'react-native-country-picker-modal';
 import isEmail from 'validator/es/lib/isEmail';
@@ -17,6 +18,7 @@ import formStyles, { phoneInput as phoneStyles } from '../styles/forms';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
+import SquareInput from '../components/Input/Square';
 
 interface IHomeDispatchProps {
     createUserConnection: Function;
@@ -182,6 +184,18 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         });
     };
 
+    onBlurValidate = () => {
+        let emailErrorMessage = '';
+
+        if (!this.isEmailValid()) {
+            emailErrorMessage = this.translate('forms.createConnection.errorMessages.invalidEmail');
+        }
+
+        this.setState({
+            emailErrorMessage,
+        });
+    }
+
     onSubmit = () => {
         const { connectionContext, inputs } = this.state;
         const { createUserConnection, user } = this.props;
@@ -309,8 +323,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                     </Picker>
                                     {
                                         connectionContext === 'email' &&
-                                        <Input
-                                            inputStyle={formStyles.input}
+                                        <SquareInput
                                             placeholder={this.translate(
                                                 'forms.createConnection.placeholders.email'
                                             )}
@@ -318,8 +331,15 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                             onChangeText={(text) =>
                                                 this.onInputChange('email', text)
                                             }
-                                            selectionColor={therrTheme.colors.ternary}
+                                            onBlur={this.onBlurValidate}
                                             errorMessage={emailErrorMessage}
+                                            rightIcon={
+                                                <FontAwesomeIcon
+                                                    name='envelope'
+                                                    size={22}
+                                                    color={therrTheme.colors.primary3Faded}
+                                                />
+                                            }
                                         />
                                     }
                                     {

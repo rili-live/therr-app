@@ -28,6 +28,7 @@ export default StyleSheet.create({
         flexDirection: 'column',
         flex: 1,
         margin: 10,
+        marginBottom: 0,
     },
     messageContainerLeft: {
         ...containerStyles,
@@ -65,6 +66,8 @@ export default StyleSheet.create({
         flexDirection: 'row',
         width: '100%',
         alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
     },
     userImage: {
         // color: therrTheme.colors.primary3,
@@ -75,14 +78,19 @@ export default StyleSheet.create({
     },
     icon: {
         color: therrTheme.colors.textWhite,
+        padding: 0,
+        margin: 0,
     },
     inputContainer: {
+        display: 'flex',
         flex: 1,
     },
     sendBtn: {
         borderRadius: 25,
+        backgroundColor: therrTheme.colors.primary3,
     },
     sendBtnContainer: {
-        marginBottom: 15,
+        margin: 0,
+        marginHorizontal: 4,
     },
 });

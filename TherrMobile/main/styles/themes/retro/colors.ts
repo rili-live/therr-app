@@ -13,6 +13,7 @@ const colors = {
 
     textBlack: '#363636',
     textGray: '#bfc7d5',
+    textDarkGray: '#728f94',
     textWhite: '#fcfeff',
 
     backgroundWhite: '#ffffff',
