@@ -1,7 +1,9 @@
 import React from 'react';
+import 'react-native-gesture-handler';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { ActivityIndicator, View, ScrollView, Text } from 'react-native';
+import { ActivityIndicator, View, Text } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Button, Image } from 'react-native-elements';
 import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -163,7 +165,7 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
                         type="clear"
                     />
                 </View>
-                <ScrollView
+                <KeyboardAwareScrollView
                     contentInsetAdjustmentBehavior="automatic"
                     ref={(component) => (this.scrollViewRef = component)}
                     style={viewMomentModal.body}
@@ -209,7 +211,7 @@ class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
                             />
                         </View>
                     }
-                </ScrollView>
+                </KeyboardAwareScrollView>
                 {
                     isMyMoment &&
                     <View style={viewMomentModal.footer}>

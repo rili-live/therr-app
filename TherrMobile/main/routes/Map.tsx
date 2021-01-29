@@ -574,6 +574,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                     longitude: moment.longitude,
                                                     latitude: moment.latitude,
                                                 }}
+                                                onPress={this.handleMapPress}
                                             />
                                             <Circle
                                                 center={{
@@ -602,6 +603,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                     longitude: moment.longitude,
                                                     latitude: moment.latitude,
                                                 }}
+                                                onPress={this.handleMapPress}
                                             />
                                             <Circle
                                                 center={{

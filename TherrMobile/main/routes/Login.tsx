@@ -1,6 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { View, SafeAreaView, ScrollView, StatusBar } from 'react-native';
+import { View, SafeAreaView, StatusBar } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Image from '../components/BaseImage';
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';
@@ -67,7 +68,7 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
             <>
                 <StatusBar barStyle="light-content" animated={true} translucent={true} />
                 <SafeAreaView>
-                    <ScrollView style={styles.bodyFlex} contentContainerStyle={styles.bodyScroll}>
+                    <KeyboardAwareScrollView style={styles.bodyFlex} contentContainerStyle={styles.bodyScroll}>
                         {
                             this.cachedUserId
                             && <View style={[mixins.flexCenter, mixins.marginMediumBot]}>
@@ -75,7 +76,7 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                             </View>
                         }
                         <LoginForm login={this.props.login} navigation={this.props.navigation} userMessage={userMessage} />
-                    </ScrollView>
+                    </KeyboardAwareScrollView>
                 </SafeAreaView>
             </>
         );

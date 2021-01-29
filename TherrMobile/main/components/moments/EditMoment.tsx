@@ -1,8 +1,9 @@
 import React from 'react';
-import { connect } from 'react-redux';
-import { Keyboard, View, ScrollView, Text, TextInput } from 'react-native';
-import { Button, Input, Slider } from 'react-native-elements';
 import 'react-native-gesture-handler';
+import { connect } from 'react-redux';
+import { Keyboard, View, Text, TextInput } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { Button, Input, Slider } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import YoutubePlayer from 'react-native-youtube-iframe';
@@ -278,7 +279,7 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                         type="clear"
                     />
                 </View>
-                <ScrollView
+                <KeyboardAwareScrollView
                     contentInsetAdjustmentBehavior="automatic"
                     ref={(component) => (this.scrollViewRef = component)}
                     style={editMomentModal.body}
@@ -396,7 +397,7 @@ class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
                             </View>
                         </View>
                     }
-                </ScrollView>
+                </KeyboardAwareScrollView>
                 <View style={editMomentModal.footer}>
                     <Button
                         buttonStyle={editMomentFormStyles.submitButton}

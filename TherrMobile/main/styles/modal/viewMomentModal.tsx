@@ -90,7 +90,7 @@ export default StyleSheet.create({
         paddingBottom: 100,
     },
     momentContainer: {
-        display: 'flex',
+        width: '100%',
         marginTop: 0,
         marginBottom: 4,
         padding: 20,
@@ -103,6 +103,7 @@ export default StyleSheet.create({
     momentMessage: {
         fontSize: 20,
         marginBottom: 20,
+        overflow: 'scroll',
     },
     momentUserAvatarImg: {
         height: 200,

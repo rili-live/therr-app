@@ -83,6 +83,7 @@ export default StyleSheet.create({
         minHeight: '90%',
         width: '100%',
         paddingBottom: 80,
+        position: 'relative',
     },
     footer: {
         display: 'flex',
