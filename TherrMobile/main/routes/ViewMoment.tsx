@@ -230,7 +230,6 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                         }
                     </KeyboardAwareScrollView>
                     {
-                        isMyMoment &&
                         <View style={viewMomentStyles.footer}>
                             <Button
                                 containerStyle={editMomentFormStyles.backButtonContainer}
@@ -246,58 +245,63 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 type="clear"
                             />
                             {
-                                !isVerifyingDelete &&
-                                <Button
-                                    buttonStyle={editMomentFormStyles.submitDeleteButton}
-                                    disabledStyle={editMomentFormStyles.submitButtonDisabled}
-                                    disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
-                                    titleStyle={editMomentFormStyles.submitButtonTitle}
-                                    containerStyle={editMomentFormStyles.submitButtonContainer}
-                                    title={this.translate(
-                                        'forms.editMoment.buttons.delete'
-                                    )}
-                                    icon={
-                                        <FontAwesome5Icon
-                                            name="trash-alt"
-                                            size={25}
-                                            color={'black'}
-                                            style={editMomentFormStyles.submitButtonIcon}
-                                        />
+                                isMyMoment &&
+                                <>
+                                    {
+                                        !isVerifyingDelete &&
+                                            <Button
+                                                buttonStyle={editMomentFormStyles.submitDeleteButton}
+                                                disabledStyle={editMomentFormStyles.submitButtonDisabled}
+                                                disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
+                                                titleStyle={editMomentFormStyles.submitButtonTitle}
+                                                containerStyle={editMomentFormStyles.submitButtonContainer}
+                                                title={this.translate(
+                                                    'forms.editMoment.buttons.delete'
+                                                )}
+                                                icon={
+                                                    <FontAwesome5Icon
+                                                        name="trash-alt"
+                                                        size={25}
+                                                        color={'black'}
+                                                        style={editMomentFormStyles.submitButtonIcon}
+                                                    />
+                                                }
+                                                onPress={this.onDelete}
+                                                raised={true}
+                                            />
                                     }
-                                    onPress={this.onDelete}
-                                    raised={true}
-                                />
-                            }
-                            {
-                                isVerifyingDelete &&
-                                <View style={editMomentFormStyles.submitConfirmContainer}>
-                                    <Button
-                                        buttonStyle={editMomentFormStyles.submitCancelButton}
-                                        disabledStyle={editMomentFormStyles.submitButtonDisabled}
-                                        disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
-                                        titleStyle={editMomentFormStyles.submitButtonTitle}
-                                        containerStyle={editMomentFormStyles.submitCancelButtonContainer}
-                                        title={this.translate(
-                                            'forms.editMoment.buttons.cancel'
-                                        )}
-                                        onPress={this.onDeleteCancel}
-                                        disabled={isDeleting}
-                                        raised={true}
-                                    />
-                                    <Button
-                                        buttonStyle={editMomentFormStyles.submitConfirmButton}
-                                        disabledStyle={editMomentFormStyles.submitButtonDisabled}
-                                        disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
-                                        titleStyle={editMomentFormStyles.submitButtonTitleLight}
-                                        containerStyle={editMomentFormStyles.submitButtonContainer}
-                                        title={this.translate(
-                                            'forms.editMoment.buttons.confirm'
-                                        )}
-                                        onPress={this.onDeleteConfirm}
-                                        disabled={isDeleting}
-                                        raised={true}
-                                    />
-                                </View>
+                                    {
+                                        isVerifyingDelete &&
+                                        <View style={editMomentFormStyles.submitConfirmContainer}>
+                                            <Button
+                                                buttonStyle={editMomentFormStyles.submitCancelButton}
+                                                disabledStyle={editMomentFormStyles.submitButtonDisabled}
+                                                disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
+                                                titleStyle={editMomentFormStyles.submitButtonTitle}
+                                                containerStyle={editMomentFormStyles.submitCancelButtonContainer}
+                                                title={this.translate(
+                                                    'forms.editMoment.buttons.cancel'
+                                                )}
+                                                onPress={this.onDeleteCancel}
+                                                disabled={isDeleting}
+                                                raised={true}
+                                            />
+                                            <Button
+                                                buttonStyle={editMomentFormStyles.submitConfirmButton}
+                                                disabledStyle={editMomentFormStyles.submitButtonDisabled}
+                                                disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
+                                                titleStyle={editMomentFormStyles.submitButtonTitleLight}
+                                                containerStyle={editMomentFormStyles.submitButtonContainer}
+                                                title={this.translate(
+                                                    'forms.editMoment.buttons.confirm'
+                                                )}
+                                                onPress={this.onDeleteConfirm}
+                                                disabled={isDeleting}
+                                                raised={true}
+                                            />
+                                        </View>
+                                    }
+                                </>
                             }
                         </View>
                     }
