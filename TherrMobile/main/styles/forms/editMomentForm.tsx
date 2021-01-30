@@ -7,16 +7,12 @@ const submitButtonStyles: any = {
     paddingLeft: 10,
 };
 
+const buttonContainerStyles: any = {
+    marginBottom: 20,
+    marginTop: 20,
+};
+
 export default StyleSheet.create({
-    momentContainer: {
-        width: '100%',
-        marginTop: 0,
-        marginBottom: 4,
-        padding: 20,
-        paddingBottom: 4,
-        paddingTop: 4,
-        flex: 1,
-    },
     button: {
         backgroundColor: therrTheme.colors.primary3,
     },
@@ -29,6 +25,19 @@ export default StyleSheet.create({
     previewHeader: {
         fontSize: 14,
         paddingBottom: 6,
+    },
+    backButton: {
+        borderRadius: 50,
+        backgroundColor: therrTheme.colors.beemo1,
+    },
+    backButtonContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'absolute',
+        left: 20,
+        bottom: 20,
+        elevation: 3,
     },
     submitButton: {
         ...submitButtonStyles,
@@ -46,6 +55,9 @@ export default StyleSheet.create({
     submitCancelButton: {
         ...submitButtonStyles,
         backgroundColor: therrTheme.colors.beemoYellow,
+    },
+    submitCancelButtonContainer: {
+        ...buttonContainerStyles,
         marginRight: 20,
     },
     submitButtonTitle: {
@@ -60,8 +72,7 @@ export default StyleSheet.create({
         ...submitButtonStyles,
     },
     submitButtonContainer: {
-        marginBottom: 20,
-        marginTop: 20,
+        ...buttonContainerStyles,
     },
     submitConfirmContainer: {
         display: 'flex',

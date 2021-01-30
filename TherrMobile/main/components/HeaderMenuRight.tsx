@@ -25,7 +25,7 @@ export interface IHeaderMenuRightProps extends IStoreProps {
     logout: Function;
     navigation: any;
     isVisible: boolean;
-    shouldUseDarkText: boolean;
+    styleName: 'light' | 'dark' | 'beemo';
     updateGpsStatus: Function;
     user: any;
 }
@@ -136,9 +136,19 @@ class HeaderMenuRight extends React.Component<
     };
 
     render() {
-        const { shouldUseDarkText, isVisible, user } = this.props;
+        const { isVisible, styleName, user } = this.props;
         const { isModalVisible } = this.state;
         const currentScreen = this.getCurrentScreen();
+        let imageStyle = headerMenuModal.toggleIcon;
+        if (styleName === 'light') {
+            imageStyle = headerMenuModal.toggleIcon;
+        }
+        if (styleName === 'dark') {
+            imageStyle = headerMenuModal.toggleIconDark;
+        }
+        if (styleName === 'beemo') {
+            imageStyle = headerMenuModal.toggleIconDark;
+        }
 
         if (isVisible) {
             return (
@@ -147,7 +157,7 @@ class HeaderMenuRight extends React.Component<
                         icon={
                             <Image
                                 source={{ uri: `https://robohash.org/${user.details?.id}?size=50x50` }}
-                                style={shouldUseDarkText ? headerMenuModal.toggleIconDark : headerMenuModal.toggleIcon}
+                                style={imageStyle}
                                 PlaceholderContent={<ActivityIndicator size="small" color={therrTheme.colors.primary} />}
                             />}
                         onPress={this.toggleOverlay}

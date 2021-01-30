@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
+import { SafeAreaView, View, Text, StatusBar } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Button }  from 'react-native-elements';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -179,7 +180,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             <>
                 <StatusBar barStyle="light-content" animated={true} translucent={true} />
                 <SafeAreaView>
-                    <ScrollView
+                    <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
                         style={styles.scrollView}
@@ -336,7 +337,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                 </View>
                             </View>
                         </View>
-                    </ScrollView>
+                    </KeyboardAwareScrollView>
                 </SafeAreaView>
                 <MainButtonMenu navigation={navigation} translate={this.translate} user={user} />
             </>

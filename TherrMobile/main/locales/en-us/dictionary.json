@@ -171,11 +171,6 @@
         "locationMap": "Location Map"
       }
     },
-    "editMomentOverlay": {
-      "headerTitle": "Create a Moment",
-      "formHeaderContent": "Content",
-      "previewHeader": "Preview:"
-    },
     "notification": {
       "buttons": {
         "accept": "Accept",
@@ -317,13 +312,13 @@
     }
   },
   "pages": {
+    "activeConnections": {
+      "headerTitle": "Connections"
+    },
     "chatForum": {
       "pageTitle": "Forums",
       "welcome": "Welcome!",
       "inputPlaceholder": "Enter a message"
-    },
-    "activeConnections": {
-      "headerTitle": "Connections"
     },
     "contacts": {
       "headerTitle": "Connections"
@@ -338,6 +333,10 @@
     },
     "directMessage": {
       "inputPlaceholder": "Enter a message..."
+    },
+    "editMoment": {
+      "headerTitle": "Create a Moment",
+      "previewHeader": "Preview:"
     },
     "forgotPassword": {
       "headerTitle": "Password Reset",
