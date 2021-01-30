@@ -7,9 +7,9 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import Autolink from 'react-native-autolink';
 // import { Button }  from 'react-native-elements';
 import { IUserState } from 'therr-react/types';
+import { MapActions } from 'therr-react/redux/actions';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import YoutubePlayer from 'react-native-youtube-iframe';
-import UsersActions from '../redux/actions/UsersActions';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
 import styles from '../styles';
@@ -31,7 +31,7 @@ interface IMomentDetails {
 }
 
 interface IViewMomentDispatchProps {
-    updateUser: Function;
+    deleteMoment: Function;
 }
 
 interface IStoreProps extends IViewMomentDispatchProps {
@@ -42,10 +42,6 @@ interface IStoreProps extends IViewMomentDispatchProps {
 export interface IViewMomentProps extends IStoreProps {
     navigation: any;
     route: any;
-    onDelete: Function;
-    isMyMoment: boolean;
-    moment: any;
-    momentDetails: IMomentDetails;
 }
 
 interface IViewMomentState {
@@ -62,7 +58,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    updateUser: UsersActions.update,
+    deleteMoment: MapActions.deleteMoment,
 }, dispatch);
 
 export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
@@ -107,8 +103,10 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     }
 
     componentDidMount() {
-        this.props.navigation.setOptions({
-            title: this.translate('pages.settings.headerTitle'),
+        const { navigation} = this.props;
+
+        navigation.setOptions({
+            title: this.notificationMsg,
         });
     }
 
@@ -151,16 +149,31 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     }
 
     onDeleteConfirm = () => {
+        const { deleteMoment, navigation, route, user } = this.props;
+        const { moment } = route.params;
+
         this.setState({
             isDeleting: true,
         });
-        this.props.onDelete();
-        this.props.navigation.nagivate('Map');
+        if (moment.fromUserId === user.details.id) {
+            deleteMoment({ ids: [moment.id] })
+                .then(() => {
+                    console.log('Moment successfully deleted');
+                    navigation.navigate('Map');
+                })
+                .catch((err) => {
+                    console.log('Error deleting moment', err);
+                    this.setState({
+                        isDeleting: true,
+                        isVerifyingDelete: false,
+                    });
+                });
+        }
     }
 
     render() {
         const { isDeleting, isVerifyingDelete, previewLinkId, previewStyleState } = this.state;
-        const { route } = this.props;
+        const { navigation, route } = this.props;
         const { moment, momentDetails, isMyMoment } = route.params;
 
         return (
@@ -219,6 +232,19 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                     {
                         isMyMoment &&
                         <View style={viewMomentStyles.footer}>
+                            <Button
+                                containerStyle={editMomentFormStyles.backButtonContainer}
+                                buttonStyle={editMomentFormStyles.backButton}
+                                onPress={() => navigation.navigate('Map')}
+                                icon={
+                                    <FontAwesome5Icon
+                                        name="arrow-left"
+                                        size={25}
+                                        color={'black'}
+                                    />
+                                }
+                                type="clear"
+                            />
                             {
                                 !isVerifyingDelete &&
                                 <Button
@@ -239,6 +265,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                         />
                                     }
                                     onPress={this.onDelete}
+                                    raised={true}
                                 />
                             }
                             {
@@ -249,12 +276,13 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                         disabledStyle={editMomentFormStyles.submitButtonDisabled}
                                         disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
                                         titleStyle={editMomentFormStyles.submitButtonTitle}
-                                        containerStyle={editMomentFormStyles.submitButtonContainer}
+                                        containerStyle={editMomentFormStyles.submitCancelButtonContainer}
                                         title={this.translate(
                                             'forms.editMoment.buttons.cancel'
                                         )}
                                         onPress={this.onDeleteCancel}
                                         disabled={isDeleting}
+                                        raised={true}
                                     />
                                     <Button
                                         buttonStyle={editMomentFormStyles.submitConfirmButton}
@@ -267,6 +295,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                         )}
                                         onPress={this.onDeleteConfirm}
                                         disabled={isDeleting}
+                                        raised={true}
                                     />
                                 </View>
                             }

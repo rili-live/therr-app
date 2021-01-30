@@ -139,15 +139,15 @@ class HeaderMenuRight extends React.Component<
         const { isVisible, styleName, user } = this.props;
         const { isModalVisible } = this.state;
         const currentScreen = this.getCurrentScreen();
-        let logoStyle = styles.logoIcon;
+        let imageStyle = headerMenuModal.toggleIcon;
         if (styleName === 'light') {
-            logoStyle = styles.logoIcon;
+            imageStyle = headerMenuModal.toggleIcon;
         }
         if (styleName === 'dark') {
-            logoStyle = styles.logoIconDark;
+            imageStyle = headerMenuModal.toggleIconDark;
         }
         if (styleName === 'beemo') {
-            logoStyle = styles.logoIconBlack;
+            imageStyle = headerMenuModal.toggleIconDark;
         }
 
         if (isVisible) {
@@ -157,7 +157,7 @@ class HeaderMenuRight extends React.Component<
                         icon={
                             <Image
                                 source={{ uri: `https://robohash.org/${user.details?.id}?size=50x50` }}
-                                style={logoStyle}
+                                style={imageStyle}
                                 PlaceholderContent={<ActivityIndicator size="small" color={therrTheme.colors.primary} />}
                             />}
                         onPress={this.toggleOverlay}

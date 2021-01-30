@@ -270,6 +270,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
     }
 
     render() {
+        const { navigation } = this.props;
         const { errorMsg, successMsg, hashtags, inputs, previewLinkId, previewStyleState } = this.state;
 
         return (
@@ -396,6 +397,19 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         }
                     </KeyboardAwareScrollView>
                     <View style={editMomentStyles.footer}>
+                        <Button
+                            containerStyle={editMomentFormStyles.backButtonContainer}
+                            buttonStyle={editMomentFormStyles.backButton}
+                            onPress={() => navigation.navigate('Map')}
+                            icon={
+                                <FontAwesome5Icon
+                                    name="arrow-left"
+                                    size={25}
+                                    color={'black'}
+                                />
+                            }
+                            type="clear"
+                        />
                         <Button
                             buttonStyle={editMomentFormStyles.submitButton}
                             disabledStyle={editMomentFormStyles.submitButtonDisabled}

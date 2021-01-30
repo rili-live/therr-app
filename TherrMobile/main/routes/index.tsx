@@ -15,6 +15,7 @@ import Settings from './Settings';
 import ViewMoment from './ViewMoment';
 import EditMoment from './EditMoment';
 import styles from '../styles';
+import * as therrTheme from '../styles/themes';
 
 export interface ExtendedRouteOptions extends StackNavigationOptions {
     access?: IAccess;
@@ -138,6 +139,16 @@ const routes: RouteConfig<
                 levels: [],
             },
             headerStyle: styles.headerStyleBeemo,
+            headerTitleStyle: {
+                alignSelf: 'flex-start',
+                textAlign: 'center',
+                flex: 1,
+                color: therrTheme.colors.beemoTextBlack,
+                textShadowOffset: { width: 0, height: 0 },
+                textShadowRadius: 0,
+                letterSpacing: 4,
+            },
+            headerLeft: () => null,
         }),
     },
     {
@@ -150,6 +161,16 @@ const routes: RouteConfig<
                 levels: [],
             },
             headerStyle: styles.headerStyleBeemo,
+            headerTitleStyle: {
+                alignSelf: 'flex-start',
+                textAlign: 'center',
+                flex: 1,
+                color: therrTheme.colors.beemoTextBlack,
+                textShadowOffset: { width: 0, height: 0 },
+                textShadowRadius: 0,
+                letterSpacing: 4,
+            },
+            headerLeft: () => null,
         }),
     },
 ];

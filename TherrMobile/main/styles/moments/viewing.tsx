@@ -68,6 +68,7 @@ export default StyleSheet.create({
         fontSize: 20,
         marginBottom: 20,
         overflow: 'scroll',
+        width: '90%',
     },
     momentUserAvatarImg: {
         height: 200,
@@ -82,13 +83,14 @@ export default StyleSheet.create({
     },
     footer: {
         display: 'flex',
+        flexDirection: 'row',
         height: 80,
         flex: 1,
         paddingRight: 20,
         position: 'absolute',
         bottom: 0,
-        alignItems: 'flex-end',
-        justifyContent: 'center',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
         width: '100%',
     },
     toggleIcon: {
