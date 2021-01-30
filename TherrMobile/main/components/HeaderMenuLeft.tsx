@@ -18,7 +18,7 @@ interface IStoreProps extends IHeaderMenuLeftDispatchProps {}
 // Regular component props
 export interface IHeaderMenuLeftProps extends IStoreProps {
     isAuthenticated: boolean;
-    shouldUseDarkText: boolean;
+    styleName: 'light' | 'dark' | 'beemo';
     navigation: any;
 }
 
@@ -44,7 +44,17 @@ class HeaderMenuLeft extends React.Component<
     };
 
     render() {
-        const { shouldUseDarkText } = this.props;
+        const { styleName } = this.props;
+        let logoStyle = styles.logoIcon;
+        if (styleName === 'light') {
+            logoStyle = styles.logoIcon;
+        }
+        if (styleName === 'dark') {
+            logoStyle = styles.logoIconDark;
+        }
+        if (styleName === 'beemo') {
+            logoStyle = styles.logoIconBlack;
+        }
 
         return (
             <Button
@@ -53,7 +63,7 @@ class HeaderMenuLeft extends React.Component<
                     <LogoIcon
                         name="therr-logo"
                         size={28}
-                        style={shouldUseDarkText ? styles.logoIconDark : styles.logoIcon}
+                        style={logoStyle}
                         onPress={this.handlePress}
                     />
                 }

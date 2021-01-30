@@ -1,8 +1,10 @@
 import { StyleSheet } from 'react-native';
-import headerMenuModal from './headerMenuModal';
+import editing from './editing';
+import viewing from './viewing';
 
 export default StyleSheet.create({});
 
 export {
-    headerMenuModal,
+    editing,
+    viewing,
 };

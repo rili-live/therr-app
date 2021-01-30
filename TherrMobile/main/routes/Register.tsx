@@ -1,6 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { SafeAreaView, ScrollView, StatusBar } from 'react-native';
+import { SafeAreaView, StatusBar } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';
 import styles from '../styles';
@@ -65,9 +66,9 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
             <>
                 <StatusBar barStyle="light-content" animated={true} translucent={true} />
                 <SafeAreaView>
-                    <ScrollView style={styles.bodyFlex} contentContainerStyle={styles.bodyScroll}>
+                    <KeyboardAwareScrollView style={styles.bodyFlex} contentContainerStyle={styles.bodyScroll}>
                         <RegisterForm register={this.props.register} onSuccess={this.onSuccess}/>
-                    </ScrollView>
+                    </KeyboardAwareScrollView>
                 </SafeAreaView>
             </>
         );

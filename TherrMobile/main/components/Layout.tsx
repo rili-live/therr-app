@@ -145,13 +145,25 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 <Stack.Navigator
                     screenOptions={({ navigation }) => {
                         const isMap = this.getCurrentScreen(navigation) === 'Map';
+                        const isMoment = this.getCurrentScreen(navigation) === 'ViewMoment'
+                            || this.getCurrentScreen(navigation) === 'EditMoment';
+                        let headerStyleName: any = 'light';
+                        let headerTitleColor = therrTheme.colors.textWhite;
+                        if (isMap) {
+                            headerStyleName = 'dark';
+                            headerTitleColor = therrTheme.colors.secondaryFaded;
+                        }
+                        if (isMoment) {
+                            headerStyleName = 'beemo';
+                            headerTitleColor = therrTheme.colors.beemoTextBlack;
+                        }
 
                         return ({
                             // animationEnabled: false,
                             cardStyleInterpolator: forFade,
                             headerLeft: () => (
                                 <HeaderMenuLeft
-                                    shouldUseDarkText={isMap}
+                                    styleName={headerStyleName}
                                     navigation={navigation}
                                     isAuthenticated={user.isAuthenticated}
                                 />
@@ -159,7 +171,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             headerRight: () => (
                                 <HeaderMenuRight
                                     navigation={navigation}
-                                    shouldUseDarkText={isMap}
+                                    styleName={headerStyleName}
                                     isVisible={this.shouldShowTopRightMenu()}
                                     location={location}
                                     logout={logout}
@@ -171,7 +183,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 alignSelf: 'center',
                                 textAlign: 'center',
                                 flex: 1,
-                                color: isMap ? therrTheme.colors.secondaryFaded : therrTheme.colors.textWhite,
+                                color: headerTitleColor,
                                 textShadowOffset: isMap ? { width: 1, height: 1 } : { width: 0, height: 0 },
                                 textShadowRadius: isMap ? 1 : 0,
                                 letterSpacing: 4,
