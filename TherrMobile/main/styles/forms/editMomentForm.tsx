@@ -8,15 +8,6 @@ const submitButtonStyles: any = {
 };
 
 export default StyleSheet.create({
-    momentContainer: {
-        width: '100%',
-        marginTop: 0,
-        marginBottom: 4,
-        padding: 20,
-        paddingBottom: 4,
-        paddingTop: 4,
-        flex: 1,
-    },
     button: {
         backgroundColor: therrTheme.colors.primary3,
     },

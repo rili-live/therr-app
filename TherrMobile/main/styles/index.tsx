@@ -106,6 +106,15 @@ export default StyleSheet.create({
         height: 32,
         width: 32,
     },
+    logoIconBlack: {
+        color: therrTheme.colors.beemoTextBlack,
+        marginLeft: 2,
+        elevation: 1,
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 5,
+        height: 32,
+        width: 32,
+    },
     sectionContainer: {
         marginTop: 8,
         marginBottom: 8,
@@ -156,6 +165,12 @@ export default StyleSheet.create({
     },
     headerStyleAlt: {
         ...headerStyles,
+    },
+    headerStyleBeemo: {
+        ...headerStyles,
+        backgroundColor: therrTheme.colors.beemo1,
+        borderBottomWidth: 2,
+        borderBottomColor: '#4950571c',
     },
     highlight: {
         fontWeight: '700',

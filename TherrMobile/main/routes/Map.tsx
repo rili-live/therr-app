@@ -29,8 +29,6 @@ import {
 import * as therrTheme from '../styles/themes';
 import styles, { loaderStyles } from '../styles';
 import mapStyles from '../styles/map';
-import EditMoment from '../components/moments/EditMoment';
-import ViewMoment from '../components/moments/ViewMoment';
 import { distanceTo, insideCircle } from 'geolocation-utils';
 
 const earthLoader = require('../assets/earth-loader.json');
@@ -66,13 +64,10 @@ interface IMapState {
     areButtonsVisible: boolean;
     areLayersVisible: boolean;
     followsUserLocation: boolean;
-    isEditMomentVisible: boolean;
     isMomentAlertVisible: boolean;
     isScrollEnabled: boolean;
-    isViewMomentVisible: boolean;
     isLocationReady: boolean;
     isMinLoadTimeComplete: boolean;
-    isFullScreen: boolean;
     lastMomentsRefresh?: number,
     layers: any
     circleCenter: any;
@@ -117,10 +112,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             areLayersVisible: false,
             followsUserLocation: false,
             isScrollEnabled: true,
-            isEditMomentVisible: false,
-            isFullScreen: false,
             isMomentAlertVisible: false,
-            isViewMomentVisible: false,
             isLocationReady: false,
             isMinLoadTimeComplete: false,
             layers: {
@@ -242,19 +234,6 @@ class Map extends React.Component<IMapProps, IMapState> {
         navigation.navigate('Home');
     };
 
-    cancelEditMoment = () => {
-        this.setState({
-            isEditMomentVisible: false,
-        });
-    }
-
-    cancelViewMoment = () => {
-        this.setState({
-            isFullScreen: false,
-            isViewMomentVisible: false,
-        });
-    }
-
     cancelMomentAlert = () => {
         this.setState({
             isMomentAlertVisible: false,
@@ -272,11 +251,11 @@ class Map extends React.Component<IMapProps, IMapState> {
         return resolve(details);
     });
 
-    handleAddMoment = () => {
-        this.setState({
-            areLayersVisible: false,
-            isEditMomentVisible: true,
-        });
+    handleCreateMoment = () => {
+        const { navigation } = this.props;
+        const { circleCenter } = this.state;
+
+        navigation.navigate('EditMoment', circleCenter);
     };
 
     handleCompassRealign = () => {
@@ -285,10 +264,6 @@ class Map extends React.Component<IMapProps, IMapState> {
             areLayersVisible: false,
         });
     };
-
-    handleFullScreen = (isFullScreen) => {
-        this.setState({ isFullScreen });
-    }
 
     handleGpsRecenter = () => {
         const { circleCenter } = this.state;
@@ -305,7 +280,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     };
 
     handleMapPress = ({ nativeEvent }) => {
-        const { map, user } = this.props;
+        const { map, navigation, user } = this.props;
         const { circleCenter, layers } = this.state;
         let visibleMoments: any[] = [];
 
@@ -341,10 +316,14 @@ class Map extends React.Component<IMapProps, IMapState> {
             } else {
                 this.getMomentDetails(selectedMoment)
                     .then((details) => {
+                        navigation.navigate('ViewMoment', {
+                            isMyMoment: selectedMoment.fromUserId === user.details.id,
+                            moment: selectedMoment,
+                            momentDetails: details,
+                        });
                         this.setState({
                             activeMoment: selectedMoment,
                             activeMomentDetails: details,
-                            isViewMomentVisible: true,
                         });
                     })
                     .catch(() => {
@@ -506,21 +485,17 @@ class Map extends React.Component<IMapProps, IMapState> {
     render() {
         const {
             activeMoment,
-            activeMomentDetails,
             areButtonsVisible,
             areLayersVisible,
             circleCenter,
             followsUserLocation,
-            isFullScreen,
             isLocationReady,
             isMinLoadTimeComplete,
-            isEditMomentVisible,
             isMomentAlertVisible,
             isScrollEnabled,
-            isViewMomentVisible,
             layers,
         } = this.state;
-        const { map, user } = this.props;
+        const { map } = this.props;
 
         return (
             <>
@@ -726,7 +701,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 />
                                             }
                                             raised={true}
-                                            onPress={this.handleAddMoment}
+                                            onPress={this.handleCreateMoment}
                                         />
                                     </View>
                                     <View style={mapStyles.compass}>
@@ -760,53 +735,6 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 </>
                             )
                         }
-                        <AnimatedOverlay
-                            animationType="swing"
-                            animationDuration={500}
-                            easing="linear"
-                            visible={isEditMomentVisible}
-                            onClose={this.cancelEditMoment}
-                            closeOnTouchOutside={isFullScreen ? false : true}
-                            containerStyle={isFullScreen ? styles.overlayInvisible : styles.overlay}
-                            childrenWrapperStyle={isFullScreen ? mapStyles.editContainerInvisible : mapStyles.editMomentOverlayContainer}
-                        >
-                            {
-                                (hideModal) => (
-                                    <EditMoment
-                                        closeOverlay={hideModal}
-                                        handleFullScreen={this.handleFullScreen}
-                                        latitude={circleCenter.latitude}
-                                        longitude={circleCenter.longitude}
-                                        translate={this.translate}
-                                    />
-                                )
-                            }
-                        </AnimatedOverlay>
-                        <AnimatedOverlay
-                            animationType="swing"
-                            animationDuration={500}
-                            easing="ease-out"
-                            visible={isViewMomentVisible}
-                            onClose={this.cancelViewMoment}
-                            closeOnTouchOutside={isFullScreen ? false : true}
-                            containerStyle={isFullScreen ? styles.overlayInvisible : styles.overlay}
-                            childrenWrapperStyle={isFullScreen ? mapStyles.editContainerInvisible : mapStyles.editMomentOverlayContainer}
-                        >
-                            {
-                                (hideModal) => (
-                                    <ViewMoment
-                                        closeOverlay={hideModal}
-                                        handleFullScreen={this.handleFullScreen}
-                                        isMyMoment={activeMoment.fromUserId === user.details.id}
-                                        onDelete={() => this.onDeleteMoment(activeMoment)}
-                                        translate={this.translate}
-                                        localeShort={this.localeShort}
-                                        moment={activeMoment}
-                                        momentDetails={activeMomentDetails}
-                                    />
-                                )
-                            }
-                        </AnimatedOverlay>
                         <AnimatedOverlay
                             animationType="swing"
                             animationDuration={500}

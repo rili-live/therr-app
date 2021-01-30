@@ -12,6 +12,8 @@ import ForgotPassword from './ForgotPassword';
 import Notifications from './Notifications';
 import Register from './Register';
 import Settings from './Settings';
+import ViewMoment from './ViewMoment';
+import EditMoment from './EditMoment';
 import styles from '../styles';
 
 export interface ExtendedRouteOptions extends StackNavigationOptions {
@@ -124,6 +126,30 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [],
             },
+        }),
+    },
+    {
+        name: 'ViewMoment',
+        component: ViewMoment,
+        options: () => ({
+            title: 'ViewMoment',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [],
+            },
+            headerStyle: styles.headerStyleBeemo,
+        }),
+    },
+    {
+        name: 'EditMoment',
+        component: EditMoment,
+        options: () => ({
+            title: 'EditMoment',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [],
+            },
+            headerStyle: styles.headerStyleBeemo,
         }),
     },
 ];

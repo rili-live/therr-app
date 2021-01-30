@@ -68,7 +68,11 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
             <>
                 <StatusBar barStyle="light-content" animated={true} translucent={true} />
                 <SafeAreaView>
-                    <KeyboardAwareScrollView style={styles.bodyFlex} contentContainerStyle={styles.bodyScroll}>
+                    <KeyboardAwareScrollView
+                        contentInsetAdjustmentBehavior="automatic"
+                        style={styles.bodyFlex}
+                        contentContainerStyle={styles.bodyScroll}
+                    >
                         {
                             this.cachedUserId
                             && <View style={[mixins.flexCenter, mixins.marginMediumBot]}>
