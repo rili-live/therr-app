@@ -316,14 +316,15 @@ class Map extends React.Component<IMapProps, IMapState> {
             } else {
                 this.getMomentDetails(selectedMoment)
                     .then((details) => {
-                        navigation.navigate('ViewMoment', {
-                            isMyMoment: selectedMoment.fromUserId === user.details.id,
-                            moment: selectedMoment,
-                            momentDetails: details,
-                        });
                         this.setState({
                             activeMoment: selectedMoment,
                             activeMomentDetails: details,
+                        }, () => {
+                            navigation.navigate('ViewMoment', {
+                                isMyMoment: selectedMoment.fromUserId === user.details.id,
+                                moment: selectedMoment,
+                                momentDetails: details,
+                            });
                         });
                     })
                     .catch(() => {

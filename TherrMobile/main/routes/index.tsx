@@ -17,6 +17,31 @@ import EditMoment from './EditMoment';
 import styles from '../styles';
 import * as therrTheme from '../styles/themes';
 
+const momentTransitionSpec: any = {
+    open: {
+        animation: 'spring',
+        config: {
+            stiffness: 100,
+            damping: 200,
+            mass: 3,
+            overshootClamping: true,
+            restDisplacementThreshold: 0.9,
+            restSpeedThreshold: 0.1,
+        },
+    },
+    close: {
+        animation: 'spring',
+        config: {
+            stiffness: 250,
+            damping: 300,
+            mass: 3,
+            overshootClamping: true,
+            restDisplacementThreshold: 0.1,
+            restSpeedThreshold: 0.5,
+        },
+    },
+};
+
 export interface ExtendedRouteOptions extends StackNavigationOptions {
     access?: IAccess;
 }
@@ -171,6 +196,8 @@ const routes: RouteConfig<
                 letterSpacing: 4,
             },
             headerLeft: () => null,
+            cardStyleInterpolator: undefined,
+            transitionSpec: momentTransitionSpec,
         }),
     },
 ];
