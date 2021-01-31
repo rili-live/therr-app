@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { HEADER_HEIGHT, HEADER_EXTRA_HEIGHT } from '../';
 import * as therrTheme from '../themes';
 
 const containerBackgroundColor = therrTheme.colors.textWhite;
@@ -7,11 +8,11 @@ const containerBackgroundColor = therrTheme.colors.textWhite;
 export default StyleSheet.create({
     buttons: {
         backgroundColor: 'transparent',
-        height: 50,
+        height: HEADER_HEIGHT - HEADER_EXTRA_HEIGHT,
     },
     buttonsActive: {
         backgroundColor: 'transparent',
-        height: 50,
+        height: HEADER_HEIGHT - HEADER_EXTRA_HEIGHT,
     },
     buttonsTitle: {
         backgroundColor: 'transparent',
@@ -46,7 +47,7 @@ export default StyleSheet.create({
         padding: 0,
     },
     header: {
-        marginTop: 4,
+        marginTop: HEADER_EXTRA_HEIGHT,
         marginBottom: 10,
         paddingBottom: 4,
         display: 'flex',
@@ -54,6 +55,7 @@ export default StyleSheet.create({
         color: therrTheme.colors.beemo3,
         borderBottomWidth: 2,
         borderBottomColor: '#4950571c',
+        height: HEADER_HEIGHT - HEADER_EXTRA_HEIGHT,
     },
     headerTitle: {
         display: 'flex',

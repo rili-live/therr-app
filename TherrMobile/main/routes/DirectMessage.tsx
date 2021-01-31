@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, SafeAreaView, FlatList, View, Text, StatusBar } from 'react-native';
+import { SafeAreaView, ActivityIndicator, FlatList, View, Text, StatusBar } from 'react-native';
 import { Button, Image } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -195,51 +195,53 @@ class DirectMessage extends React.Component<
         return (
             <>
                 <StatusBar barStyle="light-content" animated={true} translucent={true} />
-                <SafeAreaView style={messageStyles.container}>
-                    <View style={styles.body}>
-                        <View style={messageStyles.sectionContainer}>
-                            <Image
-                                source={{ uri: `https://robohash.org/${connectionDetails.id}?size=50x50` }}
-                                style={messageStyles.userImage}
-                                PlaceholderContent={<ActivityIndicator />}
-                            />
-                            <Text style={styles.sectionTitle}>
-                                {connectionDetails.firstName}{' '}
-                                {connectionDetails.lastName}
-                            </Text>
+                <SafeAreaView style={[styles.safeAreaView]}>
+                    <View style={messageStyles.container}>
+                        <View style={styles.body}>
+                            <View style={messageStyles.sectionContainer}>
+                                <Image
+                                    source={{ uri: `https://robohash.org/${connectionDetails.id}?size=50x50` }}
+                                    style={messageStyles.userImage}
+                                    PlaceholderContent={<ActivityIndicator />}
+                                />
+                                <Text style={styles.sectionTitle}>
+                                    {connectionDetails.firstName}{' '}
+                                    {connectionDetails.lastName}
+                                </Text>
+                            </View>
                         </View>
-                    </View>
-                    <FlatList
-                        data={dms}
-                        keyExtractor={(item) => String(item.key)}
-                        onScroll={this.handleScroll}
-                        renderItem={({ item }) => (
-                            <TextMessage
-                                message={item}
-                                isLeft={item.text.includes('You: ')}
-                            />
-                        )}
-                        ref={(component) => (this.flatListRef = component)}
-                        initialScrollIndex={0}
-                        onScrollToIndexFailed={this.handleScrollToIndexFailed}
-                        style={{ flex: 1 }}
-                    />
-                    <View style={messageStyles.sendInputsContainer}>
-                        <RoundInput
-                            value={msgInputVal}
-                            onChangeText={this.handleInputChange}
-                            placeholder={this.translate(
-                                'pages.directMessage.inputPlaceholder'
+                        <FlatList
+                            data={dms}
+                            keyExtractor={(item) => String(item.key)}
+                            onScroll={this.handleScroll}
+                            renderItem={({ item }) => (
+                                <TextMessage
+                                    message={item}
+                                    isLeft={item.text.includes('You: ')}
+                                />
                             )}
-                            containerStyle={messageStyles.inputContainer}
-                            errorStyle={{ display: 'none' }}
+                            ref={(component) => (this.flatListRef = component)}
+                            initialScrollIndex={0}
+                            onScrollToIndexFailed={this.handleScrollToIndexFailed}
+                            style={{ flex: 1 }}
                         />
-                        <Button
-                            icon={<Icon name="send" size={26} style={messageStyles.icon} />}
-                            buttonStyle={messageStyles.sendBtn}
-                            containerStyle={messageStyles.sendBtnContainer}
-                            onPress={this.handleSend}
-                        />
+                        <View style={messageStyles.sendInputsContainer}>
+                            <RoundInput
+                                value={msgInputVal}
+                                onChangeText={this.handleInputChange}
+                                placeholder={this.translate(
+                                    'pages.directMessage.inputPlaceholder'
+                                )}
+                                containerStyle={messageStyles.inputContainer}
+                                errorStyle={{ display: 'none' }}
+                            />
+                            <Button
+                                icon={<Icon name="send" size={26} style={messageStyles.icon} />}
+                                buttonStyle={messageStyles.sendBtn}
+                                containerStyle={messageStyles.sendBtnContainer}
+                                onPress={this.handleSend}
+                            />
+                        </View>
                     </View>
                 </SafeAreaView>
             </>

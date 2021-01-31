@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, SafeAreaView, Text, View, StatusBar } from 'react-native';
+import { SafeAreaView, ActivityIndicator, Text, View, StatusBar } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button, Image } from 'react-native-elements';

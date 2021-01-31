@@ -1,5 +1,5 @@
 import React from 'react';
-import { Keyboard, SafeAreaView, Text, View, StatusBar, TextInput } from 'react-native';
+import { SafeAreaView, Keyboard, Text, View, StatusBar, TextInput } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button, Input, Slider } from 'react-native-elements';

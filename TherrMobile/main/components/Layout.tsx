@@ -1,6 +1,7 @@
 import React from 'react';
 import { DeviceEventEmitter, PermissionsAndroid, Platform } from 'react-native';
 import LocationServicesDialogBox  from 'react-native-android-location-services-dialog-box';
+import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import { UsersService } from 'therr-react/services';
 import { IUserState } from 'therr-react/types';
 import { NotificationActions } from 'therr-react/redux/actions';
@@ -88,6 +89,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]: grantStatus,
                         });
                     });
+            } else {
+                checkMultiple([PERMISSIONS.IOS.LOCATION_ALWAYS]).then((statuses) => {
+                    nextProps.updateLocationPermissions(statuses);
+                });
             }
 
             return {
@@ -115,7 +120,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     }
 
     componentWillUnmount() {
-        LocationServicesDialogBox.stopListener();
+        if (Platform.OS !== 'ios') {
+            LocationServicesDialogBox.stopListener();
+        }
     }
 
     getCurrentScreen = (navigation) => {
@@ -180,13 +187,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 />
                             ),
                             headerTitleStyle: {
-                                alignSelf: 'center',
-                                textAlign: 'center',
-                                flex: 1,
+                                ...styles.headerTitleStyle,
                                 color: headerTitleColor,
                                 textShadowOffset: isMap ? { width: 1, height: 1 } : { width: 0, height: 0 },
                                 textShadowRadius: isMap ? 1 : 0,
-                                letterSpacing: 4,
                             },
                             headerStyle: styles.headerStyle,
                             headerTransparent: false,

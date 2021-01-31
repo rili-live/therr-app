@@ -5,6 +5,7 @@
 	};
 	objectVersion = 46;
 	objects = {
+
 /* Begin PBXBuildFile section */
 		00E356F31AD99517003FC87E /* TherrTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* TherrTests.m */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
@@ -17,6 +18,10 @@
 		2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		2DCD954D1E0B4F2C00145EB5 /* TherrTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* TherrTests.m */; };
+		714EBB2825C6FBEA00910449 /* fonts in Resources */ = {isa = PBXBuildFile; fileRef = 714EBB2725C6FBEA00910449 /* fonts */; };
+		714EBB3C25C6FCA700910449 /* TherrFont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 714EBB3B25C6FCA600910449 /* TherrFont.ttf */; };
+		71EFC8F225C64E2200F57AB8 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 712C1DF325C649470078CB60 /* assets */; };
+		71EFC8F725C64E2400F57AB8 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 712C1DF325C649470078CB60 /* assets */; };
 		D4A44A339B84AA0D940C2BC1 /* libPods-Therr-TherrTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F6E93D77843DFB202E7DB8F7 /* libPods-Therr-TherrTests.a */; };
 		F1E80414B66A0AC6C536AED7 /* libPods-Therr-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 619A323F85D2C808C32D7685 /* libPods-Therr-tvOS.a */; };
 /* End PBXBuildFile section */
@@ -35,6 +40,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 2D02E47A1E0B4A5D006451C7;
 			remoteInfo = "Therr-tvOS";
+		};
+		714EBABA25C6F5FE00910449 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 714EBAB625C6F5FE00910449 /* RNCPicker.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 134814201AA4EA6300B7C361;
+			remoteInfo = RNCPicker;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -56,6 +68,10 @@
 		3FA5458294B7CED659B81BC8 /* Pods-Therr-TherrTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr-TherrTests.debug.xcconfig"; path = "Target Support Files/Pods-Therr-TherrTests/Pods-Therr-TherrTests.debug.xcconfig"; sourceTree = "<group>"; };
 		4FDE7916FA83E9E6492E2D3D /* Pods-Therr-tvOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr-tvOSTests.debug.xcconfig"; path = "Target Support Files/Pods-Therr-tvOSTests/Pods-Therr-tvOSTests.debug.xcconfig"; sourceTree = "<group>"; };
 		619A323F85D2C808C32D7685 /* libPods-Therr-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Therr-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		712C1DF325C649470078CB60 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../main/assets; sourceTree = "<group>"; };
+		714EBAB625C6F5FE00910449 /* RNCPicker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RNCPicker.xcodeproj; path = "../node_modules/@react-native-picker/picker/ios/RNCPicker.xcodeproj"; sourceTree = "<group>"; };
+		714EBB2725C6FBEA00910449 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; name = fonts; path = ../resources/fonts; sourceTree = "<group>"; };
+		714EBB3B25C6FCA600910449 /* TherrFont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = TherrFont.ttf; path = ../resources/fonts/TherrFont.ttf; sourceTree = "<group>"; };
 		7BE1A647FB7030B617B6C858 /* libPods-Therr-tvOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Therr-tvOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A310EB398CB8C53C68F0F0BB /* Pods-Therr-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-Therr-tvOS/Pods-Therr-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
 		C50074AF743C9553B74E7CF8 /* libPods-Therr.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Therr.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -138,6 +154,7 @@
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				714EBAB625C6F5FE00910449 /* RNCPicker.xcodeproj */,
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
 				C50074AF743C9553B74E7CF8 /* libPods-Therr.a */,
@@ -146,6 +163,14 @@
 				7BE1A647FB7030B617B6C858 /* libPods-Therr-tvOSTests.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		714EBAB725C6F5FE00910449 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				714EBABB25C6F5FE00910449 /* libRNCPicker.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -158,6 +183,8 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				714EBB2725C6FBEA00910449 /* fonts */,
+				712C1DF325C649470078CB60 /* assets */,
 				13B07FAE1A68108700A75B9A /* Therr */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* TherrTests */,
@@ -200,6 +227,7 @@
 		EB3A45D744634A65B1C6CB50 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				714EBB3B25C6FCA600910449 /* TherrFont.ttf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -324,6 +352,12 @@
 			mainGroup = 83CBB9F61A601CBA00E9B192;
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 714EBAB725C6F5FE00910449 /* Products */;
+					ProjectRef = 714EBAB625C6F5FE00910449 /* RNCPicker.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* Therr */,
@@ -334,11 +368,22 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXReferenceProxy section */
+		714EBABB25C6F5FE00910449 /* libRNCPicker.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRNCPicker.a;
+			remoteRef = 714EBABA25C6F5FE00910449 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
 /* Begin PBXResourcesBuildPhase section */
 		00E356EC1AD99517003FC87E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				71EFC8F725C64E2400F57AB8 /* assets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -346,6 +391,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				714EBB3C25C6FCA700910449 /* TherrFont.ttf in Resources */,
+				71EFC8F225C64E2200F57AB8 /* assets in Resources */,
+				714EBB2825C6FBEA00910449 /* fonts in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */,
 			);
@@ -381,7 +429,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh";
+			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
 		};
 		16F302883088C887EA08BA5C /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -448,6 +496,7 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Therr-TherrTests/Pods-Therr-TherrTests-resources.sh",
+				"${PODS_ROOT}/GoogleMaps/Maps/Frameworks/GoogleMaps.framework/Resources/GoogleMaps.bundle",
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf",
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Entypo.ttf",
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/EvilIcons.ttf",
@@ -468,6 +517,7 @@
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleMaps.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AntDesign.ttf",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Entypo.ttf",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EvilIcons.ttf",
@@ -498,6 +548,7 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Therr/Pods-Therr-resources.sh",
+				"${PODS_ROOT}/GoogleMaps/Maps/Frameworks/GoogleMaps.framework/Resources/GoogleMaps.bundle",
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf",
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Entypo.ttf",
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/EvilIcons.ttf",
@@ -518,6 +569,7 @@
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleMaps.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AntDesign.ttf",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Entypo.ttf",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EvilIcons.ttf",

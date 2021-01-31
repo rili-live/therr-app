@@ -140,7 +140,8 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                     }
                 })
                 .finally(() => {
-                    this.scrollViewRef.scrollTo({y: 0});
+                    console.log(this.scrollViewRef);
+                    this.scrollViewRef.scrollToPosition(0, 0);
                 });
         }
     };

@@ -1,6 +1,11 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { buttonMenuHeight } from './navigation/buttonMenu';
 import * as therrTheme from './themes';
+
+export const IOS_STATUS_HEIGHT = 20;
+export const IOS_TOP_GAP = 28;
+export const HEADER_EXTRA_HEIGHT = 4;
+export const HEADER_HEIGHT = 48 + HEADER_EXTRA_HEIGHT;
 
 export const theme = {
     dark: true,
@@ -19,7 +24,7 @@ const HEADER_HEIGHT_MARGIN = 80;
 const sectionTitle: any = {
     marginBottom: 8,
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
 };
 
 const bodyStyle: any = {
@@ -32,13 +37,16 @@ const headerStyles: any = {
     backgroundColor: bodyStyle.backgroundColor,
     shadowOpacity: 0,
     elevation: 0,
-    shadowColor: 'transparent',
     borderBottomColor: therrTheme.colors.primary,
+    height: Platform.OS === 'ios'
+        ? (IOS_STATUS_HEIGHT + IOS_TOP_GAP + HEADER_HEIGHT)
+        : (HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + 20),
 };
 
 const overlayStyles: any = {
     top: 0,
     left: 0,
+    paddingTop: Platform.OS === 'ios' ? IOS_STATUS_HEIGHT + IOS_TOP_GAP : 0,
     height: '100%',
     width: '100%',
     padding: 0,
@@ -54,6 +62,10 @@ const loaderStyles = StyleSheet.create({
 });
 
 export default StyleSheet.create({
+    safeAreaView: {
+        marginTop: Platform.OS === 'ios' ? IOS_STATUS_HEIGHT : 10,
+        flex: 1,
+    },
     scrollView: {
         marginBottom: buttonMenuHeight,
     },
@@ -171,6 +183,15 @@ export default StyleSheet.create({
         backgroundColor: therrTheme.colors.beemo1,
         borderBottomWidth: 2,
         borderBottomColor: '#4950571c',
+    },
+    headerTitleStyle: {
+        fontSize: 18,
+        alignSelf: 'center',
+        textAlign: 'center',
+        justifyContent: 'center',
+        flex: 1,
+        letterSpacing: 5,
+        lineHeight: HEADER_HEIGHT,
     },
     highlight: {
         fontWeight: '700',

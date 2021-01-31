@@ -37,10 +37,22 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This allows querying the user&apos;s current location to find nearby content shared by a user&apos;s connections</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string/>
+	<string>Location is used to allow content sharing from the user&apos;s specific longitude/latitude. Other uses can access content within a specified distance of the original location.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This allows querying the user&apos;s current location to find nearby content shared by a user&apos;s connections</string>
 	<key>UIAppFonts</key>
-	<array/>
+	<array>
+		<string>TherrFont.ttf</string>
+		<string>FontAwesome.ttf</string>
+		<string>FontAwesome5_Brands.ttf</string>
+		<string>FontAwesome5_Regular.ttf</string>
+		<string>FontAwesome5_Solid.ttf</string>
+		<string>MaterialCommunityIcons.ttf</string>
+		<string>MaterialIcons.ttf</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
