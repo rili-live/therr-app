@@ -136,7 +136,7 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
         return (
             <>
                 <StatusBar barStyle="light-content" animated={true} translucent={true} />
-                <SafeAreaView>
+                <SafeAreaView  style={styles.safeAreaView}>
                     <ScrollView style={styles.bodyFlex} contentContainerStyle={styles.bodyScrollSmall}>
                         <View style={styles.sectionContainerAlt}>
                             <Text style={styles.sectionDescription}>

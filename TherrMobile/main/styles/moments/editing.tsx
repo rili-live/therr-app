@@ -43,13 +43,17 @@ export default StyleSheet.create({
     body: {
         backgroundColor: therrTheme.colors.beemo1,
         padding: 0,
-        height: '100%',
+        flex: 1,
+        marginTop: -30, // Helps cover theme background color
+        paddingTop: 30, // Helps cover theme background color
+        marginBottom: -30, // Helps cover theme background color
+        paddingBottom: 30, // Helps cover theme background color
     },
     bodyScroll: {
         color: therrTheme.colors.textWhite,
         justifyContent: 'center',
         backgroundColor: therrTheme.colors.beemo1,
-        paddingBottom: 80,
+        paddingBottom: 100,
     },
     momentContainer: {
         width: '100%',

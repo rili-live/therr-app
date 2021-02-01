@@ -260,7 +260,7 @@ export class RegisterFormComponent extends React.Component<
                             placeholder: this.translate('forms.registerForm.labels.mobilePhone'),
                             selectionColor: therrTheme.colors.ternary,
                             style: {...formStyles.phoneInputText},
-                            placeholderTextColor: '#78909b',
+                            placeholderTextColor: therrTheme.colors.placeholderTextColor,
                         }}
                     />
                     <View style={phoneStyles.countryFlagContainer}>

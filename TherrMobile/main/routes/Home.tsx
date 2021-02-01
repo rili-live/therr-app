@@ -311,6 +311,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                     <Picker
                                         selectedValue={connectionContext}
                                         style={formStyles.picker}
+                                        itemStyle={formStyles.pickerItem}
                                         onValueChange={(itemValue) =>
                                             this.setState({ connectionContext: itemValue })
                                         }>
@@ -357,7 +358,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                                     placeholder: this.translate('forms.createConnection.placeholders.phone'),
                                                     selectionColor: therrTheme.colors.ternary,
                                                     style: {...formStyles.phoneInputText},
-                                                    placeholderTextColor: '#78909b',
+                                                    placeholderTextColor: therrTheme.colors.placeholderTextColor,
                                                 }}
                                             />
                                             <View style={phoneStyles.countryFlagContainer}>

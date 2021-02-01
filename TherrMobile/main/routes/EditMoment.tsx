@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button, Input, Slider } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-// import { Button }  from 'react-native-elements';
 import { IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
@@ -276,7 +275,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         return (
             <>
                 <StatusBar barStyle="light-content" animated={true} translucent={true} />
-                <SafeAreaView>
+                <SafeAreaView style={styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
@@ -289,6 +288,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.message'
                                 )}
+                                placeholderTextColor={therrTheme.colors.placeholderTextColor}
                                 value={inputs.message}
                                 onChangeText={(text) =>
                                     this.onInputChange('message', text)
@@ -338,6 +338,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     minimumValue={MIN_RADIUS_PRIVATE}
                                     step={1}
                                     thumbStyle={{ backgroundColor: therrTheme.colors.beemoBlue }}
+                                    thumbTouchSize={{ width: 50, height: 50 }}
                                     minimumTrackTintColor={therrTheme.colorVariations.beemoBlueLightFade}
                                     maximumTrackTintColor={therrTheme.colorVariations.beemoBlueHeavyFade}
                                 />

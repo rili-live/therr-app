@@ -48,10 +48,14 @@ export default StyleSheet.create({
         backgroundColor: therrTheme.colors.beemo1,
         padding: 0,
         height: '100%',
+        marginTop: -30, // Helps cover theme background color
+        paddingTop: 30, // Helps cover theme background color
+        marginBottom: -30, // Helps cover theme background color
+        paddingBottom: 30, // Helps cover theme background color
     },
     bodyScroll: {
         backgroundColor: therrTheme.colors.beemo1,
-        paddingBottom: 80,
+        paddingBottom: 100,
     },
     momentContainer: {
         width: '100%',

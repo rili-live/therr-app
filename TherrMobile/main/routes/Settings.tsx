@@ -180,7 +180,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         return (
             <>
                 <StatusBar barStyle="light-content" animated={true} translucent={true} />
-                <SafeAreaView>
+                <SafeAreaView  style={styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}

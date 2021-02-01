@@ -89,6 +89,8 @@ export default StyleSheet.create({
         color: therrTheme.colors.beemoTextBlack,
         borderColor: therrTheme.colors.beemoTextBlack,
         borderWidth: 1,
+        borderRadius: 0,
+        minHeight: 80,
     },
     inputAlt: {
         ...inputStyle,

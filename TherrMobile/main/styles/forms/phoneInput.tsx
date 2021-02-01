@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
     phoneInputContainer: {
@@ -29,7 +29,7 @@ export default StyleSheet.create({
         paddingRight: 10,
     },
     countryFlagContainer: {
-        marginBottom: 20,
+        marginBottom: Platform.OS !== 'ios' ? 20 : 10,
         position: 'absolute',
         right: 12,
         bottom: 14,

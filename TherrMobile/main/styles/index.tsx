@@ -19,6 +19,18 @@ export const theme = {
     },
 };
 
+export const themeBeemo = {
+    dark: true,
+    colors: {
+        primary: therrTheme.colors.primary,
+        background: therrTheme.colors.beemo1,
+        card: therrTheme.colors.primary,
+        text: therrTheme.colors.textWhite,
+        border: therrTheme.colors.primary3,
+        notification: therrTheme.colors.primary3,
+    },
+};
+
 const HEADER_HEIGHT_MARGIN = 80;
 
 const sectionTitle: any = {
@@ -190,7 +202,7 @@ export default StyleSheet.create({
         textAlign: 'center',
         justifyContent: 'center',
         flex: 1,
-        letterSpacing: 5,
+        letterSpacing: 7,
         lineHeight: HEADER_HEIGHT,
     },
     highlight: {
