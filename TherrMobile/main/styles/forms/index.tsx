@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import editMomentForm from './editMomentForm';
 import forgotPasswordForm from './forgotPasswordForm';
 import loginForm from './loginForm';
@@ -10,6 +10,16 @@ import { containerStyles, inputStyle, textInputStyle } from './base';
 const inputContainerBaseStyles = {
     borderBottomColor: therrTheme.colors.textDarkGray,
     borderBottomWidth: 1,
+};
+
+const platformSpecificInputStyles = Platform.OS !== 'ios' ? {
+    shadowColor: 'black',
+    shadowOffset: { width: 1, height: 2 },
+    shadowOpacity: 0.99,
+    shadowRadius: 2,
+} : {
+    backgroundColor: therrTheme.colors.backgroundGray,
+    color: 'black',
 };
 
 export default StyleSheet.create({
@@ -34,13 +44,10 @@ export default StyleSheet.create({
     },
     inputContainerRound: {
         ...inputContainerBaseStyles,
+        ...platformSpecificInputStyles,
         paddingLeft: 10,
         paddingRight: 10,
         borderRadius: 25,
-        shadowColor: 'black',
-        shadowOffset: { width: 1, height: 2 },
-        shadowOpacity: 0.99,
-        shadowRadius: 2,
         elevation: 1,
         borderBottomWidth: 0,
     },
@@ -63,6 +70,10 @@ export default StyleSheet.create({
     picker: {
         height: 50,
         width: '100%',
+        color: therrTheme.colors.textWhite,
+    },
+    pickerItem: {
+        height: 50,
         color: therrTheme.colors.textWhite,
     },
     phoneInputText: {

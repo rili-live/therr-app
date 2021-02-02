@@ -113,7 +113,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         return (
             <>
                 <StatusBar barStyle="light-content" animated={true} translucent={true} />
-                <SafeAreaView>
+                <SafeAreaView style={styles.safeAreaView}>
                     <ScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         style={styles.scrollView}

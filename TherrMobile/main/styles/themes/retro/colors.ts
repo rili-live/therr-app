@@ -19,6 +19,7 @@ const colors = {
     backgroundWhite: '#ffffff',
     backgroundGray: '#fafafa',
     borderLight: 'gray',
+    placeholderTextColor: '#78909b',
 
     hyperlink: '#0e01b3',
 
