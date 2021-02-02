@@ -140,7 +140,8 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                     }
                 })
                 .finally(() => {
-                    this.scrollViewRef.scrollTo({y: 0});
+                    console.log(this.scrollViewRef);
+                    this.scrollViewRef.scrollToPosition(0, 0);
                 });
         }
     };
@@ -179,7 +180,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         return (
             <>
                 <StatusBar barStyle="light-content" animated={true} translucent={true} />
-                <SafeAreaView>
+                <SafeAreaView  style={styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}

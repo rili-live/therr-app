@@ -26,9 +26,9 @@ export default StyleSheet.create({
     container: {
         display: 'flex',
         flexDirection: 'column',
-        flex: 1,
         margin: 10,
         marginBottom: 0,
+        flex: 1,
     },
     messageContainerLeft: {
         ...containerStyles,

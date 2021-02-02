@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { View, SafeAreaView, StatusBar } from 'react-native';
+import { SafeAreaView, View, StatusBar } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Image from '../components/BaseImage';
 import 'react-native-gesture-handler';
@@ -67,7 +67,7 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         return (
             <>
                 <StatusBar barStyle="light-content" animated={true} translucent={true} />
-                <SafeAreaView>
+                <SafeAreaView  style={styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         style={styles.bodyFlex}

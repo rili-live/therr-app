@@ -4,6 +4,9 @@
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
 
+#import <GoogleMaps/GoogleMaps.h>
+#import "ReactNativeConfig.h"
+
 #if DEBUG
 #import <FlipperKit/FlipperClient.h>
 #import <FlipperKitLayoutPlugin/FlipperKitLayoutPlugin.h>
@@ -27,7 +30,10 @@ static void InitializeFlipper(UIApplication *application) {
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+NSString *googleMapsApiKey = [ReactNativeConfig envFor:@"GOOGLE_MAPS_API_KEY"];
++  [GMSServices provideAPIKey:googleMapsApiKey]; // add this line using the api key obtained from Google Console
 #if DEBUG
+
   InitializeFlipper(application);
 #endif
 
