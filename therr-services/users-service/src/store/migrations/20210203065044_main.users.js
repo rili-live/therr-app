@@ -1,7 +1,7 @@
 exports.up = (knex) => knex.schema.withSchema('main').alterTable('users', (table) => {
-    table.text('userAdministratorForumIds');
-    table.text('userInvitedForumIds');
-    table.text('userRecentForumIds');
+    table.text('userAdministratorForumIds').notNullable().defaultsTo('');
+    table.text('userInvitedForumIds').notNullable().defaultsTo('');
+    table.text('userRecentForumIds').notNullable().defaultsTo('');
 });
 
 exports.down = (knex) => knex.schema.withSchema('main').alterTable('users', (table) => {
