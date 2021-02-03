@@ -9,6 +9,7 @@ import Map from './Map';
 import ActiveConnections from './ActiveConnections';
 import Contacts from './Contacts';
 import ForgotPassword from './ForgotPassword';
+import HostedChat from './HostedChat';
 import Notifications from './Notifications';
 import Register from './Register';
 import Settings from './Settings';
@@ -126,6 +127,17 @@ const routes: RouteConfig<
             title: 'Password Reset',
             headerStyle: styles.headerStyleAlt,
         },
+    },
+    {
+        name: 'HostedChat',
+        component: HostedChat,
+        options: () => ({
+            title: 'HostedChat',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [],
+            },
+        }),
     },
     {
         name: 'Notifications',

@@ -150,6 +150,7 @@
         "connections": "CONNECTIONS",
         "home": "HOME",
         "logout": "LOGOUT",
+        "hostedChat": "HOSTED CHAT",
         "map": "MAP"
       }
     },
@@ -346,6 +347,10 @@
     "home": {
       "headerTitle": "Home",
       "pageTitle": "Home"
+    },
+    "hostedChat": {
+      "headerTitle": "Hosted Chat",
+      "pageTitle": "Hosted Chat"
     },
     "notifications": {
       "headerTitle": "Notifications",

@@ -252,6 +252,31 @@ class HeaderMenuRight extends React.Component<
                                         />
                                         <Button
                                             buttonStyle={
+                                                currentScreen === 'HostedChat'
+                                                    ? headerMenuModal.buttonsActive
+                                                    : headerMenuModal.buttons
+                                            }
+                                            titleStyle={
+                                                currentScreen === 'HostedChat'
+                                                    ? headerMenuModal.buttonsTitleActive
+                                                    : headerMenuModal.buttonsTitle
+                                            }
+                                            title={this.translate('components.headerMenuRight.menuItems.hostedChat')}
+                                            icon={
+                                                <Icon
+                                                    style={
+                                                        currentScreen === 'HostedChat'
+                                                            ? headerMenuModal.iconStyleActive
+                                                            : headerMenuModal.iconStyle
+                                                    }
+                                                    name="chat"
+                                                    size={22}
+                                                />
+                                            }
+                                            onPress={() => this.navTo('HostedChat')}
+                                        />
+                                        <Button
+                                            buttonStyle={
                                                 currentScreen === 'ActiveConnections'
                                                     ? headerMenuModal.buttonsActive
                                                     : headerMenuModal.buttons
