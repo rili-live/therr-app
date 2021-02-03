@@ -152,52 +152,54 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         if (Platform.OS === 'ios' || location.settings.isGpsEnabled) {
             this.requestOSPermissions().then((permissions) => {
-                perms = permissions;
-                if (permissions[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]
-                    || permissions[PERMISSIONS.IOS.LOCATION_WHEN_IN_USE]) {
-                    const positionSuccessCallback = (position) => {
-                        const coords = {
-                            latitude:
-                                position.coords
-                                    .latitude,
-                            longitude:
-                                position.coords
-                                    .longitude,
+                return new Promise((resolve, reject) => {
+                    perms = permissions;
+                    if (permissions[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]
+                        || permissions[PERMISSIONS.IOS.LOCATION_WHEN_IN_USE]) {
+                        const positionSuccessCallback = (position) => {
+                            const coords = {
+                                latitude:
+                                    position.coords
+                                        .latitude,
+                                longitude:
+                                    position.coords
+                                        .longitude,
+                            };
+                            this.setState({
+                                isLocationReady: true,
+                                circleCenter: coords,
+                            });
+                            updateCoordinates(coords);
+                            return resolve(coords);
                         };
-                        this.setState({
-                            isLocationReady: true,
-                            circleCenter: coords,
-                        });
-                        updateCoordinates(coords);
-                        return Promise.resolve(coords);
-                    };
-                    const positionErrorCallback = (error, type) => {
-                        console.log('geolocation error', error.code, type);
-                        if (type !== 'watch' && error.code !== error.TIMEOUT) {
-                            return Promise.reject(error);
-                        }
-                    };
-                    const positionOptions = {
-                        enableHighAccuracy: true,
-                    };
+                        const positionErrorCallback = (error, type) => {
+                            console.log('geolocation error', error.code, type);
+                            if (type !== 'watch' && error.code !== error.TIMEOUT) {
+                                return reject(error);
+                            }
+                        };
+                        const positionOptions = {
+                            enableHighAccuracy: true,
+                        };
 
-                    // If this is not cached, response can be slow
-                    Geolocation.getCurrentPosition(
-                        positionSuccessCallback,
-                        (error) => positionErrorCallback(error, 'get'),
-                        positionOptions,
-                    );
+                        // If this is not cached, response can be slow
+                        Geolocation.getCurrentPosition(
+                            positionSuccessCallback,
+                            (error) => positionErrorCallback(error, 'get'),
+                            positionOptions,
+                        );
 
-                    // Sometimes watch is faster than get, so we'll call both and cancel after one resolves first
-                    this.mapWatchId = Geolocation.watchPosition(
-                        positionSuccessCallback,
-                        (error) => positionErrorCallback(error, 'watch'),
-                        positionOptions,
-                    );
-                } else {
-                    console.log('Location permission denied');
-                    return Promise.reject('permissionDenied');
-                }
+                        // Sometimes watch is faster than get, so we'll call both and cancel after one resolves first
+                        this.mapWatchId = Geolocation.watchPosition(
+                            positionSuccessCallback,
+                            (error) => positionErrorCallback(error, 'watch'),
+                            positionOptions,
+                        );
+                    } else {
+                        console.log('Location permission denied');
+                        return reject('permissionDenied');
+                    }
+                });
             })
                 .then((coords: any) => {
                     Geolocation.clearWatch(this.mapWatchId);
@@ -405,6 +407,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             longitude: map.longitude,
             latitude: map.latitude,
         };
+        console.log('UserCoordds', userCoords);
         // TODO: Consider making this one, dynamic request to add efficiency
         if (shouldSearchAll || layers.myMoments) {
             searchMoments({
