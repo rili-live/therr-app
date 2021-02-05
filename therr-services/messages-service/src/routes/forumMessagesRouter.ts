@@ -10,6 +10,6 @@ const router = express.Router();
 router.post('/', createForumMessage);
 
 // READ
-router.post('/:forumId', searchForumMessages);
+router.get('/:forumId', searchForumMessages);
 
 export default router;
