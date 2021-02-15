@@ -31,6 +31,10 @@ export const themeBeemo = {
     },
 };
 
+export const addMargins = (marginStyles) => {
+    return marginStyles;
+};
+
 const HEADER_HEIGHT_MARGIN = 80;
 
 const sectionTitle: any = {
@@ -107,6 +111,7 @@ export default StyleSheet.create({
         display: 'flex',
         minHeight: '70%',
     },
+    displayNone: { display: 'none' },
     imageContainer: {
         flex: 1,
         justifyContent: 'space-around',
@@ -218,6 +223,9 @@ export default StyleSheet.create({
         ...overlayStyles,
         height: 0,
         width: 0,
+    },
+    stretch: {
+        flex: 1,
     },
     footer: {
         color: therrTheme.colors.textWhite,

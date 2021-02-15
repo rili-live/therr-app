@@ -7,7 +7,7 @@ import UsersActions from './redux/actions/UsersActions';
 
 let timer: any;
 let numLoadings = 0;
-const _timeout = 350; // eslint-disable-line no-underscore-dangle
+const _timeout = 350;
 
 const initInterceptors = (
     store,

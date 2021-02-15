@@ -1,9 +1,6 @@
 import { StyleSheet } from 'react-native';
 import * as therrTheme from '../themes';
 
-const containerBackgroundColor = therrTheme.colors.textWhite;
-// const brandingYellow = '#ebc300';
-
 export default StyleSheet.create({
     buttons: {
         backgroundColor: 'transparent',
@@ -34,37 +31,7 @@ export default StyleSheet.create({
         // position: 'absolute',
         // left: 20
     },
-    container: {
-        backgroundColor: containerBackgroundColor,
-        display: 'flex',
-        height: '100%',
-        width: '92%',
-        alignSelf: 'flex-end',
-        flexDirection: 'column',
-        borderRadius: 0,
-        padding: 0,
-    },
-    body: {
-        backgroundColor: therrTheme.colors.beemo1,
-        padding: 0,
-        height: '100%',
-        marginTop: -30, // Helps cover theme background color
-        paddingTop: 30, // Helps cover theme background color
-        marginBottom: -30, // Helps cover theme background color
-        paddingBottom: 30, // Helps cover theme background color
-    },
-    bodyScroll: {
-        backgroundColor: therrTheme.colors.beemo1,
-        paddingBottom: 100,
-    },
     momentContainer: {
-        width: '100%',
-        marginTop: 0,
-        marginBottom: 4,
-        padding: 20,
-        paddingBottom: 4,
-        paddingTop: 4,
-        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -86,16 +53,7 @@ export default StyleSheet.create({
         marginBottom: 14,
     },
     footer: {
-        display: 'flex',
-        flexDirection: 'row',
-        height: 80,
-        flex: 1,
         paddingRight: 20,
-        position: 'absolute',
-        bottom: 0,
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        width: '100%',
     },
     toggleIcon: {
         color: therrTheme.colors.textWhite,

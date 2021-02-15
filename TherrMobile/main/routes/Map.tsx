@@ -29,6 +29,7 @@ import {
 } from '../constants';
 import * as therrTheme from '../styles/themes';
 import styles, { loaderStyles } from '../styles';
+import buttonStyles from '../styles/buttons';
 import mapStyles from '../styles/map';
 import { distanceTo, insideCircle } from 'geolocation-utils';
 
@@ -642,14 +643,14 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 })
                             }
                         </MapView>
-                        <View style={mapStyles.collapse}>
+                        <View style={buttonStyles.collapse}>
                             <Button
-                                buttonStyle={mapStyles.momentBtn}
+                                buttonStyle={buttonStyles.btn}
                                 icon={
                                     <FontAwesomeIcon
                                         name="ellipsis-h"
                                         size={20}
-                                        style={mapStyles.momentBtnIcon}
+                                        style={buttonStyles.btnIcon}
                                     />
                                 }
                                 raised={true}
@@ -659,28 +660,28 @@ class Map extends React.Component<IMapProps, IMapState> {
                         {
                             areButtonsVisible && (
                                 <>
-                                    <View style={mapStyles.toggleFollow}>
+                                    <View style={buttonStyles.toggleFollow}>
                                         <Button
-                                            buttonStyle={mapStyles.momentBtn}
+                                            buttonStyle={buttonStyles.btn}
                                             icon={
                                                 <MaterialIcon
                                                     name={followsUserLocation ? 'near-me' : 'navigation'}
                                                     size={28}
-                                                    style={mapStyles.momentBtnIcon}
+                                                    style={buttonStyles.btnIcon}
                                                 />
                                             }
                                             raised={true}
                                             onPress={() => this.toggleMapFollow()}
                                         />
                                     </View>
-                                    <View style={mapStyles.momentLayers}>
+                                    <View style={buttonStyles.momentLayers}>
                                         <Button
-                                            buttonStyle={mapStyles.momentBtn}
+                                            buttonStyle={buttonStyles.btn}
                                             icon={
                                                 <MaterialIcon
                                                     name="layers"
                                                     size={44}
-                                                    style={mapStyles.momentBtnIcon}
+                                                    style={buttonStyles.btnIcon}
                                                 />
                                             }
                                             raised={true}
@@ -690,28 +691,28 @@ class Map extends React.Component<IMapProps, IMapState> {
                                     {
                                         areLayersVisible &&
                                         <>
-                                            <View style={mapStyles.momentLayerOption1}>
+                                            <View style={buttonStyles.momentLayerOption1}>
                                                 <Button
-                                                    buttonStyle={mapStyles.momentBtn}
+                                                    buttonStyle={buttonStyles.btn}
                                                     icon={
                                                         <FontAwesomeIcon
                                                             name="globe"
                                                             size={28}
-                                                            style={layers.connectionsMoments ? mapStyles.momentBtnIcon : mapStyles.momentBtnIconInactive}
+                                                            style={layers.connectionsMoments ? buttonStyles.btnIcon : buttonStyles.btnIconInactive}
                                                         />
                                                     }
                                                     raised={true}
                                                     onPress={() => this.toggleLayer('connectionsMoments')}
                                                 />
                                             </View>
-                                            <View style={mapStyles.momentLayerOption2}>
+                                            <View style={buttonStyles.momentLayerOption2}>
                                                 <Button
-                                                    buttonStyle={mapStyles.momentBtn}
+                                                    buttonStyle={buttonStyles.btn}
                                                     icon={
                                                         <FontAwesomeIcon
                                                             name="child"
                                                             size={28}
-                                                            style={layers.myMoments ? mapStyles.momentBtnIcon : mapStyles.momentBtnIconInactive}
+                                                            style={layers.myMoments ? buttonStyles.btnIcon : buttonStyles.btnIconInactive}
                                                         />
                                                     }
                                                     raised={true}
@@ -720,56 +721,56 @@ class Map extends React.Component<IMapProps, IMapState> {
                                             </View>
                                         </>
                                     }
-                                    <View style={mapStyles.refreshMoments}>
+                                    <View style={buttonStyles.refreshMoments}>
                                         <Button
-                                            buttonStyle={mapStyles.momentBtn}
+                                            buttonStyle={buttonStyles.btn}
                                             icon={
                                                 <FontAwesomeIcon
                                                     name="sync"
                                                     size={44}
-                                                    style={mapStyles.momentBtnIcon}
+                                                    style={buttonStyles.btnIcon}
                                                 />
                                             }
                                             raised={true}
                                             onPress={() => this.handleRefreshMoments(false)}
                                         />
                                     </View>
-                                    <View style={mapStyles.addMoment}>
+                                    <View style={buttonStyles.addMoment}>
                                         <Button
-                                            buttonStyle={mapStyles.momentBtn}
+                                            buttonStyle={buttonStyles.btn}
                                             icon={
                                                 <FontAwesomeIcon
                                                     name="marker"
                                                     size={44}
-                                                    style={mapStyles.momentBtnIcon}
+                                                    style={buttonStyles.btnIcon}
                                                 />
                                             }
                                             raised={true}
                                             onPress={this.handleCreateMoment}
                                         />
                                     </View>
-                                    <View style={mapStyles.compass}>
+                                    <View style={buttonStyles.compass}>
                                         <Button
-                                            buttonStyle={mapStyles.momentBtn}
+                                            buttonStyle={buttonStyles.btn}
                                             icon={
                                                 <FontAwesomeIcon
                                                     name="compass"
                                                     size={28}
-                                                    style={mapStyles.momentBtnIcon}
+                                                    style={buttonStyles.btnIcon}
                                                 />
                                             }
                                             raised={true}
                                             onPress={this.handleCompassRealign}
                                         />
                                     </View>
-                                    <View style={mapStyles.recenter}>
+                                    <View style={buttonStyles.recenter}>
                                         <Button
-                                            buttonStyle={mapStyles.momentBtn}
+                                            buttonStyle={buttonStyles.btn}
                                             icon={
                                                 <MaterialIcon
                                                     name="gps-fixed"
                                                     size={28}
-                                                    style={mapStyles.momentBtnIcon}
+                                                    style={buttonStyles.btnIcon}
                                                 />
                                             }
                                             raised={true}

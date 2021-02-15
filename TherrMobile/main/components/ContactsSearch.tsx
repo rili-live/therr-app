@@ -21,29 +21,33 @@ const ContactsSearch: React.FunctionComponent<IContactsSearchProps> = ({
     userConnections,
 }) => {
     return (
-        <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>
-                {translate('components.contactsSearch.title')}
-            </Text>
-            {userConnections.connections &&
-            userConnections.connections.length ? (
-                    userConnections.connections.map((connection) => {
-                        const connectionDetails = getConnectionDetails(connection);
-                        return (
-                            <ConnectionItem
-                                key={connectionDetails.id}
-                                connectionDetails={connectionDetails}
-                                getConnectionSubtitle={getConnectionSubtitle}
-                                onConnectionPress={onConnectionPress}
-                            />
-                        );
-                    })
-                ) : (
-                    <Text style={styles.sectionDescription}>
-                        {translate('components.contactsSearch.noContactsFound')}
-                    </Text>
-                )}
-        </View>
+        <>
+            <View style={styles.sectionContainer}>
+                <Text style={styles.sectionTitle}>
+                    {translate('components.contactsSearch.title')}
+                </Text>
+            </View>
+            <>
+                {userConnections.connections &&
+                userConnections.connections.length ? (
+                        userConnections.connections.map((connection) => {
+                            const connectionDetails = getConnectionDetails(connection);
+                            return (
+                                <ConnectionItem
+                                    key={connectionDetails.id}
+                                    connectionDetails={connectionDetails}
+                                    getConnectionSubtitle={getConnectionSubtitle}
+                                    onConnectionPress={onConnectionPress}
+                                />
+                            );
+                        })
+                    ) : (
+                        <Text style={styles.sectionDescription}>
+                            {translate('components.contactsSearch.noContactsFound')}
+                        </Text>
+                    )}
+            </>
+        </>
     );
 };
 

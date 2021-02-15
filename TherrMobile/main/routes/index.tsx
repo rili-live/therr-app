@@ -15,6 +15,7 @@ import Register from './Register';
 import Settings from './Settings';
 import ViewMoment from './ViewMoment';
 import EditMoment from './EditMoment';
+import EditChat from './HostedChat/EditChat';
 import styles from '../styles';
 import * as therrTheme from '../styles/themes';
 
@@ -187,6 +188,29 @@ const routes: RouteConfig<
                 letterSpacing: 2,
             },
             headerLeft: () => null,
+        }),
+    },
+    {
+        name: 'EditChat',
+        component: EditChat,
+        options: () => ({
+            title: 'EditChat',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [],
+            },
+            headerStyle: styles.headerStyleBeemo,
+            headerTitleStyle: {
+                ...styles.headerTitleStyle,
+                alignSelf: 'flex-start',
+                color: therrTheme.colors.beemoTextBlack,
+                textShadowOffset: { width: 0, height: 0 },
+                textShadowRadius: 0,
+                letterSpacing: 2,
+            },
+            headerLeft: () => null,
+            cardStyleInterpolator: undefined,
+            transitionSpec: momentTransitionSpec,
         }),
     },
     {

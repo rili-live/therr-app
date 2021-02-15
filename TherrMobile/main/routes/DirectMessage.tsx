@@ -223,7 +223,7 @@ class DirectMessage extends React.Component<
                             ref={(component) => (this.flatListRef = component)}
                             initialScrollIndex={0}
                             onScrollToIndexFailed={this.handleScrollToIndexFailed}
-                            style={{ flex: 1 }}
+                            style={styles.stretch}
                         />
                         <View style={messageStyles.sendInputsContainer}>
                             <RoundInput
@@ -233,7 +233,7 @@ class DirectMessage extends React.Component<
                                     'pages.directMessage.inputPlaceholder'
                                 )}
                                 containerStyle={messageStyles.inputContainer}
-                                errorStyle={{ display: 'none' }}
+                                errorStyle={styles.displayNone}
                             />
                             <Button
                                 icon={<Icon name="send" size={26} style={messageStyles.icon} />}

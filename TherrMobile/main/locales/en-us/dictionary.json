@@ -211,6 +211,9 @@
         "email": "Connection's E-mail"
       }
     },
+    "hostedChat": {
+      "searchPlaceholder": "Search by name..."
+    },
     "loginForm": {
       "buttons": {
         "login": "Sign In",
@@ -335,6 +338,10 @@
     "directMessage": {
       "inputPlaceholder": "Enter a message..."
     },
+    "editChat": {
+      "headerTitleCreate": "Create a Hosted Chat",
+      "pageTitle": "Create a Hosted Chat"
+    },
     "editMoment": {
       "headerTitle": "Create a Moment",
       "previewHeader": "Preview:"
@@ -350,7 +357,10 @@
     },
     "hostedChat": {
       "headerTitle": "Hosted Chat",
-      "pageTitle": "Hosted Chat"
+      "pageTitle": "Hosted Chat",
+      "categories": {
+        "title": "Categories"
+      }
     },
     "notifications": {
       "headerTitle": "Notifications",

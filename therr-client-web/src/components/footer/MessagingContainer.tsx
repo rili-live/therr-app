@@ -71,6 +71,10 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
         return {};
     }
 
+    private messageInputRef: any;
+
+    private translate: Function;
+
     constructor(props) {
         super(props);
 
@@ -111,10 +115,6 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
     componentWillUnmount = () => {
         document.removeEventListener('click', this.handleClick);
     }
-
-    private messageInputRef: any;
-
-    private translate: Function;
 
     onToggleMessaging = (e) => {
         this.props.toggleMessaging(e);

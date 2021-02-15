@@ -28,6 +28,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators(
 );
 
 class AuthRoute extends React.Component<IAuthRouteProps, any> {
+    redirectPath = '/login';
+
     constructor(props: IAuthRouteProps) {
         super(props);
 
@@ -37,8 +39,6 @@ class AuthRoute extends React.Component<IAuthRouteProps, any> {
             this.redirectPath = redirectPath;
         }
     }
-
-    redirectPath = '/login';
 
     render() {
         const {

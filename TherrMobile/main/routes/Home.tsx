@@ -1,7 +1,7 @@
 import React from 'react';
 import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
 import { Button } from 'react-native-elements';
-import { Picker } from '@react-native-picker/picker';
+import { Picker as ReactPicker } from '@react-native-picker/picker';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -13,7 +13,7 @@ import CountryPicker, { CountryCode } from 'react-native-country-picker-modal';
 import isEmail from 'validator/es/lib/isEmail';
 import Alert from '../components/Alert';
 import * as therrTheme from '../styles/themes';
-import styles from '../styles';
+import styles, { addMargins } from '../styles';
 import formStyles, { phoneInput as phoneStyles } from '../styles/forms';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
@@ -308,20 +308,20 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                     {this.translate('pages.userProfile.h2.createConnection')}
                                 </Text>
                                 <View style={styles.sectionForm}>
-                                    <Picker
+                                    <ReactPicker
                                         selectedValue={connectionContext}
                                         style={formStyles.picker}
                                         itemStyle={formStyles.pickerItem}
                                         onValueChange={(itemValue) =>
                                             this.setState({ connectionContext: itemValue })
                                         }>
-                                        <Picker.Item label={this.translate(
+                                        <ReactPicker.Item label={this.translate(
                                             'forms.createConnection.labels.phone'
                                         )} value="phone" />
-                                        <Picker.Item label={this.translate(
+                                        <ReactPicker.Item label={this.translate(
                                             'forms.createConnection.labels.email'
                                         )} value="email" />
-                                    </Picker>
+                                    </ReactPicker>
                                     {
                                         connectionContext === 'email' &&
                                         <SquareInput
@@ -336,7 +336,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                             errorMessage={emailErrorMessage}
                                             rightIcon={
                                                 <FontAwesomeIcon
-                                                    name='envelope'
+                                                    name="envelope"
                                                     size={22}
                                                     color={therrTheme.colors.primary3Faded}
                                                 />
@@ -352,7 +352,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                                 onPressFlag={this.onPressFlag}
                                                 offset={0}
                                                 onChangePhoneNumber={this.onPhoneInputChange}
-                                                flagStyle={{ display: 'none' }}
+                                                flagStyle={styles.displayNone}
                                                 style={formStyles.phoneInput}
                                                 textProps={{
                                                     placeholder: this.translate('forms.createConnection.placeholders.phone'),
@@ -376,25 +376,25 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                         </View>
                                     }
                                     <Alert
-                                        containerStyles={{
+                                        containerStyles={addMargins({
                                             marginBottom: 24,
-                                        }}
+                                        })}
                                         isVisible={!!prevConnReqError}
                                         message={prevConnReqError}
                                         type={'error'}
                                     />
                                     <Alert
-                                        containerStyles={{
+                                        containerStyles={addMargins({
                                             marginBottom: 24,
-                                        }}
+                                        })}
                                         isVisible={!!prevConnReqSuccess}
                                         message={prevConnReqSuccess}
                                         type={'success'}
                                     />
                                     <Button
-                                        containerStyle={{
+                                        containerStyle={addMargins({
                                             marginBottom: 18,
-                                        }}
+                                        })}
                                         buttonStyle={formStyles.button}
                                         disabledTitleStyle={formStyles.buttonTitleDisabled}
                                         disabledStyle={formStyles.buttonDisabled}

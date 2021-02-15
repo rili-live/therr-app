@@ -24,6 +24,8 @@ const envVars = globalConfig[process.env.NODE_ENV];
  * PageNotFound
  */
 export class PageNotFoundComponent extends React.Component<IPageNotFoundProps & IPageNotFoundDispatchProps, IPageNotFoundState> {
+    private translate: Function;
+
     constructor(props: IPageNotFoundProps & IPageNotFoundDispatchProps) {
         super(props);
 
@@ -35,8 +37,6 @@ export class PageNotFoundComponent extends React.Component<IPageNotFoundProps & 
     componentDidMount() { // eslint-disable-line class-methods-use-this
         document.title = `Therr | ${this.translate('pages.pageNotFound.pageTitle')}`;
     }
-
-    private translate: Function;
 
     render() {
         return (

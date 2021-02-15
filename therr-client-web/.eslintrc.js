@@ -28,7 +28,7 @@ module.exports = {
         'react/sort-comp': [
             2,
             {
-                order: [ 'static-methods', 'lifecycle', 'everything-else', 'render' ]
+                order: ['static-variables', 'static-methods', 'instance-variables', 'constructor', 'lifecycle', 'everything-else', 'render']
             }
         ],
         'indent': [2, 4, { SwitchCase: 1 }],

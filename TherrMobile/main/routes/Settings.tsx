@@ -194,9 +194,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                             </View>
                             <View style={settingsFormStyles.userContainer}>
                                 <Alert
-                                    containerStyles={{
-                                        marginBottom: 24,
-                                    }}
+                                    containerStyles={settingsFormStyles.alert}
                                     isVisible={!!(errorMsg || successMsg)}
                                     message={successMsg || errorMsg}
                                     type={errorMsg ? 'error' : 'success'}
@@ -211,7 +209,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                     rightIcon={
                                         <FontAwesomeIcon
-                                            name='smile'
+                                            name="smile"
                                             size={22}
                                             color={therrTheme.colors.primary3Faded}
                                         />
@@ -227,7 +225,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                     rightIcon={
                                         <FontAwesomeIcon
-                                            name='smile-beam'
+                                            name="smile-beam"
                                             size={22}
                                             color={therrTheme.colors.primary3Faded}
                                         />
@@ -243,7 +241,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                     rightIcon={
                                         <FontAwesomeIcon
-                                            name='user'
+                                            name="user"
                                             size={22}
                                             color={therrTheme.colors.primary3Faded}
                                         />
@@ -260,7 +258,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                     rightIcon={
                                         <FontAwesomeIcon
-                                            name='envelope'
+                                            name="envelope"
                                             size={22}
                                             color={therrTheme.colors.primary3Faded}
                                         />
@@ -284,7 +282,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     secureTextEntry={true}
                                     rightIcon={
                                         <FontAwesomeIcon
-                                            name='key'
+                                            name="key"
                                             size={22}
                                             color={therrTheme.colors.primary3Faded}
                                         />
@@ -301,7 +299,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     secureTextEntry={true}
                                     rightIcon={
                                         <FontAwesomeIcon
-                                            name='lock'
+                                            name="lock"
                                             size={22}
                                             color={therrTheme.colors.primary3Faded}
                                         />
@@ -319,7 +317,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     errorMessage={passwordErrorMessage}
                                     rightIcon={
                                         <FontAwesomeIcon
-                                            name='lock'
+                                            name="lock"
                                             size={22}
                                             color={therrTheme.colors.primary3Faded}
                                         />
