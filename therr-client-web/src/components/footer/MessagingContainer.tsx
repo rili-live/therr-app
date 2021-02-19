@@ -223,7 +223,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
                                     ? <ul className="dms-list">
                                         {
                                             dms.map((message: IDirectMsg) => {
-                                                const className = message.fromUserName.toLowerCase().includes('you')
+                                                const className = message.fromUserName && message.fromUserName.toLowerCase().includes('you')
                                                     ? 'dm-item message-left'
                                                     : 'dm-item message-right';
                                                 return (

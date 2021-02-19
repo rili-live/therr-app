@@ -217,7 +217,7 @@ class DirectMessage extends React.Component<
                             renderItem={({ item }) => (
                                 <TextMessage
                                     message={item}
-                                    isLeft={item.fromUserName.includes('You')}
+                                    isLeft={item.fromUserName && item.fromUserName.toLowerCase().includes('you')}
                                 />
                             )}
                             ref={(component) => (this.flatListRef = component)}
