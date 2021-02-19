@@ -12,3 +12,4 @@ spec:
   dnsNames:
     - 'therr.com'
     - '*.therr.com'
+  renewBefore: 1440h
