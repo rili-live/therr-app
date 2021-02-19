@@ -8,7 +8,7 @@ import { SocketActions } from 'therr-react/redux/actions';
 import scrollTo from 'therr-js-utilities/scroll-to';
 import { bindActionCreators } from 'redux';
 import {
-    IForumMsg,
+    IDirectMsg,
     IMessagesState,
     IUserState,
     IUserConnectionsState,
@@ -222,7 +222,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
                                 dms && dms.length > 0
                                     ? <ul className="dms-list">
                                         {
-                                            dms.map((message: IForumMsg) => {
+                                            dms.map((message: IDirectMsg) => {
                                                 const className = message.fromUserName.toLowerCase().includes('you')
                                                     ? 'dm-item message-left'
                                                     : 'dm-item message-right';
