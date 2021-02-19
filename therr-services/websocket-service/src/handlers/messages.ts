@@ -32,8 +32,9 @@ const sendDirectMessage = (socket: socketio.Socket, data: any) => {
                 contextUserId: data.to.id,
                 message: {
                     key: message.id,
+                    fromUserName: 'You',
                     time: timeFormatted,
-                    text: `You: ${data.message}`,
+                    text: data.message,
                 },
             },
         });
@@ -44,8 +45,9 @@ const sendDirectMessage = (socket: socketio.Socket, data: any) => {
                     contextUserId: data.userId,
                     message: {
                         key: message.id,
+                        fromUserName: data.fromUserName,
                         time: timeFormatted,
-                        text: `${data.userName}: ${data.message}`,
+                        text: data.message,
                     },
                 },
             });

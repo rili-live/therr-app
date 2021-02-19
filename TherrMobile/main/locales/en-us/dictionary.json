@@ -227,6 +227,22 @@
       },
       "backendErrorMessage": "Connection error. Please try again later."
     },
+    "editHostedChat": {
+      "buttons": {
+        "submit": "Send",
+        "delete": "Delete?",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      },
+      "labels": {
+        "message": "Share something unique...",
+        "hashTags": "Tags (ie. my_tag, myTag)",
+        "maxComments": "Max comments (per minute)",
+        "expiresAt": "Countdown"
+      },
+      "backendSuccessMessage": "Your hosted chat was successfully saved!",
+      "backendErrorMessage": "Connection error. Please try again later."
+    },
     "editMoment": {
       "buttons": {
         "submit": "Send",
@@ -359,7 +375,7 @@
       "headerTitle": "Hosted Chat",
       "pageTitle": "Hosted Chat",
       "categories": {
-        "title": "Categories"
+        "title": "Filters"
       }
     },
     "notifications": {

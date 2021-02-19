@@ -1,6 +1,5 @@
 import React from 'react';
-import { SafeAreaView, Text, StatusBar, View } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { FlatList, SafeAreaView, StatusBar, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -16,42 +15,128 @@ import styles from '../../styles';
 import buttonStyles from '../../styles/buttons';
 import hostedChatStyles from '../../styles/hosted-chat';
 import ChatCategories from './ChatCategories';
+import renderChatTile from './ChatTile';
+
+const chatKeyExtractor = (item) => item.id.toString();
 
 let categories: any[] = [
     {
         name: 'music',
         tag: 'music',
-        iconColor: 'blue',
+        iconColor: '#143b54',
         iconId: 'music',
         iconGroup: 'font-awesome-5',
     },
     {
         name: 'movies',
         tag: 'movies',
-        iconColor: 'yellow',
+        iconColor: '#ebc300',
         iconId: 'video',
         iconGroup: 'font-awesome-5',
     },
     {
         name: 'science',
         tag: 'science',
-        iconColor: 'green',
+        iconColor: '#388254',
         iconId: 'biotech',
         iconGroup: 'therr',
     },
     {
         name: 'tech',
         tag: 'tech',
-        iconColor: 'orange',
+        iconColor: '#f9ad2a',
         iconId: 'rocket',
         iconGroup: 'therr',
     },
     {
         name: 'sports',
         tag: 'sports',
-        iconColor: 'black',
+        iconColor: '#363636',
         iconId: 'futbol',
         iconGroup: 'font-awesome-5',
+    },
+];
+
+const hostedChats: any[] = [
+    {
+        id: 1,
+        authorId: 7,
+        authorLocale: 'en-us',
+        title: 'A Basic Hosted Chat With a Really Long Title',
+        subtitle: 'This is sample content for demo',
+        description: 'This chat is about general topics This chat is about general topics This chat is about general topics This chat is about general topics This chat is about general topics', // eslint-disable-line max-len
+        administratorIds: '7',
+        integrationIds: '',
+        invitees: '7,8,9',
+        iconGroup: 'therr',
+        iconId: 'rocket',
+        iconColor: '#f9ad2a',
+        maxCommentsPerMin: 5,
+        doesExpire: false,
+        isPublic: true,
+        createdAt: '2021-02-15T15:37:23.899Z',
+        updatedAt: '2021-02-15T15:57:23.899Z',
+        categories: [categories[3], categories[1]],
+    },
+    {
+        id: 2,
+        authorId: 8,
+        authorLocale: 'en-us',
+        title: 'Another Basic Hosted Chat',
+        subtitle: 'This is more sample content for demo',
+        description: 'This chat is about sports',
+        administratorIds: '8',
+        integrationIds: '',
+        invitees: '7,8,9',
+        iconGroup: 'font-awesome-5',
+        iconId: 'futbol',
+        iconColor: '#363636',
+        maxCommentsPerMin: 5,
+        doesExpire: false,
+        isPublic: false,
+        createdAt: '2021-02-15T15:17:23.899Z',
+        updatedAt: '2021-02-15T15:17:23.899Z',
+        categories: [categories[4]],
+    },
+    {
+        id: 3,
+        authorId: 9,
+        authorLocale: 'en-us',
+        title: 'A Basic Hosted Chat',
+        subtitle: 'This is sample content for demo',
+        description: 'This chat is about general topics',
+        administratorIds: '7',
+        integrationIds: '',
+        invitees: '7,8,9',
+        iconGroup: 'therr',
+        iconId: 'rocket',
+        iconColor: '#f9ad2a',
+        maxCommentsPerMin: 5,
+        doesExpire: false,
+        isPublic: true,
+        createdAt: '2021-02-15T15:37:23.899Z',
+        updatedAt: '2021-02-15T15:57:23.899Z',
+        categories: [categories[3], categories[1]],
+    },
+    {
+        id: 4,
+        authorId: 8,
+        authorLocale: 'en-us',
+        title: 'Another Basic Hosted Chat',
+        subtitle: 'This is more sample content for demo',
+        description: 'This chat is about sports',
+        administratorIds: '8',
+        integrationIds: '',
+        invitees: '7,8,9',
+        iconGroup: 'font-awesome-5',
+        iconId: 'futbol',
+        iconColor: '#363636',
+        maxCommentsPerMin: 5,
+        doesExpire: false,
+        isPublic: false,
+        createdAt: '2021-02-15T15:17:23.899Z',
+        updatedAt: '2021-02-15T15:17:23.899Z',
+        categories: [categories[4]],
     },
 ];
 
@@ -71,6 +156,7 @@ export interface IHostedChatProps extends IStoreProps {
 }
 
 interface IHostedChatState {
+    categories: any,
     searchInput: string;
     toggleChevronName: 'chevron-down' | 'chevron-up',
 }
@@ -95,6 +181,7 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
         super(props);
 
         this.state = {
+            categories,
             searchInput: '',
             toggleChevronName: 'chevron-down',
         };
@@ -120,6 +207,17 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
                 return true;
             }
         });
+
+        this.setState({
+            categories,
+        });
+    }
+
+    handleChatTilePress = (chat) => {
+        console.log(chat);
+        const { navigation } = this.props;
+
+        navigation.navigate('ViewChat', chat);
     }
 
     handleCategoryTogglePress = () => {
@@ -136,8 +234,7 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
         navigation.navigate('EditChat');
     };
 
-    onSearchInputChange(text) {
-        console.log();
+    onSearchInputChange = (text) => {
         this.setState({
             searchInput: text,
         });
@@ -145,7 +242,7 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
 
     render() {
         // const { navigation, user } = this.props;
-        const { toggleChevronName } = this.state;
+        const { categories, toggleChevronName } = this.state;
 
         return (
             <>
@@ -178,14 +275,14 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
                         onCategoryTogglePress={this.handleCategoryTogglePress}
                         toggleChevronName={toggleChevronName}
                     />
-                    <KeyboardAwareScrollView
-                        contentInsetAdjustmentBehavior="automatic"
-                        style={styles.scrollView}
+                    <FlatList
+                        horizontal={false}
+                        keyExtractor={chatKeyExtractor}
+                        data={hostedChats}
+                        renderItem={renderChatTile(this.handleChatTilePress)}
+                        style={styles.scrollViewFull}
                         contentContainerStyle={hostedChatStyles.scrollContentContainer}
-                    >
-                        <Text>Placeholder...</Text>
-                    </KeyboardAwareScrollView>
-                    {/* Filterable list of hosted chats (category headers) */}
+                    />
                     <View style={hostedChatStyles.createChatBtnContainer}>
                         <Button
                             buttonStyle={buttonStyles.btn}
@@ -202,7 +299,6 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
                     </View>
                 </SafeAreaView>
                 {/* <HostedChatButtonMenu navigation={navigation} translate={this.translate} user={user} /> */}
-                {/* Create Chat button */}
             </>
         );
     }

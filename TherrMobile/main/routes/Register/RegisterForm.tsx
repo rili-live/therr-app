@@ -4,12 +4,12 @@ import { Button } from 'react-native-elements';
 import CountryPicker, { CountryCode } from 'react-native-country-picker-modal';
 import PhoneInput from 'react-native-phone-input';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import translator from '../services/translator';
-import styles, { addMargins } from '../styles';
-import formStyles, { loginForm as loginFormStyles, phoneInput as phoneStyles } from '../styles/forms';
-import * as therrTheme from '../styles/themes';
-import Alert from './Alert';
-import SquareInput from './Input/Square';
+import translator from '../../services/translator';
+import styles, { addMargins } from '../../styles';
+import formStyles, { loginForm as loginFormStyles, phoneInput as phoneStyles } from '../../styles/forms';
+import * as therrTheme from '../../styles/themes';
+import Alert from '../../components/Alert';
+import SquareInput from '../../components/Input/Square';
 
 // Regular component props
 interface IRegisterFormProps {

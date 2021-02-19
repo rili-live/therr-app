@@ -12,11 +12,11 @@ import {
     IUserConnectionsState,
     INotificationsState as IStoreNotificationsState,
 } from 'therr-react/types';
-import styles from '../styles';
-import { notifications as notificationStyles } from '../styles/notifications';
-import translator from '../services/translator';
-import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
-import Notification from '../components/Notification';
+import styles from '../../styles';
+import { notifications as notificationStyles } from '../../styles/notifications';
+import translator from '../../services/translator';
+import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
+import Notification from './Notification';
 
 interface INotificationsDispatchProps {
     logout: Function;

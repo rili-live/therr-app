@@ -8,6 +8,7 @@ const categoryButtonContainerStyle = {
 };
 
 const categoryButtonTitleStyle = {
+    color: therrTheme.colors.textBlack,
 };
 
 const categoryButtonStyle: any = {
@@ -17,7 +18,12 @@ const categoryButtonStyle: any = {
 };
 
 const categoryIconStyle = {
-    marginRight: 8,
+    marginRight: 4,
+    elevation: 1,
+    textShadowColor: '#00000026',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 1,
+    padding: 4,
 };
 
 export default StyleSheet.create({
@@ -25,6 +31,7 @@ export default StyleSheet.create({
         position: 'relative',
         margin: 0,
         padding: 0,
+        marginBottom: 8,
     },
     innerContainer: {
         borderTopWidth: 1,
@@ -66,6 +73,7 @@ export default StyleSheet.create({
     },
     categoryButtonContainerActive: {
         ...categoryButtonContainerStyle,
+        elevation: 0,
     },
     categoryButtonTitle: {
         ...categoryButtonTitleStyle,
@@ -76,11 +84,11 @@ export default StyleSheet.create({
     },
     categoryButton: {
         ...categoryButtonStyle,
-        backgroundColor: therrTheme.colors.beemoTeal,
+        backgroundColor: therrTheme.colors.brandingLightBlue,
     },
     categoryButtonActive: {
         ...categoryButtonStyle,
-        backgroundColor: therrTheme.colors.beemoPurple,
+        backgroundColor: therrTheme.colors.beemoBlue,
     },
     categoryIcon: {
         ...categoryIconStyle,

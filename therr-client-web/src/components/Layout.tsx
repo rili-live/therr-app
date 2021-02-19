@@ -73,7 +73,7 @@ const mapStateToProps = (state: any) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
     logout: UsersActions.logout,
-    searchDms: MessageActions.search,
+    searchDms: MessageActions.searchDMs,
     refreshConnection: SocketActions.refreshConnection,
     searchNotifications: NotificationActions.search,
 }, dispatch);

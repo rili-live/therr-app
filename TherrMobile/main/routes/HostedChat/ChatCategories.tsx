@@ -20,10 +20,11 @@ const keyExtractor = (item) => item.iconId;
 const renderCategoryIcon = (category) => {
     const style = category.isActive ? categoryStyles.categoryIconActive : categoryStyles.categoryIcon;
     const props = {
-        color: category.iconColor,
+        color: category.isActive ? therrTheme.colors.textWhite : category.iconColor,
         name: category.iconId,
         size: 14,
         style,
+        elevation: 1,
     };
 
     if (category.iconGroup === 'font-awesome-5') {

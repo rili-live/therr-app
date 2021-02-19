@@ -16,6 +16,7 @@ export interface ICreateForumParams {
     title: string[];
     subtitle: string[];
     description: string;
+    hashtags?: string;
     integrationIds: number[];
     invitees: number[];
     iconGroup: string;
@@ -38,6 +39,7 @@ export interface IUpdateForumParams {
     subtitle?: string[];
     description?: string;
     categoryIds?: number[];
+    hashtags?: string;
     integrationIds?: number[];
     invitees?: number[];
     iconGroup?: string;
@@ -131,7 +133,7 @@ export default class ForumsStore {
 
         const queryString = knex.insert(forumParams)
             .into(FORUMS_TABLE_NAME)
-            .returning(['id'])
+            .returning('*')
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);

@@ -85,6 +85,9 @@ export default StyleSheet.create({
     scrollView: {
         marginBottom: buttonMenuHeight,
     },
+    scrollViewFull: {
+        marginBottom: 0,
+    },
     body: {
         ...bodyStyle,
     },

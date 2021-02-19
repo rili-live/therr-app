@@ -1,14 +1,13 @@
-
 import * as React from 'react';
 import { View } from 'react-native';
 import { Button } from 'react-native-elements';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import translator from '../services/translator';
-import { addMargins } from '../styles';
-import formStyles, { loginForm as styles } from '../styles/forms';
-import * as therrTheme from '../styles/themes';
-import Alert from '../components/Alert';
-import RoundInput from './Input/Round';
+import translator from '../../services/translator';
+import { addMargins } from '../../styles';
+import formStyles, { loginForm as styles } from '../../styles/forms';
+import * as therrTheme from '../../styles/themes';
+import Alert from '../../components/Alert';
+import RoundInput from '../../components/Input/Round';
 
 // Regular component props
 interface ILoginFormProps {

@@ -1,12 +1,12 @@
 import React from 'react';
-import { SafeAreaView, Text, StatusBar, View } from 'react-native';
+import { Keyboard, SafeAreaView, Text, StatusBar, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 // import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 // import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import { UserConnectionsActions } from 'therr-react/redux/actions';
+import { MessageActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 // import EditChatButtonMenu from '../../components/ButtonMenu/EditChatButtonMenu';
 import translator from '../../services/translator';
@@ -17,7 +17,7 @@ import styles from '../../styles';
 
 interface IEditChatDispatchProps {
     logout: Function;
-    searchUserConnections: Function;
+    createHostedChat: Function;
 }
 
 interface IStoreProps extends IEditChatDispatchProps {
@@ -31,6 +31,10 @@ export interface IEditChatProps extends IStoreProps {
 }
 
 interface IEditChatState {
+    errorMsg: string;
+    successMsg: string;
+    inputs: any;
+    isSubmitting: boolean;
 }
 
 const mapStateToProps = (state) => ({
@@ -41,7 +45,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
-            searchUserConnections: UserConnectionsActions.search,
+            createHostedChat: MessageActions.createForum,
         },
         dispatch
     );
@@ -54,6 +58,10 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
         super(props);
 
         this.state = {
+            errorMsg: '',
+            successMsg: '',
+            inputs: {},
+            isSubmitting: false,
         };
 
         this.translate = (key: string, params: any) =>
@@ -69,6 +77,109 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
 
         // TODO: Fetch available rooms on first load
     }
+
+    isFormDisabled() {
+        const { isSubmitting } = this.state;
+        const {
+            administratorIds,
+            title,
+            subtitle,
+            description,
+            categoryTags,
+            integrationIds,
+            invitees,
+            iconGroup,
+            iconId,
+            iconColor,
+        } = this.state.inputs;
+        const requiredInputs = {
+            administratorIds,
+            title,
+            subtitle,
+            description,
+            categoryTags,
+            integrationIds,
+            invitees,
+            iconGroup,
+            iconId,
+            iconColor,
+        };
+
+        return isSubmitting || Object.keys(requiredInputs).some((key) => !requiredInputs[key]);
+    }
+
+    onSubmit = () => {
+        const {
+            administratorIds,
+            title,
+            subtitle,
+            description,
+            categoryTags,
+            integrationIds,
+            invitees,
+            iconGroup,
+            iconId,
+            iconColor,
+            maxCommentsPerMin,
+            doesExpire,
+            isPublic,
+        } = this.state.inputs;
+
+        const createArgs: any = {
+            administratorIds,
+            title,
+            subtitle,
+            description,
+            categoryTags,
+            integrationIds,
+            invitees,
+            iconGroup,
+            iconId,
+            iconColor,
+            maxCommentsPerMin,
+            doesExpire,
+            isPublic,
+        };
+
+        if (!this.isFormDisabled()) {
+            this.setState({
+                isSubmitting: true,
+            });
+            this.props
+                .createHostedChat(createArgs)
+                .then(() => {
+                    this.setState({
+                        successMsg: this.translate('forms.editHostedChat.backendSuccessMessage'),
+                    });
+                    setTimeout(() => {
+                        this.props.navigation.navigate('Map');
+                    }, 500);
+                })
+                .catch((error: any) => {
+                    if (
+                        error.statusCode === 400 ||
+                        error.statusCode === 401 ||
+                        error.statusCode === 404
+                    ) {
+                        this.setState({
+                            errorMsg: `${error.message}${
+                                error.parameters
+                                    ? '(' + error.parameters.toString() + ')'
+                                    : ''
+                            }`,
+                        });
+                    } else if (error.statusCode >= 500) {
+                        this.setState({
+                            errorMsg: this.translate('forms.editHostedChat.backendErrorMessage'),
+                        });
+                    }
+                })
+                .finally(() => {
+                    Keyboard.dismiss();
+                    this.scrollViewRef.scrollToEnd({ animated: true });
+                });
+        }
+    };
 
     render() {
         return (
