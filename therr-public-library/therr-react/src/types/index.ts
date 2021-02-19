@@ -13,6 +13,7 @@ import {
     IForumMsg,
     IForumMsgList,
     IForumMsgs,
+    IDirectMsg,
     IMessagesState,
 
     // Notifications
@@ -58,6 +59,7 @@ export {
     IForumMsg,
     IForumMsgList,
     IForumMsgs,
+    IDirectMsg,
 
     // Notifications
     INotification,
