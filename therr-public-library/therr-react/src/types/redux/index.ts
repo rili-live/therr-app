@@ -13,6 +13,7 @@ import {
     IForumMsg,
     IForumMsgList,
     IForumMsgs,
+    IDirectMsg,
     IMessagesState,
     MessageActionTypes,
 } from './messages';
@@ -61,6 +62,7 @@ export {
     IForumMsg,
     IForumMsgList,
     IForumMsgs,
+    IDirectMsg,
     IMessagesState,
     MessageActionTypes,
 
