@@ -32,7 +32,7 @@ const sendDirectMessage = (socket: socketio.Socket, data: any) => {
                 contextUserId: data.to.id,
                 message: {
                     key: message.id,
-                    fromUserName: 'You',
+                    fromUserName: 'you',
                     time: timeFormatted,
                     text: data.message,
                 },
@@ -45,7 +45,7 @@ const sendDirectMessage = (socket: socketio.Socket, data: any) => {
                     contextUserId: data.userId,
                     message: {
                         key: message.id,
-                        fromUserName: data.fromUserName,
+                        fromUserName: data.userName,
                         time: timeFormatted,
                         text: data.message,
                     },
@@ -81,7 +81,7 @@ const sendDirectMessage = (socket: socketio.Socket, data: any) => {
             traceArgs: {
                 socketId: socket.id,
                 userName: data.userName,
-                messageText: `You: ${data.message}`,
+                messageText: data.message,
                 context: data.to,
             },
         });
@@ -105,8 +105,9 @@ const sendForumMessage = (socket: socketio.Socket, data: any) => {
             roomId: data.roomId,
             message: {
                 key: Date.now().toString(),
+                fromUserName: 'you',
                 time: now,
-                text: `You: ${data.message}`,
+                text: data.message,
             },
         },
     });
@@ -116,6 +117,7 @@ const sendForumMessage = (socket: socketio.Socket, data: any) => {
             roomId: data.roomId,
             message: {
                 key: Date.now().toString(),
+                fromUserName: data.userName,
                 time: now,
                 text: `${data.userName}: ${data.message}`,
             },
@@ -129,7 +131,7 @@ const sendForumMessage = (socket: socketio.Socket, data: any) => {
         traceArgs: {
             socketId: socket.id,
             userName: data.userName,
-            messageText: `You: ${data.message}`,
+            messageText: data.message,
         },
     });
 };
