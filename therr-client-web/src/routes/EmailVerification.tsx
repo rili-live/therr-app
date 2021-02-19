@@ -31,6 +31,8 @@ const envVars = globalConfig[process.env.NODE_ENV];
  * EmailVerification
  */
 export class EmailVerificationComponent extends React.Component<IEmailVerificationProps & IEmailVerificationDispatchProps, IEmailVerificationState> {
+    private translate: Function;
+
     constructor(props: IEmailVerificationProps & IEmailVerificationDispatchProps) {
         super(props);
 
@@ -72,8 +74,6 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                 });
             });
     }
-
-    private translate: Function;
 
     onSubmit = (event: any) => {
         event.preventDefault();

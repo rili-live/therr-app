@@ -72,6 +72,12 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
         return {};
     }
 
+    private messageInputRef: any;
+
+    private translate: Function;
+
+    // private sessionToken: string;
+
     constructor(props: IForumProps) {
         super(props);
 
@@ -107,12 +113,6 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
             userName: this.props.user.details.userName,
         });
     }
-
-    private messageInputRef: any;
-
-    private translate: Function;
-
-    // private sessionToken: string;
 
     onInputChange = (name: string, value: string) => {
         const newInputChanges = {

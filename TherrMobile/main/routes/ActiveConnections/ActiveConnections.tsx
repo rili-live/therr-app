@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import 'react-native-gesture-handler';
-import styles from '../styles';
+import styles from '../../styles';
 import ConnectionItem from './ConnectionItem';
 
 interface IActiveConnectionsProps {

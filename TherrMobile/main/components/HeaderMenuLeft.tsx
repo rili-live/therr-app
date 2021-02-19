@@ -2,12 +2,12 @@ import React from 'react';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
-import therrIconConfig from '../assets/therr-icon-config.json';
+import therrIconConfig from '../assets/therr-font-config.json';
 import styles from '../styles';
 
 const LogoIcon = createIconSetFromIcoMoon(
     therrIconConfig,
-    'TherrFont',
+    'TherrFont2',
     'TherrFont.ttf'
 );
 

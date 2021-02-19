@@ -12,11 +12,11 @@ import {
     IUserConnectionsState,
     INotificationsState as IStoreNotificationsState,
 } from 'therr-react/types';
-import styles from '../styles';
-import { notifications as notificationStyles } from '../styles/notifications';
-import translator from '../services/translator';
-import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
-import Notification from '../components/Notification';
+import styles from '../../styles';
+import { notifications as notificationStyles } from '../../styles/notifications';
+import translator from '../../services/translator';
+import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
+import Notification from './Notification';
 
 interface INotificationsDispatchProps {
     logout: Function;
@@ -140,7 +140,7 @@ class Notifications extends React.Component<
                                         handlePress={(e) => this.markNotificationAsRead(e, item, false)}
                                         isUnread={item.isUnread}
                                         notification={item}
-                                        containerStyles={index === 0 ? { borderTopWidth: 1 } : {}}
+                                        containerStyles={index === 0 ? notificationStyles.firstChildNotification : {}}
                                         translate={this.translate}
                                     />
                                 )}

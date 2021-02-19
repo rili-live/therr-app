@@ -60,6 +60,8 @@ class SelectBox extends React.Component<any, any> {
         value: '',
     };
 
+    private buttonElement: any;
+
     constructor(props: any) {
         super(props);
 
@@ -83,8 +85,6 @@ class SelectBox extends React.Component<any, any> {
     componentWillUnmount() {
         document.removeEventListener('click', this.handlePageClick);
     }
-
-    private buttonElement: any;
 
     handleArrowKey = (change: any) => {
         const { options } = this.props;

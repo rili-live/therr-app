@@ -71,6 +71,10 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
         return {};
     }
 
+    private messageInputRef: any;
+
+    private translate: Function;
+
     constructor(props) {
         super(props);
 
@@ -111,10 +115,6 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
     componentWillUnmount = () => {
         document.removeEventListener('click', this.handleClick);
     }
-
-    private messageInputRef: any;
-
-    private translate: Function;
 
     onToggleMessaging = (e) => {
         this.props.toggleMessaging(e);
@@ -222,7 +222,17 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
                                 dms && dms.length > 0
                                     ? <ul className="dms-list">
                                         {
-                                            dms.map((message: IForumMsg) => <li key={message.key}>({message.time}) {message.text}</li>)
+                                            dms.map((message: IForumMsg) => {
+                                                const className = message.fromUserName.toLowerCase().includes('you')
+                                                    ? 'dm-item message-left'
+                                                    : 'dm-item message-right';
+                                                return (
+                                                    <li className={className} key={message.key}>
+                                                        <span className="dm-message">{message.text}</span>
+                                                        <span className="dm-date">({message.time})</span>
+                                                    </li>
+                                                );
+                                            })
                                         }
                                     </ul>
                                     : <span className="dms-first-info">{this.translate('components.messagingContainer.welcome')}</span>

@@ -1,9 +1,6 @@
 import { StyleSheet } from 'react-native';
 import * as therrTheme from '../themes';
 
-const containerBackgroundColor = therrTheme.colors.textWhite;
-// const brandingYellow = '#ebc300';
-
 export default StyleSheet.create({
     buttons: {
         backgroundColor: 'transparent',
@@ -31,16 +28,15 @@ export default StyleSheet.create({
         // left: 20
     },
     container: {
-        backgroundColor: containerBackgroundColor,
-        display: 'flex',
-        height: '100%',
-        width: '92%',
-        alignSelf: 'flex-end',
-        flexDirection: 'column',
-        borderRadius: 0,
-        padding: 0,
+        width: '100%',
+        marginTop: 20,
+        marginBottom: 4,
+        padding: 20,
+        paddingBottom: 4,
+        paddingTop: 4,
+        flex: 1,
     },
-    body: {
+    bodyEdit: {
         backgroundColor: therrTheme.colors.beemo1,
         padding: 0,
         flex: 1,
@@ -49,20 +45,24 @@ export default StyleSheet.create({
         marginBottom: -30, // Helps cover theme background color
         paddingBottom: 30, // Helps cover theme background color
     },
-    bodyScroll: {
+    bodyEditScroll: {
         color: therrTheme.colors.textWhite,
         justifyContent: 'center',
         backgroundColor: therrTheme.colors.beemo1,
         paddingBottom: 100,
     },
-    momentContainer: {
-        width: '100%',
-        marginTop: 20,
-        marginBottom: 4,
-        padding: 20,
-        paddingBottom: 4,
-        paddingTop: 4,
-        flex: 1,
+    bodyView: {
+        backgroundColor: therrTheme.colors.beemo1,
+        padding: 0,
+        height: '100%',
+        marginTop: -30, // Helps cover theme background color
+        paddingTop: 30, // Helps cover theme background color
+        marginBottom: -30, // Helps cover theme background color
+        paddingBottom: 30, // Helps cover theme background color
+    },
+    bodyViewScroll: {
+        backgroundColor: therrTheme.colors.beemo1,
+        paddingBottom: 100,
     },
     footer: {
         display: 'flex',
@@ -74,8 +74,5 @@ export default StyleSheet.create({
         alignItems: 'flex-end',
         justifyContent: 'center',
         width: '100%',
-    },
-    toggleIcon: {
-        color: therrTheme.colors.textWhite,
     },
 });

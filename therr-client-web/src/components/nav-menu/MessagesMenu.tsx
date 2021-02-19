@@ -47,6 +47,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, IMessagesMenuState> {
+    private translate: Function;
+
     constructor(props) {
         super(props);
 
@@ -76,8 +78,6 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
             }, user.details.id);
         }
     }
-
-    private translate: Function;
 
     handleTabSelect = (e, tabName) => {
         this.setState({

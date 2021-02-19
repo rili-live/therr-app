@@ -10,14 +10,16 @@ const colors = {
     secondary: '#388254',
     secondaryFaded: '#4e8e67',
     ternary: '#e0c845',
-
     textBlack: '#363636',
     textGray: '#bfc7d5',
     textDarkGray: '#728f94',
     textWhite: '#fcfeff',
+    brandingMapYellow: '#ebc300',
+    brandingOrange: '#f9ad2a',
+    brandingLightBlue: '#d8f0f2',
 
     backgroundWhite: '#ffffff',
-    backgroundGray: '#fafafa',
+    backgroundGray: '#f6fbff',
     borderLight: 'gray',
     placeholderTextColor: '#78909b',
 

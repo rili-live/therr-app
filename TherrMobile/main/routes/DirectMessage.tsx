@@ -42,7 +42,7 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
-            searchDms: MessageActions.search,
+            searchDms: MessageActions.searchDMs,
             sendDirectMessage: SocketActions.sendDirectMessage,
         },
         dispatch
@@ -217,13 +217,13 @@ class DirectMessage extends React.Component<
                             renderItem={({ item }) => (
                                 <TextMessage
                                     message={item}
-                                    isLeft={item.text.includes('You: ')}
+                                    isLeft={item.fromUserName.includes('You')}
                                 />
                             )}
                             ref={(component) => (this.flatListRef = component)}
                             initialScrollIndex={0}
                             onScrollToIndexFailed={this.handleScrollToIndexFailed}
-                            style={{ flex: 1 }}
+                            style={styles.stretch}
                         />
                         <View style={messageStyles.sendInputsContainer}>
                             <RoundInput
@@ -233,7 +233,7 @@ class DirectMessage extends React.Component<
                                     'pages.directMessage.inputPlaceholder'
                                 )}
                                 containerStyle={messageStyles.inputContainer}
-                                errorStyle={{ display: 'none' }}
+                                errorStyle={styles.displayNone}
                             />
                             <Button
                                 icon={<Icon name="send" size={26} style={messageStyles.icon} />}

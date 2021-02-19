@@ -15,7 +15,8 @@ import translator from '../services/translator';
 import styles from '../styles';
 import { viewing as viewMomentStyles } from '../styles/moments';
 import * as therrTheme from '../styles/themes';
-import { editMomentForm as editMomentFormStyles } from '../styles/forms';
+import formStyles, { editMomentForm as editMomentFormStyles } from '../styles/forms';
+import beemoLayoutStyles from '../styles/layouts/beemo';
 import userContentStyles from '../styles/user-content';
 import { youtubeLinkRegex } from '../constants';
 // import * as therrTheme from '../styles/themes';
@@ -114,9 +115,9 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         return (
             <Button
                 key={key}
-                buttonStyle={userContentStyles.buttonPill}
-                containerStyle={userContentStyles.buttonPillContainer}
-                titleStyle={userContentStyles.buttonPillTitle}
+                buttonStyle={formStyles.buttonPill}
+                containerStyle={formStyles.buttonPillContainer}
+                titleStyle={formStyles.buttonPillTitle}
                 title={`#${tag}`}
             />
         );
@@ -183,10 +184,10 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={[styles.bodyFlex, viewMomentStyles.body]}
-                        contentContainerStyle={[styles.bodyScroll, viewMomentStyles.bodyScroll]}
+                        style={[styles.bodyFlex, beemoLayoutStyles.bodyView]}
+                        contentContainerStyle={[styles.bodyScroll, beemoLayoutStyles.bodyViewScroll]}
                     >
-                        <View style={viewMomentStyles.momentContainer}>
+                        <View style={[beemoLayoutStyles.container, viewMomentStyles.momentContainer]}>
                             <Image
                                 source={{ uri: `https://robohash.org/${moment.fromUserId}?size=200x200` }}
                                 style={viewMomentStyles.momentUserAvatarImg}
@@ -230,7 +231,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                         }
                     </KeyboardAwareScrollView>
                     {
-                        <View style={viewMomentStyles.footer}>
+                        <View style={[beemoLayoutStyles.footer, viewMomentStyles.footer]}>
                             <Button
                                 containerStyle={editMomentFormStyles.backButtonContainer}
                                 buttonStyle={editMomentFormStyles.backButton}

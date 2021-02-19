@@ -1,7 +1,7 @@
 import React from 'react';
 import { Avatar, ListItem } from 'react-native-elements';
 import 'react-native-gesture-handler';
-import styles from '../styles';
+import styles from '../../styles';
 
 interface IConnectionItemProps {
     connectionDetails: any;

@@ -5,7 +5,7 @@ import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import styles from '../styles';
+import styles, { addMargins } from '../styles';
 import * as therrTheme from '../styles/themes';
 import formStyles, { forgotPasswordForm as forgotPasswordFormStyles } from '../styles/forms';
 import translator from '../services/translator';
@@ -159,16 +159,16 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
                                 }
                                 rightIcon={
                                     <FontAwesomeIcon
-                                        name='envelope'
+                                        name="envelope"
                                         size={22}
                                         color={therrTheme.colors.primary3}
                                     />
                                 }
                             />
                             <Alert
-                                containerStyles={{
+                                containerStyles={addMargins({
                                     marginBottom: 24,
-                                }}
+                                })}
                                 isVisible={!!(errorMsg || successMsg)}
                                 message={successMsg || errorMsg}
                                 type={errorMsg ? 'error' : 'success'}

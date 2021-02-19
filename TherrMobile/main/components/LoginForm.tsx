@@ -1,8 +1,10 @@
+
 import * as React from 'react';
 import { View } from 'react-native';
 import { Button } from 'react-native-elements';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import translator from '../services/translator';
+import { addMargins } from '../styles';
 import formStyles, { loginForm as styles } from '../styles/forms';
 import * as therrTheme from '../styles/themes';
 import Alert from '../components/Alert';
@@ -111,9 +113,9 @@ export class LoginFormComponent extends React.Component<
         return (
             <>
                 <Alert
-                    containerStyles={{
+                    containerStyles={addMargins({
                         marginBottom: 24,
-                    }}
+                    })}
                     isVisible={!!userMessage}
                     message={userMessage}
                     type={'success'}
@@ -130,7 +132,7 @@ export class LoginFormComponent extends React.Component<
                     }
                     rightIcon={
                         <FontAwesomeIcon
-                            name='user'
+                            name="user"
                             size={22}
                             color={therrTheme.colors.primary3}
                         />
@@ -150,7 +152,7 @@ export class LoginFormComponent extends React.Component<
                     secureTextEntry={true}
                     rightIcon={
                         <FontAwesomeIcon
-                            name='lock'
+                            name="lock"
                             size={22}
                             color={therrTheme.colors.primary3}
                         />
@@ -178,9 +180,9 @@ export class LoginFormComponent extends React.Component<
                     />
                 </View>
                 <Alert
-                    containerStyles={{
+                    containerStyles={addMargins({
                         marginBottom: 24,
-                    }}
+                    })}
                     isVisible={!!prevLoginError}
                     message={prevLoginError}
                     type={'error'}

@@ -211,6 +211,9 @@
         "email": "Connection's E-mail"
       }
     },
+    "hostedChat": {
+      "searchPlaceholder": "Search by name..."
+    },
     "loginForm": {
       "buttons": {
         "login": "Sign In",
@@ -222,6 +225,22 @@
         "password": "Password",
         "userName": "Username"
       },
+      "backendErrorMessage": "Connection error. Please try again later."
+    },
+    "editHostedChat": {
+      "buttons": {
+        "submit": "Send",
+        "delete": "Delete?",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      },
+      "labels": {
+        "message": "Share something unique...",
+        "hashTags": "Tags (ie. my_tag, myTag)",
+        "maxComments": "Max comments (per minute)",
+        "expiresAt": "Countdown"
+      },
+      "backendSuccessMessage": "Your hosted chat was successfully saved!",
       "backendErrorMessage": "Connection error. Please try again later."
     },
     "editMoment": {
@@ -335,6 +354,10 @@
     "directMessage": {
       "inputPlaceholder": "Enter a message..."
     },
+    "editChat": {
+      "headerTitleCreate": "Create a Hosted Chat",
+      "pageTitle": "Create a Hosted Chat"
+    },
     "editMoment": {
       "headerTitle": "Create a Moment",
       "previewHeader": "Preview:"
@@ -350,7 +373,10 @@
     },
     "hostedChat": {
       "headerTitle": "Hosted Chat",
-      "pageTitle": "Hosted Chat"
+      "pageTitle": "Hosted Chat",
+      "categories": {
+        "title": "Filters"
+      }
     },
     "notifications": {
       "headerTitle": "Notifications",

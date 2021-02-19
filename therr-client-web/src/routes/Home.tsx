@@ -39,6 +39,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * Home
  */
 export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
+    private translate: Function;
+
     static getDerivedStateFromProps(nextProps: IHomeProps) {
         if (!shouldRenderLoginForm(nextProps as ILoginProps)) {
             nextProps.history.push('/user/profile');
@@ -60,8 +62,6 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
     componentDidMount() { // eslint-disable-line class-methods-use-this
         document.title = `Therr | ${this.translate('pages.home.pageTitle')}`;
     }
-
-    private translate: Function;
 
     login = (credentials: any) => this.props.login(credentials);
 

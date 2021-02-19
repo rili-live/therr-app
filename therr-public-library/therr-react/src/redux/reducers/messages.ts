@@ -23,6 +23,8 @@ const messages = (state: IMessagesState = initialState, action: any) => {
     const updatedMessageList: IForumMsgList = Immutable(prevMessageList);
 
     switch (action.type) {
+        case MessageActionTypes.CREATE_FORUM:
+            return state.setIn(['myForums'], [...state.myForums, action.data]);
         case SocketServerActionTypes.SEND_ROOMS_LIST:
             // Any time this action is called, the data will be a full forum list from the server
             return state.setIn(['forums'], action.data);
@@ -36,6 +38,8 @@ const messages = (state: IMessagesState = initialState, action: any) => {
             return state.setIn(['forumMsgs', action.data.roomId], updatedMessageList);
         case MessageActionTypes.GET_DIRECT_MESSAGES:
             return state.setIn(['dms', action.data.contextUserId], action.data.messages || []);
+        case MessageActionTypes.GET_FORUM_MESSAGES:
+            return state.setIn(['forumMessages', action.data.id], action.data.messages || []);
         case SocketServerActionTypes.SEND_DIRECT_MESSAGE:
             const directMessages = (state.dms[action.data.contextUserId] // eslint-disable-line no-case-declarations
                 && state.dms[action.data.contextUserId].asMutable()) || [];

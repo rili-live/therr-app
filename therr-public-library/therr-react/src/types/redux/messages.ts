@@ -17,11 +17,27 @@ export type IForumMsgList = Immutable.ImmutableArray<IForumMsg>;
 export type IForumMsgs = Immutable.ImmutableObject<{[index: string]: IForumMsgList}>;
 
 export interface IMessagesState extends Immutable.ImmutableObject<any> {
-    dms: any;
+    dms: {
+        [key: string]: {
+            key: number | string;
+            fromUserName: string;
+            text: string;
+            time: string;
+        };
+    } | {};
     forums: any;
-    forumMsgs: any;
+    forumMsgs: {
+        [key: string]: {
+            key: number | string;
+            fromUserName: string;
+            text: string;
+            time: string;
+        };
+    } | {};
 }
 
 export enum MessageActionTypes {
-GET_DIRECT_MESSAGES = 'GET_DIRECT_MESSAGES',
+    CREATE_FORUM = 'CREATE_FORUM',
+    GET_DIRECT_MESSAGES = 'GET_DIRECT_MESSAGES',
+    GET_FORUM_MESSAGES = 'GET_FORUM_MESSAGES',
 }

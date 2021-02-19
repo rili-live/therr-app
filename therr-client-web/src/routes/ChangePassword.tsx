@@ -45,6 +45,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * ChangePassword
  */
 export class ChangePasswordComponent extends React.Component<IChangePasswordProps & IChangePasswordDispatchProps, IChangePasswordState> {
+    private translate: Function;
+
     constructor(props: IChangePasswordProps & IChangePasswordDispatchProps) {
         super(props);
 
@@ -60,8 +62,6 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
     componentDidMount() { // eslint-disable-line class-methods-use-this
         document.title = `Therr | ${this.translate('pages.changePassword.pageTitle')}`;
     }
-
-    private translate: Function;
 
     isFormDisabled() {
         return !this.state.inputs.oldPassword || !this.state.inputs.newPassword || !this.isFormValid();

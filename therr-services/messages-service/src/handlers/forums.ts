@@ -17,6 +17,7 @@ const createForum = (req, res) => {
         subtitle: req.body.subtitle,
         description: req.body.description,
         categoryTags: req.body.categoryTags,
+        hashtags: req.body.hashtags || '',
         integrationIds: req.body.integrationIds,
         invitees: req.body.invitees,
         iconGroup: req.body.iconGroup,
@@ -27,38 +28,6 @@ const createForum = (req, res) => {
         isPublic: req.body.isPublic || true,
     })
         .then(([forum]) => res.status(201).send(forum))
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
-};
-
-// READ
-const searchCategories: RequestHandler = (req: any, res: any) => {
-    // const userId = req.headers['x-userid'];
-    const {
-        filterBy,
-        query,
-        itemsPerPage,
-        pageNumber,
-    } = req.query;
-    const integerColumns = [];
-    const searchArgs = getSearchQueryArgs(req.query, integerColumns);
-    const searchPromise = Store.categories.searchCategories(searchArgs[0], searchArgs[1]);
-    const countPromise = Store.forums.countRecords({
-        filterBy,
-        query,
-    });
-
-    return Promise.all([searchPromise, countPromise]).then(([results, countResult]) => {
-        const response = {
-            results,
-            pagination: {
-                totalItems: Number(countResult[0].count),
-                itemsPerPage: Number(itemsPerPage),
-                pageNumber: Number(pageNumber),
-            },
-        };
-
-        res.status(200).send(response);
-    })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
 };
 
@@ -87,6 +56,38 @@ const searchForums: RequestHandler = (req: any, res: any) => {
         const response = {
             results: results // TODO: RFRONT-25 - localize dates
                 .map((result) => ({ ...result, createdAt: moment(result.createdAt).format('M/D/YY, h:mma') })),
+            pagination: {
+                totalItems: Number(countResult[0].count),
+                itemsPerPage: Number(itemsPerPage),
+                pageNumber: Number(pageNumber),
+            },
+        };
+
+        res.status(200).send(response);
+    })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
+};
+
+// READ
+const searchCategories: RequestHandler = (req: any, res: any) => {
+    // const userId = req.headers['x-userid'];
+    const {
+        filterBy,
+        query,
+        itemsPerPage,
+        pageNumber,
+    } = req.query;
+    const integerColumns = [];
+    const searchArgs = getSearchQueryArgs(req.query, integerColumns);
+    const searchPromise = Store.categories.searchCategories(searchArgs[0], searchArgs[1]);
+    const countPromise = Store.forums.countRecords({
+        filterBy,
+        query,
+    });
+
+    return Promise.all([searchPromise, countPromise]).then(([results, countResult]) => {
+        const response = {
+            results,
             pagination: {
                 totalItems: Number(countResult[0].count),
                 itemsPerPage: Number(itemsPerPage),
