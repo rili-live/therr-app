@@ -50,6 +50,8 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
         return {};
     }
 
+    private translate: Function;
+
     constructor(props) {
         super(props);
 
@@ -59,8 +61,6 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
-
-    private translate: Function;
 
     handleLogout = () => {
         const {

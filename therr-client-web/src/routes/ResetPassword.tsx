@@ -31,6 +31,8 @@ const envVars = globalConfig[process.env.NODE_ENV];
  * ResetPassword
  */
 export class ResetPasswordComponent extends React.Component<IResetPasswordProps & IResetPasswordDispatchProps, IResetPasswordState> {
+    private translate: Function;
+
     constructor(props: IResetPasswordProps & IResetPasswordDispatchProps) {
         super(props);
 
@@ -46,8 +48,6 @@ export class ResetPasswordComponent extends React.Component<IResetPasswordProps 
     componentDidMount() { // eslint-disable-line class-methods-use-this
         document.title = `Therr | ${this.translate('pages.resetPassword.pageTitle')}`;
     }
-
-    private translate: Function;
 
     onSubmit = (event: any) => {
         event.preventDefault();

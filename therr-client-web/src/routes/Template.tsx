@@ -33,6 +33,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * Template
  */
 export class TemplateComponent extends React.Component<ITemplateProps, ITemplateState> {
+    private translate: Function;
+
     constructor(props: ITemplateProps) {
         super(props);
 
@@ -44,8 +46,6 @@ export class TemplateComponent extends React.Component<ITemplateProps, ITemplate
     componentDidMount() {
         document.title = `Therr | ${this.translate('pages.template.helloTemplate')}`;
     }
-
-    private translate: Function;
 
     public render(): JSX.Element | null {
         return (

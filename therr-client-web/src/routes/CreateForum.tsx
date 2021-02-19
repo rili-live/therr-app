@@ -49,6 +49,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * CreateForum
  */
 export class CreateForumComponent extends React.Component<ICreateForumProps, ICreateForumState> {
+    private translate: Function;
+
     // private sessionToken: string;
 
     constructor(props: ICreateForumProps) {
@@ -69,8 +71,6 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
     componentDidMount() { // eslint-disable-line class-methods-use-this
         document.title = `Therr | ${this.translate('pages.createForum.pageTitle')}`;
     }
-
-    private translate: Function;
 
     onInputChange = (name: string, value: string) => {
         const newInputChanges = {

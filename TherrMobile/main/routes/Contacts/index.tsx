@@ -5,10 +5,10 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
-import ConnectionsButtonMenu from '../components/ButtonMenu/ConnectionsButtonMenu';
-import styles from '../styles';
-import translator from '../services/translator';
-import ContactsSearch from '../components/ContactsSearch';
+import ConnectionsButtonMenu from '../../components/ButtonMenu/ConnectionsButtonMenu';
+import styles from '../../styles';
+import translator from '../../services/translator';
+import ContactsSearch from './ContactsSearch';
 
 interface IContactsDispatchProps {
     logout: Function;

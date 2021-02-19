@@ -6,6 +6,7 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('forums', (tab
     table.string('subtitle').notNullable();
     table.text('description').notNullable();
     table.text('administratorIds').notNullable().defaultsTo(''); // comma separated list
+    table.text('hashTags').notNullable().defaultsTo('');
     table.text('integrationIds').notNullable().defaultsTo(''); // comma separated list
     table.text('invitees').notNullable(); // comma separated list
     table.string('iconGroup').notNullable();

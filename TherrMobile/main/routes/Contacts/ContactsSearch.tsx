@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import 'react-native-gesture-handler';
-import styles from '../styles';
-import ConnectionItem from './ConnectionItem';
+import styles from '../../styles';
+import ConnectionItem from '../ActiveConnections/ConnectionItem';
 
 interface IContactsSearchProps {
     getConnectionDetails: any;
@@ -21,12 +21,22 @@ const ContactsSearch: React.FunctionComponent<IContactsSearchProps> = ({
     userConnections,
 }) => {
     return (
-        <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>
-                {translate('components.contactsSearch.title')}
-            </Text>
-            {userConnections.connections &&
-            userConnections.connections.length ? (
+        <>
+            <View style={styles.sectionContainer}>
+                <Text style={styles.sectionTitle}>
+                    {translate('components.contactsSearch.title')}
+                </Text>
+                {
+                    (!userConnections.connections || !userConnections.connections.length) &&
+                    <>
+                        <Text style={styles.sectionDescription}>
+                            {translate('components.contactsSearch.noContactsFound')}
+                        </Text>
+                    </>
+                }
+            </View>
+            <>
+                {!!(userConnections.connections && userConnections.connections.length) && (
                     userConnections.connections.map((connection) => {
                         const connectionDetails = getConnectionDetails(connection);
                         return (
@@ -38,12 +48,9 @@ const ContactsSearch: React.FunctionComponent<IContactsSearchProps> = ({
                             />
                         );
                     })
-                ) : (
-                    <Text style={styles.sectionDescription}>
-                        {translate('components.contactsSearch.noContactsFound')}
-                    </Text>
                 )}
-        </View>
+            </>
+        </>
     );
 };
 

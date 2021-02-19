@@ -45,6 +45,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * Login
  */
 export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
+    private translate: Function;
+
     static getDerivedStateFromProps(nextProps: ILoginProps) {
         if (!shouldRenderLoginForm(nextProps)) {
             nextProps.history.push('/user/profile');
@@ -66,8 +68,6 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     componentDidMount() { // eslint-disable-line class-methods-use-this
         document.title = `Therr | ${this.translate('pages.login.pageTitle')}`;
     }
-
-    private translate: Function;
 
     login = (credentials: any) => this.props.login(credentials)
 

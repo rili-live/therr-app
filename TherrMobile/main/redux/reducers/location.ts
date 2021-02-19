@@ -13,7 +13,7 @@ const initialState: ILocationState = Immutable.from({
 const locations = (state: ILocationState = initialState, action: any) => {
     // If state is initialized by server-side rendering, it may not be a proper immutable object yet
     if (!state.setIn) {
-        state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
+        state = state ? Immutable.from(state) : initialState;
     }
 
     switch (action.type) {

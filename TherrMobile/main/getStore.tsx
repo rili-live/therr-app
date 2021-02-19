@@ -1,3 +1,4 @@
+
 import thunkMiddleware from 'redux-thunk';
 import { createLogger } from 'redux-logger';
 import { applyMiddleware, compose, createStore } from 'redux';
@@ -24,7 +25,7 @@ function safelyParse(input: any) {
     }
     console.log(
         'Warning: __PRELOADED_STATE__ is not defined on the respective view'
-    ); // eslint-disable-line no-console
+    );
     return {};
 }
 
@@ -32,23 +33,23 @@ const getStore = async () => {
     // Get stored user details from session storage if they are already logged in
     if (typeof window !== 'undefined') {
         const therrSession = await AsyncStorage.getItem('therrSession');
-        const storedSocketDetails = JSON.parse(therrSession);
+        const storedSocketDetails = JSON.parse(therrSession || '{}');
         const therrUser = await AsyncStorage.getItem('therrUser');
-        let storedUser = JSON.parse(therrUser);
+        let storedUser = JSON.parse(therrUser || '{}');
         storedUser = storedUser || {};
         const reloadedState: any = {
             user: {
                 details: storedUser,
                 isAuthenticated: !!(storedUser && storedUser.id),
                 socketDetails: {
-                    session: storedSocketDetails || {},
+                    session: storedSocketDetails,
                 },
             },
         };
         preLoadedState = Object.assign(
             safelyParse(window.__PRELOADED_STATE__),
             reloadedState
-        ); // eslint-disable-line no-underscore-dangle
+        );
         updateSocketToken(reloadedState.user, true);
     }
 

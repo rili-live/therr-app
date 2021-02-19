@@ -45,6 +45,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenuState> {
+    private translate: Function;
+
     constructor(props) {
         super(props);
 
@@ -54,8 +56,6 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
-
-    private translate: Function;
 
     handleTabSelect = (e, tabName) => {
         this.setState({

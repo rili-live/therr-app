@@ -98,6 +98,8 @@ class Input extends React.Component<any, any> {
         value: '',
     };
 
+    public inputEl: any;
+
     constructor(props: any) {
         super(props);
 
@@ -114,8 +116,6 @@ class Input extends React.Component<any, any> {
         const modifiedValidationsState = Input.updateValidations(this.props);
         this.setState(modifiedValidationsState);
     }
-
-    public inputEl: any;
 
     handleInputChange = (event: any) => {
         const name = event.target.name;

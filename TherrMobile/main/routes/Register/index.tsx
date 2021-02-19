@@ -4,11 +4,11 @@ import { SafeAreaView, StatusBar } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';
-import styles from '../styles';
-import RegisterForm from '../components/RegisterForm';
+import styles from '../../styles';
+import RegisterForm from './RegisterForm';
 import { bindActionCreators } from 'redux';
-import UsersActions from '../redux/actions/UsersActions';
-import translator from '../services/translator';
+import UsersActions from '../../redux/actions/UsersActions';
+import translator from '../../services/translator';
 
 interface IRegisterDispatchProps {
     register: Function;

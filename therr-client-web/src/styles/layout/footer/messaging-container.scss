@@ -43,15 +43,50 @@ footer {
 
             .dms-list {
                 padding: 0;
-                margin: 0;
-                display: block;
-                text-align: left;
+                margin: 10;
+                display: 'flex';
                 font-size: rem-calc(17px);
                 list-style-type: none;
                 margin-bottom: 1.5rem;
+                flex-direction: 'column';
+                flex: 1;
         
                 li:last-child {
                     margin-bottom: 1rem;
+                }
+
+                .dm-item {
+                    display: flex;
+                    flex-direction: column;
+                    padding: rem-calc(5px) rem-calc(12px);
+                    border-radius: rem-calc(14px);
+                    margin-bottom: rem-calc(7px);
+                    margin-left: 2%;
+                    margin-right: 2%;
+
+                    .dm-date {
+                        font-size: rem-calc(10px);
+                    }
+                }
+
+                .message-left {
+                    margin-right: 40%;
+                    background-color: $therr-light-grey;
+                    align-self: flex-start;
+                }
+
+                .message-right {
+                    margin-left: 40%;
+                    background-color: $therr-primary-4;
+                    align-self: flex-end;
+
+                    .dm-message {
+                        text-align: right;
+                    }
+
+                    .dm-date {
+                        text-align: right;
+                    }
                 }
             }
 

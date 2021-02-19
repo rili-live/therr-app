@@ -6,7 +6,7 @@ const MIN_ZOOM_LEVEL = 5;
 const MOMENTS_REFRESH_THROTTLE_MS = 10 * 1000;
 
 // RegEx
-const youtubeLinkRegex = /(?:http(?:s?):\/\/)?(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?‌​=]*)?/mi;
+const youtubeLinkRegex = /(?:http(?:s?):\/\/)?(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-_]*)(&(amp;)?[\w?‌​=]*)?/mi;
 
 
 export {

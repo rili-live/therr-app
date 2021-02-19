@@ -1,6 +1,6 @@
 import 'react-native';
 import React from 'react';
-import RegisterForm from '../../main/components/RegisterForm';
+import RegisterForm from '../../main/routes/Register/RegisterForm';
 
 // Note: test renderer must be required after react-native.
 import renderer from 'react-test-renderer';

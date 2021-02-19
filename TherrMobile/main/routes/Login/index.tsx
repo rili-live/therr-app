@@ -2,15 +2,15 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { SafeAreaView, View, StatusBar } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Image from '../components/BaseImage';
+import Image from '../../components/BaseImage';
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';
-import styles from '../styles';
-import mixins from '../styles/mixins';
-import LoginForm from '../components/LoginForm';
+import styles from '../../styles';
+import mixins from '../../styles/mixins';
+import LoginForm from './LoginForm';
 import { bindActionCreators } from 'redux';
-import UsersActions from '../redux/actions/UsersActions';
-import translator from '../services/translator';
+import UsersActions from '../../redux/actions/UsersActions';
+import translator from '../../services/translator';
 
 interface ILoginDispatchProps {
     login: Function;

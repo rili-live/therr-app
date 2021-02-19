@@ -12,10 +12,10 @@ const router = express.Router();
 router.post('/', createForum);
 
 // READ
-router.post('/', searchForums);
+router.post('/search', searchForums);
 router.get('/categories', searchCategories);
 
 // UPDATE
-router.post('/:forumId', updateForum);
+router.put('/:forumId', updateForum);
 
 export default router;

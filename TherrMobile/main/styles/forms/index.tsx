@@ -104,6 +104,32 @@ export default StyleSheet.create({
         marginRight: 10,
         marginLeft: 10,
     },
+    buttonPill: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 0,
+        paddingHorizontal: 10,
+        borderRadius: 20,
+        height: 26,
+        backgroundColor: therrTheme.colors.beemoTeal,
+    },
+    buttonPillIcon: {
+        marginLeft: 8,
+    },
+    buttonPillContainer: {
+        padding: 0,
+        margin: 0,
+        borderRadius: 20,
+        height: 26,
+        marginHorizontal: 4,
+        marginTop: 14,
+    },
+    buttonPillTitle: {
+        lineHeight: 26,
+        paddingTop: 0,
+        color: therrTheme.colors.beemoTextBlack,
+    },
 });
 
 export {

@@ -23,6 +23,8 @@ interface IRegisterFormState {
  * RegisterForm
  */
 export class RegisterFormComponent extends React.Component<IRegisterFormProps, IRegisterFormState> {
+    private translate: Function;
+
     constructor(props: IRegisterFormProps) {
         super(props);
 
@@ -33,8 +35,6 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
-
-    private translate: Function;
 
     isFormDisabled() {
         return !this.state.inputs.userName || !this.state.inputs.password || !this.isFormValid();

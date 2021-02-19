@@ -10,8 +10,8 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import YoutubePlayer from 'react-native-youtube-iframe';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
-import styles from '../styles';
-import { editing as editMomentStyles } from '../styles/moments';
+import styles, { addMargins } from '../styles';
+import beemoLayoutStyles from '../styles/layouts/beemo';
 import * as therrTheme from '../styles/themes';
 import formStyles, { editMomentForm as editMomentFormStyles } from '../styles/forms';
 import userContentStyles from '../styles/user-content';
@@ -228,15 +228,15 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         return (
             <Button
                 key={key}
-                buttonStyle={userContentStyles.buttonPill}
-                containerStyle={userContentStyles.buttonPillContainer}
-                titleStyle={userContentStyles.buttonPillTitle}
+                buttonStyle={formStyles.buttonPill}
+                containerStyle={formStyles.buttonPillContainer}
+                titleStyle={formStyles.buttonPillTitle}
                 title={`#${tag}`}
                 icon={
                     <FontAwesome5Icon
                         name="times"
                         size={14}
-                        style={userContentStyles.buttonPillIcon}
+                        style={formStyles.buttonPillIcon}
                     />
                 }
                 iconRight={true}
@@ -279,10 +279,10 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={[styles.bodyFlex, editMomentStyles.body]}
-                        contentContainerStyle={[styles.bodyScroll, editMomentStyles.bodyScroll]}
+                        style={[styles.bodyFlex, beemoLayoutStyles.bodyEdit]}
+                        contentContainerStyle={[styles.bodyScroll, beemoLayoutStyles.bodyEditScroll]}
                     >
-                        <View style={editMomentStyles.momentContainer}>
+                        <View style={beemoLayoutStyles.container}>
                             <TextInput
                                 style={editMomentFormStyles.textInputAlt}
                                 placeholder={this.translate(
@@ -299,9 +299,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             <Input
                                 autoCorrect={false}
                                 inputStyle={editMomentFormStyles.inputAlt}
-                                errorStyle={{
-                                    display: 'none',
-                                }}
+                                errorStyle={styles.displayNone}
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.hashTags'
                                 )}
@@ -344,9 +342,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 />
                             </View>
                             <Alert
-                                containerStyles={{
+                                containerStyles={addMargins({
                                     marginBottom: 24,
-                                }}
+                                })}
                                 isVisible={!!(errorMsg || successMsg)}
                                 message={successMsg || errorMsg}
                                 type={errorMsg ? 'error' : 'success'}
@@ -397,7 +395,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             </View>
                         }
                     </KeyboardAwareScrollView>
-                    <View style={editMomentStyles.footer}>
+                    <View style={beemoLayoutStyles.footer}>
                         <Button
                             containerStyle={editMomentFormStyles.backButtonContainer}
                             buttonStyle={editMomentFormStyles.backButton}

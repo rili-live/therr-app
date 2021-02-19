@@ -53,7 +53,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * UserProfile
  */
 export class UserProfileComponent extends React.Component<IUserProfileProps, IUserProfileState> {
-    private translate: Function; // eslint-disable-line react/sort-comp
+    private translate: Function;
 
     constructor(props: IUserProfileProps) {
         super(props);

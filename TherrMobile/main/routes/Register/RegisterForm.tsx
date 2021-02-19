@@ -4,11 +4,12 @@ import { Button } from 'react-native-elements';
 import CountryPicker, { CountryCode } from 'react-native-country-picker-modal';
 import PhoneInput from 'react-native-phone-input';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import translator from '../services/translator';
-import formStyles, { loginForm as styles, phoneInput as phoneStyles } from '../styles/forms';
-import * as therrTheme from '../styles/themes';
-import Alert from './Alert';
-import SquareInput from './Input/Square';
+import translator from '../../services/translator';
+import styles, { addMargins } from '../../styles';
+import formStyles, { loginForm as loginFormStyles, phoneInput as phoneStyles } from '../../styles/forms';
+import * as therrTheme from '../../styles/themes';
+import Alert from '../../components/Alert';
+import SquareInput from '../../components/Input/Square';
 
 // Regular component props
 interface IRegisterFormProps {
@@ -189,7 +190,7 @@ export class RegisterFormComponent extends React.Component<
                     }
                     rightIcon={
                         <FontAwesomeIcon
-                            name='smile'
+                            name="smile"
                             size={22}
                             color={therrTheme.colors.primary3Faded}
                         />
@@ -205,7 +206,7 @@ export class RegisterFormComponent extends React.Component<
                     }
                     rightIcon={
                         <FontAwesomeIcon
-                            name='smile-beam'
+                            name="smile-beam"
                             size={22}
                             color={therrTheme.colors.primary3Faded}
                         />
@@ -223,7 +224,7 @@ export class RegisterFormComponent extends React.Component<
                     }
                     rightIcon={
                         <FontAwesomeIcon
-                            name='user'
+                            name="user"
                             size={22}
                             color={therrTheme.colors.primary3Faded}
                         />
@@ -241,7 +242,7 @@ export class RegisterFormComponent extends React.Component<
                     }
                     rightIcon={
                         <FontAwesomeIcon
-                            name='envelope'
+                            name="envelope"
                             size={22}
                             color={therrTheme.colors.primary3Faded}
                         />
@@ -254,7 +255,7 @@ export class RegisterFormComponent extends React.Component<
                         onPressFlag={this.onPressFlag}
                         offset={0}
                         onChangePhoneNumber={this.onPhoneInputChange}
-                        flagStyle={{ display: 'none' }}
+                        flagStyle={styles.displayNone}
                         style={formStyles.phoneInput}
                         textProps={{
                             placeholder: this.translate('forms.registerForm.labels.mobilePhone'),
@@ -289,7 +290,7 @@ export class RegisterFormComponent extends React.Component<
                     secureTextEntry={true}
                     rightIcon={
                         <FontAwesomeIcon
-                            name='lock'
+                            name="lock"
                             size={22}
                             color={therrTheme.colors.primary3Faded}
                         />
@@ -300,6 +301,7 @@ export class RegisterFormComponent extends React.Component<
                     autoCorrect={false}
                     placeholder={this.translate(
                         'forms.registerForm.labels.repeatPassword'
+
                     )}
                     value={this.state.inputs.repeatPassword}
                     onChangeText={(text) =>
@@ -309,23 +311,23 @@ export class RegisterFormComponent extends React.Component<
                     secureTextEntry={true}
                     rightIcon={
                         <FontAwesomeIcon
-                            name='lock'
+                            name="lock"
                             size={22}
                             color={therrTheme.colors.primary3Faded}
                         />
                     }
                 />
                 <Alert
-                    containerStyles={{
+                    containerStyles={addMargins({
                         marginBottom: 24,
-                    }}
+                    })}
                     isVisible={!!prevRegisterError}
                     message={prevRegisterError}
                     type={'error'}
                 />
-                <View style={styles.registerButtonContainer}>
+                <View style={loginFormStyles.registerButtonContainer}>
                     <Button
-                        buttonStyle={styles.button}
+                        buttonStyle={loginFormStyles.button}
                         title={this.translate(
                             'forms.registerForm.buttons.register'
                         )}

@@ -36,6 +36,8 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  * Login
  */
 export class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> {
+    private translate: Function;
+
     constructor(props: IRegisterProps) {
         super(props);
 
@@ -50,8 +52,6 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
     componentDidMount() { // eslint-disable-line class-methods-use-this
         document.title = `Therr | ${this.translate('pages.register.pageTitle')}`;
     }
-
-    private translate: Function;
 
     register = (credentials: any) => {
         this.props.register(credentials).then((response: any) => {
