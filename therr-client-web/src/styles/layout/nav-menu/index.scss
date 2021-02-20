@@ -13,7 +13,7 @@ $menu-padding: rem-calc(24px);
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: $header-height-small $menu-padding $menu-padding $menu-padding;
+    padding: $header-height-small $menu-padding $footer-height-small $menu-padding;
     position: fixed;
     right: -100%;
     top: 0;
@@ -79,7 +79,7 @@ $menu-padding: rem-calc(24px);
     }
 
     .nav-menu-content {
-        
+        overflow: scroll;
     }
 
     .nav-menu-subfooter {
@@ -237,7 +237,7 @@ $menu-padding: rem-calc(24px);
 
 @media only screen and (min-width: rem-calc(540px)) {
     #nav_menu {
-        padding: $header-height $menu-padding $menu-padding $menu-padding;
+        padding: $header-height $menu-padding $footer-height $menu-padding;
        
         .nav-menu-header {
             height: $header-height;

@@ -52,7 +52,6 @@ class Notifications extends React.Component<
     INotificationsProps,
     INotificationsState
 > {
-    private failTimeoutId: any;
     private flatListRef: any;
     private translate: Function;
 
@@ -71,10 +70,6 @@ class Notifications extends React.Component<
         });
     }
 
-    componentWillUnmount = () => {
-        clearTimeout(this.failTimeoutId);
-    };
-
     handleConnectionRequestAction = (e: any, notification, isAccepted) => {
         const { user, updateUserConnection } = this.props;
 
@@ -91,17 +86,6 @@ class Notifications extends React.Component<
             user: user.details,
         });
     }
-
-    handleScrollToIndexFailed = (info) => {
-        this.failTimeoutId = setTimeout(() => {
-            if (this.flatListRef) {
-                this.flatListRef.scrollToIndex({
-                    index: info.index,
-                    animated: true,
-                });
-            }
-        }, 500);
-    };
 
     markNotificationAsRead = (event, notification, userConnection?: any) => {
         if (notification.isUnread || userConnection) {
@@ -146,7 +130,10 @@ class Notifications extends React.Component<
                                 )}
                                 ref={(component) => (this.flatListRef = component)}
                                 initialScrollIndex={0}
-                                onScrollToIndexFailed={this.handleScrollToIndexFailed}
+                                onContentSizeChange={() => this.flatListRef.scrollToIndex({
+                                    index: 0,
+                                    animated: true,
+                                })}
                                 style={notificationStyles.container}
                             />
                         ) :
