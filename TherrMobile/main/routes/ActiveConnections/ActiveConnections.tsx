@@ -19,28 +19,34 @@ const ActiveConnections: React.FunctionComponent<IActiveConnectionsProps> = ({
     userConnections,
 }) => {
     return (
-        <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>
-                {translate('components.activeConnections.title')}
-            </Text>
-            {userConnections.activeConnections &&
-            userConnections.activeConnections.length ? (
-                    userConnections.activeConnections.map((connection) => (
+        <>
+            <View style={styles.sectionContainer}>
+                <Text style={styles.sectionTitle}>
+                    {translate('components.activeConnections.title')}
+                </Text>
+                {
+                    (!userConnections.activeConnections || !userConnections.activeConnections.length) &&
+                    <>
+                        <Text style={styles.sectionDescription}>
+                            {translate(
+                                'components.activeConnections.noActiveConnections'
+                            )}
+                        </Text>
+                    </>
+                }
+            </View>
+            <>
+                {!!(userConnections.activeConnections && userConnections.activeConnections.length) &&
+                    (userConnections.activeConnections.map((connection) => (
                         <ConnectionItem
                             key={connection.id}
                             connectionDetails={connection}
                             getConnectionSubtitle={getConnectionSubtitle}
                             onConnectionPress={onConnectionPress}
                         />
-                    ))
-                ) : (
-                    <Text style={styles.sectionDescription}>
-                        {translate(
-                            'components.activeConnections.noActiveConnections'
-                        )}
-                    </Text>
-                )}
-        </View>
+                    )))}
+            </>
+        </>
     );
 };
 
