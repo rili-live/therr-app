@@ -1,8 +1,8 @@
 import React from 'react';
-import { SafeAreaView, Keyboard, Text, View, StatusBar, TextInput } from 'react-native';
+import { SafeAreaView, Keyboard, Text, View, StatusBar } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button, Input, Slider } from 'react-native-elements';
+import { Button, Slider } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
@@ -13,13 +13,14 @@ import translator from '../services/translator';
 import styles, { addMargins } from '../styles';
 import beemoLayoutStyles from '../styles/layouts/beemo';
 import * as therrTheme from '../styles/themes';
-import formStyles, { editMomentForm as editMomentFormStyles } from '../styles/forms';
+import formStyles, { beemoEditForm as editMomentFormStyles } from '../styles/forms';
 import userContentStyles from '../styles/user-content';
 import { youtubeLinkRegex } from '../constants';
 import Alert from '../components/Alert';
-// import * as therrTheme from '../styles/themes';
-// import formStyles, { settingsForm as settingsFormStyles } from '../styles/forms';
-// import BeemoInput from '../components/Input/Beemo';
+import formatHashtags from '../utilities/formatHashtags';
+import BeemoInput from '../components/Input/Beemo';
+import BeemoTextInput from '../components/TextInput/Beemo';
+import HashtagsContainer from '../components/UserContent/HashtagsContainer';
 
 export const DEFAULT_RADIUS = 10;
 export const MIN_RADIUS_PRIVATE = 3;
@@ -167,25 +168,17 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
 
     onInputChange = (name: string, value: string) => {
         const { hashtags } = this.state;
-        const modifiedHastags = [ ...hashtags ];
+        let modifiedHashtags = [ ...hashtags ];
         let modifiedValue = value;
         const newInputChanges = {
             [name]: modifiedValue,
         };
 
         if (name === 'hashTags') {
-            modifiedValue = modifiedValue.replace(/[^\w_,\s]/gi, '');
+            const { formattedValue, formattedHashtags } = formatHashtags(value, modifiedHashtags);
 
-            const lastCharacter = modifiedValue.substring(modifiedValue.length - 1, modifiedValue.length);
-            if (lastCharacter === ',' || lastCharacter === ' ') {
-                const tag = modifiedValue.substring(0, modifiedValue.length - 1);
-                if (modifiedHastags.length < 100 && !modifiedHastags.includes(tag)) {
-                    modifiedHastags.push(modifiedValue.substring(0, modifiedValue.length - 1));
-                }
-                modifiedValue = '';
-            }
-
-            newInputChanges[name] = modifiedValue.trim();
+            modifiedHashtags = formattedHashtags;
+            newInputChanges[name] = formattedValue;
         }
 
         if (name === 'message') {
@@ -197,7 +190,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         }
 
         this.setState({
-            hashtags: modifiedHastags,
+            hashtags: modifiedHashtags,
             inputs: {
                 ...this.state.inputs,
                 ...newInputChanges,
@@ -223,27 +216,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             isSubmitting: false,
         });
     }
-
-    renderHashtagPill = (tag, key) => {
-        return (
-            <Button
-                key={key}
-                buttonStyle={formStyles.buttonPill}
-                containerStyle={formStyles.buttonPillContainer}
-                titleStyle={formStyles.buttonPillTitle}
-                title={`#${tag}`}
-                icon={
-                    <FontAwesome5Icon
-                        name="times"
-                        size={14}
-                        style={formStyles.buttonPillIcon}
-                    />
-                }
-                iconRight={true}
-                onPress={() => this.handleHashtagPress(tag)}
-            />
-        );
-    };
 
     handleHashtagPress = (tag) => {
         const { hashtags } = this.state;
@@ -283,22 +255,18 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         contentContainerStyle={[styles.bodyScroll, beemoLayoutStyles.bodyEditScroll]}
                     >
                         <View style={beemoLayoutStyles.container}>
-                            <TextInput
-                                style={editMomentFormStyles.textInputAlt}
+                            <BeemoTextInput
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.message'
                                 )}
-                                placeholderTextColor={therrTheme.colors.placeholderTextColor}
                                 value={inputs.message}
                                 onChangeText={(text) =>
                                     this.onInputChange('message', text)
                                 }
                                 numberOfLines={3}
-                                multiline={true}
                             />
-                            <Input
+                            <BeemoInput
                                 autoCorrect={false}
-                                inputStyle={editMomentFormStyles.inputAlt}
                                 errorStyle={styles.displayNone}
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.hashTags'
@@ -308,15 +276,11 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     this.onInputChange('hashTags', text)
                                 }
                             />
-                            {
-                                <View style={userContentStyles.hashtagsContainer}>
-                                    {
-                                        hashtags.map((tag, i) => this.renderHashtagPill(tag, i))
-                                    }
-                                </View>
-                            }
-                            <Input
-                                inputStyle={editMomentFormStyles.inputAlt}
+                            <HashtagsContainer
+                                hashtags={hashtags}
+                                onHashtagPress={this.handleHashtagPress}
+                            />
+                            <BeemoInput
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.notificationMsg'
                                 )}
@@ -349,8 +313,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 message={successMsg || errorMsg}
                                 type={errorMsg ? 'error' : 'success'}
                             />
-                            {/* <Input
-                                inputStyle={editMomentFormStyles.inputAlt}
+                            {/* <BeemoInput
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.maxProximity'
                                 )}
@@ -359,8 +322,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     this.onInputChange('maxProximity', text)
                                 }
                             />
-                            {/* <Input
-                                inputStyle={editMomentFormStyles.inputAlt}
+                            {/* <BeemoInput
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.maxViews'
                                 )}
@@ -369,8 +331,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     this.onInputChange('maxViews', text)
                                 }
                             />
-                            <Input
-                                inputStyle={editMomentFormStyles.inputAlt}
+                            <BeemoInput
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.expiresAt'
                                 )}

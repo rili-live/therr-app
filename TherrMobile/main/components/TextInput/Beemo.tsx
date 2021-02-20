@@ -1,19 +1,21 @@
 import React from 'react';
 import 'react-native-gesture-handler';
-import BaseInput from '.';
+import BaseTextInput from '.';
 import formStyles from '../../styles/forms';
 import * as therrTheme from '../../styles/themes';
 
-export class BeemoInput extends BaseInput {
+export class BeemoInput extends BaseTextInput {
     constructor(props) {
         super(props);
     }
 
     render() {
         return (
-            <BaseInput
-                inputStyle={formStyles.inputBeemo}
+            <BaseTextInput
+                style={formStyles.textInputBeemo}
+                placeholderTextColor={therrTheme.colors.placeholderTextColor}
                 selectionColor={therrTheme.colors.beemoYellow}
+                multiline={true}
                 {...this.props}
             />
         );

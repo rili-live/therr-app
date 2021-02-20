@@ -234,8 +234,10 @@
         "confirm": "Delete",
         "cancel": "Cancel"
       },
-      "labels": {
-        "message": "Share something unique...",
+      "placeholders": {
+        "title": "A catchy title",
+        "subtitle": "Optional subtitle",
+        "description": "A brief summary of the chat...",
         "hashTags": "Tags (ie. my_tag, myTag)",
         "maxComments": "Max comments (per minute)",
         "expiresAt": "Countdown"

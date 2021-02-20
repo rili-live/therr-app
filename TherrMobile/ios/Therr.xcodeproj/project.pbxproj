@@ -18,6 +18,7 @@
 		2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		2DCD954D1E0B4F2C00145EB5 /* TherrTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* TherrTests.m */; };
+		7134E4B425E16E7F00F7A07C /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = 008F07F21AC5B25A0029DE68 /* main.jsbundle */; };
 		714EBB2825C6FBEA00910449 /* fonts in Resources */ = {isa = PBXBuildFile; fileRef = 714EBB2725C6FBEA00910449 /* fonts */; };
 		714EBB3C25C6FCA700910449 /* TherrFont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 714EBB3B25C6FCA600910449 /* TherrFont.ttf */; };
 		71EFC8F225C64E2200F57AB8 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 712C1DF325C649470078CB60 /* assets */; };
@@ -392,6 +393,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7134E4B425E16E7F00F7A07C /* main.jsbundle in Resources */,
 				714EBB3C25C6FCA700910449 /* TherrFont.ttf in Resources */,
 				71EFC8F225C64E2200F57AB8 /* assets in Resources */,
 				714EBB2825C6FBEA00910449 /* fonts in Resources */,
@@ -812,7 +814,7 @@
 				PRODUCT_NAME = Therr;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
@@ -836,7 +838,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.therr.mobile.Therr;
 				PRODUCT_NAME = Therr;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;

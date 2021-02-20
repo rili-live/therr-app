@@ -75,7 +75,7 @@ class DirectMessage extends React.Component<
             title: connectionDetails.userName,
         });
 
-        if (connectionDetails && !messages.dms[connectionDetails.id]) {
+        if (connectionDetails && !messages.dms || !messages.dms[connectionDetails.id]) {
             searchDms(
                 {
                     filterBy: 'fromUserId',
@@ -121,7 +121,7 @@ class DirectMessage extends React.Component<
         const { msgInputVal } = this.state;
         const { messages, route } = this.props;
         const { connectionDetails } = route.params;
-        const dms = messages.dms[connectionDetails.id];
+        const dms = messages.dms ? (messages.dms[connectionDetails.id] || []) : [];
 
         return (
             <>
@@ -151,9 +151,8 @@ class DirectMessage extends React.Component<
                                 />
                             )}
                             ref={(component) => (this.flatListRef = component)}
-                            initialScrollIndex={0}
                             style={styles.stretch}
-                            onContentSizeChange={() => this.flatListRef.scrollToEnd({ animated: true })}
+                            onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}
                         />
                         <View style={messageStyles.sendInputsContainer}>
                             <RoundInput
