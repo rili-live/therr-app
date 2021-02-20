@@ -1,5 +1,5 @@
 exports.up = (knex) => knex.schema.withSchema('main').createTable('categories', (table) => {
-    table.string('tag').unique().notNullable();
+    table.string('tag').primary().unique().notNullable();
     table.string('name').unique().notNullable();
     table.string('iconGroup').notNullable();
     table.string('iconId', 50).notNullable();

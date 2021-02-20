@@ -16,6 +16,7 @@ const TherrIcon = createIconSetFromIcoMoon(
 
 const renderChatIcon = (item, style = {}) => {
     const props = {
+        key: item.tag,
         color: item.iconColor,
         name: item.iconId,
         size: 14,

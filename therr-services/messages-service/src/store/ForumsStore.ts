@@ -11,14 +11,14 @@ export const FORUMS_TABLE_NAME = 'main.forums';
 export interface ICreateForumParams {
     authorId: number;
     authorLocale: string;
-    administratorIds: number[];
+    administratorIds: string;
     categoryTags: string[];
     title: string[];
     subtitle: string[];
     description: string;
-    hashtags?: string;
-    integrationIds: number[];
-    invitees: number[];
+    hashTags?: string;
+    integrationIds?: string;
+    invitees?: string;
     iconGroup: string;
     iconId: string;
     iconColor: string;
@@ -33,15 +33,15 @@ export interface IUpdateForumConditions {
 
 export interface IUpdateForumParams {
     authorId?: number;
-    authorLocale?: number;
-    administratorIds?: number[];
+    authorLocale?: string;
+    administratorIds?: string;
     title?: string[];
     subtitle?: string[];
     description?: string;
-    categoryIds?: number[];
-    hashtags?: string;
-    integrationIds?: number[];
-    invitees?: number[];
+    categoryTags?: string[];
+    hashTags?: string;
+    integrationIds?: string;
+    invitees?: string;
     iconGroup?: string;
     iconId?: string;
     iconColor?: string;
@@ -121,15 +121,20 @@ export default class ForumsStore {
     }
 
     createForum(params: ICreateForumParams) {
-        const forumParams = {
+        const forumParams: IUpdateForumParams = {
             ...params,
-            administratorIds: params.administratorIds.join(','),
-            categoryTags: params.categoryTags.join(','),
-            integrationIds: params.integrationIds.join(','),
-            invitees: params.invitees.join(','),
+            administratorIds: params.administratorIds,
+            hashTags: params.hashTags,
+            integrationIds: params.integrationIds,
+            invitees: params.invitees,
         };
 
+        delete forumParams.categoryTags;
+
         // TODO: Create categories (sql transaction)
+        // params.categoryTags.forEach((tag) => [
+
+        // ]);
 
         const queryString = knex.insert(forumParams)
             .into(FORUMS_TABLE_NAME)
@@ -142,11 +147,14 @@ export default class ForumsStore {
     updateForum(conditions: IUpdateForumConditions, params: IUpdateForumParams) {
         const forumParams = {
             ...params,
-            administratorIds: params.administratorIds && params.administratorIds.join(','),
-            categoryIds: params.categoryIds && params.categoryIds.join(','),
-            integrationIds: params.integrationIds && params.integrationIds.join(','),
-            invitees: params.invitees && params.invitees.join(','),
         };
+
+        delete forumParams.categoryTags;
+
+        // TODO: Updated categories (sql transaction)
+        // params.categoryTags.forEach((tag) => [
+
+        // ]);
 
         const forumQueryString = knex.update(forumParams)
             .into(FORUMS_TABLE_NAME)

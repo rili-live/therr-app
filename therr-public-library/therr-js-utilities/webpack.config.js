@@ -62,7 +62,7 @@ const common = merge([
             emitWarning: true,
         },
     }),
-    parts.clean(PATHS.lib),
+    parts.clean(),
     parts.processTypescript([PATHS.app], false),
     parts.generateSourcemaps('source-map'),
     parts.deDupe(),

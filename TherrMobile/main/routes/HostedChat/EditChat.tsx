@@ -97,23 +97,11 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
             title,
             subtitle,
             description,
-            categoryTags,
-            integrationIds,
-            invitees,
-            iconGroup,
-            iconId,
-            iconColor,
         } = this.state.inputs;
         const requiredInputs = {
             title,
             subtitle,
             description,
-            categoryTags,
-            integrationIds,
-            invitees,
-            iconGroup,
-            iconId,
-            iconColor,
         };
 
         return isSubmitting || Object.keys(requiredInputs).some((key) => !requiredInputs[key]);
@@ -121,6 +109,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
 
     onSubmit = () => {
         const { user } = this.props;
+        const { hashtags } = this.state;
         const {
             administratorIds,
             title,
@@ -138,16 +127,17 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
         } = this.state.inputs;
 
         const createArgs: any = {
-            administratorIds: [user.details.id, ...administratorIds],
+            administratorIds: [user.details.id, ...(administratorIds || [])].join(','),
             title,
             subtitle,
             description,
-            categoryTags,
-            integrationIds,
-            invitees,
-            iconGroup,
-            iconId,
-            iconColor,
+            categoryTags: categoryTags || ['general'],
+            hashTags: hashtags.join(','),
+            integrationIds: integrationIds ? integrationIds.join(',') : '',
+            invitees: invitees ? invitees.join('') : '',
+            iconGroup: iconGroup || 'font-awesome-5',
+            iconId: iconId || 'star',
+            iconColor: iconColor || 'black',
             maxCommentsPerMin,
             doesExpire,
             isPublic,
