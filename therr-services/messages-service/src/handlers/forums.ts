@@ -17,7 +17,7 @@ const createForum = (req, res) => {
         subtitle: req.body.subtitle,
         description: req.body.description,
         categoryTags: req.body.categoryTags,
-        hashtags: req.body.hashtags || '',
+        hashTags: req.body.hashTags || '',
         integrationIds: req.body.integrationIds,
         invitees: req.body.invitees,
         iconGroup: req.body.iconGroup,

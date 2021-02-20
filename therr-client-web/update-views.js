@@ -1,5 +1,5 @@
 /* eslint-disable */
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
 
 // We need to keep the css file path up to date becuase we use hashing in the build compilation
@@ -21,6 +21,16 @@ const replaceInFile = (fileToUpdate, replacementString) => {
         });
     });
 };
+
+fs.mkdir(path.join(__dirname, 'build/static/assets'), () => {
+    fs.copy(path.join(__dirname, 'src/assets'), path.join(__dirname, 'build/static/assets'), (err) => {
+        if (err) {
+            return console.log('Failed to copy assets directory', err);
+        }
+    
+        console.log('Successfully copied assets directory');
+    });
+});
 
 // We need to keep the css file path up to date becuase we use hashing in the build compilation
 fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {

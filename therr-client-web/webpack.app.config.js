@@ -51,7 +51,7 @@ const common = merge([
         ],
         externals: Object.keys(pkg.peerDependencies || {}),
     },
-    parts.clean(PATHS.build),
+    parts.clean(),
     parts.loadSvg(),
     parts.processReact([PATHS.app, PATHS.reactComponents, PATHS.utils], false),
     parts.processTypescript([PATHS.app], false),

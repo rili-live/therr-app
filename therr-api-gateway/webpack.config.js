@@ -46,7 +46,7 @@ const common = merge([
             new webpack.NoEmitOnErrorsPlugin(),
         ],
     },
-    parts.clean(PATHS.build, ['static']),
+    parts.clean(),
     parts.lintJavaScript({
         paths: PATHS.app,
         options: {

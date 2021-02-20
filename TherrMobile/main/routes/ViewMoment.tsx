@@ -19,6 +19,7 @@ import formStyles, { beemoEditForm as beemoFormStyles } from '../styles/forms';
 import beemoLayoutStyles from '../styles/layouts/beemo';
 import userContentStyles from '../styles/user-content';
 import { youtubeLinkRegex } from '../constants';
+import HashtagsContainer from '../components/UserContent/HashtagsContainer';
 // import * as therrTheme from '../styles/themes';
 // import formStyles, { settingsForm as settingsFormStyles } from '../styles/forms';
 // import BeemoInput from '../components/Input/Beemo';
@@ -89,7 +90,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         this.translate = (key: string, params: any) => translator('en-us', key, params);
 
         this.notificationMsg = (moment.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
-        this.hashtags = moment.hashTags ? moment.hashTags.split(', ') : [];
+        this.hashtags = moment.hashTags ? moment.hashTags.split(',') : [];
 
         const date = new Date(moment.updatedAt);
         const year = date.getFullYear();
@@ -211,11 +212,11 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 />
                             </Text>
                             <View>
-                                <View style={userContentStyles.hashtagsContainer}>
-                                    {
-                                        this.hashtags.map((tag, i) => this.renderHashtagPill(tag, i))
-                                    }
-                                </View>
+                                <HashtagsContainer
+                                    hasIcon={false}
+                                    hashtags={this.hashtags}
+                                    onHashtagPress={() => {}}
+                                />
                             </View>
                         </View>
                         {
