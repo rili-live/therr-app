@@ -53,8 +53,6 @@ class DirectMessage extends React.Component<
     IDirectMessageState
 > {
     private flatListRef: any;
-    private mountTimeoutId;
-    private failTimeoutId;
     private translate: Function;
 
     constructor(props) {
@@ -91,70 +89,12 @@ class DirectMessage extends React.Component<
                 connectionDetails
             );
         }
-
-        const { msgScrollPosition } = this.state;
-        // To prevent FlatList scrolls to top automatically,
-        // we have to delay scroll to the original position
-        this.mountTimeoutId = setTimeout(() => {
-            if (this.flatListRef && this.flatListRef.props.data && this.flatListRef.props.data.length) {
-                msgScrollPosition
-                    ? this.flatListRef.scrollToOffset({
-                        offset: msgScrollPosition,
-                        animated: true,
-                    })
-                    : this.flatListRef.scrollToIndex({
-                        index: this.flatListRef.props.data
-                            ? this.flatListRef.props.data.length - 1
-                            : 0,
-                        animated: true,
-                    });
-            }
-        }, 500);
     }
-
-    componentDidUpdate(prevProps: IDirectMessageProps) {
-        const { route, messages } = this.props;
-        const { connectionDetails } = route.params;
-        const dms =
-            (messages.dms &&
-                messages.dms[connectionDetails && connectionDetails.id]) ||
-            [];
-        const prevMessages =
-            (prevProps.messages.dms &&
-                prevProps.messages.dms[
-                    connectionDetails && connectionDetails.id
-                ]) ||
-            [];
-
-        if (dms && dms.length > 3 && dms.length > prevMessages.length) {
-            this.scrollToListEnd();
-        }
-    }
-
-    componentWillUnmount = () => {
-        clearTimeout(this.mountTimeoutId);
-        clearTimeout(this.failTimeoutId);
-    };
 
     handleInputChange = (val) => {
         this.setState({
             msgInputVal: val,
         });
-    };
-
-    handleScroll = (event) => {
-        this.setState({ msgScrollPosition: event.nativeEvent.contentOffset.y });
-    };
-
-    handleScrollToIndexFailed = (info) => {
-        this.failTimeoutId = setTimeout(() => {
-            if (this.flatListRef) {
-                this.flatListRef.scrollToIndex({
-                    index: info.index,
-                    animated: true,
-                });
-            }
-        }, 500);
     };
 
     handleSend = () => {
@@ -173,15 +113,6 @@ class DirectMessage extends React.Component<
 
             this.setState({
                 msgInputVal: '',
-            });
-        }
-    };
-
-    scrollToListEnd = () => {
-        if (this.flatListRef) {
-            this.flatListRef.scrollToIndex({
-                index: this.flatListRef.props.data.length - 1,
-                animated: true,
             });
         }
     };
@@ -213,7 +144,6 @@ class DirectMessage extends React.Component<
                         <FlatList
                             data={dms}
                             keyExtractor={(item) => String(item.key)}
-                            onScroll={this.handleScroll}
                             renderItem={({ item }) => (
                                 <TextMessage
                                     message={item}
@@ -222,8 +152,8 @@ class DirectMessage extends React.Component<
                             )}
                             ref={(component) => (this.flatListRef = component)}
                             initialScrollIndex={0}
-                            onScrollToIndexFailed={this.handleScrollToIndexFailed}
                             style={styles.stretch}
+                            onContentSizeChange={() => this.flatListRef.scrollToEnd({ animated: true })}
                         />
                         <View style={messageStyles.sendInputsContainer}>
                             <RoundInput
