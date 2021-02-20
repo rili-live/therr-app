@@ -1,6 +1,5 @@
 import { StyleSheet } from 'react-native';
 import * as therrTheme from '../themes';
-import { inputStyle, textInputStyle } from './base';
 
 const submitButtonStyles: any = {
     paddingRight: 10,
@@ -82,21 +81,5 @@ export default StyleSheet.create({
     },
     submitButtonIcon: {
         marginRight: 10,
-    },
-    textInputAlt: {
-        ...textInputStyle,
-        backgroundColor: therrTheme.colors.beemo2,
-        color: therrTheme.colors.beemoTextBlack,
-        borderColor: therrTheme.colors.beemoTextBlack,
-        borderWidth: 1,
-        borderRadius: 0,
-        minHeight: 80,
-    },
-    inputAlt: {
-        ...inputStyle,
-        backgroundColor: therrTheme.colors.beemo2,
-        color: therrTheme.colors.beemoTextBlack,
-        borderColor: therrTheme.colors.beemoTextBlack,
-        borderWidth: 1,
     },
 });
