@@ -7,7 +7,7 @@ import styles from '../styles';
 
 const LogoIcon = createIconSetFromIcoMoon(
     therrIconConfig,
-    'TherrFont2',
+    'TherrFont',
     'TherrFont.ttf'
 );
 
