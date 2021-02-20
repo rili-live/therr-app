@@ -56,7 +56,7 @@ const common = merge([
             new webpack.HashedModuleIdsPlugin(),
         ],
     },
-    parts.clean(PATHS.build, ['static']),
+    parts.clean(),
     parts.loadSvg(),
     parts.processTypescript([PATHS.src], false),
     parts.generateSourcemaps('source-map'),

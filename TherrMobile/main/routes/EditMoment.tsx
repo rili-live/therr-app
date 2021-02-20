@@ -118,7 +118,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             fromUserId: user.details.id,
             message,
             notificationMsg,
-            hashTags: hashtags.join(', '),
+            hashTags: hashtags.join(','),
             latitude,
             longitude,
             maxViews,

@@ -2,7 +2,7 @@
 const webpack = require('webpack');
 const autoprefixer = require('autoprefixer');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const DuplicatePackageCheckerPlugin = require("duplicate-package-checker-webpack-plugin");
 const HappyPack = require('happypack');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
@@ -185,10 +185,10 @@ exports.loadSvg = paths => ({
     },
 });
 
-exports.clean = (path, excludesArray) => ({
+exports.clean = (paths = []) => ({
     plugins: [
-        new CleanWebpackPlugin([path], {
-            exclude: excludesArray,
+        new CleanWebpackPlugin({
+            cleanOnceBeforeBuildPatterns: paths,
         }),
     ],
 });

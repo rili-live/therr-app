@@ -63,7 +63,7 @@ const common = merge([
             }),
         ],
     },
-    parts.clean(PATHS.lib),
+    parts.clean(),
     parts.loadSvg(),
     parts.processReact([PATHS.app, PATHS.utils], false),
     parts.processTypescript([PATHS.app], false),
@@ -79,7 +79,7 @@ const common = merge([
 
 const buildDev = () => merge([
     common,
-    parts.clean(PATHS.build),
+    parts.clean(),
     {
         mode: 'development',
         plugins: [
