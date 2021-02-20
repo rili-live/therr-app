@@ -15,7 +15,7 @@ import translator from '../services/translator';
 import styles from '../styles';
 import { viewing as viewMomentStyles } from '../styles/moments';
 import * as therrTheme from '../styles/themes';
-import formStyles, { editMomentForm as editMomentFormStyles } from '../styles/forms';
+import formStyles, { beemoEditForm as beemoFormStyles } from '../styles/forms';
 import beemoLayoutStyles from '../styles/layouts/beemo';
 import userContentStyles from '../styles/user-content';
 import { youtubeLinkRegex } from '../constants';
@@ -233,8 +233,8 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                     {
                         <View style={[beemoLayoutStyles.footer, viewMomentStyles.footer]}>
                             <Button
-                                containerStyle={editMomentFormStyles.backButtonContainer}
-                                buttonStyle={editMomentFormStyles.backButton}
+                                containerStyle={beemoFormStyles.backButtonContainer}
+                                buttonStyle={beemoFormStyles.backButton}
                                 onPress={() => navigation.navigate('Map')}
                                 icon={
                                     <FontAwesome5Icon
@@ -251,11 +251,11 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                     {
                                         !isVerifyingDelete &&
                                             <Button
-                                                buttonStyle={editMomentFormStyles.submitDeleteButton}
-                                                disabledStyle={editMomentFormStyles.submitButtonDisabled}
-                                                disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
-                                                titleStyle={editMomentFormStyles.submitButtonTitle}
-                                                containerStyle={editMomentFormStyles.submitButtonContainer}
+                                                buttonStyle={beemoFormStyles.submitDeleteButton}
+                                                disabledStyle={beemoFormStyles.submitButtonDisabled}
+                                                disabledTitleStyle={beemoFormStyles.submitDisabledButtonTitle}
+                                                titleStyle={beemoFormStyles.submitButtonTitle}
+                                                containerStyle={beemoFormStyles.submitButtonContainer}
                                                 title={this.translate(
                                                     'forms.editMoment.buttons.delete'
                                                 )}
@@ -264,7 +264,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                                         name="trash-alt"
                                                         size={25}
                                                         color={'black'}
-                                                        style={editMomentFormStyles.submitButtonIcon}
+                                                        style={beemoFormStyles.submitButtonIcon}
                                                     />
                                                 }
                                                 onPress={this.onDelete}
@@ -273,13 +273,13 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                     }
                                     {
                                         isVerifyingDelete &&
-                                        <View style={editMomentFormStyles.submitConfirmContainer}>
+                                        <View style={beemoFormStyles.submitConfirmContainer}>
                                             <Button
-                                                buttonStyle={editMomentFormStyles.submitCancelButton}
-                                                disabledStyle={editMomentFormStyles.submitButtonDisabled}
-                                                disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
-                                                titleStyle={editMomentFormStyles.submitButtonTitle}
-                                                containerStyle={editMomentFormStyles.submitCancelButtonContainer}
+                                                buttonStyle={beemoFormStyles.submitCancelButton}
+                                                disabledStyle={beemoFormStyles.submitButtonDisabled}
+                                                disabledTitleStyle={beemoFormStyles.submitDisabledButtonTitle}
+                                                titleStyle={beemoFormStyles.submitButtonTitle}
+                                                containerStyle={beemoFormStyles.submitCancelButtonContainer}
                                                 title={this.translate(
                                                     'forms.editMoment.buttons.cancel'
                                                 )}
@@ -288,11 +288,11 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                                 raised={true}
                                             />
                                             <Button
-                                                buttonStyle={editMomentFormStyles.submitConfirmButton}
-                                                disabledStyle={editMomentFormStyles.submitButtonDisabled}
-                                                disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
-                                                titleStyle={editMomentFormStyles.submitButtonTitleLight}
-                                                containerStyle={editMomentFormStyles.submitButtonContainer}
+                                                buttonStyle={beemoFormStyles.submitConfirmButton}
+                                                disabledStyle={beemoFormStyles.submitButtonDisabled}
+                                                disabledTitleStyle={beemoFormStyles.submitDisabledButtonTitle}
+                                                titleStyle={beemoFormStyles.submitButtonTitleLight}
+                                                containerStyle={beemoFormStyles.submitButtonContainer}
                                                 title={this.translate(
                                                     'forms.editMoment.buttons.confirm'
                                                 )}

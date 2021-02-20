@@ -1,5 +1,5 @@
 import { Platform, StyleSheet } from 'react-native';
-import editMomentForm from './editMomentForm';
+import beemoEditForm from './beemoEditForm';
 import forgotPasswordForm from './forgotPasswordForm';
 import loginForm from './loginForm';
 import phoneInput from './phoneInput';
@@ -30,6 +30,22 @@ export default StyleSheet.create({
     inputAlt: {
         ...inputStyle,
         color: therrTheme.colors.textBlack,
+    },
+    inputBeemo: {
+        ...inputStyle,
+        backgroundColor: therrTheme.colors.beemo2,
+        color: therrTheme.colors.beemoTextBlack,
+        borderColor: therrTheme.colors.beemoTextBlack,
+        borderWidth: 1,
+    },
+    textInputBeemo: {
+        ...textInputStyle,
+        backgroundColor: therrTheme.colors.beemo2,
+        color: therrTheme.colors.beemoTextBlack,
+        borderColor: therrTheme.colors.beemoTextBlack,
+        borderWidth: 1,
+        borderRadius: 0,
+        minHeight: 80,
     },
     phoneInput: {
         ...inputStyle,
@@ -133,7 +149,7 @@ export default StyleSheet.create({
 });
 
 export {
-    editMomentForm,
+    beemoEditForm,
     forgotPasswordForm,
     loginForm,
     phoneInput,
