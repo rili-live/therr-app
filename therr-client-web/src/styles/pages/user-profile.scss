@@ -23,6 +23,8 @@ $profileImgWidth: rem-calc(100px);
             top: -1.4rem;
             left: 1rem;
             box-shadow: $box-shadow-tile;
+            height: $profileImgWidth;
+            width: $profileImgWidth;
         
             img {
                 height: $profileImgWidth;

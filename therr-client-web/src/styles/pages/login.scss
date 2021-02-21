@@ -15,8 +15,8 @@
 @media only screen and (min-width: rem-calc(540px)) {
     .login-container,
     .register-container {
-        background-color: rgba($therr-primary-1, .25);
-        border: rem-calc(4px) solid $therr-primary-1;
+        background-color: $therr-primary-1;
+        border: rem-calc(4px) solid $therr-primary-2;
         padding: 1rem;
         min-width: rem-calc(360px);
         max-width: rem-calc(360px);

@@ -12,6 +12,7 @@ import restRequest from '../utilities/restRequest';
 import redisHelper from '../utilities/redisHelper';
 import globalConfig from '../../../../global-config';
 import { FORUM_PREFIX } from './rooms';
+import { COMMON_DATE_FORMAT } from '../constants';
 
 const sendDirectMessage = (socket: socketio.Socket, data: any) => {
     restRequest({
@@ -25,7 +26,7 @@ const sendDirectMessage = (socket: socketio.Socket, data: any) => {
         },
     }, socket).then(({ data: message }) => {
         // TODO: RFRONT-25 - localize dates
-        const timeFormatted = moment(message.updatedAt).format('M/D/YY, h:mma'); // TODO: RFRONT-25 - localize dates
+        const timeFormatted = moment(message.updatedAt).format(COMMON_DATE_FORMAT); // TODO: RFRONT-25 - localize dates
         socket.emit('action', {
             type: SocketServerActionTypes.SEND_DIRECT_MESSAGE,
             data: {
@@ -98,7 +99,7 @@ const sendForumMessage = (socket: socketio.Socket, data: any) => {
         messages: `${SocketClientActionTypes.SEND_MESSAGE}: ${data.toString()}`,
     });
     // TODO: RFRONT-25 - localize dates
-    const now = moment(Date.now()).format('M/D/YY, h:mma');
+    const now = moment(Date.now()).format(COMMON_DATE_FORMAT);
     socket.emit('action', {
         type: SocketServerActionTypes.SEND_MESSAGE,
         data: {
