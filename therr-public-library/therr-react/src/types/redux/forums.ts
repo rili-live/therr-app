@@ -1,0 +1,21 @@
+import * as Immutable from 'seamless-immutable';
+
+export interface IForum {
+    roomKey: string;
+    sockets: any;
+    length: number;
+}
+
+export type IForumsArray = Immutable.ImmutableArray<IForum>;
+
+export interface IForumsState extends Immutable.ImmutableObject<any> {
+    myForumsSearchResults: any;
+    myForumsPagination: any;
+    searchResults: any;
+    pagination: any;
+}
+
+export enum ForumActionTypes {
+    CREATE_FORUM = 'CREATE_FORUM',
+    SEARCH_FORUMS = 'SEARCH_FORUMS',
+}

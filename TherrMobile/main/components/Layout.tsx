@@ -175,7 +175,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     isAuthenticated={user.isAuthenticated}
                                 />
                             ),
-                            headerRight: () => (
+                            headerRight: this.shouldShowTopRightMenu() ? () => (
                                 <HeaderMenuRight
                                     navigation={navigation}
                                     styleName={headerStyleName}
@@ -185,7 +185,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     updateGpsStatus={updateGpsStatus}
                                     user={user}
                                 />
-                            ),
+                            ) : null,
                             headerTitleStyle: {
                                 ...styles.headerTitleStyle,
                                 color: headerTitleColor,

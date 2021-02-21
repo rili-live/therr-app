@@ -5,7 +5,7 @@ import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-util
 import beeline from '../beeline';
 import redisSessions from '../store/redisSessions';
 import notifyConnections from '../utilities/notify-connections';
-import { UserStatus } from '../constants';
+import { COMMON_DATE_FORMAT, UserStatus } from '../constants';
 
 export interface ILoginData {
     idToken: string;
@@ -33,7 +33,7 @@ const login = ({
     data,
 }: ILoginArgs) => {
     // TODO: RFRONT-25 - localize dates
-    const now = moment(Date.now()).format('MMMM D/YY, h:mma');
+    const now = moment(Date.now()).format(COMMON_DATE_FORMAT);
 
     if (socket.handshake && (socket.handshake.headers as any) && (socket.handshake.headers as any).host) {
         redisSessions.createOrUpdate({
@@ -107,7 +107,7 @@ const logout = ({
     data,
 }: ILogoutArgs) => {
     // TODO: RFRONT-25 - localize dates
-    const now = moment(Date.now()).format('MMMM D/YY, h:mma');
+    const now = moment(Date.now()).format(COMMON_DATE_FORMAT);
     const promises: any[] = [];
 
     if (data && data.id) {

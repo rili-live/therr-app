@@ -1,3 +1,4 @@
+import ForumActions from './Forums';
 import MapActions from './Maps';
 import MessageActions from './Messages';
 import NotificationActions from './Notifications';
@@ -6,6 +7,7 @@ import UserConnectionsActions from './UserConnections';
 import UsersActions from './Users';
 
 export {
+    ForumActions,
     MapActions,
     MessageActions,
     NotificationActions,
