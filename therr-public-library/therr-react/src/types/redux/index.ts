@@ -10,6 +10,10 @@ import {
 import {
     IForum,
     IForumsArray,
+    IForumsState,
+    ForumActionTypes,
+} from './forums';
+import {
     IForumMsg,
     IForumMsgList,
     IForumMsgs,
@@ -56,9 +60,13 @@ export {
     IMapState,
     MapActionTypes,
 
-    // Messages
+    // Forums
     IForum,
     IForumsArray,
+    IForumsState,
+    ForumActionTypes,
+
+    // Messages
     IForumMsg,
     IForumMsgList,
     IForumMsgs,

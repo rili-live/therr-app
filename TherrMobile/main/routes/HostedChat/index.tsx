@@ -5,8 +5,9 @@ import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
+import { ForumActions } from 'therr-react/redux/actions';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
-import { IUserState, IUserConnectionsState } from 'therr-react/types';
+import { IForumsState, IUserState, IUserConnectionsState } from 'therr-react/types';
 // import HostedChatButtonMenu from '../../components/ButtonMenu/HostedChatButtonMenu';
 import translator from '../../services/translator';
 import RoundInput from '../../components/Input/Round';
@@ -141,11 +142,12 @@ const hostedChats: any[] = [
 ];
 
 interface IHostedChatDispatchProps {
-    logout: Function;
+    searchForums: Function;
     searchUserConnections: Function;
 }
 
 interface IStoreProps extends IHostedChatDispatchProps {
+    forums: IForumsState;
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
@@ -162,6 +164,7 @@ interface IHostedChatState {
 }
 
 const mapStateToProps = (state) => ({
+    forums: state.forums,
     user: state.user,
     userConnections: state.userConnections,
 });
@@ -169,6 +172,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
+            searchForums: ForumActions.searchForums,
             searchUserConnections: UserConnectionsActions.search,
         },
         dispatch
@@ -191,13 +195,20 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
     }
 
     componentDidMount() {
-        const { navigation } = this.props;
+        const { forums, navigation, searchForums } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.hostedChat.headerTitle'),
         });
 
         // TODO: Fetch available rooms on first load
+        if (forums && (!forums.searchResults || !forums.searchResults.length)) {
+            searchForums({
+                itemsPerPage: 20,
+                pageNumber: 1,
+                order: 'desc',
+            }, {});
+        }
     }
 
     handleCategoryPress = (category) => {

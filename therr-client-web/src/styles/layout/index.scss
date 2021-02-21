@@ -36,21 +36,27 @@ h4 {
 }
 
 .content-container {
-    background: transparentize($therr-background-black, .25);
-    border-left: rem-calc(4px) double $therr-primary-2;
-    border-right: rem-calc(4px) double $therr-primary-2;
-    margin: ($header-height-small + 2.2rem) .5rem;
+    background: $therr-background-black;
+    // border-left: rem-calc(4px) double $therr-primary-2;
+    // border-right: rem-calc(4px) double $therr-primary-2;
+    margin: ($header-height-small + 2.2rem) 1rem;
     padding: .5rem 1rem;
     box-shadow: $box-shadow-tile;
 }
 
-@media only screen and (min-width: rem-calc(540px)) {
+@media only screen and (min-width: $screen-small) {
     .content-container {
-        margin: ($header-height + 2rem) .5rem;
+        margin: ($header-height + 2rem) 3rem;
         padding: .5rem 1.2rem 1rem 1.2rem;
     }
 }
 
+@media only screen and (min-width: rem-calc($screen-medium)) {
+    .content-container {
+        margin: ($header-height + 2rem) 5rem;
+        padding: .5rem 1.2rem 1rem 1.2rem;
+    }
+}
 hr {
     border-color: $therr-primary-1;
     border-width: rem-calc(2px);

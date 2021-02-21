@@ -3,6 +3,7 @@ import * as socketio from 'socket.io';
 import printLogs from 'therr-js-utilities/print-logs';
 import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
 import beeline from '../beeline';
+import { COMMON_DATE_FORMAT } from '../constants';
 
 export const FORUM_PREFIX = 'FORUM:';
 
@@ -12,7 +13,7 @@ interface IRoomData {
 }
 
 const joinRoom = (socket: socketio.Socket, data: IRoomData) => {
-    const now = moment(Date.now()).format('M/D/YY, h:mma'); // TODO: RFRONT-25 - localize dates
+    const now = moment(Date.now()).format(COMMON_DATE_FORMAT); // TODO: RFRONT-25 - localize dates
     const roomId = `${FORUM_PREFIX}${data.roomId}`;
 
     socket.join(roomId);
@@ -64,7 +65,7 @@ const joinRoom = (socket: socketio.Socket, data: IRoomData) => {
 };
 
 const leaveRoom = (socket: socketio.Socket, data: IRoomData) => {
-    const now = moment(Date.now()).format('MMMM D/YY, h:mma'); // TODO: RFRONT-25 - localize dates
+    const now = moment(Date.now()).format(COMMON_DATE_FORMAT); // TODO: RFRONT-25 - localize dates
 
     socket.leave(`${FORUM_PREFIX}${data.roomId}`);
 
@@ -76,7 +77,7 @@ const leaveRoom = (socket: socketio.Socket, data: IRoomData) => {
             message: {
                 key: Date.now().toString(),
                 time: now,
-                message: `You left the room, ${data.roomId}`,
+                text: `You left the room, ${data.roomId}`,
             },
         },
     });

@@ -1,0 +1,46 @@
+import axios from 'axios';
+import { getSearchQueryString } from 'therr-js-utilities/http';
+import { ISearchQuery } from '../types';
+
+export interface ICreateForumBody {
+    administratorIds: number;
+    title: string;
+    subtitle: string;
+    description: string;
+    categoryTags: string[];
+    hashtags: string;
+    integrationIds: number[];
+    invitees: number[];
+    iconGroup: string;
+    iconId: string;
+    iconColor: string;
+    maxCommentsPerMin?: number;
+    doesExpire?: boolean;
+    isPublic?: boolean;
+}
+
+export interface ISearchForumsArgs {
+    categoryTags?: number[];
+    forumIds?: number[];
+    usersInvitedForumIds?: number[];
+}
+
+class ForumsService {
+    createForum = (data: ICreateForumBody) => axios({
+        method: 'post',
+        url: '/messages-service/forums',
+        data,
+    })
+
+    searchForums = (query: ISearchQuery, data: ISearchForumsArgs = {}) => {
+        const queryString = getSearchQueryString(query);
+
+        return axios({
+            method: 'post',
+            url: `/messages-service/forums/search${queryString}`,
+            data,
+        });
+    }
+}
+
+export default new ForumsService();

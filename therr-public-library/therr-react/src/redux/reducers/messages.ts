@@ -4,6 +4,7 @@ import { IForumMsgList, IMessagesState, MessageActionTypes } from '../../types/r
 
 const initialState: IMessagesState = Immutable.from({
     forums: Immutable.from([]),
+    myForums: Immutable.from([]),
     dms: {},
     forumMsgs: {},
 });
@@ -23,11 +24,6 @@ const messages = (state: IMessagesState = initialState, action: any) => {
     const updatedMessageList: IForumMsgList = Immutable(prevMessageList);
 
     switch (action.type) {
-        case MessageActionTypes.CREATE_FORUM:
-            return state.setIn(['myForums'], [...state.myForums, action.data]);
-        case SocketServerActionTypes.SEND_ROOMS_LIST:
-            // Any time this action is called, the data will be a full forum list from the server
-            return state.setIn(['forums'], action.data);
         case SocketServerActionTypes.JOINED_ROOM:
             return state
                 .setIn(['forumMsgs', action.data.roomId], updatedMessageList);

@@ -1,24 +1,17 @@
 import * as Immutable from 'seamless-immutable';
 
-export interface IForum {
-    roomKey: string;
-    sockets: any;
-    length: number;
+export interface IDirectMsg {
+    key: number | string;
+    fromUserName: string;
+    text: string;
+    time: string;
 }
-
-export type IForumsArray = Immutable.ImmutableArray<IForum>;
 
 export interface IForumMsg {
     key: string;
     fromUserName: string;
     time: string;
     text: string;
-}
-export interface IDirectMsg {
-    key: number | string;
-    fromUserName: string;
-    text: string;
-    time: string;
 }
 
 export type IForumMsgList = Immutable.ImmutableArray<IForumMsg>;
@@ -28,14 +21,12 @@ export interface IMessagesState extends Immutable.ImmutableObject<any> {
     dms: {
         [key: string]: IDirectMsg;
     } | {};
-    forums: any;
     forumMsgs: {
         [key: string]: IForumMsg;
     } | {};
 }
 
 export enum MessageActionTypes {
-    CREATE_FORUM = 'CREATE_FORUM',
     GET_DIRECT_MESSAGES = 'GET_DIRECT_MESSAGES',
     GET_FORUM_MESSAGES = 'GET_FORUM_MESSAGES',
 }
