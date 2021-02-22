@@ -1,8 +1,9 @@
 import Immutable from 'seamless-immutable';
-import { SocketServerActionTypes } from 'therr-js-utilities/constants';
+import { SocketClientActionTypes, SocketServerActionTypes } from 'therr-js-utilities/constants';
 import { ForumActionTypes, IForumsState } from '../../types/redux/forums';
 
 const initialState: IForumsState = Immutable.from({
+    forumCategories: Immutable.from([]),
     myForumsSearchResults: Immutable.from([]),
     myForumsPagination: Immutable.from([]),
     searchResults: Immutable.from([]),
@@ -19,9 +20,16 @@ const messages = (state: IForumsState = initialState, action: any) => {
         case ForumActionTypes.SEARCH_FORUMS:
             return state.setIn(['searchResults'], action.data.results)
                 .setIn(['pagination'], action.data.pagination);
+        case ForumActionTypes.SEARCH_FORUM_CATEGORIES:
+            return state.setIn(['forumCategories'], action.data.results);
         case SocketServerActionTypes.SEND_ROOMS_LIST:
             // Any time this action is called, the data will be a full forum list from the server
             return state.setIn(['forums'], action.data);
+        case SocketClientActionTypes.LOGOUT:
+            return state.setIn(['myForumsSearchResults'], Immutable.from([]))
+                .setIn(['myForumsPagination'], Immutable.from([]))
+                .setIn(['searchResults'], Immutable.from([]))
+                .setIn(['pagination'], Immutable.from([]));
         default:
             return state;
     }

@@ -1,6 +1,6 @@
 import Knex from 'knex';
 import { getDbCountQueryString } from 'therr-js-utilities/db';
-import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
+// import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { IConnection } from './connection';
 
 const knex: Knex = Knex({ client: 'pg' });
@@ -50,10 +50,7 @@ export default class CategoriesStore {
             .offset(offset)
             .toString();
 
-        return this.db.read.query(queryString).then((response) => {
-            const configuredResponse = formatSQLJoinAsJSON(response.rows, []);
-            return configuredResponse;
-        });
+        return this.db.read.query(queryString).then((response) => response.rows);
     }
 
     createCategory(params: ICreateCategoryParams) {

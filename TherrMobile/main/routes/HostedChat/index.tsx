@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, SafeAreaView, StatusBar, View } from 'react-native';
+import { Text, FlatList, SafeAreaView, StatusBar, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -20,128 +20,8 @@ import renderChatTile from './ChatTile';
 
 const chatKeyExtractor = (item) => item.id.toString();
 
-let categories: any[] = [
-    {
-        name: 'music',
-        tag: 'music',
-        iconColor: '#143b54',
-        iconId: 'music',
-        iconGroup: 'font-awesome-5',
-    },
-    {
-        name: 'movies',
-        tag: 'movies',
-        iconColor: '#ebc300',
-        iconId: 'video',
-        iconGroup: 'font-awesome-5',
-    },
-    {
-        name: 'science',
-        tag: 'science',
-        iconColor: '#388254',
-        iconId: 'biotech',
-        iconGroup: 'therr',
-    },
-    {
-        name: 'tech',
-        tag: 'tech',
-        iconColor: '#f9ad2a',
-        iconId: 'rocket',
-        iconGroup: 'therr',
-    },
-    {
-        name: 'sports',
-        tag: 'sports',
-        iconColor: '#363636',
-        iconId: 'futbol',
-        iconGroup: 'font-awesome-5',
-    },
-];
-
-const hostedChats: any[] = [
-    {
-        id: 1,
-        authorId: 7,
-        authorLocale: 'en-us',
-        title: 'A Basic Hosted Chat With a Really Long Title',
-        subtitle: 'This is sample content for demo',
-        description: 'This chat is about general topics This chat is about general topics This chat is about general topics This chat is about general topics This chat is about general topics', // eslint-disable-line max-len
-        administratorIds: '7',
-        integrationIds: '',
-        invitees: '7,8,9',
-        iconGroup: 'therr',
-        iconId: 'rocket',
-        iconColor: '#f9ad2a',
-        maxCommentsPerMin: 5,
-        doesExpire: false,
-        isPublic: true,
-        createdAt: '2021-02-15T15:37:23.899Z',
-        updatedAt: '2021-02-15T15:57:23.899Z',
-        categories: [categories[3], categories[1]],
-    },
-    {
-        id: 2,
-        authorId: 8,
-        authorLocale: 'en-us',
-        title: 'Another Basic Hosted Chat',
-        subtitle: 'This is more sample content for demo',
-        description: 'This chat is about sports',
-        administratorIds: '8',
-        integrationIds: '',
-        invitees: '7,8,9',
-        iconGroup: 'font-awesome-5',
-        iconId: 'futbol',
-        iconColor: '#363636',
-        maxCommentsPerMin: 5,
-        doesExpire: false,
-        isPublic: false,
-        createdAt: '2021-02-15T15:17:23.899Z',
-        updatedAt: '2021-02-15T15:17:23.899Z',
-        categories: [categories[4]],
-    },
-    {
-        id: 3,
-        authorId: 9,
-        authorLocale: 'en-us',
-        title: 'A Basic Hosted Chat',
-        subtitle: 'This is sample content for demo',
-        description: 'This chat is about general topics',
-        administratorIds: '7',
-        integrationIds: '',
-        invitees: '7,8,9',
-        iconGroup: 'therr',
-        iconId: 'rocket',
-        iconColor: '#f9ad2a',
-        maxCommentsPerMin: 5,
-        doesExpire: false,
-        isPublic: true,
-        createdAt: '2021-02-15T15:37:23.899Z',
-        updatedAt: '2021-02-15T15:57:23.899Z',
-        categories: [categories[3], categories[1]],
-    },
-    {
-        id: 4,
-        authorId: 8,
-        authorLocale: 'en-us',
-        title: 'Another Basic Hosted Chat',
-        subtitle: 'This is more sample content for demo',
-        description: 'This chat is about sports',
-        administratorIds: '8',
-        integrationIds: '',
-        invitees: '7,8,9',
-        iconGroup: 'font-awesome-5',
-        iconId: 'futbol',
-        iconColor: '#363636',
-        maxCommentsPerMin: 5,
-        doesExpire: false,
-        isPublic: false,
-        createdAt: '2021-02-15T15:17:23.899Z',
-        updatedAt: '2021-02-15T15:17:23.899Z',
-        categories: [categories[4]],
-    },
-];
-
 interface IHostedChatDispatchProps {
+    searchCategories: Function;
     searchForums: Function;
     searchUserConnections: Function;
 }
@@ -158,7 +38,6 @@ export interface IHostedChatProps extends IStoreProps {
 }
 
 interface IHostedChatState {
-    categories: any,
     searchInput: string;
     toggleChevronName: 'chevron-down' | 'chevron-up',
 }
@@ -172,6 +51,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
+            searchCategories: ForumActions.searchCategories,
             searchForums: ForumActions.searchForums,
             searchUserConnections: UserConnectionsActions.search,
         },
@@ -179,13 +59,13 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
+    private flatListRef: any;
     private translate: Function;
 
     constructor(props) {
         super(props);
 
         this.state = {
-            categories,
             searchInput: '',
             toggleChevronName: 'chevron-down',
         };
@@ -195,13 +75,12 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
     }
 
     componentDidMount() {
-        const { forums, navigation, searchForums } = this.props;
+        const { forums, navigation, searchCategories, searchForums } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.hostedChat.headerTitle'),
         });
 
-        // TODO: Fetch available rooms on first load
         if (forums && (!forums.searchResults || !forums.searchResults.length)) {
             searchForums({
                 itemsPerPage: 20,
@@ -209,19 +88,18 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
                 order: 'desc',
             }, {});
         }
+
+        if (forums && (!forums.forumCategories || !forums.forumCategories.length)) {
+            searchCategories({
+                itemsPerPage: 100,
+                pageNumber: 1,
+                order: 'desc',
+            }, {});
+        }
     }
 
     handleCategoryPress = (category) => {
-        categories.some((cat: any, i) => {
-            if (cat.tag === category.tag) {
-                categories[i].isActive = !cat.isActive;
-                return true;
-            }
-        });
-
-        this.setState({
-            categories,
-        });
+        console.log(category);
     }
 
     handleChatTilePress = (chat) => {
@@ -252,8 +130,10 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
     }
 
     render() {
-        // const { navigation, user } = this.props;
-        const { categories, toggleChevronName } = this.state;
+        const { forums } = this.props;
+        const { toggleChevronName } = this.state;
+        const categories = (forums && forums.forumCategories) || [];
+        const forumSearchResults = (forums && forums.searchResults) || [];
 
         return (
             <>
@@ -286,14 +166,25 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
                         onCategoryTogglePress={this.handleCategoryTogglePress}
                         toggleChevronName={toggleChevronName}
                     />
-                    <FlatList
-                        horizontal={false}
-                        keyExtractor={chatKeyExtractor}
-                        data={hostedChats}
-                        renderItem={renderChatTile(this.handleChatTilePress)}
-                        style={styles.scrollViewFull}
-                        contentContainerStyle={hostedChatStyles.scrollContentContainer}
-                    />
+
+                    {
+                        !forumSearchResults.length
+                            ? <Text style={hostedChatStyles.noResultsText}>{this.translate('forms.hostedChat.noResultsFound')}</Text>
+                            : <FlatList
+                                horizontal={false}
+                                keyExtractor={chatKeyExtractor}
+                                data={forumSearchResults}
+                                renderItem={renderChatTile(this.handleChatTilePress)}
+                                style={styles.scrollViewFull}
+                                contentContainerStyle={hostedChatStyles.scrollContentContainer}
+                                ref={(component) => (this.flatListRef = component)}
+                                initialScrollIndex={0}
+                                onContentSizeChange={forumSearchResults.length ? () => this.flatListRef.scrollToIndex({
+                                    index: 0,
+                                    animated: true,
+                                }) : undefined}
+                            />
+                    }
                     <View style={hostedChatStyles.createChatBtnContainer}>
                         <Button
                             buttonStyle={buttonStyles.btn}

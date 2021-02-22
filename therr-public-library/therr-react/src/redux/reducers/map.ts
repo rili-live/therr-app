@@ -49,8 +49,7 @@ const map = (state: IMapState = initialState, action: any) => {
                 .setIn(['longitude'], action.data.longitude)
                 .setIn(['latitude'], action.data.latitude);
         case SocketClientActionTypes.LOGOUT:
-            return state.setIn(['dms'], Immutable.from([]))
-                .setIn(['forumMsgs'], Immutable.from([]));
+            return state.setIn(['myMoments'], Immutable.from([]));
         default:
             return state;
     }

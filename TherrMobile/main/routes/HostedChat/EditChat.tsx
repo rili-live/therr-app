@@ -6,7 +6,7 @@ import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-import { MessageActions } from 'therr-react/redux/actions';
+import { ForumActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import translator from '../../services/translator';
 import styles from '../../styles';
@@ -48,7 +48,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
-            createHostedChat: MessageActions.createForum,
+            createHostedChat: ForumActions.createForum,
         },
         dispatch
     );
@@ -147,6 +147,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
             this.setState({
                 isSubmitting: true,
             });
+            // TODO: Move success/error alert to hosted chat page andd remove settimeout
             this.props
                 .createHostedChat(createArgs)
                 .then(() => {
@@ -154,8 +155,8 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                         successMsg: this.translate('forms.editHostedChat.backendSuccessMessage'),
                     });
                     setTimeout(() => {
-                        this.props.navigation.navigate('Map');
-                    }, 500);
+                        this.props.navigation.navigate('HostedChat');
+                    }, 200);
                 })
                 .catch((error: any) => {
                     if (

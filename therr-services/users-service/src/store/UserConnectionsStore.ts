@@ -120,7 +120,7 @@ export default class UserConnectionsStore {
             })
             .toString();
 
-        return this.db.read.query(queryString).then((response) => formatSQLJoinAsJSON(response.rows, ['users']));
+        return this.db.read.query(queryString).then((response) => formatSQLJoinAsJSON(response.rows, [{ propKey: 'users', propId: 'id' }]));
     }
 
     // TODO: RSERV:25 - Make this dynamic to accept multiple queries
@@ -180,7 +180,7 @@ export default class UserConnectionsStore {
             .offset(offset)
             .toString();
 
-        return this.db.read.query(queryString).then((response) => formatSQLJoinAsJSON(response.rows, ['users']));
+        return this.db.read.query(queryString).then((response) => formatSQLJoinAsJSON(response.rows, [{ propKey: 'users', propId: 'id' }]));
     }
 
     createUserConnection(params: ICreateUserConnectionParams) {

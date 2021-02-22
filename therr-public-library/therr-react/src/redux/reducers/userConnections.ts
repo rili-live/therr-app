@@ -62,10 +62,10 @@ const userConnections = (state: IUserConnectionsState = initialState, action: an
                 activeConnections.unshift(action.data);
             }
             return state.setIn(['activeConnections'], activeConnections);
-        case SocketClientActionTypes.LOGOUT:
+        case SocketServerActionTypes.SESSION_CLOSED:
             return state.setIn(['connections'], Immutable.from([]))
                 .setIn(['activeConnections'], Immutable.from([]));
-        case SocketServerActionTypes.SESSION_CLOSED:
+        case SocketClientActionTypes.LOGOUT:
             return state.setIn(['connections'], Immutable.from([]))
                 .setIn(['activeConnections'], Immutable.from([]));
         default:

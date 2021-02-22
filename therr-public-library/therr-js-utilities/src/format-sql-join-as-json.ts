@@ -15,9 +15,14 @@ export default (dataArray: any, arrayPropKeys: any) => {
                 const split = key.split('.');
                 const splitKey = split[0].split('[]');
                 const isArrayOfObjects = splitKey.length === 2;
-                parsedObj[splitKey[0]] = parsedObj[splitKey[0]] || (isArrayOfObjects ? [{}] : {});
+                parsedObj[splitKey[0]] = parsedObj[splitKey[0]] || (isArrayOfObjects ? [] : {});
                 if (isArrayOfObjects) {
-                    parsedObj[splitKey[0]][0][split[1]] = data[key];
+                    if (data[key]) { // don't add an object if all properties are undefined/null
+                        if (!parsedObj[splitKey[0]][0]) {
+                            parsedObj[splitKey[0]][0] = {};
+                        }
+                        parsedObj[splitKey[0]][0][split[1]] = data[key];
+                    }
                 } else {
                     parsedObj[splitKey[0]][split[1]] = data[key];
                 }
@@ -27,12 +32,14 @@ export default (dataArray: any, arrayPropKeys: any) => {
         });
         return parsedObj;
     });
+
     return parsedDataArray.reduce((acc: any, cur: any) => {
         const duplicateIndex = acc.findIndex(((obj: any) => obj.id === cur.id));
         if (duplicateIndex >= 0) {
-            arrayPropKeys.forEach((propKey: any) => {
+            arrayPropKeys.forEach(({ propKey, propId }: any) => {
+                const identifier = propId || 'id';
                 if (Array.isArray(acc[duplicateIndex][propKey])) {
-                    if (!acc[duplicateIndex][propKey].find((val: any) => cur[propKey][0].id === val.id)) {
+                    if (!acc[duplicateIndex][propKey].find((val: any) => cur[propKey][0][identifier] === val[identifier])) {
                         acc[duplicateIndex][propKey] = acc[duplicateIndex][propKey].concat(cur[propKey]);
                     }
                 }

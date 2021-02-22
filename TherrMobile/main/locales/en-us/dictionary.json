@@ -212,6 +212,7 @@
       }
     },
     "hostedChat": {
+      "noResultsFound": "No results found...",
       "searchPlaceholder": "Search by name..."
     },
     "loginForm": {

@@ -18,6 +18,7 @@ export type IForumMsgList = Immutable.ImmutableArray<IForumMsg>;
 export type IForumMsgs = Immutable.ImmutableObject<{[index: string]: IForumMsgList}>;
 
 export interface IMessagesState extends Immutable.ImmutableObject<any> {
+    forums: Immutable.ImmutableArray<any>;
     dms: {
         [key: string]: IDirectMsg;
     } | {};

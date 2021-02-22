@@ -32,6 +32,15 @@ class ForumsService {
         data,
     })
 
+    searchCategories = (query: ISearchQuery) => {
+        const queryString = getSearchQueryString(query);
+
+        return axios({
+            method: 'get',
+            url: `/messages-service/forums/categories${queryString}`,
+        });
+    }
+
     searchForums = (query: ISearchQuery, data: ISearchForumsArgs = {}) => {
         const queryString = getSearchQueryString(query);
 

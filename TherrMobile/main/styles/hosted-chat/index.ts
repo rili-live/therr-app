@@ -21,6 +21,13 @@ export default StyleSheet.create({
     },
     searchIcon: {
     },
+    noResultsText: {
+        textAlign: 'center',
+        fontSize: 18,
+        color: therrTheme.colors.textGray,
+        paddingVertical: 20,
+        paddingHorizontal: 5,
+    },
     scrollContentContainer: {
         paddingHorizontal: EDGE_PADDING * 2,
     },
