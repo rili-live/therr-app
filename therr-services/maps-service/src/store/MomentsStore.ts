@@ -86,7 +86,7 @@ export default class MomentsStore {
 
         if ((conditions.filterBy && conditions.filterBy !== 'distance') && conditions.query != undefined) { // eslint-disable-line eqeqeq
             const operator = conditions.filterOperator || '=';
-            const query = operator === 'like' ? `%${conditions.query}%` : conditions.query;
+            const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
 
             if (conditions.filterBy === 'fromUserIds') {
                 queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names

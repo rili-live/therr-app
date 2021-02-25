@@ -8,6 +8,13 @@ const Forums = {
             data: response && response.data,
         });
     }),
+    searchCategories: (query: any) => (dispatch: any) => ForumsService.searchCategories(query)
+        .then((response: any) => {
+            dispatch({
+                type: ForumActionTypes.SEARCH_FORUM_CATEGORIES,
+                data: response.data,
+            });
+        }),
     searchForums: (query: any, args: ISearchForumsArgs = {}) => (dispatch: any) => ForumsService.searchForums(query, args)
         .then((response: any) => {
             dispatch({

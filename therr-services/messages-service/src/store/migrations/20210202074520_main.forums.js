@@ -1,10 +1,10 @@
 exports.up = (knex) => knex.schema.withSchema('main').createTable('forums', (table) => {
     table.increments('id');
     table.integer('authorId');
-    table.string('authorLocale').notNullable();
-    table.string('title').notNullable();
-    table.string('subtitle').notNullable();
-    table.text('description').notNullable();
+    table.string('authorLocale').collate('utf8_general_ci').notNullable();
+    table.string('title').collate('utf8_general_ci').notNullable();
+    table.string('subtitle').collate('utf8_general_ci').notNullable();
+    table.text('description').collate('utf8_general_ci').notNullable();
     table.text('administratorIds').notNullable().defaultsTo(''); // comma separated list
     table.text('hashTags').notNullable().defaultsTo('');
     table.text('integrationIds').notNullable().defaultsTo(''); // comma separated list

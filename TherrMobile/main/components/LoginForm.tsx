@@ -150,6 +150,7 @@ export class LoginFormComponent extends React.Component<
                         this.onInputChange('password', text)
                     }
                     secureTextEntry={true}
+                    onSubmitEditing={() => this.onSubmit()}
                     rightIcon={
                         <FontAwesomeIcon
                             name="lock"

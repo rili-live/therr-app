@@ -52,7 +52,7 @@ export default class DirectMessagesStore {
 
         if (conditions.filterBy && conditions.query) {
             const operator = conditions.filterOperator || '=';
-            const query = operator === 'like' ? `%${conditions.query}%` : conditions.query;
+            const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
             queryString = queryString.where('toUserId', userId).andWhere(conditions.filterBy, operator, query);
             if (shouldCheckReverse === 'true' && conditions.filterBy === 'fromUserId') {
                 queryString = queryString.orWhere('fromUserId', userId)

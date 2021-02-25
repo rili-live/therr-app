@@ -14,6 +14,7 @@ import translator from '../../services/translator';
 // import * as therrTheme from '../../styles/themes';
 import beemoLayoutStyles from '../../styles/layouts/beemo';
 import styles from '../../styles';
+import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
 
 interface IViewChatDispatchProps {
     logout: Function;
@@ -48,11 +49,15 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
+    private hashtags;
     private scrollViewRef;
     private translate: Function;
 
     constructor(props) {
         super(props);
+
+        const { hashTags } = props.route.params;
+        this.hashtags = hashTags ? hashTags.split(',') : [];
 
         this.state = {
         };
@@ -72,7 +77,7 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
 
     render() {
         const { route } = this.props;
-        const { description } = route.params;
+        const { description, subtitle } = route.params;
 
         return (
             <>
@@ -85,7 +90,13 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                         contentContainerStyle={[styles.bodyScroll, beemoLayoutStyles.bodyEditScroll]}
                     >
                         <View style={beemoLayoutStyles.container}>
+                            <Text>{subtitle}</Text>
                             <Text>{description}</Text>
+                            <HashtagsContainer
+                                hasIcon={false}
+                                hashtags={this.hashtags}
+                                onHashtagPress={() => {}}
+                            />
                         </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>

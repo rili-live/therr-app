@@ -4,7 +4,6 @@ import { IForumMsgList, IMessagesState, MessageActionTypes } from '../../types/r
 
 const initialState: IMessagesState = Immutable.from({
     forums: Immutable.from([]),
-    myForums: Immutable.from([]),
     dms: {},
     forumMsgs: {},
 });
@@ -42,7 +41,8 @@ const messages = (state: IMessagesState = initialState, action: any) => {
             directMessages.push(action.data.message);
             return state.setIn(['dms', action.data.contextUserId], directMessages);
         case SocketClientActionTypes.LOGOUT:
-            return state.setIn(['dms'], Immutable.from([]))
+            return state.setIn(['forums'], Immutable.from([]))
+                .setIn(['dms'], Immutable.from([]))
                 .setIn(['forumMsgs'], Immutable.from([]));
         default:
             return state;

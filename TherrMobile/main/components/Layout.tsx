@@ -1,5 +1,5 @@
 import React from 'react';
-import { DeviceEventEmitter, PermissionsAndroid, Platform } from 'react-native';
+import { DeviceEventEmitter, PermissionsAndroid, Platform, View } from 'react-native';
 import LocationServicesDialogBox  from 'react-native-android-location-services-dialog-box';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import { UsersService } from 'therr-react/services';
@@ -185,7 +185,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     updateGpsStatus={updateGpsStatus}
                                     user={user}
                                 />
-                            ) : null,
+                            ) : () => (<View />),
                             headerTitleStyle: {
                                 ...styles.headerTitleStyle,
                                 color: headerTitleColor,

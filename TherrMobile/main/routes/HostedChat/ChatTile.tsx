@@ -71,7 +71,7 @@ export default (onChatTilePress) => {
                     <View style={tileStyles.footer}>
                         <View style={tileStyles.footerIconsContainer}>
                             {
-                                chat.categories.map((cat) => renderChatIcon(cat))
+                                chat.categories && chat.categories.map((cat) => renderChatIcon(cat))
                             }
                         </View>
                     </View>
