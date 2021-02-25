@@ -38,6 +38,8 @@ export interface IHostedChatProps extends IStoreProps {
 }
 
 interface IHostedChatState {
+    categories: any[];
+    searchFilters: any;
     searchInput: string;
     toggleChevronName: 'chevron-down' | 'chevron-up',
 }
@@ -61,11 +63,28 @@ const mapDispatchToProps = (dispatch: any) =>
 class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
     private flatListRef: any;
     private translate: Function;
+    private searchTimerId: any;
+
+    static getDerivedStateFromProps(nextProps: IHostedChatProps, nextState: IHostedChatState) {
+        if (!nextState.categories || !nextState.categories.length) {
+            return {
+                categories: nextProps.forums.forumCategories,
+            };
+        }
+
+        return null;
+    }
 
     constructor(props) {
         super(props);
 
         this.state = {
+            categories: props.categories || [],
+            searchFilters: {
+                itemsPerPage: 100,
+                pageNumber: 1,
+                order: 'desc',
+            },
             searchInput: '',
             toggleChevronName: 'chevron-down',
         };
@@ -76,17 +95,14 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
 
     componentDidMount() {
         const { forums, navigation, searchCategories, searchForums } = this.props;
+        const { searchFilters } = this.state;
 
         navigation.setOptions({
             title: this.translate('pages.hostedChat.headerTitle'),
         });
 
         if (forums && (!forums.searchResults || !forums.searchResults.length)) {
-            searchForums({
-                itemsPerPage: 20,
-                pageNumber: 1,
-                order: 'desc',
-            }, {});
+            searchForums(searchFilters, {});
         }
 
         if (forums && (!forums.forumCategories || !forums.forumCategories.length)) {
@@ -98,12 +114,29 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
         }
     }
 
+    componentWillUnmount = () => {
+        clearTimeout(this.searchTimerId);
+    }
+
     handleCategoryPress = (category) => {
-        console.log(category);
+        const { categories, searchInput } = this.state;
+        const modifiedCategories: any = [ ...categories ];
+
+        modifiedCategories.some((c, i) => {
+            if (c.tag === category.tag) {
+                modifiedCategories[i] = { ...c, isActive: !c.isActive };
+                return true;
+            }
+        });
+
+        this.searchForumsWithFilters(searchInput, modifiedCategories);
+
+        this.setState({
+            categories: modifiedCategories,
+        });
     }
 
     handleChatTilePress = (chat) => {
-        console.log(chat);
         const { navigation } = this.props;
 
         navigation.navigate('ViewChat', chat);
@@ -111,28 +144,51 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
 
     handleCategoryTogglePress = () => {
         const  { toggleChevronName } = this.state;
-        console.log('Toggle', toggleChevronName === 'chevron-down' ? 'chevron-up' : 'chevron-down');
         this.setState({
             toggleChevronName: toggleChevronName === 'chevron-down' ? 'chevron-up' : 'chevron-down',
         });
     }
 
     handleCreateHostedChat = () => {
-        const { navigation } = this.props;
+        const { forums, navigation } = this.props;
+        const categories = (forums && forums.forumCategories) || [];
 
-        navigation.navigate('EditChat');
+        navigation.navigate('EditChat', { categories });
     };
 
     onSearchInputChange = (text) => {
+        this.searchForumsWithFilters(text);
+
         this.setState({
             searchInput: text,
         });
     }
 
+    searchForumsWithFilters = (text, modifiedCategories?) => {
+        const { searchForums } = this.props;
+        const { categories, searchFilters } = this.state;
+
+        clearTimeout(this.searchTimerId);
+
+        this.searchTimerId = setTimeout(() => {
+            const selectedCategoryTags = (modifiedCategories || categories).filter(c => c.isActive).map(c => c.tag);
+            const searchParams = {
+                ...searchFilters,
+                query: text,
+                filterBy: 'title',
+                filterOperator: 'ilike',
+            };
+            const searchArgs: any = {};
+            if (selectedCategoryTags.length) {
+                searchArgs.categoryTags = selectedCategoryTags;
+            }
+            searchForums(searchParams, searchArgs);
+        }, 250);
+    }
+
     render() {
         const { forums } = this.props;
-        const { toggleChevronName } = this.state;
-        const categories = (forums && forums.forumCategories) || [];
+        const { categories, toggleChevronName } = this.state;
         const forumSearchResults = (forums && forums.searchResults) || [];
 
         return (
@@ -160,6 +216,8 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
                         />
                     </View>
                     <ChatCategories
+                        style={{}}
+                        backgroundColor={therrTheme.colors.primary2}
                         categories={categories}
                         onCategoryPress={this.handleCategoryPress}
                         translate={this.translate}

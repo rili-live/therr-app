@@ -118,14 +118,15 @@ export default class ForumsStore {
 
         if (options.forumIds) {
             queryString = queryString.whereIn('id', options.forumIds);
-        } else if (options.categoryTags) {
+        } else if (options.categoryTags && options.categoryTags.length) {
             // Use forumCategries table to filter
             // May be able to improve speed by combining queries
             // Keep in mind sharding will add further complexity
             const categoriesQueryString: any = knex
                 .select('*')
                 .from(FORUM_CATEGORIES_TABLE_NAME)
-                .whereIn('categoryTag', options.categoryTags);
+                .whereIn('categoryTag', options.categoryTags)
+                .toString();
             const forumCategories = await this.db.read.query(categoriesQueryString).then((response) => response.rows);
             const forumIds = forumCategories.map((cat) => cat.forumId);
             queryString = queryString.whereIn('id', forumIds);
@@ -133,7 +134,7 @@ export default class ForumsStore {
 
         if (conditions.filterBy && conditions.query) {
             const operator = conditions.filterOperator || '=';
-            const query = operator === 'like' ? `%${conditions.query}%` : conditions.query;
+            const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
             const isPublic = !options.usersInvitedForumIds;
             queryString = queryString.where('isPublic', isPublic).andWhere(conditions.filterBy, operator, query);
         }
@@ -160,17 +161,24 @@ export default class ForumsStore {
 
         delete forumParams.categoryTags;
 
-        // TODO: Create categories (sql transaction)
-        // params.categoryTags.forEach((tag) => [
-
-        // ]);
-
         const queryString = knex.insert(forumParams)
             .into(FORUMS_TABLE_NAME)
             .returning('*')
             .toString();
 
-        return this.db.write.query(queryString).then((response) => response.rows);
+        // TODO: Make this a transaction
+        return this.db.write.query(queryString).then((response) => {
+            const forumCategories = params.categoryTags.map((tag) => ({
+                forumId: response.rows[0].id,
+                categoryTag: tag,
+            }));
+
+            return this.db.write.query(
+                knex.insert(forumCategories)
+                    .into(FORUM_CATEGORIES_TABLE_NAME)
+                    .toString(),
+            ).then(() => response.rows);
+        });
     }
 
     updateForum(conditions: IUpdateForumConditions, params: IUpdateForumParams) {
