@@ -1,5 +1,5 @@
 import * as Immutable from 'seamless-immutable';
-import { SocketServerActionTypes } from 'therr-js-utilities/constants';
+import { SocketServerActionTypes, SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { INotificationsState, NotificationActionTypes } from '../../types/redux/notifications';
 
 const initialState: INotificationsState = Immutable.from({
@@ -33,6 +33,8 @@ const notifications = (state: INotificationsState = initialState, action: any) =
                 return message;
             });
             return state.setIn(['messages'], modifiedMessages);
+        case SocketClientActionTypes.LOGOUT:
+            return state.setIn(['messages'], Immutable.from([]));
         default:
             return state;
     }

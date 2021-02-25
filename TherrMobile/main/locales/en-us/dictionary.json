@@ -212,6 +212,7 @@
       }
     },
     "hostedChat": {
+      "noResultsFound": "No results found...",
       "searchPlaceholder": "Search by name..."
     },
     "loginForm": {
@@ -377,7 +378,7 @@
       "headerTitle": "Hosted Chat",
       "pageTitle": "Hosted Chat",
       "categories": {
-        "title": "Filters"
+        "title": "Categories"
       }
     },
     "notifications": {

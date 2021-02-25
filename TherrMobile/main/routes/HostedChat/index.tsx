@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, SafeAreaView, StatusBar, View } from 'react-native';
+import { Text, FlatList, SafeAreaView, StatusBar, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -20,128 +20,8 @@ import renderChatTile from './ChatTile';
 
 const chatKeyExtractor = (item) => item.id.toString();
 
-let categories: any[] = [
-    {
-        name: 'music',
-        tag: 'music',
-        iconColor: '#143b54',
-        iconId: 'music',
-        iconGroup: 'font-awesome-5',
-    },
-    {
-        name: 'movies',
-        tag: 'movies',
-        iconColor: '#ebc300',
-        iconId: 'video',
-        iconGroup: 'font-awesome-5',
-    },
-    {
-        name: 'science',
-        tag: 'science',
-        iconColor: '#388254',
-        iconId: 'biotech',
-        iconGroup: 'therr',
-    },
-    {
-        name: 'tech',
-        tag: 'tech',
-        iconColor: '#f9ad2a',
-        iconId: 'rocket',
-        iconGroup: 'therr',
-    },
-    {
-        name: 'sports',
-        tag: 'sports',
-        iconColor: '#363636',
-        iconId: 'futbol',
-        iconGroup: 'font-awesome-5',
-    },
-];
-
-const hostedChats: any[] = [
-    {
-        id: 1,
-        authorId: 7,
-        authorLocale: 'en-us',
-        title: 'A Basic Hosted Chat With a Really Long Title',
-        subtitle: 'This is sample content for demo',
-        description: 'This chat is about general topics This chat is about general topics This chat is about general topics This chat is about general topics This chat is about general topics', // eslint-disable-line max-len
-        administratorIds: '7',
-        integrationIds: '',
-        invitees: '7,8,9',
-        iconGroup: 'therr',
-        iconId: 'rocket',
-        iconColor: '#f9ad2a',
-        maxCommentsPerMin: 5,
-        doesExpire: false,
-        isPublic: true,
-        createdAt: '2021-02-15T15:37:23.899Z',
-        updatedAt: '2021-02-15T15:57:23.899Z',
-        categories: [categories[3], categories[1]],
-    },
-    {
-        id: 2,
-        authorId: 8,
-        authorLocale: 'en-us',
-        title: 'Another Basic Hosted Chat',
-        subtitle: 'This is more sample content for demo',
-        description: 'This chat is about sports',
-        administratorIds: '8',
-        integrationIds: '',
-        invitees: '7,8,9',
-        iconGroup: 'font-awesome-5',
-        iconId: 'futbol',
-        iconColor: '#363636',
-        maxCommentsPerMin: 5,
-        doesExpire: false,
-        isPublic: false,
-        createdAt: '2021-02-15T15:17:23.899Z',
-        updatedAt: '2021-02-15T15:17:23.899Z',
-        categories: [categories[4]],
-    },
-    {
-        id: 3,
-        authorId: 9,
-        authorLocale: 'en-us',
-        title: 'A Basic Hosted Chat',
-        subtitle: 'This is sample content for demo',
-        description: 'This chat is about general topics',
-        administratorIds: '7',
-        integrationIds: '',
-        invitees: '7,8,9',
-        iconGroup: 'therr',
-        iconId: 'rocket',
-        iconColor: '#f9ad2a',
-        maxCommentsPerMin: 5,
-        doesExpire: false,
-        isPublic: true,
-        createdAt: '2021-02-15T15:37:23.899Z',
-        updatedAt: '2021-02-15T15:57:23.899Z',
-        categories: [categories[3], categories[1]],
-    },
-    {
-        id: 4,
-        authorId: 8,
-        authorLocale: 'en-us',
-        title: 'Another Basic Hosted Chat',
-        subtitle: 'This is more sample content for demo',
-        description: 'This chat is about sports',
-        administratorIds: '8',
-        integrationIds: '',
-        invitees: '7,8,9',
-        iconGroup: 'font-awesome-5',
-        iconId: 'futbol',
-        iconColor: '#363636',
-        maxCommentsPerMin: 5,
-        doesExpire: false,
-        isPublic: false,
-        createdAt: '2021-02-15T15:17:23.899Z',
-        updatedAt: '2021-02-15T15:17:23.899Z',
-        categories: [categories[4]],
-    },
-];
-
 interface IHostedChatDispatchProps {
+    searchCategories: Function;
     searchForums: Function;
     searchUserConnections: Function;
 }
@@ -158,7 +38,8 @@ export interface IHostedChatProps extends IStoreProps {
 }
 
 interface IHostedChatState {
-    categories: any,
+    categories: any[];
+    searchFilters: any;
     searchInput: string;
     toggleChevronName: 'chevron-down' | 'chevron-up',
 }
@@ -172,6 +53,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
+            searchCategories: ForumActions.searchCategories,
             searchForums: ForumActions.searchForums,
             searchUserConnections: UserConnectionsActions.search,
         },
@@ -179,13 +61,30 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
+    private flatListRef: any;
     private translate: Function;
+    private searchTimerId: any;
+
+    static getDerivedStateFromProps(nextProps: IHostedChatProps, nextState: IHostedChatState) {
+        if (!nextState.categories || !nextState.categories.length) {
+            return {
+                categories: nextProps.forums.forumCategories,
+            };
+        }
+
+        return null;
+    }
 
     constructor(props) {
         super(props);
 
         this.state = {
-            categories,
+            categories: props.categories || [],
+            searchFilters: {
+                itemsPerPage: 100,
+                pageNumber: 1,
+                order: 'desc',
+            },
             searchInput: '',
             toggleChevronName: 'chevron-down',
         };
@@ -195,37 +94,49 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
     }
 
     componentDidMount() {
-        const { forums, navigation, searchForums } = this.props;
+        const { forums, navigation, searchCategories, searchForums } = this.props;
+        const { searchFilters } = this.state;
 
         navigation.setOptions({
             title: this.translate('pages.hostedChat.headerTitle'),
         });
 
-        // TODO: Fetch available rooms on first load
         if (forums && (!forums.searchResults || !forums.searchResults.length)) {
-            searchForums({
-                itemsPerPage: 20,
+            searchForums(searchFilters, {});
+        }
+
+        if (forums && (!forums.forumCategories || !forums.forumCategories.length)) {
+            searchCategories({
+                itemsPerPage: 100,
                 pageNumber: 1,
                 order: 'desc',
             }, {});
         }
     }
 
+    componentWillUnmount = () => {
+        clearTimeout(this.searchTimerId);
+    }
+
     handleCategoryPress = (category) => {
-        categories.some((cat: any, i) => {
-            if (cat.tag === category.tag) {
-                categories[i].isActive = !cat.isActive;
+        const { categories, searchInput } = this.state;
+        const modifiedCategories: any = [ ...categories ];
+
+        modifiedCategories.some((c, i) => {
+            if (c.tag === category.tag) {
+                modifiedCategories[i] = { ...c, isActive: !c.isActive };
                 return true;
             }
         });
 
+        this.searchForumsWithFilters(searchInput, modifiedCategories);
+
         this.setState({
-            categories,
+            categories: modifiedCategories,
         });
     }
 
     handleChatTilePress = (chat) => {
-        console.log(chat);
         const { navigation } = this.props;
 
         navigation.navigate('ViewChat', chat);
@@ -233,27 +144,52 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
 
     handleCategoryTogglePress = () => {
         const  { toggleChevronName } = this.state;
-        console.log('Toggle', toggleChevronName === 'chevron-down' ? 'chevron-up' : 'chevron-down');
         this.setState({
             toggleChevronName: toggleChevronName === 'chevron-down' ? 'chevron-up' : 'chevron-down',
         });
     }
 
     handleCreateHostedChat = () => {
-        const { navigation } = this.props;
+        const { forums, navigation } = this.props;
+        const categories = (forums && forums.forumCategories) || [];
 
-        navigation.navigate('EditChat');
+        navigation.navigate('EditChat', { categories });
     };
 
     onSearchInputChange = (text) => {
+        this.searchForumsWithFilters(text);
+
         this.setState({
             searchInput: text,
         });
     }
 
+    searchForumsWithFilters = (text, modifiedCategories?) => {
+        const { searchForums } = this.props;
+        const { categories, searchFilters } = this.state;
+
+        clearTimeout(this.searchTimerId);
+
+        this.searchTimerId = setTimeout(() => {
+            const selectedCategoryTags = (modifiedCategories || categories).filter(c => c.isActive).map(c => c.tag);
+            const searchParams = {
+                ...searchFilters,
+                query: text,
+                filterBy: 'title',
+                filterOperator: 'ilike',
+            };
+            const searchArgs: any = {};
+            if (selectedCategoryTags.length) {
+                searchArgs.categoryTags = selectedCategoryTags;
+            }
+            searchForums(searchParams, searchArgs);
+        }, 250);
+    }
+
     render() {
-        // const { navigation, user } = this.props;
+        const { forums } = this.props;
         const { categories, toggleChevronName } = this.state;
+        const forumSearchResults = (forums && forums.searchResults) || [];
 
         return (
             <>
@@ -280,20 +216,33 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
                         />
                     </View>
                     <ChatCategories
+                        style={{}}
+                        backgroundColor={therrTheme.colors.primary2}
                         categories={categories}
                         onCategoryPress={this.handleCategoryPress}
                         translate={this.translate}
                         onCategoryTogglePress={this.handleCategoryTogglePress}
                         toggleChevronName={toggleChevronName}
                     />
-                    <FlatList
-                        horizontal={false}
-                        keyExtractor={chatKeyExtractor}
-                        data={hostedChats}
-                        renderItem={renderChatTile(this.handleChatTilePress)}
-                        style={styles.scrollViewFull}
-                        contentContainerStyle={hostedChatStyles.scrollContentContainer}
-                    />
+
+                    {
+                        !forumSearchResults.length
+                            ? <Text style={hostedChatStyles.noResultsText}>{this.translate('forms.hostedChat.noResultsFound')}</Text>
+                            : <FlatList
+                                horizontal={false}
+                                keyExtractor={chatKeyExtractor}
+                                data={forumSearchResults}
+                                renderItem={renderChatTile(this.handleChatTilePress)}
+                                style={styles.scrollViewFull}
+                                contentContainerStyle={hostedChatStyles.scrollContentContainer}
+                                ref={(component) => (this.flatListRef = component)}
+                                initialScrollIndex={0}
+                                onContentSizeChange={forumSearchResults.length ? () => this.flatListRef.scrollToIndex({
+                                    index: 0,
+                                    animated: true,
+                                }) : undefined}
+                            />
+                    }
                     <View style={hostedChatStyles.createChatBtnContainer}>
                         <Button
                             buttonStyle={buttonStyles.btn}

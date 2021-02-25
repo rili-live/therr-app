@@ -35,8 +35,8 @@ export default (reqQuery: IReqQuery, numberColumns: string[]): [any, string[] | 
         },
         order: (order && order.toLowerCase()) || 'asc',
         orderBy,
-        longitude: Number(longitude),
-        latitude: Number(latitude),
+        longitude: longitude ? Number(longitude) : undefined,
+        latitude: latitude ? Number(latitude) : undefined,
     };
 
     if (returning) {

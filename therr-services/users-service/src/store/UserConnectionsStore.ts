@@ -51,7 +51,7 @@ export default class UserConnectionsStore {
 
         if (params.filterBy && params.query) {
             const operator = params.filterOperator || '=';
-            const query = operator === 'like' ? `%${params.query}%` : params.query;
+            const query = operator === 'ilike' ? `%${params.query}%` : params.query;
             queryString = queryString.andWhere((builder) => {
                 builder.where('requestingUserId', operator, query);
                 if (shouldCheckReverse === 'true') {
@@ -120,7 +120,7 @@ export default class UserConnectionsStore {
             })
             .toString();
 
-        return this.db.read.query(queryString).then((response) => formatSQLJoinAsJSON(response.rows, ['users']));
+        return this.db.read.query(queryString).then((response) => formatSQLJoinAsJSON(response.rows, [{ propKey: 'users', propId: 'id' }]));
     }
 
     // TODO: RSERV:25 - Make this dynamic to accept multiple queries
@@ -158,7 +158,7 @@ export default class UserConnectionsStore {
 
         if (conditions.filterBy && conditions.query) {
             const operator = conditions.filterOperator || '=';
-            const query = operator === 'like' ? `%${conditions.query}%` : conditions.query;
+            const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
             queryString = queryString.andWhere((builder) => {
                 builder.where('requestingUserId', operator, query);
                 if (shouldCheckReverse === 'true') {
@@ -180,7 +180,7 @@ export default class UserConnectionsStore {
             .offset(offset)
             .toString();
 
-        return this.db.read.query(queryString).then((response) => formatSQLJoinAsJSON(response.rows, ['users']));
+        return this.db.read.query(queryString).then((response) => formatSQLJoinAsJSON(response.rows, [{ propKey: 'users', propId: 'id' }]));
     }
 
     createUserConnection(params: ICreateUserConnectionParams) {

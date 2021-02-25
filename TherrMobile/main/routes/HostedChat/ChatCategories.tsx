@@ -60,16 +60,18 @@ const renderCategoryButton = (onCategoryPress) => {
 };
 
 export default ({
+    backgroundColor,
     categories,
     onCategoryPress,
     onCategoryTogglePress,
+    style,
     toggleChevronName,
     translate,
 }) => {
     return (
-        <View style={categoryStyles.outerContainer}>
+        <View style={[categoryStyles.outerContainer, style]}>
             <View style={categoryStyles.innerContainer}>
-                <Text style={categoryStyles.header}>{translate('pages.hostedChat.categories.title')}</Text>
+                <Text style={[categoryStyles.header, { backgroundColor }]}>{translate('pages.hostedChat.categories.title')}</Text>
                 <FlatList
                     horizontal={true}
                     keyExtractor={keyExtractor}
@@ -79,7 +81,7 @@ export default ({
                 />
             </View>
             <Button
-                containerStyle={categoryStyles.listToggleButtonContainer}
+                containerStyle={[categoryStyles.listToggleButtonContainer, { backgroundColor }]}
                 icon={
                     <FontAwesome5Icon
                         name={toggleChevronName}

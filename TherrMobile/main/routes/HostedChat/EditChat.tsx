@@ -6,16 +6,18 @@ import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-import { MessageActions } from 'therr-react/redux/actions';
+import { ForumActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import translator from '../../services/translator';
 import styles from '../../styles';
+import * as therrTheme from '../../styles/themes';
 import beemoLayoutStyles from '../../styles/layouts/beemo';
 import { beemoEditForm as beemoFormStyles } from '../../styles/forms';
 import formatHashtags from '../../utilities/formatHashtags';
 import BeemoInput from '../../components/Input/Beemo';
 import BeemoTextInput from '../../components/TextInput/Beemo';
 import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
+import ChatCategories from './ChatCategories';
 
 interface IEditChatDispatchProps {
     logout: Function;
@@ -30,11 +32,14 @@ interface IStoreProps extends IEditChatDispatchProps {
 // Regular component props
 export interface IEditChatProps extends IStoreProps {
     navigation: any;
+    route: any;
 }
 
 interface IEditChatState {
+    categories: any[];
     errorMsg: string;
     successMsg: string;
+    toggleChevronName: string;
     hashtags: string[];
     inputs: any;
     isSubmitting: boolean;
@@ -48,7 +53,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
-            createHostedChat: MessageActions.createForum,
+            createHostedChat: ForumActions.createForum,
         },
         dispatch
     );
@@ -60,9 +65,14 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
     constructor(props) {
         super(props);
 
+        const { route } = props;
+        const { categories } = route.params;
+
         this.state = {
+            categories: categories.map(c => ({ ...c, isActive: false })),
             errorMsg: '',
             successMsg: '',
+            toggleChevronName: 'chevron-down',
             hashtags: [],
             inputs: {},
             isSubmitting: false,
@@ -78,8 +88,6 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
         navigation.setOptions({
             title: this.translate('pages.editChat.headerTitleCreate'),
         });
-
-        // TODO: Fetch available rooms on first load
     }
 
     handleHashtagPress = (tag) => {
@@ -109,13 +117,12 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
 
     onSubmit = () => {
         const { user } = this.props;
-        const { hashtags } = this.state;
+        const { categories, hashtags } = this.state;
         const {
             administratorIds,
             title,
             subtitle,
             description,
-            categoryTags,
             integrationIds,
             invitees,
             iconGroup,
@@ -131,7 +138,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
             title,
             subtitle,
             description,
-            categoryTags: categoryTags || ['general'],
+            categoryTags: categories.filter(c => c.isActive).map(c => c.tag) || ['general'],
             hashTags: hashtags.join(','),
             integrationIds: integrationIds ? integrationIds.join(',') : '',
             invitees: invitees ? invitees.join('') : '',
@@ -147,6 +154,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
             this.setState({
                 isSubmitting: true,
             });
+            // TODO: Move success/error alert to hosted chat page andd remove settimeout
             this.props
                 .createHostedChat(createArgs)
                 .then(() => {
@@ -154,8 +162,8 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                         successMsg: this.translate('forms.editHostedChat.backendSuccessMessage'),
                     });
                     setTimeout(() => {
-                        this.props.navigation.navigate('Map');
-                    }, 500);
+                        this.props.navigation.navigate('HostedChat');
+                    }, 200);
                 })
                 .catch((error: any) => {
                     if (
@@ -210,9 +218,33 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
         });
     };
 
+    handleCategoryTogglePress = () => {
+        const  { toggleChevronName } = this.state;
+
+        this.setState({
+            toggleChevronName: toggleChevronName === 'chevron-down' ? 'chevron-up' : 'chevron-down',
+        });
+    }
+
+    handleCategoryPress = (category) => {
+        const { categories } = this.state;
+        const modifiedCategories: any = [ ...categories ];
+
+        modifiedCategories.some((c, i) => {
+            if (c.tag === category.tag) {
+                modifiedCategories[i] = { ...c, isActive: !c.isActive };
+                return true;
+            }
+        });
+
+        this.setState({
+            categories: modifiedCategories,
+        });
+    }
+
     render() {
         const { navigation } = this.props;
-        const { hashtags, inputs } = this.state;
+        const { categories, hashtags, inputs, toggleChevronName } = this.state;
 
         return (
             <>
@@ -224,6 +256,15 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                         style={[styles.bodyFlex, beemoLayoutStyles.bodyEdit]}
                         contentContainerStyle={[styles.bodyScroll, beemoLayoutStyles.bodyEditScroll]}
                     >
+                        <ChatCategories
+                            style={beemoLayoutStyles.categoriesContainer}
+                            backgroundColor={therrTheme.colors.beemo1}
+                            categories={categories}
+                            onCategoryPress={this.handleCategoryPress}
+                            translate={this.translate}
+                            onCategoryTogglePress={this.handleCategoryTogglePress}
+                            toggleChevronName={toggleChevronName}
+                        />
                         <View style={beemoLayoutStyles.container}>
                             <BeemoInput
                                 placeholder={this.translate(

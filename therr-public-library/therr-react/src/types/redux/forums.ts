@@ -9,6 +9,7 @@ export interface IForum {
 export type IForumsArray = Immutable.ImmutableArray<IForum>;
 
 export interface IForumsState extends Immutable.ImmutableObject<any> {
+    forumCategories: any;
     myForumsSearchResults: any;
     myForumsPagination: any;
     searchResults: any;
@@ -18,4 +19,5 @@ export interface IForumsState extends Immutable.ImmutableObject<any> {
 export enum ForumActionTypes {
     CREATE_FORUM = 'CREATE_FORUM',
     SEARCH_FORUMS = 'SEARCH_FORUMS',
+    SEARCH_FORUM_CATEGORIES = 'SEARCH_FORUM_CATEGORIES',
 }
