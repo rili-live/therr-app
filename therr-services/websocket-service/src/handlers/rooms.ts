@@ -9,6 +9,7 @@ export const FORUM_PREFIX = 'FORUM:';
 
 interface IRoomData {
     roomId: string;
+    roomName: string;
     userName: string;
 }
 
@@ -21,7 +22,7 @@ const joinRoom = (socket: socketio.Socket, data: IRoomData) => {
     printLogs({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
-        messages: `User, ${data.userName} with socketId ${socket.id}, joined room ${data.roomId}`,
+        messages: `User, ${data.userName} with socketId ${socket.id}, joined room ${data.roomName}`,
         tracer: beeline,
         traceArgs: {
             socketId: socket.id,
@@ -44,7 +45,7 @@ const joinRoom = (socket: socketio.Socket, data: IRoomData) => {
             message: {
                 key: Date.now().toString(),
                 time: now,
-                text: `You joined the room, ${data.roomId}`,
+                text: `You joined the room, ${data.roomName}`,
             },
             userName: data.userName,
         },
@@ -58,7 +59,7 @@ const joinRoom = (socket: socketio.Socket, data: IRoomData) => {
             message: {
                 key: Date.now().toString(),
                 time: now,
-                text: `${data.userName} joined room, ${data.roomId}`,
+                text: `${data.userName} joined room, ${data.roomName}`,
             },
         },
     });

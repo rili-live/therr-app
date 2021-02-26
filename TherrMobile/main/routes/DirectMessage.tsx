@@ -161,6 +161,7 @@ class DirectMessage extends React.Component<
                                 placeholder={this.translate(
                                     'pages.directMessage.inputPlaceholder'
                                 )}
+                                onSubmitEditing={() => this.handleSend()}
                                 containerStyle={messageStyles.inputContainer}
                                 errorStyle={styles.displayNone}
                             />

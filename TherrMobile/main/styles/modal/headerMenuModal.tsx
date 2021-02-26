@@ -54,7 +54,7 @@ export default StyleSheet.create({
         flexDirection: 'row',
         color: therrTheme.colors.beemo3,
         borderBottomWidth: 2,
-        borderBottomColor: '#4950571c',
+        borderBottomColor: therrTheme.colors.beemoDivider,
         height: HEADER_HEIGHT - HEADER_EXTRA_HEIGHT,
     },
     headerTitle: {

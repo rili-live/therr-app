@@ -3,6 +3,7 @@ import { SocketClientActionTypes, SocketServerActionTypes } from 'therr-js-utili
 import { ForumActionTypes, IForumsState } from '../../types/redux/forums';
 
 const initialState: IForumsState = Immutable.from({
+    activeForums: Immutable.from([]),
     forumCategories: Immutable.from([]),
     myForumsSearchResults: Immutable.from([]),
     myForumsPagination: Immutable.from([]),
@@ -24,7 +25,7 @@ const messages = (state: IForumsState = initialState, action: any) => {
             return state.setIn(['forumCategories'], action.data.results);
         case SocketServerActionTypes.SEND_ROOMS_LIST:
             // Any time this action is called, the data will be a full forum list from the server
-            return state.setIn(['forums'], action.data);
+            return state.setIn(['activeForums'], action.data);
         case SocketClientActionTypes.LOGOUT:
             return state.setIn(['myForumsSearchResults'], Immutable.from([]))
                 .setIn(['myForumsPagination'], Immutable.from([]))

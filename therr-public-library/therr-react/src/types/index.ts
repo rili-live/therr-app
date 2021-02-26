@@ -6,9 +6,13 @@ import {
     IMapState,
     MapActionTypes,
 
-    // Messages
+    // Forums
     IForum,
     IForumsArray,
+    IForumsState,
+    ForumActionTypes,
+
+    // Messages
     MessageActionTypes,
     IForumMsg,
     IForumMsgList,
@@ -51,11 +55,15 @@ export {
     IMapState,
     MapActionTypes,
 
+    // Forums
+    IForum,
+    IForumsArray,
+    IForumsState,
+    ForumActionTypes,
+
     // Messages
     IMessagesState,
     MessageActionTypes,
-    IForum,
-    IForumsArray,
     IForumMsg,
     IForumMsgList,
     IForumMsgs,

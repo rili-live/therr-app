@@ -1,3 +1,5 @@
+$line-height: .75rem;
+
 .realtime-connections-list {
     $padding-sides: .5rem;
 
@@ -13,6 +15,7 @@
         background: transparent;
         position: relative;
         margin: 0 -.5rem;
+        line-height: $line-height;
 
         &.right-icon {
             display: flex;
@@ -42,8 +45,8 @@
             content: '○';
             color: $therr-alert-neutral;
             padding: 0 .7rem 0 0;
+            line-height: $line-height;
             font-size: .625rem;
-            ;
             line-height: .5rem;
         }
 
@@ -53,7 +56,8 @@
                 color: $therr-alert-success;
                 font-size: 2rem;
                 margin-left: -.085rem;
-                padding: 0 .5rem .35rem 0;
+                padding: 0 .5rem 0 0;
+                line-height: $line-height;
             }
         }
     }

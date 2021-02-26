@@ -27,6 +27,13 @@ export default StyleSheet.create({
         // position: 'absolute',
         // left: 20
     },
+    containerHeader: {
+        width: '100%',
+        borderBottomColor: therrTheme.colors.beemoDivider,
+        borderBottomWidth: 1,
+        marginBottom: 20,
+        paddingHorizontal: 20,
+    },
     container: {
         width: '100%',
         marginTop: 20,

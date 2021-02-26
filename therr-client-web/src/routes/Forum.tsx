@@ -17,6 +17,7 @@ import translator from '../services/translator';
 
 // router params
 interface IForumRouterProps {
+    roomName: string;
     roomId: string;
 }
 
@@ -63,6 +64,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
         if (nextProps.match.params.roomId !== nextState.previousRoomId) {
             nextProps.joinForum({
                 roomId: nextProps.match.params.roomId,
+                roomName: nextProps.match.params.roomName,
                 userName: nextProps.user.details.userName,
             });
             return {
@@ -91,11 +93,13 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
     }
 
     componentDidMount() {
+        const { match, location, user } = this.props;
         document.title = `Therr | ${this.translate('pages.chatForum.pageTitle')}`;
         this.messageInputRef.current.inputEl.focus();
         this.props.joinForum({
-            roomId: this.props.match.params.roomId,
-            userName: this.props.user.details.userName,
+            roomId: match.params.roomId,
+            roomName: (location.state as any).roomName,
+            userName: user.details.userName,
         });
     }
 
@@ -181,8 +185,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
 
                 <h1 id="forumTitle">{this.translate('pages.chatForum.pageTitle')}: {user.socketDetails.currentRoom}</h1>
                 {
-                    messages && messages.forums
-                    && <span id="forums_list">
+                    <span id="forums_list">
                         {
                             forumMessages && forumMessages.length > 0
                                 ? <span className="message-list">
