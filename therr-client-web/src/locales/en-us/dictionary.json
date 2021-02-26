@@ -38,11 +38,11 @@
     },
     "messagesMenu": {
       "buttons": {
-        "createForum": "Create a Forum"
+        "createForum": "Create a Hosted Chat"
       },
       "h2": {
         "messaging": "Messaging",
-        "forums": "Forums",
+        "forums": "Hosted Chat",
         "riliConnect": "Rili Connect",
         "locationMap": "Location Map"
       },
@@ -81,7 +81,7 @@
   },
   "pages": {
     "chatForum": {
-      "pageTitle": "Forums",
+      "pageTitle": "Hosted Chat",
       "welcome": "Welcome!",
       "inputPlaceholder": "Enter a message"
     },
@@ -136,11 +136,11 @@
     },
     "createForum": {
       "labels": {
-        "forum": "Forum Name",
-        "activeForums": "Active Forums"
+        "forum": "Hosted Chat Name",
+        "activeForums": "Active Chats"
       },
-      "noForumsMessage": "No forums are currently active. Click 'Create Forum' to start a new one.",
-      "pageTitle": "Forums"
+      "noForumsMessage": "No chats are currently active. Click 'Create Hosted Chat' to start a new one.",
+      "pageTitle": "Hosted Chats"
     },
     "login": {
       "pageTitle": "Login"
@@ -159,7 +159,7 @@
     },
     "userProfile": {
       "buttons": {
-        "createAForum": "Create a Forum",
+        "createAForum": "Create a Hosted Chat",
         "sendRequest": "Send Request"
       },
       "connectionSent": "You connection request is on the way!",

@@ -38,6 +38,7 @@ const colors = {
     beemoPurple: '#0e01b3',
     beemoTeal: '#00def3',
     beemoLime: '#00f729',
+    beemoDivider: '#4950571c',
 
     map: {
         momentsCircleFill: 'rgba(56,130,84,0.2)',

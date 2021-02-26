@@ -6,7 +6,7 @@ import {
     Input,
     ButtonPrimary,
 } from 'therr-react/components';
-import { IMessagesState } from 'therr-react/types';
+import { IForumsState } from 'therr-react/types';
 import translator from '../services/translator';
 // import * as globalConfig from '../../../global-config';
 
@@ -18,7 +18,7 @@ interface ICreateForumDispatchProps {
 }
 
 interface IStoreProps extends ICreateForumDispatchProps {
-    messages: IMessagesState;
+    forums: IForumsState;
 }
 
 // Regular component props
@@ -35,7 +35,7 @@ interface ICreateForumState {
 // const envVars = globalConfig[process.env.NODE_ENV];
 
 const mapStateToProps = (state: any) => ({
-    messages: state.messages,
+    forums: state.activeForums,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
@@ -107,8 +107,8 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
     }
 
     public render(): JSX.Element | null {
-        const { messages } = this.props;
-        const activeForums = messages && messages.forums.length > 0 && messages.forums.map((forum: any) => forum.roomKey).toString();
+        const { forums } = this.props;
+        const activeForums = forums && forums.activeForums.length > 0 && forums.activeForums.map((forum: any) => forum.roomKey).toString();
 
         return (
             <div id="page_join_forum">
@@ -124,10 +124,10 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
                     translate={this.translate}
                 />
                 {
-                    messages && messages.forums
+                    forums && forums.activeForums
                     && <span className="forums-list">
                         {
-                            messages.forums.length < 1
+                            forums.activeForums.length < 1
                                 ? <i>{this.translate('pages.createForum.noForumsMessage')}</i>
                                 : <span>{this.translate('pages.createForum.labels.activeForums')}: <i>{activeForums}</i></span>
                         }

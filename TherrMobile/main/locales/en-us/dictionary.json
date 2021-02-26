@@ -161,17 +161,6 @@
       "inputPlaceholder": "Enter a message",
       "welcome": "This is the start of a new conversation..."
     },
-    "messagesMenu": {
-      "buttons": {
-        "createForum": "Create a Forum"
-      },
-      "h2": {
-        "messaging": "Messaging",
-        "forums": "Forums",
-        "riliConnect": "Rili Connect",
-        "locationMap": "Location Map"
-      }
-    },
     "notification": {
       "buttons": {
         "accept": "Accept",

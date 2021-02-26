@@ -5,9 +5,9 @@ import {
     InlineSvg,
     SvgButton,
 } from 'therr-react/components';
-import { UserConnectionsActions } from 'therr-react/redux/actions';
+import { ForumActions, UserConnectionsActions } from 'therr-react/redux/actions';
 import {
-    IMessagesState,
+    IForumsState,
     IUserState,
     IUserConnectionsState,
 } from 'therr-react/types';
@@ -15,12 +15,13 @@ import { bindActionCreators } from 'redux';
 import translator from '../../services/translator';
 
 interface IMessagesMenuDispatchProps {
+    searchForums: Function;
     searchUserConnections: Function;
 }
 
 interface IStoreProps extends IMessagesMenuDispatchProps {
     history: any;
-    messages: IMessagesState;
+    forums: IForumsState;
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
@@ -37,12 +38,13 @@ interface IMessagesMenuState {
 }
 
 const mapStateToProps = (state: any) => ({
-    messages: state.messages,
+    forums: state.forums,
     user: state.user,
     userConnections: state.userConnections,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    searchForums: ForumActions.searchForums,
     searchUserConnections: UserConnectionsActions.search,
 }, dispatch);
 
@@ -61,6 +63,8 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
 
     componentDidMount() {
         const {
+            forums,
+            searchForums,
             searchUserConnections,
             user,
             userConnections,
@@ -77,6 +81,14 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                 shouldCheckReverse: true,
             }, user.details.id);
         }
+
+        if (forums && (!forums.searchResults || !forums.searchResults.length)) {
+            searchForums({
+                itemsPerPage: 40,
+                pageNumber: 1,
+                order: 'desc',
+            }, {});
+        }
     }
 
     handleTabSelect = (e, tabName) => {
@@ -85,7 +97,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
         });
     }
 
-    navigate = (destination, params?: any) => (e) => {
+    navigate = (destination, params?: any, state?: any) => (e) => {
         this.props.toggleNavMenu(e);
         this.props.toggleMessaging(e, true);
 
@@ -93,7 +105,10 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
             case 'create-forum':
                 return this.props.history.push('/create-forum');
             case 'forums':
-                return this.props.history.push(`/forums/${params.roomKey}`);
+                return this.props.history.push({
+                    pathname: `/forums/${params.roomKey}`,
+                    state,
+                });
             default:
         }
     }
@@ -130,7 +145,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
     }
 
     renderForumsContent = () => {
-        const { messages } = this.props;
+        const { forums } = this.props;
 
         return (
             <>
@@ -146,18 +161,22 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                         {this.translate('components.messagesMenu.buttons.createForum')}
                     </ButtonPrimary>
                     {
-                        messages && messages.forums.length > 0
-                        && <div className="realtime-forums-list">
+                        forums && forums.searchResults.length > 0
+                        && <div className="search-forums-list">
                             {
-                                messages.forums.map((forum) => (
+                                forums.searchResults.map((forum) => (
                                     <ButtonPrimary
                                         id="nav_menu_forum_link"
-                                        key={forum.roomKey}
+                                        key={forum.id}
                                         className="forum-link-item right-icon active"
-                                        name={forum.roomKey}
-                                        onClick={this.navigate('forums', { roomKey: forum.roomKey })}
+                                        name={forum.title}
+                                        onClick={this.navigate('forums', {
+                                            roomKey: forum.id,
+                                        }, {
+                                            roomName: forum.title,
+                                        })}
                                         buttonType="primary">
-                                        {forum.roomKey}
+                                        {forum.title}
                                         <InlineSvg name="door" />
                                     </ButtonPrimary>
                                 ))

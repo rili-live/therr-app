@@ -103,12 +103,10 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
         const { isSubmitting } = this.state;
         const {
             title,
-            subtitle,
             description,
         } = this.state.inputs;
         const requiredInputs = {
             title,
-            subtitle,
             description,
         };
 
@@ -136,7 +134,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
         const createArgs: any = {
             administratorIds: [user.details.id, ...(administratorIds || [])].join(','),
             title,
-            subtitle,
+            subtitle: subtitle || title,
             description,
             categoryTags: categories.filter(c => c.isActive).map(c => c.tag) || ['general'],
             hashTags: hashtags.join(','),
