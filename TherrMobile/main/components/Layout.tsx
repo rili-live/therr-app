@@ -3,8 +3,8 @@ import { DeviceEventEmitter, PermissionsAndroid, Platform, View } from 'react-na
 import LocationServicesDialogBox  from 'react-native-android-location-services-dialog-box';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import { UsersService } from 'therr-react/services';
-import { IUserState } from 'therr-react/types';
-import { NotificationActions } from 'therr-react/redux/actions';
+import { IForumsState, IUserState } from 'therr-react/types';
+import { ForumActions, NotificationActions } from 'therr-react/redux/actions';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
@@ -32,12 +32,14 @@ const forFade = ({ current }) => ({
 
 interface ILayoutDispatchProps {
     logout: Function;
+    searchCategories: Function;
     searchNotifications: Function;
     updateGpsStatus: Function;
     updateLocationPermissions: Function;
 }
 
 interface IStoreProps extends ILayoutDispatchProps {
+    forums: IForumsState;
     location: ILocationState;
     user: IUserState;
 }
@@ -50,6 +52,7 @@ interface ILayoutState {
 }
 
 const mapStateToProps = (state: any) => ({
+    forums: state.forums,
     location: state.location,
     user: state.user,
 });
@@ -59,6 +62,7 @@ const mapDispatchToProps = (dispatch: any) =>
         {
             logout: UsersActions.logout,
             searchNotifications: NotificationActions.search,
+            searchCategories: ForumActions.searchCategories,
             updateGpsStatus: LocationActions.updateGpsStatus,
             updateLocationPermissions: LocationActions.updateLocationPermissions,
         },
@@ -75,6 +79,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 pageNumber: 1,
                 order: 'desc',
             });
+
+            if (!nextProps.forums?.forumCategories || !nextProps.forums.forumCategories.length) {
+                nextProps.searchCategories({
+                    itemsPerPage: 100,
+                    pageNumber: 1,
+                    order: 'desc',
+                }, {});
+            }
 
             if (Platform.OS !== 'ios') {
                 PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION)

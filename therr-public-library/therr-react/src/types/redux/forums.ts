@@ -9,6 +9,7 @@ export interface IForum {
 export type IForumsArray = Immutable.ImmutableArray<IForum>;
 
 export interface IForumsState extends Immutable.ImmutableObject<any> {
+    activeForums: any;
     forumCategories: any;
     myForumsSearchResults: any;
     myForumsPagination: any;

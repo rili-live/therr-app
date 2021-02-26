@@ -202,7 +202,7 @@ export default StyleSheet.create({
         ...headerStyles,
         backgroundColor: therrTheme.colors.beemo1,
         borderBottomWidth: 2,
-        borderBottomColor: '#4950571c',
+        borderBottomColor: therrTheme.colors.beemoDivider,
     },
     headerTitleStyle: {
         fontSize: 18,
