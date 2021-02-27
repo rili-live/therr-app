@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { ForumActions } from 'therr-react/redux/actions';
-import { IUserState, IUserConnectionsState } from 'therr-react/types';
+import { IUserState } from 'therr-react/types';
 import translator from '../../services/translator';
 import styles from '../../styles';
 import * as therrTheme from '../../styles/themes';
@@ -26,7 +26,6 @@ interface IEditChatDispatchProps {
 
 interface IStoreProps extends IEditChatDispatchProps {
     user: IUserState;
-    userConnections: IUserConnectionsState;
 }
 
 // Regular component props
@@ -47,7 +46,6 @@ interface IEditChatState {
 
 const mapStateToProps = (state) => ({
     user: state.user,
-    userConnections: state.userConnections,
 });
 
 const mapDispatchToProps = (dispatch: any) =>
@@ -92,7 +90,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
 
     handleHashtagPress = (tag) => {
         const { hashtags } = this.state;
-        let modifiedHastags = hashtags.filter(t => t !== tag);
+        const modifiedHastags = hashtags.filter(t => t !== tag);
 
         this.setState({
             hashtags: modifiedHastags,
@@ -282,16 +280,6 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                     this.onInputChange('subtitle', text)
                                 }
                             />
-                            <BeemoTextInput
-                                placeholder={this.translate(
-                                    'forms.editHostedChat.placeholders.description'
-                                )}
-                                value={inputs.description}
-                                onChangeText={(text) =>
-                                    this.onInputChange('description', text)
-                                }
-                                numberOfLines={3}
-                            />
                             <BeemoInput
                                 autoCorrect={false}
                                 errorStyle={styles.displayNone}
@@ -307,6 +295,16 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                             <HashtagsContainer
                                 hashtags={hashtags}
                                 onHashtagPress={this.handleHashtagPress}
+                            />
+                            <BeemoTextInput
+                                placeholder={this.translate(
+                                    'forms.editHostedChat.placeholders.description'
+                                )}
+                                value={inputs.description}
+                                onChangeText={(text) =>
+                                    this.onInputChange('description', text)
+                                }
+                                numberOfLines={3}
                             />
                         </View>
                     </KeyboardAwareScrollView>
