@@ -184,6 +184,7 @@
     "pg": "^8.5.1",
     "prop-types": "^15.7.2",
     "querystring": "^0.2.0",
+    "randomcolor": "^0.6.2",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-ga": "^2.6.0",

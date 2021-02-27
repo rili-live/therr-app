@@ -44,8 +44,10 @@ const joinRoom = (socket: socketio.Socket, data: IRoomData) => {
             roomId: data.roomId,
             message: {
                 key: Date.now().toString(),
+                fromUserName: 'you',
                 time: now,
                 text: `You joined the room, ${data.roomName}`,
+                isAnnouncement: true,
             },
             userName: data.userName,
         },
@@ -58,8 +60,10 @@ const joinRoom = (socket: socketio.Socket, data: IRoomData) => {
             roomId: data.roomId,
             message: {
                 key: Date.now().toString(),
+                fromUserName: data.userName,
                 time: now,
-                text: `${data.userName} joined room, ${data.roomName}`,
+                text: `${data.userName} joined the room, ${data.roomName}`,
+                isAnnouncement: true,
             },
         },
     });
@@ -77,8 +81,10 @@ const leaveRoom = (socket: socketio.Socket, data: IRoomData) => {
             roomId: data.roomId,
             message: {
                 key: Date.now().toString(),
+                fromUserName: 'you',
                 time: now,
                 text: `You left the room, ${data.roomId}`,
+                isAnnouncement: true,
             },
         },
     });
@@ -90,8 +96,10 @@ const leaveRoom = (socket: socketio.Socket, data: IRoomData) => {
             roomId: data.roomId,
             message: {
                 key: Date.now().toString(),
+                fromUserName: data.userName,
                 time: now,
                 text: `${data.userName} left the room`,
+                isAnnouncement: true,
             },
         },
     });
