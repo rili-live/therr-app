@@ -16,6 +16,23 @@
         li:last-child {
             margin-bottom: 1rem;
         }
+
+        .forum-message {
+            display: flex;
+            flex-direction: row;
+            margin: rem-calc(4px) 0;
+            color: $therr-black;
+            background-color: transparentize($therr-white, 0.1);
+            padding: rem-calc(8px) rem-calc(8px) rem-calc(8px) rem-calc(8px);
+            border-radius: rem-calc(4px);
+            border-left-width: rem-calc(5px);
+            border-left-style: solid;
+
+            .sender-suffix-text {
+                font-weight: 600;
+                margin-right: rem-calc(8px);
+            }
+        }
     }
 
     .forums-list {

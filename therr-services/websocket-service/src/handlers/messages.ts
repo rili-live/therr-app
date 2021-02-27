@@ -120,7 +120,7 @@ const sendForumMessage = (socket: socketio.Socket, data: any) => {
                 key: Date.now().toString(),
                 fromUserName: data.userName,
                 time: now,
-                text: `${data.userName}: ${data.message}`,
+                text: data.message,
             },
         },
     });

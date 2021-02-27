@@ -2,6 +2,7 @@ import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import randomColor from 'randomcolor';
 import { SocketActions } from 'therr-react/redux/actions';
 import {
     Input,
@@ -15,6 +16,8 @@ import {
 } from 'therr-react/types';
 import translator from '../services/translator';
 
+const userColors: any = {}; // local state
+
 const verifyAndJoinForum = (props) => {
     if (!props.location?.state || !props.match.params?.roomId) {
         props.history.push('/create-forum');
@@ -26,6 +29,37 @@ const verifyAndJoinForum = (props) => {
         roomName: (props.location?.state as any)?.roomName,
         userName: props.user.details.userName,
     });
+};
+
+const renderMessage = (message: IForumMsg) => {
+    const suffix = !message.isAnnouncement ? `${message.fromUserName} (${message.time.split(', ')[1]}): ` : '';
+    const isYou = message.fromUserName?.toLowerCase().includes('you');
+    const yourColor = 'green';
+
+    if (!userColors[message.fromUserName]) {
+        userColors[message.fromUserName] = isYou ? yourColor : randomColor({
+            luminosity: 'dark',
+        });
+    }
+
+    const messageColor = isYou
+        ? (userColors[message.fromUserName] || yourColor)
+        : (userColors[message.fromUserName] || 'blue');
+
+    return (
+        <li
+            className="forum-message"
+            key={message.key}
+            style={{
+                borderLeftColor: messageColor,
+            }}
+        >
+            {
+                !!suffix && <span className="sender-suffix-text">{suffix}</span>
+            }
+            <span>{message.text}</span>
+        </li>
+    );
 };
 
 // router params
@@ -201,7 +235,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                             forumMessages && forumMessages.length > 0
                                 ? <span className="message-list">
                                     {
-                                        forumMessages.map((message: IForumMsg) => <li key={message.key}>({message.time}) {message.text}</li>)
+                                        forumMessages.map(renderMessage)
                                     }
                                 </span>
                                 : <span>{this.translate('pages.chatForum.welcome')}</span>
