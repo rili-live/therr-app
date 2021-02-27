@@ -15,6 +15,19 @@ import {
 } from 'therr-react/types';
 import translator from '../services/translator';
 
+const verifyAndJoinForum = (props) => {
+    if (!props.location?.state || !props.match.params?.roomId) {
+        props.history.push('/create-forum');
+        return;
+    }
+
+    props.joinForum({
+        roomId: props.match.params.roomId,
+        roomName: (props.location?.state as any)?.roomName,
+        userName: props.user.details.userName,
+    });
+};
+
 // router params
 interface IForumRouterProps {
     roomName: string;
@@ -38,6 +51,7 @@ interface IForumProps extends RouteComponentProps<IForumRouterProps>, IStoreProp
 
 interface IForumState {
     inputs: any;
+    isFirstLoad: boolean;
     previousRoomId: string;
 }
 
@@ -61,13 +75,11 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  */
 export class ForumComponent extends React.Component<IForumProps, IForumState> {
     static getDerivedStateFromProps(nextProps: IForumProps, nextState: IForumState) {
-        if (nextProps.match.params.roomId !== nextState.previousRoomId) {
-            nextProps.joinForum({
-                roomId: nextProps.match.params.roomId,
-                roomName: nextProps.match.params.roomName,
-                userName: nextProps.user.details.userName,
-            });
+        if (nextState.isFirstLoad || nextProps.match.params.roomId !== nextState.previousRoomId) {
+            verifyAndJoinForum(nextProps);
+
             return {
+                isFirstLoad: false,
                 previousRoomId: nextProps.match.params.roomId,
             };
         }
@@ -85,6 +97,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
 
         this.state = {
             inputs: {},
+            isFirstLoad: true,
             previousRoomId: props.match.params.roomId,
         };
 
@@ -93,14 +106,12 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
     }
 
     componentDidMount() {
-        const { match, location, user } = this.props;
+        const { isFirstLoad } = this.state;
         document.title = `Therr | ${this.translate('pages.chatForum.pageTitle')}`;
         this.messageInputRef.current.inputEl.focus();
-        this.props.joinForum({
-            roomId: match.params.roomId,
-            roomName: (location.state as any).roomName,
-            userName: user.details.userName,
-        });
+        if (isFirstLoad) {
+            verifyAndJoinForum(this.props);
+        }
     }
 
     componentDidUpdate(prevProps: IForumProps) {
@@ -155,7 +166,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
     }
 
     render() {
-        const { messages, user } = this.props;
+        const { location, messages, user } = this.props;
         const forumMessages = messages.forumMsgs[user.socketDetails.currentRoom];
 
         return (
@@ -183,7 +194,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                     </div>
                 </div>
 
-                <h1 id="forumTitle">{this.translate('pages.chatForum.pageTitle')}: {user.socketDetails.currentRoom}</h1>
+                <h1 id="forumTitle">{this.translate('pages.chatForum.pageTitle')}: {(location.state as any).roomName || user.socketDetails.currentRoom}</h1>
                 {
                     <span id="forums_list">
                         {

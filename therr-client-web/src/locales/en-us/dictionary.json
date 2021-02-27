@@ -135,9 +135,21 @@
       "pageTitle": "Home"
     },
     "createForum": {
+      "buttons": {
+        "submit": "Create & Join Room"
+      },
       "labels": {
-        "forum": "Hosted Chat Name",
-        "activeForums": "Active Chats"
+        "title": "Title",
+        "subtitle": "Subtitle",
+        "hashTags": "Tags",
+        "description": "Description",
+        "activeForums": "Total Active Chats"
+      },
+      "placeholders": {
+        "title": "A catchy title...",
+        "subtitle": "An optional subtitle",
+        "hashTags": "Tags (ie. my_tag, MyTag)",
+        "description": "A brief description of the chat..."
       },
       "noForumsMessage": "No chats are currently active. Click 'Create Hosted Chat' to start a new one.",
       "pageTitle": "Hosted Chats"
