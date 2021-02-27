@@ -5,6 +5,7 @@ export interface IDirectMsg {
     fromUserName: string;
     text: string;
     time: string;
+    isAnnouncement?: boolean;
 }
 
 export interface IForumMsg {
@@ -12,6 +13,7 @@ export interface IForumMsg {
     fromUserName: string;
     time: string;
     text: string;
+    isAnnouncement?: boolean;
 }
 
 export type IForumMsgList = Immutable.ImmutableArray<IForumMsg>;

@@ -41,8 +41,10 @@ const leaveAndNotifyRooms = (socket: Socket) => {
                             roomId: room.replace(FORUM_PREFIX, ''),
                             message: {
                                 key: Date.now().toString(),
+                                fromUserName: 'user.userName',
                                 time: now,
                                 text: `${user.userName} left the room`,
+                                isAnnouncement: true,
                             },
                         },
                     });

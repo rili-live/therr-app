@@ -38,6 +38,12 @@ export default StyleSheet.create({
         bottom: 20,
         elevation: 3,
     },
+    backButtonContainerFixed: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        elevation: 3,
+    },
     submitButton: {
         ...submitButtonStyles,
         backgroundColor: therrTheme.colors.beemoTeal,

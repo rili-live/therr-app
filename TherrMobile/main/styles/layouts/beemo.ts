@@ -77,13 +77,14 @@ export default StyleSheet.create({
     },
     footer: {
         display: 'flex',
+        flexDirection: 'row',
         height: 80,
         flex: 1,
-        paddingRight: 30,
+        paddingHorizontal: 30,
         position: 'absolute',
         bottom: 0,
-        alignItems: 'flex-end',
-        justifyContent: 'center',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
         width: '100%',
     },
 });
