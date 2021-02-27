@@ -7,6 +7,8 @@ const Forums = {
             type: ForumActionTypes.CREATE_FORUM,
             data: response && response.data,
         });
+
+        return response?.data;
     }),
     searchCategories: (query: any) => (dispatch: any) => ForumsService.searchCategories(query)
         .then((response: any) => {

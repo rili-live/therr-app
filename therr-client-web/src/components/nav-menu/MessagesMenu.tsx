@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import classnames from 'classnames';
 import {
     ButtonPrimary,
     InlineSvg,
@@ -144,6 +145,16 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
         );
     }
 
+    getForumItemClass = (forum) => {
+        const { forums } = this.props;
+
+        return classnames({
+            'forum-link-item': true,
+            'right-icon': true,
+            active: forums.activeForums.find((f) => f.roomKey == forum.id), // eslint-disable-line eqeqeq
+        });
+    }
+
     renderForumsContent = () => {
         const { forums } = this.props;
 
@@ -168,7 +179,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                                     <ButtonPrimary
                                         id="nav_menu_forum_link"
                                         key={forum.id}
-                                        className="forum-link-item right-icon active"
+                                        className={this.getForumItemClass(forum)}
                                         name={forum.title}
                                         onClick={this.navigate('forums', {
                                             roomKey: forum.id,
