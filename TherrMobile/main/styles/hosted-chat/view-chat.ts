@@ -33,5 +33,5 @@ export default StyleSheet.create({
     },
     footer: {
         paddingHorizontal: 10,
-    }
+    },
 });

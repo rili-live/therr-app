@@ -121,6 +121,7 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
             roomId: forumId,
             roomName: title,
             userName: user.details.userName,
+            userImgSrc: `https://robohash.org/${user.details.id}`,
         });
     }
 
@@ -140,6 +141,7 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                 roomId: user.socketDetails.currentRoom,
                 message: msgInputVal,
                 userName: user.details.userName,
+                userImgSrc: `https://robohash.org/${user.details.id}`,
             });
 
             this.setState({

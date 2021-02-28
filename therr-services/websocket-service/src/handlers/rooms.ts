@@ -11,6 +11,7 @@ interface IRoomData {
     roomId: string;
     roomName: string;
     userName: string;
+    userImgSrc: string;
 }
 
 const joinRoom = (socket: socketio.Socket, data: IRoomData) => {
@@ -45,6 +46,7 @@ const joinRoom = (socket: socketio.Socket, data: IRoomData) => {
             message: {
                 key: Date.now().toString(),
                 fromUserName: 'you',
+                fromUserImgSrc: data.userImgSrc,
                 time: now,
                 text: `You joined the room, ${data.roomName}`,
                 isAnnouncement: true,
@@ -61,6 +63,7 @@ const joinRoom = (socket: socketio.Socket, data: IRoomData) => {
             message: {
                 key: Date.now().toString(),
                 fromUserName: data.userName,
+                fromUserImgSrc: data.userImgSrc,
                 time: now,
                 text: `${data.userName} joined the room, ${data.roomName}`,
                 isAnnouncement: true,
@@ -82,6 +85,7 @@ const leaveRoom = (socket: socketio.Socket, data: IRoomData) => {
             message: {
                 key: Date.now().toString(),
                 fromUserName: 'you',
+                fromUserImgSrc: data.userImgSrc,
                 time: now,
                 text: `You left the room, ${data.roomId}`,
                 isAnnouncement: true,
@@ -97,6 +101,7 @@ const leaveRoom = (socket: socketio.Socket, data: IRoomData) => {
             message: {
                 key: Date.now().toString(),
                 fromUserName: data.userName,
+                fromUserImgSrc: data.userImgSrc,
                 time: now,
                 text: `${data.userName} left the room`,
                 isAnnouncement: true,

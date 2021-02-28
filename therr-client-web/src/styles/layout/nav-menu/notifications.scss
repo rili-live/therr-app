@@ -12,7 +12,7 @@
 
     &.read {
       background: lighten($therr-light-grey, 3%);
-      border-left: none;
+      border-left: 5px solid lighten($therr-light-grey, 3%);
     }
 
     &:first-child {
