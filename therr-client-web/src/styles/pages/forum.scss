@@ -26,7 +26,6 @@
         .forum-message {
             display: flex;
             flex-direction: row;
-            align-items: center;;
             margin: rem-calc(4px) 0;
             color: $therr-black;
             background-color: transparentize($therr-white, 0.1);
@@ -49,6 +48,8 @@
             }
 
             .forum-message-content-container {
+                flex: 1;
+
                 .forum-message-header {
                     display: flex;
                     flex-direction: row;
