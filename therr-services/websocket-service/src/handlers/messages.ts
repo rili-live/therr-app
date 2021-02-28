@@ -34,6 +34,7 @@ const sendDirectMessage = (socket: socketio.Socket, data: any) => {
                 message: {
                     key: message.id,
                     fromUserName: 'you',
+                    fromUserImgSrc: data.userImgSrc,
                     time: timeFormatted,
                     text: data.message,
                 },
@@ -47,6 +48,7 @@ const sendDirectMessage = (socket: socketio.Socket, data: any) => {
                     message: {
                         key: message.id,
                         fromUserName: data.userName,
+                        fromUserImgSrc: data.userImgSrc,
                         time: timeFormatted,
                         text: data.message,
                     },
@@ -107,6 +109,7 @@ const sendForumMessage = (socket: socketio.Socket, data: any) => {
             message: {
                 key: Date.now().toString(),
                 fromUserName: 'you',
+                fromUserImgSrc: data.userImgSrc,
                 time: now,
                 text: data.message,
             },
@@ -119,6 +122,7 @@ const sendForumMessage = (socket: socketio.Socket, data: any) => {
             message: {
                 key: Date.now().toString(),
                 fromUserName: data.userName,
+                fromUserImgSrc: data.userImgSrc,
                 time: now,
                 text: data.message,
             },
@@ -132,6 +136,7 @@ const sendForumMessage = (socket: socketio.Socket, data: any) => {
         traceArgs: {
             socketId: socket.id,
             userName: data.userName,
+            userImgSrc: data.userImgSrc,
             messageText: data.message,
         },
     });

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import classnames from 'classnames';
 import randomColor from 'randomcolor';
 import { SocketActions } from 'therr-react/redux/actions';
 import {
@@ -28,13 +29,19 @@ const verifyAndJoinForum = (props) => {
         roomId: props.match.params.roomId,
         roomName: (props.location?.state as any)?.roomName,
         userName: props.user.details.userName,
+        userImgSrc: `https://robohash.org/${props.user.details.id}`,
     });
 };
 
-const renderMessage = (message: IForumMsg) => {
-    const suffix = !message.isAnnouncement ? `${message.fromUserName} (${message.time.split(', ')[1]}): ` : '';
+const renderMessage = (message: IForumMsg, index, user: IUserState) => {
+    const senderTitle = !message.isAnnouncement ? message.fromUserName : '';
     const isYou = message.fromUserName?.toLowerCase().includes('you');
     const yourColor = 'green';
+    const timeSplit = message.time.split(', ');
+    const msgClassNames = classnames({
+        'forum-message': true,
+        indented: message.isAnnouncement,
+    });
 
     if (!userColors[message.fromUserName]) {
         userColors[message.fromUserName] = isYou ? yourColor : randomColor({
@@ -47,18 +54,34 @@ const renderMessage = (message: IForumMsg) => {
         : (userColors[message.fromUserName] || 'blue');
 
     return (
-        <li
-            className="forum-message"
-            key={message.key}
-            style={{
-                borderLeftColor: messageColor,
-            }}
-        >
+        <React.Fragment key={message.key}>
             {
-                !!suffix && <span className="sender-suffix-text">{suffix}</span>
+                (index !== 0 && index % 10 === 0)
+                    && <div className="forum-messages-date">{timeSplit[0]}</div>
             }
-            <span>{message.text}</span>
-        </li>
+            <div
+                className={msgClassNames}
+                style={{
+                    borderLeftColor: messageColor,
+                }}
+            >
+                <div className="forum-message-user-image">
+                    <img
+                        src={`${message.fromUserImgSrc}?size=50x50`}
+                        alt={`Profile Picture: ${user.details.userName}`}
+                    />
+                </div>
+                <div className="forum-message-content-container">
+                    <div className="forum-message-header">
+                        {
+                            !!senderTitle && <div className="sender-text">{senderTitle}</div>
+                        }
+                        <div className="forum-message-time">{timeSplit[1]}</div>
+                    </div>
+                    <div>{message.text}</div>
+                </div>
+            </div>
+        </React.Fragment>
     );
 };
 
@@ -160,6 +183,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
         this.props.leaveForum({
             roomId: this.props.match.params.roomId,
             userName: this.props.user.details.userName,
+            userImgSrc: `https://robohash.org/${this.props.user.details.id}`,
         });
     }
 
@@ -184,6 +208,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                     roomId: this.props.user.socketDetails.currentRoom,
                     message: this.state.inputs.message,
                     userName: this.props.user.details.userName,
+                    userImgSrc: `https://robohash.org/${this.props.user.details.id}`,
                 });
                 return this.onInputChange('message', '');
             default:
@@ -230,17 +255,17 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
 
                 <h1 id="forumTitle">{this.translate('pages.chatForum.pageTitle')}: {(location.state as any).roomName || user.socketDetails.currentRoom}</h1>
                 {
-                    <span id="forums_list">
+                    <div id="forums_list">
                         {
                             forumMessages && forumMessages.length > 0
-                                ? <span className="message-list">
+                                ? <div className="message-list">
                                     {
-                                        forumMessages.map(renderMessage)
+                                        forumMessages.map((message: IForumMsg, index) => renderMessage(message, index, user))
                                     }
-                                </span>
-                                : <span>{this.translate('pages.chatForum.welcome')}</span>
+                                </div>
+                                : <div>{this.translate('pages.chatForum.welcome')}</div>
                         }
-                    </span>
+                    </div>
                 }
             </div>
         );
