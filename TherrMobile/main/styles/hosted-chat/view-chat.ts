@@ -21,10 +21,23 @@ export default StyleSheet.create({
         borderLeftWidth: 5,
         paddingLeft: 10,
     },
-    senderSuffixText: {
+    messageContentContainer: {
+        flex: 1,
+    },
+    messageHeader: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        paddingBottom: 3,
+    },
+    senderTitleText: {
         color: therrTheme.colors.beemoTextBlack,
         fontSize: 15,
         fontWeight: 'bold',
+        paddingRight: 4,
+    },
+    messageTime: {
+        fontSize: 12,
     },
     messageText: {
         color: therrTheme.colors.beemoTextBlack,
@@ -33,5 +46,5 @@ export default StyleSheet.create({
     },
     footer: {
         paddingHorizontal: 10,
-    }
+    },
 });

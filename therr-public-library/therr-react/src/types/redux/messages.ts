@@ -3,6 +3,7 @@ import * as Immutable from 'seamless-immutable';
 export interface IDirectMsg {
     key: number | string;
     fromUserName: string;
+    fromUserImgSrc: string;
     text: string;
     time: string;
     isAnnouncement?: boolean;
@@ -11,6 +12,7 @@ export interface IDirectMsg {
 export interface IForumMsg {
     key: string;
     fromUserName: string;
+    fromUserImgSrc: string;
     time: string;
     text: string;
     isAnnouncement?: boolean;

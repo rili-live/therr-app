@@ -1,6 +1,13 @@
 import React from 'react';
-import { FlatList, SafeAreaView, Text, StatusBar, View } from 'react-native';
-import { Button } from 'react-native-elements';
+import {
+    ActivityIndicator,
+    FlatList,
+    SafeAreaView,
+    Text,
+    StatusBar,
+    View,
+} from 'react-native';
+import { Button, Image } from 'react-native-elements';
 // import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 // import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
@@ -26,7 +33,8 @@ import BeemoInput from '../../components/Input/Beemo';
 const userColors: any = {}; // local state
 
 const renderMessage = ({ item }) => {
-    const suffix = !item.isAnnouncement ? `${item.fromUserName} (${item.time.split(', ')[1]}): ` : '';
+    const senderTitle = !item.isAnnouncement ? item.fromUserName : '';
+    const timeSplit = item.time.split(', ');
     const isYou = item.fromUserName?.toLowerCase().includes('you');
     const yourColor = therrTheme.colors.beemo3;
 
@@ -41,11 +49,24 @@ const renderMessage = ({ item }) => {
         : (userColors[item.fromUserName] || therrTheme.colors.beemoBlue);
 
     return (
-        <View style={[viewChatStyles.messageContainer, { borderLeftColor: messageColor }]}>
-            {
-                !!suffix && <Text style={viewChatStyles.senderSuffixText}>{suffix}</Text>
-            }
-            <Text style={viewChatStyles.messageText}>{item.text}</Text>
+        <View style={[viewChatStyles.messageContainer, {
+            borderLeftColor: messageColor,
+            paddingLeft: item.isAnnouncement ? 18 : 10,
+        }]}>
+            <Image
+                source={{ uri: `${item.fromUserImgSrc}?size=50x50` }}
+                style={messageStyles.userImage}
+                PlaceholderContent={<ActivityIndicator />}
+            />
+            <View style={viewChatStyles.messageContentContainer}>
+                <View style={viewChatStyles.messageHeader}>
+                    {
+                        !!senderTitle && <Text style={viewChatStyles.senderTitleText}>{senderTitle}</Text>
+                    }
+                    <Text style={viewChatStyles.messageTime}>{timeSplit[1]}</Text>
+                </View>
+                <Text style={viewChatStyles.messageText}>{item.text}</Text>
+            </View>
         </View>
     );
 };
@@ -121,6 +142,7 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
             roomId: forumId,
             roomName: title,
             userName: user.details.userName,
+            userImgSrc: `https://robohash.org/${user.details.id}`,
         });
     }
 
@@ -140,6 +162,7 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                 roomId: user.socketDetails.currentRoom,
                 message: msgInputVal,
                 userName: user.details.userName,
+                userImgSrc: `https://robohash.org/${user.details.id}`,
             });
 
             this.setState({

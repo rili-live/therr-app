@@ -37,6 +37,7 @@ $menu-padding: rem-calc(24px);
 
         .menu-tab-button {
             flex: 1;
+            box-shadow: none;
 
             &.active,
             &:hover {
