@@ -65,6 +65,18 @@ const routes: RouteConfig<
         },
     },
     {
+        name: 'Map',
+        component: Map,
+        options: () => ({
+            title: 'Map',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [],
+            },
+            headerTransparent: true,
+        }),
+    },
+    {
         name: 'Home',
         component: Home,
         options: () => ({
@@ -108,18 +120,6 @@ const routes: RouteConfig<
             },
             cardStyleInterpolator: undefined,
             transitionSpec: momentTransitionSpec,
-        }),
-    },
-    {
-        name: 'Map',
-        component: Map,
-        options: () => ({
-            title: 'Map',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [],
-            },
-            headerTransparent: true,
         }),
     },
     {

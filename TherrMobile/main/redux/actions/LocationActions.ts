@@ -8,12 +8,14 @@ const Location = {
                 status,
             },
         });
+        return Promise.resolve();
     },
     updateLocationPermissions: (permissions) => (dispatch: any) => {
         dispatch({
             type: LocationActionTypes.LOCATION_PERMISSIONS_UPDATED,
             data: permissions,
         });
+        return Promise.resolve();
     },
 };
 
