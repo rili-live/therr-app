@@ -1,5 +1,6 @@
 import React, { Ref } from 'react';
 import { PermissionsAndroid, Platform, StatusBar, View } from 'react-native';
+import { StackActions } from '@react-navigation/native';
 import { requestMultiple, PERMISSIONS } from 'react-native-permissions';
 import MapView from 'react-native-map-clustering';
 import { PROVIDER_GOOGLE, Circle, Marker } from 'react-native-maps';
@@ -32,6 +33,7 @@ import styles, { loaderStyles } from '../styles';
 import buttonStyles from '../styles/buttons';
 import mapStyles from '../styles/map';
 import { distanceTo, insideCircle } from 'geolocation-utils';
+import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
 
 const earthLoader = require('../assets/earth-loader.json');
 const mapCustomStyle = require('../styles/map/style.json');
@@ -136,6 +138,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             location,
             navigation,
             updateCoordinates,
+            updateGpsStatus,
             updateLocationPermissions,
         } = this.props;
 
@@ -151,12 +154,23 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         let perms;
 
-        if (Platform.OS === 'ios' || location.settings.isGpsEnabled) {
+        requestLocationServiceActivation({
+            isGpsEnabled: location?.settings?.isGpsEnabled,
+            translate: this.translate,
+        }).then((response: any) => {
+            if (response?.status) {
+                return updateGpsStatus(response.status);
+            }
+
+            return Promise.resolve();
+        }).then(() => {
             this.requestOSPermissions().then((permissions) => {
                 return new Promise((resolve, reject) => {
                     perms = permissions;
+                    // If permissions are granted
                     if (permissions[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]
                         || permissions[PERMISSIONS.IOS.LOCATION_WHEN_IN_USE]) {
+                        // Get Location Success Handler
                         const positionSuccessCallback = (position) => {
                             const coords = {
                                 latitude:
@@ -173,6 +187,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                             updateCoordinates(coords);
                             return resolve(coords);
                         };
+                        // Get Location Failed Handler
                         const positionErrorCallback = (error, type) => {
                             console.log('geolocation error', error.code, type);
                             if (type !== 'watch' && error.code !== error.TIMEOUT) {
@@ -209,14 +224,18 @@ class Map extends React.Component<IMapProps, IMapState> {
                 })
                 .catch((error) => {
                     console.log(error);
+                    // TODO: Display message encouraging user to turn on location permissions in settings
                     if (error === 'permissionDenied') {
                         updateLocationPermissions(perms);
                     }
                     this.goToHome();
                 });
-        } else {
+        }).catch((error) => {
+            // TODO: Allow viewing map when gps is disable
+            // but disallow GPS required actions like viewing/deleting moments
+            console.log(error);
             this.goToHome();
-        }
+        });
     };
 
     componentWillUnmount() {
@@ -274,7 +293,10 @@ class Map extends React.Component<IMapProps, IMapState> {
     goToHome = () => {
         const { navigation } = this.props;
 
-        navigation.navigate('Home');
+        // navigation.navigate('Home');
+        navigation.dispatch(
+            StackActions.replace('Home', {})
+        );
     };
 
     cancelMomentAlert = () => {
@@ -295,10 +317,14 @@ class Map extends React.Component<IMapProps, IMapState> {
     });
 
     handleCreateMoment = () => {
-        const { navigation } = this.props;
+        const { location, navigation } = this.props;
         const { circleCenter } = this.state;
 
-        navigation.navigate('EditMoment', circleCenter);
+        if (location?.settings?.isGpsEnabled) {
+            navigation.navigate('EditMoment', circleCenter);
+        } else {
+            // TODO: Alert that GPS is required to create a moment
+        }
     };
 
     handleCompassRealign = () => {
@@ -323,7 +349,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     };
 
     handleMapPress = ({ nativeEvent }) => {
-        const { map, navigation, user } = this.props;
+        const { location, map, navigation, user } = this.props;
         const { circleCenter, layers } = this.state;
         let visibleMoments: any[] = [];
 
@@ -363,11 +389,15 @@ class Map extends React.Component<IMapProps, IMapState> {
                             activeMoment: selectedMoment,
                             activeMomentDetails: details,
                         }, () => {
-                            navigation.navigate('ViewMoment', {
-                                isMyMoment: selectedMoment.fromUserId === user.details.id,
-                                moment: selectedMoment,
-                                momentDetails: details,
-                            });
+                            if (location?.settings?.isGpsEnabled) {
+                                navigation.navigate('ViewMoment', {
+                                    isMyMoment: selectedMoment.fromUserId === user.details.id,
+                                    moment: selectedMoment,
+                                    momentDetails: details,
+                                });
+                            } else {
+                                // TODO: Alert that GPS is required to create a moment
+                            }
                         });
                     })
                     .catch(() => {
