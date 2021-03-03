@@ -1,7 +1,8 @@
 /* eslint-disable max-len */
-
+import Handlebars from 'handlebars';
 import sendEmail from './sendEmail';
 import * as globalConfig from '../../../../../global-config';
+import templateString from './template';
 
 export interface ISendPasswordChangeEmailConfig {
     charset?: string;
@@ -15,14 +16,15 @@ export interface ITemplateParams {
 }
 
 export default (emailParams: ISendPasswordChangeEmailConfig, templateParams: ITemplateParams) => {
-    const html = `
-        <h1>Therr App: Password Changed</h1>
-        <h2>Hi, ${templateParams.userName}!</h2>
-        <p>Your password has been successfully changed.</p>
-        <p>If you did not initiate this change, please contact us immediately.</p>
-        <p></p>
-        <p><a href="${globalConfig[process.env.NODE_ENV].hostFull}/login">${globalConfig[process.env.NODE_ENV].hostFull}/login</a></p>
-    `;
+    const template = Handlebars.compile(templateString);
+    const html = template({
+        header: 'Therr App: Password Changed',
+        dearUser: `Hi ${templateParams.userName},`,
+        body1: 'Your password has been successfully updated. If you initiated this change, please disregard this e-mail.',
+        body2: 'If you did not initiate this change, please contact us immediately to resolve the issue.',
+        buttonHref: `${globalConfig[process.env.NODE_ENV].hostFull}/login`,
+        buttonText: 'Go to Login',
+    });
 
     return sendEmail({
         ...emailParams,
