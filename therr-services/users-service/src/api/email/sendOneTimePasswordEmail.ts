@@ -1,7 +1,8 @@
 /* eslint-disable max-len */
-
+import Handlebars from 'handlebars';
 import sendEmail from './sendEmail';
 import * as globalConfig from '../../../../../global-config';
+import templateString from './template';
 
 export interface ISendOneTimePasswordConfig {
     charset?: string;
@@ -14,13 +15,16 @@ export interface ITemplateParams {
 }
 
 export default (emailParams: ISendOneTimePasswordConfig, templateParams: ITemplateParams) => {
-    const html = `
-        <h1>Therr App: One-time Password</h1>
-        <p></p>
-        <p>Use this password to login and update your forgotten password.</p>
-        <h3>Your one time password: ${templateParams.oneTimePassword}</h3>
-        <p><a href="${globalConfig[process.env.NODE_ENV].hostFull}/login">${globalConfig[process.env.NODE_ENV].hostFull}/login</a></p>
-    `;
+    const template = Handlebars.compile(templateString);
+    const html = template({
+        header: 'Therr App: One-time Password',
+        dearUser: 'Hi therr,',
+        body1: 'Looks like you forgot your password and requested a reset. Use this temporary password to access your account. After login, you can reset your password from the user settings page.',
+        body2: 'Your one time password:',
+        bodyBold: templateParams.oneTimePassword,
+        buttonHref: `${globalConfig[process.env.NODE_ENV].hostFull}/login`,
+        buttonText: 'Go to Login',
+    });
 
     return sendEmail({
         ...emailParams,
