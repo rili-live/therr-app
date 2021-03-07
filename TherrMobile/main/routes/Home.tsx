@@ -249,15 +249,19 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         });
     }
 
-    onPhoneInputChange = (value: string) => {
-        this.setState({
+    onPhoneInputChange = (value: string, iso2: string) => {
+        const newState: any = {
             inputs: {
                 ...this.state.inputs,
                 phone: value,
             },
             prevConnReqError: '',
             prevConnReqSuccess: '',
-        });
+        };
+        if (iso2) {
+            newState.countryCode = (iso2?.toUpperCase() as CountryCode);
+        }
+        this.setState(newState);
     }
 
     onPressFlag = () => {
@@ -333,6 +337,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                                 this.onInputChange('email', text)
                                             }
                                             onBlur={this.onBlurValidate}
+                                            onSubmitEditing={() => this.onSubmit()}
                                             errorMessage={emailErrorMessage}
                                             rightIcon={
                                                 <FontAwesomeIcon
@@ -352,6 +357,8 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                                 onPressFlag={this.onPressFlag}
                                                 offset={0}
                                                 onChangePhoneNumber={this.onPhoneInputChange}
+                                                onSubmitEditing={() => this.onSubmit()}
+                                                initialCountry={'us'}
                                                 flagStyle={styles.displayNone}
                                                 style={formStyles.phoneInput}
                                                 textProps={{

@@ -130,13 +130,17 @@ export class RegisterFormComponent extends React.Component<
         });
     }
 
-    onPhoneInputChange = (value: string) => {
-        this.setState({
+    onPhoneInputChange = (value: string, iso2: string) => {
+        let newState: any = {
             inputs: {
                 ...this.state.inputs,
                 phoneNumber: value,
             },
-        });
+        };
+        if (iso2) {
+            newState.countryCode = (iso2?.toUpperCase() as CountryCode);
+        }
+        this.setState(newState);
     }
 
     onPressFlag = () => {
@@ -255,6 +259,7 @@ export class RegisterFormComponent extends React.Component<
                         onPressFlag={this.onPressFlag}
                         offset={0}
                         onChangePhoneNumber={this.onPhoneInputChange}
+                        initialCountry={'us'}
                         flagStyle={styles.displayNone}
                         style={formStyles.phoneInput}
                         textProps={{
@@ -268,7 +273,7 @@ export class RegisterFormComponent extends React.Component<
                         <CountryPicker
                             closeButtonStyle={phoneStyles.pickerCloseButton}
                             containerButtonStyle={phoneStyles.countryFlag}
-                            onSelect={(value)=> this.onCountryCodeSelect(value)}
+                            onSelect={this.onCountryCodeSelect}
                             translation="common"
                             countryCode={countryCode}
                             // onSelect={this.onCountryCodeSelect}

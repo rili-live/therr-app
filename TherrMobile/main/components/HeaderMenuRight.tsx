@@ -6,6 +6,7 @@ import { CommonActions, StackActions } from '@react-navigation/native';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
+import { INotificationsState } from 'therr-react/types';
 import styles from '../styles';
 import { headerMenuModal } from '../styles/modal';
 import * as therrTheme from '../styles/themes';
@@ -17,14 +18,16 @@ const ANIMATION_DURATION = 200;
 
 interface IHeaderMenuRightDispatchProps {}
 
-interface IStoreProps extends IHeaderMenuRightDispatchProps {}
+interface IStoreProps extends IHeaderMenuRightDispatchProps {
+}
 
 // Regular component props
 export interface IHeaderMenuRightProps extends IStoreProps {
+    isVisible: boolean;
     location: ILocationState;
     logout: Function;
     navigation: any;
-    isVisible: boolean;
+    notifications: INotificationsState;
     styleName: 'light' | 'dark' | 'beemo';
     updateGpsStatus: Function;
     user: any;
@@ -150,10 +153,12 @@ class HeaderMenuRight extends React.Component<
     };
 
     render() {
-        const { isVisible, styleName, user } = this.props;
+        const { isVisible, notifications, styleName, user } = this.props;
         const { isModalVisible } = this.state;
         const currentScreen = this.getCurrentScreen();
+        const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
         let imageStyle = headerMenuModal.toggleIcon;
+
         if (styleName === 'light') {
             imageStyle = headerMenuModal.toggleIcon;
         }
@@ -239,6 +244,41 @@ class HeaderMenuRight extends React.Component<
                                             }
                                             onPress={() => this.navTo('Home')}
                                         />
+                                        <View style={{
+                                            display: 'flex',
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}>
+                                            {
+                                                hasNotifications && <View style={headerMenuModal.notificationCircle} />
+                                            }
+                                            <Button
+                                                buttonStyle={
+                                                    currentScreen === 'Notifications'
+                                                        ? headerMenuModal.buttonsActive
+                                                        : headerMenuModal.buttons
+                                                }
+                                                titleStyle={
+                                                    currentScreen === 'Notifications'
+                                                        ? headerMenuModal.buttonsTitleActive
+                                                        : headerMenuModal.buttonsTitle
+                                                }
+                                                title={this.translate('components.headerMenuRight.menuItems.notifications')}
+                                                icon={
+                                                    <FontAwesomeIcon
+                                                        style={
+                                                            currentScreen === 'Notifications'
+                                                                ? headerMenuModal.iconStyleActive
+                                                                : headerMenuModal.iconStyle
+                                                        }
+                                                        name={hasNotifications ? 'bell' : 'bell-slash'}
+                                                        size={22}
+                                                    />
+                                                }
+                                                onPress={() => this.navTo('Notifications')}
+                                            />
+                                        </View>
                                         <Button
                                             buttonStyle={
                                                 currentScreen === 'Map'

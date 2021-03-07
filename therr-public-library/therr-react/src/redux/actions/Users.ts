@@ -1,6 +1,6 @@
 import * as Immutable from 'seamless-immutable';
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
-import { IUser } from '../../types/redux/user';
+import { IUser, UserActionTypes } from '../../types/redux/user';
 import UsersService from '../../services/UsersService';
 
 class UsersActions {
@@ -38,6 +38,10 @@ class UsersActions {
             this.socketIO.io.opts.query = {
                 token: idToken,
             };
+            dispatch({
+                type: UserActionTypes.LOGIN,
+                data: userData,
+            });
             // Connect and get socketIO.id
             this.socketIO.on('connect', () => {
                 // NOTE: Native Storage methods return a promise, but in this case we don't need to await

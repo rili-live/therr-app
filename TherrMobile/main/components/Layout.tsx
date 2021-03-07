@@ -3,7 +3,7 @@ import { DeviceEventEmitter, PermissionsAndroid, Platform, View } from 'react-na
 import LocationServicesDialogBox  from 'react-native-android-location-services-dialog-box';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import { UsersService } from 'therr-react/services';
-import { IForumsState, IUserState } from 'therr-react/types';
+import { IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ForumActions, NotificationActions } from 'therr-react/redux/actions';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -41,6 +41,7 @@ interface ILayoutDispatchProps {
 interface IStoreProps extends ILayoutDispatchProps {
     forums: IForumsState;
     location: ILocationState;
+    notifications: INotificationsState;
     user: IUserState;
 }
 
@@ -48,12 +49,13 @@ interface IStoreProps extends ILayoutDispatchProps {
 export interface ILayoutProps extends IStoreProps {}
 
 interface ILayoutState {
-    userId: number | null;
+    isAuthenticated: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
     forums: state.forums,
     location: state.location,
+    notifications: state.notifications,
     user: state.user,
 });
 
@@ -70,57 +72,13 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class Layout extends React.Component<ILayoutProps, ILayoutState> {
-    static getDerivedStateFromProps(nextProps: ILayoutProps, nextState: ILayoutState) {
-        if (nextProps.user.details && nextProps.user.isAuthenticated && nextProps.user.details.id !== nextState.userId) {
-            nextProps.searchNotifications({
-                filterBy: 'userId',
-                query: nextProps.user.details.id,
-                itemsPerPage: 20,
-                pageNumber: 1,
-                order: 'desc',
-            });
-
-            if (!nextProps.forums?.forumCategories || !nextProps.forums.forumCategories.length) {
-                nextProps.searchCategories({
-                    itemsPerPage: 100,
-                    pageNumber: 1,
-                    order: 'desc',
-                }, {});
-            }
-
-            if (Platform.OS !== 'ios') {
-                PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION)
-                    .then((grantStatus) => {
-                        nextProps.updateLocationPermissions({
-                            [PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION]: grantStatus,
-                        });
-                    });
-                PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
-                    .then((grantStatus) => {
-                        nextProps.updateLocationPermissions({
-                            [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]: grantStatus,
-                        });
-                    });
-            } else {
-                checkMultiple([PERMISSIONS.IOS.LOCATION_ALWAYS]).then((statuses) => {
-                    nextProps.updateLocationPermissions(statuses);
-                });
-            }
-
-            return {
-                userId: nextProps.user.details.id,
-            };
-        }
-        return {};
-    }
-
     private translate;
 
     constructor(props) {
         super(props);
 
         this.state = {
-            userId: null,
+            isAuthenticated: false,
         };
 
         this.translate = (key: string, params: any) =>
@@ -129,6 +87,58 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         DeviceEventEmitter.addListener('locationProviderStatusChange', function(status) { // only trigger when "providerListener" is enabled
             props.updateGpsStatus(status);
         });
+    }
+
+    componentDidUpdate() {
+        const {
+            forums,
+            searchCategories,
+            searchNotifications,
+            updateLocationPermissions,
+            user,
+        } = this.props;
+
+        if (user?.isAuthenticated !== this.state.isAuthenticated) {
+            if (user.isAuthenticated) { // Happens after login
+                searchNotifications({
+                    filterBy: 'userId',
+                    query: user.details.id,
+                    itemsPerPage: 20,
+                    pageNumber: 1,
+                    order: 'desc',
+                });
+
+                if (!forums?.forumCategories || !forums.forumCategories.length) {
+                    searchCategories({
+                        itemsPerPage: 100,
+                        pageNumber: 1,
+                        order: 'desc',
+                    }, {});
+                }
+
+                if (Platform.OS !== 'ios') {
+                    PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION)
+                        .then((grantStatus) => {
+                            updateLocationPermissions({
+                                [PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION]: grantStatus,
+                            });
+                        });
+                    PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
+                        .then((grantStatus) => {
+                            updateLocationPermissions({
+                                [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]: grantStatus,
+                            });
+                        });
+                } else {
+                    checkMultiple([PERMISSIONS.IOS.LOCATION_ALWAYS]).then((statuses) => {
+                        updateLocationPermissions(statuses);
+                    });
+                }
+            }
+            this.setState({
+                isAuthenticated: user.isAuthenticated,
+            });
+        }
     }
 
     componentWillUnmount() {
@@ -157,7 +167,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     };
 
     render() {
-        const { location, logout, updateGpsStatus, user } = this.props;
+        const { location, logout, notifications, updateGpsStatus, user } = this.props;
 
         return (
             <NavigationContainer theme={theme}>
@@ -190,6 +200,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             headerRight: this.shouldShowTopRightMenu() ? () => (
                                 <HeaderMenuRight
                                     navigation={navigation}
+                                    notifications={notifications}
                                     styleName={headerStyleName}
                                     isVisible={this.shouldShowTopRightMenu()}
                                     location={location}

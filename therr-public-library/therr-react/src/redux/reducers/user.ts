@@ -1,6 +1,6 @@
 import * as Immutable from 'seamless-immutable';
 import { SocketClientActionTypes, SocketServerActionTypes } from 'therr-js-utilities/constants';
-import { IUserState } from '../../types/redux/user';
+import { IUserState, UserActionTypes } from '../../types/redux/user';
 
 const initialState: IUserState = Immutable.from({
     details: null,
@@ -24,9 +24,9 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
         //     return state.setIn(['socketDetails', 'userName'], action.data.userName);
         // case SocketServerActionTypes.USER_LOGOUT_SUCCESS:
         //     return state.setIn(['socketDetails', 'userName'], null);
-        case SocketClientActionTypes.LOGIN:
-            return state.setIn(['isAuthenticated'], true)
-                .setIn(['details'], action.data);
+        case UserActionTypes.LOGIN:
+            return state.setIn(['details'], action.data)
+                .setIn(['isAuthenticated'], true);
         case SocketServerActionTypes.SESSION_CREATED:
         case SocketServerActionTypes.SESSION_UPDATED:
             return state.setIn(['socketDetails', 'session'], (actionData && actionData.data) || {});
@@ -41,7 +41,7 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
         case SocketClientActionTypes.LOGOUT:
             return state.setIn(['isAuthenticated'], false)
                 .setIn(['socketDetails'], {})
-                .setIn(['details'], { id: state.details.id });
+                .setIn(['details'], { id: state.details.id, userName: state.details.userName });
         default:
             return state;
     }

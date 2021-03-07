@@ -59,7 +59,7 @@ interface ILayoutState {
     clientHasLoaded: boolean;
     isNavMenuOpen: boolean;
     navMenuContext?: INavMenuContext;
-    userId: number;
+    isAuthenticated: boolean;
     isMessagingOpen: boolean;
     isMsgContainerOpen: boolean;
     messagingContext?: IMessagingContext;
@@ -80,30 +80,13 @@ const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({
 
 // TODO: Animation between view change is not working when wrapped around a Switch
 export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState> {
-    static getDerivedStateFromProps(nextProps: ILayoutProps, nextState: ILayoutState) {
-        if (nextProps.user.details && nextProps.user.details.id !== nextState.userId) {
-            nextProps.searchNotifications({
-                filterBy: 'userId',
-                query: nextProps.user.details.id,
-                itemsPerPage: 20,
-                pageNumber: 1,
-                order: 'desc',
-            });
-
-            return {
-                userId: nextProps.user.details.id,
-            };
-        }
-        return {};
-    }
-
     constructor(props: ILayoutProps, state: ILayoutState) {
         super(props);
 
         this.state = {
             clientHasLoaded: false,
+            isAuthenticated: false,
             isNavMenuOpen: false,
-            userId: props.user.details.id,
             isMessagingOpen: false,
             isMsgContainerOpen: false,
         };
@@ -151,6 +134,23 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                 refreshConnection(user);
             }
         });
+    }
+
+    componentDidUpdate() {
+        if (this.props.user?.isAuthenticated !== this.state.isAuthenticated) {
+            if (this.props.user.isAuthenticated) {
+                this.props.searchNotifications({
+                    filterBy: 'userId',
+                    query: this.props.user.details.id,
+                    itemsPerPage: 20,
+                    pageNumber: 1,
+                    order: 'desc',
+                });
+            }
+            this.setState({
+                isAuthenticated: this.props.user.isAuthenticated,
+            });
+        }
     }
 
     componentWillUnmount() { // eslint-disable-line

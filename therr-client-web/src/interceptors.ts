@@ -66,7 +66,7 @@ const initInterceptors = (
                 // Do not redirect when 401 occurs on a login page
                 // The "home" page is also a login
                 if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
-                    history.push('/login');
+                    history.replace('/login');
                 }
             }
         } else if (error) {
@@ -87,7 +87,7 @@ const initInterceptors = (
                 // Do not redirect when 401 occurs on a login page
                 // The "home" page is also a login
                 if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
-                    history.push('/login');
+                    history.replace('/login');
                 }
             }
         }
