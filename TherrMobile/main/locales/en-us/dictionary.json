@@ -150,6 +150,7 @@
         "connections": "CONNECTIONS",
         "home": "HOME",
         "logout": "LOGOUT",
+        "notifications": "NOTIFICATIONS",
         "hostedChat": "HOSTED CHAT",
         "map": "MAP"
       }

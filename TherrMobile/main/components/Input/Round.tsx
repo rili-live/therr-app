@@ -1,7 +1,7 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import 'react-native-gesture-handler';
-import BaseInput from '.';
+import BaseInput from './';
 import formStyles from '../../styles/forms';
 
 export class RoundInput extends BaseInput {
