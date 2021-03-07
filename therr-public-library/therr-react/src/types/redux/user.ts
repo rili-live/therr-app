@@ -24,3 +24,7 @@ export interface IUserState extends Immutable.ImmutableObject<any> {
   socketDetails: ISocketDetails;
   isAuthenticated: boolean;
 }
+
+export enum UserActionTypes {
+  LOGIN = 'LOGIN',
+}

@@ -56,6 +56,7 @@ export class LoginFormComponent extends React.Component<
 
     onSubmit = () => {
         const { password, rememberMe, userName } = this.state.inputs;
+
         this.setState({
             isSubmitting: true,
         });
@@ -148,6 +149,7 @@ export class LoginFormComponent extends React.Component<
                     onChangeText={(text) =>
                         this.onInputChange('password', text)
                     }
+                    onSubmitEditing={this.onSubmit}
                     secureTextEntry={true}
                     rightIcon={
                         <FontAwesomeIcon

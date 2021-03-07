@@ -36,6 +36,13 @@ export default StyleSheet.create({
         // position: 'absolute',
         // left: 20
     },
+    notificationCircle: {
+        borderWidth: 4,
+        borderRadius: 2,
+        width: 4,
+        height: 4,
+        borderColor: therrTheme.colors.ternary,
+    },
     overlayContainer: {
         backgroundColor: containerBackgroundColor,
         display: 'flex',
