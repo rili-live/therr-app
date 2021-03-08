@@ -39,16 +39,36 @@ export default class MomentReactionsStore {
         this.db = dbConnection;
     }
 
-    get(conditions: any, limit = 100) {
+    get(conditions: any, momentIds?, limit = 100) {
+        const restrictedLimit = limit > 1000 ? 1000 : limit;
+
+        let queryString = knex.select('*')
+            .from(MOMENT_REACTIONS_TABLE_NAME)
+            .where(conditions)
+            .limit(restrictedLimit);
+
+        if (momentIds && momentIds.length) {
+            queryString = queryString.whereIn('momentId', momentIds);
+        }
+
+        return this.db.read.query(queryString.toString()).then((response) => response.rows);
+    }
+
+    getByMomentId(conditions: any, requestingUserId, limit = 100) {
         const restrictedLimit = limit > 1000 ? 1000 : limit;
 
         const queryString = knex.select('*')
             .from(MOMENT_REACTIONS_TABLE_NAME)
             .where(conditions)
-            .limit(restrictedLimit)
-            .toString();
+            .as('momentResponse')
+            .whereExists(
+                // TODO: RSERV-52 | This query works
+                knex.select('*').from(MOMENT_REACTIONS_TABLE_NAME)
+                    .whereRaw(`${MOMENT_REACTIONS_TABLE_NAME}.momentId = momentResponse.momentId AND userId = ${requestingUserId} AND userHasActivated = true`),
+            )
+            .limit(restrictedLimit);
 
-        return this.db.read.query(queryString).then((response) => response.rows);
+        return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
     create(params: ICreateMomentReactionParams) {

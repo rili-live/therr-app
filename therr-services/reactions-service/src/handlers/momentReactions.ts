@@ -19,11 +19,28 @@ const createMomentReaction = (req, res) => {
 // READ
 const getMomentReactions: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
-
-    return Store.momentReactions.get({
+    const momentIds = req.body.momentIds;
+    const params = {
         ...req.body,
         userId,
-    }, req.params.limit)
+    };
+
+    delete params.momentIds;
+
+    return Store.momentReactions.get(params, momentIds, req.params.limit)
+        .then(([moments]) => res.status(200).send(moments))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
+};
+
+const getMomentReactionsByMomentId: RequestHandler = async (req: any, res: any) => {
+    const userId = req.headers['x-userid'];
+
+    const params = {
+        ...req.body,
+        momentIds: req.params.momentId,
+    };
+
+    return Store.momentReactions.getByMomentId(params, userId, req.params.limit)
         .then(([moments]) => res.status(200).send(moments))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
 };
@@ -43,5 +60,6 @@ const updateMomentReaction = (req, res) => {
 export {
     createMomentReaction,
     getMomentReactions,
+    getMomentReactionsByMomentId,
     updateMomentReaction,
 };
