@@ -72,6 +72,10 @@ if should_deploy_service "therr-services/messages-service"; then
   docker build -t therrapp/messages-service$SUFFIX:latest -t therrapp/messages-service$SUFFIX:$GIT_SHA -f ./therr-services/messages-service/Dockerfile \
     --build-arg NODE_VERSION=${NODE_VERSION} .
 fi
+if should_deploy_service "therr-services/reactions-service"; then
+  docker build -t therrapp/reactions-service$SUFFIX:latest -t therrapp/reactions-service$SUFFIX:$GIT_SHA -f ./therr-services/reactions-service/Dockerfile \
+  --build-arg NODE_VERSION=${NODE_VERSION} .
+fi
 if should_deploy_service "therr-services/users-service"; then
   docker build -t therrapp/users-service$SUFFIX:latest -t therrapp/users-service$SUFFIX:$GIT_SHA -f ./therr-services/users-service/Dockerfile \
   --build-arg NODE_VERSION=${NODE_VERSION} .
@@ -97,6 +101,10 @@ fi
 if should_deploy_service "therr-services/messages-service"; then
   docker push therrapp/messages-service$SUFFIX:latest
   docker push therrapp/messages-service$SUFFIX:$GIT_SHA
+fi
+if should_deploy_service "therr-services/reactions-service"; then
+  docker push therrapp/reactions-service$SUFFIX:latest
+  docker push therrapp/reactions-service$SUFFIX:$GIT_SHA
 fi
 if should_deploy_service "therr-services/users-service"; then
   docker push therrapp/users-service$SUFFIX:latest
@@ -127,6 +135,11 @@ if should_deploy_service "therr-services/messages-service"; then
   kubectl set image deployments/messages-service-deployment server-messages=therrapp/messages-service:$GIT_SHA
 else
   echo "Skipping messages-service deployment (No Changes)"
+fi
+if should_deploy_service "therr-services/reactions-service"; then
+  kubectl set image deployments/reactions-service-deployment server-reactions=therrapp/reactions-service:$GIT_SHA
+else
+  echo "Skipping reactions-service deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/users-service"; then
   kubectl set image deployments/users-service-deployment server-users=therrapp/users-service:$GIT_SHA

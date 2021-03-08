@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reactions-service-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: server-reactions
+  template:
+    metadata:
+      labels:
+        component: server-reactions
+        tier: microservices
+    spec:
+      serviceAccountName: therr-k8s-service-account
+      containers:
+      - name: server-reactions
+        image: therrapp/reactions-service:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        ports:
+        - containerPort: 7774
+        env:
+        - name: REACTIONS_SERVICE_API_PORT
+          value: "7774"
+        - name: URI_WHITELIST
+          value: "https://therr.com,https://www.therr.com"
+        - name: HONEYCOMB_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: honeycomb-writekey
+              key: HONEYCOMB
+        - name: LOG_LEVEL
+          value: "info"
+        - name: LOGGING_DATASET
+          value: "production"
+        - name: REDIS_PUB_HOST
+          value: "redis-cluster-ip-service"
+        - name: REDIS_PUB_PORT
+          value: "6379"
+        - name: DB_USER_MAIN_WRITE
+          value: "therrAppUser"
+        - name: DB_HOST_MAIN_WRITE
+          value: "127.0.0.1"
+        - name: DB_PORT_MAIN_WRITE
+          value: "5432"
+        - name: DB_PASSWORD_MAIN_WRITE
+          valueFrom:
+            secretKeyRef:
+              name: db-password-app
+              key: DB_PASSWORD_APP_WRITE
+        - name: DB_USER_MAIN_READ
+          value: "therrAppUser"
+        - name: DB_HOST_MAIN_READ
+          value: "127.0.0.1"
+        - name: DB_PORT_MAIN_READ
+          value: "5432"
+        - name: DB_PASSWORD_MAIN_READ
+          valueFrom:
+            secretKeyRef:
+              name: db-password-app
+              key: DB_PASSWORD_APP_READ
+        - name: REACTIONS_SERVICE_DATABASE
+          value: "therr_reactions_service_db"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: therrjwtsecret
+              key: THERRJWT_SECRET
+      - name: cloud-sql-proxy
+        # It is recommended to use the latest version of the Cloud SQL proxy
+        # Make sure to update on a regular schedule!
+        image: gcr.io/cloudsql-docker/gce-proxy:1.17
+        resources:
+          limits:
+            memory: "64Mi"
+            cpu: "50m"
+        command:
+          - "/cloud_sql_proxy"
+
+          # If connecting from a VPC-native GKE cluster, you can use the
+          # following flag to have the proxy connect over private IP
+          # - "-ip_address_types=PRIVATE"
+
+          # Replace DB_PORT with the port the proxy should listen on
+          # Defaults: MySQL: 3306, Postgres: 5432, SQLServer: 1433
+          - "-instances=therr-app:us-central1:psql-main-db-prod=tcp:5432"
+        securityContext:
+          # The default Cloud SQL proxy image runs as the
+          # "nonroot" user and group (uid: 65532) by default.
+          runAsNonRoot: true
