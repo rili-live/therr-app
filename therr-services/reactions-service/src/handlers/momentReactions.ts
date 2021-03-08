@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
+import translate from '../utilities/translator';
 
 // CREATE
 const createMomentReaction = (req, res) => {
@@ -19,30 +20,45 @@ const createMomentReaction = (req, res) => {
 // READ
 const getMomentReactions: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
-    const momentIds = req.body.momentIds;
-    const params = {
-        ...req.body,
+    const momentIds = req.query?.momentIds?.split(',');
+    const queryParams: any = {
         userId,
     };
 
-    delete params.momentIds;
+    if (queryParams.momentId) {
+        queryParams.momentId = parseInt(queryParams.momentId, 10);
+    }
 
-    return Store.momentReactions.get(params, momentIds, req.params.limit)
+    delete queryParams.momentIds;
+
+    return Store.momentReactions.get(queryParams, momentIds, parseInt(req.query.limit, 10))
         .then(([moments]) => res.status(200).send(moments))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
 };
 
-const getMomentReactionsByMomentId: RequestHandler = async (req: any, res: any) => {
+const getReactionsByMomentId: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const { momentId } = req.params;
 
-    const params = {
-        ...req.body,
-        momentIds: req.params.momentId,
-    };
+    Store.momentReactions.get({
+        userId,
+        momentId,
+    }).then((momentReaction: any) => {
+        if (!momentReaction?.length || !momentReaction.userHasActivated) {
+            return handleHttpError({
+                res,
+                message: translate(locale, 'momentReactions.momentNotActivated'),
+                statusCode: 403,
+            });
+        }
 
-    return Store.momentReactions.getByMomentId(params, userId, req.params.limit)
-        .then(([moments]) => res.status(200).send(moments))
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
+        return Store.momentReactions.getByMomentId({
+            momentId,
+        }, parseInt(req.query.limit, 10))
+            .then(([moments]) => res.status(200).send(moments))
+            .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
+    });
 };
 
 // UPDATE
@@ -60,6 +76,6 @@ const updateMomentReaction = (req, res) => {
 export {
     createMomentReaction,
     getMomentReactions,
-    getMomentReactionsByMomentId,
+    getReactionsByMomentId,
     updateMomentReaction,
 };

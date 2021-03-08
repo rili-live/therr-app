@@ -2,7 +2,7 @@ import * as express from 'express';
 import {
     createMomentReaction,
     getMomentReactions,
-    getMomentReactionsByMomentId,
+    getReactionsByMomentId,
     updateMomentReaction,
 } from '../handlers/momentReactions';
 
@@ -15,7 +15,7 @@ router.post('/', createMomentReaction);
 router.get('/', getMomentReactions);
 
 // GET
-router.get('/:momentId', getMomentReactionsByMomentId);
+router.get('/:momentId', getReactionsByMomentId);
 
 // DELETE
 router.put('/:momentId', updateMomentReaction);

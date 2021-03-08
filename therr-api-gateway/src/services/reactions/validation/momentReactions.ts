@@ -17,21 +17,14 @@ export const createMomentReactionValidation = [
 
 export const getMomentReactionsValidation = [
     header('x-userid').exists(),
-    body('momentId').optional(),
-    body('momentIds').optional(),
-    body('userViewCount').optional(),
+    query('momentId').optional(),
+    query('momentIds').optional(),
     query('limit').optional(),
 ];
 
 export const getMomentReactionsByMomentIdValidation = [
     header('x-userid').exists(),
     param('momentId').exists(),
-    body('userViewCount').optional(),
-    body('userHasActivated').isBoolean().optional(),
-    body('userHasLiked').isBoolean().optional(),
-    body('userHasSuperLiked').isBoolean().optional(),
-    body('userHasDisliked').isBoolean().optional(),
-    body('userHasSuperDisliked').isBoolean().optional(),
     query('limit').optional(),
 ];
 

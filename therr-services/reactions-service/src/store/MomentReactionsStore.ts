@@ -40,7 +40,7 @@ export default class MomentReactionsStore {
     }
 
     get(conditions: any, momentIds?, limit = 100) {
-        const restrictedLimit = limit > 1000 ? 1000 : limit;
+        const restrictedLimit = (limit) > 1000 ? 1000 : limit;
 
         let queryString = knex.select('*')
             .from(MOMENT_REACTIONS_TABLE_NAME)
@@ -54,18 +54,13 @@ export default class MomentReactionsStore {
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
-    getByMomentId(conditions: any, requestingUserId, limit = 100) {
+    getByMomentId(conditions: any, limit = 100) {
+        // TODO: RSERVE-52 | Remove hard limit and optimize for getting reaction counts
         const restrictedLimit = limit > 1000 ? 1000 : limit;
 
         const queryString = knex.select('*')
             .from(MOMENT_REACTIONS_TABLE_NAME)
             .where(conditions)
-            .as('momentResponse')
-            .whereExists(
-                // TODO: RSERV-52 | This query works
-                knex.select('*').from(MOMENT_REACTIONS_TABLE_NAME)
-                    .whereRaw(`${MOMENT_REACTIONS_TABLE_NAME}.momentId = momentResponse.momentId AND userId = ${requestingUserId} AND userHasActivated = true`),
-            )
             .limit(restrictedLimit);
 
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
