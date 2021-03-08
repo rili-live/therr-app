@@ -80,7 +80,7 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
 
-// CREATE
+// DELETE
 const deleteMoments = (req, res) => {
     const userId = req.headers['x-userid'];
 
@@ -88,7 +88,7 @@ const deleteMoments = (req, res) => {
         ...req.body,
         fromUserId: userId,
     })
-        .then(([moments]) => res.status(201).send(moments))
+        .then(([moments]) => res.status(202).send(moments))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
 

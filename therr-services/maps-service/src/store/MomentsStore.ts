@@ -141,6 +141,7 @@ export default class MomentsStore {
     }
 
     deleteMoments(params: IDeleteMomentsParams) {
+        // TODO: RSERV-52 | Consider archiving only, and delete associated reactions from reactions-service
         const queryString = knex.delete()
             .from(MOMENTS_TABLE_NAME)
             .where('fromUserId', params.fromUserId)

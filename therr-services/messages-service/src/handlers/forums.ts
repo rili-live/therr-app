@@ -123,7 +123,7 @@ const updateForum = (req, res) => {
         doesExpire: req.body.doesExpire || true,
         isPublic: req.body.isPublic || true,
     })
-        .then(([forum]) => res.status(200).send(forum))
+        .then(([forum]) => res.status(202).send(forum))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:FORUMS_ROUTES:ERROR' }));
 };
 
