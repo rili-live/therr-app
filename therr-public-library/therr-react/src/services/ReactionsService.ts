@@ -1,34 +1,38 @@
 import axios from 'axios';
 
-interface ICreateMomentBody {
-    expiresAt?: any;
-    fromUserId: number;
-    locale: string;
-    isPublic?: boolean;
-    message: string;
-    notificationMsg?: string;
-    mediaIds?: string;
-    mentionsIds?: string;
-    hashTags?: string;
-    maxViews?: number;
-    latitude: string;
-    longitude: string;
-    radius?: string;
-    polygonCoords?: string;
+export interface ICreateMomentReactionBody {
+    momentId: number;
+    userId: number;
+    userViewCount?: number;
+    userHasActivated?: boolean;
+    userHasLiked?: boolean;
+    userHasSuperLiked?: boolean;
+    userHasDisliked?: boolean;
+    userHasSuperDisliked?: boolean;
+}
+export interface IGetMomentReactionParams {
+    limit?: number;
+    momentId?: number;
+    momentIds?: number[];
 }
 
-interface IDeleteMomentsBody {
-    ids: string[];
+export interface IUpdateMomentReactionBody {
+    userViewCount?: number;
+    userHasActivated?: boolean;
+    userHasLiked?: boolean;
+    userHasSuperLiked?: boolean;
+    userHasDisliked?: boolean;
+    userHasSuperDisliked?: boolean;
 }
 
-class MapsService {
-    createMomentReaction = (data: ICreateMomentBody) => axios({
+class ReactionsService {
+    createMomentReaction = (data: ICreateMomentReactionBody) => axios({
         method: 'post',
         url: '/reactions-service/moment-reactions',
         data,
     })
 
-    getMomentReactions = (queryParams: any) => {
+    getMomentReactions = (queryParams: IGetMomentReactionParams) => {
         let queryString = `?limit=${queryParams.limit || 100}`;
 
         if (queryParams.momentId) {
@@ -36,7 +40,7 @@ class MapsService {
         }
 
         if (queryParams.momentIds) {
-            queryString = `${queryString}&momentIds=${queryParams.momentIds}`;
+            queryString = `${queryString}&momentIds=${queryParams.momentIds.join(',')}`;
         }
 
         return axios({
@@ -54,11 +58,11 @@ class MapsService {
         });
     }
 
-    updateMoments = (momentId: number, data: IDeleteMomentsBody) => axios({
+    updateMomentReactions = (momentId: number, data: IUpdateMomentReactionBody) => axios({
         method: 'put',
         url: `/reactions-service/moment-reactions/${momentId}`,
         data,
     })
 }
 
-export default new MapsService();
+export default new ReactionsService();
