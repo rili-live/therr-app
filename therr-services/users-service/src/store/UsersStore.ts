@@ -108,7 +108,10 @@ export default class UsersStore {
             modifiedParams.verificationCodes = params.verificationCodes;
         }
 
-        const queryString = knex.update(modifiedParams)
+        const queryString = knex.update({
+            ...modifiedParams,
+            updatedAt: new Date(),
+        })
             .into(USERS_TABLE_NAME)
             .where(conditions)
             .returning('*')

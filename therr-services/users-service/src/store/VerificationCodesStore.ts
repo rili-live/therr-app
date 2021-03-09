@@ -28,7 +28,10 @@ export default class VerificationCodesStore {
     }
 
     updateCode(params = {}, conditions = {}) {
-        const queryString = knex.update(params)
+        const queryString = knex.update({
+            params,
+            updatedAt: new Date(),
+        })
             .into(VERIFICATION_CODES_TABLE_NAME)
             .where(conditions)
             .toString();

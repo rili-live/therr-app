@@ -25,6 +25,10 @@ import {
     INotificationsState,
     NotificationActionTypes,
 
+    // Reactions
+    IReactionsState,
+    ReactionActionTypes,
+
     // Users
     IUser,
     ISocketDetails,
@@ -51,15 +55,15 @@ export {
     // Index
     ISearchQuery,
 
-    // Maps
-    IMapState,
-    MapActionTypes,
-
     // Forums
     IForum,
     IForumsArray,
     IForumsState,
     ForumActionTypes,
+
+    // Maps
+    IMapState,
+    MapActionTypes,
 
     // Messages
     IMessagesState,
@@ -73,6 +77,10 @@ export {
     INotification,
     INotificationsState,
     NotificationActionTypes,
+
+    // Reactions
+    IReactionsState,
+    ReactionActionTypes,
 
     // User
     IUser,
