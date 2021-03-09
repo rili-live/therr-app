@@ -1,18 +1,13 @@
 import {
-    INotification,
-    INotificationsState,
-    NotificationActionTypes,
-} from './notifications';
-import {
-    IMapState,
-    MapActionTypes,
-} from './maps';
-import {
     IForum,
     IForumsArray,
     IForumsState,
     ForumActionTypes,
 } from './forums';
+import {
+    IMapState,
+    MapActionTypes,
+} from './maps';
 import {
     IForumMsg,
     IForumMsgList,
@@ -21,6 +16,15 @@ import {
     IMessagesState,
     MessageActionTypes,
 } from './messages';
+import {
+    INotification,
+    INotificationsState,
+    NotificationActionTypes,
+} from './notifications';
+import {
+    IReactionsState,
+    ReactionActionTypes,
+} from './reactions';
 import {
     IUser,
     ISocketDetails,
@@ -56,15 +60,15 @@ export interface ISearchQuery {
 }
 
 export {
-    // Maps
-    IMapState,
-    MapActionTypes,
-
     // Forums
     IForum,
     IForumsArray,
     IForumsState,
     ForumActionTypes,
+
+    // Maps
+    IMapState,
+    MapActionTypes,
 
     // Messages
     IForumMsg,
@@ -78,6 +82,10 @@ export {
     INotification,
     INotificationsState,
     NotificationActionTypes,
+
+    // Reactions
+    IReactionsState,
+    ReactionActionTypes,
 
     // User
     IUser,

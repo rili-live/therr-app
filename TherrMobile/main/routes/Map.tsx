@@ -11,8 +11,8 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { IMapState as IMapReduxState, IUserState } from 'therr-react/types';
-import { MapActions } from 'therr-react/redux/actions';
+import { IMapState as IMapReduxState, IReactionsState, IUserState } from 'therr-react/types';
+import { MapActions, ReactionActions } from 'therr-react/redux/actions';
 import Geolocation from '@react-native-community/geolocation';
 import AnimatedLoader from 'react-native-animated-loader';
 import Alert from '../components/Alert';
@@ -42,6 +42,7 @@ const ANIMATE_TO_REGION_DURATION = 750;
 const ANIMATE_TO_REGION_DURATION_FAST = 500;
 
 interface IMapDispatchProps {
+    createOrUpdateReaction: Function;
     login: Function;
     logout: Function;
     updateCoordinates: Function;
@@ -54,6 +55,7 @@ interface IMapDispatchProps {
 interface IStoreProps extends IMapDispatchProps {
     location: ILocationState;
     map: IMapReduxState;
+    reactions: IReactionsState;
     user: IUserState;
 }
 
@@ -80,6 +82,7 @@ interface IMapState {
 const mapStateToProps = (state: any) => ({
     location: state.location,
     map: state.map,
+    reactions: state.reactions,
     user: state.user,
 });
 
@@ -91,6 +94,7 @@ const mapDispatchToProps = (dispatch: any) =>
             updateCoordinates: MapActions.updateCoordinates,
             searchMoments: MapActions.searchMoments,
             deleteMoment: MapActions.deleteMoment,
+            createOrUpdateReaction: ReactionActions.createOrUpdateMomentReactions,
             updateGpsStatus: LocationActions.updateGpsStatus,
             updateLocationPermissions: LocationActions.updateLocationPermissions,
         },
@@ -349,7 +353,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     };
 
     handleMapPress = ({ nativeEvent }) => {
-        const { location, map, navigation, user } = this.props;
+        const { createOrUpdateReaction, location, map, navigation, user } = this.props;
         const { circleCenter, layers } = this.state;
         let visibleMoments: any[] = [];
 
@@ -381,10 +385,19 @@ class Map extends React.Component<IMapProps, IMapState> {
             });
             const isProximitySatisfied = distToCenter - selectedMoment.radius <= selectedMoment.maxProximity;
             if (!isProximitySatisfied && selectedMoment.fromUserId !== user.details.id) {
+                // Deny activation
                 this.showMomentAlert();
             } else {
-                this.getMomentDetails(selectedMoment)
-                    .then((details) => {
+                // Activate moment
+                Promise.all([
+                    this.getMomentDetails(selectedMoment),
+                    createOrUpdateReaction(selectedMoment.id, {
+                        userViewCount: 1,
+                        userHasActivated: true,
+                    }),
+                ])
+                    .then(([details]) => {
+                        console.log(details);
                         this.setState({
                             activeMoment: selectedMoment,
                             activeMomentDetails: details,

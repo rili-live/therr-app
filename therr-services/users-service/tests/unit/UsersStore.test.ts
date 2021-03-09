@@ -46,7 +46,7 @@ describe('UsersStore', () => {
 
     describe('updateUser', () => {
         it('only updates specific properties', () => {
-            const expected = `update "main"."users" set "userName" = 'tests' returning *`;
+            const expected = `update "main"."users" set "userName" = 'tests', "updatedAt" =`;
             const mockStore = {
                 write: {
                     query: sinon.stub().callsFake(() => Promise.resolve({})),
@@ -59,7 +59,7 @@ describe('UsersStore', () => {
                 phoneNumber: '+3176665849',
             });
 
-            expect(mockStore.write.query.args[0][0]).to.be.equal(expected);
+            expect(mockStore.write.query.args[0][0].includes(expected)).to.be.equal(true);
         });
     });
 });
