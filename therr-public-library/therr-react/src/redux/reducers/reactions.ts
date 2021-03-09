@@ -12,17 +12,16 @@ const reactions = (state: IReactionsState = initialState, action: any) => {
     }
 
     let modifiedReactions = [...state.myReactions];
+    let reactionExists = false;
 
     switch (action.type) {
         // TODO: Rethink this
         case ReactionActionTypes.GET_MOMENT_REACTIONS:
             return state.setIn(['myReactions'], action.data);
-        case ReactionActionTypes.MOMENT_REACTION_CREATED:
-            modifiedReactions.unshift(action.data);
-            return state.setIn(['myReactions'], modifiedReactions);
-        case ReactionActionTypes.MOMENT_REACTION_UPDATED:
-            modifiedReactions = state.myReactions.map((reaction) => { // eslint-disable-line no-case-declarations
+        case ReactionActionTypes.MOMENT_REACTION_CREATED_OR_UPDATED:
+            modifiedReactions = modifiedReactions.map((reaction) => { // eslint-disable-line no-case-declarations
                 if (reaction.momentId === action.data.momentId) {
+                    reactionExists = true;
                     return {
                         ...reaction,
                         ...action.data,
@@ -31,6 +30,11 @@ const reactions = (state: IReactionsState = initialState, action: any) => {
 
                 return reaction;
             });
+
+            if (!reactionExists) {
+                modifiedReactions.unshift(action.data);
+            }
+
             return state.setIn(['myReactions'], modifiedReactions);
         default:
             return state;

@@ -1,7 +1,7 @@
 import Knex from 'knex';
 import { IConnection } from './connection';
 
-const knex: Knex = Knex({ client: 'pg' });
+const knex = Knex({ client: 'pg' });
 
 export const MOMENT_REACTIONS_TABLE_NAME = 'main.momentReactions';
 
@@ -67,8 +67,8 @@ export default class MomentReactionsStore {
     }
 
     create(params: ICreateMomentReactionParams) {
-        const queryString = knex.insert(params)
-            .into(MOMENT_REACTIONS_TABLE_NAME)
+        const queryString = knex(MOMENT_REACTIONS_TABLE_NAME)
+            .insert(params)
             .returning('*')
             .toString();
 
@@ -76,14 +76,13 @@ export default class MomentReactionsStore {
     }
 
     update(conditions: IUpdateMomentReactionConditions, params: IUpdateMomentReactionParams) {
-        const momentReactionParams = {
+        const queryString = knex.update({
             ...params,
-        };
-
-        const queryString = knex.update(momentReactionParams)
+            updatedAt: new Date(),
+        })
             .into(MOMENT_REACTIONS_TABLE_NAME)
             .where(conditions)
-            .returning(['id'])
+            .returning('*')
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);

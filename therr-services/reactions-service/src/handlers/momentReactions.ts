@@ -3,18 +3,34 @@ import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
 
-// CREATE
-const createMomentReaction = (req, res) => {
-    const locale = req.headers['x-localecode'] || 'en-us';
+// CREATE/UPDATE
+const createOrUpdateMomentReaction = (req, res) => {
     const userId = req.headers['x-userid'];
+    const locale = req.headers['x-localecode'] || 'en-us';
 
-    return Store.momentReactions.create({
-        ...req.body,
+    return Store.momentReactions.get({
         userId,
-        userLocale: locale,
-    })
-        .then(([moments]) => res.status(201).send(moments))
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
+        momentId: req.params.momentId,
+    }).then((existing) => {
+        if (existing?.length) {
+            return Store.momentReactions.update({
+                userId,
+                momentId: req.params.momentId,
+            }, {
+                ...req.body,
+                userLocale: locale,
+                userViewCount: existing[0].userViewCount + (req.body.userViewCount || 0),
+            })
+                .then(([momentReaction]) => res.status(200).send(momentReaction));
+        }
+
+        return Store.momentReactions.create({
+            userId,
+            momentId: req.params.momentId,
+            ...req.body,
+            userLocale: locale,
+        }).then(([reaction]) => res.status(200).send(reaction));
+    }).catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
 };
 
 // READ
@@ -61,21 +77,8 @@ const getReactionsByMomentId: RequestHandler = async (req: any, res: any) => {
     });
 };
 
-// UPDATE
-const updateMomentReaction = (req, res) => {
-    const userId = req.headers['x-userid'];
-
-    return Store.momentReactions.update({
-        userId,
-        momentId: req.params.momentId,
-    }, req.body)
-        .then(([momentReaction]) => res.status(200).send(momentReaction))
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
-};
-
 export {
-    createMomentReaction,
     getMomentReactions,
     getReactionsByMomentId,
-    updateMomentReaction,
+    createOrUpdateMomentReaction,
 };

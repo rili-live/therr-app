@@ -193,7 +193,10 @@ export default class ForumsStore {
 
         // ]);
 
-        const forumQueryString = knex.update(forumParams)
+        const forumQueryString = knex.update({
+            ...forumParams,
+            updatedAt: new Date(),
+        })
             .into(FORUMS_TABLE_NAME)
             .where(conditions)
             .returning(['id'])

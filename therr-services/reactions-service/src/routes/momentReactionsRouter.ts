@@ -1,23 +1,19 @@
 import * as express from 'express';
 import {
-    createMomentReaction,
+    createOrUpdateMomentReaction,
     getMomentReactions,
     getReactionsByMomentId,
-    updateMomentReaction,
 } from '../handlers/momentReactions';
 
 const router = express.Router();
 
-// CREATE
-router.post('/', createMomentReaction);
+// CREATE/UPDATE
+router.post('/:momentId', createOrUpdateMomentReaction);
 
 // GET
 router.get('/', getMomentReactions);
 
 // GET
 router.get('/:momentId', getReactionsByMomentId);
-
-// DELETE
-router.put('/:momentId', updateMomentReaction);
 
 export default router;

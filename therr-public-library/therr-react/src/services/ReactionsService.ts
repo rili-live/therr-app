@@ -16,7 +16,7 @@ export interface IGetMomentReactionParams {
     momentIds?: number[];
 }
 
-export interface IUpdateMomentReactionBody {
+export interface ICreateOrUpdateMomentReactionBody {
     userViewCount?: number;
     userHasActivated?: boolean;
     userHasLiked?: boolean;
@@ -26,9 +26,9 @@ export interface IUpdateMomentReactionBody {
 }
 
 class ReactionsService {
-    createMomentReaction = (data: ICreateMomentReactionBody) => axios({
+    createOrUpdateMomentReactions = (momentId: number, data: ICreateOrUpdateMomentReactionBody) => axios({
         method: 'post',
-        url: '/reactions-service/moment-reactions',
+        url: `/reactions-service/moment-reactions/${momentId}`,
         data,
     })
 
@@ -57,12 +57,6 @@ class ReactionsService {
             url: `/reactions-service/moment-reactions/${momentId}${queryString}`,
         });
     }
-
-    updateMomentReactions = (momentId: number, data: IUpdateMomentReactionBody) => axios({
-        method: 'put',
-        url: `/reactions-service/moment-reactions/${momentId}`,
-        data,
-    })
 }
 
 export default new ReactionsService();
