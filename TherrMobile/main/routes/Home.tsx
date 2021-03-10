@@ -357,7 +357,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                                 onPressFlag={this.onPressFlag}
                                                 offset={0}
                                                 onChangePhoneNumber={this.onPhoneInputChange}
-                                                onSubmitEditing={() => this.onSubmit()}
+                                                onSubmitEditing={this.onSubmit}
                                                 initialCountry={'us'}
                                                 flagStyle={styles.displayNone}
                                                 style={formStyles.phoneInput}

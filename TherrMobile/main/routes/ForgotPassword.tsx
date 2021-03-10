@@ -157,6 +157,7 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
                                 onChangeText={(text) =>
                                     this.onInputChange('email', text)
                                 }
+                                onSubmitEditing={this.onSubmit}
                                 rightIcon={
                                     <FontAwesomeIcon
                                         name="envelope"
