@@ -38,9 +38,11 @@ app.use(bodyParser.json());
 
 if (process.env.NODE_ENV !== 'production') {
     app.use(cors());
+    app.set('trust proxy', 0);
 } else {
     // app.use(cors(corsOptions)); // We cannot use cors because mobile apps have no concept of this
     app.use(cors());
+    app.set('trust proxy', 1);
 }
 
 // Serves static files in the /build/static directory
