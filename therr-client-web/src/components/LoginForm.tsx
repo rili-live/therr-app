@@ -67,6 +67,10 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                             this.setState({
                                 prevLoginError: this.translate('components.loginForm.oneTimePasswordExpired'),
                             });
+                        } else if (error.statusCode === 429 && error.message === 'Too many login attempts, please try again later.') {
+                            this.setState({
+                                prevLoginError: this.translate('components.loginForm.tooManyRequests'),
+                            });
                         } else {
                             this.setState({
                                 prevLoginError: this.translate('components.loginForm.backendErrorMessage'),

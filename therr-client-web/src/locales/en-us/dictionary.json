@@ -27,7 +27,8 @@
         "userName": "Username"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
-      "oneTimePasswordExpired": "Your one-time password has expired."
+      "oneTimePasswordExpired": "Your one-time password has expired.",
+      "tooManyRequests": "Too many login attempts, please try again later."
     },
     "messagingContainer": {
       "conversation": {
