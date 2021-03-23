@@ -29,13 +29,6 @@ const API_BASE_ROUTE = `/v${packageVersion.split('.')[0]}`;
 
 const app = express();
 
-// Logging Middleware
-app.use(honey);
-
-app.use(helmet());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-
 if (process.env.NODE_ENV !== 'production') {
     app.use(cors());
     app.set('trust proxy', 0);
@@ -44,6 +37,13 @@ if (process.env.NODE_ENV !== 'production') {
     app.use(cors());
     app.set('trust proxy', 1);
 }
+
+// Logging Middleware
+app.use(honey);
+
+app.use(helmet());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 // Serves static files in the /build/static directory
 app.use(express.static(path.join(__dirname, 'static')));
