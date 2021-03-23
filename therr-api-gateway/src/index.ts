@@ -1,6 +1,5 @@
 import beeline from './beeline'; // eslint-disable-line import/order
 import axios from 'axios';
-import * as bodyParser from 'body-parser';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -29,19 +28,21 @@ const API_BASE_ROUTE = `/v${packageVersion.split('.')[0]}`;
 
 const app = express();
 
+if (process.env.NODE_ENV !== 'production') {
+    app.use(cors());
+    app.set('trust proxy', 0);
+} else {
+    // app.use(cors(corsOptions)); // We cannot use cors because mobile apps have no concept of this
+    app.use(cors());
+    app.set('trust proxy', 1);
+}
+
 // Logging Middleware
 app.use(honey);
 
 app.use(helmet());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-
-if (process.env.NODE_ENV !== 'production') {
-    app.use(cors());
-} else {
-    // app.use(cors(corsOptions)); // We cannot use cors because mobile apps have no concept of this
-    app.use(cors());
-}
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // Serves static files in the /build/static directory
 app.use(express.static(path.join(__dirname, 'static')));
