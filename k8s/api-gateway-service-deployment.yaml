@@ -37,6 +37,10 @@ spec:
           value: "info"
         - name: LOGGING_DATASET
           value: "production"
+        - name: REDIS_GENERIC_HOST
+          value: "redis-cluster-ip-service"
+        - name: REDIS_GENERIC_PORT
+          value: "6379"
         - name: JWT_SECRET
           valueFrom:
             secretKeyRef:

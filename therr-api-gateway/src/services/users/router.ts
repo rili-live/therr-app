@@ -18,11 +18,12 @@ import {
     createUserConnectionValidation,
 } from './validation/userConnections';
 import { updateNotificationValidation } from './validation/notifications';
+import { loginAttemptLimiter } from './limitation/auth';
 
 const usersServiceRouter = express.Router();
 
 // Auth
-usersServiceRouter.post('/auth', authenticateUserValidation, validate, handleServiceRequest({
+usersServiceRouter.post('/auth', loginAttemptLimiter, authenticateUserValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
