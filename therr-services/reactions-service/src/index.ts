@@ -1,5 +1,4 @@
 import beeline from './beeline'; // eslint-disable-line import/order
-import * as bodyParser from 'body-parser';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -28,8 +27,8 @@ const app = express();
 app.use(honey);
 
 app.use(helmet());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 if (process.env.NODE_ENV !== 'production') {
     app.use(cors());
