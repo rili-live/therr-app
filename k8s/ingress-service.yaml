@@ -23,10 +23,19 @@ spec:
       - therr.com
       - www.therr.com
       - api.therr.com
+      - www.api.therr.com
       - websocket-service.therr.com
+      - www.websocket-service.therr.com
     secretName: therr-network-secret
   rules:
   - host: therr.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          serviceName: client-cluster-ip-service
+          servicePort: 7070
+  - host: www.therr.com
     http:
       paths:
       - path: /?(.*)
@@ -40,6 +49,13 @@ spec:
         backend:
           serviceName: api-gateway-service-cluster-ip-service
           servicePort: 7770
+  - host: www.api.therr.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          serviceName: api-gateway-service-cluster-ip-service
+          servicePort: 7770
   - host: websocket-service.therr.com
     http:
       paths:
@@ -47,11 +63,12 @@ spec:
         backend:
           serviceName: websocket-service-cluster-ip-service
           servicePort: 7743
-  - host: www.therr.com
+  - host: www.websocket-service.therr.com
     http:
       paths:
       - path: /?(.*)
         backend:
-          serviceName: client-cluster-ip-service
-          servicePort: 7070
+          serviceName: websocket-service-cluster-ip-service
+          servicePort: 7743
+
           

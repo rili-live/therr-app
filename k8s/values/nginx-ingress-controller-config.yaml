@@ -2,5 +2,7 @@
 controller:
   config:
     use-forwarded-headers: "true"
+  service:
+    externalTrafficPolicy: "Local"
 
 # helm install --namespace ingress-nginx --name nginx-ingress stable/nginx-ingress -f nginx-ingress-controller-config.yaml
