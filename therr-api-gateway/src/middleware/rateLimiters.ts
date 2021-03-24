@@ -12,7 +12,8 @@ const genericRateLimiter = new RateLimit({
         client: redisClient,
     }),
     windowMs: 1 * 60 * 1000, // 1 minutes
-    max: 500, // limit each IP to 500 requests per windowMs
+    // TODO: RSERV-43 - Determine how to get real IP from kubernetes and lower this back to 500
+    max: 10000, // limit each IP to 500 requests per windowMs
     statusCode: limitReachedStatusCode,
     handler: (req, res) => handleHttpError({
         res,
@@ -26,7 +27,8 @@ const serviceRateLimiter = new RateLimit({
         client: redisClient,
     }),
     windowMs: 10 * 1000, // 10 seconds
-    max: 50, // limit each IP to 50 requests per windowMs
+    // TODO: RSERV-43 - Determine how to get real IP from kubernetes and lower this back to 50
+    max: 5000, // limit each IP to 50 requests per windowMs
     statusCode: limitReachedStatusCode,
     handler: (req, res) => handleHttpError({
         res,

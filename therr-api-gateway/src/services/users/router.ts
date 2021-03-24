@@ -18,12 +18,13 @@ import {
     createUserConnectionValidation,
 } from './validation/userConnections';
 import { updateNotificationValidation } from './validation/notifications';
-import { loginAttemptLimiter } from './limitation/auth';
+// import { loginAttemptLimiter } from './limitation/auth';
 
 const usersServiceRouter = express.Router();
 
 // Auth
-usersServiceRouter.post('/auth', loginAttemptLimiter, authenticateUserValidation, validate, handleServiceRequest({
+// TODO: RSERV-43 - Determine how to get real IP from kubernetes and uncomment limiter
+usersServiceRouter.post('/auth', /* loginAttemptLimiter, */ authenticateUserValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
