@@ -37,6 +37,7 @@ spec:
             name: client-cluster-ip-service
             port:
               number: 7070
+        pathType: ImplementationSpecific
   - host: www.therr.com
     http:
       paths:
@@ -46,24 +47,27 @@ spec:
             name: client-cluster-ip-service
             port:
               number: 7070
+        pathType: ImplementationSpecific
   - host: api.therr.com
     http:
       paths:
       - path: /?(.*)
         backend:
           service:
-            name: api-gateway-service-cluster-ip-service
+            name: api-gateway-service-loadbalancer-service
             port:
               number: 7770
+        pathType: ImplementationSpecific
   - host: www.api.therr.com
     http:
       paths:
       - path: /?(.*)
         backend:
           service:
-            name: api-gateway-service-cluster-ip-service
+            name: api-gateway-service-loadbalancer-service
             port:
               number: 7770
+        pathType: ImplementationSpecific
   - host: websocket-service.therr.com
     http:
       paths:
@@ -73,6 +77,7 @@ spec:
             name: websocket-service-cluster-ip-service
             port:
               number: 7743
+        pathType: ImplementationSpecific
   - host: www.websocket-service.therr.com
     http:
       paths:
@@ -82,4 +87,5 @@ spec:
             name: websocket-service-cluster-ip-service
             port:
               number: 7743
+        pathType: ImplementationSpecific
           
