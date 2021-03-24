@@ -1,8 +1,0 @@
-# apiVersion: v1
-# kind: ConfigMap
-# metadata:
-#   name: nginx-ingress-custom-config
-#   namespace: default
-# data:
-#   use-proxy-protocol: "true"
-#   forwarded-for-header: "proxy_protocol"
