@@ -10,3 +10,4 @@ spec:
   ports:
   - port: 7770
     targetPort: 7770
+  externalTrafficPolicy: Local
