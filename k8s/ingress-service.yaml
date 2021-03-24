@@ -15,8 +15,6 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "360"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "360"
     nginx.ingress.kubernetes.io/use-regex: "true"
-    nginx.ingress.kubernetes.io/use-proxy-protocol: "true"
-    nginx.ingress.kubernetes.io/real-ip-header: "proxy_protocol"
     # nginx.ingress.kubernetes.io/proxy-read-timeout: “3600”
     # nginx.ingress.kubernetes.io/proxy-send-timeout: “3600”
 spec:
