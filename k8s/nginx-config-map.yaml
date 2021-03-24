@@ -3,6 +3,10 @@ data:
   upstream-keepalive-timeout: "60"
   upstream-keepalive-requests: "1000"
   use-gzip: "true"
+  # use-proxy-protocol: "true"
+  # forwarded-for-header: "proxy_protocol"
+  use-forwarded-headers: "true"
+  # enable-real-ip: "true"
 kind: ConfigMap
 metadata:
   name: nginx-configuration
