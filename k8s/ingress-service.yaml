@@ -33,42 +33,53 @@ spec:
       paths:
       - path: /?(.*)
         backend:
-          serviceName: client-cluster-ip-service
-          servicePort: 7070
+          service:
+            name: client-cluster-ip-service
+            port:
+              number: 7070
   - host: www.therr.com
     http:
       paths:
       - path: /?(.*)
         backend:
-          serviceName: client-cluster-ip-service
-          servicePort: 7070
+          service:
+            name: client-cluster-ip-service
+            port:
+              number: 7070
   - host: api.therr.com
     http:
       paths:
       - path: /?(.*)
         backend:
-          serviceName: api-gateway-service-cluster-ip-service
-          servicePort: 7770
+          service:
+            name: api-gateway-service-cluster-ip-service
+            port:
+              number: 7770
   - host: www.api.therr.com
     http:
       paths:
       - path: /?(.*)
         backend:
-          serviceName: api-gateway-service-cluster-ip-service
-          servicePort: 7770
+          service:
+            name: api-gateway-service-cluster-ip-service
+            port:
+              number: 7770
   - host: websocket-service.therr.com
     http:
       paths:
       - path: /?(.*)
         backend:
-          serviceName: websocket-service-cluster-ip-service
-          servicePort: 7743
+          service:
+            name: websocket-service-cluster-ip-service
+            port:
+              number: 7743
   - host: www.websocket-service.therr.com
     http:
       paths:
       - path: /?(.*)
         backend:
-          serviceName: websocket-service-cluster-ip-service
-          servicePort: 7743
-
+          service:
+            name: websocket-service-cluster-ip-service
+            port:
+              number: 7743
           
