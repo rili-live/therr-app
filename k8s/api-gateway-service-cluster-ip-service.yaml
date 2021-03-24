@@ -4,7 +4,7 @@ metadata:
   name: api-gateway-service-cluster-ip-service
   namespace: default
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     component: server-api-gateway
   ports:
