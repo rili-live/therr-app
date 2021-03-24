@@ -52,7 +52,7 @@ spec:
       - path: /?(.*)
         backend:
           service:
-            name: api-gateway-service-cluster-ip-service
+            name: api-gateway-service-loadbalancer-service
             port:
               number: 7770
   - host: www.api.therr.com
@@ -61,7 +61,7 @@ spec:
       - path: /?(.*)
         backend:
           service:
-            name: api-gateway-service-cluster-ip-service
+            name: api-gateway-service-loadbalancer-service
             port:
               number: 7770
   - host: websocket-service.therr.com
