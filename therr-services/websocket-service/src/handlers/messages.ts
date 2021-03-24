@@ -17,7 +17,7 @@ import { COMMON_DATE_FORMAT } from '../constants';
 const sendDirectMessage = (socket: socketio.Socket, data: any) => {
     restRequest({
         method: 'post',
-        url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiGatewayRoute}/messages-service/direct-messages`,
+        url: `${globalConfig[process.env.NODE_ENV || 'development'].baseMessagesServiceRoute}/direct-messages`,
         data: {
             message: data.message,
             toUserId: data.to.id,
@@ -61,7 +61,7 @@ const sendDirectMessage = (socket: socketio.Socket, data: any) => {
                     if (shouldCreateNotification) {
                         restRequest({
                             method: 'post',
-                            url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiGatewayRoute}/users-service/users/notifications`,
+                            url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/notifications`,
                             data: {
                                 userId: data.to.id,
                                 type: Notifications.Types.NEW_DM_RECEIVED,

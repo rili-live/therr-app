@@ -22,7 +22,7 @@ const updateNotification = (socket: Socket, data: IUpdateNotificationData) => {
     });
     restRequest({
         method: 'put',
-        url: `${globalConfig[process.env.NODE_ENV || 'development'].baseApiGatewayRoute}/users-service/users/notifications/${data.notification.id}`,
+        url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/notifications/${data.notification.id}`,
         data: {
             isUnread: data.notification.isUnread,
         },
