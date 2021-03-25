@@ -1,4 +1,8 @@
 import LogLevelMap, { ILogLevel } from './LogLevelMap';
+import {
+    DefaultUserResources,
+    ResourceExchangeRates,
+} from './Resources';
 
 // Enums
 import * as Notifications from './enums/Notifications';
@@ -15,6 +19,8 @@ export {
     ILogLevel,
     LogLevelMap,
     Notifications,
+    DefaultUserResources,
+    ResourceExchangeRates,
     SocketClientActionTypes,
     SocketServerActionTypes,
 };

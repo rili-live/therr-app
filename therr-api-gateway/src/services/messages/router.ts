@@ -9,6 +9,7 @@ import {
     searchForumsValidation,
     updateForumValidation,
 } from './validation/forums';
+import checkResources from '../../middleware/checkResources';
 
 const messagesServiceRouter = express.Router();
 
@@ -35,7 +36,7 @@ messagesServiceRouter.get('/forum-messages/:forumId', handleServiceRequest({
 }));
 
 // Forums
-messagesServiceRouter.post('/forums', createForumValidation, validate, handleServiceRequest({
+messagesServiceRouter.post('/forums', createForumValidation, validate, checkResources('createForum'), handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}`,
     method: 'post',
 }));
