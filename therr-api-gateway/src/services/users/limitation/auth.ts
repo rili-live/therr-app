@@ -11,8 +11,9 @@ const loginAttemptLimiter = new RateLimit({
         client: redisClient,
     }),
     windowMs: 5 * 60 * 1000, // 5 minutes
-    max: process.env.NODE_ENV !== 'development' ? 10 : 50, // limit each IP to 5 requests per windowMs
+    max: process.env.NODE_ENV !== 'development' ? 5 : 25, // limit each IP to 10 requests per windowMs
     statusCode: limitReachedStatusCode,
+    keyGenerator: (req) => `${req.method}${req.path}${req.ip}`,
     handler: (req, res) => handleHttpError({
         res,
         message: limitReachedMessage,
