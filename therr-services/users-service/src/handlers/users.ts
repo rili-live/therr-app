@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express';
+// import { DefaultUserResources } from 'therr-js-utilities/constants';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { hashPassword } from '../utilities/userHelpers';
@@ -40,6 +41,7 @@ const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(
                     },
                 }),
             }))
+            // TODO: RSERV-53 - Create userResource with default values (from library constant DefaultUserResources)
             .then((results) => {
                 const user = results[0];
                 delete user.password;
