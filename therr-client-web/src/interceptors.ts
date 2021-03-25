@@ -16,6 +16,7 @@ const initInterceptors = (
 ) => {
     // Global axios config
     axios.defaults.baseURL = baseUrl;
+    axios.defaults.headers['x-platform'] = 'desktop';
 
     // Global axios interceptor
     axios.interceptors.request.use((config) => {
