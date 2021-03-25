@@ -1,5 +1,6 @@
 {
   "validation": {
-    "defaultMessage": "The following parameters are invalid"
+    "defaultMessage": "The following parameters are invalid",
+    "notEnoughEnergy": "Not Enough Energy"
   }
 }
