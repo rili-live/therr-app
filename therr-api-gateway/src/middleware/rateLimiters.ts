@@ -7,6 +7,7 @@ const limitReachedStatusCode = 429;
 const limitReachedMessage = 'Too many requests, please try again later.';
 const serviceLimitReachedMessage = 'Too many service requests, please try again later.';
 
+// TODO: Add store fallback to prevent single source of failure
 const genericRateLimiter = new RateLimit({
     store: new RedisStore({
         client: redisClient,

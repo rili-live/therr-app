@@ -451,7 +451,6 @@ class Map extends React.Component<IMapProps, IMapState> {
             longitude: map.longitude,
             latitude: map.latitude,
         };
-        console.log('UserCoordds', userCoords);
         // TODO: Consider making this one, dynamic request to add efficiency
         if (shouldSearchAll || layers.myMoments) {
             searchMoments({

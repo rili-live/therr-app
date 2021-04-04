@@ -32,6 +32,8 @@
     "@react-native-community/geolocation": "^2.0.2",
     "@react-native-community/masked-view": "^0.1.10",
     "@react-native-community/toolbar-android": "0.1.0-rc.2",
+    "@react-native-firebase/app": "^11.2.0",
+    "@react-native-firebase/messaging": "^11.2.0",
     "@react-native-picker/picker": "^1.9.11",
     "@react-navigation/drawer": "^5.9.0",
     "@react-navigation/native": "^5.7.3",
