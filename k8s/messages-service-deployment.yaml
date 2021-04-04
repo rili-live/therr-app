@@ -15,6 +15,14 @@ spec:
         tier: microservices
     spec:
       serviceAccountName: therr-k8s-service-account
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - preference:
+              matchExpressions:
+              - key: cloud.google.com/gke-preemptible
+                operator: Exists
+            weight: 100
       containers:
       - name: server-messages
         image: therrapp/messages-service:latest
