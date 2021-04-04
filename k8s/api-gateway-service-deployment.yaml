@@ -22,7 +22,7 @@ spec:
               matchExpressions:
               - key: cloud.google.com/gke-preemptible
                 operator: DoesNotExist
-            weight: 100
+            weight: 75
       containers:
       - name: server-api-gateway
         image: therrapp/api-gateway:latest

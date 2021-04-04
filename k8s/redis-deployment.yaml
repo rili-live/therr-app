@@ -5,6 +5,14 @@ metadata:
   namespace: default
 spec:
   replicas: 1
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - preference:
+          matchExpressions:
+          - key: cloud.google.com/gke-preemptible
+            operator: DoesNotExist
+        weight: 100
   selector:
     matchLabels:
       component: redis
