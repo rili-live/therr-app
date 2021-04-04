@@ -2,6 +2,7 @@ import React from 'react';
 import { DeviceEventEmitter, PermissionsAndroid, Platform, View } from 'react-native';
 import LocationServicesDialogBox  from 'react-native-android-location-services-dialog-box';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
+import messaging from '@react-native-firebase/messaging';
 import { UsersService } from 'therr-react/services';
 import { IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ForumActions, NotificationActions } from 'therr-react/redux/actions';
@@ -134,6 +135,24 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         updateLocationPermissions(statuses);
                     });
                 }
+
+                this.getIosNotificationPermissions()
+                    .then(() => {
+                        return messaging().registerDeviceForRemoteMessages();
+                    })
+                    .then(() => {
+                        // Get the token
+                        return messaging().getToken();
+                    })
+                    .then((token) => {
+                        console.log(token);
+                        messaging().onMessage(async remoteMessage => {
+                            console.log('Message handled in the foreground!', remoteMessage);
+                        });
+                    })
+                    .catch((err) => {
+                        console.log('NOTIFICATIONS_ERROR', err);
+                    });
             }
             this.setState({
                 isAuthenticated: user.isAuthenticated,
@@ -155,6 +174,17 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             navState.routes[navState.routes.length - 1].name
         );
     };
+
+    getIosNotificationPermissions = () => {
+        return messaging().requestPermission()
+            .then((authStatus) => {
+                const enabled = authStatus === messaging.AuthorizationStatus.AUTHORIZED
+                    || authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+                if (enabled) {
+                    console.log('Notificatinos authorization status:', authStatus);
+                }
+            });
+    }
 
     shouldShowTopRightMenu = () => {
         return UsersService.isAuthorized(

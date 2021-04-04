@@ -6,6 +6,7 @@
 
 #import <GoogleMaps/GoogleMaps.h>
 #import "ReactNativeConfig.h"
+#import <Firebase.h>
 
 #if DEBUG
 #import <FlipperKit/FlipperClient.h>
@@ -30,12 +31,16 @@ static void InitializeFlipper(UIApplication *application) {
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-NSString *googleMapsApiKey = [ReactNativeConfig envFor:@"GOOGLE_MAPS_API_KEY"];
-+  [GMSServices provideAPIKey:googleMapsApiKey]; // add this line using the api key obtained from Google Console
-#if DEBUG
+  if ([FIRApp defaultApp] == nil) {
+      [FIRApp configure];
+  }
 
-  InitializeFlipper(application);
-#endif
+  NSString *googleMapsApiKey = [ReactNativeConfig envFor:@"GOOGLE_MAPS_API_KEY"];
+  +  [GMSServices provideAPIKey:googleMapsApiKey]; // add this line using the api key obtained from Google Console
+  #if DEBUG
+
+    InitializeFlipper(application);
+  #endif
 
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
   RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge

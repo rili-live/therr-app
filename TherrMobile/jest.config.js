@@ -14,6 +14,7 @@ module.exports = {
             '<rootDir>../therr-public-library/therr-react/lib/$1',
         'therr-js-utilities/(.*)':
             '<rootDir>../therr-public-library/therr-js-utilities/lib/$1',
+        '@react-native-firebase/messaging': '<rootDir>/__mocks__/firebase/messaging.ts',
     },
     moduleDirectories: ['<rootDir>/node_modules', '<rootDir>../node_modules'],
     setupFiles: ['./test-setup.ts'],
