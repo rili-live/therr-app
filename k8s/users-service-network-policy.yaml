@@ -11,15 +11,6 @@ spec:
   - Ingress
   - Egress
   ingress:
-  - from:
-    - podSelector:
-        matchLabels:
-          component: server-api-gateway
-    - podSelector:
-        matchLabels:
-          component: server-websocket
-    - podSelector:
-        matchLabels:
-          component: server-maps
+  - {}
   egress:
   - {}
