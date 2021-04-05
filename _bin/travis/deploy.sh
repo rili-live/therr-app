@@ -131,7 +131,7 @@ else
   echo "Skipping api-gateway deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/push-notifications-service"; then
-  kubectl set image deployments/push-notifications-service-deployment server-maps=therrapp/push-notifications-service:$GIT_SHA
+  kubectl set image deployments/push-notifications-service-deployment server-push-notifications=therrapp/push-notifications-service:$GIT_SHA
 else
   echo "Skipping push-notifications-service deployment (No Changes)"
 fi
