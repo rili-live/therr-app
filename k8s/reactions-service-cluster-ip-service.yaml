@@ -9,8 +9,6 @@ spec:
   type: ClusterIP
   selector:
     component: server-reactions
-    type: microservice
-    layer: service-internal
   ports:
   - port: 7774
     targetPort: 7774

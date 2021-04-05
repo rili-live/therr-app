@@ -12,6 +12,8 @@ spec:
     metadata:
       labels:
         component: web
+        tier: frontend
+        layer: services-external
     spec:
       containers:
       - name: web

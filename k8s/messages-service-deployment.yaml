@@ -13,6 +13,7 @@ spec:
       labels:
         component: server-messages
         tier: microservices
+        layer: services-internal
     spec:
       serviceAccountName: therr-k8s-service-account
       affinity:

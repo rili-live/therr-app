@@ -9,8 +9,6 @@ spec:
   type: ClusterIP
   selector:
     component: server-push-notifications
-    type: microservice
-    layer: service-internal
   ports:
   - port: 7775
     targetPort: 7775
