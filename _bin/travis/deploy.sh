@@ -64,6 +64,10 @@ if should_deploy_service "therr-api-gateway"; then
   docker build -t therrapp/api-gateway$SUFFIX:latest -t therrapp/api-gateway$SUFFIX:$GIT_SHA -f ./therr-api-gateway/Dockerfile \
     --build-arg NODE_VERSION=${NODE_VERSION} .
 fi
+if should_deploy_service "therr-services/push-notifications-service"; then
+  docker build -t therrapp/push-notifications-service$SUFFIX:latest -t therrapp/push-notifications-service$SUFFIX:$GIT_SHA -f ./therr-services/push-notifications-service/Dockerfile \
+    --build-arg NODE_VERSION=${NODE_VERSION} .
+fi
 if should_deploy_service "therr-services/maps-service"; then
   docker build -t therrapp/maps-service$SUFFIX:latest -t therrapp/maps-service$SUFFIX:$GIT_SHA -f ./therr-services/maps-service/Dockerfile \
     --build-arg NODE_VERSION=${NODE_VERSION} .
@@ -125,6 +129,11 @@ if should_deploy_service "therr-api-gateway"; then
   kubectl set image deployments/api-gateway-service-deployment server-api-gateway=therrapp/api-gateway:$GIT_SHA
 else
   echo "Skipping api-gateway deployment (No Changes)"
+fi
+if should_deploy_service "therr-services/push-notifications-service"; then
+  kubectl set image deployments/push-notifications-service-deployment server-maps=therrapp/push-notifications-service:$GIT_SHA
+else
+  echo "Skipping push-notifications-service deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/maps-service"; then
   kubectl set image deployments/maps-service-deployment server-maps=therrapp/maps-service:$GIT_SHA

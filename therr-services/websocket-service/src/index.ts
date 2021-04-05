@@ -75,7 +75,7 @@ const startExpressSocketIOServer = () => {
         printLogs({
             level: 'info',
             messageOrigin: 'SOCKET_IO_LOGS',
-            messages: `Server running on port, ${SOCKET_PORT}, with process id ${process.pid}`,
+            messages: `Server (websocket service) running on port, ${SOCKET_PORT}, with process id ${process.pid}`,
             tracer: beeline,
             traceArgs: {
                 port: SOCKET_PORT,
