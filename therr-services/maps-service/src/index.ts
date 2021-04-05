@@ -50,7 +50,7 @@ const server = app.listen(MAPS_SERVICE_API_PORT, () => {
     printLogs({
         level: 'info',
         messageOrigin: 'API_SERVER',
-        messages: [`Server running on port ${MAPS_SERVICE_API_PORT} with process id`, process.pid],
+        messages: [`Server (maps service) running on port ${MAPS_SERVICE_API_PORT} with process id`, process.pid],
         tracer: beeline,
         traceArgs: {
             port: MAPS_SERVICE_API_PORT,

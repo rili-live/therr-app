@@ -50,7 +50,7 @@ const server = app.listen(MESSAGES_SERVICE_API_PORT, () => {
     printLogs({
         level: 'info',
         messageOrigin: 'API_SERVER',
-        messages: [`Server running on port ${MESSAGES_SERVICE_API_PORT} with process id`, process.pid],
+        messages: [`Server (messages service) running on port ${MESSAGES_SERVICE_API_PORT} with process id`, process.pid],
         tracer: beeline,
         traceArgs: {
             port: MESSAGES_SERVICE_API_PORT,

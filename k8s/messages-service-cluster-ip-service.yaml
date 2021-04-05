@@ -9,6 +9,8 @@ spec:
   type: ClusterIP
   selector:
     component: server-messages
+    type: microservice
+    layer: service-internal
   ports:
   - port: 7772
     targetPort: 7772
