@@ -6,6 +6,7 @@ metadata:
 spec:
   selector:
     component: redis
+    type: db
   ports:
   - port: 6379
     targetPort: 6379
