@@ -106,6 +106,10 @@ if should_deploy_service "therr-services/messages-service"; then
   docker push therrapp/messages-service$SUFFIX:latest
   docker push therrapp/messages-service$SUFFIX:$GIT_SHA
 fi
+if should_deploy_service "therr-services/push-notifications-service"; then
+  docker push therrapp/push-notifications-service$SUFFIX:latest
+  docker push therrapp/push-notifications-service$SUFFIX:$GIT_SHA
+fi
 if should_deploy_service "therr-services/reactions-service"; then
   docker push therrapp/reactions-service$SUFFIX:latest
   docker push therrapp/reactions-service$SUFFIX:$GIT_SHA
