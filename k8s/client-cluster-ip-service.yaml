@@ -7,8 +7,6 @@ spec:
   type: ClusterIP
   selector:
     component: web
-    type: microservice
-    layer: service-frontend
   ports:
   - port: 7070
     targetPort: 7070

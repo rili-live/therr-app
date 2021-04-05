@@ -4,13 +4,8 @@ metadata:
   name: users-service-network-policy
   namespace: default
 spec:
-  podSelector:
-    matchLabels:
-      component: server-users
+  podSelector: {}
+  ingress:
+  - {}
   policyTypes:
   - Ingress
-  ingress:
-  - from:
-    - podSelector:
-        matchExpressions:
-          - { key: component, operator: In, values: [server-api-gateway, server-websocket, server-maps] }
