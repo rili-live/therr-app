@@ -11,6 +11,12 @@ spec:
   - Ingress
   - Egress
   ingress:
-  - {}
+  - from:
+    - podSelector:
+        matchLabels:
+          layer: services-external
+    - podSelector:
+        matchLabels:
+          component: server-maps
   egress:
   - {}
