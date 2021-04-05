@@ -12,6 +12,7 @@ spec:
     metadata:
       labels:
         component: redis
+        type: db
     spec:
       affinity:
         nodeAffinity:
