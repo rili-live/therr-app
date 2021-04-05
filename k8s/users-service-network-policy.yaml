@@ -9,11 +9,17 @@ spec:
       component: server-users
   policyTypes:
   - Ingress
+  - Egress
   ingress:
   - from:
     - podSelector:
         matchLabels:
-          layer: service-external
+          component: server-api-gateway
+    - podSelector:
+        matchLabels:
+          component: server-websocket
     - podSelector:
         matchLabels:
           component: server-maps
+  egress:
+  - {}
