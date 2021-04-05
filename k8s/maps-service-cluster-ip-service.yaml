@@ -9,8 +9,6 @@ spec:
   type: ClusterIP
   selector:
     component: server-maps
-    type: microservice
-    layer: service-internal
   ports:
   - port: 7773
     targetPort: 7773

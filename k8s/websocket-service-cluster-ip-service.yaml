@@ -7,8 +7,6 @@ spec:
   type: ClusterIP
   selector:
     component: server-websocket
-    type: microservice
-    layer: service-external
   ports:
   - port: 7743
     targetPort: 7743
