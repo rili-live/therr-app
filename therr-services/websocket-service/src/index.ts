@@ -4,7 +4,6 @@ import * as http from 'http';
 import moment from 'moment';
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import {
-    LogLevelMap,
     SocketServerActionTypes,
     SocketClientActionTypes,
     SOCKET_MIDDLEWARE_ACTION,
@@ -15,7 +14,7 @@ import * as globalConfig from '../../../global-config';
 import getSocketRoomsList from './utilities/get-socket-rooms-list';
 import redisAdapter from './store/redisAdapter';
 import redisSessions from './store/redisSessions';
-import { redisPub, redisSub } from './store/redisClient';
+import { connectToRedis } from './store/redisClient';
 import authenticate from './utilities/authenticate';
 import notifyConnections from './utilities/notify-connections';
 import { UserStatus } from './constants';
@@ -97,6 +96,10 @@ const startExpressSocketIOServer = () => {
     });
 
     io.adapter(redisAdapter);
+
+    io.of('/').adapter.on('error', (err) => {
+        console.log(err);
+    });
 
     io.on('connection', async (socket: Socket) => {
         printLogs({
@@ -238,38 +241,9 @@ const startExpressSocketIOServer = () => {
     });
 };
 
-// We must connect manually since lazyConnect is true
-const redisConnectPromises = [redisPub.connect(), redisSub.connect()];
-
-Promise.all(redisConnectPromises).then((responses: any[]) => {
-    // connection ready
-    if ((Number(process.env.LOG_LEVEL) || 2) <= LogLevelMap.verbose) {
-        redisPub.monitor().then((monitor) => {
-            monitor.on('monitor', (time, args, source, database) => {
-                printLogs({
-                    time,
-                    level: 'verbose',
-                    messageOrigin: 'REDIS_PUB_LOG',
-                    messages: [`Source: ${source}, Database: ${database}`, ...args],
-                    tracer: beeline,
-                    traceArgs: {},
-                });
-            });
-        });
-    }
-
-    // Wait for both pub and sub redis instances to connect before starting Express/Socket.io server
-    startExpressSocketIOServer();
-}).catch((e) => {
-    console.error(e);
-    printLogs({
-        level: 'verbose',
-        messageOrigin: 'REDIS_LOG',
-        messages: [e.message],
-        tracer: beeline,
-        traceArgs: {},
-    });
-});
+connectToRedis({
+    tracer: beeline,
+}, startExpressSocketIOServer);
 
 // Hot Module Reloading
 type ModuleId = string | number;

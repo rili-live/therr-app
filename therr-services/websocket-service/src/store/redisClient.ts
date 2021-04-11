@@ -1,5 +1,6 @@
 import printLogs from 'therr-js-utilities/print-logs';
 import Redis from 'ioredis';
+import { LogLevelMap } from 'therr-js-utilities/constants';
 import beeline from '../beeline'; // eslint-disable-line import/order
 
 const nodes = [
@@ -8,6 +9,11 @@ const nodes = [
         port: Number(process.env.REDIS_PUB_PORT),
     },
 ];
+
+const maxConnectionRetries = 100;
+let connectionRetryCount = 0;
+let connectionWaitTime = 0;
+let connectionTimerId;
 
 // TODO: RSERV-6: Configure redis clusters
 // NOTE: Redis cluster only works on Docker for Linux (ie. Ubuntu) using the host network (https://docs.docker.com/network/host/)
@@ -25,8 +31,68 @@ const redisSub: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
     lazyConnect: true,
 });
 
+export const connectToRedis = (options, callback) => {
+    redisPub.disconnect();
+    redisSub.disconnect();
+    // We must connect manually since lazyConnect is true
+    const redisConnectPromises = [redisPub.connect(), redisSub.connect()];
+
+    Promise.all(redisConnectPromises).then((responses: any[]) => {
+        clearTimeout(connectionTimerId);
+        connectionRetryCount = 0;
+        connectionWaitTime = 0;
+
+        // connection ready
+        if ((Number(process.env.LOG_LEVEL) || 2) <= LogLevelMap.verbose) {
+            redisPub.monitor().then((monitor) => {
+                monitor.on('monitor', (time, args, source, database) => {
+                    printLogs({
+                        time,
+                        level: 'verbose',
+                        messageOrigin: 'REDIS_PUB_LOG',
+                        messages: [`Source: ${source}, Database: ${database}`, ...args],
+                        tracer: options.tracer,
+                        traceArgs: {},
+                    });
+                });
+            });
+        }
+
+        // Wait for both pub and sub redis instances to connect before starting Express/Socket.io server
+        callback();
+    }).catch((e) => {
+        console.error(e);
+        printLogs({
+            level: 'verbose',
+            messageOrigin: 'REDIS_LOG',
+            messages: [e.message],
+            tracer: options.tracer,
+            traceArgs: {},
+        });
+
+        if (connectionRetryCount <= maxConnectionRetries) {
+            clearTimeout(connectionTimerId);
+
+            connectionTimerId = setTimeout(() => {
+                connectionRetryCount += 1;
+                connectToRedis(options, callback);
+
+                if (connectionWaitTime === 0) {
+                    connectionWaitTime = 50;
+                } else if (connectionWaitTime < 100) {
+                    connectionWaitTime *= 4;
+                } else if (connectionWaitTime >= (1000 * 60 * 5)) {
+                    connectionWaitTime = 1000 * 60 * 5;
+                } else {
+                    connectionWaitTime *= 5;
+                }
+            }, connectionWaitTime);
+        }
+    });
+};
+
 // Redis Error handling
-redisPub.on('error', (error: string) => {
+redisPub.on('error', (error: any) => {
     printLogs({
         level: 'verbose',
         messageOrigin: 'REDIS_PUB_CLUSTER_CONNECTION_ERROR',
@@ -36,7 +102,7 @@ redisPub.on('error', (error: string) => {
     });
 });
 
-redisSub.on('error', (error: string) => {
+redisSub.on('error', (error: any) => {
     printLogs({
         level: 'verbose',
         messageOrigin: 'REDIS_SUB_CLUSTER_CONNECTION_ERROR',
