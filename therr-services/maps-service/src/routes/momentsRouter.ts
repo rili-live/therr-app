@@ -11,7 +11,7 @@ const router = express.Router();
 router.post('/', createMoment);
 
 // SEARCH
-router.get('/', searchMoments);
+router.post('/search', searchMoments);
 
 // DELETE
 router.delete('/', deleteMoments);

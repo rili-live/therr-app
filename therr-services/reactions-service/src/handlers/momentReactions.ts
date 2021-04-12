@@ -77,8 +77,31 @@ const getReactionsByMomentId: RequestHandler = async (req: any, res: any) => {
     });
 };
 
+const findMomentReactions: RequestHandler = async (req: any, res: any) => {
+    const userId = req.headers['x-userid'];
+    // const locale = req.headers['x-localecode'] || 'en-us';
+    const {
+        momentIds,
+        userHasActivated,
+        limit,
+    } = req.body;
+
+    const conditions: any = {
+        userId,
+    };
+
+    if (userHasActivated != null) {
+        conditions.userHasActivated = userHasActivated;
+    }
+
+    return Store.momentReactions.get(conditions, momentIds, limit)
+        .then(([moments]) => res.status(200).send(moments))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
+};
+
 export {
     getMomentReactions,
     getReactionsByMomentId,
     createOrUpdateMomentReaction,
+    findMomentReactions,
 };

@@ -47,7 +47,9 @@ const map = (state: IMapState = initialState, action: any) => {
         case MapActionTypes.UPDATE_COORDS:
             return state
                 .setIn(['longitude'], action.data.longitude)
-                .setIn(['latitude'], action.data.latitude);
+                .setIn(['latitude'], action.data.latitude)
+                .setIn(['prevLongitude'], state.longitude)
+                .setIn(['prevLatitude'], state.latitude);
         case SocketClientActionTypes.LOGOUT:
             return state.setIn(['myMoments'], Immutable.from([]));
         default:
