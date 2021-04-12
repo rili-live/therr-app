@@ -1,6 +1,7 @@
 import * as express from 'express';
 import {
     createOrUpdateMomentReaction,
+    createOrUpdateMultiMomentReactions,
     getMomentReactions,
     getReactionsByMomentId,
     findMomentReactions,
@@ -10,6 +11,8 @@ const router = express.Router();
 
 // CREATE/UPDATE
 router.post('/:momentId', createOrUpdateMomentReaction);
+
+router.post('/create-update/multiple', createOrUpdateMultiMomentReactions);
 
 // GET
 router.get('/', getMomentReactions);

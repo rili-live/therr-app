@@ -33,6 +33,41 @@ const createOrUpdateMomentReaction = (req, res) => {
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
 };
 
+// CREATE/UPDATE
+const createOrUpdateMultiMomentReactions = (req, res) => {
+    const userId = req.headers['x-userid'];
+    const locale = req.headers['x-localecode'] || 'en-us';
+
+    const { momentIds } = req.body;
+    const params = { ...req.body };
+    delete params.momentIds;
+
+    return Store.momentReactions.get({}, momentIds).then((existing) => {
+        const existingReactions = existing.map((reaction) => [userId, reaction.momentId]);
+        if (existing?.length) {
+            return Store.momentReactions.update({}, {
+                ...params,
+                userLocale: locale,
+            }, {
+                columns: ['userId', 'momentId'],
+                whereInArray: existingReactions,
+            })
+                .then((momentReactions) => res.status(200).send(momentReactions));
+        }
+
+        const createArray = momentIds
+            .filter((id) => !existingReactions.find((reaction) => reaction[1] === id))
+            .map((momentId) => ({
+                userId,
+                momentId,
+                ...params,
+                userLocale: locale,
+            }));
+
+        return Store.momentReactions.create(createArray).then(([reaction]) => res.status(200).send(reaction));
+    }).catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
+};
+
 // READ
 const getMomentReactions: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
@@ -95,7 +130,9 @@ const findMomentReactions: RequestHandler = async (req: any, res: any) => {
     }
 
     return Store.momentReactions.get(conditions, momentIds, limit)
-        .then(([moments]) => res.status(200).send(moments))
+        .then((reactions) => res.status(200).send({
+            reactions,
+        }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
 };
 
@@ -103,5 +140,6 @@ export {
     getMomentReactions,
     getReactionsByMomentId,
     createOrUpdateMomentReaction,
+    createOrUpdateMultiMomentReactions,
     findMomentReactions,
 };

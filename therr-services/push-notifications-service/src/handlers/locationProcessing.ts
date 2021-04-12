@@ -67,7 +67,7 @@ const processUserLocationChange: RequestHandler = (req, res) => {
                     momentIds: moments.map((moment: any) => moment.id) || [],
                 },
             }).then((reactionsResponse) => {
-                const reactions = reactionsResponse?.data || [];
+                const reactions = reactionsResponse?.data?.reactions || [];
                 let greatestProximityDistanceRequired = Location.MOMENT_PROXIMITY_EXPANDED_METERS; // TODO: Cache in association with userId
                 let hasSentNotification = false;
 
@@ -111,40 +111,37 @@ const processUserLocationChange: RequestHandler = (req, res) => {
         })
         // TODO: Update moments to "soft" activated, ignore doesRequireProximityView
         .then((filteredMoments) => {
-            const promises: Promise<any>[] = [];
-            let totalMomentsActivated = 0;
-            // NOTE: only active 5 moments max to limit high density locations
-            for (let i = 0; i < 5 && i < filteredMoments.length - 1; i += 1) {
-                totalMomentsActivated += 1;
-                const promise: any = axios({
-                    method: 'post',
-                    url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/moment-reactions/${filteredMoments[i].id}`,
-                    headers: {
-                        authorization: req.headers.authorization,
-                        'x-localecode': locale,
-                        'x-userid': userId,
-                    },
-                    data: {
-                        userHasActivated: true,
-                    },
-                });
-
-                promises.push(promise);
+            const activatedMomentIds: number[] = [];
+            // NOTE: only active 'x' moments max to limit high density locations
+            for (let i = 0; i <= Location.MAX_MOMENT_ACTIVATE_COUNT && i <= filteredMoments.length - 1; i += 1) {
+                activatedMomentIds.push(filteredMoments[i].id);
             }
 
-            // Fire and forget
-            Promise.all(promises)
+            // Fire and forget (create or update)
+            axios({
+                method: 'post',
+                url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/moment-reactions/create-update/multiple`,
+                headers: {
+                    authorization: req.headers.authorization,
+                    'x-localecode': locale,
+                    'x-userid': userId,
+                },
+                data: {
+                    momentIds: activatedMomentIds,
+                    userHasActivated: true,
+                },
+            })
                 .then(() => {
                     // TODO: Only send if hasn't recently send notification
                     predictAndSendNotification(
                         PushNotificationTypes.newMomentsActivated,
                         {
-                            momentsActivated: filteredMoments.slice(0, totalMomentsActivated),
+                            momentsActivated: filteredMoments.slice(0, activatedMomentIds.length),
                         },
                         {
                             deviceToken: userDeviceToken,
                             userId,
-                            totalMomentsActivated,
+                            totalMomentsActivated: activatedMomentIds.length,
                         },
                     );
                 })
@@ -157,10 +154,7 @@ const processUserLocationChange: RequestHandler = (req, res) => {
         .then((filteredMoments) => res.status(200).send({
             activatedMoments: filteredMoments,
         }))
-        .catch((err) => {
-            console.log(err.response);
-            return handleHttpError({ err, res, message: 'SQL:MOMENT_PUSH_NOTIFICATIONS_ROUTES:ERROR' });
-        });
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
 };
 
 export {
