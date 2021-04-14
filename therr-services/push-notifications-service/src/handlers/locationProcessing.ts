@@ -4,7 +4,7 @@ import { getSearchQueryString } from 'therr-js-utilities/http';
 import { RequestHandler } from 'express';
 import handleHttpError from '../utilities/handleHttpError';
 import { predictAndSendNotification, PushNotificationTypes } from '../api/firebaseAdmin';
-import redisClient from '../store/redisClient';
+// import redisClient from '../store/redisClient';
 // import Store from '../store';
 // import translate from '../utilities/translator';
 import * as globalConfig from '../../../../global-config';
