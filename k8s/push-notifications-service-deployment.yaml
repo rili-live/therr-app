@@ -81,6 +81,10 @@ spec:
             secretKeyRef:
               name: therrjwtsecret
               key: THERRJWT_SECRET
+        - name: REDIS_GENERIC_HOST
+          value: "redis-cluster-ip-service"
+        - name: REDIS_GENERIC_PORT
+          value: "6379"
       - name: cloud-sql-proxy
         # It is recommended to use the latest version of the Cloud SQL proxy
         # Make sure to update on a regular schedule!
