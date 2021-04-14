@@ -24,9 +24,6 @@
   ],
   "author": "Therr, Inc.",
   "license": "MIT",
-  "dependencies": {
-    "firebase-admin": "^9.6.0"
-  },
   "devDependencies": {
     "webpack-cli": "^3.3.10"
   }
