@@ -86,3 +86,11 @@ cat <<EOT >> android/app/google-services.json
   "configuration_version": "1"
 }
 EOT
+
+# Build Signing
+cat <<EOT >> android/gradle.properties
+MYAPP_UPLOAD_STORE_FILE=therr-prod-release.keystore
+MYAPP_UPLOAD_KEY_ALIAS=therr-prod-release-key-alias
+MYAPP_UPLOAD_STORE_PASSWORD="${MYAPP_UPLOAD_STORE_PASSWORD}"
+MYAPP_UPLOAD_KEY_PASSWORD="${MYAPP_UPLOAD_KEY_PASSWORD}"
+EOT
