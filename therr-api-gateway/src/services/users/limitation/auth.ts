@@ -1,7 +1,7 @@
 import RateLimit from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
 import handleHttpError from '../../../utilities/handleHttpError';
-import redisClient from '../../../utilities/redisClient';
+import redisClient from '../../../store/redisClient';
 
 const limitReachedStatusCode = 429;
 const limitReachedMessage = 'Too many login attempts, please try again later.';

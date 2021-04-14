@@ -1,5 +1,6 @@
 import Knex from 'knex';
 import * as countryGeo from 'country-reverse-geocoding';
+import { Location } from 'therr-js-utilities/constants';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { IConnection } from './connection';
 
@@ -8,9 +9,6 @@ const knex: Knex = Knex({ client: 'pg' });
 export const MOMENTS_TABLE_NAME = 'main.moments';
 
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
-
-const MOMENT_PROXIMITY_METERS = 1000;
-
 export interface ICreateMomentParams {
     expiresAt?: any;
     fromUserId: number;
@@ -45,7 +43,7 @@ export default class MomentsStore {
 
     // Combine with search to avoid getting count out of sync
     countRecords(params, fromUserIds) {
-        let proximityMax = MOMENT_PROXIMITY_METERS;
+        let proximityMax = Location.MOMENT_PROXIMITY_METERS;
         if ((params.filterBy && params.filterBy === 'distance') && params.query) {
             proximityMax = params.query;
         }
@@ -70,10 +68,10 @@ export default class MomentsStore {
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
-    searchMoments(conditions: any = {}, returning, fromUserIds = []) {
+    searchMoments(conditions: any = {}, returning, fromUserIds = [], overrides?: any) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
-        let proximityMax = MOMENT_PROXIMITY_METERS;
+        let proximityMax = overrides?.distanceOverride || Location.MOMENT_PROXIMITY_METERS;
         if ((conditions.filterBy && conditions.filterBy === 'distance') && conditions.query) {
             proximityMax = conditions.query;
         }
