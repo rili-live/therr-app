@@ -1,7 +1,6 @@
-import redisClient from './redisClient';
+// import redisClient from './redisClient';
 
-export default class UserLocationCache {
-    constructor() {
-        
-    }
-}
+// export default class UserLocationCache {
+//     constructor() {
+//     }
+// }
