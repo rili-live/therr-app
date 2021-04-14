@@ -16,9 +16,9 @@ mapsServiceRouter.post('/moments', createMomentValidation, validate, handleServi
     method: 'post',
 }));
 
-mapsServiceRouter.get('/moments', searchMomentsValidation, validate, handleServiceRequest({
+mapsServiceRouter.post('/moments/search', searchMomentsValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
-    method: 'get',
+    method: 'post',
 }));
 
 mapsServiceRouter.delete('/moments', deleteMomentsValidation, validate, handleServiceRequest({

@@ -18,8 +18,8 @@ export interface ICreateMomentReactionParams {
 }
 
 export interface IUpdateMomentReactionConditions {
-    momentId: number;
-    userId: number;
+    momentId?: number;
+    userId?: number;
 }
 
 export interface IUpdateMomentReactionParams {
@@ -30,6 +30,11 @@ export interface IUpdateMomentReactionParams {
     userHasDisliked?: boolean;
     userHasSuperDisliked?: boolean;
     userLocale?: string;
+}
+
+interface IUpdateWhereInConfig {
+    columns: string[];
+    whereInArray: any[][];
 }
 
 export default class MomentReactionsStore {
@@ -66,7 +71,7 @@ export default class MomentReactionsStore {
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
-    create(params: ICreateMomentReactionParams) {
+    create(params: ICreateMomentReactionParams | ICreateMomentReactionParams[]) {
         const queryString = knex(MOMENT_REACTIONS_TABLE_NAME)
             .insert(params)
             .returning('*')
@@ -75,16 +80,19 @@ export default class MomentReactionsStore {
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 
-    update(conditions: IUpdateMomentReactionConditions, params: IUpdateMomentReactionParams) {
-        const queryString = knex.update({
+    update(conditions: IUpdateMomentReactionConditions, params: IUpdateMomentReactionParams, whereIn?: IUpdateWhereInConfig) {
+        let queryString = knex.update({
             ...params,
             updatedAt: new Date(),
         })
             .into(MOMENT_REACTIONS_TABLE_NAME)
             .where(conditions)
-            .returning('*')
-            .toString();
+            .returning('*');
 
-        return this.db.write.query(queryString).then((response) => response.rows);
+        if (whereIn && whereIn.whereInArray?.length) {
+            queryString = queryString.whereIn(whereIn.columns, whereIn.whereInArray);
+        }
+
+        return this.db.write.query(queryString.toString()).then((response) => response.rows);
     }
 }

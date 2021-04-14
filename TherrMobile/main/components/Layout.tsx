@@ -145,7 +145,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         return messaging().getToken();
                     })
                     .then((token) => {
-                        console.log(token);
+                        console.log('FIREBASE_TOKEN', token);
                         messaging().onMessage(async remoteMessage => {
                             console.log('Message handled in the foreground!', remoteMessage);
                         });

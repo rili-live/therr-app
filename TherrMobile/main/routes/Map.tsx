@@ -11,6 +11,7 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { PushNotificationsService } from 'therr-react/services';
 import { IMapState as IMapReduxState, IReactionsState, IUserState } from 'therr-react/types';
 import { MapActions, ReactionActions } from 'therr-react/redux/actions';
 import Geolocation from '@react-native-community/geolocation';
@@ -27,6 +28,7 @@ import {
     DEFAULT_MOMENT_PROXIMITY,
     MIN_ZOOM_LEVEL,
     MOMENTS_REFRESH_THROTTLE_MS,
+    LOCATION_PROCESSING_THROTTLE_MS,
 } from '../constants';
 import * as therrTheme from '../styles/themes';
 import styles, { loaderStyles } from '../styles';
@@ -75,6 +77,11 @@ interface IMapState {
     isLocationReady: boolean;
     isMinLoadTimeComplete: boolean;
     lastMomentsRefresh?: number,
+    lastLocationSendForProcessing?: number,
+    lastLocationSendForProcessingCoords?: {
+        longitude: number,
+        latitude: number,
+    },
     layers: any
     circleCenter: any;
 }
@@ -426,6 +433,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         }
     };
 
+    // TODO: Call this when user has traveled a certain distance from origin
     handleRefreshMoments = (overrideThrottle = false, coords?: any, shouldSearchAll = false) => {
         const { isMinLoadTimeComplete, layers } = this.state;
 
@@ -491,13 +499,20 @@ class Map extends React.Component<IMapProps, IMapState> {
     };
 
     onUserLocationChange = (event) => {
-        const { followsUserLocation } = this.state;
+        const {
+            followsUserLocation,
+            lastLocationSendForProcessing,
+            lastLocationSendForProcessingCoords,
+        } = this.state;
+        const {
+            updateCoordinates,
+        } = this.props;
         const coords = {
             latitude: event.nativeEvent.coordinate.latitude,
             longitude: event.nativeEvent.coordinate.longitude,
         };
         // TODO: Add throttle
-        this.props.updateCoordinates(coords);
+        updateCoordinates(coords);
         this.setState({
             circleCenter: coords,
         });
@@ -511,6 +526,50 @@ class Map extends React.Component<IMapProps, IMapState> {
             };
             this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_FAST);
         }
+
+        if (lastLocationSendForProcessing) {
+            if (Date.now() - lastLocationSendForProcessing <= LOCATION_PROCESSING_THROTTLE_MS) {
+                return;
+            }
+
+            if (lastLocationSendForProcessingCoords) {
+                const timeOfTravel = Date.now() - lastLocationSendForProcessing;
+                const distanceTraveledMeters = distanceTo({
+                    lon: coords.longitude,
+                    lat: coords.latitude,
+                }, {
+                    lon: lastLocationSendForProcessingCoords.longitude,
+                    lat: lastLocationSendForProcessingCoords.latitude,
+                });
+                const kmPerHour = distanceTraveledMeters / (timeOfTravel * 60 * 60);
+
+                if (distanceTraveledMeters < 5) {
+                    return;
+                }
+
+                if (kmPerHour > 15) { // Don't send location until user slows down to a walking pace
+                    return;
+                }
+            }
+        }
+
+        PushNotificationsService.postLocationChange({
+            longitude: coords.longitude,
+            latitude: coords.latitude,
+            lastLocationSendForProcessing,
+        })
+            .then((response) => {
+                console.log('ZACK_DEBUG', response?.data);
+            });
+
+        // Send location to backend for processing
+        this.setState({
+            lastLocationSendForProcessing: Date.now(),
+            lastLocationSendForProcessingCoords: {
+                longitude: coords.longitude,
+                latitude: coords.latitude,
+            },
+        });
     };
 
     showMomentAlert = () => {

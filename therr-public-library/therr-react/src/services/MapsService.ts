@@ -2,6 +2,9 @@ import axios from 'axios';
 import { getSearchQueryString } from 'therr-js-utilities/http';
 import { ISearchQuery } from '../types';
 
+interface ISearchMomentsArgs {
+    distanceOverride?: number;
+}
 interface ICreateMomentBody {
     expiresAt?: any;
     fromUserId: number;
@@ -30,12 +33,13 @@ class MapsService {
         data,
     })
 
-    searchMoments = (query: ISearchQuery) => {
+    searchMoments = (query: ISearchQuery, data: ISearchMomentsArgs = {}) => {
         const queryString = getSearchQueryString(query);
 
         return axios({
-            method: 'get',
-            url: `/maps-service/moments${queryString}`,
+            method: 'post',
+            url: `/maps-service/moments/search${queryString}`,
+            data,
         });
     }
 
