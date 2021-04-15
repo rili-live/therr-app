@@ -61,7 +61,7 @@ cat <<EOT >> android/app/google-services.json
       ],
       "api_key": [
         {
-          "current_key": "$GOOGLE_MAPS_API_KEY"
+          "current_key": "$GOOGLE_APIS_ANDROID_KEY"
         }
       ],
       "services": {
