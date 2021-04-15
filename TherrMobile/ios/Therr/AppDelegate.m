@@ -35,7 +35,7 @@ static void InitializeFlipper(UIApplication *application) {
       [FIRApp configure];
   }
 
-  NSString *googleMapsApiKey = [ReactNativeConfig envFor:@"GOOGLE_MAPS_API_KEY"];
+  NSString *googleMapsApiKey = [ReactNativeConfig envFor:@"GOOGLE_APIS_IOS_KEY"];
   +  [GMSServices provideAPIKey:googleMapsApiKey]; // add this line using the api key obtained from Google Console
   #if DEBUG
 

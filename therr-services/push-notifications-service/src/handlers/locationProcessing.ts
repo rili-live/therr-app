@@ -11,6 +11,7 @@ import * as globalConfig from '../../../../global-config';
 
 // CREATE/UPDATE
 const processUserLocationChange: RequestHandler = (req, res) => {
+    console.log('DEBUG', req.headers, req.body);
     const userId = req.headers['x-userid'];
     const userDeviceToken = req.headers['x-user-device-token'];
     const locale = req.headers['x-localecode'] || 'en-us';

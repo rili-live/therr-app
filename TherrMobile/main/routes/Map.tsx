@@ -234,7 +234,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                     this.handleRefreshMoments(true, coords, true);
                 })
                 .catch((error) => {
-                    console.log(error);
+                    console.log('requestOSPermissionsError', error);
                     // TODO: Display message encouraging user to turn on location permissions in settings
                     if (error === 'permissionDenied') {
                         updateLocationPermissions(perms);
@@ -244,7 +244,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         }).catch((error) => {
             // TODO: Allow viewing map when gps is disable
             // but disallow GPS required actions like viewing/deleting moments
-            console.log(error);
+            console.log('locationServiceActivationError', error);
             this.goToHome();
         });
     };
@@ -360,6 +360,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     };
 
     handleMapPress = ({ nativeEvent }) => {
+        console.log(nativeEvent, nativeEvent.coordinate);
         const { createOrUpdateReaction, location, map, navigation, user } = this.props;
         const { circleCenter, layers } = this.state;
         let visibleMoments: any[] = [];
@@ -396,15 +397,13 @@ class Map extends React.Component<IMapProps, IMapState> {
                 this.showMomentAlert();
             } else {
                 // Activate moment
-                Promise.all([
-                    this.getMomentDetails(selectedMoment),
-                    createOrUpdateReaction(selectedMoment.id, {
-                        userViewCount: 1,
-                        userHasActivated: true,
-                    }),
-                ])
-                    .then(([details]) => {
-                        console.log(details);
+                createOrUpdateReaction(selectedMoment.id, {
+                    userViewCount: 1,
+                    userHasActivated: true,
+                });
+                this.getMomentDetails(selectedMoment)
+                    .then((details) => {
+                        console.log('HERE');
                         this.setState({
                             activeMoment: selectedMoment,
                             activeMomentDetails: details,
@@ -696,6 +695,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                     latitude: moment.latitude,
                                                 }}
                                                 onPress={this.handleMapPress}
+                                                stopPropagation={true}
                                             />
                                             <Circle
                                                 center={{
@@ -725,6 +725,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                     latitude: moment.latitude,
                                                 }}
                                                 onPress={this.handleMapPress}
+                                                stopPropagation={true}
                                             />
                                             <Circle
                                                 center={{
