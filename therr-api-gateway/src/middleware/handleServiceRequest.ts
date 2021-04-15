@@ -6,6 +6,10 @@ const handleServiceRequest = ({
     basePath,
     method,
 }) => (req, res) => {
+    if (basePath === '/location/process-user-location') {
+        console.log(req.body, req.headers);
+    }
+
     const config: any = {
         headers: {
             authorization: req.headers.authorization || '',
@@ -29,6 +33,7 @@ const handleServiceRequest = ({
     return restRequest(config)
         .then((response) => res.send(response.data))
         .catch((error) => {
+            console.log(error);
             if (error && error.response && error.response.data) {
                 return handleHttpError({
                     err: error,
