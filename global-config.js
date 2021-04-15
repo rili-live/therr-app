@@ -51,7 +51,7 @@ module.exports = {
         baseApiGatewayRoute: `https://api.${hostProd}/v1`,
         baseMapsServiceRoute: `http://maps-service-cluster-ip-service:${apiMapsPort}/v1`,
         baseMessagesServiceRoute: `http://messages-service-cluster-ip-service:${apiMessagesPort}/v1`,
-        basePushNotificationsServiceRoute: `http://push-notifications-cluster-ip-service:${apiPushNotificationsPort}/v1`,
+        basePushNotificationsServiceRoute: `http://push-notifications-service-cluster-ip-service:${apiPushNotificationsPort}/v1`,
         baseReactionsServiceRoute: `http://reactions-service-cluster-ip-service:${apiReactionsPort}/v1`,
         baseSocketUrl: `https://websocket-service.${hostProd}`,
         baseUsersServiceRoute: `http://users-service-cluster-ip-service:${apiUsersPort}/v1`,
