@@ -33,7 +33,6 @@ const handleServiceRequest = ({
     return restRequest(config)
         .then((response) => res.send(response.data))
         .catch((error) => {
-            console.log(error);
             if (error && error.response && error.response.data) {
                 return handleHttpError({
                     err: error,
@@ -43,7 +42,13 @@ const handleServiceRequest = ({
                 });
             }
 
-            return res.status(500);
+            console.log(error);
+
+            return handleHttpError({
+                err: error,
+                res,
+                message: error,
+            });
         });
 };
 

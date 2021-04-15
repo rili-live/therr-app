@@ -360,7 +360,6 @@ class Map extends React.Component<IMapProps, IMapState> {
     };
 
     handleMapPress = ({ nativeEvent }) => {
-        console.log(nativeEvent, nativeEvent.coordinate);
         const { createOrUpdateReaction, location, map, navigation, user } = this.props;
         const { circleCenter, layers } = this.state;
         let visibleMoments: any[] = [];
@@ -556,10 +555,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             longitude: coords.longitude,
             latitude: coords.latitude,
             lastLocationSendForProcessing,
-        })
-            .then((response) => {
-                console.log('ZACK_DEBUG', response?.data);
-            });
+        });
 
         // Send location to backend for processing
         this.setState({
