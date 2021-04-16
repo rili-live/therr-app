@@ -20,17 +20,19 @@ let connectionTimerId;
 // const redisPubCluster = new Redis.Cluster(nodes);
 // const redisSubCluster = new Redis.Cluster(nodes);
 
+const redisKeyPrefix = 'websocket-service';
+
 const redisPub: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
     connectionName: 'redisSocketPub',
     lazyConnect: true,
-    keyPrefix: 'websocket-service',
+    keyPrefix: redisKeyPrefix,
 });
 
 // TODO: Use separate publish and subscribe Redis hosts
 const redisSub: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
     connectionName: 'redisSocketSub',
     lazyConnect: true,
-    keyPrefix: 'websocket-service',
+    keyPrefix: redisKeyPrefix,
 });
 
 export const connectToRedis = (options, callback) => {
