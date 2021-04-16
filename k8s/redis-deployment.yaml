@@ -24,7 +24,7 @@ spec:
             weight: 100
       containers:
       - name: redis
-        image: redis
+        image: redis:6
         resources:
           limits:
             memory: "512Mi"

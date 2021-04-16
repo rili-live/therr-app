@@ -33,21 +33,14 @@ const handleServiceRequest = ({
     return restRequest(config)
         .then((response) => res.send(response.data))
         .catch((error) => {
-            if (error && error.response && error.response.data) {
-                return handleHttpError({
-                    err: error,
-                    res,
-                    message: error.response.data.message,
-                    statusCode: error.response.data.statusCode,
-                });
+            if (!error.response) {
+                console.log(error);
             }
-
-            console.log(error);
-
             return handleHttpError({
                 err: error,
                 res,
-                message: error,
+                message: error?.response?.data?.message || error,
+                statusCode: error?.response?.data?.statusCode || 500,
             });
         });
 };
