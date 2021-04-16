@@ -5,6 +5,7 @@ import beeline from '../beeline';
 const redisClient = new Redis({
     host: process.env.REDIS_GENERIC_HOST,
     port: Number(process.env.REDIS_GENERIC_PORT),
+    keyPrefix: 'api-gateway:',
 });
 
 // Redis Error handling
