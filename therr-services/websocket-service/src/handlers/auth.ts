@@ -156,7 +156,7 @@ const logout = ({
     printLogs({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
-        messages: `User, ${data ? data.userName : 'unknown'} with socketId ${socket.id}, has LOGGED OUT.`,
+        messages: `User, ${data?.userName || 'unknown'} with socketId ${socket.id}, has LOGGED OUT.`,
         tracer: beeline,
         traceArgs: {
             ip: (socket.handshake.headers as any).host.split(':')[0],
