@@ -38,10 +38,6 @@ class UsersActions {
             this.socketIO.io.opts.query = {
                 token: idToken,
             };
-            dispatch({
-                type: UserActionTypes.LOGIN,
-                data: userData,
-            });
             // Connect and get socketIO.id
             this.socketIO.on('connect', () => {
                 // NOTE: Native Storage methods return a promise, but in this case we don't need to await
@@ -50,8 +46,14 @@ class UsersActions {
                     localStorage.setItem('therrSession', JSON.stringify({ id: this.socketIO.id }));
                 }
 
+                // These two dispatches were moved here to fix a bug when one dispatch happened before the callback
+                // For some reason it caused the websocket server to NOT receive the message in the callback
                 dispatch({
                     type: SocketClientActionTypes.LOGIN,
+                    data: userData,
+                });
+                dispatch({
+                    type: UserActionTypes.LOGIN,
                     data: userData,
                 });
             });
@@ -67,9 +69,8 @@ class UsersActions {
         // NOTE: Native Storage methods return a promise, but in this case we don't need to await
         userDetails = userDetails // eslint-disable-line no-param-reassign
             || JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || null);
-        let user;
         try {
-            user = await ((userDetails ? UsersService.logout(userDetails) : Promise.resolve()) as Promise<any>);
+            await ((userDetails ? UsersService.logout(userDetails) : Promise.resolve()) as Promise<any>);
         } catch (err) {
             console.log(err);
         }
@@ -84,11 +85,12 @@ class UsersActions {
         dispatch({
             type: SocketClientActionTypes.LOGOUT,
             data: {
-                id: user && user.id,
-                idToken: user && user.idToken,
-                userName: user && user.userName,
+                id: userDetails?.id,
+                idToken: userDetails?.idToken,
+                userName: userDetails?.userName,
             },
         });
+        this.socketIO.disconnect();
         // NOTE: Socket will disconnect in reducer after event response from server (SESSION_CLOSED)
     }
 
