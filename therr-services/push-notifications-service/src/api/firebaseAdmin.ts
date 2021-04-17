@@ -19,6 +19,10 @@ interface ICreateMessageConfig {
     userId?: string | string[];
 }
 
+interface INotificationMetrics {
+    lastNotificationDate: number | null;
+}
+
 const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMessageConfig) => {
     switch (type) {
         case PushNotificationTypes.newMomentsActivated:
@@ -44,24 +48,51 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
     }
 };
 
-const predictAndSendNotification = (type: PushNotificationTypes, data, config: ICreateMessageConfig) => {
+// TODO: RDATA-3 - Add machine learning to predict whether to send push notification
+const predictAndSendNotification = (
+    type: PushNotificationTypes,
+    data,
+    config: ICreateMessageConfig,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    metrics: INotificationMetrics,
+) => {
     const message = createMessage(type, data, config);
 
-    if (!message) {
-        return Promise.resolve();
-    }
+    return Promise.resolve()
+        .then(() => {
+            if (!message) {
+                return;
+            }
 
-    if (type === PushNotificationTypes.proximityRequiredMoment) {
-        return admin.messaging().send(message)
-            .catch((error) => {
+            if (type === PushNotificationTypes.newMomentsActivated) {
+                return admin.messaging().send(message);
+            }
+
+            if (type === PushNotificationTypes.proximityRequiredMoment) {
+                return admin.messaging().send(message);
+            }
+
+            return null;
+        })
+        .then(() => {
+            if (message) {
                 beeline.addContext({
-                    errorMessage: error?.stack || 'Failed to send push notification',
+                    message: 'Push successfully sent',
                     messageData: message.data,
                     messageNotification: message.notification,
                     userId: config.userId,
                 });
+            }
+        })
+        .catch((error) => {
+            beeline.addContext({
+                errorMessage: error?.stack || 'Failed to send push notification',
+                messageData: message && message.data,
+                messageNotification: message && message.notification,
+                userId: config.userId,
+                significance: 'failed to send push notification',
             });
-    }
+        });
 };
 
 export default admin;
