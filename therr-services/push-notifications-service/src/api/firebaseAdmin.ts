@@ -1,5 +1,7 @@
 import * as admin from 'firebase-admin';
 import beeline from '../beeline';
+import translate from '../utilities/translator';
+import Logger from './Logger';
 
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_APPLICATION_CREDENTIALS_BASE64 || '', 'base64').toString());
 
@@ -16,7 +18,8 @@ admin.initializeApp({
 interface ICreateMessageConfig {
     totalMomentsActivated?: number;
     deviceToken: any;
-    userId?: string | string[];
+    userId: string | string[];
+    userLocale: string;
 }
 
 interface INotificationMetrics {
@@ -24,22 +27,27 @@ interface INotificationMetrics {
 }
 
 const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMessageConfig) => {
+    const modifiedData = {};
+    Object.keys(data).forEach((key) => { modifiedData[key] = JSON.stringify(data[key]); });
+
     switch (type) {
         case PushNotificationTypes.newMomentsActivated:
             return {
-                data,
+                data: modifiedData,
                 notification: {
-                    title: 'New moments activated',
-                    body: `You recently activated ${config.totalMomentsActivated} new moments`,
+                    title: translate(config.userLocale, 'notifications.newMomentActivated.title'),
+                    body: translate(config.userLocale, 'notifications.newMomentActivated.body', {
+                        totalMomentsActivated: config.totalMomentsActivated,
+                    }),
                 },
                 token: config.deviceToken,
             };
         case PushNotificationTypes.proximityRequiredMoment:
             return {
-                data,
+                data: modifiedData,
                 notification: {
-                    title: 'You found a unique moment!',
-                    body: 'Check the map to activate a moment with special attributes',
+                    title: translate(config.userLocale, 'notifications.discoveredUniqueMoment.title'),
+                    body: translate(config.userLocale, 'notifications.discoveredUniqueMoment.body'),
                 },
                 token: config.deviceToken,
             };
@@ -85,13 +93,13 @@ const predictAndSendNotification = (
             }
         })
         .catch((error) => {
-            beeline.addContext({
+            Logger.log({
                 errorMessage: error?.stack || 'Failed to send push notification',
                 messageData: message && message.data,
                 messageNotification: message && message.notification,
                 userId: config.userId,
                 significance: 'failed to send push notification',
-            });
+            }, {});
         });
 };
 

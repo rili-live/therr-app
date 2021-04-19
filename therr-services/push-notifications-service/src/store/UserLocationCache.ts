@@ -1,7 +1,7 @@
 import redisClient from './redisClient';
 import beeline from '../beeline';
 
-const USER_CACHE_TTL_SEC = 60 * 10; // 10 minutes
+export const USER_CACHE_TTL_SEC = 60 * 10; // 10 minutes
 
 interface IOrigin {
     longitude: number;
@@ -122,7 +122,11 @@ export default class UserLocationCache {
             .then((momentIds) => {
                 const pipeline = redisClient.pipeline();
 
-                momentIds.forEach((id) => pipeline.hgetall(`${this.geoKeyPrefix}:${this.geoKeys.unactivated}:${id}`));
+                momentIds.forEach((id) => {
+                    if (id) {
+                        pipeline.hgetall(`${this.geoKeyPrefix}:${this.geoKeys.unactivated}:${id}`);
+                    }
+                });
 
                 return pipeline.exec();
             })

@@ -60,7 +60,9 @@ const processUserLocationChange: RequestHandler = (req, res) => {
                 }
 
                 // Fire and forget (create or update)
-                activateMoments(headers, filteredMoments, momentIdsToActivate, userLocationCache);
+                if (filteredMoments.length) {
+                    activateMoments(headers, filteredMoments, momentIdsToActivate, userLocationCache);
+                }
                 userLocationCache.removeMoments(momentIdsToActivate, {
                     locale,
                     userId,

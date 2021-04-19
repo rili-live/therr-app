@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from 'axios';
 import { DeviceEventEmitter, PermissionsAndroid, Platform, View } from 'react-native';
 import LocationServicesDialogBox  from 'react-native-android-location-services-dialog-box';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
@@ -146,6 +147,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     })
                     .then((token) => {
                         console.log('FIREBASE_TOKEN', token);
+                        axios.defaults.headers['x-user-device-token'] = token;
                         messaging().onMessage(async remoteMessage => {
                             console.log('Message handled in the foreground!', remoteMessage);
                         });

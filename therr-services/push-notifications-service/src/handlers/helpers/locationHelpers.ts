@@ -95,6 +95,7 @@ const filterNearbyMoments = (moments, userLocationCache: UserLocationCache, head
                             {
                                 deviceToken: headers.userDeviceToken,
                                 userId: headers.userId,
+                                userLocale: headers.locale,
                             },
                             {
                                 lastNotificationDate,
@@ -107,7 +108,7 @@ const filterNearbyMoments = (moments, userLocationCache: UserLocationCache, head
                     return false; // Filter out these moments from being automatically-activated
                 }
 
-                const hasAlreadyActivated = !reactions.find((reaction) => reaction.momentId === moment.id && reaction.userHasActivated);
+                const hasAlreadyActivated = reactions.find((reaction) => reaction.momentId === moment.id && reaction.userHasActivated);
 
                 if (hasAlreadyActivated) {
                     return false;
@@ -129,7 +130,7 @@ const filterNearbyMoments = (moments, userLocationCache: UserLocationCache, head
                 userId: headers.userId,
             });
 
-            return [filteredMoments, lastNotificationDate];
+            return filteredMoments;
         });
 };
 
@@ -230,7 +231,7 @@ const activateMoments = (
     .then(() => userLocationCache.getLastNotificationDate())
     .then((lastNotificationDate: any) => {
         if (!hasSentNotificationRecently(lastNotificationDate)) {
-            predictAndSendNotification(
+            return predictAndSendNotification(
                 PushNotificationTypes.newMomentsActivated,
                 {
                     momentsActivated: moments.slice(0, activatedMomentIds.length),
@@ -238,6 +239,7 @@ const activateMoments = (
                 {
                     deviceToken: headers.userDeviceToken,
                     userId: headers.userId,
+                    userLocale: headers.locale,
                     totalMomentsActivated: activatedMomentIds.length,
                 },
                 {
