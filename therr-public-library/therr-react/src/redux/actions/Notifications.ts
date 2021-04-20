@@ -9,6 +9,12 @@ const Notification = {
             data: response.data.results,
         });
     }),
+    add: (data: any) => (dispatch: any) => {
+        dispatch({
+            type: NotificationActionTypes.ADD_NOTIFICATION,
+            data,
+        });
+    },
     update: (data: any) => (dispatch: any) => {
         dispatch({
             type: SocketClientActionTypes.UPDATE_NOTIFICATION,

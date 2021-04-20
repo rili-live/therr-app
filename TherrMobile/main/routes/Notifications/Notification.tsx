@@ -60,7 +60,7 @@ export default ({
                 }
             </View>
             {
-                notification.userConnection.requestStatus === 'pending' &&
+                notification.userConnection?.requestStatus === 'pending' &&
                 <View style={notificationStyles.actionsContainer}>
                     <Button
                         title={translate('components.notification.buttons.accept')}

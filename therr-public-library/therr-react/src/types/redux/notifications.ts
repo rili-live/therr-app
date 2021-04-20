@@ -16,5 +16,6 @@ export interface INotificationsState extends Immutable.ImmutableObject<any> {
 }
 
 export enum NotificationActionTypes {
+  ADD_NOTIFICATION = 'ADD_NOTIFICATION',
   GET_NOTIFICATIONS = 'GET_NOTIFICATIONS',
 }

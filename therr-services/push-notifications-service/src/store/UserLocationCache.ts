@@ -1,7 +1,7 @@
 import redisClient from './redisClient';
 import beeline from '../beeline';
 
-export const USER_CACHE_TTL_SEC = 60 * 10; // 10 minutes
+export const USER_CACHE_TTL_SEC = 60 * 20; // 20 minutes
 
 interface IOrigin {
     longitude: number;
@@ -130,7 +130,19 @@ export default class UserLocationCache {
 
                 return pipeline.exec();
             })
-            .then((moments) => moments) // TODO: Verify parsing correctly parses numbers
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            .then((moments) => moments.map(([error, moment]) => ({
+                ...moment,
+                id: Number(moment.id),
+                fromUserId: Number(moment.fromUserId),
+                isPublic: moment.isPublic === 'true',
+                maxViews: Number(moment.maxViews),
+                latitude: Number(moment.latitude),
+                longitude: Number(moment.longitude),
+                radius: Number(moment.radius),
+                maxProximity: Number(moment.maxProximity),
+                doesRequireProximityToView: moment.doesRequireProximityToView === 'true',
+            }))) // TODO: Verify parsing correctly parses numbers
             .catch((error) => {
                 beeline.addContext({
                     errorMessage: error?.stack,

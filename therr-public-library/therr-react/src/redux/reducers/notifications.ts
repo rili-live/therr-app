@@ -18,6 +18,7 @@ const notifications = (state: INotificationsState = initialState, action: any) =
         // TODO: Rethink this
         case NotificationActionTypes.GET_NOTIFICATIONS:
             return state.setIn(['messages'], action.data);
+        case NotificationActionTypes.ADD_NOTIFICATION:
         case SocketServerActionTypes.NOTIFICATION_CREATED:
             modifiedMessages.unshift(action.data);
             return state.setIn(['messages'], modifiedMessages);
