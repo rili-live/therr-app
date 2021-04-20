@@ -16,6 +16,7 @@ const handleServiceRequest = ({
             'x-requestid': uuidv4(),
             'x-localecode': req.headers['x-localecode'] || '',
             'x-userid': req.headers['x-userid'] || '',
+            'x-user-device-token': req.headers['x-user-device-token'] || '',
         },
         method,
         url: `${basePath}${req.url}`,

@@ -22,6 +22,7 @@ const utilities = [
     'localization',
     'promiser',
     'scroll-to',
+    'Logger',
     'print-logs',
 ];
 

@@ -13,9 +13,9 @@
     "migrations:rollback": "dotenv_config_path=../../.env node --require=../../node_modules/dotenv/config ../../node_modules/.bin/knex --knexfile ../../therr-services/maps-service/src/store/knexfile.js migrate:rollback $1",
     "migrations:run": "dotenv_config_path=../../.env node --require=../../node_modules/dotenv/config ../../node_modules/.bin/knex --knexfile ../../therr-services/maps-service/src/store/knexfile.js migrate:latest",
     "start": "../../node_modules/.bin/nodemon --require=../../node_modules/dotenv/config build/server.js dotenv_config_path=../../.env --withSQLLogs",
-    "test": "../../node_modules/.bin/mocha -r ../../node_modules/ts-node/register -r tsconfig-paths/register --config .mocharc.js ./tests/**/*.test.ts --exit",
-    "test:unit": "../../node_modules/.bin/mocha -r ../../node_modules/ts-node/register -r tsconfig-paths/register --config .mocharc.js ./tests/unit/**/*.test.ts --exit",
-    "test:integration": "../../node_modules/.bin/mocha -r ../../node_modules/ts-node/register -r tsconfig-paths/register --config .mocharc.js ./tests/integration/**/*.test.ts --exit",
+    "test": "../../node_modules/.bin/mocha -r ../../node_modules/ts-node/register -r tsconfig-paths/register --config .mocharc.js './tests/**/*.test.ts' --exit",
+    "test:unit": "../../node_modules/.bin/mocha -r ../../node_modules/ts-node/register -r tsconfig-paths/register --config .mocharc.js './tests/unit/**/*.test.ts' --exit",
+    "test:integration": "../../node_modules/.bin/mocha -r ../../node_modules/ts-node/register -r tsconfig-paths/register --config .mocharc.js './tests/integration/**/*.test.ts' --exit",
     "test:coverage": "../../node_modules/.bin/nyc --config ./nyc.config.js npm run test"
   },
   "keywords": [

@@ -28,6 +28,8 @@
     "update:dev:all": "npm run prep && npm update --dev && _bin/apply-to-all.sh 'npm update --dev'",
     "prep": "_bin/prep.sh",
     "test:all": "_bin/apply-to-all.sh 'npm test'",
+    "test:unit:all": "_bin/apply-to-all.sh 'npm run test:unit'",
+    "test:integration:all": "_bin/apply-to-all.sh 'npm test:unit'",
     "test:changed": "_bin/apply-to-changed.sh 'npm test'",
     "test:coverage:all": "_bin/apply-to-all.sh 'npm run test:coverage'",
     "test:coverage:changed": "_bin/apply-to-changed.sh 'npm run test:coverage'"
