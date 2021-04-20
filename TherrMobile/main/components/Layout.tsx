@@ -34,6 +34,7 @@ const forFade = ({ current }) => ({
 
 interface ILayoutDispatchProps {
     logout: Function;
+    addNotification: Function;
     searchCategories: Function;
     searchNotifications: Function;
     updateGpsStatus: Function;
@@ -65,6 +66,7 @@ const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
             logout: UsersActions.logout,
+            addNotification: NotificationActions.add,
             searchNotifications: NotificationActions.search,
             searchCategories: ForumActions.searchCategories,
             updateGpsStatus: LocationActions.updateGpsStatus,
@@ -94,6 +96,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     componentDidUpdate() {
         const {
             forums,
+            addNotification,
             searchCategories,
             searchNotifications,
             updateLocationPermissions,
@@ -149,15 +152,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         axios.defaults.headers['x-user-device-token'] = token;
                         messaging().onMessage(async remoteMessage => {
                             console.log('Message handled in the foreground!', remoteMessage);
-                            const data = remoteMessage.data;
-                            let parsedData = {};
-                            if (data) {
-                                Object.keys(data).forEach((key) => {
-                                    parsedData[key] = JSON.parse(data[key]);
-                                });
+                            let parsedNotificationData;
+                            if (remoteMessage?.data?.notificationData) {
+                                parsedNotificationData = JSON.parse(remoteMessage.data.notificationData);
                             }
 
                             // TODO: RMOBILE-24 - Create custom notifications from parsedData
+                            if (parsedNotificationData) {
+                                addNotification(parsedNotificationData);
+                            }
                         });
                     })
                     .catch((err) => {

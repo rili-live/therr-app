@@ -5,6 +5,7 @@ import { distanceTo } from 'geolocation-utils';
 import handleHttpError from '../utilities/handleHttpError';
 import UserLocationCache from '../store/UserLocationCache';
 import { activateMoments, getNearbyMoments } from './helpers/locationHelpers';
+import beeline from '../beeline';
 // import translate from '../utilities/translator';
 
 // CREATE/UPDATE
@@ -61,7 +62,11 @@ const processUserLocationChange: RequestHandler = (req, res) => {
                 }
 
                 // Fire and forget (create or update)
-                if (filteredMoments.length) {
+                if (momentIdsToActivate.length) {
+                    beeline.addContext({
+                        userId,
+                        momentIdsToActivate: JSON.stringify(momentIdsToActivate),
+                    });
                     activateMoments(headers, filteredMoments, momentIdsToActivate, userLocationCache);
                 }
                 userLocationCache.removeMoments(momentIdsToActivate, {
