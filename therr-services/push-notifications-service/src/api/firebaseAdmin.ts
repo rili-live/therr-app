@@ -1,5 +1,7 @@
 import * as admin from 'firebase-admin';
 import beeline from '../beeline';
+import translate from '../utilities/translator';
+import Logger from './Logger';
 
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_APPLICATION_CREDENTIALS_BASE64 || '', 'base64').toString());
 
@@ -16,26 +18,38 @@ admin.initializeApp({
 interface ICreateMessageConfig {
     totalMomentsActivated?: number;
     deviceToken: any;
-    userId?: string | string[];
+    userId: string | string[];
+    userLocale: string;
+}
+
+interface INotificationMetrics {
+    lastNotificationDate: number | null;
 }
 
 const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMessageConfig) => {
+    const modifiedData = {
+        type: PushNotificationTypes.newMomentsActivated,
+    };
+    Object.keys(data).forEach((key) => { modifiedData[key] = JSON.stringify(data[key]); });
+
     switch (type) {
         case PushNotificationTypes.newMomentsActivated:
             return {
-                data,
+                data: modifiedData,
                 notification: {
-                    title: 'New moments activated',
-                    body: `You recently activated ${config.totalMomentsActivated} new moments`,
+                    title: translate(config.userLocale, 'notifications.newMomentsActivated.title'),
+                    body: translate(config.userLocale, 'notifications.newMomentsActivated.body', {
+                        totalMomentsActivated: config.totalMomentsActivated,
+                    }),
                 },
                 token: config.deviceToken,
             };
         case PushNotificationTypes.proximityRequiredMoment:
             return {
-                data,
+                data: modifiedData,
                 notification: {
-                    title: 'You found a unique moment!',
-                    body: 'Check the map to activate a moment with special attributes',
+                    title: translate(config.userLocale, 'notifications.discoveredUniqueMoment.title'),
+                    body: translate(config.userLocale, 'notifications.discoveredUniqueMoment.body'),
                 },
                 token: config.deviceToken,
             };
@@ -44,24 +58,51 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
     }
 };
 
-const predictAndSendNotification = (type: PushNotificationTypes, data, config: ICreateMessageConfig) => {
+// TODO: RDATA-3 - Add machine learning to predict whether to send push notification
+const predictAndSendNotification = (
+    type: PushNotificationTypes,
+    data,
+    config: ICreateMessageConfig,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    metrics: INotificationMetrics,
+) => {
     const message = createMessage(type, data, config);
 
-    if (!message) {
-        return Promise.resolve();
-    }
+    return Promise.resolve()
+        .then(() => {
+            if (!message) {
+                return;
+            }
 
-    if (type === PushNotificationTypes.proximityRequiredMoment) {
-        return admin.messaging().send(message)
-            .catch((error) => {
+            if (type === PushNotificationTypes.newMomentsActivated) {
+                return admin.messaging().send(message);
+            }
+
+            if (type === PushNotificationTypes.proximityRequiredMoment) {
+                return admin.messaging().send(message);
+            }
+
+            return null;
+        })
+        .then(() => {
+            if (message) {
                 beeline.addContext({
-                    errorMessage: error?.stack || 'Failed to send push notification',
+                    message: 'Push successfully sent',
                     messageData: message.data,
                     messageNotification: message.notification,
                     userId: config.userId,
                 });
-            });
-    }
+            }
+        })
+        .catch((error) => {
+            Logger.log({
+                errorMessage: error?.stack || 'Failed to send push notification',
+                messageData: message && message.data,
+                messageNotification: message && message.notification,
+                userId: config.userId,
+                significance: 'failed to send push notification',
+            }, {});
+        });
 };
 
 export default admin;

@@ -1,3 +1,13 @@
 {
+  "notifications": {
+    "discoveredUniqueMoment": {
+      "title": "You found a unique moment!",
+      "body": "Check the map to activate a moment with special attributes"
+    },
+    "newMomentsActivated": {
+      "title": "New moments activated",
+      "body": "You recently activated {totalMomentsActivated} new moments"
+    }
+  },
   "validation": "The required parameters were not provided."
 }
