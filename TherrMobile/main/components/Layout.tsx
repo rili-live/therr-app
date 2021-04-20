@@ -146,10 +146,18 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         return messaging().getToken();
                     })
                     .then((token) => {
-                        console.log('FIREBASE_TOKEN', token);
                         axios.defaults.headers['x-user-device-token'] = token;
                         messaging().onMessage(async remoteMessage => {
                             console.log('Message handled in the foreground!', remoteMessage);
+                            const data = remoteMessage.data;
+                            let parsedData = {};
+                            if (data) {
+                                Object.keys(data).forEach((key) => {
+                                    parsedData[key] = JSON.parse(data[key]);
+                                });
+                            }
+
+                            // TODO: RMOBILE-24 - Create custom notifications from parsedData
                         });
                     })
                     .catch((err) => {

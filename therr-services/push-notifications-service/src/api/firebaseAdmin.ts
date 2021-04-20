@@ -27,7 +27,9 @@ interface INotificationMetrics {
 }
 
 const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMessageConfig) => {
-    const modifiedData = {};
+    const modifiedData = {
+        type: PushNotificationTypes.newMomentsActivated,
+    };
     Object.keys(data).forEach((key) => { modifiedData[key] = JSON.stringify(data[key]); });
 
     switch (type) {
@@ -35,8 +37,8 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
             return {
                 data: modifiedData,
                 notification: {
-                    title: translate(config.userLocale, 'notifications.newMomentActivated.title'),
-                    body: translate(config.userLocale, 'notifications.newMomentActivated.body', {
+                    title: translate(config.userLocale, 'notifications.newMomentsActivated.title'),
+                    body: translate(config.userLocale, 'notifications.newMomentsActivated.body', {
                         totalMomentsActivated: config.totalMomentsActivated,
                     }),
                 },

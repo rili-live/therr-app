@@ -18,5 +18,8 @@ spec:
     - podSelector:
         matchLabels:
           component: server-maps
+    - podSelector:
+        matchLabels:
+          component: server-push-notifications
   egress:
   - {}

@@ -4,7 +4,7 @@
       "title": "You found a unique moment!",
       "body": "Check the map to activate a moment with special attributes"
     },
-    "newMomentActivated": {
+    "newMomentsActivated": {
       "title": "New moments activated",
       "body": "You recently activated {totalMomentsActivated} new moments"
     }

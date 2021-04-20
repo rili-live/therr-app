@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { distanceTo } from 'geolocation-utils';
-import { Location } from 'therr-js-utilities/constants';
+import { Location, Notifications } from 'therr-js-utilities/constants';
 import { getSearchQueryString } from 'therr-js-utilities/http';
 import beeline from '../../beeline';
 import UserLocationCache from '../../store/UserLocationCache';
@@ -87,10 +87,33 @@ const filterNearbyMoments = (moments, userLocationCache: UserLocationCache, head
                 if (moment.doesRequireProximityView) { // Requires manual interaction (by clicking)
                     if (!shouldSkipNotification) {
                         userLocationCache.setLastNotificationDate(); // fire and forget
-                        predictAndSendNotification(
+                        let notificationData = {};
+                        shouldSkipNotification = true;
+
+                        return axios({ // fire and forget
+                            method: 'post',
+                            url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/notifications`,
+                            headers: {
+                                authorization: headers.authorization,
+                                'x-localecode': headers.locale,
+                                'x-userid': headers.userId,
+                            },
+                            data: {
+                                userId: headers.userId,
+                                type: Notifications.Types.DISCOVERED_UNIQUE_MOMENT,
+                                isUnread: true,
+                                associationId: moment.id,
+                                messageLocaleKey: Notifications.MessageKeys.DISCOVERED_UNIQUE_MOMENT,
+                            },
+                        }).then((response) => {
+                            notificationData = response?.data;
+                        }).catch((error) => {
+                            console.log(error);
+                        }).finally(() => predictAndSendNotification(
                             PushNotificationTypes.proximityRequiredMoment,
                             {
                                 moment,
+                                notificationData,
                             },
                             {
                                 deviceToken: headers.userDeviceToken,
@@ -100,9 +123,7 @@ const filterNearbyMoments = (moments, userLocationCache: UserLocationCache, head
                             {
                                 lastNotificationDate,
                             },
-                        );
-
-                        shouldSkipNotification = true;
+                        ));
                     }
 
                     return false; // Filter out these moments from being automatically-activated
@@ -231,10 +252,34 @@ const activateMoments = (
     .then(() => userLocationCache.getLastNotificationDate())
     .then((lastNotificationDate: any) => {
         if (!hasSentNotificationRecently(lastNotificationDate)) {
-            return predictAndSendNotification(
+            let notificationData = {};
+
+            return axios({
+                method: 'post',
+                url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/notifications`,
+                headers: {
+                    authorization: headers.authorization,
+                    'x-localecode': headers.locale,
+                    'x-userid': headers.userId,
+                },
+                data: {
+                    userId: headers.userId,
+                    type: Notifications.Types.NEW_MOMENTS_ACTIVATED,
+                    isUnread: true,
+                    messageLocaleKey: Notifications.MessageKeys.NEW_MOMENTS_ACTIVATED,
+                    messageParams: {
+                        totalMomentsActivated: activatedMomentIds.length,
+                    },
+                },
+            }).then((response) => {
+                notificationData = response?.data;
+            }).catch((error) => {
+                console.log(error);
+            }).finally(() => predictAndSendNotification(
                 PushNotificationTypes.newMomentsActivated,
                 {
                     momentsActivated: moments.slice(0, activatedMomentIds.length),
+                    notificationData,
                 },
                 {
                     deviceToken: headers.userDeviceToken,
@@ -245,7 +290,7 @@ const activateMoments = (
                 {
                     lastNotificationDate,
                 },
-            );
+            ));
         }
     })
     .catch((err) => {

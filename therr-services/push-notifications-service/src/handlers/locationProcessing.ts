@@ -1,6 +1,7 @@
 import { Location } from 'therr-js-utilities/constants';
 import { RequestHandler } from 'express';
 import { distanceTo } from 'geolocation-utils';
+
 import handleHttpError from '../utilities/handleHttpError';
 import UserLocationCache from '../store/UserLocationCache';
 import { activateMoments, getNearbyMoments } from './helpers/locationHelpers';
