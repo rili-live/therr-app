@@ -2,6 +2,10 @@ import {
     // Index
     ISearchQuery,
 
+    // Content
+    IContentState,
+    ContentActionTypes,
+
     // Maps
     IMapState,
     MapActionTypes,
@@ -54,6 +58,10 @@ export interface IAccess {
 export {
     // Index
     ISearchQuery,
+
+    // Content
+    IContentState,
+    ContentActionTypes,
 
     // Forums
     IForum,

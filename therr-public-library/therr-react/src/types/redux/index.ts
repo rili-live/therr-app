@@ -1,4 +1,8 @@
 import {
+    IContentState,
+    ContentActionTypes,
+} from './content';
+import {
     IForum,
     IForumsArray,
     IForumsState,
@@ -60,6 +64,10 @@ export interface ISearchQuery {
 }
 
 export {
+    // Content
+    IContentState,
+    ContentActionTypes,
+
     // Forums
     IForum,
     IForumsArray,

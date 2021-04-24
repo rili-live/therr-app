@@ -6,6 +6,7 @@ import {
     getMomentReactionsValidation,
     getMomentReactionsByMomentIdValidation,
     createOrUpdateMomentReactionValidation,
+    searchActiveMomentsValidation,
 } from './validation/momentReactions';
 
 const reactionsServiceRouter = express.Router();
@@ -24,6 +25,11 @@ reactionsServiceRouter.get('/moment-reactions', getMomentReactionsValidation, va
 reactionsServiceRouter.get('/moment-reactions/:momentId', getMomentReactionsByMomentIdValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
     method: 'get',
+}));
+
+reactionsServiceRouter.post('/moments/active/search', searchActiveMomentsValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'post',
 }));
 
 export default reactionsServiceRouter;
