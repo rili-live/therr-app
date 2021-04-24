@@ -6,7 +6,9 @@ import { CommonActions, StackActions } from '@react-navigation/native';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
+import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import { INotificationsState } from 'therr-react/types';
+import therrIconConfig from '../assets/therr-font-config.json';
 import styles from '../styles';
 import { headerMenuModal } from '../styles/modal';
 import * as therrTheme from '../styles/themes';
@@ -15,6 +17,12 @@ import { ILocationState } from '../types/redux/location';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
 
 const ANIMATION_DURATION = 200;
+
+const TherrIcon = createIconSetFromIcoMoon(
+    therrIconConfig,
+    'TherrFont',
+    'TherrFont.ttf'
+);
 
 interface IHeaderMenuRightDispatchProps {}
 
@@ -306,6 +314,31 @@ class HeaderMenuRight extends React.Component<
                                         />
                                         <Button
                                             buttonStyle={
+                                                currentScreen === 'Moments'
+                                                    ? headerMenuModal.buttonsActive
+                                                    : headerMenuModal.buttons
+                                            }
+                                            titleStyle={
+                                                currentScreen === 'Moments'
+                                                    ? headerMenuModal.buttonsTitleActive
+                                                    : headerMenuModal.buttonsTitle
+                                            }
+                                            title={this.translate('components.headerMenuRight.menuItems.moments')}
+                                            icon={
+                                                <TherrIcon
+                                                    style={
+                                                        currentScreen === 'Moments'
+                                                            ? headerMenuModal.iconStyleActive
+                                                            : headerMenuModal.iconStyle
+                                                    }
+                                                    name="clock"
+                                                    size={22}
+                                                />
+                                            }
+                                            onPress={() => this.navTo('Moments')}
+                                        />
+                                        {/* <Button
+                                            buttonStyle={
                                                 currentScreen === 'HostedChat'
                                                     ? headerMenuModal.buttonsActive
                                                     : headerMenuModal.buttons
@@ -328,7 +361,7 @@ class HeaderMenuRight extends React.Component<
                                                 />
                                             }
                                             onPress={() => this.navTo('HostedChat')}
-                                        />
+                                        /> */}
                                         <Button
                                             buttonStyle={
                                                 currentScreen === 'ActiveConnections'

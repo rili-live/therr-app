@@ -61,18 +61,21 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
             .map((connection: any) => connection.users.filter((user: any) => user.id != userId)[0].id); // eslint-disable-line eqeqeq
     }
     const searchPromise = Store.moments.searchMoments(searchArgs[0], searchArgs[1], fromUserIds, { distanceOverride });
-    const countPromise = Store.moments.countRecords({
-        filterBy,
-        query,
-        longitude,
-        latitude,
-    }, fromUserIds);
+    // const countPromise = Store.moments.countRecords({
+    //     filterBy,
+    //     query,
+    //     longitude,
+    //     latitude,
+    // }, fromUserIds);
+    const countPromise = Promise.resolve();
 
-    return Promise.all([searchPromise, countPromise]).then(([results, countResult]) => {
+    // TODO: Get associated reactions for user and return limited details if moment is not yet activated
+    return Promise.all([searchPromise, countPromise]).then(([results]) => {
         const response = {
             results,
             pagination: {
-                totalItems: Number(countResult[0].count),
+                // totalItems: Number(countResult[0].count),
+                totalItems: Number(100),
                 itemsPerPage: Number(itemsPerPage),
                 pageNumber: Number(pageNumber),
             },
@@ -80,6 +83,22 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
 
         res.status(200).send(response);
     })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
+};
+
+// NOTE: This should remain a non-public endpoint
+const findMoments: RequestHandler = async (req: any, res: any) => {
+    // const userId = req.headers['x-userid'];
+
+    const {
+        limit,
+        momentIds,
+    } = req.body;
+
+    return Store.moments.findMoments(momentIds, {
+        limit: limit || 21,
+    })
+        .then((moments) => res.status(200).send(moments))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
 
@@ -98,5 +117,6 @@ const deleteMoments = (req, res) => {
 export {
     createMoment,
     searchMoments,
+    findMoments,
     deleteMoments,
 };

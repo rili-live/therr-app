@@ -6,7 +6,7 @@ import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import messaging from '@react-native-firebase/messaging';
 import { UsersService } from 'therr-react/services';
 import { IForumsState, INotificationsState, IUserState } from 'therr-react/types';
-import { ForumActions, NotificationActions } from 'therr-react/redux/actions';
+import { ContentActions, ForumActions, NotificationActions } from 'therr-react/redux/actions';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
@@ -35,6 +35,7 @@ const forFade = ({ current }) => ({
 interface ILayoutDispatchProps {
     logout: Function;
     addNotification: Function;
+    insertActiveMoments: Function;
     searchCategories: Function;
     searchNotifications: Function;
     updateGpsStatus: Function;
@@ -68,6 +69,7 @@ const mapDispatchToProps = (dispatch: any) =>
             logout: UsersActions.logout,
             addNotification: NotificationActions.add,
             searchNotifications: NotificationActions.search,
+            insertActiveMoments: ContentActions.insertActiveMoments,
             searchCategories: ForumActions.searchCategories,
             updateGpsStatus: LocationActions.updateGpsStatus,
             updateLocationPermissions: LocationActions.updateLocationPermissions,
@@ -97,6 +99,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const {
             forums,
             addNotification,
+            insertActiveMoments,
             searchCategories,
             searchNotifications,
             updateLocationPermissions,
@@ -152,13 +155,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         axios.defaults.headers['x-user-device-token'] = token;
                         messaging().onMessage(async remoteMessage => {
                             console.log('Message handled in the foreground!', remoteMessage);
+                            let parsedMomentsData;
                             let parsedNotificationData;
+                            if (remoteMessage?.data?.momentsActivated) {
+                                parsedMomentsData = JSON.parse(remoteMessage.data.momentsActivated);
+                                insertActiveMoments(parsedMomentsData);
+                            }
                             if (remoteMessage?.data?.notificationData) {
                                 parsedNotificationData = JSON.parse(remoteMessage.data.notificationData);
-                            }
-
-                            // TODO: RMOBILE-24 - Create custom notifications from parsedData
-                            if (parsedNotificationData) {
                                 addNotification(parsedNotificationData);
                             }
                         });
