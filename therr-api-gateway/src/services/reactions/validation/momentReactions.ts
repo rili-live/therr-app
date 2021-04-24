@@ -27,3 +27,10 @@ export const getMomentReactionsByMomentIdValidation = [
     param('momentId').exists(),
     query('limit').optional(),
 ];
+
+export const searchActiveMomentsValidation = [
+    header('authorization').exists(),
+    header('x-userid').exists(),
+    body('offset').exists(),
+    body('limit').optional(),
+];

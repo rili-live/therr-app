@@ -1,10 +1,13 @@
 import { RequestHandler } from 'express';
+import axios from 'axios';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
+import * as globalConfig from '../../../../global-config';
 
 // CREATE/UPDATE
 const createOrUpdateMomentReaction = (req, res) => {
+    // TODO: This endpoint should be secure/non-public so user's cannot activate moments on demand
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
 
@@ -35,6 +38,7 @@ const createOrUpdateMomentReaction = (req, res) => {
 
 // CREATE/UPDATE
 const createOrUpdateMultiMomentReactions = (req, res) => {
+    // TODO: This endpoint should be secure/non-public so user's cannot activate moments on demand
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
 
@@ -82,7 +86,10 @@ const getMomentReactions: RequestHandler = async (req: any, res: any) => {
 
     delete queryParams.momentIds;
 
-    return Store.momentReactions.get(queryParams, momentIds, parseInt(req.query.limit, 10))
+    return Store.momentReactions.get(queryParams, momentIds, {
+        limit: parseInt(req.query.limit, 10),
+        offset: 0,
+    })
         .then(([moments]) => res.status(200).send(moments))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
 };
@@ -119,6 +126,7 @@ const findMomentReactions: RequestHandler = async (req: any, res: any) => {
         momentIds,
         userHasActivated,
         limit,
+        offset,
     } = req.body;
 
     const conditions: any = {
@@ -129,7 +137,10 @@ const findMomentReactions: RequestHandler = async (req: any, res: any) => {
         conditions.userHasActivated = userHasActivated;
     }
 
-    return Store.momentReactions.get(conditions, momentIds, limit)
+    return Store.momentReactions.get(conditions, momentIds, {
+        limit,
+        offset,
+    })
         .then((reactions) => res.status(200).send({
             reactions,
         }))

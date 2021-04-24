@@ -149,10 +149,11 @@
         "account": "MY ACCOUNT",
         "connections": "CONNECTIONS",
         "home": "HOME",
-        "logout": "LOGOUT",
-        "notifications": "NOTIFICATIONS",
         "hostedChat": "HOSTED CHAT",
-        "map": "MAP"
+        "logout": "LOGOUT",
+        "map": "MAP",
+        "moments": "MOMENTS",
+        "notifications": "NOTIFICATIONS"
       }
     },
     "messagingContainer": {
@@ -370,6 +371,10 @@
       "categories": {
         "title": "Categories"
       }
+    },
+    "moments": {
+      "headerTitle": "Moments",
+      "pageTitle": "Moments"
     },
     "notifications": {
       "headerTitle": "Notifications",

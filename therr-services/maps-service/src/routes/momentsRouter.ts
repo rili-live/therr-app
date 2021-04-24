@@ -2,6 +2,7 @@ import * as express from 'express';
 import {
     createMoment,
     searchMoments,
+    findMoments,
     deleteMoments,
 } from '../handlers/moments';
 
@@ -12,6 +13,8 @@ router.post('/', createMoment);
 
 // SEARCH
 router.post('/search', searchMoments);
+
+router.post('/find', findMoments);
 
 // DELETE
 router.delete('/', deleteMoments);

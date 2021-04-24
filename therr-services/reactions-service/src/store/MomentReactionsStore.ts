@@ -44,13 +44,14 @@ export default class MomentReactionsStore {
         this.db = dbConnection;
     }
 
-    get(conditions: any, momentIds?, limit = 100) {
-        const restrictedLimit = (limit) > 1000 ? 1000 : limit;
+    get(conditions: any, momentIds?, filters = { limit: 100, offset: 0 }) {
+        const restrictedLimit = (filters.limit) > 1000 ? 1000 : filters.limit;
 
         let queryString = knex.select('*')
             .from(MOMENT_REACTIONS_TABLE_NAME)
             .where(conditions)
-            .limit(restrictedLimit);
+            .limit(restrictedLimit)
+            .offset(filters.offset);
 
         if (momentIds && momentIds.length) {
             queryString = queryString.whereIn('momentId', momentIds);

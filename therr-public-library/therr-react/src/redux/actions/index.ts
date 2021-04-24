@@ -1,3 +1,4 @@
+import ContentActions from './Content';
 import ForumActions from './Forums';
 import MapActions from './Maps';
 import MessageActions from './Messages';
@@ -8,6 +9,7 @@ import UserConnectionsActions from './UserConnections';
 import UsersActions from './Users';
 
 export {
+    ContentActions,
     ForumActions,
     MapActions,
     MessageActions,

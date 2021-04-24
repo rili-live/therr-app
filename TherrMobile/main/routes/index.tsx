@@ -6,6 +6,7 @@ import DirectMessage from './DirectMessage';
 import Login from './Login';
 import { IAccess, AccessCheckType } from '../types';
 import Map from './Map';
+import Moments from './Moments';
 import ActiveConnections from './ActiveConnections';
 import Contacts from './Contacts';
 import ForgotPassword from './ForgotPassword';
@@ -74,6 +75,17 @@ const routes: RouteConfig<
                 levels: [],
             },
             headerTransparent: true,
+        }),
+    },
+    {
+        name: 'Moments',
+        component: Moments,
+        options: () => ({
+            title: 'Moments',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [],
+            },
         }),
     },
     {

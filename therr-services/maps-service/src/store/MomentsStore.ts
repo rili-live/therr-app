@@ -106,6 +106,20 @@ export default class MomentsStore {
         });
     }
 
+    findMoments(momentIds, filters) {
+        // hard limit to prevent overloading client
+        const restrictedLimit = (filters.limit) > 1000 ? 1000 : filters.limit;
+
+        const queryString = knex
+            .from(MOMENTS_TABLE_NAME)
+            .orderBy(`${MOMENTS_TABLE_NAME}.updatedAt`)
+            .whereIn('id', momentIds || [])
+            .limit(restrictedLimit)
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
     createMoment(params: ICreateMomentParams) {
         const region = countryReverseGeo.get_country(params.latitude, params.longitude);
         const modifiedParams = {

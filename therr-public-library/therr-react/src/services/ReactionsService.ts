@@ -57,6 +57,15 @@ class ReactionsService {
             url: `/reactions-service/moment-reactions/${momentId}${queryString}`,
         });
     }
+
+    searchActiveMoments = (offset: number, limit = 21) => axios({
+        method: 'post',
+        url: '/reactions-service/moments/active/search',
+        data: {
+            offset,
+            limit,
+        },
+    });
 }
 
 export default new ReactionsService();
