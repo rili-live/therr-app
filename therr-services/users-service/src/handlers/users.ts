@@ -139,6 +139,7 @@ const updateUser = (req, res) => Store.users.findUser({ id: req.params.id, ...re
                     lastName: req.body.lastName,
                     phoneNumber: req.body.phoneNumber,
                     userName: req.body.userName,
+                    deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
                 }, {
                     id: req.params.id,
                 })

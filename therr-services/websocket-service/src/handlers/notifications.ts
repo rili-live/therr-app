@@ -10,7 +10,7 @@ interface IUpdateNotificationData {
     userName: string;
 }
 
-const updateNotification = (socket: Socket, data: IUpdateNotificationData) => {
+const updateNotification = (socket: Socket, data: IUpdateNotificationData, decodedAuthenticationToken: any) => {
     printLogs({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
@@ -26,7 +26,7 @@ const updateNotification = (socket: Socket, data: IUpdateNotificationData) => {
         data: {
             isUnread: data.notification.isUnread,
         },
-    }, socket).then((response) => {
+    }, socket, decodedAuthenticationToken).then((response) => {
         socket.emit(SOCKET_MIDDLEWARE_ACTION, {
             type: SocketServerActionTypes.NOTIFICATION_UPDATED,
             data: {

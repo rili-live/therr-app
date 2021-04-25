@@ -5,7 +5,7 @@ import redisSessions from '../store/redisSessions';
 import globalConfig from '../../../../global-config';
 
 // TODO: Optimizing for performance
-export default (socket, userDetails, actionType, shouldReturnActiveConnections = false) => {
+export default (socket, userDetails, actionType, shouldReturnActiveConnections = false, decodedAuthenticationToken: any) => {
     const query = {
         filterBy: 'acceptingUserId',
         query: userDetails.id,
@@ -24,7 +24,7 @@ export default (socket, userDetails, actionType, shouldReturnActiveConnections =
     return restRequest({
         method: 'get',
         url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/connections${queryString}`,
-    }, socket).then(({
+    }, socket, decodedAuthenticationToken).then(({
         data: searchResults,
     }) => {
         const users = searchResults && searchResults.results

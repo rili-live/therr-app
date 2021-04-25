@@ -6,6 +6,7 @@ import Logger from './Logger';
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_APPLICATION_CREDENTIALS_BASE64 || '', 'base64').toString());
 
 enum PushNotificationTypes {
+    newDirectMessage = 'new-direct-message',
     newMomentsActivated = 'new-moments-activated',
     proximityRequiredMoment = 'proximity-required-moment',
 }
@@ -18,6 +19,7 @@ admin.initializeApp({
 interface ICreateMessageConfig {
     totalMomentsActivated?: number;
     deviceToken: any;
+    fromUserName?: string;
     userId: string | string[];
     userLocale: string;
 }
@@ -28,11 +30,22 @@ interface INotificationMetrics {
 
 const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMessageConfig) => {
     const modifiedData = {
-        type: PushNotificationTypes.newMomentsActivated,
+        type,
     };
     Object.keys(data).forEach((key) => { modifiedData[key] = JSON.stringify(data[key]); });
 
     switch (type) {
+        case PushNotificationTypes.newDirectMessage:
+            return {
+                data: modifiedData,
+                notification: {
+                    title: translate(config.userLocale, 'notifications.newDirectMessage.title'),
+                    body: translate(config.userLocale, 'notifications.newDirectMessage.body', {
+                        userName: config.fromUserName,
+                    }),
+                },
+                token: config.deviceToken,
+            };
         case PushNotificationTypes.newMomentsActivated:
             return {
                 data: modifiedData,
@@ -64,7 +77,7 @@ const predictAndSendNotification = (
     data,
     config: ICreateMessageConfig,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    metrics: INotificationMetrics,
+    metrics?: INotificationMetrics,
 ) => {
     const message = createMessage(type, data, config);
 
@@ -72,6 +85,10 @@ const predictAndSendNotification = (
         .then(() => {
             if (!message) {
                 return;
+            }
+
+            if (type === PushNotificationTypes.newDirectMessage) {
+                return admin.messaging().send(message);
             }
 
             if (type === PushNotificationTypes.newMomentsActivated) {
@@ -91,6 +108,7 @@ const predictAndSendNotification = (
                     messageData: message.data,
                     messageNotification: message.notification,
                     userId: config.userId,
+                    ...metrics,
                 });
             }
         })
@@ -101,6 +119,7 @@ const predictAndSendNotification = (
                 messageNotification: message && message.notification,
                 userId: config.userId,
                 significance: 'failed to send push notification',
+                ...metrics,
             }, {});
         });
 };

@@ -4,6 +4,10 @@
       "title": "You found a unique moment!",
       "body": "Check the map to activate a moment with special attributes"
     },
+    "newDirectMessage": {
+      "title": "New Unread Messages",
+      "body": "You have unread messages from {userName}"
+    },
     "newMomentsActivated": {
       "title": "New moments activated",
       "body": "You recently activated {totalMomentsActivated} new moments"
