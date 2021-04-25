@@ -112,7 +112,7 @@ export default class MomentsStore {
 
         const queryString = knex
             .from(MOMENTS_TABLE_NAME)
-            .orderBy(`${MOMENTS_TABLE_NAME}.updatedAt`)
+            .orderBy(`${MOMENTS_TABLE_NAME}.updatedAt`, 'desc')
             .whereIn('id', momentIds || [])
             .limit(restrictedLimit)
             .toString();
