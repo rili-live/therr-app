@@ -6,9 +6,10 @@ import { CommonActions, StackActions } from '@react-navigation/native';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+// import therrIconConfig from '../assets/therr-font-config.json';
+// import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import { INotificationsState } from 'therr-react/types';
-import therrIconConfig from '../assets/therr-font-config.json';
 import styles from '../styles';
 import { headerMenuModal } from '../styles/modal';
 import * as therrTheme from '../styles/themes';
@@ -18,11 +19,11 @@ import requestLocationServiceActivation from '../utilities/requestLocationServic
 
 const ANIMATION_DURATION = 200;
 
-const TherrIcon = createIconSetFromIcoMoon(
-    therrIconConfig,
-    'TherrFont',
-    'TherrFont.ttf'
-);
+// const TherrIcon = createIconSetFromIcoMoon(
+//     therrIconConfig,
+//     'TherrFont',
+//     'TherrFont.ttf'
+// );
 
 interface IHeaderMenuRightDispatchProps {}
 
@@ -325,13 +326,13 @@ class HeaderMenuRight extends React.Component<
                                             }
                                             title={this.translate('components.headerMenuRight.menuItems.moments')}
                                             icon={
-                                                <TherrIcon
+                                                <MaterialIcon
                                                     style={
                                                         currentScreen === 'Moments'
                                                             ? headerMenuModal.iconStyleActive
                                                             : headerMenuModal.iconStyle
                                                     }
-                                                    name="clock"
+                                                    name="watch"
                                                     size={22}
                                                 />
                                             }
