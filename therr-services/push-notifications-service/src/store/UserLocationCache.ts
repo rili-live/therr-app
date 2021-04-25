@@ -1,3 +1,4 @@
+import { Location } from 'therr-js-utilities/constants';
 import redisClient from './redisClient';
 import beeline from '../beeline';
 
@@ -122,11 +123,11 @@ export default class UserLocationCache {
             .then((momentIds) => {
                 const pipeline = redisClient.pipeline();
 
-                momentIds.forEach((id) => {
-                    if (id) {
-                        pipeline.hgetall(`${this.geoKeyPrefix}:${this.geoKeys.unactivated}:${id}`);
+                for (let i = 0; i < Location.MAX_MOMENT_ACTIVATE_COUNT && i <= momentIds.length - 1; i += 1) {
+                    if (momentIds[i]) {
+                        pipeline.hgetall(`${this.geoKeyPrefix}:${this.geoKeys.unactivated}:${momentIds[i]}`);
                     }
-                });
+                }
 
                 return pipeline.exec();
             })

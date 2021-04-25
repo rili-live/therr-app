@@ -12,6 +12,7 @@ const content = (state: IContentState = initialState, action: any) => {
         state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
     }
 
+    // TODO: consider storing as Set to prevent duplicates
     switch (action.type) {
         case ContentActionTypes.INSERT_ACTIVE_MOMENTS:
             // Add latest moments to start
