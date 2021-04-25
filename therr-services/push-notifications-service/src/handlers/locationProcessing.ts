@@ -68,12 +68,13 @@ const processUserLocationChange: RequestHandler = (req, res) => {
                         momentIdsToActivate: JSON.stringify(momentIdsToActivate),
                     });
                     activateMoments(headers, filteredMoments, momentIdsToActivate, userLocationCache);
+
+                    userLocationCache.removeMoments(momentIdsToActivate, {
+                        locale,
+                        userId,
+                        userDeviceToken,
+                    });
                 }
-                userLocationCache.removeMoments(momentIdsToActivate, {
-                    locale,
-                    userId,
-                    userDeviceToken,
-                });
 
                 return filteredMoments;
             })

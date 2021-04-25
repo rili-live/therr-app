@@ -77,6 +77,7 @@ const filterNearbyMoments = (moments, userLocationCache: UserLocationCache, head
             let shouldSkipNotification = hasSentNotificationRecently(lastNotificationDate);
             const cacheableMoments: any[] = [];
             let maxActivationDistance = Location.MOMENT_PROXIMITY_METERS;
+            let filteredMomentsCount = 0;
 
             // Only interested in reactions that have not been activated
             const filteredMoments = moments.filter((moment, index) => {
@@ -136,8 +137,12 @@ const filterNearbyMoments = (moments, userLocationCache: UserLocationCache, head
                 }
 
                 // Only cache moments that have not already been viewed and do not require manual activation
-                if (!userIsCloseEnough || filteredMoments.length >= Location.MAX_MOMENT_ACTIVATE_COUNT) {
+                if (!userIsCloseEnough || filteredMomentsCount >= Location.MAX_MOMENT_ACTIVATE_COUNT) {
                     cacheableMoments.push(moment);
+                }
+
+                if (userIsCloseEnough) {
+                    filteredMomentsCount += 1;
                 }
 
                 return userIsCloseEnough;
