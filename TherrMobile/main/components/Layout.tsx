@@ -6,7 +6,7 @@ import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import messaging from '@react-native-firebase/messaging';
 import { UsersService } from 'therr-react/services';
 import { IForumsState, INotificationsState, IUserState } from 'therr-react/types';
-import { ContentActions, ForumActions, NotificationActions } from 'therr-react/redux/actions';
+import { ContentActions, ForumActions, NotificationActions, UsersActions } from 'therr-react/redux/actions';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
@@ -17,7 +17,6 @@ import { bindActionCreators } from 'redux';
 import HeaderMenuRight from './HeaderMenuRight';
 import { AccessCheckType } from '../types';
 import LocationActions from '../redux/actions/LocationActions';
-import UsersActions from '../redux/actions/UsersActions';
 import { ILocationState } from '../types/redux/location';
 import HeaderMenuLeft from './HeaderMenuLeft';
 import translator from '../services/translator';
@@ -40,6 +39,7 @@ interface ILayoutDispatchProps {
     searchNotifications: Function;
     updateGpsStatus: Function;
     updateLocationPermissions: Function;
+    updateUser: Function;
 }
 
 interface IStoreProps extends ILayoutDispatchProps {
@@ -73,6 +73,7 @@ const mapDispatchToProps = (dispatch: any) =>
             searchCategories: ForumActions.searchCategories,
             updateGpsStatus: LocationActions.updateGpsStatus,
             updateLocationPermissions: LocationActions.updateLocationPermissions,
+            updateUser: UsersActions.update,
         },
         dispatch
     );
@@ -104,6 +105,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             searchNotifications,
             updateLocationPermissions,
             user,
+            updateUser,
         } = this.props;
 
         if (user?.isAuthenticated !== this.state.isAuthenticated) {
@@ -153,6 +155,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     })
                     .then((token) => {
                         axios.defaults.headers['x-user-device-token'] = token;
+                        if (user.details.deviceMobileFirebaseToken !== token) {
+                            updateUser(user.details.id, { deviceMobileFirebaseToken: token });
+                        }
                         messaging().onMessage(async remoteMessage => {
                             console.log('Message handled in the foreground!', remoteMessage);
                             let parsedMomentsData;

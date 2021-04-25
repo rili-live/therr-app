@@ -32,17 +32,19 @@ const searchDirectMessages: RequestHandler = (req: any, res: any) => {
     const integerColumns = ['toUserId', 'fromUserId'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
     const searchPromise = Store.directMessages.searchDirectMessages(userId, searchArgs[0], searchArgs[1], shouldCheckReverse);
-    const countPromise = Store.directMessages.countRecords({
-        filterBy,
-        query,
-    });
+    // const countPromise = Store.directMessages.countRecords({
+    //     filterBy,
+    //     query,
+    // });
+    const countPromise = Promise.resolve();
 
     return Promise.all([searchPromise, countPromise]).then(([results, countResult]) => {
         const response = {
             results: results // TODO: RFRONT-25 - localize dates
                 .map((result) => ({ ...result, createdAt: moment(result.createdAt).format('M/D/YY, h:mma') })),
             pagination: {
-                totalItems: Number(countResult[0].count),
+                // totalItems: Number(countResult[0].count),
+                totalItems: 100, // arbitraty number because count is slow and not needed
                 itemsPerPage: Number(itemsPerPage),
                 pageNumber: Number(pageNumber),
             },
