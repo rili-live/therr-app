@@ -28,7 +28,7 @@ const update = ({
     appName,
     socket,
     data,
-}: IUpdateSessionnArgs) => {
+}: IUpdateSessionnArgs, decodedAuthenticationToken: any) => {
     const user = data.details;
     const socketDetails = data.socketDetails;
 
@@ -65,7 +65,13 @@ const update = ({
                 status: UserStatus.ACTIVE,
             },
         }).then((response: any) => {
-            notifyConnections(socket, { ...user, status: UserStatus.ACTIVE }, SocketServerActionTypes.ACTIVE_CONNECTION_REFRESHED, true);
+            notifyConnections(
+                socket,
+                { ...user, status: UserStatus.ACTIVE },
+                SocketServerActionTypes.ACTIVE_CONNECTION_REFRESHED,
+                true,
+                decodedAuthenticationToken,
+            );
             socket.emit(SOCKET_MIDDLEWARE_ACTION, {
                 type: SocketServerActionTypes.SESSION_UPDATED,
                 data: {

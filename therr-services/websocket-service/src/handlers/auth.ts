@@ -53,7 +53,13 @@ const login = ({
                 status: UserStatus.ACTIVE,
             },
         }).then((response: any) => {
-            notifyConnections(socket, { ...data, status: UserStatus.ACTIVE }, SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_IN, true);
+            notifyConnections(
+                socket,
+                { ...data, status: UserStatus.ACTIVE },
+                SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_IN,
+                true,
+                {},
+            );
 
             socket.emit(SOCKET_MIDDLEWARE_ACTION, {
                 type: SocketServerActionTypes.SESSION_CREATED,
@@ -111,7 +117,13 @@ const logout = ({
     const promises: any[] = [];
 
     if (data && data.id) {
-        const promise = notifyConnections(socket, data, SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_OUT);
+        const promise = notifyConnections(
+            socket,
+            data,
+            SocketServerActionTypes.ACTIVE_CONNECTION_LOGGED_OUT,
+            false,
+            {},
+        );
 
         promises.push(promise);
     }

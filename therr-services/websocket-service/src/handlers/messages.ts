@@ -14,7 +14,7 @@ import globalConfig from '../../../../global-config';
 import { FORUM_PREFIX } from './rooms';
 import { COMMON_DATE_FORMAT } from '../constants';
 
-const sendDirectMessage = (socket: socketio.Socket, data: any) => {
+const sendDirectMessage = (socket: socketio.Socket, data: any, decodedAuthenticationToken: any) => {
     restRequest({
         method: 'post',
         url: `${globalConfig[process.env.NODE_ENV || 'development'].baseMessagesServiceRoute}/direct-messages`,
@@ -24,7 +24,7 @@ const sendDirectMessage = (socket: socketio.Socket, data: any) => {
             fromUserId: data.userId,
             isUnread: false, // TODO: RSERV-36 - derive from frontend message
         },
-    }, socket).then(({ data: message }) => {
+    }, socket, decodedAuthenticationToken).then(({ data: message }) => {
         // TODO: RFRONT-25 - localize dates
         const timeFormatted = moment(message.updatedAt).format(COMMON_DATE_FORMAT); // TODO: RFRONT-25 - localize dates
         socket.emit('action', {
@@ -58,7 +58,7 @@ const sendDirectMessage = (socket: socketio.Socket, data: any) => {
             // Send new direct message notification
             redisHelper.throttleDmNotifications(data.to.id, data.userId)
                 .then((shouldCreateNotification) => {
-                    if (shouldCreateNotification) {
+                    if (shouldCreateNotification) { // fire and forget
                         restRequest({
                             method: 'post',
                             url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/notifications`,
@@ -71,8 +71,10 @@ const sendDirectMessage = (socket: socketio.Socket, data: any) => {
                                 messageParams: {
                                     userName: data.userName,
                                 },
+                                shouldSendPushNotification: true,
+                                fromUserName: data.userName,
                             },
-                        }, socket);
+                        }, socket, decodedAuthenticationToken);
                     }
                 });
         }
@@ -94,7 +96,7 @@ const sendDirectMessage = (socket: socketio.Socket, data: any) => {
     });
 };
 
-const sendForumMessage = (socket: socketio.Socket, data: any) => {
+const sendForumMessage = (socket: socketio.Socket, data: any, decodedAuthenticationToken: any) => {
     printLogs({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',

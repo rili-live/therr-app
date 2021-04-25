@@ -80,7 +80,8 @@ $menu-padding: rem-calc(24px);
     }
 
     .nav-menu-content {
-        overflow: scroll;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
 
     .nav-menu-subfooter {

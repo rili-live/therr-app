@@ -16,7 +16,7 @@ interface IUpdateUserConnectionData {
     user: any;
 }
 
-const createConnection = (socket: socketio.Socket, data: ICreateUserConnectionData) => {
+const createConnection = (socket: socketio.Socket, data: ICreateUserConnectionData, decodedAuthenticationToken: any) => {
     printLogs({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
@@ -43,7 +43,7 @@ const createConnection = (socket: socketio.Socket, data: ICreateUserConnectionDa
     });
 };
 
-const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionData) => {
+const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionData, decodedAuthenticationToken: any) => {
     let requestingSocketId;
     printLogs({
         level: 'info',
@@ -59,7 +59,7 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
         method: 'put',
         url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/connections/${data.connection.requestingUserId}`,
         data: data.connection,
-    }, socket).then(({ data: connection }) => {
+    }, socket, decodedAuthenticationToken).then(({ data: connection }) => {
         Promise.all([
             redisSessions.getUserById(data.connection.requestingUserId),
             redisSessions.getUserById(data.connection.acceptingUserId),
@@ -117,7 +117,7 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
                         lastName: data.user.lastName,
                     },
                 },
-            }, socket).then(({ data: notification }) => {
+            }, socket, decodedAuthenticationToken).then(({ data: notification }) => {
                 socket.to(requestingSocketId).emit(SOCKET_MIDDLEWARE_ACTION, { // To user who sent request
                     type: SocketServerActionTypes.NOTIFICATION_CREATED,
                     data: notification,
@@ -131,7 +131,7 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
     });
 };
 
-const loadActiveConnections = (socket: socketio.Socket, data: any) => {
+const loadActiveConnections = (socket: socketio.Socket, data: any, decodedAuthenticationToken: any) => {
     const users = data.connections
         .map((connection) => {
             const contextUserId = connection.users[0].id === data.userId ? connection.users[1].id : connection.users[0].id;

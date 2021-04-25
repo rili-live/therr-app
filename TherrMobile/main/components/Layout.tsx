@@ -6,7 +6,7 @@ import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import messaging from '@react-native-firebase/messaging';
 import { UsersService } from 'therr-react/services';
 import { IForumsState, INotificationsState, IUserState } from 'therr-react/types';
-import { ContentActions, ForumActions, NotificationActions, UsersActions } from 'therr-react/redux/actions';
+import { ContentActions, ForumActions, NotificationActions } from 'therr-react/redux/actions';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
@@ -17,6 +17,7 @@ import { bindActionCreators } from 'redux';
 import HeaderMenuRight from './HeaderMenuRight';
 import { AccessCheckType } from '../types';
 import LocationActions from '../redux/actions/LocationActions';
+import UsersActions from '../redux/actions/UsersActions';
 import { ILocationState } from '../types/redux/location';
 import HeaderMenuLeft from './HeaderMenuLeft';
 import translator from '../services/translator';
@@ -203,7 +204,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 const enabled = authStatus === messaging.AuthorizationStatus.AUTHORIZED
                     || authStatus === messaging.AuthorizationStatus.PROVISIONAL;
                 if (enabled) {
-                    console.log('Notificatinos authorization status:', authStatus);
+                    console.log('Notifications authorization status:', authStatus);
                 }
             });
     }
