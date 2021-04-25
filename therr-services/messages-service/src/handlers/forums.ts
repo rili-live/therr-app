@@ -47,17 +47,19 @@ const searchForums: RequestHandler = (req: any, res: any) => {
         categoryTags: req.body.categoryTags,
         forumIds: req.body.forumIds,
     });
-    const countPromise = Store.forums.countRecords({
-        filterBy,
-        query,
-    });
+    // const countPromise = Store.forums.countRecords({
+    //     filterBy,
+    //     query,
+    // });
+    const countPromise = Promise.resolve();
 
     return Promise.all([searchPromise, countPromise]).then(([results, countResult]) => {
         const response = {
             results: results // TODO: RFRONT-25 - localize dates
                 .map((result) => ({ ...result, createdAt: moment(result.createdAt).format('M/D/YY, h:mma') })),
             pagination: {
-                totalItems: Number(countResult[0].count),
+                // totalItems: Number(countResult[0].count),
+                totalItems: 100, // arbitrary number because count is slow and not needed
                 itemsPerPage: Number(itemsPerPage),
                 pageNumber: Number(pageNumber),
             },
@@ -80,16 +82,18 @@ const searchCategories: RequestHandler = (req: any, res: any) => {
     const integerColumns = [];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
     const searchPromise = Store.categories.searchCategories(searchArgs[0], searchArgs[1]);
-    const countPromise = Store.forums.countRecords({
-        filterBy,
-        query,
-    });
+    // const countPromise = Store.forums.countRecords({
+    //     filterBy,
+    //     query,
+    // });
+    const countPromise = Promise.resolve();
 
     return Promise.all([searchPromise, countPromise]).then(([results, countResult]) => {
         const response = {
             results,
             pagination: {
-                totalItems: Number(countResult[0].count),
+                // totalItems: Number(countResult[0].count),
+                totalItems: 100, // arbitrary number because count is slow and unnecessary
                 itemsPerPage: Number(itemsPerPage),
                 pageNumber: Number(pageNumber),
             },

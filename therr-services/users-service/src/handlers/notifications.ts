@@ -54,16 +54,18 @@ const searchNotifications: RequestHandler = (req: any, res: any) => {
     const integerColumns = ['id', 'userId', 'associationId'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
     const searchPromise = Store.notifications.searchNotifications(searchArgs[0]);
-    const countPromise = Store.notifications.countRecords({
-        filterBy,
-        query,
-    });
+    // const countPromise = Store.notifications.countRecords({
+    //     filterBy,
+    //     query,
+    // });
+    const countPromise = Promise.resolve();
 
     return Promise.all([searchPromise, countPromise]).then(([results, countResult]) => {
         const response = {
             results: results.map((r) => translateNotification(r, locale)),
             pagination: {
-                totalItems: Number(countResult[0].count),
+                // totalItems: Number(countResult[0].count),
+                totalItems: 100, // arbitrary number because count is slow and not needed
                 itemsPerPage: Number(itemsPerPage),
                 pageNumber: Number(pageNumber),
             },

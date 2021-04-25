@@ -96,6 +96,14 @@ export default class UsersStore {
             modifiedParams.oneTimePassword = params.oneTimePassword;
         }
 
+        if (params.loginCount) {
+            modifiedParams.loginCount = params.loginCount;
+        }
+
+        if (params.deviceMobileFirebaseToken) {
+            modifiedParams.deviceMobileFirebaseToken = params.deviceMobileFirebaseToken;
+        }
+
         if (params.password) {
             modifiedParams.password = params.password;
         }

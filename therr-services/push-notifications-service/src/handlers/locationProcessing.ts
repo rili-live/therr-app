@@ -56,9 +56,11 @@ const processUserLocationChange: RequestHandler = (req, res) => {
         })
             .then((filteredMoments) => {
                 const momentIdsToActivate: number[] = [];
+                const momentsToActivate: any[] = [];
                 // NOTE: only activate 'x' moments max to limit high density locations
                 for (let i = 0; i <= Location.MAX_MOMENT_ACTIVATE_COUNT && i <= filteredMoments.length - 1; i += 1) {
                     momentIdsToActivate.push(filteredMoments[i].id);
+                    momentsToActivate.push(filteredMoments[i]);
                 }
 
                 // Fire and forget (create or update)
@@ -67,7 +69,7 @@ const processUserLocationChange: RequestHandler = (req, res) => {
                         userId,
                         momentIdsToActivate: JSON.stringify(momentIdsToActivate),
                     });
-                    activateMoments(headers, filteredMoments, momentIdsToActivate, userLocationCache);
+                    activateMoments(headers, momentsToActivate, momentIdsToActivate, userLocationCache);
 
                     userLocationCache.removeMoments(momentIdsToActivate, {
                         locale,
