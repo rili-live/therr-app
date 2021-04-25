@@ -4,17 +4,18 @@ import { View } from 'react-native';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
-import therrIconConfig from '../../assets/therr-font-config.json';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+// import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
+// import therrIconConfig from '../../assets/therr-font-config.json';
 import { ButtonMenu, mapStateToProps, mapDispatchToProps } from '../ButtonMenu';
 import { buttonMenu } from '../../styles/navigation';
 import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 
-const TherrIcon = createIconSetFromIcoMoon(
-    therrIconConfig,
-    'TherrFont',
-    'TherrFont.ttf'
-);
+// const TherrIcon = createIconSetFromIcoMoon(
+//     therrIconConfig,
+//     'TherrFont',
+//     'TherrFont.ttf'
+// );
 
 class MainButtonMenu extends ButtonMenu {
     constructor(props) {
@@ -95,8 +96,8 @@ class MainButtonMenu extends ButtonMenu {
                             : buttonMenu.buttonsTitle
                     }
                     icon={
-                        <TherrIcon
-                            name="clock"
+                        <MaterialIcon
+                            name="watch"
                             size={26}
                             style={
                                 currentScreen === 'Moments'
