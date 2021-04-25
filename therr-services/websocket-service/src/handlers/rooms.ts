@@ -14,7 +14,7 @@ interface IRoomData {
     userImgSrc: string;
 }
 
-const joinRoom = (socket: socketio.Socket, data: IRoomData) => {
+const joinRoom = (socket: socketio.Socket, data: IRoomData, decodedAuthenticationToken: any) => {
     const now = moment(Date.now()).format(COMMON_DATE_FORMAT); // TODO: RFRONT-25 - localize dates
     const roomId = `${FORUM_PREFIX}${data.roomId}`;
 
@@ -72,7 +72,7 @@ const joinRoom = (socket: socketio.Socket, data: IRoomData) => {
     });
 };
 
-const leaveRoom = (socket: socketio.Socket, data: IRoomData) => {
+const leaveRoom = (socket: socketio.Socket, data: IRoomData, decodedAuthenticationToken: any) => {
     const now = moment(Date.now()).format(COMMON_DATE_FORMAT); // TODO: RFRONT-25 - localize dates
 
     socket.leave(`${FORUM_PREFIX}${data.roomId}`);

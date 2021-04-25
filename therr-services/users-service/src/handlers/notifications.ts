@@ -1,8 +1,10 @@
+import axios from 'axios';
 import { RequestHandler } from 'express';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
+import * as globalConfig from '../../../../global-config';
 
 export const translateNotification = (notification, locale = 'en-us') => ({
     ...notification,
@@ -19,7 +21,29 @@ const createNotification = (req, res) => Store.notifications.createNotification(
     messageParams: req.body.messageParams,
 })
     .then(([notification]) => {
+        const authorization = req.headers.authorization;
         const locale = req.headers['x-localecode'] || 'en-us';
+        const fromUserId = req.headers['x-userid'];
+        const { shouldSendPushNotification, userId: toUserId, fromUserName } = req.body;
+
+        if (shouldSendPushNotification) {
+            // Fire and forget
+            Store.users.findUser({ id: toUserId }, ['deviceMobileFirebaseToken']).then(([destinationUser]) => axios({
+                method: 'post',
+                url: `${globalConfig[process.env.NODE_ENV].basePushNotificationsServiceRoute}/notifications/send`,
+                headers: {
+                    authorization,
+                    'x-localecode': locale,
+                    'x-userid': fromUserId,
+                },
+                data: {
+                    fromUserName,
+                    toUserDeviceToken: destinationUser.deviceMobileFirebaseToken,
+                },
+            })).catch((error) => {
+                console.log(error);
+            });
+        }
 
         return res.status(202).send(translateNotification(notification, locale));
     })

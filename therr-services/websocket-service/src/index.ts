@@ -133,12 +133,15 @@ const startExpressSocketIOServer = () => {
 
         // Event sent from socket.io, redux store middleware
         socket.on(SOCKET_MIDDLEWARE_ACTION, async (action: any) => {
-            const isAuthenticated = await authenticate(socket);
+            const decodedAuthenticationToken: any = await authenticate(socket);
+            if (decodedAuthenticationToken) {
+                decodedAuthenticationToken.locale = decodedAuthenticationToken.locale || 'en-us';
+            }
 
             switch (action.type) {
                 case SocketClientActionTypes.JOIN_ROOM:
-                    if (isAuthenticated) {
-                        socketHandlers.joinRoom(socket, action.data);
+                    if (decodedAuthenticationToken) {
+                        socketHandlers.joinRoom(socket, action.data, decodedAuthenticationToken);
                         // Notify all users
                         socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
                             type: SocketServerActionTypes.SEND_ROOMS_LIST,
@@ -148,8 +151,8 @@ const startExpressSocketIOServer = () => {
 
                     break;
                 case SocketClientActionTypes.EXIT_ROOM:
-                    if (isAuthenticated) {
-                        socketHandlers.leaveRoom(socket, action.data);
+                    if (decodedAuthenticationToken) {
+                        socketHandlers.leaveRoom(socket, action.data, decodedAuthenticationToken);
                         // Notify all users
                         socket.broadcast.emit(SOCKET_MIDDLEWARE_ACTION, {
                             type: SocketServerActionTypes.SEND_ROOMS_LIST,
@@ -174,42 +177,42 @@ const startExpressSocketIOServer = () => {
                     }
                     break;
                 case SocketClientActionTypes.UPDATE_SESSION:
-                    if (isAuthenticated) {
+                    if (decodedAuthenticationToken) {
                         socketHandlers.updateSession({
                             appName: rsAppName,
                             socket,
                             data: action.data,
-                        });
+                        }, decodedAuthenticationToken);
                     }
                     break;
                 case SocketClientActionTypes.SEND_DIRECT_MESSAGE:
-                    if (isAuthenticated) {
-                        socketHandlers.sendDirectMessage(socket, action.data);
+                    if (decodedAuthenticationToken) {
+                        socketHandlers.sendDirectMessage(socket, action.data, decodedAuthenticationToken);
                     }
                     break;
                 case SocketClientActionTypes.SEND_MESSAGE:
-                    if (isAuthenticated) {
-                        socketHandlers.sendForumMessage(socket, action.data);
+                    if (decodedAuthenticationToken) {
+                        socketHandlers.sendForumMessage(socket, action.data, decodedAuthenticationToken);
                     }
                     break;
                 case SocketClientActionTypes.UPDATE_NOTIFICATION:
-                    if (isAuthenticated) {
-                        socketHandlers.updateNotification(socket, action.data);
+                    if (decodedAuthenticationToken) {
+                        socketHandlers.updateNotification(socket, action.data, decodedAuthenticationToken);
                     }
                     break;
                 case SocketClientActionTypes.LOAD_ACTIVE_CONNECTIONS:
-                    if (isAuthenticated) {
-                        socketHandlers.loadActiveConnections(socket, action.data);
+                    if (decodedAuthenticationToken) {
+                        socketHandlers.loadActiveConnections(socket, action.data, decodedAuthenticationToken);
                     }
                     break;
                 case SocketClientActionTypes.CREATE_USER_CONNECTION:
-                    if (isAuthenticated) {
-                        socketHandlers.createConnection(socket, action.data);
+                    if (decodedAuthenticationToken) {
+                        socketHandlers.createConnection(socket, action.data, decodedAuthenticationToken);
                     }
                     break;
                 case SocketClientActionTypes.UPDATE_USER_CONNECTION:
-                    if (isAuthenticated) {
-                        socketHandlers.updateConnection(socket, action.data);
+                    if (decodedAuthenticationToken) {
+                        socketHandlers.updateConnection(socket, action.data, decodedAuthenticationToken);
                     }
                     break;
                 default:
@@ -235,7 +238,13 @@ const startExpressSocketIOServer = () => {
             const user = await redisSessions.getUserBySocketId(socket.id);
             if (user) {
                 redisSessions.updateStatus(user, UserStatus.AWAY);
-                notifyConnections(socket, { ...user, status: UserStatus.AWAY }, SocketServerActionTypes.ACTIVE_CONNECTION_DISCONNECTED);
+                notifyConnections(
+                    socket,
+                    { ...user, status: UserStatus.AWAY },
+                    SocketServerActionTypes.ACTIVE_CONNECTION_DISCONNECTED,
+                    false,
+                    {},
+                );
             }
         });
     });

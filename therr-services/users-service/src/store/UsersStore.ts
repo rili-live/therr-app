@@ -45,8 +45,8 @@ export default class UsersStore {
         email,
         userName,
         phoneNumber,
-    }: IFindUserArgs) {
-        let queryString: any = knex.select('*').from('main.users')
+    }: IFindUserArgs, returning: any = '*') {
+        let queryString: any = knex.select(returning).from('main.users')
             .where(function () {
                 return id ? this.where({ id }) : this;
             });
