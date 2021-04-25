@@ -79,7 +79,7 @@ const filterNearbyMoments = (moments, userLocationCache: UserLocationCache, head
             let maxActivationDistance = Location.MOMENT_PROXIMITY_METERS;
 
             // Only interested in reactions that have not been activated
-            const filteredMoments = moments.filter((moment) => {
+            const filteredMoments = moments.filter((moment, index) => {
                 maxActivationDistance = Math.max(maxActivationDistance, (moment.radius + moment.maxProximity));
                 const userIsCloseEnough = canActivateMoment(moment, userLocation);
 
@@ -136,7 +136,9 @@ const filterNearbyMoments = (moments, userLocationCache: UserLocationCache, head
                 }
 
                 // Only cache moments that have not already been viewed and do not require manual activation
-                cacheableMoments.push(moment);
+                if (!userIsCloseEnough || filteredMoments.length >= Location.MAX_MOMENT_ACTIVATE_COUNT) {
+                    cacheableMoments.push(moment);
+                }
 
                 return userIsCloseEnough;
             });
