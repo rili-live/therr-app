@@ -75,7 +75,7 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
             results,
             pagination: {
                 // totalItems: Number(countResult[0].count),
-                totalItems: Number(100),
+                totalItems: Number(100), // arbitraty number because count is slow and not needed
                 itemsPerPage: Number(itemsPerPage),
                 pageNumber: Number(pageNumber),
             },

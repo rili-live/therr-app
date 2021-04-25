@@ -41,6 +41,14 @@ const login: RequestHandler = (req: any, res: any) => Store.users
                 const user = results[0];
                 delete user.password; // don't send these in response
                 delete user.oneTimePassword; // don't send these in response
+
+                // Fire and forget
+                Store.users.updateUser({
+                    loginCount: user.loginCount + 1,
+                }, {
+                    id: user.id,
+                });
+
                 return res.status(201).send({
                     ...user,
                     idToken,
