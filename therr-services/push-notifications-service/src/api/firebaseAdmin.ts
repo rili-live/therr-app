@@ -47,7 +47,7 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
                 android: {
                     notification: {
                         icon: 'ic_notification_icon',
-                        color: '#1b4a690',
+                        color: '#0f7b82',
                     },
                 },
                 token: config.deviceToken,
@@ -64,7 +64,7 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
                 android: {
                     notification: {
                         icon: 'ic_notification_icon',
-                        color: '#1b4a690',
+                        color: '#0f7b82',
                     },
                 },
                 token: config.deviceToken,
@@ -79,7 +79,7 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
                 android: {
                     notification: {
                         icon: 'ic_notification_icon',
-                        color: '#1b4a690',
+                        color: '#0f7b82',
                     },
                 },
                 token: config.deviceToken,
