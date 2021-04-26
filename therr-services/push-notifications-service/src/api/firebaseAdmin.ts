@@ -28,7 +28,7 @@ interface INotificationMetrics {
     lastNotificationDate: number | null;
 }
 
-const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMessageConfig) => {
+const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMessageConfig): admin.messaging.Message | false => {
     const modifiedData = {
         type,
     };
@@ -44,6 +44,12 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
                         userName: config.fromUserName,
                     }),
                 },
+                android: {
+                    notification: {
+                        icon: 'ic_notification_icon',
+                        color: '#1b4a690',
+                    },
+                },
                 token: config.deviceToken,
             };
         case PushNotificationTypes.newMomentsActivated:
@@ -55,6 +61,12 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
                         totalMomentsActivated: config.totalMomentsActivated,
                     }),
                 },
+                android: {
+                    notification: {
+                        icon: 'ic_notification_icon',
+                        color: '#1b4a690',
+                    },
+                },
                 token: config.deviceToken,
             };
         case PushNotificationTypes.proximityRequiredMoment:
@@ -63,6 +75,12 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
                 notification: {
                     title: translate(config.userLocale, 'notifications.discoveredUniqueMoment.title'),
                     body: translate(config.userLocale, 'notifications.discoveredUniqueMoment.body'),
+                },
+                android: {
+                    notification: {
+                        icon: 'ic_notification_icon',
+                        color: '#1b4a690',
+                    },
                 },
                 token: config.deviceToken,
             };
