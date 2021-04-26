@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="app.therrmobile">
+  package="app.therrmobile"
+  xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -30,6 +31,16 @@
         android:name="com.google.android.geo.API_KEY"
         android:value="${GOOGLE_APIS_ANDROID_KEY}"
       />
+      <meta-data
+        android:name="com.google.firebase.messaging.default_notification_icon"
+        android:resource="@drawable/ic_notification_icon"
+        tools:replace="android:resource"
+      />
+      <!-- <meta-data
+        android:name="com.google.firebase.messaging.default_notification_color"
+        android:resource="@color/therr_blue"
+        tools:replace="android:resource"
+      /> -->
       <uses-library android:name="org.apache.http.legacy" android:required="false"/>
     </application>
 </manifest>
