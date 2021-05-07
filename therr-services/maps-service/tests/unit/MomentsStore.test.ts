@@ -12,7 +12,12 @@ describe('MomentsStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({})),
                 },
             };
-            const store = new MomentsStore(mockStore);
+            const mockMediaStore = {
+                write: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const store = new MomentsStore(mockStore, mockMediaStore);
             store.countRecords({
                 longitude: 1235.3034,
                 latitude: -12.12314,
@@ -31,7 +36,12 @@ describe('MomentsStore', () => {
                     query: sinon.stub().callsFake(() => Promise.resolve({})),
                 },
             };
-            const store = new MomentsStore(mockStore);
+            const mockMediaStore = {
+                write: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const store = new MomentsStore(mockStore, mockMediaStore);
             store.searchMoments({
                 pagination: {
                     itemsPerPage: 100,
