@@ -3,6 +3,8 @@ import {
     createMoment,
     searchMoments,
     findMoments,
+    getSignedUrlPublicBucket,
+    getSignedUrlPrivateBucket,
     deleteMoments,
 } from '../handlers/moments';
 
@@ -15,6 +17,10 @@ router.post('/', createMoment);
 router.post('/search', searchMoments);
 
 router.post('/find', findMoments);
+
+// GCS
+router.get('/signed-url/public', getSignedUrlPublicBucket);
+router.get('/signed-url/private', getSignedUrlPrivateBucket);
 
 // DELETE
 router.delete('/', deleteMoments);

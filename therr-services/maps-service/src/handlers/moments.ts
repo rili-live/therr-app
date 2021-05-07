@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
 import { RequestHandler } from 'express';
+import { Storage } from '@google-cloud/storage';
 import * as globalConfig from '../../../../global-config';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
@@ -102,6 +103,41 @@ const findMoments: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
 
+const getSignedUrl = (req, res, bucket) => {
+    const requestId = req.headers['x-requestid'];
+    const userId = req.headers['x-userid'];
+
+    const {
+        action,
+        filename,
+    } = req.query;
+
+    const storage = new Storage({
+        credentials: JSON.parse(Buffer.from(process.env.MAPS_SERVICE_GOOGLE_CREDENTIALS_BASE64 || '', 'base64').toString('utf8')),
+    });
+    const options: any = {
+        version: 'v4',
+        action,
+        expires: Date.now() + 10 * 60 * 1000, // 10 minutes
+    };
+
+    const filePath = `${userId}/${filename}_${requestId}`;
+
+    return storage
+        .bucket(bucket)
+        .file(filePath)
+        .getSignedUrl(options)
+        .then((url) => res.status(201).send({
+            url,
+            path: `${filePath}`,
+        }))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
+};
+
+const getSignedUrlPrivateBucket = (req, res) => getSignedUrl(req, res, 'therr-private-user-data');
+
+const getSignedUrlPublicBucket = (req, res) => getSignedUrl(req, res, 'therr-public-user-data');
+
 // DELETE
 const deleteMoments = (req, res) => {
     const userId = req.headers['x-userid'];
@@ -118,5 +154,7 @@ export {
     createMoment,
     searchMoments,
     findMoments,
+    getSignedUrlPrivateBucket,
+    getSignedUrlPublicBucket,
     deleteMoments,
 };

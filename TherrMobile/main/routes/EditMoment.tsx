@@ -2,10 +2,13 @@ import React from 'react';
 import { SafeAreaView, Keyboard, Text, View, StatusBar } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button, Slider } from 'react-native-elements';
+import { Button, Slider, Image } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import RNFB from 'react-native-fetch-blob';
 import { IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
+import { MapsService } from 'therr-react/services';
+import { Content } from 'therr-js-utilities/constants';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import YoutubePlayer from 'react-native-youtube-iframe';
 // import Alert from '../components/Alert';
@@ -104,8 +107,10 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             maxViews,
             expiresAt,
             radius,
+            isPublic,
         } = this.state.inputs;
         const {
+            navigation,
             route,
             user,
         } = this.props;
@@ -113,9 +118,11 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             latitude,
             longitude,
         } = route.params;
+        const { imageDetails } = route.params;
 
         const createArgs: any = {
             fromUserId: user.details.id,
+            isPublic,
             message,
             notificationMsg,
             hashTags: hashtags.join(','),
@@ -130,39 +137,72 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             this.setState({
                 isSubmitting: true,
             });
-            this.props
-                .createMoment(createArgs)
-                .then(() => {
-                    this.setState({
-                        successMsg: this.translate('forms.editMoment.backendSuccessMessage'),
-                    });
-                    setTimeout(() => {
-                        this.props.navigation.navigate('Map');
-                    }, 500);
-                })
-                .catch((error: any) => {
-                    if (
-                        error.statusCode === 400 ||
-                        error.statusCode === 401 ||
-                        error.statusCode === 404
-                    ) {
-                        this.setState({
-                            errorMsg: `${error.message}${
-                                error.parameters
-                                    ? '(' + error.parameters.toString() + ')'
-                                    : ''
-                            }`,
-                        });
-                    } else if (error.statusCode >= 500) {
-                        this.setState({
-                            errorMsg: this.translate('forms.editMoment.backendErrorMessage'),
-                        });
-                    }
-                })
-                .finally(() => {
-                    Keyboard.dismiss();
-                    this.scrollViewRef.scrollToEnd({ animated: true });
+
+            const signUrl = isPublic ? MapsService.getSignedUrlPublicBucket : MapsService.getSignedUrlPrivateBucket;
+
+            // Use public method for public moments
+            signUrl({
+                action: 'write',
+                filename: 'content/test.jpg',
+            }).then((response) => {
+                const signedUrl = response?.data?.url && response?.data?.url[0];
+                createArgs.media = [{}];
+                createArgs.media[0].type = isPublic ? Content.mediaTypes.USER_IMAGE_PUBLIC : Content.mediaTypes.USER_IMAGE_PRIVATE;
+                createArgs.media[0].path = response?.data?.path;
+                console.log(signedUrl);
+
+                console.log(createArgs);
+
+                // Upload to Google Cloud
+                return RNFB.fs.readFile(imageDetails.uri, 'base64').then((base64Img) => {
+                    return RNFB.fetch(
+                        'PUT',
+                        signedUrl,
+                        {
+                            'Content-Type': 'application/octet-stream',
+                        },
+                        base64Img,
+                    );
                 });
+            }).then(() => {
+                this.props
+                    .createMoment(createArgs)
+                    .then(() => {
+                        this.setState({
+                            successMsg: this.translate('forms.editMoment.backendSuccessMessage'),
+                        });
+                        setTimeout(() => {
+                            this.props.navigation.navigate('Map');
+                        }, 500);
+                    })
+                    .catch((error: any) => {
+                        // Delete uploaded file on failure to create
+                        if (
+                            error.statusCode === 400 ||
+                            error.statusCode === 401 ||
+                            error.statusCode === 404
+                        ) {
+                            this.setState({
+                                errorMsg: `${error.message}${
+                                    error.parameters
+                                        ? '(' + error.parameters.toString() + ')'
+                                        : ''
+                                }`,
+                            });
+                        } else if (error.statusCode >= 500) {
+                            this.setState({
+                                errorMsg: this.translate('forms.editMoment.backendErrorMessage'),
+                            });
+                        }
+                    })
+                    .finally(() => {
+                        Keyboard.dismiss();
+                        this.scrollViewRef.scrollToEnd({ animated: true });
+                    });
+            }).catch((err) => {
+                console.log(err);
+                return navigation.navigate('Map');
+            });
         }
     };
 
@@ -200,6 +240,20 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             isSubmitting: false,
         });
     };
+
+    handleHashTagsBlur = (event) => {
+        console.log(event.currentTarget);
+        const { hashtags, inputs } = this.state;
+        const { formattedValue, formattedHashtags } = formatHashtags(`${inputs.hashTags},`, [...hashtags]);
+
+        this.setState({
+            hashtags: formattedHashtags,
+            inputs: {
+                ...inputs,
+                hashTags: formattedValue,
+            },
+        });
+    }
 
     onSliderChange = (name, value) => {
         const newInputChanges = {
@@ -241,8 +295,10 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
     }
 
     render() {
-        const { navigation } = this.props;
+        const { navigation, route } = this.props;
         const { errorMsg, successMsg, hashtags, inputs, previewLinkId, previewStyleState } = this.state;
+
+        const { imageDetails } = route.params;
 
         return (
             <>
@@ -255,6 +311,40 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         contentContainerStyle={[styles.bodyScroll, beemoLayoutStyles.bodyEditScroll]}
                     >
                         <View style={beemoLayoutStyles.container}>
+                            <View style={{
+                                // marginTop: -10,
+                                // marginLeft: -20,
+                                // marginRight: -20,
+                                marginBottom: 30,
+                                marginLeft: 10,
+                                marginRight: 10,
+                                padding: 0,
+                                backgroundColor: therrTheme.colors.beemo2,
+                                borderColor: therrTheme.colors.beemoTextBlack,
+                                borderWidth: 1,
+                                flex: 1,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}>
+                                <Image
+                                    source={{ uri: imageDetails.uri }}
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        aspectRatio: 1,
+                                    }}
+                                />
+                            </View>
+                            <BeemoInput
+                                placeholder={this.translate(
+                                    'forms.editMoment.labels.notificationMsg'
+                                )}
+                                value={inputs.notificationMsg}
+                                onChangeText={(text) =>
+                                    this.onInputChange('notificationMsg', text)
+                                }
+                            />
                             <BeemoTextInput
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.message'
@@ -275,19 +365,11 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 onChangeText={(text) =>
                                     this.onInputChange('hashTags', text)
                                 }
+                                onBlur={this.handleHashTagsBlur}
                             />
                             <HashtagsContainer
                                 hashtags={hashtags}
                                 onHashtagPress={this.handleHashtagPress}
-                            />
-                            <BeemoInput
-                                placeholder={this.translate(
-                                    'forms.editMoment.labels.notificationMsg'
-                                )}
-                                value={inputs.notificationMsg}
-                                onChangeText={(text) =>
-                                    this.onInputChange('notificationMsg', text)
-                                }
                             />
                             <View style={formStyles.inputSliderContainer}>
                                 <Text style={formStyles.inputLabelDark}>
@@ -300,7 +382,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     minimumValue={MIN_RADIUS_PRIVATE}
                                     step={1}
                                     thumbStyle={{ backgroundColor: therrTheme.colors.beemoBlue }}
-                                    thumbTouchSize={{ width: 50, height: 50 }}
+                                    thumbTouchSize={{ width: 100, height: 100 }}
                                     minimumTrackTintColor={therrTheme.colorVariations.beemoBlueLightFade}
                                     maximumTrackTintColor={therrTheme.colorVariations.beemoBlueHeavyFade}
                                 />

@@ -50,8 +50,12 @@ const map = (state: IMapState = initialState, action: any) => {
                 .setIn(['latitude'], action.data.latitude)
                 .setIn(['prevLongitude'], state.longitude)
                 .setIn(['prevLatitude'], state.latitude);
+        case MapActionTypes.USER_LOCATION_DETERMINED:
+            return state.setIn(['hasUserLocationLoaded'], true);
         case SocketClientActionTypes.LOGOUT:
-            return state.setIn(['myMoments'], Immutable.from([]));
+            return state
+                .setIn(['hasUserLocationLoaded'], false)
+                .setIn(['myMoments'], Immutable.from([]));
         default:
             return state;
     }

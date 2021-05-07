@@ -17,6 +17,7 @@ export const createMomentValidation = [
     body('maxProximity').isDecimal().optional(),
     body('latitude').isDecimal().exists(),
     body('longitude').isDecimal().exists(),
+    body('media').isArray().exists(), // TODO: Add granularity
     oneOf([
         body('radius').isDecimal().exists(),
         body('polygonCoords').custom((polygonCoords, { req }) => {
@@ -44,6 +45,11 @@ export const createMomentValidation = [
 export const searchMomentsValidation = [
     query('longitude').exists(),
     query('latitude').exists(),
+];
+
+export const getSignedUrlValidation = [
+    query('action').exists(),
+    query('filename').exists(),
 ];
 
 export const deleteMomentsValidation = [

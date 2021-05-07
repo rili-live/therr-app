@@ -82,6 +82,8 @@ const mapDispatchToProps = (dispatch: any) =>
 class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private translate;
 
+    private unsubscribePushNotifications;
+
     constructor(props) {
         super(props);
 
@@ -140,6 +142,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]: grantStatus,
                             });
                         });
+                    PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA)
+                        .then((grantStatus) => {
+                            updateLocationPermissions({
+                                [PermissionsAndroid.PERMISSIONS.CAMERA]: grantStatus,
+                            });
+                        });
                 } else {
                     checkMultiple([PERMISSIONS.IOS.LOCATION_ALWAYS]).then((statuses) => {
                         updateLocationPermissions(statuses);
@@ -159,7 +167,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         if (user.details.deviceMobileFirebaseToken !== token) {
                             updateUser(user.details.id, { deviceMobileFirebaseToken: token });
                         }
-                        messaging().onMessage(async remoteMessage => {
+                        this.unsubscribePushNotifications = messaging().onMessage(async remoteMessage => {
                             console.log('Message handled in the foreground!', remoteMessage);
                             let parsedMomentsData;
                             let parsedNotificationData;
@@ -187,6 +195,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         if (Platform.OS !== 'ios') {
             LocationServicesDialogBox.stopListener();
         }
+
+        this.unsubscribePushNotifications && this.unsubscribePushNotifications();
     }
 
     getCurrentScreen = (navigation) => {
@@ -219,8 +229,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         );
     };
 
+    logout = (userDetails) => {
+        const { logout } = this.props;
+        this.unsubscribePushNotifications && this.unsubscribePushNotifications();
+        return logout(userDetails);
+    }
+
     render() {
-        const { location, logout, notifications, updateGpsStatus, user } = this.props;
+        const { location, notifications, updateGpsStatus, user } = this.props;
 
         return (
             <NavigationContainer theme={theme}>
@@ -257,7 +273,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     styleName={headerStyleName}
                                     isVisible={this.shouldShowTopRightMenu()}
                                     location={location}
-                                    logout={logout}
+                                    logout={this.logout}
                                     updateGpsStatus={updateGpsStatus}
                                     user={user}
                                 />

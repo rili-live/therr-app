@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -36,11 +38,11 @@
         android:resource="@drawable/ic_notification_icon"
         tools:replace="android:resource"
       />
-      <!-- <meta-data
+      <meta-data
         android:name="com.google.firebase.messaging.default_notification_color"
         android:resource="@color/therr_blue"
         tools:replace="android:resource"
-      /> -->
+      />
       <uses-library android:name="org.apache.http.legacy" android:required="false"/>
     </application>
 </manifest>
