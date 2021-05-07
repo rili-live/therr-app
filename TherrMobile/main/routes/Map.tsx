@@ -125,6 +125,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     private mapRef: any;
     private mapWatchId;
     private timeoutId;
+    private timeoutIdGPSStart;
     private timeoutIdRefreshMoments;
     private timeoutIdShowMoment;
     private translate: Function;
@@ -199,7 +200,6 @@ class Map extends React.Component<IMapProps, IMapState> {
                             isLocationReady: true,
                         });
 
-
                         // User has already logged in initially and loaded the map
                         if (map.longitude && map.latitude && map.hasUserLocationLoaded) {
                             const coords = {
@@ -210,7 +210,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 circleCenter: {coords},
                             });
                             updateCoordinates(coords);
-                            setTimeout(() => {
+                            this.timeoutIdGPSStart = setTimeout(() => {
                                 this.handleGpsRecenter(coords, null, ANIMATE_TO_REGION_DURATION);
                                 return resolve(coords);
                             }, 1000);
@@ -287,6 +287,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     componentWillUnmount() {
         Geolocation.clearWatch(this.mapWatchId);
         clearTimeout(this.timeoutId);
+        clearTimeout(this.timeoutIdGPSStart);
         clearTimeout(this.timeoutIdRefreshMoments);
         clearTimeout(this.timeoutIdShowMoment);
     }
