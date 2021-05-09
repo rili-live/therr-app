@@ -1,11 +1,11 @@
 import 'react-native';
 import AsyncStorageMock from '@react-native-community/async-storage/jest/async-storage-mock';
-import React from 'react';
+// import React from 'react';
 import mock from 'react-native-permissions/mock';
-import App from '../main/App';
+// import App from '../main/App';
 
 // Note: test renderer must be required after react-native.
-import renderer from 'react-test-renderer';
+// import renderer from 'react-test-renderer';
 
 jest.mock('react-native-country-picker-modal');
 jest.mock('react-native-phone-input');
@@ -21,16 +21,16 @@ jest.mock('react-native-fetch-blob', () => {
         config: () => {},
         session: () => {},
         fs: {
-          dirs: {
-            MainBundleDir: () => {},
-            CacheDir: () => {},
-            DocumentDir: () => {},
-          },
+            dirs: {
+                MainBundleDir: () => {},
+                CacheDir: () => {},
+                DocumentDir: () => {},
+            },
         },
         wrap: () => {},
         polyfill: () => {},
-        JSONStream: () => {}
-      }
+        JSONStream: () => {},
+    };
 });
 
 beforeEach(() => {

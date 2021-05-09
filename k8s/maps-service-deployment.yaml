@@ -52,6 +52,10 @@ spec:
             secretKeyRef:
               name: maps-service-google-app-credentials
               key: MAPS_SERVICE_GOOGLE_APP_CREDENTIALS
+        - name: BUCKET_PUBLIC_USER_DATA
+          value: "therr-public_user_data"
+        - name: BUCKET_PRIVATE_USER_DATA
+          value: "therr-private_user_data"
         - name: DB_USER_MAIN_WRITE
           value: "therrAppUser"
         - name: DB_HOST_MAIN_WRITE

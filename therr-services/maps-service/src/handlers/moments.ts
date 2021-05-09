@@ -134,9 +134,10 @@ const getSignedUrl = (req, res, bucket) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
 
-const getSignedUrlPrivateBucket = (req, res) => getSignedUrl(req, res, 'therr-private-user-data');
+// TODO: Use Env variables
+const getSignedUrlPrivateBucket = (req, res) => getSignedUrl(req, res, process.env.BUCKET_PRIVATE_USER_DATA);
 
-const getSignedUrlPublicBucket = (req, res) => getSignedUrl(req, res, 'therr-public-user-data');
+const getSignedUrlPublicBucket = (req, res) => getSignedUrl(req, res, process.env.BUCKET_PUBLIC_USER_DATA);
 
 // DELETE
 const deleteMoments = (req, res) => {
