@@ -69,11 +69,11 @@ spec:
             secretKeyRef:
               name: db-password-app
               key: DB_PASSWORD_APP_READ
-        - name: GOOGLE_APPLICATION_CREDENTIALS_BASE64
+        - name: PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64
           valueFrom:
             secretKeyRef:
-              name: google-app-credentials
-              key: GOOGLE_APP_CREDENTIALS
+              name: push-notifications-google-app-credentials
+              key: PUSH_NOTIFICATIONS_GOOGLE_APP_CREDENTIALS
         - name: MAPS_SERVICE_DATABASE
           value: "therr_maps_service_db"
         - name: JWT_SECRET

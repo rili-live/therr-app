@@ -14,6 +14,12 @@ const Maps = {
             data,
         });
     },
+    setInitialUserLocation: () => (dispatch: any) => {
+        dispatch({
+            type: MapActionTypes.USER_LOCATION_DETERMINED,
+            data: {},
+        });
+    },
     searchMoments: (query: any) => (dispatch: any) => MapsService.searchMoments(query).then((response: any) => {
         if (query.query === 'connections') {
             dispatch({

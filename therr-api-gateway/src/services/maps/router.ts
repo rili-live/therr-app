@@ -5,6 +5,7 @@ import { validate } from '../../validation';
 import {
     createMomentValidation,
     searchMomentsValidation,
+    getSignedUrlValidation,
     deleteMomentsValidation,
 } from './validation/moments';
 
@@ -19,6 +20,16 @@ mapsServiceRouter.post('/moments', createMomentValidation, validate, handleServi
 mapsServiceRouter.post('/moments/search', searchMomentsValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
+}));
+
+mapsServiceRouter.get('/moments/signed-url/public', getSignedUrlValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'get',
+}));
+
+mapsServiceRouter.get('/moments/signed-url/private', getSignedUrlValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'get',
 }));
 
 mapsServiceRouter.delete('/moments', deleteMomentsValidation, validate, handleServiceRequest({

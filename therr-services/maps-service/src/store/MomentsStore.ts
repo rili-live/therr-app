@@ -3,6 +3,7 @@ import * as countryGeo from 'country-reverse-geocoding';
 import { Location } from 'therr-js-utilities/constants';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { IConnection } from './connection';
+import MediaStore, { ICreateMediaParams } from './MediaStore';
 
 const knex: Knex = Knex({ client: 'pg' });
 
@@ -17,6 +18,7 @@ export interface ICreateMomentParams {
     message: string;
     notificationMsg?: string;
     mediaIds?: string;
+    media?: ICreateMediaParams[];
     mentionsIds?: string;
     hashTags?: string;
     maxViews?: number;
@@ -37,8 +39,11 @@ const sanitizeNotificationMsg = (message = '') => message.replace(/\r?\n+|\r+/gm
 export default class MomentsStore {
     db: IConnection;
 
-    constructor(dbConnection) {
+    mediaStore: MediaStore;
+
+    constructor(dbConnection, mediaStore) {
         this.db = dbConnection;
+        this.mediaStore = mediaStore;
     }
 
     // Combine with search to avoid getting count out of sync
@@ -122,34 +127,52 @@ export default class MomentsStore {
 
     createMoment(params: ICreateMomentParams) {
         const region = countryReverseGeo.get_country(params.latitude, params.longitude);
-        const modifiedParams = {
-            expiresAt: params.expiresAt,
-            fromUserId: params.fromUserId,
-            locale: params.locale,
-            isPublic: !!params.isPublic,
-            message: params.message,
-            notificationMsg: params.notificationMsg
-                ? `${sanitizeNotificationMsg(params.notificationMsg).substring(0, 25)}...`
-                : `${sanitizeNotificationMsg(params.message).substring(0, 25)}...`,
-            mediaIds: params.mediaIds || '',
-            mentionsIds: params.mentionsIds || '',
-            hashTags: params.hashTags || '',
-            maxViews: params.maxViews || 0,
-            maxProximity: params.maxProximity,
-            latitude: params.latitude,
-            longitude: params.longitude,
-            radius: params.radius,
-            region: region.code,
-            polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
-            geom: knex.raw(`ST_SetSRID(ST_MakePoint(${params.longitude}, ${params.latitude}), 4326)`),
-        };
+        const notificationMsg = params.notificationMsg
+            ? `${sanitizeNotificationMsg(params.notificationMsg).substring(0, 25)}...`
+            : `${sanitizeNotificationMsg(params.message).substring(0, 25)}...`;
 
-        const queryString = knex.insert(modifiedParams)
-            .into(MOMENTS_TABLE_NAME)
-            .returning('*')
-            .toString();
+        // TODO: Support creating multiple
+        // eslint-disable-next-line no-param-reassign
+        params.media = params.media
+            ? params.media.map((media, index): ICreateMediaParams => ({
+                ...media,
+                fromUserId: params.fromUserId,
+                altText: `${notificationMsg} ${index}`,
+            }))
+            : undefined;
 
-        return this.db.write.query(queryString).then((response) => response.rows);
+        const mediaPromise: Promise<string | undefined> = params.media
+            ? this.mediaStore.create(params.media[0]).then((mediaIds) => mediaIds.toString())
+            : Promise.resolve(undefined);
+
+        return mediaPromise.then((mediaIds: string | undefined) => {
+            const sanitizedParams = {
+                expiresAt: params.expiresAt,
+                fromUserId: params.fromUserId,
+                locale: params.locale,
+                isPublic: !!params.isPublic,
+                message: params.message,
+                notificationMsg,
+                mediaIds: mediaIds || params.mediaIds || '',
+                mentionsIds: params.mentionsIds || '',
+                hashTags: params.hashTags || '',
+                maxViews: params.maxViews || 0,
+                maxProximity: params.maxProximity,
+                latitude: params.latitude,
+                longitude: params.longitude,
+                radius: params.radius,
+                region: region.code,
+                polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
+                geom: knex.raw(`ST_SetSRID(ST_MakePoint(${params.longitude}, ${params.latitude}), 4326)`),
+            };
+
+            const queryString = knex.insert(sanitizedParams)
+                .into(MOMENTS_TABLE_NAME)
+                .returning('*')
+                .toString();
+
+            return this.db.write.query(queryString).then((response) => response.rows);
+        });
     }
 
     deleteMoments(params: IDeleteMomentsParams) {

@@ -1,7 +1,7 @@
 import React, { Ref } from 'react';
-import { PermissionsAndroid, Platform, StatusBar, View } from 'react-native';
+import { Dimensions, PermissionsAndroid, StatusBar, View } from 'react-native';
 import { StackActions } from '@react-navigation/native';
-import { requestMultiple, PERMISSIONS } from 'react-native-permissions';
+import { PERMISSIONS } from 'react-native-permissions';
 import MapView from 'react-native-map-clustering';
 import { PROVIDER_GOOGLE, Circle, Marker } from 'react-native-maps';
 import { Button } from 'react-native-elements';
@@ -9,6 +9,7 @@ import AnimatedOverlay from 'react-native-modal-overlay';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import OctIcon from 'react-native-vector-icons/Octicons';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { PushNotificationsService } from 'therr-react/services';
@@ -16,14 +17,18 @@ import { IMapState as IMapReduxState, IReactionsState, IUserState } from 'therr-
 import { MapActions, ReactionActions } from 'therr-react/redux/actions';
 import Geolocation from '@react-native-community/geolocation';
 import AnimatedLoader from 'react-native-animated-loader';
+import { distanceTo, insideCircle } from 'geolocation-utils';
+import * as ImagePicker from 'react-native-image-picker';
 import Alert from '../components/Alert';
 import UsersActions from '../redux/actions/UsersActions';
 import { ILocationState } from '../types/redux/location';
 import LocationActions from '../redux/actions/LocationActions';
 import translator from '../services/translator';
 import {
-    INITIAL_LATIUDE_DELTA,
+    INITIAL_LATITUDE_DELTA,
     INITIAL_LONGITUDE_DELTA,
+    PRIMARY_LATITUDE_DELTA,
+    PRIMARY_LONGITUDE_DELTA,
     MIN_LOAD_TIMEOUT,
     DEFAULT_MOMENT_PROXIMITY,
     MIN_ZOOM_LEVEL,
@@ -34,13 +39,18 @@ import * as therrTheme from '../styles/themes';
 import styles, { loaderStyles } from '../styles';
 import buttonStyles from '../styles/buttons';
 import mapStyles from '../styles/map';
-import { distanceTo, insideCircle } from 'geolocation-utils';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
+import {
+    requestOSMapPermissions,
+    requestOSCameraPermissions,
+} from '../utilities/requestOSPermissions';
 
+const { width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../assets/earth-loader.json');
 const mapCustomStyle = require('../styles/map/style.json');
 
 const ANIMATE_TO_REGION_DURATION = 750;
+const ANIMATE_TO_REGION_DURATION_SLOW = 1500;
 const ANIMATE_TO_REGION_DURATION_FAST = 500;
 
 interface IMapDispatchProps {
@@ -49,6 +59,7 @@ interface IMapDispatchProps {
     logout: Function;
     updateCoordinates: Function;
     searchMoments: Function;
+    setInitialUserLocation: Function;
     deleteMoment: Function;
     updateGpsStatus: Function;
     updateLocationPermissions: Function;
@@ -100,6 +111,7 @@ const mapDispatchToProps = (dispatch: any) =>
             logout: UsersActions.logout,
             updateCoordinates: MapActions.updateCoordinates,
             searchMoments: MapActions.searchMoments,
+            setInitialUserLocation: MapActions.setInitialUserLocation,
             deleteMoment: MapActions.deleteMoment,
             createOrUpdateReaction: ReactionActions.createOrUpdateMomentReactions,
             updateGpsStatus: LocationActions.updateGpsStatus,
@@ -113,6 +125,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     private mapRef: any;
     private mapWatchId;
     private timeoutId;
+    private timeoutIdGPSStart;
     private timeoutIdRefreshMoments;
     private timeoutIdShowMoment;
     private translate: Function;
@@ -148,6 +161,8 @@ class Map extends React.Component<IMapProps, IMapState> {
         const {
             location,
             navigation,
+            map,
+            setInitialUserLocation,
             updateCoordinates,
             updateGpsStatus,
             updateLocationPermissions,
@@ -175,12 +190,31 @@ class Map extends React.Component<IMapProps, IMapState> {
 
             return Promise.resolve();
         }).then(() => {
-            this.requestOSPermissions().then((permissions) => {
+            requestOSMapPermissions(updateLocationPermissions).then((permissions) => {
                 return new Promise((resolve, reject) => {
                     perms = permissions;
                     // If permissions are granted
                     if (permissions[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]
                         || permissions[PERMISSIONS.IOS.LOCATION_WHEN_IN_USE]) {
+                        this.setState({
+                            isLocationReady: true,
+                        });
+
+                        // User has already logged in initially and loaded the map
+                        if (map.longitude && map.latitude && map.hasUserLocationLoaded) {
+                            const coords = {
+                                longitude: map.longitude,
+                                latitude: map.latitude,
+                            };
+                            this.setState({
+                                circleCenter: {coords},
+                            });
+                            updateCoordinates(coords);
+                            this.timeoutIdGPSStart = setTimeout(() => {
+                                this.handleGpsRecenter(coords, null, ANIMATE_TO_REGION_DURATION);
+                                return resolve(coords);
+                            }, 1000);
+                        }
                         // Get Location Success Handler
                         const positionSuccessCallback = (position) => {
                             const coords = {
@@ -192,10 +226,11 @@ class Map extends React.Component<IMapProps, IMapState> {
                                         .longitude,
                             };
                             this.setState({
-                                isLocationReady: true,
                                 circleCenter: coords,
                             });
+                            setInitialUserLocation();
                             updateCoordinates(coords);
+                            this.handleGpsRecenter(coords, null, ANIMATE_TO_REGION_DURATION_SLOW);
                             return resolve(coords);
                         };
                         // Get Location Failed Handler
@@ -252,53 +287,9 @@ class Map extends React.Component<IMapProps, IMapState> {
     componentWillUnmount() {
         Geolocation.clearWatch(this.mapWatchId);
         clearTimeout(this.timeoutId);
+        clearTimeout(this.timeoutIdGPSStart);
         clearTimeout(this.timeoutIdRefreshMoments);
         clearTimeout(this.timeoutIdShowMoment);
-    }
-
-    requestOSPermissions = () => {
-        switch (Platform.OS) {
-            case 'ios':
-                return this.requestIOSPermissions();
-            case 'android':
-                return this.requestAndroidPermission();
-            default:
-                return Promise.reject();
-        }
-    }
-
-    requestAndroidPermission = () => {
-        const {
-            updateLocationPermissions,
-        } = this.props;
-
-        let permissions;
-
-        return PermissionsAndroid.requestMultiple([
-            PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
-            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        ]).then((grantedPermissions) => {
-            permissions = grantedPermissions;
-            updateLocationPermissions(permissions);
-            return permissions;
-        });
-    }
-
-    requestIOSPermissions = () => {
-        const {
-            updateLocationPermissions,
-        } = this.props;
-
-        let permissions;
-
-        return requestMultiple([
-            PERMISSIONS.IOS.LOCATION_ALWAYS,
-            PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
-        ]).then((grantedPermissions) => {
-            permissions = grantedPermissions;
-            updateLocationPermissions(permissions);
-            return permissions;
-        });
     }
 
     goToHome = () => {
@@ -327,12 +318,39 @@ class Map extends React.Component<IMapProps, IMapState> {
         return resolve(details);
     });
 
+    handleImageSelect = (imageResponse, userCoords) => {
+        const { navigation } = this.props;
+        console.log('imageResponse', imageResponse);
+
+        if (!imageResponse.didCancel) {
+            return navigation.navigate('EditMoment', {
+                ...userCoords,
+                imageDetails: imageResponse,
+            });
+        }
+    }
+
     handleCreateMoment = () => {
-        const { location, navigation } = this.props;
+        const { location } = this.props;
         const { circleCenter } = this.state;
 
         if (location?.settings?.isGpsEnabled) {
-            navigation.navigate('EditMoment', circleCenter);
+            // TODO: Store permissions in redux
+            const storePermissions = () => {};
+
+            return requestOSCameraPermissions(storePermissions).then(() => ImagePicker.launchCamera(
+                {
+                    mediaType: 'photo',
+                    includeBase64: false,
+                    maxHeight: 4 * viewportWidth,
+                    maxWidth: 4 * viewportWidth,
+                    saveToPhotos: true,
+                },
+                (response) => this.handleImageSelect(response, circleCenter),
+            )).catch(() => {
+                // Handle Permissions denied
+            });
+
         } else {
             // TODO: Alert that GPS is required to create a moment
         }
@@ -345,15 +363,15 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     };
 
-    handleGpsRecenter = () => {
+    handleGpsRecenter = (coords?, delta?, duration?) => {
         const { circleCenter } = this.state;
         const loc = {
-            latitude: circleCenter.latitude,
-            longitude: circleCenter.longitude,
-            latitudeDelta: INITIAL_LATIUDE_DELTA,
-            longitudeDelta: INITIAL_LONGITUDE_DELTA,
+            latitude: coords?.latitude || circleCenter.latitude,
+            longitude: coords?.longitude || circleCenter.longitude,
+            latitudeDelta: delta?.latitudeDelta || PRIMARY_LATITUDE_DELTA,
+            longitudeDelta: delta?.longitudeDelta || PRIMARY_LONGITUDE_DELTA,
         };
-        this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION);
+        this.mapRef && this.mapRef.animateToRegion(loc, duration || ANIMATE_TO_REGION_DURATION);
         this.setState({
             areLayersVisible: false,
         });
@@ -391,7 +409,9 @@ class Map extends React.Component<IMapProps, IMapState> {
                 lat: selectedMoment.latitude,
             });
             const isProximitySatisfied = distToCenter - selectedMoment.radius <= selectedMoment.maxProximity;
-            if (!isProximitySatisfied && selectedMoment.fromUserId !== user.details.id) {
+            if (!isProximitySatisfied
+                && selectedMoment.fromUserId !== user.details.id
+                && !(selectedMoment.userHasActivated && !selectedMoment.doesRequireProximityToView)) {
                 // Deny activation
                 this.showMomentAlert();
             } else {
@@ -503,6 +523,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             lastLocationSendForProcessingCoords,
         } = this.state;
         const {
+            map,
             updateCoordinates,
         } = this.props;
         const coords = {
@@ -519,10 +540,15 @@ class Map extends React.Component<IMapProps, IMapState> {
             const loc = {
                 latitude: coords.latitude,
                 longitude: coords.longitude,
-                latitudeDelta: INITIAL_LATIUDE_DELTA,
-                longitudeDelta: INITIAL_LONGITUDE_DELTA,
+                latitudeDelta: PRIMARY_LATITUDE_DELTA,
+                longitudeDelta: PRIMARY_LONGITUDE_DELTA,
             };
             this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_FAST);
+        }
+
+
+        if (!map.hasUserLocationLoaded) {
+            return;
         }
 
         if (lastLocationSendForProcessing) {
@@ -551,13 +577,13 @@ class Map extends React.Component<IMapProps, IMapState> {
             }
         }
 
+        // Send location to backend for processing
         PushNotificationsService.postLocationChange({
             longitude: coords.longitude,
             latitude: coords.latitude,
             lastLocationSendForProcessing,
         });
 
-        // Send location to backend for processing
         this.setState({
             lastLocationSendForProcessing: Date.now(),
             lastLocationSendForProcessingCoords: {
@@ -590,8 +616,8 @@ class Map extends React.Component<IMapProps, IMapState> {
             this.mapRef && this.mapRef.animateToRegion({
                 longitude: map.longitude,
                 latitude: map.latitude,
-                latitudeDelta: INITIAL_LATIUDE_DELTA,
-                longitudeDelta: INITIAL_LONGITUDE_DELTA,
+                latitudeDelta: PRIMARY_LATITUDE_DELTA,
+                longitudeDelta: PRIMARY_LONGITUDE_DELTA,
             }, ANIMATE_TO_REGION_DURATION);
         }
 
@@ -647,7 +673,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                         overlayColor="rgba(255,255,255,0.75)"
                         source={earthLoader}
                         animationStyle={loaderStyles.lottie}
-                        speed={1.25}
+                        speed={1.5}
                     />
                 ) : (
                     <>
@@ -659,8 +685,8 @@ class Map extends React.Component<IMapProps, IMapState> {
                             initialRegion={{
                                 latitude: circleCenter.latitude,
                                 longitude: circleCenter.longitude,
-                                latitudeDelta: INITIAL_LATIUDE_DELTA,
-                                longitudeDelta: INITIAL_LONGITUDE_DELTA,
+                                latitudeDelta: map.hasUserLocationLoaded ? PRIMARY_LATITUDE_DELTA : INITIAL_LATITUDE_DELTA,
+                                longitudeDelta: map.hasUserLocationLoaded ? PRIMARY_LONGITUDE_DELTA : INITIAL_LONGITUDE_DELTA,
                             }}
                             onPress={this.handleMapPress}
                             showsUserLocation={true}
@@ -837,8 +863,8 @@ class Map extends React.Component<IMapProps, IMapState> {
                                         <Button
                                             buttonStyle={buttonStyles.btn}
                                             icon={
-                                                <FontAwesomeIcon
-                                                    name="marker"
+                                                <OctIcon
+                                                    name="device-camera"
                                                     size={44}
                                                     style={buttonStyles.btnIcon}
                                                 />

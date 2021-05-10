@@ -156,6 +156,10 @@
         "notifications": "NOTIFICATIONS"
       }
     },
+    "imagePicker": {
+      "camera": "Camera",
+      "title": "Select an Image"
+    },
     "messagingContainer": {
       "conversation": {
         "to": "To: {firstName} {lastName}"
@@ -246,8 +250,8 @@
       },
       "labels": {
         "message": "Share something unique...",
-        "notificationMsg": "Push notification summary",
-        "hashTags": "Tags (ie. my_tag, myTag)",
+        "notificationMsg": "Tagline or Title",
+        "hashTags": "Hashtags (ie. my_tag, myTag)",
         "maxViews": "Max views (per person)",
         "expiresAt": "Countdown",
         "radius": "Radius: {meters} meters"

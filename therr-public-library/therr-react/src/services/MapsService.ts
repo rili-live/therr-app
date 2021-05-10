@@ -43,6 +43,24 @@ class MapsService {
         });
     }
 
+    getSignedUrlPublicBucket = (args) => {
+        const queryString = `?action=${args.action}&filename=${args.filename}`;
+
+        return axios({
+            method: 'get',
+            url: `/maps-service/moments/signed-url/public${queryString}`,
+        });
+    }
+
+    getSignedUrlPrivateBucket = (args) => {
+        const queryString = `?action=${args.action}&filename=${args.filename}`;
+
+        return axios({
+            method: 'get',
+            url: `/maps-service/moments/signed-url/private${queryString}`,
+        });
+    }
+
     deleteMoments = (data: IDeleteMomentsBody) => axios({
         method: 'delete',
         url: '/maps-service/moments',
