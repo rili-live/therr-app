@@ -1,6 +1,7 @@
 import * as Immutable from 'seamless-immutable';
 
 export interface IMapState extends Immutable.ImmutableObject<any> {
+    hasUserLocationLoaded?: boolean;
     longitude?: number;
     latitude?: number;
     moments: any;
@@ -13,5 +14,6 @@ export enum MapActionTypes {
     MOMENT_DELETED = 'MOMENT_DELETED',
     GET_MOMENTS = 'GET_MOMENTS',
     GET_MY_MOMENTS = 'GET_MY_MOMENTS',
+    USER_LOCATION_DETERMINED = 'USER_LOCATION_DETERMINED',
     UPDATE_COORDS = 'UPDATE_COORDS',
 }

@@ -3,7 +3,7 @@ import beeline from '../beeline';
 import translate from '../utilities/translator';
 import Logger from './Logger';
 
-const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_APPLICATION_CREDENTIALS_BASE64 || '', 'base64').toString());
+const serviceAccount = JSON.parse(Buffer.from(process.env.PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64 || '', 'base64').toString());
 
 enum PushNotificationTypes {
     newDirectMessage = 'new-direct-message',

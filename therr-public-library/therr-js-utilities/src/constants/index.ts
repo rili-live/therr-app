@@ -1,3 +1,4 @@
+import Content from './Content';
 import Location from './Location';
 import LogLevelMap, { ILogLevel } from './LogLevelMap';
 import {
@@ -17,6 +18,7 @@ export const WEB_CLIENT_PREFIX = 'CLIENT';
 export const SOCKET_MIDDLEWARE_ACTION = 'action';
 
 export {
+    Content,
     Location,
     ILogLevel,
     LogLevelMap,

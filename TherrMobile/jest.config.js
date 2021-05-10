@@ -24,7 +24,7 @@ module.exports = {
     //     '^.+\\.jsx?$': 'babel-jest',
     // },
     transformIgnorePatterns: [
-        'node_modules/(?!(jest-)?react-native|@react-native-community|@react-native-picker|validator/es/lib/*)',
+        'node_modules/(?!(jest-)?react-native|@react-native|@react-native-community|@react-native-picker|validator/es/lib/*)',
     ],
     testRegex: '/__tests__/.*\\.(tsx?|jsx?)$',
 };
