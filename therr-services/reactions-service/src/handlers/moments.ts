@@ -12,6 +12,7 @@ const searchActiveMoments: RequestHandler = async (req: any, res: any) => {
     const {
         limit,
         offset,
+        withMedia,
     } = req.body;
 
     const conditions: any = {
@@ -36,11 +37,13 @@ const searchActiveMoments: RequestHandler = async (req: any, res: any) => {
                 },
                 data: {
                     momentIds,
+                    withMedia,
                 },
             });
         })
         .then((response) => res.status(200).send({
-            moments: response?.data,
+            moments: response?.data?.moments,
+            media: response?.data?.media,
         }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
 };

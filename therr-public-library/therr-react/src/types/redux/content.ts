@@ -2,6 +2,7 @@ import * as Immutable from 'seamless-immutable';
 
 export interface IContentState extends Immutable.ImmutableObject<any> {
     activeMoments: any;
+    media: any;
 }
 
 export enum ContentActionTypes {

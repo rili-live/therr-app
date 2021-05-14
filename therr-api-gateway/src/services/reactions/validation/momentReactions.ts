@@ -33,4 +33,5 @@ export const searchActiveMomentsValidation = [
     header('x-userid').exists(),
     body('offset').exists(),
     body('limit').optional(),
+    body('withMedia').isBoolean().optional(),
 ];

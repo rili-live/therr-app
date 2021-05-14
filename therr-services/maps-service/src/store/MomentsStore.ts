@@ -1,9 +1,11 @@
 import Knex from 'knex';
 import * as countryGeo from 'country-reverse-geocoding';
-import { Location } from 'therr-js-utilities/constants';
+import { Content, Location } from 'therr-js-utilities/constants';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { IConnection } from './connection';
+import { storage } from '../api/aws';
 import MediaStore, { ICreateMediaParams } from './MediaStore';
+import getBucket from '../utilities/getBucket';
 
 const knex: Knex = Knex({ client: 'pg' });
 
@@ -111,18 +113,78 @@ export default class MomentsStore {
         });
     }
 
-    findMoments(momentIds, filters) {
+    findMoments(momentIds, filters, options: any = {}) {
         // hard limit to prevent overloading client
         const restrictedLimit = (filters.limit) > 1000 ? 1000 : filters.limit;
 
-        const queryString = knex
+        const query = knex
             .from(MOMENTS_TABLE_NAME)
             .orderBy(`${MOMENTS_TABLE_NAME}.updatedAt`, 'desc')
             .whereIn('id', momentIds || [])
-            .limit(restrictedLimit)
-            .toString();
+            .limit(restrictedLimit);
 
-        return this.db.read.query(queryString).then((response) => response.rows);
+        return this.db.read.query(query.toString()).then(async (response) => {
+            if (options.withMedia) {
+                let mediaIds: string[] = [];
+                const signingPromises: any = [];
+                const imageExpireTime = Date.now() + 60 * 60 * 1000; // 60 minutes
+
+                response.rows.forEach((moment) => {
+                    if (moment.mediaIds) {
+                        mediaIds = [...mediaIds, ...moment.mediaIds.split(',')];
+                    }
+                });
+                // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
+                const media = await this.mediaStore.get(mediaIds);
+
+                // TODO: Optimize
+                const mappedMoments = response.rows.map((moment) => {
+                    const modifiedMoment = moment;
+
+                    modifiedMoment.media = [];
+                    if (moment.mediaIds) {
+                        const ids = modifiedMoment.mediaIds.split(',');
+                        modifiedMoment.media = media.filter((m) => {
+                            if (ids.includes(m.id.toString())) {
+                                const bucket = getBucket(m.type);
+                                if (bucket) {
+                                    // TODO: Consider alternatives to cache these urls (per user) and their expire time
+                                    const promise = storage
+                                        .bucket(bucket)
+                                        .file(m.path)
+                                        .getSignedUrl({
+                                            version: 'v4',
+                                            action: 'read',
+                                            expires: imageExpireTime,
+                                        }).then((urls) => ({
+                                            [m.id]: urls[0],
+                                        }));
+                                    signingPromises.push(promise);
+                                } else {
+                                    console.log('MometsStore.ts: bucket is undefined');
+                                }
+
+                                return true;
+                            }
+
+                            return false;
+                        });
+                    }
+
+                    return modifiedMoment;
+                });
+
+                return Promise.all(signingPromises).then((signedUrlResponses) => ({
+                    moments: mappedMoments,
+                    media: signedUrlResponses.reduce((prev: any, curr: any) => ({ ...curr, ...prev }), {}),
+                }));
+            }
+
+            return {
+                moments: response.rows,
+                media: {},
+            };
+        });
     }
 
     createMoment(params: ICreateMomentParams) {

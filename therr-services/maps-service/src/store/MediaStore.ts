@@ -4,7 +4,6 @@ import { IConnection } from './connection';
 const knex: Knex = Knex({ client: 'pg' });
 
 export const MEDIA_TABLE_NAME = 'main.media';
-
 export interface ICreateMediaParams {
     fromUserId: number;
     altText: string;
@@ -26,5 +25,14 @@ export default class MediaStore {
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows.map((row) => row.id));
+    }
+
+    get(mediaIds: string[]) {
+        const queryString = knex.select('*')
+            .from(MEDIA_TABLE_NAME)
+            .whereIn('id', mediaIds)
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
     }
 }
