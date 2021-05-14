@@ -24,6 +24,10 @@ export interface ICreateOrUpdateMomentReactionBody {
     userHasDisliked?: boolean;
     userHasSuperDisliked?: boolean;
 }
+export interface ISearchActiveMomentsParams {
+    offset: number;
+    withMedia: boolean;
+}
 
 class ReactionsService {
     createOrUpdateMomentReactions = (momentId: number, data: ICreateOrUpdateMomentReactionBody) => axios({
@@ -58,12 +62,13 @@ class ReactionsService {
         });
     }
 
-    searchActiveMoments = (offset: number, limit = 21) => axios({
+    searchActiveMoments = (options: ISearchActiveMomentsParams, limit = 21) => axios({
         method: 'post',
         url: '/reactions-service/moments/active/search',
         data: {
-            offset,
+            offset: options.offset,
             limit,
+            withMedia: options.withMedia,
         },
     });
 }
