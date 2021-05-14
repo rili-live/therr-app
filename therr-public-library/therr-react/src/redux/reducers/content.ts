@@ -4,6 +4,7 @@ import { IContentState, ContentActionTypes } from '../../types/redux/content';
 
 const initialState: IContentState = Immutable.from({
     activeMoments: Immutable.from([]),
+    media: Immutable.from({}),
 });
 
 const content = (state: IContentState = initialState, action: any) => {
@@ -19,10 +20,12 @@ const content = (state: IContentState = initialState, action: any) => {
             return state.setIn(['activeMoments'], [...action.data, ...state.activeMoments]);
         case ContentActionTypes.SEARCH_ACTIVE_MOMENTS:
             // Add next offset of moments to end
-            return state.setIn(['activeMoments'], [...state.activeMoments, ...action.data]);
+            return state.setIn(['activeMoments'], [...state.activeMoments, ...action.data.moments])
+                .setIn(['media'], { ...state.media, ...action.data.media });
         case ContentActionTypes.UPDATE_ACTIVE_MOMENTS:
             // Reset moments from scratch
-            return state.setIn(['activeMoments'], action.data);
+            return state.setIn(['activeMoments'], action.data.moments)
+                .setIn(['media'], action.data.media);
         case SocketClientActionTypes.LOGOUT:
             return state.setIn(['activeMoments'], Immutable.from([]));
         default:

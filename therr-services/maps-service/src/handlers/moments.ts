@@ -1,7 +1,8 @@
 import axios from 'axios';
+import path from 'path';
 import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
 import { RequestHandler } from 'express';
-import { Storage } from '@google-cloud/storage';
+import { storage } from '../api/aws';
 import * as globalConfig from '../../../../global-config';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
@@ -94,12 +95,15 @@ const findMoments: RequestHandler = async (req: any, res: any) => {
     const {
         limit,
         momentIds,
+        withMedia,
     } = req.body;
 
     return Store.moments.findMoments(momentIds, {
         limit: limit || 21,
+    }, {
+        withMedia: !!withMedia,
     })
-        .then((moments) => res.status(200).send(moments))
+        .then(({ moments, media }) => res.status(200).send({ moments, media }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
 
@@ -112,16 +116,17 @@ const getSignedUrl = (req, res, bucket) => {
         filename,
     } = req.query;
 
-    const storage = new Storage({
-        credentials: JSON.parse(Buffer.from(process.env.MAPS_SERVICE_GOOGLE_CREDENTIALS_BASE64 || '', 'base64').toString('utf8')),
-    });
     const options: any = {
         version: 'v4',
         action,
         expires: Date.now() + 10 * 60 * 1000, // 10 minutes
     };
 
-    const filePath = `${userId}/${filename}_${requestId}`;
+    // TODO: Improve
+    const parsedFileName = path.parse(filename);
+    const directory = parsedFileName.dir ? `${parsedFileName.dir}/` : '';
+
+    const filePath = `${userId}/${directory}${parsedFileName.name}_${requestId}${parsedFileName.ext}`;
 
     return storage
         .bucket(bucket)
