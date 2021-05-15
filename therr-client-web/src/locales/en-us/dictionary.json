@@ -45,7 +45,7 @@
         "messaging": "Messaging",
         "forums": "Hosted Chat",
         "riliConnect": "Rili Connect",
-        "locationMap": "Location Map"
+        "locationMap": "Moments Map"
       },
       "noActiveConnections": "No recently active connections"
     },
@@ -75,6 +75,7 @@
       },
       "h2": {
         "accountSettings": "Account Settings",
+        "locationMap": "Moments Map",
         "notifications": "Notifications",
         "profileSettings": "Profile Settings"
       }

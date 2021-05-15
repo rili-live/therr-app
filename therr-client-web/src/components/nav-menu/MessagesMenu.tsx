@@ -14,8 +14,10 @@ import {
 } from 'therr-react/types';
 import { bindActionCreators } from 'redux';
 import translator from '../../services/translator';
+import CreateConnectionForm from '../forms/CreateConnectionForm';
 
 interface IMessagesMenuDispatchProps {
+    createUserConnection: Function;
     searchForums: Function;
     searchUserConnections: Function;
 }
@@ -45,6 +47,7 @@ const mapStateToProps = (state: any) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    createUserConnection: UserConnectionsActions.create,
     searchForums: ForumActions.searchForums,
     searchUserConnections: UserConnectionsActions.search,
 }, dispatch);
@@ -202,12 +205,12 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
     renderPeopleContent = () => (
         <>
             <h2>{this.translate('components.messagesMenu.h2.riliConnect')}</h2>
-        </>
-    )
-
-    renderLocationContent = () => (
-        <>
-            <h2>{this.translate('components.messagesMenu.h2.locationMap')}</h2>
+            <div className="connection-form">
+                <CreateConnectionForm
+                    createUserConnection={this.props.createUserConnection}
+                    user={this.props.user}
+                />
+            </div>
         </>
     )
 
@@ -242,14 +245,6 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                         onClick={(e) => this.handleTabSelect(e, 'people')}
                         buttonType="primary"
                     />
-                    <SvgButton
-                        id="nav_menu_location"
-                        name="location"
-                        className={`menu-tab-button ${activeTab === 'location' ? 'active' : ''}`}
-                        iconClassName="tab-icon"
-                        onClick={(e) => this.handleTabSelect(e, 'location')}
-                        buttonType="primary"
-                    />
                 </div>
                 <div className="nav-menu-content">
                     {
@@ -263,10 +258,6 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                     {
                         activeTab === 'people'
                             && this.renderPeopleContent()
-                    }
-                    {
-                        activeTab === 'location'
-                            && this.renderLocationContent()
                     }
                 </div>
                 <div className="nav-menu-footer">
