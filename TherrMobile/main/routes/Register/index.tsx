@@ -64,7 +64,7 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
     render() {
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} />
+                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
                 <SafeAreaView  style={styles.safeAreaView}>
                     <KeyboardAwareScrollView style={styles.bodyFlex} contentContainerStyle={styles.bodyScroll} enableOnAndroid>
                         <RegisterForm register={this.props.register} onSuccess={this.onSuccess}/>

@@ -11,7 +11,7 @@ jest.mock('react-native-country-picker-modal');
 jest.mock('react-native-phone-input');
 jest.mock('react-native-autolink');
 jest.mock('react-native-permissions', () => mock);
-jest.mock('react-native-fetch-blob', () => {
+jest.mock('rn-fetch-blob', () => {
     return {
         DocumentDir: () => {},
         fetch: () => {},

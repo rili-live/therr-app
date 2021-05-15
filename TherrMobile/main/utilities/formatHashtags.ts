@@ -1,10 +1,10 @@
 export default (value, hashtagsClone) => {
-    let modifiedValue = value.replace(/[^\w_,\s]/gi, '');
+    const lastCharacter = value.substring(value.length - 1, value.length);
+    let modifiedValue = value.replace(/[^\w_]/gi, '');
 
-    const lastCharacter = modifiedValue.substring(modifiedValue.length - 1, modifiedValue.length);
     if (lastCharacter === ',' || lastCharacter === ' ') {
         const tag = modifiedValue.substring(0, modifiedValue.length - 1);
-        if (hashtagsClone.length < 100 && !hashtagsClone.includes(tag)) {
+        if (tag !== '' && hashtagsClone.length < 50 && !hashtagsClone.includes(tag)) {
             hashtagsClone.push(modifiedValue.substring(0, modifiedValue.length - 1));
         }
         modifiedValue = '';

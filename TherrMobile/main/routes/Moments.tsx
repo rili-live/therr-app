@@ -7,6 +7,7 @@ import { bindActionCreators } from 'redux';
 import Carousel from 'react-native-snap-carousel';
 import { ContentActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import { WebView } from 'react-native-webview';
 // import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 // import * as therrTheme from '../styles/themes';
 import styles from '../styles';
@@ -70,16 +71,21 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         });
 
         if (!content.activeMoments || !content.activeMoments.length) {
-            updateActiveMoments(0);
+            updateActiveMoments();
         }
     }
 
     renderItem = ({ item: moment }) => {
+        const { content } = this.props;
+        const media = moment.media[0];
+        console.log(content.media[media?.id]);
+
         return (
             <View style={{
                 flex: 1,
             }}>
                 <Text style={{ fontSize: 30, color: 'white' }}>{ moment.notificationMsg }</Text>
+                <WebView containerStyle={{ maxHeight: viewportWidth, width: viewportWidth }} source={{ uri: `${content.media[media?.id]}`}} />
                 <Text style={{ fontSize: 20, color: 'white' }}>{ moment.message }</Text>
                 <Text style={{ fontSize: 14, color: 'white' }}>{ moment.createdAt }</Text>
                 <Text style={{ fontSize:12, color: 'white' }}>{ moment.latitude } { moment.longitude }</Text>
@@ -92,7 +98,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} />
+                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
                 <SafeAreaView style={styles.safeAreaView}>
                     <Carousel
                         contentInsetAdjustmentBehavior="automatic"
