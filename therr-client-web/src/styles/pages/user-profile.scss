@@ -25,10 +25,14 @@ $profileImgWidth: rem-calc(100px);
             box-shadow: $box-shadow-tile;
             height: $profileImgWidth;
             width: $profileImgWidth;
+            min-height: $profileImgWidth;
+            min-width: $profileImgWidth;
         
             img {
                 height: $profileImgWidth;
                 width: $profileImgWidth;
+                min-height: $profileImgWidth;
+                min-width: $profileImgWidth;
                 border-radius: 50%;
                 background: $therr-off-white;
             }
@@ -75,10 +79,17 @@ $profileImgWidth: rem-calc(100px);
                 padding: 0;
                 display: flex;
                 flex-wrap: wrap;
+                
               
                 .user-connection-icon {
+                    $userConnectionDimension: rem-calc(100px);
+
                     position: relative;
                     display: inline;
+                    height: $userConnectionDimension;
+                    width: $userConnectionDimension;
+                    min-height: $userConnectionDimension;
+                    min-width: $userConnectionDimension;
 
                     .name-tag {
                         display: none;
@@ -102,8 +113,10 @@ $profileImgWidth: rem-calc(100px);
                     }
               
                     img {
-                        height: 4rem;
-                        width: 4rem;
+                        height: $userConnectionDimension;
+                        width: $userConnectionDimension;
+                        min-height: $userConnectionDimension;
+                        min-width: $userConnectionDimension;
                     }
                 }
             }
