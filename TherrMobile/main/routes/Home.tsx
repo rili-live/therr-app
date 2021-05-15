@@ -284,7 +284,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} />
+                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
                 <SafeAreaView style={styles.safeAreaView}>
                     <ScrollView
                         contentInsetAdjustmentBehavior="automatic"

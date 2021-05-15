@@ -180,7 +180,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} />
+                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
                 <SafeAreaView  style={styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"

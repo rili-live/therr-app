@@ -47,14 +47,18 @@ const bodyStyle: any = {
     backgroundColor: therrTheme.colors.primary2,
     color: therrTheme.colors.textWhite,
     marginTop: 0,
+    top: 0,
 };
 
-const headerStyles: any = {
+export const headerStyles: any = {
     backgroundColor: bodyStyle.backgroundColor,
     shadowOpacity: 0,
     elevation: 0,
     borderBottomColor: therrTheme.colors.primary,
     height: Platform.OS === 'ios'
+        ? (IOS_STATUS_HEIGHT + IOS_TOP_GAP + HEADER_HEIGHT)
+        : (HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + 20),
+    minHeight: Platform.OS === 'ios'
         ? (IOS_STATUS_HEIGHT + IOS_TOP_GAP + HEADER_HEIGHT)
         : (HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + 20),
 };

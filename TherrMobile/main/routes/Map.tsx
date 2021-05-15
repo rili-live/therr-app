@@ -207,13 +207,11 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 latitude: map.latitude,
                             };
                             this.setState({
-                                circleCenter: {coords},
+                                circleCenter: coords,
                             });
                             updateCoordinates(coords);
-                            this.timeoutIdGPSStart = setTimeout(() => {
-                                this.handleGpsRecenter(coords, null, ANIMATE_TO_REGION_DURATION);
-                                return resolve(coords);
-                            }, 1000);
+                            this.handleGpsRecenter(coords, null, ANIMATE_TO_REGION_DURATION);
+                            return resolve(coords);
                         }
                         // Get Location Success Handler
                         const positionSuccessCallback = (position) => {
@@ -338,16 +336,25 @@ class Map extends React.Component<IMapProps, IMapState> {
             // TODO: Store permissions in redux
             const storePermissions = () => {};
 
-            return requestOSCameraPermissions(storePermissions).then(() => ImagePicker.launchCamera(
-                {
-                    mediaType: 'photo',
-                    includeBase64: false,
-                    maxHeight: 4 * viewportWidth,
-                    maxWidth: 4 * viewportWidth,
-                    saveToPhotos: true,
-                },
-                (response) => this.handleImageSelect(response, circleCenter),
-            )).catch(() => {
+            return requestOSCameraPermissions(storePermissions).then((response) => {
+                const permissionsDenied = Object.keys(response).some((key) => {
+                    return response[key] !== 'granted';
+                });
+                if (!permissionsDenied) {
+                    return ImagePicker.launchCamera(
+                        {
+                            mediaType: 'photo',
+                            includeBase64: false,
+                            maxHeight: 4 * viewportWidth,
+                            maxWidth: 4 * viewportWidth,
+                            saveToPhotos: true,
+                        },
+                        (response) => this.handleImageSelect(response, circleCenter),
+                    );
+                } else {
+                    throw new Error('permissions denied');
+                }
+            }).catch(() => {
                 // Handle Permissions denied
             });
 
@@ -666,7 +673,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} />
+                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
                 {!(isLocationReady && isMinLoadTimeComplete) ? (
                     <AnimatedLoader
                         visible={true}

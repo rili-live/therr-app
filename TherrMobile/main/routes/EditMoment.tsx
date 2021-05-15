@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button, Slider, Image } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import RNFB from 'react-native-fetch-blob';
+import RNFB from 'rn-fetch-blob';
 import { IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
@@ -140,30 +140,27 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
 
             const signUrl = isPublic ? MapsService.getSignedUrlPublicBucket : MapsService.getSignedUrlPrivateBucket;
 
+            // TODO: This is too slow
             // Use public method for public moments
             signUrl({
                 action: 'write',
-                filename: 'content/test.jpg',
+                filename: `content/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g,'_')}.jpg`,
             }).then((response) => {
                 const signedUrl = response?.data?.url && response?.data?.url[0];
                 createArgs.media = [{}];
                 createArgs.media[0].type = isPublic ? Content.mediaTypes.USER_IMAGE_PUBLIC : Content.mediaTypes.USER_IMAGE_PRIVATE;
                 createArgs.media[0].path = response?.data?.path;
-                console.log(signedUrl);
-
-                console.log(createArgs);
 
                 // Upload to Google Cloud
-                return RNFB.fs.readFile(imageDetails.uri, 'base64').then((base64Img) => {
-                    return RNFB.fetch(
-                        'PUT',
-                        signedUrl,
-                        {
-                            'Content-Type': 'application/octet-stream',
-                        },
-                        base64Img,
-                    );
-                });
+                return RNFB.fetch(
+                    'PUT',
+                    signedUrl,
+                    {
+                        'Content-Type': imageDetails.type,
+                        'Content-Disposition': 'inline',
+                    },
+                    RNFB.wrap(imageDetails.uri),
+                );
             }).then(() => {
                 this.props
                     .createMoment(createArgs)
@@ -244,15 +241,18 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
     handleHashTagsBlur = (event) => {
         console.log(event.currentTarget);
         const { hashtags, inputs } = this.state;
-        const { formattedValue, formattedHashtags } = formatHashtags(`${inputs.hashTags},`, [...hashtags]);
 
-        this.setState({
-            hashtags: formattedHashtags,
-            inputs: {
-                ...inputs,
-                hashTags: formattedValue,
-            },
-        });
+        if (inputs.hashTags?.trim().length) {
+            const { formattedValue, formattedHashtags } = formatHashtags(`${inputs.hashTags},`, [...hashtags]);
+
+            this.setState({
+                hashtags: formattedHashtags,
+                inputs: {
+                    ...inputs,
+                    hashTags: formattedValue,
+                },
+            });
+        }
     }
 
     onSliderChange = (name, value) => {
@@ -302,7 +302,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} />
+                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
                 <SafeAreaView style={styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"

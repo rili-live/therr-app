@@ -244,7 +244,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} />
+                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
                 <SafeAreaView style={styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
