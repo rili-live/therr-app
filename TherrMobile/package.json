@@ -53,7 +53,6 @@
     "react-native-device-info": "^6.2.0",
     "react-native-dotenv": "^2.5.3",
     "react-native-elements": "^2.2.0",
-    "react-native-fetch-blob": "^0.10.8",
     "react-native-gesture-handler": "^1.10.1",
     "react-native-gps-state": "^2.0.3",
     "react-native-image-picker": "^3.5.0",
@@ -68,16 +67,17 @@
     "react-native-screens": "^2.10.1",
     "react-native-snap-carousel": "^3.9.1",
     "react-native-vector-icons": "^6.7.0",
-    "react-native-webview": "^11.2.3",
-    "react-native-youtube-iframe": "^1.4.0"
+    "react-native-webview": "^11.4.4",
+    "react-native-youtube-iframe": "^1.4.0",
+    "rn-fetch-blob": "^0.12.0"
   },
   "devDependencies": {
     "@react-native-community/eslint-config": "^1.0.0",
     "@types/react-native": "^0.63.49",
     "@types/react-native-dotenv": "^0.2.0",
-    "@types/react-native-fetch-blob": "^0.10.5",
     "@types/react-native-maps": "^0.24.0",
     "@types/react-native-snap-carousel": "^3.8.2",
+    "@types/rn-fetch-blob": "^1.2.1",
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "metro-react-native-babel-preset": "^0.58.0",
     "patch-package": "^6.2.2"

@@ -193,7 +193,7 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} />
+                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
                 <SafeAreaView style={styles.safeAreaView}>
                     <View style={hostedChatStyles.searchContainer}>
                         <RoundInput

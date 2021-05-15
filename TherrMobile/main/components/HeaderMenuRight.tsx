@@ -190,6 +190,7 @@ class HeaderMenuRight extends React.Component<
                             />}
                         onPress={this.toggleOverlay}
                         type="clear"
+                        containerStyle={{ height: 40, margin: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center' }}
                     />
                     <Overlay
                         animationType="slideInRight"

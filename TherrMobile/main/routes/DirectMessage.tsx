@@ -125,7 +125,7 @@ class DirectMessage extends React.Component<
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} />
+                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
                 <SafeAreaView style={[styles.safeAreaView]}>
                     <View style={messageStyles.container}>
                         <View style={styles.body}>
