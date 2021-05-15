@@ -4,58 +4,58 @@ import sinon from 'sinon';
 import MomentsStore from '../../src/store/MomentsStore';
 
 describe('MomentsStore', () => {
-    // describe('countRecords', () => {
-    //     it('queries for total records', () => {
-    //         const expected = `select count(*) from "main"."moments" where ST_DWithin(geom, ST_MakePoint(1235.3034, -12.12314)::geography, 1000)`;
-    //         const mockStore = {
-    //             read: {
-    //                 query: sinon.stub().callsFake(() => Promise.resolve({})),
-    //             },
-    //         };
-    //         const mockMediaStore = {
-    //             write: {
-    //                 query: sinon.stub().callsFake(() => Promise.resolve({})),
-    //             },
-    //         };
-    //         const store = new MomentsStore(mockStore, mockMediaStore);
-    //         store.countRecords({
-    //             longitude: 1235.3034,
-    //             latitude: -12.12314,
-    //             fromUserIds: 'fromUserIds',
-    //         }, [5, 9]);
+    describe('countRecords', () => {
+        it('queries for total records', () => {
+            const expected = `select count(*) from "main"."moments" where ST_DWithin(geom, ST_MakePoint(1235.3034, -12.12314)::geography, 1000)`;
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const mockMediaStore = {
+                write: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const store = new MomentsStore(mockStore, mockMediaStore);
+            store.countRecords({
+                longitude: 1235.3034,
+                latitude: -12.12314,
+                fromUserIds: 'fromUserIds',
+            }, [5, 9]);
 
-    //         expect(mockStore.read.query.args[0][0]).to.be.equal(expected);
-    //     });
-    // });
+            expect(mockStore.read.query.args[0][0]).to.be.equal(expected);
+        });
+    });
 
-    // describe('searchMoments', () => {
-    //     it('queries with postgis functions', () => {
-    //         const expected = `select * from "main"."moments" where ST_DWithin(geom, ST_MakePoint(15.3034, -1.12314)::geography, 5) order by "main"."moments"."updatedAt" asc limit 100 offset 100`;
-    //         const mockStore = {
-    //             read: {
-    //                 query: sinon.stub().callsFake(() => Promise.resolve({})),
-    //             },
-    //         };
-    //         const mockMediaStore = {
-    //             write: {
-    //                 query: sinon.stub().callsFake(() => Promise.resolve({})),
-    //             },
-    //         };
-    //         const store = new MomentsStore(mockStore, mockMediaStore);
-    //         store.searchMoments({
-    //             pagination: {
-    //                 itemsPerPage: 100,
-    //                 pageNumber: 2,
-    //             },
-    //             filterBy: 'distance',
-    //             filterOperator: '>',
-    //             query: 5,
-    //             longitude: 15.3034,
-    //             latitude: -1.12314,
-    //             order: 'desc',
-    //         }, []);
+    describe('searchMoments', () => {
+        it('queries with postgis functions', () => {
+            const expected = `select * from "main"."moments" where ST_DWithin(geom, ST_MakePoint(15.3034, -1.12314)::geography, 5) order by "main"."moments"."updatedAt" asc limit 100 offset 100`;
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const mockMediaStore = {
+                write: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const store = new MomentsStore(mockStore, mockMediaStore);
+            store.searchMoments({
+                pagination: {
+                    itemsPerPage: 100,
+                    pageNumber: 2,
+                },
+                filterBy: 'distance',
+                filterOperator: '>',
+                query: 5,
+                longitude: 15.3034,
+                latitude: -1.12314,
+                order: 'desc',
+            }, []);
 
-    //         expect(mockStore.read.query.args[0][0]).to.be.equal(expected);
-    //     });
-    // });
+            expect(mockStore.read.query.args[0][0]).to.be.equal(expected);
+        });
+    });
 });

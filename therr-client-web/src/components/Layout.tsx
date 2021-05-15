@@ -58,6 +58,7 @@ interface ILayoutProps extends RouteComponentProps<ILayoutRouterProps>, IStorePr
 interface ILayoutState {
     clientHasLoaded: boolean;
     isNavMenuOpen: boolean;
+    isNavMenuExpanded: boolean;
     navMenuContext?: INavMenuContext;
     isAuthenticated: boolean;
     isMessagingOpen: boolean;
@@ -87,6 +88,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             clientHasLoaded: false,
             isAuthenticated: false,
             isNavMenuOpen: false,
+            isNavMenuExpanded: false,
             isMessagingOpen: false,
             isMsgContainerOpen: false,
         };
@@ -179,6 +181,12 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         // }
     }
 
+    handleWidthResize = (shouldExpand) => {
+        this.setState({
+            isNavMenuExpanded: shouldExpand,
+        });
+    }
+
     toggleNavMenu = (event, context?: string) => {
         const newState: any = {
             isNavMenuOpen: !this.state.isNavMenuOpen,
@@ -262,7 +270,12 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
         if (navMenuContext === INavMenuContext.HEADER_PROFILE) {
             return (
-                <UserMenu history={this.props.history} handleLogout={this.handleLogout} toggleNavMenu={this.toggleNavMenu} />
+                <UserMenu
+                    history={this.props.history}
+                    handleLogout={this.handleLogout}
+                    handleWidthResize={this.handleWidthResize}
+                    toggleNavMenu={this.toggleNavMenu}
+                />
             );
         }
 
@@ -270,7 +283,10 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             return (
                 <MessagesMenu
                     history={this.props.history}
-                    toggleNavMenu={this.toggleNavMenu} toggleMessaging={this.toggleMessaging} onInitMessaging={this.initMessaging} />
+                    toggleNavMenu={this.toggleNavMenu}
+                    toggleMessaging={this.toggleMessaging}
+                    onInitMessaging={this.initMessaging}
+                />
             );
         }
 
@@ -330,6 +346,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         const { location, user } = this.props;
         const navMenuClassNames = classnames({
             'is-open': this.state.isNavMenuOpen,
+            'is-expanded': this.state.isNavMenuExpanded,
         });
         // Cloak the view so it doesn't flash before client mounts
         if (this.state.clientHasLoaded) {

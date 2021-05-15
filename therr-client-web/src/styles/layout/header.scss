@@ -9,6 +9,7 @@ header {
     top: 0;
     width: 100%;
     box-shadow: $box-shadow-fixed-top;
+    border-bottom: rem-calc(4px) solid $therr-primary-2;
 
     #rili {
         display: flex;

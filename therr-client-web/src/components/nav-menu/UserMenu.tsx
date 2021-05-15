@@ -26,6 +26,7 @@ interface IStoreProps extends IUserMenuDispatchProps {
 // Regular component props
 interface IUserMenuProps extends IStoreProps {
     handleLogout: any;
+    handleWidthResize: Function;
     history: any;
     toggleNavMenu: Function;
 }
@@ -61,6 +62,12 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         this.setState({
             activeTab: tabName,
         });
+
+        if (tabName === 'location') {
+            this.props.handleWidthResize(true);
+        } else {
+            this.props.handleWidthResize(false);
+        }
     }
 
     handleConnectionRequestAction = (e, notification, isAccepted) => {
@@ -167,6 +174,12 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         </>
     )
 
+    renderLocationContent = () => (
+        <>
+            <h2>{this.translate('components.userMenu.h2.locationMap')}</h2>
+        </>
+    )
+
     render() {
         const { activeTab } = this.state;
         const { handleLogout, notifications, toggleNavMenu } = this.props;
@@ -174,6 +187,14 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         return (
             <>
                 <div className="nav-menu-header">
+                    <SvgButton
+                        id="nav_menu_profile_button"
+                        name="account"
+                        className={`menu-tab-button ${activeTab === 'profile' ? 'active' : ''}`}
+                        iconClassName="tab-icon"
+                        onClick={(e) => this.handleTabSelect(e, 'profile')}
+                        buttonType="primary"
+                    />
                     {
                         notifications.messages.filter((n) => n.isUnread).length
                             ? <SvgButton
@@ -194,11 +215,11 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                             />
                     }
                     <SvgButton
-                        id="nav_menu_profile_button"
-                        name="account"
-                        className={`menu-tab-button ${activeTab === 'profile' ? 'active' : ''}`}
+                        id="nav_menu_location"
+                        name="location"
+                        className={`menu-tab-button ${activeTab === 'location' ? 'active' : ''}`}
                         iconClassName="tab-icon"
-                        onClick={(e) => this.handleTabSelect(e, 'profile')}
+                        onClick={(e) => this.handleTabSelect(e, 'location')}
                         buttonType="primary"
                     />
                     <SvgButton
@@ -222,6 +243,10 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                     {
                         activeTab === 'account'
                             && this.renderAccountContent()
+                    }
+                    {
+                        activeTab === 'location'
+                            && this.renderLocationContent()
                     }
                 </div>
                 {
