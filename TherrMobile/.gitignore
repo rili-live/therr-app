@@ -70,3 +70,4 @@ buck-out/
 
 # Google/Firebase
 *google-services.json
+*GoogleService-Info.plist

@@ -31,6 +31,8 @@
 		<key>NSExceptionDomains</key>
 		<dict/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera usage is needed for taking photos of various locations and sharing with social connections.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This allows querying the user's current location to find nearby content shared by a user's connections</string>
 	<key>NSLocationAlwaysUsageDescription</key>
@@ -39,10 +41,9 @@
 	<string>Location is used to allow content sharing from the user's specific longitude/latitude. Other uses can access content within a specified distance of the original location.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This permission allows the user to access and share photos from their library to the social space of the app.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Camera usage is needed for taking photos of various locations and sharing with social connections.</string>
 	<key>UIAppFonts</key>
 	<array>
+		<string>Octicons.ttf</string>
 		<string>TherrFont.ttf</string>
 		<string>FontAwesome.ttf</string>
 		<string>FontAwesome5_Brands.ttf</string>
@@ -66,6 +67,8 @@
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>

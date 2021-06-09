@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, Keyboard, Text, View, StatusBar } from 'react-native';
+import { Platform, SafeAreaView, Keyboard, Text, View, StatusBar } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button, Slider, Image } from 'react-native-elements';
@@ -151,6 +151,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 createArgs.media[0].type = isPublic ? Content.mediaTypes.USER_IMAGE_PUBLIC : Content.mediaTypes.USER_IMAGE_PRIVATE;
                 createArgs.media[0].path = response?.data?.path;
 
+                const localFilePath = Platform.OS === 'ios' ? imageDetails.uri.replace('file:///', '') : imageDetails.uri;
+
                 // Upload to Google Cloud
                 return RNFB.fetch(
                     'PUT',
@@ -159,7 +161,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         'Content-Type': imageDetails.type,
                         'Content-Disposition': 'inline',
                     },
-                    RNFB.wrap(imageDetails.uri),
+                    RNFB.wrap(localFilePath),
                 );
             }).then(() => {
                 this.props
