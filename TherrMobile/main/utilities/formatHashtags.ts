@@ -3,9 +3,9 @@ export default (value, hashtagsClone) => {
     let modifiedValue = value.replace(/[^\w_]/gi, '');
 
     if (lastCharacter === ',' || lastCharacter === ' ') {
-        const tag = modifiedValue.substring(0, modifiedValue.length - 1);
+        const tag = modifiedValue;
         if (tag !== '' && hashtagsClone.length < 50 && !hashtagsClone.includes(tag)) {
-            hashtagsClone.push(modifiedValue.substring(0, modifiedValue.length - 1));
+            hashtagsClone.push(tag);
         }
         modifiedValue = '';
     }

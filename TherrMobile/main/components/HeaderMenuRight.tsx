@@ -68,12 +68,13 @@ class HeaderMenuRight extends React.Component<
         clearTimeout(this.timeoutId);
     }
 
-    toggleOverlay = () => {
+    toggleOverlay = (shouldClose?: boolean) => {
         const { isModalVisible } = this.state;
+        console.log(isModalVisible);
 
         return new Promise((resolve) => {
             this.setState({
-                isModalVisible: !isModalVisible,
+                isModalVisible: shouldClose ? false : !isModalVisible,
             }, () => {
                 resolve(null);
             });
@@ -197,7 +198,7 @@ class HeaderMenuRight extends React.Component<
                         animationDuration={ANIMATION_DURATION}
                         easing="ease-in-out-sine"
                         visible={isModalVisible}
-                        onClose={this.toggleOverlay}
+                        onClose={() => this.toggleOverlay(true)}
                         closeOnTouchOutside
                         containerStyle={styles.overlay}
                         childrenWrapperStyle={headerMenuModal.overlayContainer}

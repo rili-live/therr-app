@@ -1,5 +1,5 @@
 import React, { Ref } from 'react';
-import { Dimensions, PermissionsAndroid, StatusBar, View } from 'react-native';
+import { Dimensions, PermissionsAndroid, Platform, StatusBar, View } from 'react-native';
 import { StackActions } from '@react-navigation/native';
 import { PERMISSIONS } from 'react-native-permissions';
 import MapView from 'react-native-map-clustering';
@@ -184,8 +184,8 @@ class Map extends React.Component<IMapProps, IMapState> {
             isGpsEnabled: location?.settings?.isGpsEnabled,
             translate: this.translate,
         }).then((response: any) => {
-            if (response?.status) {
-                return updateGpsStatus(response.status);
+            if (response?.status || Platform.OS === 'ios') {
+                return updateGpsStatus(response?.status || 'enabled');
             }
 
             return Promise.resolve();
