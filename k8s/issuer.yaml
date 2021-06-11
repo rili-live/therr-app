@@ -19,3 +19,4 @@ spec:
       selector:
         dnsZones:
         - 'therr.com'
+        - '*.therr.com'
