@@ -221,7 +221,8 @@
         "password": "Password",
         "userName": "Username"
       },
-      "backendErrorMessage": "Connection error. Please try again later."
+      "backendErrorMessage": "Connection error. Please try again later.",
+      "invalidUsernamePassword": "Invalid username/password combination"
     },
     "editHostedChat": {
       "buttons": {

@@ -65,6 +65,7 @@ class UsersActions {
         });
     };
 
+    // TODO: RMOBILE-26: Determine if any logout action is necessary for SSO
     logout = (userDetails?: any) => async (dispatch: any) => {
         // NOTE: Native Storage methods return a promise, but in this case we don't need to await
         userDetails = userDetails // eslint-disable-line no-param-reassign

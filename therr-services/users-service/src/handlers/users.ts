@@ -1,15 +1,94 @@
 import { RequestHandler } from 'express';
-// import { DefaultUserResources } from 'therr-js-utilities/constants';
+import { AccessLevels, ErrorCodes } from 'therr-js-utilities/constants';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { hashPassword } from '../utilities/userHelpers';
 import generateCode from '../utilities/generateCode';
 import { sendVerificationEmail } from '../api/email';
-import accessLevels from '../constants/accessLevels';
 import generateOneTimePassword from '../utilities/generateOneTimePassword';
 import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
+import sendSSONewUserEmail from '../api/email/sendSSONewUserEmail';
+
+export const createUserHelper = (userDetails, isSSO) => {
+    // TODO: Supply user agent to determine if web or mobile
+    const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
+    const verificationCode = { type: codeDetails.type, code: codeDetails.code };
+    let password = userDetails.password;
+    let user;
+
+    if (isSSO) { // SSO first time login
+        password = generateOneTimePassword(8); // Create a different/random permanent password as a placeholder
+    }
+
+    return Store.verificationCodes.createCode(verificationCode)
+        .then(() => hashPassword(password))
+        .then((hash) => {
+            const isMissingUserProps = isSSO || !userDetails.phoneNumber || !userDetails.userName || !userDetails.firstName || !userDetails.lastName;
+            const userAccessLevels = [
+                AccessLevels.DEFAULT,
+                (isMissingUserProps ? AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES : AccessLevels.EMAIL_VERIFIED),
+            ];
+            return Store.users.createUser({
+                accessLevels: JSON.stringify(userAccessLevels),
+                email: userDetails.email,
+                firstName: userDetails.firstName,
+                lastName: userDetails.lastName,
+                password: hash,
+                phoneNumber: userDetails.phoneNumber || undefined,
+                userName: userDetails.userName || undefined,
+                verificationCodes: JSON.stringify({
+                    [codeDetails.type]: {
+                        code: codeDetails.code,
+                    },
+                }),
+            });
+        })
+        // TODO: RSERV-53 - Create userResource with default values (from library constant DefaultUserResources)
+        .then((results) => {
+            user = results[0];
+            delete user.password;
+
+            if (isSSO) {
+                // TODO: RMOBILE-26: Centralize password requirements
+                const msExpiresAt = Date.now() + (1000 * 60 * 60 * 6); // 6 hours
+                const otPassword = generateOneTimePassword(8);
+
+                return hashPassword(otPassword)
+                    .then((hash) => Store.users.updateUser({
+                        oneTimePassword: `${hash}:${msExpiresAt}`,
+                    }, {
+                        email: userDetails.email,
+                    }))
+                    // SSO USER AUTO-REGISTRATION ON FIRST LOGIN
+                    .then(() => sendSSONewUserEmail({
+                        subject: '[Account Created] Therr One-Time Password',
+                        toAddresses: [userDetails.email],
+                    }, {
+                        oneTimePassword: otPassword,
+                    }))
+                    .then(() => user);
+            }
+
+            // STANDARD USER REGISTRATION
+            return sendVerificationEmail({
+                subject: '[Account Verification] Therr User Account',
+                toAddresses: [userDetails.email],
+            }, {
+                name: `${userDetails.firstName} ${userDetails.lastName}`,
+                userName: userDetails.userName,
+                verificationCodeToken: codeDetails.token,
+            }).then(() => user);
+        })
+        .catch((error) => {
+            // Delete user to allow re-registration
+            if (user) {
+                Store.users.deleteUsers({ id: user.id });
+            }
+            throw error;
+        });
+};
 
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(req.body)
@@ -19,48 +98,11 @@ const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(
                 res,
                 message: 'Username, e-mail, and phone number must be unique. A user already exists.',
                 statusCode: 400,
+                errorCode: ErrorCodes.USER_EXISTS,
             });
         }
 
-        // TODO: Supply user agent to determine if web or mobile
-        const codeDetails = generateCode({ email: req.body.email, type: 'email' });
-        const verificationCode = { type: codeDetails.type, code: codeDetails.code };
-
-        return Store.verificationCodes.createCode(verificationCode)
-            .then(() => hashPassword(req.body.password))
-            .then((hash) => Store.users.createUser({
-                email: req.body.email,
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
-                password: hash,
-                phoneNumber: req.body.phoneNumber,
-                userName: req.body.userName,
-                verificationCodes: JSON.stringify({
-                    [codeDetails.type]: {
-                        code: codeDetails.code,
-                    },
-                }),
-            }))
-            // TODO: RSERV-53 - Create userResource with default values (from library constant DefaultUserResources)
-            .then((results) => {
-                const user = results[0];
-                delete user.password;
-
-                return sendVerificationEmail({
-                    subject: '[Account Verification] Therr User Account',
-                    toAddresses: [req.body.email],
-                }, {
-                    name: `${req.body.firstName} ${req.body.lastName}`,
-                    userName: req.body.userName,
-                    verificationCodeToken: codeDetails.token,
-                })
-                    .then(() => res.status(201).send(user))
-                    .catch((error) => {
-                        // Delete user to allow re-registration
-                        Store.users.deleteUsers({ id: user.id });
-                        throw error;
-                    });
-            });
+        return createUserHelper(req.body, false).then((user) => res.status(201).send(user));
     })
     .catch((err) => handleHttpError({
         err,
@@ -302,7 +344,7 @@ const verifyUserAccount = (req, res) => {
                         userVerificationCodes[codeResults[0].type] = {}; // clear out used code
 
                         await Store.users.updateUser({
-                            accessLevels: JSON.stringify([...userDetails[0].accessLevels, accessLevels.EMAIL_VERIFIED]),
+                            accessLevels: JSON.stringify([...userDetails[0].accessLevels, AccessLevels.EMAIL_VERIFIED]),
                             verificationCodes: JSON.stringify(userVerificationCodes),
                         }, {
                             email: decodedToken.email,
@@ -344,7 +386,7 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
                 });
             }
 
-            if (users[0].accessLevels.includes(accessLevels.EMAIL_VERIFIED)) {
+            if (users[0].accessLevels.includes(AccessLevels.EMAIL_VERIFIED)) {
                 return handleHttpError({
                     res,
                     message: 'Email already verified',

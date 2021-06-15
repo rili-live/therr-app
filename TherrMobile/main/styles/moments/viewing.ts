@@ -42,8 +42,8 @@ export default StyleSheet.create({
         width: '90%',
     },
     momentUserAvatarImg: {
-        height: 200,
-        width: 200,
+        height: 50,
+        width: 50,
         borderRadius: 100,
         marginBottom: 12,
     },
@@ -51,6 +51,7 @@ export default StyleSheet.create({
         fontSize: 16,
         fontWeight: '800',
         marginBottom: 14,
+        flex: 1,
     },
     footer: {
         paddingRight: 20,

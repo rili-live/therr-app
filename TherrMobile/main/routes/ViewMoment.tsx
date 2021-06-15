@@ -1,12 +1,19 @@
 import React from 'react';
-import { SafeAreaView, ActivityIndicator, Text, View, StatusBar } from 'react-native';
+import {
+    ActivityIndicator,
+    Dimensions,
+    SafeAreaView,
+    Text,
+    View,
+    StatusBar,
+} from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button, Image } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Autolink from 'react-native-autolink';
 // import { Button }  from 'react-native-elements';
-import { IUserState } from 'therr-react/types';
+import { IContentState, IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import YoutubePlayer from 'react-native-youtube-iframe';
@@ -20,12 +27,14 @@ import beemoLayoutStyles from '../styles/layouts/beemo';
 import userContentStyles from '../styles/user-content';
 import { youtubeLinkRegex } from '../constants';
 import HashtagsContainer from '../components/UserContent/HashtagsContainer';
+import UserMedia from '../components/UserContent/UserMedia';
 // import * as therrTheme from '../styles/themes';
 // import formStyles, { settingsForm as settingsFormStyles } from '../styles/forms';
 // import BeemoInput from '../components/Input/Beemo';
 
 export const DEFAULT_RADIUS = 10;
 
+const { width: viewportWidth } = Dimensions.get('window');
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dev'];
 
 interface IMomentDetails {
@@ -37,6 +46,7 @@ interface IViewMomentDispatchProps {
 }
 
 interface IStoreProps extends IViewMomentDispatchProps {
+    content: IContentState;
     user: IUserState;
 }
 
@@ -56,6 +66,7 @@ interface IViewMomentState {
 }
 
 const mapStateToProps = (state) => ({
+    content: state.content,
     user: state.user,
 });
 
@@ -175,8 +186,11 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
 
     render() {
         const { isDeleting, isVerifyingDelete, previewLinkId, previewStyleState } = this.state;
-        const { navigation, route } = this.props;
+        const { content, navigation, route } = this.props;
         const { moment, momentDetails, isMyMoment } = route.params;
+        // TODO: Fetch moment media
+        const mediaId = (moment.media && moment.media[0]?.id) || (moment.mediaIds?.length && moment.mediaIds?.split(',')[0]);
+        const momentMedia = content?.media[mediaId];
 
         return (
             <>
@@ -189,27 +203,35 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                         contentContainerStyle={[styles.bodyScroll, beemoLayoutStyles.bodyViewScroll]}
                     >
                         <View style={[beemoLayoutStyles.container, viewMomentStyles.momentContainer]}>
-                            <Image
-                                source={{ uri: `https://robohash.org/${moment.fromUserId}?size=200x200` }}
-                                style={viewMomentStyles.momentUserAvatarImg}
-                                PlaceholderContent={<ActivityIndicator size="large" color={therrTheme.colors.primary}/>}
-                                transition={false}
-                            />
-                            {
-                                momentDetails.userDetails &&
-                                <Text style={viewMomentStyles.momentUserName}>
-                                    {`${momentDetails.userDetails.firstName} ${momentDetails.userDetails.lastName}`}
-                                </Text>
-                            }
-                            <Text style={viewMomentStyles.dateTime}>
-                                {this.date}
-                            </Text>
+                            <View>
+                                <Image
+                                    source={{ uri: `https://robohash.org/${moment.fromUserId}?size=50x50` }}
+                                    containerStyle={{}}
+                                    style={viewMomentStyles.momentUserAvatarImg}
+                                    PlaceholderContent={<ActivityIndicator size="large" color={therrTheme.colors.primary}/>}
+                                    transition={false}
+                                />
+                                {
+                                    momentDetails.userDetails &&
+                                    <Text style={viewMomentStyles.momentUserName}>
+                                        {`${momentDetails.userDetails.firstName} ${momentDetails.userDetails.lastName}`}
+                                    </Text>
+                                }
+                            </View>
                             <Text style={viewMomentStyles.momentMessage}>
                                 <Autolink
                                     text={moment.message}
                                     linkStyle={styles.link}
                                     phone="sms"
                                 />
+                            </Text>
+                            <UserMedia
+                                viewportWidth={viewportWidth}
+                                media={momentMedia}
+                                isVisible={momentMedia}
+                            />
+                            <Text style={viewMomentStyles.dateTime}>
+                                {this.date}
                             </Text>
                             <View>
                                 <HashtagsContainer

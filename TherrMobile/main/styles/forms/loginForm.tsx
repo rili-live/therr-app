@@ -30,5 +30,7 @@ export default StyleSheet.create({
     },
     moreLinksContainer: {
         ...containerStyles,
+        marginTop: 6,
+        marginBottom: 50,
     },
 });

@@ -1,5 +1,4 @@
 apply plugin: "com.android.application"
-apply plugin: 'com.google.gms.google-services' // Google Firebase
 
 import com.android.build.OutputFile
 
@@ -242,3 +241,6 @@ apply from: file("../../node_modules/@react-native-community/cli-platform-androi
 
 // Font Icons
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
+
+// Google Firebase
+apply plugin: 'com.google.gms.google-services'

@@ -1,6 +1,7 @@
 import { RouteConfig, StackNavigationState } from '@react-navigation/native';
 import { StackNavigationOptions } from '@react-navigation/stack';
 import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/src/types';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import Home from './Home';
 import DirectMessage from './DirectMessage';
 import Login from './Login';
@@ -72,7 +73,7 @@ const routes: RouteConfig<
             title: 'Map',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.DEFAULT],
             },
             headerTransparent: true,
         }),
@@ -84,7 +85,7 @@ const routes: RouteConfig<
             title: 'Moments',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.DEFAULT],
             },
         }),
     },
@@ -95,7 +96,7 @@ const routes: RouteConfig<
             title: 'Home',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.DEFAULT],
             },
         }),
     },
@@ -106,7 +107,7 @@ const routes: RouteConfig<
             title: 'ActiveConnections',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.DEFAULT],
             },
         }),
     },
@@ -117,7 +118,7 @@ const routes: RouteConfig<
             title: 'Contacts',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.DEFAULT],
             },
         }),
     },
@@ -128,7 +129,7 @@ const routes: RouteConfig<
             title: 'DirectMessage',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.DEFAULT],
             },
             cardStyleInterpolator: undefined,
             transitionSpec: momentTransitionSpec,
@@ -149,7 +150,7 @@ const routes: RouteConfig<
             title: 'HostedChat',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.DEFAULT],
             },
         }),
     },
@@ -160,7 +161,7 @@ const routes: RouteConfig<
             title: 'Notifications',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.DEFAULT],
             },
         }),
     },
@@ -178,7 +179,7 @@ const routes: RouteConfig<
             title: 'Settings',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.DEFAULT],
             },
         }),
     },
@@ -189,7 +190,7 @@ const routes: RouteConfig<
             title: 'ViewMoment',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.DEFAULT],
             },
             headerStyle: styles.headerStyleBeemo,
             headerTitleStyle: {
@@ -210,7 +211,7 @@ const routes: RouteConfig<
             title: 'EditChat',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.DEFAULT],
             },
             headerStyle: styles.headerStyleBeemo,
             headerTitleStyle: {
@@ -233,7 +234,7 @@ const routes: RouteConfig<
             title: 'ViewChat',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.DEFAULT],
             },
             headerStyle: styles.headerStyleBeemo,
             headerTitleStyle: {
@@ -256,7 +257,7 @@ const routes: RouteConfig<
             title: 'EditMoment',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.DEFAULT],
             },
             headerStyle: styles.headerStyleBeemo,
             headerTitleStyle: {

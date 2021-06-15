@@ -1,4 +1,5 @@
 import Content from './Content';
+import ErrorCodes from './ErrorCodes';
 import Location from './Location';
 import LogLevelMap, { ILogLevel } from './LogLevelMap';
 import {
@@ -7,6 +8,7 @@ import {
 } from './Resources';
 
 // Enums
+import AccessLevels from './enums/AccessLevels';
 import * as Notifications from './enums/Notifications';
 import SocketClientActionTypes from './enums/SocketClientActionTypes';
 import SocketServerActionTypes from './enums/SocketServerActionTypes';
@@ -18,7 +20,9 @@ export const WEB_CLIENT_PREFIX = 'CLIENT';
 export const SOCKET_MIDDLEWARE_ACTION = 'action';
 
 export {
+    AccessLevels,
     Content,
+    ErrorCodes,
     Location,
     ILogLevel,
     LogLevelMap,

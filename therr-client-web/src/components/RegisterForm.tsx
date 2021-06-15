@@ -155,6 +155,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     }
                 </div>
 
+                {/* TODO: RMOBILE-26: Centralize password requirements */}
                 <label className="required" htmlFor="password">{this.translate('components.registerForm.labels.password')}:</label>
                 <Input
                     type="password"

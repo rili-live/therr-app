@@ -282,6 +282,7 @@ export class RegisterFormComponent extends React.Component<
                         />
                     </View>
                 </View>
+                {/* TODO: RMOBILE-26: Centralize password requirements */}
                 <SquareInput
                     autoCapitalize="none"
                     autoCorrect={false}
