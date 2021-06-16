@@ -219,6 +219,7 @@ export class LoginFormComponent extends React.Component<
                 </View>
                 <View style={styles.submitButtonContainer}>
                     <GoogleSignInButton
+                        buttonTitle={this.translate('forms.loginForm.sso.googleButtonTitle')}
                         onLoginError={this.onSSOLoginError}
                         onLoginSuccess={this.onSSOLoginSuccess}
                     />

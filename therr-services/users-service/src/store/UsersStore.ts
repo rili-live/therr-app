@@ -73,7 +73,7 @@ export default class UsersStore {
         };
         const queryString = knex.insert(sanitizedParams)
             .into(USERS_TABLE_NAME)
-            .returning(['email', 'id', 'userName', 'accessLevels'])
+            .returning('*')
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);
@@ -112,6 +112,10 @@ export default class UsersStore {
 
         if (params.userName) {
             modifiedParams.userName = params.userName;
+        }
+
+        if (params.phoneNumber) {
+            modifiedParams.phoneNumber = params.phoneNumber;
         }
 
         if (params.verificationCodes) {

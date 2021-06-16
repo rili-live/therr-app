@@ -17,7 +17,6 @@ export default class UsersCameraLauncher extends React.Component<IUsersCameraLau
 
     handleImageCapture = (response) => {
         const { callback } = this.props;
-        console.log(response);
 
         callback && callback(response);
     }

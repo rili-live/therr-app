@@ -70,7 +70,6 @@ class HeaderMenuRight extends React.Component<
 
     toggleOverlay = (shouldClose?: boolean) => {
         const { isModalVisible } = this.state;
-        console.log(isModalVisible);
 
         return new Promise((resolve) => {
             this.setState({

@@ -30,7 +30,9 @@ const login: RequestHandler = (req: any, res: any) => {
                 });
             }
 
-            if (!req.body.isSSO && !userSearchResults[0].accessLevels.includes(AccessLevels.EMAIL_VERIFIED)) {
+            if (!req.body.isSSO
+                && !(userSearchResults[0].accessLevels.includes(AccessLevels.EMAIL_VERIFIED)
+                    || userSearchResults[0].accessLevels.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES))) {
                 return handleHttpError({
                     res,
                     message: translate(locale, 'errorMessages.auth.accountNotVerified'),
@@ -49,7 +51,7 @@ const login: RequestHandler = (req: any, res: any) => {
                     }).then((response) => {
                         // Make sure that Google account email is verified
                         if (!response.getPayload()?.email_verified) {
-                            return false;
+                            return [false, userSearchResults[0]];
                         }
 
                         if (!userSearchResults.length) { // First time SSO login
@@ -57,10 +59,10 @@ const login: RequestHandler = (req: any, res: any) => {
                                 email: req.body.userEmail,
                                 firstName: req.body.userFirstName,
                                 lastName: req.body.userLastName,
-                            }, true).then(() => true);
+                            }, true).then((user) => [true, user]);
                         }
 
-                        return true;
+                        return [true, userSearchResults[0]];
                     });
                 }
 
@@ -70,17 +72,16 @@ const login: RequestHandler = (req: any, res: any) => {
                     locale,
                     oneTimePassword: userSearchResults[0].oneTimePassword,
                     res,
-                });
+                }).then((isSuccess) => [isSuccess, userSearchResults[0]]);
             };
 
-            return validateCredentials().then((isValid) => {
+            return validateCredentials().then(([isValid, userDetails]) => {
                 if (isValid) {
-                    const userDetails = userSearchResults?.length ? userSearchResults[0] : {
-                        email: req.body.userEmail,
-                        isSSO: true,
+                    const user = {
+                        ...userDetails,
+                        isSSO: !!req.body.isSSO,
                     };
-                    const idToken = createUserToken(userDetails, req.body.rememberMe);
-                    const user = userDetails;
+                    const idToken = createUserToken(user, req.body.rememberMe);
                     delete user.password; // don't send these in response
                     delete user.oneTimePassword; // don't send these in response
 

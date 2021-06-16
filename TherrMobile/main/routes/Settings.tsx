@@ -60,6 +60,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 firstName: props.user.details.firstName,
                 lastName: props.user.details.lastName,
                 userName: props.user.details.userName,
+                phoneNumber: props.user.details.phoneNumber,
             },
             isSubmitting: false,
             passwordErrorMessage: '',
@@ -82,6 +83,9 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         return (
             (inputs.oldPassword && inputs.password !== inputs.repeatPassword) ||
             !inputs.userName ||
+            !inputs.firstName ||
+            !inputs.lastName ||
+            !inputs.phoneNumber ||
             isSubmitting
         );
     }
@@ -92,6 +96,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             lastName,
             oldPassword,
             userName,
+            phoneNumber,
             password,
             repeatPassword,
         } = this.state.inputs;
@@ -99,6 +104,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
 
         const updateArgs: any = {
             email: user.details.email,
+            phoneNumber: user.details.phoneNumber || phoneNumber,
             firstName,
             lastName,
             userName: userName.toLowerCase(),
@@ -140,8 +146,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                     }
                 })
                 .finally(() => {
-                    console.log(this.scrollViewRef);
-                    this.scrollViewRef.scrollToPosition(0, 0);
+                    this.scrollViewRef?.scrollToPosition(0, 0);
                 });
         }
     };
@@ -259,6 +264,22 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     rightIcon={
                                         <FontAwesomeIcon
                                             name="envelope"
+                                            size={22}
+                                            color={therrTheme.colors.primary3Faded}
+                                        />
+                                    }
+                                />
+                                <SquareInput
+                                    label={this.translate(
+                                        'forms.settings.labels.phoneNumber'
+                                    )}
+                                    value={inputs.phoneNumber}
+                                    onChangeText={(text) =>
+                                        this.onInputChange('phoneNumber', text)
+                                    }
+                                    rightIcon={
+                                        <FontAwesomeIcon
+                                            name="phone"
                                             size={22}
                                             color={therrTheme.colors.primary3Faded}
                                         />

@@ -77,8 +77,6 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
 
     renderItem = ({ item: moment }) => {
         const { content } = this.props;
-        const media = moment.media[0];
-        console.log(content.media[media?.id]);
         const momentMedia = content?.media[moment.media && moment.media[0]?.id];
         const sanitizedNotificationMsg = moment.notificationMsg.replace(/[\r\n]+/g," ");
 

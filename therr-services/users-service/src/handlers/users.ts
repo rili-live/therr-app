@@ -25,11 +25,20 @@ export const createUserHelper = (userDetails, isSSO) => {
     return Store.verificationCodes.createCode(verificationCode)
         .then(() => hashPassword(password))
         .then((hash) => {
-            const isMissingUserProps = isSSO || !userDetails.phoneNumber || !userDetails.userName || !userDetails.firstName || !userDetails.lastName;
+            const isMissingUserProps = !userDetails.phoneNumber
+                || !userDetails.userName
+                || !userDetails.firstName
+                || !userDetails.lastName;
             const userAccessLevels = [
                 AccessLevels.DEFAULT,
-                (isMissingUserProps ? AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES : AccessLevels.EMAIL_VERIFIED),
             ];
+            if (isSSO) {
+                if (isMissingUserProps) {
+                    userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+                } else {
+                    userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
+                }
+            }
             return Store.users.createUser({
                 accessLevels: JSON.stringify(userAccessLevels),
                 email: userDetails.email,
@@ -137,7 +146,7 @@ const getUsers: RequestHandler = (req: any, res: any) => Store.users.getUsers()
 
 // UPDATE
 const updateUser = (req, res) => Store.users.findUser({ id: req.params.id, ...req.body })
-    .then((findResults) => {
+    .then((userSearchResults) => {
         const locale = req.headers['x-localecode'] || 'en-us';
         const userId = req.headers['x-userid'];
         const {
@@ -147,7 +156,7 @@ const updateUser = (req, res) => Store.users.findUser({ id: req.params.id, ...re
             userName,
         } = req.body;
 
-        if (!findResults.length) {
+        if (!userSearchResults.length) {
             return handleHttpError({
                 res,
                 message: `No user found with id, ${req.params.id}.`,
@@ -160,10 +169,10 @@ const updateUser = (req, res) => Store.users.findUser({ id: req.params.id, ...re
 
         if (password && oldPassword) {
             passwordPromise = updatePassword({
-                hashedPassword: findResults[0].password,
+                hashedPassword: userSearchResults[0].password,
                 inputPassword: oldPassword,
                 locale,
-                oneTimePassword: findResults[0].oneTimePassword,
+                oneTimePassword: userSearchResults[0].oneTimePassword,
                 res,
                 emailArgs: {
                     email,
@@ -174,15 +183,33 @@ const updateUser = (req, res) => Store.users.findUser({ id: req.params.id, ...re
             });
         }
 
+        const updateArgs: any = {
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            phoneNumber: req.body.phoneNumber,
+            userName: req.body.userName,
+            deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
+        };
+
+        const isMissingUserProps = !updateArgs.phoneNumber
+            || !updateArgs.userName
+            || !updateArgs.firstName
+            || !updateArgs.lastName;
+
+        if (isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED)) {
+            const userAccessLevels = userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED);
+            userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+            updateArgs.accessLevels = JSON.stringify(userAccessLevels);
+        }
+        if (!isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
+            const userAccessLevels = userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+            userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
+            updateArgs.accessLevels = JSON.stringify(userAccessLevels);
+        }
+
         passwordPromise
             .then(() => Store.users
-                .updateUser({
-                    firstName: req.body.firstName,
-                    lastName: req.body.lastName,
-                    phoneNumber: req.body.phoneNumber,
-                    userName: req.body.userName,
-                    deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
-                }, {
+                .updateUser(updateArgs, {
                     id: req.params.id,
                 })
                 .then((results) => {
@@ -304,15 +331,15 @@ const verifyUserAccount = (req, res) => {
     }
 
     return Store.users.getUsers({ email: decodedToken.email })
-        .then((userDetails) => {
-            if (!userDetails.length) {
+        .then((userSearchResults) => {
+            if (!userSearchResults.length) {
                 return handleHttpError({
                     res,
                     message: `No user found with email ${decodedToken.email}.`,
                     statusCode: 404,
                 });
             }
-            const userVerificationCodes = userDetails[0].verificationCodes;
+            const userVerificationCodes = userSearchResults[0].verificationCodes;
             return Store.verificationCodes.getCode({
                 code: decodedToken.code,
                 type: req.body.type,
@@ -343,8 +370,21 @@ const verifyUserAccount = (req, res) => {
                     if (userHasMatchingCode) {
                         userVerificationCodes[codeResults[0].type] = {}; // clear out used code
 
+                        const isMissingUserProps = !userSearchResults[0].phoneNumber
+                            || !userSearchResults[0].userName
+                            || !userSearchResults[0].firstName
+                            || !userSearchResults[0].lastName;
+                        const userAccessLevels = [
+                            ...userSearchResults[0].accessLevels,
+                        ];
+                        if (isMissingUserProps) {
+                            userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+                        } else {
+                            userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
+                        }
+
                         await Store.users.updateUser({
-                            accessLevels: JSON.stringify([...userDetails[0].accessLevels, AccessLevels.EMAIL_VERIFIED]),
+                            accessLevels: JSON.stringify(userAccessLevels),
                             verificationCodes: JSON.stringify(userVerificationCodes),
                         }, {
                             email: decodedToken.email,

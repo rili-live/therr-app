@@ -91,6 +91,7 @@ class UsersActions {
                 userName: userDetails?.userName,
             },
         });
+        this.socketIO.removeAllListeners('connect');
         this.socketIO.disconnect();
         // NOTE: Socket will disconnect in reducer after event response from server (SESSION_CLOSED)
     }

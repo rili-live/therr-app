@@ -4,11 +4,14 @@ import auth from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import getConfig from '../../utilities/getConfig';
 
+const googleLogoImg = require('../../assets/google-letter-logo.png');
+
 GoogleSignin.configure({
     webClientId: getConfig().googleOAuth2WebClientId,
 });
 
 interface IGoogleSignInButtonProps {
+    buttonTitle: string;
     onLoginError: Function;
     onLoginSuccess: Function;
 }
@@ -16,7 +19,7 @@ interface IGoogleSignInButtonProps {
 async function onGoogleButtonPress({
     onLoginError,
     onLoginSuccess,
-}: IGoogleSignInButtonProps) {
+}) {
     // Get the users ID token
     const { idToken } = await GoogleSignin.signIn();
 
@@ -34,12 +37,13 @@ async function onGoogleButtonPress({
 }
 
 function GoogleSignInButton({
+    buttonTitle,
     onLoginError,
     onLoginSuccess,
 }: IGoogleSignInButtonProps) {
     return (
         <Button
-            title="Sign in with Google"
+            title={buttonTitle}
             onPress={() => onGoogleButtonPress({
                 onLoginError,
                 onLoginSuccess,
@@ -66,7 +70,7 @@ function GoogleSignInButton({
             }}
             icon={
                 <Image
-                    source={require('../../assets/google-letter-logo.png')}
+                    source={googleLogoImg}
                     style={{
                         height: 22,
                         width: 22,

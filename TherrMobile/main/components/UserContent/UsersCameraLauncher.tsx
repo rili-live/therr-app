@@ -24,7 +24,6 @@ export default class UsersImagePicker extends React.Component<IUsersImagePickerP
 
     handleImageSelect = (response) => {
         const { callback } = this.props;
-        console.log(response);
 
         callback && callback(response);
     }

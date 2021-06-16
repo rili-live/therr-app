@@ -222,7 +222,10 @@
         "userName": "Username"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
-      "invalidUsernamePassword": "Invalid username/password combination"
+      "invalidUsernamePassword": "Invalid username/password combination",
+      "sso": {
+        "googleButtonTitle": "Sign in with Google"
+      }
     },
     "editHostedChat": {
       "buttons": {
@@ -303,6 +306,7 @@
       },
       "labels": {
         "email": "E-mail",
+        "phoneNumber": "Phone #",
         "password": "Password",
         "newPassword": "New Password",
         "repeatPassword": "Repeat Password",
