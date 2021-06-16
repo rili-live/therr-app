@@ -269,6 +269,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         />
                                     }
                                 />
+                                {/* TODO: RMOBILE-26: Use react-native-phone-input */}
                                 <SquareInput
                                     label={this.translate(
                                         'forms.settings.labels.phoneNumber'

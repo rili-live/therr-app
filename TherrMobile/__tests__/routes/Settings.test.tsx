@@ -25,6 +25,7 @@ describe('Settings', () => {
         const mockUser = {
             details: {
                 email: 'mock@email.com',
+                phoneNumber: '+15555555555',
                 firstName: 'mockFirstName',
                 lastName: 'mockLastName',
                 userName: 'mockUserName',
