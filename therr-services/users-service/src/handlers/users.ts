@@ -11,6 +11,26 @@ import { updatePassword } from '../utilities/passwordUtils';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
 import sendSSONewUserEmail from '../api/email/sendSSONewUserEmail';
 
+// TODO: Write unit tests for this function
+const isUserProfileIncomplete = (updateArgs, existingUser?) => {
+    if (!existingUser) {
+        const requestIsMissingProperties = !updateArgs.phoneNumber
+            || !updateArgs.userName
+            || !updateArgs.firstName
+            || !updateArgs.lastName;
+
+        return requestIsMissingProperties;
+    }
+
+    // NOTE: The user update query does not nullify missing properties when the respective property already exists in the DB
+    const requestDoesNotCompleteProfile = !(updateArgs.phoneNumber || existingUser.phoneNumber)
+        || !(updateArgs.userName || existingUser.userName)
+        || !(updateArgs.firstName || existingUser.firstName)
+        || !(updateArgs.lastName || existingUser.lastName);
+
+    return requestDoesNotCompleteProfile;
+};
+
 export const createUserHelper = (userDetails, isSSO) => {
     // TODO: Supply user agent to determine if web or mobile
     const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
@@ -25,10 +45,7 @@ export const createUserHelper = (userDetails, isSSO) => {
     return Store.verificationCodes.createCode(verificationCode)
         .then(() => hashPassword(password))
         .then((hash) => {
-            const isMissingUserProps = !userDetails.phoneNumber
-                || !userDetails.userName
-                || !userDetails.firstName
-                || !userDetails.lastName;
+            const isMissingUserProps = isUserProfileIncomplete(userDetails);
             const userAccessLevels = [
                 AccessLevels.DEFAULT,
             ];
@@ -191,10 +208,7 @@ const updateUser = (req, res) => Store.users.findUser({ id: req.params.id, ...re
             deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
         };
 
-        const isMissingUserProps = !updateArgs.phoneNumber
-            || !updateArgs.userName
-            || !updateArgs.firstName
-            || !updateArgs.lastName;
+        const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
 
         if (isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED)) {
             const userAccessLevels = userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED);
@@ -370,10 +384,7 @@ const verifyUserAccount = (req, res) => {
                     if (userHasMatchingCode) {
                         userVerificationCodes[codeResults[0].type] = {}; // clear out used code
 
-                        const isMissingUserProps = !userSearchResults[0].phoneNumber
-                            || !userSearchResults[0].userName
-                            || !userSearchResults[0].firstName
-                            || !userSearchResults[0].lastName;
+                        const isMissingUserProps = isUserProfileIncomplete(userSearchResults[0]);
                         const userAccessLevels = [
                             ...userSearchResults[0].accessLevels,
                         ];

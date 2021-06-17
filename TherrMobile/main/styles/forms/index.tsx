@@ -109,6 +109,12 @@ export default StyleSheet.create({
     button: {
         backgroundColor: therrTheme.colors.primary3,
     },
+    buttonWarning: {
+        backgroundColor: therrTheme.colors.ternary2,
+    },
+    buttonWarningTitle: {
+        color: therrTheme.colors.primary3,
+    },
     buttonDisabled: {
         backgroundColor: therrTheme.colors.primary3Faded,
     },

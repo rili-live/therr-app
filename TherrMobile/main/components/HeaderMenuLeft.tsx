@@ -18,6 +18,7 @@ interface IStoreProps extends IHeaderMenuLeftDispatchProps {}
 // Regular component props
 export interface IHeaderMenuLeftProps extends IStoreProps {
     isAuthenticated: boolean;
+    isEmailVerifed: boolean;
     styleName: 'light' | 'dark' | 'beemo';
     navigation: any;
 }
@@ -35,9 +36,11 @@ class HeaderMenuLeft extends React.Component<
     }
 
     handlePress = () => {
-        const { isAuthenticated, navigation } = this.props;
-        if (isAuthenticated) {
+        const { isAuthenticated, isEmailVerifed, navigation } = this.props;
+        if (isAuthenticated && isEmailVerifed) {
             navigation.navigate('Home');
+        } else if (isAuthenticated) {
+            navigation.navigate('CreateProfile');
         } else {
             navigation.navigate('Login');
         }

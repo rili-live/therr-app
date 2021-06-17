@@ -191,6 +191,9 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         const newState: any = {
             isNavMenuOpen: !this.state.isNavMenuOpen,
         };
+        if (this.state.isNavMenuOpen) {
+            this.handleWidthResize(false);
+        }
         if (context) {
             newState.navMenuContext = context;
         }

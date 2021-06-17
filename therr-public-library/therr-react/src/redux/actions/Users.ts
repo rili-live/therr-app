@@ -116,6 +116,7 @@ class UsersActions {
 
     update = (id: string, data: any) => (dispatch: any) => UsersService.update(id, data).then(async (response) => {
         const {
+            accessLevels,
             email,
             firstName,
             lastName,
@@ -133,6 +134,7 @@ class UsersActions {
         dispatch({
             type: SocketClientActionTypes.UPDATE_USER,
             data: {
+                accessLevels,
                 email,
                 id,
                 firstName,

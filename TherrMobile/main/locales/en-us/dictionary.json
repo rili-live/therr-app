@@ -206,6 +206,18 @@
         "email": "Connection's E-mail"
       }
     },
+    "createProfile": {
+      "buttons": {
+        "submit": "Next",
+        "verifyNow": "Send Verification",
+        "verifyLater": "Save & Continue"
+      },
+      "errorMessages": {
+        "repeatPassword": "Passwords do not match"
+      },
+      "backendSuccessMessage": "User settings successfully updated!",
+      "backendErrorMessage": "Connection error. Please try again later."
+    },
     "hostedChat": {
       "noResultsFound": "No results found...",
       "searchPlaceholder": "Search by name..."
@@ -354,6 +366,11 @@
       "noForumsMessage": "No forums are currently active. Click 'Create Forum' to start a new one.",
       "pageTitle": "Forums"
     },
+    "createProfile": {
+      "headerTitle": "Therr",
+      "pageHeaderA": "Create your profile",
+      "pageHeaderB": "Keep it secure"
+    },
     "directMessage": {
       "inputPlaceholder": "Enter a message..."
     },
@@ -383,7 +400,8 @@
     },
     "moments": {
       "headerTitle": "Moments",
-      "pageTitle": "Moments"
+      "pageTitle": "Moments",
+      "noMomentsFound": "You have not yet activated any moments. Explore the world, and active moments will start to appear in this view"
     },
     "notifications": {
       "headerTitle": "Notifications",

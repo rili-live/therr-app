@@ -107,21 +107,25 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
             <>
                 <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
                 <SafeAreaView style={styles.safeAreaView}>
-                    <Carousel
-                        contentInsetAdjustmentBehavior="automatic"
-                        style={styles.scrollViewFull}
-                        vertical={true}
-                        data={content.activeMoments}
-                        renderItem={this.renderItem}
-                        sliderWidth={viewportWidth}
-                        sliderHeight={viewportHeight}
-                        itemWidth={viewportWidth}
-                        itemHeight={viewportHeight}
-                        slideStyle={{ width: viewportWidth }}
-                        inactiveSlideOpacity={1}
-                        inactiveSlideScale={1}
-                        windowSize={21}
-                    />
+                    {
+                        content.activeMoments?.length ?
+                        <Carousel
+                            contentInsetAdjustmentBehavior="automatic"
+                            style={styles.scrollViewFull}
+                            vertical={true}
+                            data={content.activeMoments}
+                            renderItem={this.renderItem}
+                            sliderWidth={viewportWidth}
+                            sliderHeight={viewportHeight}
+                            itemWidth={viewportWidth}
+                            itemHeight={viewportHeight}
+                            slideStyle={{ width: viewportWidth }}
+                            inactiveSlideOpacity={1}
+                            inactiveSlideScale={1}
+                            windowSize={21}
+                        /> :
+                        <Text>{this.translate('pages.moments.noMomentsFound')}</Text>
+                    }
                 </SafeAreaView>
             </>
         );
