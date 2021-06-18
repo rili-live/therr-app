@@ -206,6 +206,18 @@
         "email": "Connection's E-mail"
       }
     },
+    "createProfile": {
+      "buttons": {
+        "submit": "Next",
+        "verifyNow": "Send Verification",
+        "verifyLater": "Save & Continue"
+      },
+      "errorMessages": {
+        "repeatPassword": "Passwords do not match"
+      },
+      "backendSuccessMessage": "User settings successfully updated!",
+      "backendErrorMessage": "Connection error. Please try again later."
+    },
     "hostedChat": {
       "noResultsFound": "No results found...",
       "searchPlaceholder": "Search by name..."
@@ -221,7 +233,11 @@
         "password": "Password",
         "userName": "Username"
       },
-      "backendErrorMessage": "Connection error. Please try again later."
+      "backendErrorMessage": "Connection error. Please try again later.",
+      "invalidUsernamePassword": "Invalid username/password combination",
+      "sso": {
+        "googleButtonTitle": "Sign in with Google"
+      }
     },
     "editHostedChat": {
       "buttons": {
@@ -277,7 +293,8 @@
       "defaultTitle": "Create an Account",
       "errorMessages": {
         "invalidPhoneNumber": "Phone number is invalid.",
-        "repeatPassword": "Passwords do not match"
+        "repeatPassword": "Passwords do not match",
+        "passwordInsecure": "Password does not meet minimum security requirements"
       },
       "labels": {
         "email": "E-mail",
@@ -298,10 +315,12 @@
         "submit": "Save"
       },
       "errorMessages": {
-        "repeatPassword": "Passwords do not match"
+        "repeatPassword": "Passwords do not match",
+        "passwordInsecure": "New password does not meet minimum security requirements"
       },
       "labels": {
         "email": "E-mail",
+        "phoneNumber": "Phone #",
         "password": "Password",
         "newPassword": "New Password",
         "repeatPassword": "Repeat Password",
@@ -349,6 +368,11 @@
       "noForumsMessage": "No forums are currently active. Click 'Create Forum' to start a new one.",
       "pageTitle": "Forums"
     },
+    "createProfile": {
+      "headerTitle": "Therr",
+      "pageHeaderA": "Create your profile",
+      "pageHeaderB": "Keep it secure"
+    },
     "directMessage": {
       "inputPlaceholder": "Enter a message..."
     },
@@ -378,7 +402,8 @@
     },
     "moments": {
       "headerTitle": "Moments",
-      "pageTitle": "Moments"
+      "pageTitle": "Moments",
+      "noMomentsFound": "You have not yet activated any moments. Explore the world, and active moments will start to appear in this view"
     },
     "notifications": {
       "headerTitle": "Notifications",
@@ -401,12 +426,15 @@
       "pageTitle": "Page Not Found"
     },
     "register": {
-      "headerTitle": "Create Account",
-      "pageTitle": "Create Account"
+      "headerTitle": "Therr",
+      "pageTitle": "Create an Account",
+      "passwordRequirements1": "Contains a mixture of letters and numbers",
+      "passwordRequirements2": "At least one special character !@#$%^&*",
+      "passwordRequirements3": "At least 8 characters"
     },
     "settings": {
       "headerTitle": "Settings",
-      "pageHeaderUser": "User Settings",
+      "pageHeaderUser": "User Profile",
       "pageHeaderPassword": "Update Password"
     },
     "template": {

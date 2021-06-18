@@ -17,7 +17,7 @@ export const socketIO = io(`${envVars.baseSocketUrl}`, {
 });
 
 export const updateSocketToken = (user, shouldConnect?: boolean) => {
-    if (user && user.details && user.details.idToken) {
+    if (user?.details?.idToken) {
         socketIO.io.opts.query = {
             token: user.details.idToken,
         };

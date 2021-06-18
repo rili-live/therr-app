@@ -37,10 +37,11 @@ const getStore = async () => {
         const therrUser = await AsyncStorage.getItem('therrUser');
         let storedUser = JSON.parse(therrUser || '{}');
         storedUser = storedUser || {};
+        const isAuthenticated = !!(storedUser && storedUser.id && storedUser.idToken);
         const reloadedState: any = {
             user: {
                 details: storedUser,
-                isAuthenticated: !!(storedUser && storedUser.id),
+                isAuthenticated,
                 socketDetails: {
                     session: storedSocketDetails,
                 },
@@ -50,7 +51,9 @@ const getStore = async () => {
             safelyParse(window.__PRELOADED_STATE__),
             reloadedState
         );
-        updateSocketToken(reloadedState.user, true);
+        if (isAuthenticated) {
+            updateSocketToken(reloadedState.user, true);
+        }
     }
 
     return __DEV__

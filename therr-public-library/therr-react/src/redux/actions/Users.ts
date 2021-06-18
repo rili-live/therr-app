@@ -65,6 +65,7 @@ class UsersActions {
         });
     };
 
+    // TODO: RMOBILE-26: Determine if any logout action is necessary for SSO
     logout = (userDetails?: any) => async (dispatch: any) => {
         // NOTE: Native Storage methods return a promise, but in this case we don't need to await
         userDetails = userDetails // eslint-disable-line no-param-reassign
@@ -90,6 +91,7 @@ class UsersActions {
                 userName: userDetails?.userName,
             },
         });
+        this.socketIO.removeAllListeners('connect');
         this.socketIO.disconnect();
         // NOTE: Socket will disconnect in reducer after event response from server (SESSION_CLOSED)
     }
@@ -114,6 +116,7 @@ class UsersActions {
 
     update = (id: string, data: any) => (dispatch: any) => UsersService.update(id, data).then(async (response) => {
         const {
+            accessLevels,
             email,
             firstName,
             lastName,
@@ -131,6 +134,7 @@ class UsersActions {
         dispatch({
             type: SocketClientActionTypes.UPDATE_USER,
             data: {
+                accessLevels,
                 email,
                 id,
                 firstName,

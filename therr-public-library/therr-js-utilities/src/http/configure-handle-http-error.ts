@@ -1,14 +1,16 @@
 import debug from 'debug';
 import * as express from 'express';
+import { ErrorCodes } from '../constants';
 
 const debugHttp = debug('http');
 
 export interface IErrorArgs {
-    err? : Error;
+    err?: Error;
     res: express.Response;
     message: string;
-    resBody? : any;
-    statusCode? : number;
+    resBody?: any;
+    statusCode?: number;
+    errorCode?: string;
 }
 
 const configureHandleHttpError = (beeline: any) => ({
@@ -17,6 +19,7 @@ const configureHandleHttpError = (beeline: any) => ({
     message,
     resBody,
     statusCode,
+    errorCode,
 }: IErrorArgs) => {
     debugHttp((err && err.message) || err || message);
     beeline.addContext({
@@ -26,6 +29,7 @@ const configureHandleHttpError = (beeline: any) => ({
     return res.status(statusCode || 500).send({
         statusCode: statusCode || 500,
         message,
+        errorCode: errorCode || ErrorCodes.UNKNOWN_ERROR,
         ...resBody,
     });
 };

@@ -20,7 +20,6 @@ import AnimatedLoader from 'react-native-animated-loader';
 import { distanceTo, insideCircle } from 'geolocation-utils';
 import * as ImagePicker from 'react-native-image-picker';
 import Alert from '../components/Alert';
-import UsersActions from '../redux/actions/UsersActions';
 import { ILocationState } from '../types/redux/location';
 import LocationActions from '../redux/actions/LocationActions';
 import translator from '../services/translator';
@@ -55,8 +54,6 @@ const ANIMATE_TO_REGION_DURATION_FAST = 500;
 
 interface IMapDispatchProps {
     createOrUpdateReaction: Function;
-    login: Function;
-    logout: Function;
     updateCoordinates: Function;
     searchMoments: Function;
     setInitialUserLocation: Function;
@@ -107,8 +104,6 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
-            login: UsersActions.login,
-            logout: UsersActions.logout,
             updateCoordinates: MapActions.updateCoordinates,
             searchMoments: MapActions.searchMoments,
             setInitialUserLocation: MapActions.setInitialUserLocation,
@@ -318,7 +313,6 @@ class Map extends React.Component<IMapProps, IMapState> {
 
     handleImageSelect = (imageResponse, userCoords) => {
         const { navigation } = this.props;
-        console.log('imageResponse', imageResponse);
 
         if (!imageResponse.didCancel) {
             return navigation.navigate('EditMoment', {
@@ -429,7 +423,6 @@ class Map extends React.Component<IMapProps, IMapState> {
                 });
                 this.getMomentDetails(selectedMoment)
                     .then((details) => {
-                        console.log('HERE');
                         this.setState({
                             activeMoment: selectedMoment,
                             activeMomentDetails: details,

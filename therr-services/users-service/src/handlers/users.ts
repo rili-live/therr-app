@@ -1,15 +1,120 @@
 import { RequestHandler } from 'express';
-// import { DefaultUserResources } from 'therr-js-utilities/constants';
+import { AccessLevels, ErrorCodes } from 'therr-js-utilities/constants';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { hashPassword } from '../utilities/userHelpers';
 import generateCode from '../utilities/generateCode';
 import { sendVerificationEmail } from '../api/email';
-import accessLevels from '../constants/accessLevels';
 import generateOneTimePassword from '../utilities/generateOneTimePassword';
 import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
+import sendSSONewUserEmail from '../api/email/sendSSONewUserEmail';
+
+// TODO: Write unit tests for this function
+const isUserProfileIncomplete = (updateArgs, existingUser?) => {
+    if (!existingUser) {
+        const requestIsMissingProperties = !updateArgs.phoneNumber
+            || !updateArgs.userName
+            || !updateArgs.firstName
+            || !updateArgs.lastName;
+
+        return requestIsMissingProperties;
+    }
+
+    // NOTE: The user update query does not nullify missing properties when the respective property already exists in the DB
+    const requestDoesNotCompleteProfile = !(updateArgs.phoneNumber || existingUser.phoneNumber)
+        || !(updateArgs.userName || existingUser.userName)
+        || !(updateArgs.firstName || existingUser.firstName)
+        || !(updateArgs.lastName || existingUser.lastName);
+
+    return requestDoesNotCompleteProfile;
+};
+
+export const createUserHelper = (userDetails, isSSO) => {
+    // TODO: Supply user agent to determine if web or mobile
+    const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
+    const verificationCode = { type: codeDetails.type, code: codeDetails.code };
+    let password = userDetails.password;
+    let user;
+
+    if (isSSO) { // SSO first time login
+        password = generateOneTimePassword(8); // Create a different/random permanent password as a placeholder
+    }
+
+    return Store.verificationCodes.createCode(verificationCode)
+        .then(() => hashPassword(password))
+        .then((hash) => {
+            const isMissingUserProps = isUserProfileIncomplete(userDetails);
+            const userAccessLevels = [
+                AccessLevels.DEFAULT,
+            ];
+            if (isSSO) {
+                if (isMissingUserProps) {
+                    userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+                } else {
+                    userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
+                }
+            }
+            return Store.users.createUser({
+                accessLevels: JSON.stringify(userAccessLevels),
+                email: userDetails.email,
+                firstName: userDetails.firstName || undefined,
+                lastName: userDetails.lastName || undefined,
+                password: hash,
+                phoneNumber: userDetails.phoneNumber || undefined,
+                userName: userDetails.userName || undefined,
+                verificationCodes: JSON.stringify({
+                    [codeDetails.type]: {
+                        code: codeDetails.code,
+                    },
+                }),
+            });
+        })
+        // TODO: RSERV-53 - Create userResource with default values (from library constant DefaultUserResources)
+        .then((results) => {
+            user = results[0];
+            delete user.password;
+
+            if (isSSO) {
+                // TODO: RMOBILE-26: Centralize password requirements
+                const msExpiresAt = Date.now() + (1000 * 60 * 60 * 6); // 6 hours
+                const otPassword = generateOneTimePassword(8);
+
+                return hashPassword(otPassword)
+                    .then((hash) => Store.users.updateUser({
+                        oneTimePassword: `${hash}:${msExpiresAt}`,
+                    }, {
+                        email: userDetails.email,
+                    }))
+                    // SSO USER AUTO-REGISTRATION ON FIRST LOGIN
+                    .then(() => sendSSONewUserEmail({
+                        subject: '[Account Created] Therr One-Time Password',
+                        toAddresses: [userDetails.email],
+                    }, {
+                        name: userDetails.email,
+                        oneTimePassword: otPassword,
+                    }))
+                    .then(() => user);
+            }
+
+            // STANDARD USER REGISTRATION
+            return sendVerificationEmail({
+                subject: '[Account Verification] Therr User Account',
+                toAddresses: [userDetails.email],
+            }, {
+                name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
+                verificationCodeToken: codeDetails.token,
+            }).then(() => user);
+        })
+        .catch((error) => {
+            // Delete user to allow re-registration
+            if (user) {
+                Store.users.deleteUsers({ id: user.id });
+            }
+            throw error;
+        });
+};
 
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(req.body)
@@ -19,48 +124,11 @@ const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(
                 res,
                 message: 'Username, e-mail, and phone number must be unique. A user already exists.',
                 statusCode: 400,
+                errorCode: ErrorCodes.USER_EXISTS,
             });
         }
 
-        // TODO: Supply user agent to determine if web or mobile
-        const codeDetails = generateCode({ email: req.body.email, type: 'email' });
-        const verificationCode = { type: codeDetails.type, code: codeDetails.code };
-
-        return Store.verificationCodes.createCode(verificationCode)
-            .then(() => hashPassword(req.body.password))
-            .then((hash) => Store.users.createUser({
-                email: req.body.email,
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
-                password: hash,
-                phoneNumber: req.body.phoneNumber,
-                userName: req.body.userName,
-                verificationCodes: JSON.stringify({
-                    [codeDetails.type]: {
-                        code: codeDetails.code,
-                    },
-                }),
-            }))
-            // TODO: RSERV-53 - Create userResource with default values (from library constant DefaultUserResources)
-            .then((results) => {
-                const user = results[0];
-                delete user.password;
-
-                return sendVerificationEmail({
-                    subject: '[Account Verification] Therr User Account',
-                    toAddresses: [req.body.email],
-                }, {
-                    name: `${req.body.firstName} ${req.body.lastName}`,
-                    userName: req.body.userName,
-                    verificationCodeToken: codeDetails.token,
-                })
-                    .then(() => res.status(201).send(user))
-                    .catch((error) => {
-                        // Delete user to allow re-registration
-                        Store.users.deleteUsers({ id: user.id });
-                        throw error;
-                    });
-            });
+        return createUserHelper(req.body, false).then((user) => res.status(201).send(user));
     })
     .catch((err) => handleHttpError({
         err,
@@ -95,7 +163,7 @@ const getUsers: RequestHandler = (req: any, res: any) => Store.users.getUsers()
 
 // UPDATE
 const updateUser = (req, res) => Store.users.findUser({ id: req.params.id, ...req.body })
-    .then((findResults) => {
+    .then((userSearchResults) => {
         const locale = req.headers['x-localecode'] || 'en-us';
         const userId = req.headers['x-userid'];
         const {
@@ -105,7 +173,7 @@ const updateUser = (req, res) => Store.users.findUser({ id: req.params.id, ...re
             userName,
         } = req.body;
 
-        if (!findResults.length) {
+        if (!userSearchResults.length) {
             return handleHttpError({
                 res,
                 message: `No user found with id, ${req.params.id}.`,
@@ -118,10 +186,10 @@ const updateUser = (req, res) => Store.users.findUser({ id: req.params.id, ...re
 
         if (password && oldPassword) {
             passwordPromise = updatePassword({
-                hashedPassword: findResults[0].password,
+                hashedPassword: userSearchResults[0].password,
                 inputPassword: oldPassword,
                 locale,
-                oneTimePassword: findResults[0].oneTimePassword,
+                oneTimePassword: userSearchResults[0].oneTimePassword,
                 res,
                 emailArgs: {
                     email,
@@ -132,15 +200,30 @@ const updateUser = (req, res) => Store.users.findUser({ id: req.params.id, ...re
             });
         }
 
+        const updateArgs: any = {
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            phoneNumber: req.body.phoneNumber,
+            userName: req.body.userName,
+            deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
+        };
+
+        const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
+
+        if (isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED)) {
+            const userAccessLevels = userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED);
+            userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+            updateArgs.accessLevels = JSON.stringify(userAccessLevels);
+        }
+        if (!isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
+            const userAccessLevels = userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+            userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
+            updateArgs.accessLevels = JSON.stringify(userAccessLevels);
+        }
+
         passwordPromise
             .then(() => Store.users
-                .updateUser({
-                    firstName: req.body.firstName,
-                    lastName: req.body.lastName,
-                    phoneNumber: req.body.phoneNumber,
-                    userName: req.body.userName,
-                    deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
-                }, {
+                .updateUser(updateArgs, {
                     id: req.params.id,
                 })
                 .then((results) => {
@@ -240,6 +323,7 @@ const createOneTimePassword = (req, res) => {
                     subject: '[Forgot Password?] Therr One-Time Password',
                     toAddresses: [email],
                 }, {
+                    name: email,
                     oneTimePassword: otPassword,
                 }))
                 .then(() => res.status(200).send({ message: 'One time password created and sent' }))
@@ -262,15 +346,15 @@ const verifyUserAccount = (req, res) => {
     }
 
     return Store.users.getUsers({ email: decodedToken.email })
-        .then((userDetails) => {
-            if (!userDetails.length) {
+        .then((userSearchResults) => {
+            if (!userSearchResults.length) {
                 return handleHttpError({
                     res,
                     message: `No user found with email ${decodedToken.email}.`,
                     statusCode: 404,
                 });
             }
-            const userVerificationCodes = userDetails[0].verificationCodes;
+            const userVerificationCodes = userSearchResults[0].verificationCodes;
             return Store.verificationCodes.getCode({
                 code: decodedToken.code,
                 type: req.body.type,
@@ -301,8 +385,18 @@ const verifyUserAccount = (req, res) => {
                     if (userHasMatchingCode) {
                         userVerificationCodes[codeResults[0].type] = {}; // clear out used code
 
+                        const isMissingUserProps = isUserProfileIncomplete(userSearchResults[0]);
+                        const userAccessLevels = [
+                            ...userSearchResults[0].accessLevels,
+                        ];
+                        if (isMissingUserProps) {
+                            userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+                        } else {
+                            userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
+                        }
+
                         await Store.users.updateUser({
-                            accessLevels: JSON.stringify([...userDetails[0].accessLevels, accessLevels.EMAIL_VERIFIED]),
+                            accessLevels: JSON.stringify(userAccessLevels),
                             verificationCodes: JSON.stringify(userVerificationCodes),
                         }, {
                             email: decodedToken.email,
@@ -344,7 +438,7 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
                 });
             }
 
-            if (users[0].accessLevels.includes(accessLevels.EMAIL_VERIFIED)) {
+            if (users[0].accessLevels.includes(AccessLevels.EMAIL_VERIFIED)) {
                 return handleHttpError({
                     res,
                     message: 'Email already verified',
@@ -371,8 +465,7 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
                         subject: '[Account Verification] Therr User Account',
                         toAddresses: [req.body.email],
                     }, {
-                        name: `${users[0].firstName} ${users[0].lastName}`,
-                        userName: users[0].userName,
+                        name: users[0].firstName && users[0].lastName ? `${users[0].firstName} ${users[0].lastName}` : users[0].email,
                         verificationCodeToken: codeDetails.token,
                     })
                         .then(() => res.status(200).send({ message: 'New verification E-mail sent' }))

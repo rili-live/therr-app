@@ -8,6 +8,15 @@ import formStyles, { loginForm as styles } from '../../styles/forms';
 import * as therrTheme from '../../styles/themes';
 import Alert from '../../components/Alert';
 import RoundInput from '../../components/Input/Round';
+import GoogleSignInButton from '../../components/LoginButtons/GoogleSignInButton';
+
+interface ISSOUserDetails {
+    isSSO: boolean;
+    idToken: string;
+    userFirstName?: string;
+    userLastName?: string;
+    userEmail: string;
+}
 
 // Regular component props
 interface ILoginFormProps {
@@ -54,18 +63,48 @@ export class LoginFormComponent extends React.Component<
         );
     }
 
-    onSubmit = () => {
+    onSSOLoginError = (error) => {
+        console.log(error);
+    }
+
+    onSSOLoginSuccess = (idToken, user, additionalUserInfo) => {
+        if (user.emailVerified) {
+            const firstName = additionalUserInfo?.given_name || (user.displayName?.split[0]);
+            const lastName = additionalUserInfo?.family_name || (user.displayName?.split[1]);
+            this.onSubmit({
+                isSSO: true,
+                idToken,
+                userFirstName: firstName,
+                userLastName: lastName,
+                userEmail: user.email,
+            });
+        } else {
+            // TODO: RMOBILE-26: Add UI alert message
+            console.log('SSO email is not verified!');
+        }
+    }
+
+    onSubmit = (ssoUserDetails?: ISSOUserDetails) => {
         const { password, rememberMe, userName } = this.state.inputs;
+
+        let loginArgs: any = {
+            userName: userName?.toLowerCase(),
+            password,
+            rememberMe,
+        };
+
+        if (ssoUserDetails) {
+            loginArgs = {
+                rememberMe,
+                ...ssoUserDetails,
+            };
+        }
 
         this.setState({
             isSubmitting: true,
         });
         this.props
-            .login({
-                userName: userName && userName.toLowerCase(),
-                password,
-                rememberMe,
-            })
+            .login(loginArgs)
             .catch((error: any) => {
                 if (
                     error.statusCode === 400 ||
@@ -73,11 +112,9 @@ export class LoginFormComponent extends React.Component<
                     error.statusCode === 404
                 ) {
                     this.setState({
-                        prevLoginError: `${error.message}${
-                            error.parameters
-                                ? ' (' + error.parameters.join(', ') + ')'
-                                : ''
-                        }`,
+                        prevLoginError: this.translate(
+                            'forms.loginForm.invalidUsernamePassword'
+                        ),
                     });
                 } else if (error.statusCode >= 500) {
                     this.setState({
@@ -149,7 +186,7 @@ export class LoginFormComponent extends React.Component<
                     onChangeText={(text) =>
                         this.onInputChange('password', text)
                     }
-                    onSubmitEditing={this.onSubmit}
+                    onSubmitEditing={() => this.onSubmit()}
                     secureTextEntry={true}
                     rightIcon={
                         <FontAwesomeIcon
@@ -167,7 +204,7 @@ export class LoginFormComponent extends React.Component<
                         title={this.translate(
                             'forms.loginForm.buttons.login'
                         )}
-                        onPress={this.onSubmit}
+                        onPress={() => this.onSubmit()}
                         loading={isSubmitting}
                         raised={true}
                         icon={
@@ -178,6 +215,13 @@ export class LoginFormComponent extends React.Component<
                             />
                         }
                         iconRight
+                    />
+                </View>
+                <View style={styles.submitButtonContainer}>
+                    <GoogleSignInButton
+                        buttonTitle={this.translate('forms.loginForm.sso.googleButtonTitle')}
+                        onLoginError={this.onSSOLoginError}
+                        onLoginSuccess={this.onSSOLoginSuccess}
                     />
                 </View>
                 <Alert

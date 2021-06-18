@@ -46,7 +46,7 @@ describe('UsersStore', () => {
 
     describe('updateUser', () => {
         it('only updates specific properties', () => {
-            const expected = `update "main"."users" set "userName" = 'tests', "updatedAt" =`;
+            const expected = `update "main"."users" set "userName" = 'tests', "phoneNumber" = '+3176665849', "updatedAt" =`;
             const mockStore = {
                 write: {
                     query: sinon.stub().callsFake(() => Promise.resolve({})),
@@ -56,6 +56,7 @@ describe('UsersStore', () => {
             store.updateUser({
                 email: 'test@email.com',
                 userName: 'tests',
+                createdAt: 'blah',
                 phoneNumber: '+3176665849',
             });
 
