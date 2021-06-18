@@ -1,6 +1,6 @@
 {
   "name": "Therr",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "private": true,
   "scripts": {
     "android": "export $(cat .env | xargs) && ./node_modules/.bin/react-native run-android",
@@ -18,7 +18,7 @@
     "getSHA": "pushd android && ./gradlew signingReport && popd",
     "ios": "rm -rf node_modules/.cache/babel-loader/*, && npm run ios:bundle && ./node_modules/.bin/react-native run-ios",
     "ios:bundle": "./node_modules/.bin/react-native bundle --entry-file='index.js' --bundle-output='./ios/main.jsbundle'",
-    "ios:bundle:release": "./node_modules/.bin/react-native bundle --entry-file='index.js' --bundle-output='./ios/main.jsbundle' --dev=false --platform ios",
+    "ios:bundle:release": "./node_modules/.bin/react-native bundle --entry-file='index.js' --bundle-output='./ios/main.jsbundle' --assets-dest ./ios --dev=false --platform ios",
     "start": "./node_modules/.bin/react-native start",
     "test": "../node_modules/.bin/jest --no-cache",
     "test:update": "../node_modules/.bin/jest -u",
@@ -34,9 +34,9 @@
     "@react-native-community/geolocation": "^2.0.2",
     "@react-native-community/masked-view": "^0.1.10",
     "@react-native-community/toolbar-android": "0.1.0-rc.2",
-    "@react-native-firebase/app": "^11.2.0",
+    "@react-native-firebase/app": "^12.1.0",
     "@react-native-firebase/auth": "^12.1.0",
-    "@react-native-firebase/messaging": "^11.2.0",
+    "@react-native-firebase/messaging": "^12.1.0",
     "@react-native-google-signin/google-signin": "^6.0.0",
     "@react-native-picker/picker": "^1.9.11",
     "@react-navigation/drawer": "^5.11.4",

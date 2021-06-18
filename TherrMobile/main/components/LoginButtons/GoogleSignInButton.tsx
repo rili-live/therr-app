@@ -58,12 +58,11 @@ function GoogleSignInButton({
             buttonStyle={{
                 backgroundColor: '#FFFFFF',
                 flex: 1,
-                width: '100%',
             }}
             titleStyle={{
                 color: '#6b6969',
                 fontSize: 16,
-                textAlign: 'left',
+                textAlign: 'center',
                 paddingLeft: 12,
                 paddingRight: 12,
                 fontWeight: 'bold',
