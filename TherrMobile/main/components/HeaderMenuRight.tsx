@@ -186,31 +186,37 @@ class HeaderMenuRight extends React.Component<
                 <>
                     {
                         isEmailVerifed ?
-                        <Button
-                            icon={
-                                <Image
-                                    source={{ uri: `https://robohash.org/${user.details?.id}?size=50x50` }}
-                                    style={imageStyle}
-                                    PlaceholderContent={<ActivityIndicator size="small" color={therrTheme.colors.primary} />}
-                                />}
-                            onPress={(e) => this.toggleOverlay()}
-                            type="clear"
-                            containerStyle={{ height: 40, margin: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center' }}
-                        /> :
-                        <Button
-                            icon={
-                                <FontAwesomeIcon
-                                    style={headerMenuModal.logoutIcon}
-                                    name="sign-out-alt"
-                                    size={22}
-                                />
-                            }
-                            onPress={() => this.handleLogout()}
-                            type="clear"
-                            containerStyle={{ margin: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center' }}
-                        />
+                            <Button
+                                icon={
+                                    <Image
+                                        source={{ uri: `https://robohash.org/${user.details?.id}?size=50x50` }}
+                                        style={imageStyle}
+                                        PlaceholderContent={<ActivityIndicator size="small" color={therrTheme.colors.primary} />}
+                                    />}
+                                onPress={() => this.toggleOverlay()}
+                                type="clear"
+                                containerStyle={{
+                                    height: 40,
+                                    margin: 0,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'flex-end',
+                                    alignItems: 'center',
+                                }}
+                            /> :
+                            <Button
+                                icon={
+                                    <FontAwesomeIcon
+                                        style={headerMenuModal.logoutIcon}
+                                        name="sign-out-alt"
+                                        size={22}
+                                    />
+                                }
+                                onPress={() => this.handleLogout()}
+                                type="clear"
+                                containerStyle={{ margin: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center' }}
+                            />
                     }
-                    
                     <Overlay
                         animationType="slideInRight"
                         animationDuration={ANIMATION_DURATION}

@@ -180,10 +180,9 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
     };
 
     onPhoneInputChange = (name: string, value: string, isValid: boolean) => {
-        
         this.setState({
             isPhoneNumberValid: isValid,
-        }, () => this.onInputChange(name, value))
+        }, () => this.onInputChange(name, value));
     };
 
     render() {

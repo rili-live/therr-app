@@ -293,7 +293,8 @@
       "defaultTitle": "Create an Account",
       "errorMessages": {
         "invalidPhoneNumber": "Phone number is invalid.",
-        "repeatPassword": "Passwords do not match"
+        "repeatPassword": "Passwords do not match",
+        "passwordInsecure": "Password does not meet minimum security requirements"
       },
       "labels": {
         "email": "E-mail",
@@ -314,7 +315,8 @@
         "submit": "Save"
       },
       "errorMessages": {
-        "repeatPassword": "Passwords do not match"
+        "repeatPassword": "Passwords do not match",
+        "passwordInsecure": "New password does not meet minimum security requirements"
       },
       "labels": {
         "email": "E-mail",
@@ -424,12 +426,15 @@
       "pageTitle": "Page Not Found"
     },
     "register": {
-      "headerTitle": "Create Account",
-      "pageTitle": "Create Account"
+      "headerTitle": "Therr",
+      "pageTitle": "Create an Account",
+      "passwordRequirements1": "Contains a mixture of letters and numbers",
+      "passwordRequirements2": "At least one special character !@#$%^&*",
+      "passwordRequirements3": "At least 8 characters"
     },
     "settings": {
       "headerTitle": "Settings",
-      "pageHeaderUser": "User Settings",
+      "pageHeaderUser": "User Profile",
       "pageHeaderPassword": "Update Password"
     },
     "template": {

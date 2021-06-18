@@ -11,6 +11,7 @@ export interface ISendSSONewUserConfig {
 }
 
 export interface ITemplateParams {
+    name: string;
     oneTimePassword: string;
 }
 
@@ -18,7 +19,7 @@ export default (emailParams: ISendSSONewUserConfig, templateParams: ITemplatePar
     const template = Handlebars.compile(templateString);
     const htmlConfig = {
         header: 'Therr App: User Account Created',
-        dearUser: 'Hi therr,',
+        dearUser: `Hi ${templateParams.name},`,
         body1: 'A new user account was successfully created. Click the following link to login, choose a username, and set your password.',
         body2: 'Your temporary, one time password:',
         bodyBold: templateParams.oneTimePassword,

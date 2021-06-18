@@ -1,7 +1,6 @@
 import React from 'react';
 import { GestureResponderEvent, View } from 'react-native';
 import { Button }  from 'react-native-elements';
-import { CountryCode } from 'react-native-country-picker-modal';
 import Alert from '../Alert';
 import formStyles, { settingsForm as settingsFormStyles } from '../../styles/forms';
 import PhoneNumberInput from '../Input/PhoneNumberInput';

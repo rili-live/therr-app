@@ -13,6 +13,8 @@ import * as Notifications from './enums/Notifications';
 import SocketClientActionTypes from './enums/SocketClientActionTypes';
 import SocketServerActionTypes from './enums/SocketServerActionTypes';
 
+const PasswordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/;
+
 // If you change these string values, be sure to update the relative enums
 // Enumers cannot be build from string concatenation so much be input manually
 export const SERVER_PREFIX = 'SERVER';
@@ -27,6 +29,7 @@ export {
     ILogLevel,
     LogLevelMap,
     Notifications,
+    PasswordRegex,
     DefaultUserResources,
     ResourceExchangeRates,
     SocketClientActionTypes,

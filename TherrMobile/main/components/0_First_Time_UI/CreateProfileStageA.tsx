@@ -34,6 +34,22 @@ const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = 
             />
             <SquareInput
                 placeholder={translate(
+                    'forms.settings.labels.userName'
+                )}
+                value={inputs.userName}
+                onChangeText={(text) =>
+                    onInputChange('userName', text)
+                }
+                rightIcon={
+                    <FontAwesomeIcon
+                        name="user"
+                        size={22}
+                        color={therrTheme.colors.primary3Faded}
+                    />
+                }
+            />
+            <SquareInput
+                placeholder={translate(
                     'forms.settings.labels.firstName'
                 )}
                 value={inputs.firstName}
@@ -64,22 +80,6 @@ const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = 
                     />
                 }
             />
-            <SquareInput
-                placeholder={translate(
-                    'forms.settings.labels.userName'
-                )}
-                value={inputs.userName}
-                onChangeText={(text) =>
-                    onInputChange('userName', text)
-                }
-                rightIcon={
-                    <FontAwesomeIcon
-                        name="user"
-                        size={22}
-                        color={therrTheme.colors.primary3Faded}
-                    />
-                }
-            />
             <View style={settingsFormStyles.submitButtonContainer}>
                 <Button
                     buttonStyle={formStyles.button}
@@ -93,6 +93,6 @@ const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = 
             </View>
         </View>
     );
-}
+};
 
 export default CreateProfileStageA;

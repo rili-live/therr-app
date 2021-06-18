@@ -166,7 +166,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     onChange={this.onInputChange}
                     onEnter={this.onSubmit}
                     translate={this.translate}
-                    validations={['isRequired']}
+                    validations={['isRequired', 'password']}
                 />
 
                 <label className="required" htmlFor="repeat_password">{this.translate('components.registerForm.labels.repeatPassword')}:</label>

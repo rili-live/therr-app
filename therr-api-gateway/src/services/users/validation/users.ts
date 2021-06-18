@@ -5,10 +5,10 @@ import {
 } from 'express-validator/check'; // eslint-disable-line import/extensions
 
 export const createUserValidation = [
-    body('phoneNumber').exists().isMobilePhone('any'),
+    body('phoneNumber').optional().isMobilePhone('any'),
     body('email').exists().isString(),
     body('password').exists().isString().isLength({ min: 8 }), // TODO: RMOBILE-26: Centralize password requirements
-    body('userName').exists().isString(),
+    body('userName').optional().isString(),
 ];
 
 export const changePasswordValidation = [

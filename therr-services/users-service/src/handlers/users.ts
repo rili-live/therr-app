@@ -59,8 +59,8 @@ export const createUserHelper = (userDetails, isSSO) => {
             return Store.users.createUser({
                 accessLevels: JSON.stringify(userAccessLevels),
                 email: userDetails.email,
-                firstName: userDetails.firstName,
-                lastName: userDetails.lastName,
+                firstName: userDetails.firstName || undefined,
+                lastName: userDetails.lastName || undefined,
                 password: hash,
                 phoneNumber: userDetails.phoneNumber || undefined,
                 userName: userDetails.userName || undefined,
@@ -92,6 +92,7 @@ export const createUserHelper = (userDetails, isSSO) => {
                         subject: '[Account Created] Therr One-Time Password',
                         toAddresses: [userDetails.email],
                     }, {
+                        name: userDetails.email,
                         oneTimePassword: otPassword,
                     }))
                     .then(() => user);
@@ -102,8 +103,7 @@ export const createUserHelper = (userDetails, isSSO) => {
                 subject: '[Account Verification] Therr User Account',
                 toAddresses: [userDetails.email],
             }, {
-                name: `${userDetails.firstName} ${userDetails.lastName}`,
-                userName: userDetails.userName,
+                name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
                 verificationCodeToken: codeDetails.token,
             }).then(() => user);
         })
@@ -323,6 +323,7 @@ const createOneTimePassword = (req, res) => {
                     subject: '[Forgot Password?] Therr One-Time Password',
                     toAddresses: [email],
                 }, {
+                    name: email,
                     oneTimePassword: otPassword,
                 }))
                 .then(() => res.status(200).send({ message: 'One time password created and sent' }))
@@ -464,8 +465,7 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
                         subject: '[Account Verification] Therr User Account',
                         toAddresses: [req.body.email],
                     }, {
-                        name: `${users[0].firstName} ${users[0].lastName}`,
-                        userName: users[0].userName,
+                        name: users[0].firstName && users[0].lastName ? `${users[0].firstName} ${users[0].lastName}` : users[0].email,
                         verificationCodeToken: codeDetails.token,
                     })
                         .then(() => res.status(200).send({ message: 'New verification E-mail sent' }))

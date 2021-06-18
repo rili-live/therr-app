@@ -4,7 +4,7 @@ import PhoneInput from 'react-native-phone-input';
 import CountryPicker, { CountryCode } from 'react-native-country-picker-modal';
 import styles from '../../styles';
 import * as therrTheme from '../../styles/themes';
-import formStyles, { settingsForm as settingsFormStyles, phoneInput as phoneStyles } from '../../styles/forms';
+import formStyles, { phoneInput as phoneStyles } from '../../styles/forms';
 
 interface IPhoneNumberInputProps {
     onSubmit: ((event: GestureResponderEvent) => void) | undefined;
@@ -64,7 +64,7 @@ class PhoneNumberInput extends React.Component<IPhoneNumberInputProps, IPhoneNum
 
     render() {
         const { onSubmit, placeholder, translate } = this.props;
-        const { countryCode, isCountryPickerVisible, phoneInputValue } = this.state;
+        const { countryCode, isCountryPickerVisible } = this.state;
 
         return (
             <View style={phoneStyles.phoneInputContainer}>

@@ -109,22 +109,22 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
                 <SafeAreaView style={styles.safeAreaView}>
                     {
                         content.activeMoments?.length ?
-                        <Carousel
-                            contentInsetAdjustmentBehavior="automatic"
-                            style={styles.scrollViewFull}
-                            vertical={true}
-                            data={content.activeMoments}
-                            renderItem={this.renderItem}
-                            sliderWidth={viewportWidth}
-                            sliderHeight={viewportHeight}
-                            itemWidth={viewportWidth}
-                            itemHeight={viewportHeight}
-                            slideStyle={{ width: viewportWidth }}
-                            inactiveSlideOpacity={1}
-                            inactiveSlideScale={1}
-                            windowSize={21}
-                        /> :
-                        <Text>{this.translate('pages.moments.noMomentsFound')}</Text>
+                            <Carousel
+                                contentInsetAdjustmentBehavior="automatic"
+                                style={styles.scrollViewFull}
+                                vertical={true}
+                                data={content.activeMoments}
+                                renderItem={this.renderItem}
+                                sliderWidth={viewportWidth}
+                                sliderHeight={viewportHeight}
+                                itemWidth={viewportWidth}
+                                itemHeight={viewportHeight}
+                                slideStyle={{ width: viewportWidth }}
+                                inactiveSlideOpacity={1}
+                                inactiveSlideScale={1}
+                                windowSize={21}
+                            /> :
+                            <Text>{this.translate('pages.moments.noMomentsFound')}</Text>
                     }
                 </SafeAreaView>
             </>

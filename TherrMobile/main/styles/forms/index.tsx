@@ -38,6 +38,20 @@ export default StyleSheet.create({
         borderColor: therrTheme.colors.beemoTextBlack,
         borderWidth: 1,
     },
+    textField: {
+        padding: inputStyle.padding,
+        paddingTop: 0,
+        paddingHorizontal: inputStyle.padding + 6,
+    },
+    textFieldInfoTextHeader: {
+        fontWeight: 'bold',
+        paddingBottom: 4,
+        color: therrTheme.colors.textWhite,
+    },
+    textFieldInfoText: {
+        color: therrTheme.colors.textWhite,
+        letterSpacing: 0.5,
+    },
     textInputBeemo: {
         ...textInputStyle,
         backgroundColor: therrTheme.colors.beemo2,
