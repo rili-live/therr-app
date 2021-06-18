@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { Text, View } from 'react-native';
 import { Button } from 'react-native-elements';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { PasswordRegex } from 'therr-js-utilities/constants';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import translator from '../../services/translator';
 import { addMargins } from '../../styles';
 import formStyles, { loginForm as loginFormStyles } from '../../styles/forms';
@@ -166,7 +166,7 @@ export class RegisterFormComponent extends React.Component<
                         <MaterialIcon
                             name="email"
                             size={24}
-                            color={therrTheme.colors.primary3Faded}
+                            color={therrTheme.colorVariations.primary3Fade}
                         />
                     }
                 />
@@ -200,7 +200,7 @@ export class RegisterFormComponent extends React.Component<
                         <MaterialIcon
                             name="vpn-key"
                             size={26}
-                            color={therrTheme.colors.primary3Faded}
+                            color={therrTheme.colorVariations.primary3Fade}
                         />
                     }
                 />
@@ -221,7 +221,7 @@ export class RegisterFormComponent extends React.Component<
                         <MaterialIcon
                             name="lock"
                             size={26}
-                            color={therrTheme.colors.primary3Faded}
+                            color={therrTheme.colorVariations.primary3Fade}
                         />
                     }
                 />

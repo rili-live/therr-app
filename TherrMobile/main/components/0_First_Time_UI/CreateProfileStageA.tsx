@@ -44,7 +44,7 @@ const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = 
                     <FontAwesomeIcon
                         name="user"
                         size={22}
-                        color={therrTheme.colors.primary3Faded}
+                        color={therrTheme.colorVariations.primary3Fade}
                     />
                 }
             />
@@ -60,7 +60,7 @@ const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = 
                     <FontAwesomeIcon
                         name="smile"
                         size={22}
-                        color={therrTheme.colors.primary3Faded}
+                        color={therrTheme.colorVariations.primary3Fade}
                     />
                 }
             />
@@ -76,7 +76,7 @@ const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = 
                     <FontAwesomeIcon
                         name="smile-beam"
                         size={22}
-                        color={therrTheme.colors.primary3Faded}
+                        color={therrTheme.colorVariations.primary3Fade}
                     />
                 }
             />

@@ -1,0 +1,491 @@
+
+{
+  "quoteOfTheDay": "Quote of the Day",
+  "dailyQuotes": [
+    {
+      "quote": "Over every mountain there is a path, although it may not be seen from the valley.",
+      "author": "Theodore Roethke"
+    },
+    {
+      "quote": "Someday is not a day of the week.",
+      "author": "Denise Brennan-Nelson"
+    },
+    {
+      "quote": "Your time is limited, so don't waste it living someone else's life.",
+      "author": "Steve Jobs"
+    },
+    {
+      "quote": "If you cannot do great things, do small things in a great way.",
+      "author": "Napoleon Hill"
+    },
+    {
+      "quote": "Without hustle, talent will only carry you so far.",
+      "author": "Gary Vaynerchuk"
+    },
+    {
+      "quote": "You always pass failure on the way to success.",
+      "author": "Mickey Rooney"
+    },
+    {
+      "quote": "No one is perfect. That’s why pencils have erasers.",
+      "author": "Wolfgang Riebe"
+    },
+    {
+      "quote": "A journey of a thousand miles begins with a single step.",
+      "author": "Chinese Proverb"
+    },
+    {
+      "quote": "Be not afraid of growing slowly, be afraid only of standing still.",
+      "author": "Chinese Proverb"
+    },
+    {
+      "quote": "Better a diamond with a flaw than a pebble without one.",
+      "author": "Chinese Proverb"
+    },
+    {
+      "quote": "A closed mind is like a closed book; just a block of wood.",
+      "author": "Chinese Proverb"
+    },
+    {
+      "quote": "Better to light a candle than to curse the darkness.",
+      "author": "Chinese Proverb"
+    },
+    {
+      "quote": "He who cheats the earth will be cheated by the earth.",
+      "author": "Chinese Proverb"
+    },
+    {
+      "quote": "Nobody can make you feel inferior without your permission.",
+      "author": "Eleanor Roosevelt"
+    },
+    {
+      "quote": "The two most important days in your life are the day you are born and the day you find out why.",
+      "author": "Mark Twain"
+    },
+    {
+      "quote": "Educating the mind without educating the heart is no education at all.",
+      "author": "Aristotle"
+    },
+    {
+      "quote": "In the end, it’s not the years in your life that count. It’s the life in your years.",
+      "author": "Abraham Lincoln"
+    },
+    {
+      "quote": "Life is not a problem to be solved, but a reality to be experienced.",
+      "author": "Soren Kierkegaard"
+    },
+    {
+      "quote": "Life is ten percent what happens to you and ninety percent how you respond to it.",
+      "author": "Lou Holtz"
+    },
+    {
+      "quote": "The only disability in life is a bad attitude.",
+      "author": "Scott Hamilton"
+    },
+    {
+      "quote": "There is more to life than increasing its speed.",
+      "author": "Mahatma Gandhi"
+    },
+    {
+      "quote": "Life is really simple, but we insist on making it complicated.",
+      "author": "Confucius"
+    },
+    {
+      "quote": "Only a life lived for others is a life worthwhile.",
+      "author": "Albert Einstein"
+    },
+    {
+      "quote": "Many of life's failures are people who did not realize how close they were to success when they gave up.",
+      "author": "Thomas A. Edison"
+    },
+    {
+      "quote": "Each person must live their life as a model for others.",
+      "author": "Rosa Parks"
+    },
+    {
+      "quote": "Life is not about how fast you run or how high you climb, but how well you bounce.",
+      "author": "Vivian Komori"
+    },
+    {
+      "quote": "Do not dwell in the past, do not dream of the future, concentrate the mind on the present moment.",
+      "author": "Buddha"
+    },
+    {
+      "quote": "Don't find fault. Find a remedy.",
+      "author": "Henry Ford"
+    },
+    {
+      "quote": "Science without religion is lame, religion without science is blind.",
+      "author": "Albert Einstein"
+    },
+    {
+      "quote": "Winning is fun, but those moments that you can touch someone’s life in a very positive way are better.",
+      "author": "Tim Howard"
+    }
+  ],
+  "validations": {
+    "email": "Invalid email address",
+    "isRequired": "This is a required field",
+    "lettersOnly": "Input only accepts alphabetic values",
+    "mobilePhoneNumber": "Input must be a valid, international mobile number beginning with '+'",
+    "numbersOnly": "Input only accepts numeric values"
+  },
+  "components": {
+    "activeConnections": {
+      "noActiveConnections": "There are currently no active connections in your network",
+      "title": "Active Contacts"
+    },
+    "contactsSearch": {
+      "noContactsFound": "No contacts found",
+      "title": "All Contacts"
+    },
+    "header": {
+      "buttons": {
+        "login": "Login"
+      }
+    },
+    "headerMenuRight": {
+      "menuItems": {
+        "account": "MY ACCOUNT",
+        "connections": "CONNECTIONS",
+        "home": "HOME",
+        "hostedChat": "HOSTED CHAT",
+        "logout": "LOGOUT",
+        "map": "MAP",
+        "moments": "MOMENTS",
+        "notifications": "NOTIFICATIONS"
+      }
+    },
+    "imagePicker": {
+      "camera": "Camera",
+      "title": "Select an Image"
+    },
+    "messagingContainer": {
+      "conversation": {
+        "to": "To: {firstName} {lastName}"
+      },
+      "inputPlaceholder": "Enter a message",
+      "welcome": "This is the start of a new conversation..."
+    },
+    "notification": {
+      "buttons": {
+        "accept": "Accept",
+        "reject": "Reject"
+      }
+    },
+    "userMenu": {
+      "buttons": {
+        "viewProfile": "View Profile",
+        "editProfile": "Edit Profile"
+      },
+      "h2": {
+        "accountSettings": "Account Settings",
+        "notifications": "Notifications",
+        "profileSettings": "Profile Settings"
+      }
+    }
+  },
+  "forms": {
+    "createConnection": {
+      "buttons": {
+        "submit": "Send"
+      },
+      "errorMessages": {
+        "invalidEmail": "Invalid e-mail",
+        "invalidPhoneNumber": "Phone number is invalid."
+      },
+      "successMessages": {
+        "connectionSent": "You connection request is on the way!"
+      },
+      "labels": {
+        "phone": "Phone",
+        "email": "E-mail"
+      },
+      "placeholders": {
+        "phone": "Connection's Phone #",
+        "email": "Connection's E-mail"
+      }
+    },
+    "createProfile": {
+      "buttons": {
+        "submit": "Next",
+        "verifyNow": "Send Verification",
+        "verifyLater": "Save & Continue"
+      },
+      "errorMessages": {
+        "repeatPassword": "Passwords do not match"
+      },
+      "backendSuccessMessage": "User settings successfully updated!",
+      "backendErrorMessage": "Connection error. Please try again later."
+    },
+    "hostedChat": {
+      "noResultsFound": "No results found...",
+      "searchPlaceholder": "Search by name..."
+    },
+    "loginForm": {
+      "buttons": {
+        "login": "Sign In",
+        "signUp": "Create an Account?",
+        "forgotPassword": "Forgot Password?"
+      },
+      "defaultTitle": "Login",
+      "labels": {
+        "password": "Password",
+        "userName": "Username"
+      },
+      "backendErrorMessage": "Connection error. Please try again later.",
+      "invalidUsernamePassword": "Invalid username/password combination",
+      "sso": {
+        "googleButtonTitle": "Sign in with Google"
+      }
+    },
+    "editHostedChat": {
+      "buttons": {
+        "submit": "Send",
+        "delete": "Delete?",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      },
+      "placeholders": {
+        "title": "A catchy title...",
+        "subtitle": "Optional subtitle",
+        "description": "A brief summary of the chat...",
+        "hashTags": "Tags (ie. my_tag, myTag)",
+        "maxComments": "Max comments (per minute)",
+        "expiresAt": "Countdown"
+      },
+      "backendSuccessMessage": "Your hosted chat was successfully saved!",
+      "backendErrorMessage": "Connection error. Please try again later."
+    },
+    "editMoment": {
+      "buttons": {
+        "submit": "Send",
+        "delete": "Delete?",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      },
+      "labels": {
+        "message": "Share something unique...",
+        "notificationMsg": "Tagline or Title",
+        "hashTags": "Hashtags (ie. my_tag, myTag)",
+        "maxViews": "Max views (per person)",
+        "expiresAt": "Countdown",
+        "radius": "Radius: {meters} meters"
+      },
+      "backendSuccessMessage": "Your moment was successfully saved!",
+      "backendErrorMessage": "Connection error. Please try again later."
+    },
+    "forgotPassword": {
+      "buttons": {
+        "submit": "Send E-mail"
+      },
+      "labels": {
+        "email": "E-mail"
+      },
+      "backendSuccessMessage": "Check your e-mail for further instructions to reset your password.",
+      "backendErrorMessage": "Connection error. Please try again later."
+    },
+    "registerForm": {
+      "buttons": {
+        "backToLogin": "Back to Login",
+        "register": "Create"
+      },
+      "defaultTitle": "Create an Account",
+      "errorMessages": {
+        "invalidPhoneNumber": "Phone number is invalid.",
+        "repeatPassword": "Passwords do not match",
+        "passwordInsecure": "Password does not meet minimum security requirements"
+      },
+      "labels": {
+        "email": "E-mail",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "mobilePhone": "Mobile Phone #",
+        "password": "Password",
+        "repeatPassword": "Repeat Password",
+        "userName": "Username"
+      },
+      "backendErrorMessage": "Connection error. Please try again later.",
+      "validationErrors": {
+        "phoneNumber": "Invalid phone number"
+      }
+    },
+    "settings": {
+      "buttons": {
+        "submit": "Save"
+      },
+      "errorMessages": {
+        "repeatPassword": "Passwords do not match",
+        "passwordInsecure": "New password does not meet minimum security requirements"
+      },
+      "labels": {
+        "email": "E-mail",
+        "phoneNumber": "Phone #",
+        "password": "Password",
+        "newPassword": "New Password",
+        "repeatPassword": "Repeat Password",
+        "firstName": "Firstname",
+        "lastName": "Lastname",
+        "userName": "Username"
+      },
+      "backendSuccessMessage": "User settings successfully updated!",
+      "backendErrorMessage": "Connection error. Please try again later."
+    }
+  },
+  "menus": {
+    "main": {
+      "buttons": {
+        "connections": "Connections",
+        "moments": "Moments",
+        "settings": "Settings",
+        "notifications": "Notifications"
+      }
+    },
+    "connections": {
+      "buttons": {
+        "activeConnections": "Active Connections",
+        "searchContacts": "Search Contacts"
+      }
+    }
+  },
+  "pages": {
+    "activeConnections": {
+      "headerTitle": "Connections"
+    },
+    "chatForum": {
+      "pageTitle": "Forums",
+      "welcome": "Welcome!",
+      "inputPlaceholder": "Enter a message"
+    },
+    "contacts": {
+      "headerTitle": "Connections"
+    },
+    "createForum": {
+      "labels": {
+        "forum": "Forum Name",
+        "activeForums": "Active Forums"
+      },
+      "noForumsMessage": "No forums are currently active. Click 'Create Forum' to start a new one.",
+      "pageTitle": "Forums"
+    },
+    "createProfile": {
+      "headerTitle": "Therr",
+      "pageHeaderA": "Create your profile",
+      "pageHeaderB": "Keep it secure"
+    },
+    "directMessage": {
+      "inputPlaceholder": "Enter a message..."
+    },
+    "editChat": {
+      "headerTitleCreate": "Create a Hosted Chat",
+      "pageTitle": "Create a Hosted Chat"
+    },
+    "editMoment": {
+      "headerTitle": "Create a Moment",
+      "previewHeader": "Preview:"
+    },
+    "forgotPassword": {
+      "headerTitle": "Password Reset",
+      "instructions": "Enter your account e-mail below, and we'll send you a temporary password.",
+      "pageHeader": "Forgot Your Password?"
+    },
+    "home": {
+      "headerTitle": "Home",
+      "pageTitle": "Home"
+    },
+    "hostedChat": {
+      "headerTitle": "Hosted Chat",
+      "pageTitle": "Hosted Chat",
+      "categories": {
+        "title": "Categories"
+      }
+    },
+    "moments": {
+      "headerTitle": "Moments",
+      "pageTitle": "Moments",
+      "noMomentsFound": "You have not yet activated any moments. Explore the world, and active moments will start to appear in this view"
+    },
+    "notifications": {
+      "headerTitle": "Notifications",
+      "pageTitle": "Notifications",
+      "noNotifications": "You have no notifications at this time"
+    },
+    "login": {
+      "headerTitle": "Therr",
+      "userAlerts": {
+        "registerSuccess": "Registration success! Check your e-mail for verification."
+      }
+    },
+    "map": {
+      "headerTitle": " ",
+      "momentAlerts": {
+        "walkCloser": "Walk closer to activate this moment"
+      }
+    },
+    "pageNotFound": {
+      "pageTitle": "Page Not Found"
+    },
+    "register": {
+      "headerTitle": "Therr",
+      "pageTitle": "Create an Account",
+      "passwordRequirements1": "Contains a mixture of letters and numbers",
+      "passwordRequirements2": "At least one special character !@#$%^&*",
+      "passwordRequirements3": "At least 8 characters"
+    },
+    "settings": {
+      "headerTitle": "Settings",
+      "pageHeaderUser": "User Profile",
+      "pageHeaderPassword": "Update Password"
+    },
+    "template": {
+      "pageTitle": "Template",
+      "helloTemplate": "Hello, Template!"
+    },
+    "userProfile": {
+      "buttons": {
+        "createAForum": "Create a Forum",
+        "sendRequest": "Send Request"
+      },
+      "connectionSent": "You connection request is on the way!",
+      "h2": {
+        "accountDetails": "Account Details",
+        "connections": "Connections",
+        "createConnection": "Create a Connection",
+        "quoteOfTheDay": "Words of Wisdom",
+        "howItWorks": "Welcome back!"
+      },
+      "labels": {
+        "email": "E-mail",
+        "firstName": "Firstname",
+        "lastName": "Lastname",
+        "phone": "Phone",
+        "phoneNumber": "Phone Number",
+        "userName": "Username"
+      },
+      "pageTitle": "User Profile",
+      "siteDescription": "Share a moment with your connections on the map or send a quick DM. Moments are proximity activated and entirely customizable.",
+      "noActiveConnections": "There are currently no active connections in your network",
+      "requestRecommendation": "Send a request to make connections and build a network",
+      "validationErrors": {
+        "phoneNumber": "Invalid phone number"
+      }
+    }
+  },
+  "permissions": {
+    "accessFineLocation": {
+      "title": "Therr Mobile",
+      "message": "Allow Therr to acces this device's location?",
+      "buttonNeutral": "Only this time",
+      "buttonNegative": "Deny",
+      "buttonPositive": "While using the app"
+    },
+    "locationGps": {
+      "header": "User Location?",
+      "description1": "This app wants to change your device settings:",
+      "description2": "Use GPS, Wi-Fi, and cell network for location",
+      "link": "Learn more",
+      "no": "NO",
+      "yes": "YES"
+    }
+  }
+}
