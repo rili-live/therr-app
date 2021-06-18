@@ -1,4 +1,5 @@
 import Knex from 'knex';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import { IConnection } from './connection';
 
 const knex: Knex = Knex({ client: 'pg' });
@@ -6,12 +7,13 @@ const knex: Knex = Knex({ client: 'pg' });
 export const USERS_TABLE_NAME = 'main.users';
 
 export interface ICreateUserParams {
+    accessLevels: string | AccessLevels;
     email: string;
-    firstName: string;
-    lastName: string;
+    firstName?: string;
+    lastName?: string;
     password: string;
-    phoneNumber: string;
-    userName: string;
+    phoneNumber?: string;
+    userName?: string;
     verificationCodes: string;
 }
 
@@ -67,11 +69,11 @@ export default class UsersStore {
     createUser(params: ICreateUserParams) {
         const sanitizedParams = {
             ...params,
-            userName: params.userName.toLowerCase(),
+            userName: params?.userName?.toLowerCase(),
         };
         const queryString = knex.insert(sanitizedParams)
             .into(USERS_TABLE_NAME)
-            .returning(['email', 'id', 'userName', 'accessLevels'])
+            .returning('*')
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);
@@ -110,6 +112,10 @@ export default class UsersStore {
 
         if (params.userName) {
             modifiedParams.userName = params.userName;
+        }
+
+        if (params.phoneNumber) {
+            modifiedParams.phoneNumber = params.phoneNumber;
         }
 
         if (params.verificationCodes) {

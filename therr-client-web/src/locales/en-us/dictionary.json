@@ -5,6 +5,7 @@
   "validations": {
     "email": "Invalid email address",
     "isRequired": "This is a required field",
+    "password": "Password must contain letter(s), number(s), and special character(s)",
     "lettersOnly": "Input only accepts alphabetic values",
     "mobilePhoneNumber": "Input must be a valid, international mobile number beginning with '+'",
     "numbersOnly": "Input only accepts numeric values"

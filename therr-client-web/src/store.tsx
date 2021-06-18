@@ -34,17 +34,20 @@ if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
     const storedSocketDetails = JSON.parse(localStorage.getItem('therrSession')) || JSON.parse(sessionStorage.getItem('therrSession'));
     let storedUser = JSON.parse(localStorage.getItem('therrUser')) || JSON.parse(sessionStorage.getItem('therrUser'));
     storedUser = storedUser || {};
+    const isAuthenticated = !!(storedUser && storedUser.id && storedUser.idToken);
     const reloadedState: any = {
         user: {
             details: storedUser,
-            isAuthenticated: !!(storedUser && storedUser.id),
+            isAuthenticated,
             socketDetails: {
                 session: storedSocketDetails || {},
             },
         },
     };
     preLoadedState = Object.assign(safelyParse(window.__PRELOADED_STATE__), reloadedState); // eslint-disable-line no-underscore-dangle
-    updateSocketToken(reloadedState.user, true);
+    if (isAuthenticated) {
+        updateSocketToken(reloadedState.user, true);
+    }
 }
 
 const store: any = process.env.NODE_ENV !== 'development'

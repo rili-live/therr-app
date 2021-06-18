@@ -14,6 +14,10 @@ const VALIDATIONS: any = {
         errorMessageLocalizationKey: 'validations.lettersOnly',
         regex: /^$|^[a-zA-Z]*$/,
     },
+    password: {
+        errorMessageLocalizationKey: 'validations.password',
+        regex: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/,
+    },
     mobilePhoneNumber: {
         errorMessageLocalizationKey: 'validations.mobilePhoneNumber',
         validator: (value: any) => validator.isMobilePhone(value, 'any', { strictMode: true }),

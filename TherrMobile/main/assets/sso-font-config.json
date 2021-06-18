@@ -1,0 +1,92 @@
+{
+    "IcoMoonType": "selection",
+    "icons": [{
+        "icon": {
+            "paths": ["M704.334 516.553c0-14.206-1.275-27.867-3.643-40.98h-188.691v77.498h107.824c-4.644 25.043-18.76 46.262-39.978 60.469v50.269h64.749c37.884-34.879 59.74-86.241 59.74-147.256v0z", "M512 712.348c54.094 0 99.445-17.94 132.594-48.539l-64.749-50.269c-17.94 12.021-40.889 19.124-67.845 19.124-52.182 0-96.349-35.243-112.104-82.598h-66.934v51.908c32.966 65.477 100.72 110.373 179.038 110.373v0z", "M399.896 550.066c-4.007-12.021-6.284-24.861-6.284-38.066s2.277-26.045 6.284-38.066v-51.908h-66.934c-13.569 27.047-21.31 57.646-21.31 89.974s7.741 62.927 21.31 89.974l66.934-51.908z", "M512 391.336c29.415 0 55.824 10.108 76.588 29.961l57.463-57.463c-34.697-32.329-80.048-52.182-134.051-52.182-78.318 0-146.072 44.896-179.038 110.373l66.934 51.908c15.755-47.355 59.922-82.598 112.104-82.598v0z"],
+            "attrs": [{
+                "fill": "rgb(66, 133, 244)"
+            }, {
+                "fill": "rgb(52, 168, 83)"
+            }, {
+                "fill": "rgb(251, 188, 5)"
+            }, {
+                "fill": "rgb(234, 67, 53)"
+            }],
+            "isMulticolor": true,
+            "isMulticolor2": false,
+            "grid": 0,
+            "tags": ["google-logo"],
+            "colorPermutations": {
+                "234675312511885152168831661332441": [{
+                    "f": 3
+                }, {
+                    "f": 0
+                }, {
+                    "f": 1
+                }, {
+                    "f": 2
+                }]
+            }
+        },
+        "attrs": [{
+            "fill": "rgb(66, 133, 244)"
+        }, {
+            "fill": "rgb(52, 168, 83)"
+        }, {
+            "fill": "rgb(251, 188, 5)"
+        }, {
+            "fill": "rgb(234, 67, 53)"
+        }],
+        "properties": {
+            "order": 2,
+            "id": 0,
+            "name": "google-logo",
+            "prevSize": 32,
+            "code": 59648,
+            "codes": [59648, 59649, 59650, 59651]
+        },
+        "setIdx": 0,
+        "setId": 2,
+        "iconIdx": 0
+    }],
+    "height": 1024,
+    "metadata": {
+        "name": "SSOFont"
+    },
+    "preferences": {
+        "showGlyphs": true,
+        "showQuickUse": true,
+        "showQuickUse2": true,
+        "showSVGs": true,
+        "fontPref": {
+            "prefix": "icon-",
+            "metadata": {
+                "fontFamily": "SSOFont",
+                "majorVersion": 1,
+                "minorVersion": 0
+            },
+            "metrics": {
+                "emSize": 1024,
+                "baseline": 6.25,
+                "whitespace": 50
+            },
+            "embed": false,
+            "includeMetadata": false,
+            "showMetadata": true,
+            "showVersion": true,
+            "showMetrics": false,
+            "showSelector": false
+        },
+        "imagePref": {
+            "prefix": "icon-",
+            "png": true,
+            "useClassSelector": true,
+            "color": 0,
+            "bgColor": 16777215,
+            "classSelector": ".icon"
+        },
+        "historySize": 50,
+        "showCodes": true,
+        "gridSize": 16
+    }
+}

@@ -1,9 +1,6 @@
 import {
     body,
-    param,
-    header,
-    query,
-    validationResult,
+    oneOf,
 } from 'express-validator/check'; // eslint-disable-line import/extensions
 
 export const authenticateUserTokenValidation = [
@@ -11,11 +8,24 @@ export const authenticateUserTokenValidation = [
 ];
 
 export const authenticateUserValidation = [
-    body('password').exists().isString().isLength({ min: 8 }),
-    body('userName').exists().isString(),
     body('rememberMe').optional().isString(),
+    oneOf([
+        [
+            body('userName').exists().isString(),
+            body('password').exists().isString().isLength({ min: 8 }),
+        ],
+        [
+            body('isSSO').exists().isBoolean(),
+            body('idToken').exists().isString(),
+            body('userFirstName').optional().isString(),
+            body('userLastName').optional().isString(),
+            body('userEmail').exists().isString().isEmail()
+                .normalizeEmail(),
+        ],
+    ]),
 ];
 
+// TODO: RMOBILE-26: Handle SSO logout
 export const logoutUserValidation = [
     body('userName').exists().isString(),
 ];

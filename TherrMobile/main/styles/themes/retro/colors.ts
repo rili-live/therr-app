@@ -10,6 +10,7 @@ const colors = {
     secondary: '#388254',
     secondaryFaded: '#4e8e67',
     ternary: '#e0c845',
+    ternary2: '#ffc269',
     textBlack: '#363636',
     textGray: '#bfc7d5',
     textDarkGray: '#728f94',

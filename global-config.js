@@ -9,6 +9,7 @@ const websocketPort = 7743;
 const hostDev = '127.0.0.1';
 const hostStage = 'stage.therr.com';
 const hostProd = 'therr.com';
+const googleOAuth2WebClientId = '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com';
 
 module.exports = {
     development: {
@@ -20,6 +21,7 @@ module.exports = {
         baseSocketUrl: `http://${hostDev}:${websocketPort}`,
         baseUsersServiceRoute: `http://${hostDev}:${apiUsersPort}/v1`,
         googleAnalyticsKey: '',
+        googleOAuth2WebClientId,
         host: hostDev,
         hostFull: `http://${hostDev}:${clientPort}`,
         socket: {
@@ -38,6 +40,7 @@ module.exports = {
         baseSocketUrl: `https://websocket-service.${hostStage}`,
         baseUsersServiceRoute: `http://users-service-cluster-ip-service:${apiUsersPort}/v1`,
         googleAnalyticsKey: '',
+        googleOAuth2WebClientId,
         host: hostStage,
         hostFull: `https://${hostStage}`,
         socket: {
@@ -56,6 +59,7 @@ module.exports = {
         baseSocketUrl: `https://websocket-service.${hostProd}`,
         baseUsersServiceRoute: `http://users-service-cluster-ip-service:${apiUsersPort}/v1`,
         googleAnalyticsKey: '',
+        googleOAuth2WebClientId,
         host: hostProd,
         hostFull: `https://${hostProd}`,
         socket: {

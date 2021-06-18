@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { RouteProps } from 'react-router-dom';
 import { AccessCheckType, IAccess } from 'therr-react/types';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import Forum from './Forum';
 import CreateForum from './CreateForum';
 import EmailVerification from './EmailVerification';
@@ -39,7 +40,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
         exact: true,
         access: {
             type: AccessCheckType.ALL,
-            levels: ['user.default'],
+            levels: [AccessLevels.DEFAULT],
         },
     },
     {
@@ -48,7 +49,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
         exact: true,
         access: {
             type: AccessCheckType.ALL,
-            levels: ['user.default'],
+            levels: [AccessLevels.DEFAULT],
         },
     },
     {
@@ -57,7 +58,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
         exact: true,
         access: {
             type: AccessCheckType.ALL,
-            levels: ['user.default'],
+            levels: [AccessLevels.DEFAULT],
         },
     },
     {
@@ -86,7 +87,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
         exact: true,
         access: {
             type: AccessCheckType.ALL,
-            levels: ['user.default'],
+            levels: [AccessLevels.DEFAULT],
         },
     },
 

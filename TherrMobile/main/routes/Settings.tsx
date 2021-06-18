@@ -5,7 +5,9 @@ import { Button }  from 'react-native-elements';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
+import { PasswordRegex } from 'therr-js-utilities/constants';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
 import Alert from '../components/Alert';
@@ -60,6 +62,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 firstName: props.user.details.firstName,
                 lastName: props.user.details.lastName,
                 userName: props.user.details.userName,
+                phoneNumber: props.user.details.phoneNumber,
             },
             isSubmitting: false,
             passwordErrorMessage: '',
@@ -82,6 +85,9 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         return (
             (inputs.oldPassword && inputs.password !== inputs.repeatPassword) ||
             !inputs.userName ||
+            !inputs.firstName ||
+            !inputs.lastName ||
+            !inputs.phoneNumber ||
             isSubmitting
         );
     }
@@ -92,13 +98,25 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             lastName,
             oldPassword,
             userName,
+            phoneNumber,
             password,
             repeatPassword,
         } = this.state.inputs;
         const { user } = this.props;
 
+        if (!PasswordRegex.test(password)) {
+            this.setState({
+                errorMsg: this.translate(
+                    'forms.settings.errorMessages.passwordInsecure'
+                ),
+            });
+            this.scrollViewRef?.scrollToPosition(0, 0);
+            return;
+        }
+
         const updateArgs: any = {
             email: user.details.email,
+            phoneNumber: user.details.phoneNumber || phoneNumber,
             firstName,
             lastName,
             userName: userName.toLowerCase(),
@@ -140,8 +158,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                     }
                 })
                 .finally(() => {
-                    console.log(this.scrollViewRef);
-                    this.scrollViewRef.scrollToPosition(0, 0);
+                    this.scrollViewRef?.scrollToPosition(0, 0);
                 });
         }
     };
@@ -155,6 +172,12 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
 
         if (name === 'repeatPassword' && inputs.oldPassword) {
             if (inputs.password !== newInputChanges.repeatPassword) {
+                passwordErrorMessage = this.translate('forms.settings.errorMessages.repeatPassword');
+            }
+        }
+
+        if (name === 'password' && inputs.repeatPassword) {
+            if (inputs.repeatPassword !== newInputChanges.password) {
                 passwordErrorMessage = this.translate('forms.settings.errorMessages.repeatPassword');
             }
         }
@@ -176,6 +199,9 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const { errorMsg, successMsg, inputs, passwordErrorMessage } = this.state;
         const pageHeaderUser = this.translate('pages.settings.pageHeaderUser');
         const pageHeaderPassword = this.translate('pages.settings.pageHeaderPassword');
+        const passwordRequirements1 = this.translate('pages.register.passwordRequirements1');
+        const passwordRequirements2 = this.translate('pages.register.passwordRequirements2');
+        const passwordRequirements3 = this.translate('pages.register.passwordRequirements3');
 
         return (
             <>
@@ -198,6 +224,22 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     isVisible={!!(errorMsg || successMsg)}
                                     message={successMsg || errorMsg}
                                     type={errorMsg ? 'error' : 'success'}
+                                />
+                                <SquareInput
+                                    label={this.translate(
+                                        'forms.settings.labels.userName'
+                                    )}
+                                    value={inputs.userName}
+                                    onChangeText={(text) =>
+                                        this.onInputChange('userName', text)
+                                    }
+                                    rightIcon={
+                                        <FontAwesomeIcon
+                                            name="user"
+                                            size={22}
+                                            color={therrTheme.colors.primary3Faded}
+                                        />
+                                    }
                                 />
                                 <SquareInput
                                     label={this.translate(
@@ -232,34 +274,36 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                 />
                                 <SquareInput
-                                    label={this.translate(
-                                        'forms.settings.labels.userName'
-                                    )}
-                                    value={inputs.userName}
-                                    onChangeText={(text) =>
-                                        this.onInputChange('userName', text)
-                                    }
-                                    rightIcon={
-                                        <FontAwesomeIcon
-                                            name="user"
-                                            size={22}
-                                            color={therrTheme.colors.primary3Faded}
-                                        />
-                                    }
-                                />
-                                <SquareInput
                                     disabled
                                     label={this.translate(
                                         'forms.settings.labels.email'
                                     )}
                                     value={inputs.email}
-                                    onChangeText={(text) =>
-                                        this.onInputChange('email', text)
-                                    }
+                                    // onChangeText={(text) =>
+                                    //     this.onInputChange('email', text)
+                                    // }
                                     rightIcon={
-                                        <FontAwesomeIcon
-                                            name="envelope"
-                                            size={22}
+                                        <MaterialIcon
+                                            name="email"
+                                            size={24}
+                                            color={therrTheme.colors.primary3Faded}
+                                        />
+                                    }
+                                />
+                                {/* TODO: RMOBILE-26: Use react-native-phone-input */}
+                                <SquareInput
+                                    disabled
+                                    label={this.translate(
+                                        'forms.settings.labels.phoneNumber'
+                                    )}
+                                    value={inputs.phoneNumber}
+                                    // onChangeText={(text) =>
+                                    //     this.onInputChange('phoneNumber', text)
+                                    // }
+                                    rightIcon={
+                                        <MaterialIcon
+                                            name="phone"
+                                            size={24}
                                             color={therrTheme.colors.primary3Faded}
                                         />
                                     }
@@ -271,8 +315,22 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                 </Text>
                             </View>
                             <View style={settingsFormStyles.passwordContainer}>
+                                <View style={formStyles.textField}>
+                                    <Text style={formStyles.textFieldInfoTextHeader}>
+                                        Password Requirements
+                                    </Text>
+                                    <Text style={formStyles.textFieldInfoText}>
+                                        {`* ${passwordRequirements1}`}
+                                    </Text>
+                                    <Text style={formStyles.textFieldInfoText}>
+                                        {`* ${passwordRequirements2}`}
+                                    </Text>
+                                    <Text style={formStyles.textFieldInfoText}>
+                                        {`* ${passwordRequirements3}`}
+                                    </Text>
+                                </View>
                                 <SquareInput
-                                    label={this.translate(
+                                    placeholder={this.translate(
                                         'forms.settings.labels.password'
                                     )}
                                     value={inputs.oldPassword}
@@ -281,15 +339,15 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                     secureTextEntry={true}
                                     rightIcon={
-                                        <FontAwesomeIcon
-                                            name="key"
-                                            size={22}
+                                        <MaterialIcon
+                                            name="vpn-key"
+                                            size={26}
                                             color={therrTheme.colors.primary3Faded}
                                         />
                                     }
                                 />
                                 <SquareInput
-                                    label={this.translate(
+                                    placeholder={this.translate(
                                         'forms.settings.labels.newPassword'
                                     )}
                                     value={inputs.password}
@@ -298,15 +356,15 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                     secureTextEntry={true}
                                     rightIcon={
-                                        <FontAwesomeIcon
+                                        <MaterialIcon
                                             name="lock"
-                                            size={22}
+                                            size={26}
                                             color={therrTheme.colors.primary3Faded}
                                         />
                                     }
                                 />
                                 <SquareInput
-                                    label={this.translate(
+                                    placeholder={this.translate(
                                         'forms.settings.labels.repeatPassword'
                                     )}
                                     value={inputs.repeatPassword}
@@ -316,9 +374,9 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     secureTextEntry={true}
                                     errorMessage={passwordErrorMessage}
                                     rightIcon={
-                                        <FontAwesomeIcon
+                                        <MaterialIcon
                                             name="lock"
-                                            size={22}
+                                            size={26}
                                             color={therrTheme.colors.primary3Faded}
                                         />
                                     }

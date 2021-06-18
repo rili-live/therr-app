@@ -1,6 +1,7 @@
 import { RouteConfig, StackNavigationState } from '@react-navigation/native';
 import { StackNavigationOptions } from '@react-navigation/stack';
 import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/src/types';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import Home from './Home';
 import DirectMessage from './DirectMessage';
 import Login from './Login';
@@ -9,6 +10,7 @@ import Map from './Map';
 import Moments from './Moments';
 import ActiveConnections from './ActiveConnections';
 import Contacts from './Contacts';
+import CreateProfile from './CreateProfile';
 import ForgotPassword from './ForgotPassword';
 import HostedChat from './HostedChat';
 import Notifications from './Notifications';
@@ -66,13 +68,24 @@ const routes: RouteConfig<
         },
     },
     {
+        name: 'CreateProfile',
+        component: CreateProfile,
+        options: () => ({
+            title: 'CreateProfile',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+            },
+        }),
+    },
+    {
         name: 'Map',
         component: Map,
         options: () => ({
             title: 'Map',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.EMAIL_VERIFIED],
             },
             headerTransparent: true,
         }),
@@ -84,7 +97,7 @@ const routes: RouteConfig<
             title: 'Moments',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.EMAIL_VERIFIED],
             },
         }),
     },
@@ -95,7 +108,7 @@ const routes: RouteConfig<
             title: 'Home',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.EMAIL_VERIFIED],
             },
         }),
     },
@@ -106,7 +119,7 @@ const routes: RouteConfig<
             title: 'ActiveConnections',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.EMAIL_VERIFIED],
             },
         }),
     },
@@ -117,7 +130,7 @@ const routes: RouteConfig<
             title: 'Contacts',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.EMAIL_VERIFIED],
             },
         }),
     },
@@ -128,7 +141,7 @@ const routes: RouteConfig<
             title: 'DirectMessage',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.EMAIL_VERIFIED],
             },
             cardStyleInterpolator: undefined,
             transitionSpec: momentTransitionSpec,
@@ -149,7 +162,7 @@ const routes: RouteConfig<
             title: 'HostedChat',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.EMAIL_VERIFIED],
             },
         }),
     },
@@ -160,7 +173,7 @@ const routes: RouteConfig<
             title: 'Notifications',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.EMAIL_VERIFIED],
             },
         }),
     },
@@ -178,7 +191,7 @@ const routes: RouteConfig<
             title: 'Settings',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.EMAIL_VERIFIED],
             },
         }),
     },
@@ -189,7 +202,7 @@ const routes: RouteConfig<
             title: 'ViewMoment',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.EMAIL_VERIFIED],
             },
             headerStyle: styles.headerStyleBeemo,
             headerTitleStyle: {
@@ -210,7 +223,7 @@ const routes: RouteConfig<
             title: 'EditChat',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.EMAIL_VERIFIED],
             },
             headerStyle: styles.headerStyleBeemo,
             headerTitleStyle: {
@@ -233,7 +246,7 @@ const routes: RouteConfig<
             title: 'ViewChat',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.EMAIL_VERIFIED],
             },
             headerStyle: styles.headerStyleBeemo,
             headerTitleStyle: {
@@ -256,7 +269,7 @@ const routes: RouteConfig<
             title: 'EditMoment',
             access: {
                 type: AccessCheckType.ALL,
-                levels: [],
+                levels: [AccessLevels.EMAIL_VERIFIED],
             },
             headerStyle: styles.headerStyleBeemo,
             headerTitleStyle: {

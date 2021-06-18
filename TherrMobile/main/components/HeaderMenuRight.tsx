@@ -33,6 +33,7 @@ interface IStoreProps extends IHeaderMenuRightDispatchProps {
 // Regular component props
 export interface IHeaderMenuRightProps extends IStoreProps {
     isVisible: boolean;
+    isEmailVerifed: boolean;
     location: ILocationState;
     logout: Function;
     navigation: any;
@@ -70,7 +71,6 @@ class HeaderMenuRight extends React.Component<
 
     toggleOverlay = (shouldClose?: boolean) => {
         const { isModalVisible } = this.state;
-        console.log(isModalVisible);
 
         return new Promise((resolve) => {
             this.setState({
@@ -128,10 +128,12 @@ class HeaderMenuRight extends React.Component<
         }
     };
 
-    handleLogout = (hideModal) => {
+    handleLogout = (hideModal?: Function) => {
         const { user, logout, navigation } = this.props;
 
-        hideModal();
+        if (hideModal) {
+            hideModal();
+        }
 
         this.timeoutId = setTimeout(() => { // Wait for overlay animation
             logout(user.details)
@@ -163,7 +165,7 @@ class HeaderMenuRight extends React.Component<
     };
 
     render() {
-        const { isVisible, notifications, styleName, user } = this.props;
+        const { isVisible, isEmailVerifed, notifications, styleName, user } = this.props;
         const { isModalVisible } = this.state;
         const currentScreen = this.getCurrentScreen();
         const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
@@ -182,17 +184,39 @@ class HeaderMenuRight extends React.Component<
         if (isVisible) {
             return (
                 <>
-                    <Button
-                        icon={
-                            <Image
-                                source={{ uri: `https://robohash.org/${user.details?.id}?size=50x50` }}
-                                style={imageStyle}
-                                PlaceholderContent={<ActivityIndicator size="small" color={therrTheme.colors.primary} />}
-                            />}
-                        onPress={this.toggleOverlay}
-                        type="clear"
-                        containerStyle={{ height: 40, margin: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center' }}
-                    />
+                    {
+                        isEmailVerifed ?
+                            <Button
+                                icon={
+                                    <Image
+                                        source={{ uri: `https://robohash.org/${user.details?.id}?size=50x50` }}
+                                        style={imageStyle}
+                                        PlaceholderContent={<ActivityIndicator size="small" color={therrTheme.colors.primary} />}
+                                    />}
+                                onPress={() => this.toggleOverlay()}
+                                type="clear"
+                                containerStyle={{
+                                    height: 40,
+                                    margin: 0,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'flex-end',
+                                    alignItems: 'center',
+                                }}
+                            /> :
+                            <Button
+                                icon={
+                                    <FontAwesomeIcon
+                                        style={headerMenuModal.logoutIcon}
+                                        name="sign-out-alt"
+                                        size={22}
+                                    />
+                                }
+                                onPress={() => this.handleLogout()}
+                                type="clear"
+                                containerStyle={{ margin: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center' }}
+                            />
+                    }
                     <Overlay
                         animationType="slideInRight"
                         animationDuration={ANIMATION_DURATION}

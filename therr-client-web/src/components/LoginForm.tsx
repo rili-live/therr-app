@@ -131,6 +131,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                     validations={['isRequired']}
                 />
 
+                {/* TODO: RMOBILE-26: Centralize password requirements */}
                 <label htmlFor="password">{this.translate('components.loginForm.labels.password')}:</label>
                 <Input
                     type="password"

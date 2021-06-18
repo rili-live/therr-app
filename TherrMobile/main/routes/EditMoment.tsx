@@ -374,9 +374,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 onHashtagPress={this.handleHashtagPress}
                             />
                             <View style={formStyles.inputSliderContainer}>
-                                <Text style={formStyles.inputLabelDark}>
-                                    {`${this.translate('forms.editMoment.labels.radius', { meters: inputs.radius })}`}
-                                </Text>
                                 <Slider
                                     value={inputs.radius}
                                     onValueChange={(value) => this.onSliderChange('radius', value)}
@@ -388,6 +385,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     minimumTrackTintColor={therrTheme.colorVariations.beemoBlueLightFade}
                                     maximumTrackTintColor={therrTheme.colorVariations.beemoBlueHeavyFade}
                                 />
+                                <Text style={formStyles.inputLabelDark}>
+                                    {`${this.translate('forms.editMoment.labels.radius', { meters: inputs.radius })}`}
+                                </Text>
                             </View>
                             <Alert
                                 containerStyles={addMargins({

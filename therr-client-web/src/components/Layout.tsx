@@ -22,7 +22,7 @@ import { UsersService } from 'therr-react/services';
 import scrollTo from 'therr-js-utilities/scroll-to';
 import Header from './Header';
 import initInterceptors from '../interceptors';
-import * as globalConfig from '../../../global-config';
+// import * as globalConfig from '../../../global-config';
 import getRoutes from '../routes';
 import { INavMenuContext } from '../types';
 import Footer from './footer/Footer';
@@ -191,6 +191,9 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         const newState: any = {
             isNavMenuOpen: !this.state.isNavMenuOpen,
         };
+        if (this.state.isNavMenuOpen) {
+            this.handleWidthResize(false);
+        }
         if (context) {
             newState.navMenuContext = context;
         }

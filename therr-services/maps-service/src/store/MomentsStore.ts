@@ -85,7 +85,8 @@ export default class MomentsStore {
         let queryString: any = knex
             .select((returning && returning.length) ? returning : '*')
             .from(MOMENTS_TABLE_NAME)
-            .orderBy(`${MOMENTS_TABLE_NAME}.updatedAt`)
+            // TODO: Determine a better way to select moments that are most relevant to the user
+            // .orderBy(`${MOMENTS_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
             // NOTE: Cast to a geography type to search distance within n meters
             .where(knex.raw(`ST_DWithin(geom, ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${proximityMax})`)); // eslint-disable-line quotes, max-len
 

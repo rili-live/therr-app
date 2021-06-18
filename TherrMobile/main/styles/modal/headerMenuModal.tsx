@@ -101,6 +101,12 @@ export default StyleSheet.create({
         width: 30,
         borderRadius: 15,
     },
+    logoutIcon: {
+        height: 30,
+        width: 30,
+        borderRadius: 15,
+        color: therrTheme.colors.textWhite,
+    },
     toggleIconDark: {
         height: 30,
         width: 30,

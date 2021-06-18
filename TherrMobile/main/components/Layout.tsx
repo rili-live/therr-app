@@ -7,6 +7,7 @@ import messaging from '@react-native-firebase/messaging';
 import { UsersService } from 'therr-react/services';
 import { IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions } from 'therr-react/redux/actions';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
@@ -229,6 +230,16 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         );
     };
 
+    isUserEmailVerified = () => {
+        return UsersService.isAuthorized(
+            {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+            this.props.user
+        );
+    };
+
     logout = (userDetails) => {
         const { logout } = this.props;
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
@@ -264,6 +275,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     styleName={headerStyleName}
                                     navigation={navigation}
                                     isAuthenticated={user.isAuthenticated}
+                                    isEmailVerifed={this.isUserEmailVerified()}
                                 />
                             ),
                             headerRight: this.shouldShowTopRightMenu() ? () => (
@@ -271,6 +283,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     navigation={navigation}
                                     notifications={notifications}
                                     styleName={headerStyleName}
+                                    isEmailVerifed={this.isUserEmailVerified()}
                                     isVisible={this.shouldShowTopRightMenu()}
                                     location={location}
                                     logout={this.logout}
