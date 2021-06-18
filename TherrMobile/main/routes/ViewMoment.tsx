@@ -171,7 +171,6 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         if (moment.fromUserId === user.details.id) {
             deleteMoment({ ids: [moment.id] })
                 .then(() => {
-                    console.log('Moment successfully deleted');
                     navigation.navigate('Map');
                 })
                 .catch((err) => {

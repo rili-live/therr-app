@@ -241,7 +241,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
     };
 
     handleHashTagsBlur = (event) => {
-        console.log(event.currentTarget);
         const { hashtags, inputs } = this.state;
 
         if (inputs.hashTags?.trim().length) {

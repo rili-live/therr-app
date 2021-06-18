@@ -227,6 +227,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                             zIndex: -1,
                                         }}
                                         resizeMode="cover"
+                                        speed={1.75}
                                         autoPlay
                                         loop
                                     />

@@ -237,7 +237,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         <FontAwesomeIcon
                                             name="user"
                                             size={22}
-                                            color={therrTheme.colors.primary3Faded}
+                                            color={therrTheme.colorVariations.primary3Fade}
                                         />
                                     }
                                 />
@@ -253,7 +253,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         <FontAwesomeIcon
                                             name="smile"
                                             size={22}
-                                            color={therrTheme.colors.primary3Faded}
+                                            color={therrTheme.colorVariations.primary3Fade}
                                         />
                                     }
                                 />
@@ -269,7 +269,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         <FontAwesomeIcon
                                             name="smile-beam"
                                             size={22}
-                                            color={therrTheme.colors.primary3Faded}
+                                            color={therrTheme.colorVariations.primary3Fade}
                                         />
                                     }
                                 />
@@ -286,7 +286,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         <MaterialIcon
                                             name="email"
                                             size={24}
-                                            color={therrTheme.colors.primary3Faded}
+                                            color={therrTheme.colorVariations.primary3Fade}
                                         />
                                     }
                                 />
@@ -304,7 +304,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         <MaterialIcon
                                             name="phone"
                                             size={24}
-                                            color={therrTheme.colors.primary3Faded}
+                                            color={therrTheme.colorVariations.primary3Fade}
                                         />
                                     }
                                 />
@@ -342,7 +342,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         <MaterialIcon
                                             name="vpn-key"
                                             size={26}
-                                            color={therrTheme.colors.primary3Faded}
+                                            color={therrTheme.colorVariations.primary3Fade}
                                         />
                                     }
                                 />
@@ -359,7 +359,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         <MaterialIcon
                                             name="lock"
                                             size={26}
-                                            color={therrTheme.colors.primary3Faded}
+                                            color={therrTheme.colorVariations.primary3Fade}
                                         />
                                     }
                                 />
@@ -377,7 +377,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         <MaterialIcon
                                             name="lock"
                                             size={26}
-                                            color={therrTheme.colors.primary3Faded}
+                                            color={therrTheme.colorVariations.primary3Fade}
                                         />
                                     }
                                 />

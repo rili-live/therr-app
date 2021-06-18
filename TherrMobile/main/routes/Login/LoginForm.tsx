@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { View } from 'react-native';
 import { Button } from 'react-native-elements';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import translator from '../../services/translator';
 import { addMargins } from '../../styles';
@@ -168,9 +169,9 @@ export class LoginFormComponent extends React.Component<
                         this.onInputChange('userName', text)
                     }
                     rightIcon={
-                        <FontAwesomeIcon
-                            name="user"
-                            size={22}
+                        <MaterialIcon
+                            name="person"
+                            size={24}
                             color={therrTheme.colors.primary3}
                         />
                     }
@@ -189,9 +190,9 @@ export class LoginFormComponent extends React.Component<
                     onSubmitEditing={() => this.onSubmit()}
                     secureTextEntry={true}
                     rightIcon={
-                        <FontAwesomeIcon
-                            name="lock"
-                            size={22}
+                        <MaterialIcon
+                            name="vpn-key"
+                            size={24}
                             color={therrTheme.colors.primary3}
                         />
                     }
