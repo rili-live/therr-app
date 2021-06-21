@@ -78,6 +78,8 @@ export default class MomentReactionsStore {
             .returning('*')
             .toString();
 
+        console.log(queryString);
+
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 
@@ -93,6 +95,8 @@ export default class MomentReactionsStore {
         if (whereIn && whereIn.whereInArray?.length) {
             queryString = queryString.whereIn(whereIn.columns, whereIn.whereInArray);
         }
+
+        console.log(queryString.toString());
 
         return this.db.write.query(queryString.toString()).then((response) => response.rows);
     }

@@ -48,15 +48,16 @@ const createOrUpdateMultiMomentReactions = (req, res) => {
 
     return Store.momentReactions.get({}, momentIds).then((existing) => {
         const existingReactions = existing.map((reaction) => [userId, reaction.momentId]);
+        let updatedReactions;
         if (existing?.length) {
-            return Store.momentReactions.update({}, {
+            Store.momentReactions.update({}, {
                 ...params,
                 userLocale: locale,
             }, {
                 columns: ['userId', 'momentId'],
                 whereInArray: existingReactions,
             })
-                .then((momentReactions) => res.status(200).send(momentReactions));
+                .then((momentReactions) => { updatedReactions = momentReactions; });
         }
 
         const createArray = momentIds
@@ -68,7 +69,10 @@ const createOrUpdateMultiMomentReactions = (req, res) => {
                 userLocale: locale,
             }));
 
-        return Store.momentReactions.create(createArray).then(([reaction]) => res.status(200).send(reaction));
+        return Store.momentReactions.create(createArray).then((createdReactions) => res.status(200).send({
+            created: createdReactions,
+            updated: updatedReactions,
+        }));
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
 };
 

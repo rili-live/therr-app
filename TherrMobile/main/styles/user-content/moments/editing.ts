@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import * as therrTheme from '../themes';
+import * as therrTheme from '../../themes';
 
 export default StyleSheet.create({
     buttons: {
@@ -40,5 +40,26 @@ export default StyleSheet.create({
     },
     toggleIcon: {
         color: therrTheme.colors.textWhite,
+    },
+    mediaContainer: {
+        // marginTop: -10,
+        // marginLeft: -20,
+        // marginRight: -20,
+        marginBottom: 30,
+        marginLeft: 10,
+        marginRight: 10,
+        padding: 0,
+        backgroundColor: therrTheme.colors.beemo2,
+        borderColor: therrTheme.colors.beemoTextBlack,
+        borderWidth: 1,
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    mediaImage: {
+        width: '100%',
+        height: '100%',
+        aspectRatio: 1,
     },
 });

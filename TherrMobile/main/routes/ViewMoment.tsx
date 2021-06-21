@@ -1,17 +1,13 @@
 import React from 'react';
 import {
-    ActivityIndicator,
-    Dimensions,
     SafeAreaView,
-    Text,
     View,
     StatusBar,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Button, Image } from 'react-native-elements';
+import { Button } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Autolink from 'react-native-autolink';
 // import { Button }  from 'react-native-elements';
 import { IContentState, IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
@@ -20,22 +16,18 @@ import YoutubePlayer from 'react-native-youtube-iframe';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
 import styles from '../styles';
-import { viewing as viewMomentStyles } from '../styles/moments';
-import * as therrTheme from '../styles/themes';
 import formStyles, { beemoEditForm as beemoFormStyles } from '../styles/forms';
 import beemoLayoutStyles from '../styles/layouts/beemo';
 import userContentStyles from '../styles/user-content';
+import { viewing as viewMomentStyles } from '../styles/user-content/moments';
 import { youtubeLinkRegex } from '../constants';
-import HashtagsContainer from '../components/UserContent/HashtagsContainer';
-import UserMedia from '../components/UserContent/UserMedia';
+import MomentDisplay from '../components/UserContent/MomentDisplay';
+import formatDate from '../utilities/formatDate';
 // import * as therrTheme from '../styles/themes';
 // import formStyles, { settingsForm as settingsFormStyles } from '../styles/forms';
 // import BeemoInput from '../components/Input/Beemo';
 
 export const DEFAULT_RADIUS = 10;
-
-const { width: viewportWidth } = Dimensions.get('window');
-const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dev'];
 
 interface IMomentDetails {
     userDetails?: any;
@@ -103,16 +95,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         this.notificationMsg = (moment.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
         this.hashtags = moment.hashTags ? moment.hashTags.split(',') : [];
 
-        const date = new Date(moment.updatedAt);
-        const year = date.getFullYear();
-        const month = MONTHS[date.getMonth()];
-        const day = date.getDate();
-        let hours = date.getHours();
-        hours = hours >= 12 ? hours - 11 : hours;
-        const amPm = hours >= 12 ? 'PM' : 'AM';
-        const minute = date.getMinutes().toString();
-
-        this.date = `${day}-${month}-${year} ${hours}:${minute.padStart(2, '0')} ${amPm}`;
+        this.date = formatDate(moment.updatedAt);
     }
 
     componentDidMount() {
@@ -186,7 +169,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     render() {
         const { isDeleting, isVerifyingDelete, previewLinkId, previewStyleState } = this.state;
         const { content, navigation, route } = this.props;
-        const { moment, momentDetails, isMyMoment } = route.params;
+        const { moment, isMyMoment } = route.params;
         // TODO: Fetch moment media
         const mediaId = (moment.media && moment.media[0]?.id) || (moment.mediaIds?.length && moment.mediaIds?.split(',')[0]);
         const momentMedia = content?.media[mediaId];
@@ -202,43 +185,19 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                         contentContainerStyle={[styles.bodyScroll, beemoLayoutStyles.bodyViewScroll]}
                     >
                         <View style={[beemoLayoutStyles.container, viewMomentStyles.momentContainer]}>
-                            <View>
-                                <Image
-                                    source={{ uri: `https://robohash.org/${moment.fromUserId}?size=50x50` }}
-                                    containerStyle={{}}
-                                    style={viewMomentStyles.momentUserAvatarImg}
-                                    PlaceholderContent={<ActivityIndicator size="large" color={therrTheme.colors.primary}/>}
-                                    transition={false}
-                                />
-                                {
-                                    momentDetails.userDetails &&
-                                    <Text style={viewMomentStyles.momentUserName}>
-                                        {`${momentDetails.userDetails.firstName} ${momentDetails.userDetails.lastName}`}
-                                    </Text>
-                                }
-                            </View>
-                            <Text style={viewMomentStyles.momentMessage}>
-                                <Autolink
-                                    text={moment.message}
-                                    linkStyle={styles.link}
-                                    phone="sms"
-                                />
-                            </Text>
-                            <UserMedia
-                                viewportWidth={viewportWidth}
-                                media={momentMedia}
-                                isVisible={momentMedia}
+                            <MomentDisplay
+                                translate={this.translate}
+                                date={this.date}
+                                hashtags={this.hashtags}
+                                isDarkMode={false}
+                                isExpanded={true}
+                                moment={moment}
+                                // TODO: User Username from response
+                                userDetails={{
+                                    userName: moment.fromUserId,
+                                }}
+                                momentMedia={momentMedia}
                             />
-                            <Text style={viewMomentStyles.dateTime}>
-                                {this.date}
-                            </Text>
-                            <View>
-                                <HashtagsContainer
-                                    hasIcon={false}
-                                    hashtags={this.hashtags}
-                                    onHashtagPress={() => {}}
-                                />
-                            </View>
                         </View>
                         {
                             previewLinkId

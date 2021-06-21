@@ -1,6 +1,6 @@
 import Knex from 'knex';
 import * as countryGeo from 'country-reverse-geocoding';
-import { Content, Location } from 'therr-js-utilities/constants';
+import { Location } from 'therr-js-utilities/constants';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { IConnection } from './connection';
 import { storage } from '../api/aws';
@@ -12,6 +12,7 @@ const knex: Knex = Knex({ client: 'pg' });
 export const MOMENTS_TABLE_NAME = 'main.moments';
 
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
+const maxNotificationMsgLength = 100;
 export interface ICreateMomentParams {
     expiresAt?: any;
     fromUserId: number;
@@ -191,8 +192,8 @@ export default class MomentsStore {
     createMoment(params: ICreateMomentParams) {
         const region = countryReverseGeo.get_country(params.latitude, params.longitude);
         const notificationMsg = params.notificationMsg
-            ? `${sanitizeNotificationMsg(params.notificationMsg).substring(0, 25)}...`
-            : `${sanitizeNotificationMsg(params.message).substring(0, 25)}...`;
+            ? `${sanitizeNotificationMsg(params.notificationMsg).substring(0, maxNotificationMsgLength)}`
+            : `${sanitizeNotificationMsg(params.message).substring(0, maxNotificationMsgLength)}`;
 
         // TODO: Support creating multiple
         // eslint-disable-next-line no-param-reassign

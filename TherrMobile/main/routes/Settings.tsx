@@ -16,6 +16,8 @@ import styles from '../styles';
 import * as therrTheme from '../styles/themes';
 import formStyles, { settingsForm as settingsFormStyles } from '../styles/forms';
 import SquareInput from '../components/Input/Square';
+import PasswordRequirements from '../components/Input/PasswordRequirements';
+
 
 
 interface ISettingsDispatchProps {
@@ -199,9 +201,6 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const { errorMsg, successMsg, inputs, passwordErrorMessage } = this.state;
         const pageHeaderUser = this.translate('pages.settings.pageHeaderUser');
         const pageHeaderPassword = this.translate('pages.settings.pageHeaderPassword');
-        const passwordRequirements1 = this.translate('pages.register.passwordRequirements1');
-        const passwordRequirements2 = this.translate('pages.register.passwordRequirements2');
-        const passwordRequirements3 = this.translate('pages.register.passwordRequirements3');
 
         return (
             <>
@@ -315,20 +314,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                 </Text>
                             </View>
                             <View style={settingsFormStyles.passwordContainer}>
-                                <View style={formStyles.textField}>
-                                    <Text style={formStyles.textFieldInfoTextHeader}>
-                                        Password Requirements
-                                    </Text>
-                                    <Text style={formStyles.textFieldInfoText}>
-                                        {`* ${passwordRequirements1}`}
-                                    </Text>
-                                    <Text style={formStyles.textFieldInfoText}>
-                                        {`* ${passwordRequirements2}`}
-                                    </Text>
-                                    <Text style={formStyles.textFieldInfoText}>
-                                        {`* ${passwordRequirements3}`}
-                                    </Text>
-                                </View>
+                                <PasswordRequirements translate={this.translate} password={inputs.passwordd} />
                                 <SquareInput
                                     placeholder={this.translate(
                                         'forms.settings.labels.password'

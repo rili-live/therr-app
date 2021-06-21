@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import * as therrTheme from '../themes';
+import * as therrTheme from '../../themes';
 
 export const EDGE_PADDING = 6;
 

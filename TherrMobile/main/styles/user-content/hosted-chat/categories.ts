@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
-import { EDGE_PADDING } from './';
-import * as therrTheme from '../themes';
+import { EDGE_PADDING } from '.';
+import * as therrTheme from '../../themes';
 
 const categoryButtonContainerStyle = {
     marginTop: 0,
