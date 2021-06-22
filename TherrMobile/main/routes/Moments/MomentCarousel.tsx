@@ -10,6 +10,7 @@ let flatListRef;
 
 const renderItem = ({ item: moment }, {
     content,
+    expandMoment,
     formattedDate,
     translate,
 }) => {
@@ -20,11 +21,12 @@ const renderItem = ({ item: moment }, {
             <MomentDisplay
                 translate={translate}
                 date={formattedDate}
+                expandMoment={expandMoment}
                 hashtags={['todo']}
                 moment={moment}
                 // TODO: Get username from response
                 userDetails={{
-                    userName: moment.fromUserId,
+                    userName: moment.fromUserName || moment.fromUserId,
                 }}
                 momentMedia={momentMedia}
                 isDarkMode={true}
@@ -33,8 +35,15 @@ const renderItem = ({ item: moment }, {
     );
 };
 
+// const Divider = () => {
+//     return (
+//         <View style={momentStyles.divider}></View>
+//     );
+// };
+
 export default ({
     content,
+    expandMoment,
     translate,
     viewportHeight,
     viewportWidth,
@@ -42,40 +51,46 @@ export default ({
 
     if (Platform.OS === 'ios') {
         return (
-            <Carousel
-                contentInsetAdjustmentBehavior="automatic"
-                style={styles.scrollViewFull}
-                vertical={true}
-                data={content.activeMoments}
-                renderItem={(itemObj) => renderItem(itemObj, {
-                    content,
-                    formattedDate: formatDate(itemObj.item.createdAt),
-                    translate,
-                })}
-                sliderWidth={viewportWidth}
-                sliderHeight={viewportHeight}
-                itemWidth={viewportWidth}
-                itemHeight={viewportHeight}
-                slideStyle={{ width: viewportWidth }}
-                inactiveSlideOpacity={1}
-                inactiveSlideScale={1}
-                windowSize={21}
-            />
+            <>
+                <Carousel
+                    contentInsetAdjustmentBehavior="automatic"
+                    style={[styles.scrollViewFull, momentStyles.momentCarousel]}
+                    vertical={true}
+                    data={content.activeMoments}
+                    renderItem={(itemObj) => renderItem(itemObj, {
+                        content,
+                        expandMoment,
+                        formattedDate: formatDate(itemObj.item.createdAt),
+                        translate,
+                    })}
+                    sliderWidth={viewportWidth}
+                    sliderHeight={viewportHeight}
+                    itemWidth={viewportWidth}
+                    itemHeight={viewportHeight}
+                    slideStyle={{ width: viewportWidth }}
+                    inactiveSlideOpacity={1}
+                    inactiveSlideScale={1}
+                    windowSize={21}
+                />
+            </>
         );
     }
 
     return (
-        <FlatList
-            data={content.activeMoments}
-            keyExtractor={(item) => String(item.id)}
-            renderItem={(itemObj) => renderItem(itemObj, {
-                content,
-                formattedDate: formatDate(itemObj.item.createdAt),
-                translate,
-            })}
-            ref={(component) => (flatListRef = component)}
-            style={styles.stretch}
-            onContentSizeChange={() => content.activeMoments?.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
-        />
+        <>
+            <FlatList
+                data={content.activeMoments}
+                keyExtractor={(item) => String(item.id)}
+                renderItem={(itemObj) => renderItem(itemObj, {
+                    content,
+                    expandMoment,
+                    formattedDate: formatDate(itemObj.item.createdAt),
+                    translate,
+                })}
+                ref={(component) => (flatListRef = component)}
+                style={[styles.stretch, momentStyles.momentCarousel]}
+                onContentSizeChange={() => content.activeMoments?.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
+            />
+        </>
     );
 };

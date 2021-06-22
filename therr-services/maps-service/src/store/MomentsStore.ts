@@ -6,6 +6,7 @@ import { IConnection } from './connection';
 import { storage } from '../api/aws';
 import MediaStore, { ICreateMediaParams } from './MediaStore';
 import getBucket from '../utilities/getBucket';
+import findUsers from '../utilities/findUsers';
 
 const knex: Knex = Knex({ client: 'pg' });
 
@@ -125,26 +126,37 @@ export default class MomentsStore {
             .whereIn('id', momentIds || [])
             .limit(restrictedLimit);
 
-        return this.db.read.query(query.toString()).then(async (response) => {
-            if (options.withMedia) {
-                let mediaIds: string[] = [];
+        return this.db.read.query(query.toString()).then(async ({ rows: moments }) => {
+            if (options.withMedia || options.withUser) {
+                const mediaIds: string[] = [];
+                const userIds: number[] = [];
                 const signingPromises: any = [];
                 const imageExpireTime = Date.now() + 60 * 60 * 1000; // 60 minutes
+                const momentDetailsPromises: Promise<any>[] = [];
+                const matchingUsers: any = {};
 
-                response.rows.forEach((moment) => {
-                    if (moment.mediaIds) {
-                        mediaIds = [...mediaIds, ...moment.mediaIds.split(',')];
+                moments.forEach((moment) => {
+                    if (options.withMedia && moment.mediaIds) {
+                        mediaIds.push(...moment.mediaIds.split(','));
+                    }
+                    if (options.withUser) {
+                        userIds.push(moment.fromUserId);
                     }
                 });
                 // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
-                const media = await this.mediaStore.get(mediaIds);
+                momentDetailsPromises.push(options.withMedia ? this.mediaStore.get(mediaIds) : Promise.resolve(null));
+                momentDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
+
+                const [media, users] = await Promise.all(momentDetailsPromises);
 
                 // TODO: Optimize
-                const mappedMoments = response.rows.map((moment) => {
+                const mappedMoments = moments.map((moment) => {
                     const modifiedMoment = moment;
-
                     modifiedMoment.media = [];
-                    if (moment.mediaIds) {
+                    modifiedMoment.user = {};
+
+                    // MEDIA
+                    if (options.withMedia && moment.mediaIds) {
                         const ids = modifiedMoment.mediaIds.split(',');
                         modifiedMoment.media = media.filter((m) => {
                             if (ids.includes(m.id.toString())) {
@@ -173,18 +185,31 @@ export default class MomentsStore {
                         });
                     }
 
+                    // USER
+                    if (options.withUser) {
+                        const matchingUser = users.find((user) => Number(user.id) === Number(modifiedMoment.fromUserId));
+                        if (matchingUser) {
+                            matchingUsers[matchingUser.id] = matchingUser;
+                            modifiedMoment.fromUserName = matchingUser.userName;
+                            modifiedMoment.fromUserFirstName = matchingUser.firstName;
+                            modifiedMoment.fromUserLastName = matchingUser.lastName;
+                        }
+                    }
+
                     return modifiedMoment;
                 });
 
                 return Promise.all(signingPromises).then((signedUrlResponses) => ({
                     moments: mappedMoments,
                     media: signedUrlResponses.reduce((prev: any, curr: any) => ({ ...curr, ...prev }), {}),
+                    users: matchingUsers,
                 }));
             }
 
             return {
-                moments: response.rows,
+                moments,
                 media: {},
+                users: {},
             };
         });
     }

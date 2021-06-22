@@ -1,6 +1,8 @@
 import {
     body,
+    header,
     oneOf,
+    param,
     query,
 } from 'express-validator/check'; // eslint-disable-line import/extensions
 
@@ -40,6 +42,14 @@ export const createMomentValidation = [
             return invalid ? Promise.reject((req as any).errorMessage) : Promise.resolve();
         }),
     ]),
+];
+
+export const getMomentDetailsValidation = [
+    header('authorization').exists(),
+    header('x-userid').exists(),
+    param('momentId').exists(),
+    body('withMedia').isBoolean().optional(),
+    body('withUser').isBoolean().optional(),
 ];
 
 export const searchMomentsValidation = [

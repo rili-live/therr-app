@@ -58,6 +58,8 @@ export default StyleSheet.create({
         borderRadius: 0,
         padding: 0,
         bottom: 0,
+        borderTopWidth: 1,
+        borderTopColor: therrTheme.colorVariations.primaryFade,
     },
     buttonIcon: iconStyle,
     buttonIconActive: {

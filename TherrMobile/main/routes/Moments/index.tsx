@@ -33,6 +33,7 @@ export interface IMomentsProps extends IStoreProps {
 }
 
 interface IMomentsState {
+    isLoading: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -57,6 +58,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         super(props);
 
         this.state = {
+            isLoading: true,
         };
 
         this.translate = (key: string, params: any) =>
@@ -70,9 +72,55 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
             title: this.translate('pages.moments.headerTitle'),
         });
 
-        if (!content.activeMoments || !content.activeMoments.length) {
-            updateActiveMoments();
+        if (!content.activeMoments || !content.activeMoments.length || content.activeMoments.length < 21) {
+            updateActiveMoments().then(() => {
+                this.setState({
+                    isLoading: false,
+                });
+            });
+        } else {
+            this.setState({
+                isLoading: false,
+            });
         }
+    }
+
+    goToMoment = (moment) => {
+        const { navigation, user } = this.props;
+
+        // navigation.navigate('Home');
+        navigation.navigate('ViewMoment', {
+            isMyMoment: moment.fromUserId === user.details.id,
+            previousView: 'Moments',
+            moment,
+            momentDetails: {},
+        });
+    };
+
+    renderCarousel = (content) => {
+        const { isLoading } = this.state;
+
+        if (isLoading) {
+            return (
+                <Text style={momentStyles.noMomentsFoundText}>Loading...</Text>
+            );
+        }
+
+        if (content.activeMoments?.length) {
+            return (
+                <MomentCarousel
+                    content={content}
+                    expandMoment={this.goToMoment}
+                    translate={this.translate}
+                    viewportHeight={viewportHeight}
+                    viewportWidth={viewportWidth}
+                />
+            );
+        }
+
+        return (
+            <Text style={momentStyles.noMomentsFoundText}>{this.translate('pages.moments.noMomentsFound')}</Text>
+        );
     }
 
     render() {
@@ -81,16 +129,9 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         return (
             <>
                 <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
-                <SafeAreaView style={styles.safeAreaView}>
+                <SafeAreaView style={[styles.safeAreaView]}>
                     {
-                        content.activeMoments?.length ?
-                            <MomentCarousel
-                                content={content}
-                                translate={this.translate}
-                                viewportHeight={viewportHeight}
-                                viewportWidth={viewportWidth}
-                            /> :
-                            <Text style={momentStyles.noMomentsFoundText}>{this.translate('pages.moments.noMomentsFound')}</Text>
+                        this.renderCarousel(content)
                     }
                 </SafeAreaView>
             </>

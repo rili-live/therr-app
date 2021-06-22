@@ -13,6 +13,7 @@ const searchActiveMoments: RequestHandler = async (req: any, res: any) => {
         limit,
         offset,
         withMedia,
+        withUser,
     } = req.body;
 
     const conditions: any = {
@@ -38,6 +39,7 @@ const searchActiveMoments: RequestHandler = async (req: any, res: any) => {
                 data: {
                     momentIds,
                     withMedia,
+                    withUser,
                 },
             });
         })

@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import * as therrTheme from '../../themes';
 
 const momentUserAvatarImgPadding = 2;
-const momentUserAvatarImgWidth = 50 - (2 * momentUserAvatarImgPadding);
+const momentUserAvatarImgWidth = 52 - (2 * momentUserAvatarImgPadding);
 const momentUserAvatarImgRadius = momentUserAvatarImgWidth / 2;
 
 const getViewingMomentStyles = ({
@@ -74,8 +74,8 @@ const getViewingMomentStyles = ({
         alignItems: 'flex-start',
         justifyContent: 'center',
         flex: 1,
-        paddingTop: 3,
-        paddingBottom: 1,
+        paddingTop: 4,
+        paddingBottom: 2,
         paddingLeft: 4,
     },
     momentUserName: {
@@ -87,12 +87,21 @@ const getViewingMomentStyles = ({
         fontSize: 11,
         color: isDarkMode ? therrTheme.colors.beemoTextWhite : therrTheme.colors.beemoTextBlack,
     },
+    moreButtonContainer: {
+        display: 'flex',
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    moreButton: {
+        height: '100%',
+    },
     momentMessage: {
         fontSize: 16,
         color: isDarkMode ? therrTheme.colors.beemoTextWhite : therrTheme.colors.beemoTextBlack,
         overflow: 'scroll',
         width: '100%',
-        paddingHorizontal: 5,
+        paddingHorizontal: 8,
         paddingVertical: 4,
     },
     footer: {

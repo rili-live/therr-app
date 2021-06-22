@@ -314,7 +314,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                 </Text>
                             </View>
                             <View style={settingsFormStyles.passwordContainer}>
-                                <PasswordRequirements translate={this.translate} password={inputs.passwordd} />
+                                <PasswordRequirements translate={this.translate} password={inputs.password} />
                                 <SquareInput
                                     placeholder={this.translate(
                                         'forms.settings.labels.password'

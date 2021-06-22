@@ -1,9 +1,9 @@
 import { RequestHandler } from 'express';
-import axios from 'axios';
+// import axios from 'axios';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
-import * as globalConfig from '../../../../global-config';
+// import * as globalConfig from '../../../../global-config';
 
 // CREATE/UPDATE
 const createOrUpdateMomentReaction = (req, res) => {
@@ -107,7 +107,7 @@ const getReactionsByMomentId: RequestHandler = async (req: any, res: any) => {
         userId,
         momentId,
     }).then((momentReaction: any) => {
-        if (!momentReaction?.length || !momentReaction.userHasActivated) {
+        if (!momentReaction?.length || !momentReaction[0].userHasActivated) {
             return handleHttpError({
                 res,
                 message: translate(locale, 'momentReactions.momentNotActivated'),
@@ -118,7 +118,7 @@ const getReactionsByMomentId: RequestHandler = async (req: any, res: any) => {
         return Store.momentReactions.getByMomentId({
             momentId,
         }, parseInt(req.query.limit, 10))
-            .then(([moments]) => res.status(200).send(moments))
+            .then(([reaction]) => res.status(200).send(reaction))
             .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
     });
 };

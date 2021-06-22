@@ -17,11 +17,9 @@ export default StyleSheet.create({
         fontSize: 18,
         // top: 10,
         width: '100%',
-        textAlign: 'center',
         paddingVertical: 3,
-        paddingHorizontal: 5,
+        paddingHorizontal: 8,
         color: therrTheme.colors.textWhite,
-        backgroundColor: therrTheme.colorVariations.textBlackFade,
     },
     preview: {
         paddingHorizontal: 20,

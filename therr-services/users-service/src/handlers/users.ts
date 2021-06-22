@@ -154,7 +154,16 @@ const getUser = (req, res) => Store.users.getUsers({ id: req.params.id })
 
 const getUsers: RequestHandler = (req: any, res: any) => Store.users.getUsers()
     .then((results) => {
-        res.status(200).send(results[0].map((user) => {
+        res.status(200).send(results.map((user) => {
+            delete user.password; // eslint-disable-line no-param-reassign
+            return user;
+        }));
+    })
+    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+
+const findUsers: RequestHandler = (req: any, res: any) => Store.users.findUsers({ ids: req.body.ids })
+    .then((results) => {
+        res.status(200).send(results.map((user) => {
             delete user.password; // eslint-disable-line no-param-reassign
             return user;
         }));
@@ -487,6 +496,7 @@ export {
     createUser,
     getUser,
     getUsers,
+    findUsers,
     updateUser,
     updateUserPassword,
     deleteUser,

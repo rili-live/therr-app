@@ -3,6 +3,7 @@ import {
     createUser,
     getUser,
     getUsers,
+    findUsers,
     updateUser,
     updateUserPassword,
     deleteUser,
@@ -19,6 +20,7 @@ router.post('/', createUser);
 // READ
 router.get('/:id', getUser);
 router.get('/', getUsers);
+router.post('/find', findUsers);
 
 // UPDATE
 router.put('/change-password', updateUserPassword);

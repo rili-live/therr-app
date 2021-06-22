@@ -27,6 +27,7 @@ export interface ICreateOrUpdateMomentReactionBody {
 export interface ISearchActiveMomentsParams {
     offset: number;
     withMedia: boolean;
+    withUser: boolean;
 }
 
 class ReactionsService {
@@ -69,6 +70,7 @@ class ReactionsService {
             offset: options.offset,
             limit,
             withMedia: options.withMedia,
+            withUser: options.withUser,
         },
     });
 }

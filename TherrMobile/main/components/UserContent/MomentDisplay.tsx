@@ -4,10 +4,12 @@ import {
     ActivityIndicator,
     Dimensions,
     Text,
+    TouchableWithoutFeedbackComponent,
     View,
 } from 'react-native';
-import { Image } from 'react-native-elements';
+import { Button, Image } from 'react-native-elements';
 import Autolink from 'react-native-autolink';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import UserMedia from './UserMedia';
 import HashtagsContainer from './HashtagsContainer';
 import styles from '../../styles';
@@ -24,6 +26,7 @@ interface IUserDetails {
 interface IMomentDisplayProps {
     translate: Function;
     date: string;
+    expandMoment: Function;
     hashtags: any[];
     isDarkMode: boolean;
     isExpanded?: boolean;
@@ -49,11 +52,12 @@ export default class MomentDisplay extends React.Component<IMomentDisplayProps, 
         });
     }
 
-
     render() {
         const {
             date,
+            expandMoment,
             hashtags,
+            isDarkMode,
             isExpanded,
             moment,
             momentMedia,
@@ -64,7 +68,7 @@ export default class MomentDisplay extends React.Component<IMomentDisplayProps, 
             <>
                 <View style={this.viewMomentStyles.momentAuthorContainer}>
                     <Image
-                        source={{ uri: `https://robohash.org/${moment.fromUserId}?size=50x50` }}
+                        source={{ uri: `https://robohash.org/${moment.fromUserId}?size=52x52` }}
                         style={this.viewMomentStyles.momentUserAvatarImg}
                         containerStyle={this.viewMomentStyles.momentUserAvatarImgContainer}
                         PlaceholderContent={<ActivityIndicator size="large" color={therrTheme.colors.primary}/>}
@@ -81,12 +85,30 @@ export default class MomentDisplay extends React.Component<IMomentDisplayProps, 
                             {date}
                         </Text>
                     </View>
+                    {
+                        !isExpanded &&
+                        <Button
+                            containerStyle={this.viewMomentStyles.moreButtonContainer}
+                            buttonStyle={this.viewMomentStyles.moreButton}
+                            icon={
+                                <Icon
+                                    name="more-horiz"
+                                    size={24}
+                                    color={therrTheme.colors.textWhite}
+                                />
+                            }
+                            onPress={() => expandMoment(moment)}
+                            type="clear"
+                            TouchableComponent={TouchableWithoutFeedbackComponent}
+                        />
+                    }
                 </View>
                 <UserMedia
                     viewportWidth={viewportWidth}
                     media={momentMedia}
                     isVisible={momentMedia}
-                    overlayMsg={isExpanded ? undefined : sanitizeNotificationMsg(moment.notificationMsg)}
+                    isDarkMode={isDarkMode}
+                    overlayMsg={sanitizeNotificationMsg(moment.notificationMsg)}
                 />
                 <Text style={this.viewMomentStyles.momentMessage}>
                     <Autolink

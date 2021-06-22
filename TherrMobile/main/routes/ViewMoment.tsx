@@ -34,6 +34,7 @@ interface IMomentDetails {
 }
 
 interface IViewMomentDispatchProps {
+    getMomentDetails: Function;
     deleteMoment: Function;
 }
 
@@ -63,6 +64,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    getMomentDetails: MapActions.getMomentDetails,
     deleteMoment: MapActions.deleteMoment,
 }, dispatch);
 
@@ -99,7 +101,18 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     }
 
     componentDidMount() {
-        const { navigation} = this.props;
+        const { content, getMomentDetails, navigation, route, user } = this.props;
+        const { isMyMoment, moment } = route.params;
+
+        const momentUserName = isMyMoment ? user.details.userName : moment.fromUserName;
+        const mediaId = (moment.media && moment.media[0]?.id) || (moment.mediaIds?.length && moment.mediaIds?.split(',')[0]);
+        const momentMedia = content?.media[mediaId];
+
+        // Move moment details out of route params and into redux
+        getMomentDetails(moment.id, {
+            withMedia: !momentMedia,
+            withUser: !momentUserName,
+        });
 
         navigation.setOptions({
             title: this.notificationMsg,
@@ -166,13 +179,24 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         }
     }
 
+    goBack = () => {
+        const { navigation, route } = this.props;
+        const { previousView } = route.params;
+        if (previousView && previousView === 'Moments') {
+            navigation.goBack();
+        } else {
+            navigation.navigate('Map');
+        }
+    }
+
     render() {
         const { isDeleting, isVerifyingDelete, previewLinkId, previewStyleState } = this.state;
-        const { content, navigation, route } = this.props;
+        const { content, route, user } = this.props;
         const { moment, isMyMoment } = route.params;
         // TODO: Fetch moment media
         const mediaId = (moment.media && moment.media[0]?.id) || (moment.mediaIds?.length && moment.mediaIds?.split(',')[0]);
         const momentMedia = content?.media[mediaId];
+        const momentUserName = isMyMoment ? user.details.userName : moment.fromUserName;
 
         return (
             <>
@@ -188,13 +212,14 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                             <MomentDisplay
                                 translate={this.translate}
                                 date={this.date}
+                                expandMoment={() => null}
                                 hashtags={this.hashtags}
                                 isDarkMode={false}
                                 isExpanded={true}
                                 moment={moment}
                                 // TODO: User Username from response
                                 userDetails={{
-                                    userName: moment.fromUserId,
+                                    userName: momentUserName || moment.fromUserId,
                                 }}
                                 momentMedia={momentMedia}
                             />
@@ -216,7 +241,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                             <Button
                                 containerStyle={beemoFormStyles.backButtonContainer}
                                 buttonStyle={beemoFormStyles.backButton}
-                                onPress={() => navigation.navigate('Map')}
+                                onPress={() => this.goBack()}
                                 icon={
                                     <FontAwesome5Icon
                                         name="arrow-left"
