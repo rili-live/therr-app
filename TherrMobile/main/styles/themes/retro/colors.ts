@@ -51,7 +51,10 @@ const colors = {
 };
 
 const colorVariations = {
+    primaryFade: new Color(colors.primary).fade(0.35).toString(),
+    primary2Darken: new Color(colors.primary2).darken(0.075).toString(),
     primary3Fade: new Color(colors.primary3).fade(0.25).toString(),
+    textBlackFade: new Color(colors.textBlack).fade(0.75).toString(),
     beemoBlueLightFade: new Color(colors.beemoBlue).fade(0.2).toString(),
     beemoBlueHeavyFade: new Color(colors.beemoBlue).fade(0.7).toString(),
     beemoTextBlack: new Color(colors.beemoTextBlack).lighten(0.25).toString(),

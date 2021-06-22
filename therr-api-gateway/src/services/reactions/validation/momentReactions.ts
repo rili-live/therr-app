@@ -34,4 +34,5 @@ export const searchActiveMomentsValidation = [
     body('offset').exists(),
     body('limit').optional(),
     body('withMedia').isBoolean().optional(),
+    body('withUser').isBoolean().optional(),
 ];

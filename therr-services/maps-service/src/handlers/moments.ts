@@ -1,10 +1,13 @@
 import axios from 'axios';
 import path from 'path';
 import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
+import { ErrorCodes } from 'therr-js-utilities/constants';
 import { RequestHandler } from 'express';
 import { storage } from '../api/aws';
 import * as globalConfig from '../../../../global-config';
+import getReactions from '../utilities/getReactions';
 import handleHttpError from '../utilities/handleHttpError';
+import translate from '../utilities/translator';
 import Store from '../store';
 
 // CREATE
@@ -22,14 +25,59 @@ const createMoment = (req, res) => {
 };
 
 // READ
+const getMomentDetails = (req, res) => {
+    const userId = req.headers['x-userid'];
+    const locale = req.headers['x-localecode'] || 'en-us';
+
+    const { momentId } = req.params;
+
+    const {
+        withMedia,
+        withUser,
+    } = req.body;
+
+    const shouldFetchMedia = !!withMedia;
+    const shouldFetchUser = !!withUser;
+
+    return Store.moments.findMoments([momentId], {
+        limit: 1,
+    }, {
+        withMedia: shouldFetchMedia,
+        withUser: shouldFetchUser,
+    })
+        .then(({ moments, media, users }) => {
+            const moment = moments[0];
+            let userHasAccessPromise = () => Promise.resolve(true);
+            // Verify that user has activated moment and has access to view it
+            if (Number(moment.fromUserId) !== Number(userId)) {
+                userHasAccessPromise = () => getReactions(momentId, {
+                    'x-userid': userId,
+                });
+            }
+
+            return userHasAccessPromise().then((isActivated) => {
+                if (!isActivated) {
+                    return handleHttpError({
+                        res,
+                        message: translate(locale, 'momentReactions.momentNotActivated'),
+                        statusCode: 400,
+                        errorCode: ErrorCodes.MOMENT_ACCESS_RESTRICTED,
+                    });
+                }
+
+                return res.status(200).send({ moment, media, users });
+            });
+        }).catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
+};
+
 const searchMoments: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
     const {
-        filterBy,
+        // filterBy,
         query,
         itemsPerPage,
-        longitude,
-        latitude,
+        // longitude,
+        // latitude,
         pageNumber,
     } = req.query;
     const {
@@ -96,15 +144,20 @@ const findMoments: RequestHandler = async (req: any, res: any) => {
         limit,
         momentIds,
         withMedia,
+        withUser,
     } = req.body;
 
     return Store.moments.findMoments(momentIds, {
         limit: limit || 21,
     }, {
         withMedia: !!withMedia,
+        withUser: !!withUser,
     })
         .then(({ moments, media }) => res.status(200).send({ moments, media }))
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
+        .catch((err) => {
+            console.log(err);
+            return handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' });
+        });
 };
 
 const getSignedUrl = (req, res, bucket) => {
@@ -158,6 +211,7 @@ const deleteMoments = (req, res) => {
 
 export {
     createMoment,
+    getMomentDetails,
     searchMoments,
     findMoments,
     getSignedUrlPrivateBucket,

@@ -14,7 +14,7 @@ import RoundInput from '../../components/Input/Round';
 import * as therrTheme from '../../styles/themes';
 import styles from '../../styles';
 import buttonStyles from '../../styles/buttons';
-import hostedChatStyles from '../../styles/hosted-chat';
+import hostedChatStyles from '../../styles/user-content/hosted-chat';
 import ChatCategories from './ChatCategories';
 import renderChatTile from './ChatTile';
 

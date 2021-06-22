@@ -8,7 +8,7 @@ import { bindActionCreators } from 'redux';
 import { MessageActions, SocketActions } from 'therr-react/redux/actions';
 import { IUserState, IMessagesState } from 'therr-react/types';
 import styles from '../styles';
-import messageStyles from '../styles/messages';
+import messageStyles from '../styles/user-content/messages';
 import translator from '../services/translator';
 import TextMessage from '../components/TextMessage';
 import RoundInput from '../components/Input/Round';

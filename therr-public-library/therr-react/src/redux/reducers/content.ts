@@ -1,6 +1,7 @@
 import * as Immutable from 'seamless-immutable';
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { IContentState, ContentActionTypes } from '../../types/redux/content';
+import { MapActionTypes } from '../../types';
 
 const initialState: IContentState = Immutable.from({
     activeMoments: Immutable.from([]),
@@ -26,6 +27,9 @@ const content = (state: IContentState = initialState, action: any) => {
             // Reset moments from scratch
             return state.setIn(['activeMoments'], action.data.moments)
                 .setIn(['media'], action.data.media);
+        case MapActionTypes.GET_MOMENT_DETAILS:
+            // Reset moments from scratch
+            return state.setIn(['media'], { ...state.media, ...action.data.media });
         case SocketClientActionTypes.LOGOUT:
             return state.setIn(['activeMoments'], Immutable.from([]));
         default:

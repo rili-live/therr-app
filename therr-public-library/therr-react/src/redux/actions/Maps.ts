@@ -8,6 +8,13 @@ const Maps = {
             data: response.data,
         });
     }),
+    getMomentDetails: (momentId: number, data: any) => (dispatch: any) => MapsService.getMomentDetails(momentId, data)
+        .then((response: any) => {
+            dispatch({
+                type: MapActionTypes.GET_MOMENT_DETAILS,
+                data: response.data,
+            });
+        }),
     updateCoordinates: (data: any) => (dispatch: any) => {
         dispatch({
             type: MapActionTypes.UPDATE_COORDS,

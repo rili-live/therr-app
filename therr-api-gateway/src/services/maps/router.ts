@@ -4,6 +4,7 @@ import handleServiceRequest from '../../middleware/handleServiceRequest';
 import { validate } from '../../validation';
 import {
     createMomentValidation,
+    getMomentDetailsValidation,
     searchMomentsValidation,
     getSignedUrlValidation,
     deleteMomentsValidation,
@@ -13,6 +14,11 @@ const mapsServiceRouter = express.Router();
 
 // Maps
 mapsServiceRouter.post('/moments', createMomentValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
+
+mapsServiceRouter.post('/moments/:momentId/details', getMomentDetailsValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));

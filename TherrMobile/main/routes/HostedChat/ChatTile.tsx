@@ -6,7 +6,7 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import therrIconConfig from '../../assets/therr-font-config.json';
 import * as therrTheme from '../../styles/themes';
-import tileStyles from '../../styles/hosted-chat/chat-tiles';
+import tileStyles from '../../styles/user-content/hosted-chat/chat-tiles';
 
 const TherrIcon = createIconSetFromIcoMoon(
     therrIconConfig,

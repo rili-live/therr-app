@@ -61,6 +61,12 @@ export const headerStyles: any = {
     minHeight: Platform.OS === 'ios'
         ? (IOS_STATUS_HEIGHT + IOS_TOP_GAP + HEADER_HEIGHT)
         : (HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + 20),
+    shadowRadius: 0,
+    shadowOffset: {
+        height: 0,
+    },
+    shadowColor: 'transparent',
+    borderBottomWidth: 0,
 };
 
 const overlayStyles: any = {
@@ -83,7 +89,7 @@ const loaderStyles = StyleSheet.create({
 
 export default StyleSheet.create({
     safeAreaView: {
-        marginTop: Platform.OS === 'ios' ? IOS_STATUS_HEIGHT : 10,
+        marginTop: Platform.OS === 'ios' ? IOS_STATUS_HEIGHT : 0,
         flex: 1,
     },
     scrollView: {
@@ -216,6 +222,7 @@ export default StyleSheet.create({
         flex: 1,
         letterSpacing: 7,
         lineHeight: HEADER_HEIGHT,
+        overflow: 'hidden',
     },
     highlight: {
         fontWeight: '700',

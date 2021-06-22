@@ -27,8 +27,8 @@ const createConnection = (socket: socketio.Socket, data: ICreateUserConnectionDa
         },
     });
     redisSessions.getUserById(data.connection.acceptingUserId).then((response) => {
-        const socketId = response && response.socketId;
-        if (response.socketId) {
+        const socketId = response?.socketId;
+        if (socketId) {
             const connection = { ...data.connection };
             const notification = data.connection.notification;
             delete connection.notification;

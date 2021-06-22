@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { View, Text } from 'react-native';
-import messageStyles from '../styles/messages';
+import messageStyles from '../styles/user-content/messages';
 
 export default ({
     isLeft,

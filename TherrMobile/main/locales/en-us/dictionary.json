@@ -403,7 +403,7 @@
     "moments": {
       "headerTitle": "Moments",
       "pageTitle": "Moments",
-      "noMomentsFound": "You have not yet activated any moments. Explore the world, and active moments will start to appear in this view"
+      "noMomentsFound": "You have not yet activated any moments. Explore the world, and active moments will start to appear in this view..."
     },
     "notifications": {
       "headerTitle": "Notifications",
@@ -429,8 +429,9 @@
       "headerTitle": "Therr",
       "pageTitle": "Create an Account",
       "passwordRequirements1": "Contains a mixture of letters and numbers",
-      "passwordRequirements2": "At least one special character !@#$%^&*",
-      "passwordRequirements3": "At least 8 characters"
+      "passwordRequirements2": "At least one capital letter",
+      "passwordRequirements3": "At least one special character !@#$%^&*",
+      "passwordRequirements4": "At least 8 characters"
     },
     "settings": {
       "headerTitle": "Settings",

@@ -1,9 +1,17 @@
 import { StyleSheet } from 'react-native';
-import { HEADER_HEIGHT, HEADER_EXTRA_HEIGHT } from '../';
+import { HEADER_HEIGHT, HEADER_EXTRA_HEIGHT } from '..';
 import * as therrTheme from '../themes';
 
 const containerBackgroundColor = therrTheme.colors.textWhite;
 // const brandingYellow = '#ebc300';
+
+const userProfileButtonContainerStyles: any = {
+    margin: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+};
 
 export default StyleSheet.create({
     buttons: {
@@ -35,6 +43,12 @@ export default StyleSheet.create({
         color: therrTheme.colors.primary,
         // position: 'absolute',
         // left: 20
+    },
+    notificationsItemContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     notificationCircle: {
         borderWidth: 4,
@@ -102,8 +116,8 @@ export default StyleSheet.create({
         borderRadius: 15,
     },
     logoutIcon: {
-        height: 30,
-        width: 30,
+        height: 22,
+        width: 22,
         borderRadius: 15,
         color: therrTheme.colors.textWhite,
     },
@@ -111,5 +125,11 @@ export default StyleSheet.create({
         height: 30,
         width: 30,
         borderRadius: 15,
+    },
+    userProfileButtonContainer: {
+        ...userProfileButtonContainerStyles,
+    },
+    userProfileButtonContainerVerified: {
+        ...userProfileButtonContainerStyles,
     },
 });
