@@ -5,7 +5,7 @@ import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import therrIconConfig from '../../assets/therr-font-config.json';
-import categoryStyles from '../../styles/hosted-chat/categories';
+import categoryStyles from '../../styles/user-content/hosted-chat/categories';
 import formStyles from '../../styles/forms';
 import * as therrTheme from '../../styles/themes';
 

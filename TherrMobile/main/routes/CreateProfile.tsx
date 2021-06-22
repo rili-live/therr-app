@@ -218,14 +218,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                 { stage === 'A' &&
                                     <LottieView
                                         source={profileLoader}
-                                        style={{
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                            flex: 1,
-                                            padding: 8,
-                                            zIndex: -1,
-                                        }}
+                                        style={firstTimeUIStyles.formAGraphic}
                                         resizeMode="cover"
                                         speed={1.75}
                                         autoPlay
@@ -235,14 +228,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                 { stage === 'B' &&
                                     <LottieView
                                         source={verifyPhoneLoader}
-                                        style={{
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                            flex: 1,
-                                            padding: 8,
-                                            zIndex: -1,
-                                        }}
+                                        style={firstTimeUIStyles.formBGraphic}
                                         resizeMode="contain"
                                         autoPlay
                                         loop

@@ -24,6 +24,10 @@ interface IFindUserArgs {
     phoneNumber?: string;
 }
 
+interface IFindUsersArgs {
+    ids?: number[];
+}
+
 export default class UsersStore {
     db: IConnection;
 
@@ -31,8 +35,9 @@ export default class UsersStore {
         this.db = dbConnection;
     }
 
+    // Deprecated
     getUsers(conditions = {}, orConditions = {}, anotherOrConditions = {}) {
-        const queryString = knex.select('*')
+        const queryString = knex.select(['*'])
             .from(USERS_TABLE_NAME)
             .orderBy('id')
             .where(conditions)
@@ -61,6 +66,16 @@ export default class UsersStore {
         if (phoneNumber) {
             queryString = queryString.orWhere({ phoneNumber });
         }
+
+        queryString = queryString.toString();
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
+    findUsers({
+        ids,
+    }: IFindUsersArgs, returning: any = ['id', 'userName', 'firstName', 'lastName']) {
+        let queryString: any = knex.select(returning).from('main.users')
+            .whereIn('id', ids || []);
 
         queryString = queryString.toString();
         return this.db.read.query(queryString).then((response) => response.rows);

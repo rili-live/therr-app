@@ -18,6 +18,7 @@ const Content = {
     updateActiveMoments: () => (dispatch: any) => ReactionsService.searchActiveMoments({
         offset: 0,
         withMedia: true,
+        withUser: true,
     })
         .then((response: any) => {
             dispatch({

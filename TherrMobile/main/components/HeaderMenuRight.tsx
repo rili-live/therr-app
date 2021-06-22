@@ -195,14 +195,7 @@ class HeaderMenuRight extends React.Component<
                                     />}
                                 onPress={() => this.toggleOverlay()}
                                 type="clear"
-                                containerStyle={{
-                                    height: 40,
-                                    margin: 0,
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    justifyContent: 'flex-end',
-                                    alignItems: 'center',
-                                }}
+                                containerStyle={headerMenuModal.userProfileButtonContainerVerified}
                             /> :
                             <Button
                                 icon={
@@ -214,7 +207,7 @@ class HeaderMenuRight extends React.Component<
                                 }
                                 onPress={() => this.handleLogout()}
                                 type="clear"
-                                containerStyle={{ margin: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center' }}
+                                containerStyle={headerMenuModal.userProfileButtonContainer}
                             />
                     }
                     <Overlay
@@ -279,41 +272,6 @@ class HeaderMenuRight extends React.Component<
                                             }
                                             onPress={() => this.navTo('Home')}
                                         />
-                                        <View style={{
-                                            display: 'flex',
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                        }}>
-                                            {
-                                                hasNotifications && <View style={headerMenuModal.notificationCircle} />
-                                            }
-                                            <Button
-                                                buttonStyle={
-                                                    currentScreen === 'Notifications'
-                                                        ? headerMenuModal.buttonsActive
-                                                        : headerMenuModal.buttons
-                                                }
-                                                titleStyle={
-                                                    currentScreen === 'Notifications'
-                                                        ? headerMenuModal.buttonsTitleActive
-                                                        : headerMenuModal.buttonsTitle
-                                                }
-                                                title={this.translate('components.headerMenuRight.menuItems.notifications')}
-                                                icon={
-                                                    <FontAwesomeIcon
-                                                        style={
-                                                            currentScreen === 'Notifications'
-                                                                ? headerMenuModal.iconStyleActive
-                                                                : headerMenuModal.iconStyle
-                                                        }
-                                                        name={hasNotifications ? 'bell' : 'bell-slash'}
-                                                        size={22}
-                                                    />
-                                                }
-                                                onPress={() => this.navTo('Notifications')}
-                                            />
-                                        </View>
                                         <Button
                                             buttonStyle={
                                                 currentScreen === 'Map'
@@ -364,6 +322,36 @@ class HeaderMenuRight extends React.Component<
                                             }
                                             onPress={() => this.navTo('Moments')}
                                         />
+                                        <View style={headerMenuModal.notificationsItemContainer}>
+                                            {
+                                                hasNotifications && <View style={headerMenuModal.notificationCircle} />
+                                            }
+                                            <Button
+                                                buttonStyle={
+                                                    currentScreen === 'Notifications'
+                                                        ? headerMenuModal.buttonsActive
+                                                        : headerMenuModal.buttons
+                                                }
+                                                titleStyle={
+                                                    currentScreen === 'Notifications'
+                                                        ? headerMenuModal.buttonsTitleActive
+                                                        : headerMenuModal.buttonsTitle
+                                                }
+                                                title={this.translate('components.headerMenuRight.menuItems.notifications')}
+                                                icon={
+                                                    <FontAwesomeIcon
+                                                        style={
+                                                            currentScreen === 'Notifications'
+                                                                ? headerMenuModal.iconStyleActive
+                                                                : headerMenuModal.iconStyle
+                                                        }
+                                                        name={hasNotifications ? 'bell' : 'bell-slash'}
+                                                        size={22}
+                                                    />
+                                                }
+                                                onPress={() => this.navTo('Notifications')}
+                                            />
+                                        </View>
                                         {/* <Button
                                             buttonStyle={
                                                 currentScreen === 'HostedChat'

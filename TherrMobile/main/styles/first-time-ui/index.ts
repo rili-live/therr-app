@@ -11,6 +11,15 @@ const titleStyles: any = {
     letterSpacing: 2,
 };
 
+const createProfileGraphicStyles: any = {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
+    padding: 8,
+    zIndex: -1,
+};
+
 export default StyleSheet.create({
     title: {
         ...titleStyles,
@@ -18,5 +27,11 @@ export default StyleSheet.create({
     titleWithSpacing: {
         ...titleStyles,
         paddingBottom: 20,
+    },
+    formAGraphic: {
+        ...createProfileGraphicStyles,
+    },
+    formBGraphic: {
+        ...createProfileGraphicStyles,
     },
 });

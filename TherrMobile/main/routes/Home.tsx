@@ -8,17 +8,16 @@ import { bindActionCreators } from 'redux';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import PhoneInput from 'react-native-phone-input';
-import CountryPicker, { CountryCode } from 'react-native-country-picker-modal';
 import isEmail from 'validator/es/lib/isEmail';
 import Alert from '../components/Alert';
-import * as therrTheme from '../styles/themes';
-import styles, { addMargins } from '../styles';
-import formStyles, { phoneInput as phoneStyles } from '../styles/forms';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
 import SquareInput from '../components/Input/Square';
+import PhoneNumberInput from '../components/Input/PhoneNumberInput';
+import * as therrTheme from '../styles/themes';
+import styles, { addMargins } from '../styles';
+import formStyles from '../styles/forms';
 
 interface IHomeDispatchProps {
     createUserConnection: Function;
@@ -38,12 +37,11 @@ export interface IHomeProps extends IStoreProps {
 
 interface IHomeState {
     connectionContext: any;
-    countryCode: CountryCode;
     emailErrorMessage: string;
     inputs: any;
+    isPhoneNumberValid: boolean;
     prevConnReqSuccess: string;
     prevConnReqError: string;
-    isCountryPickerVisible: boolean;
     isSubmitting: boolean;
 }
 
@@ -65,8 +63,6 @@ const mapDispatchToProps = (dispatch: any) =>
 class Home extends React.Component<IHomeProps, IHomeState> {
     private translate: Function;
 
-    private phone: any;
-
     private quote: string;
 
     private quoteAuthor: string;
@@ -76,12 +72,11 @@ class Home extends React.Component<IHomeProps, IHomeState> {
 
         this.state = {
             connectionContext: 'phone',
-            countryCode: 'US',
             emailErrorMessage: '',
             inputs: {},
             prevConnReqError: '',
             prevConnReqSuccess: '',
-            isCountryPickerVisible: false,
+            isPhoneNumberValid: false,
             isSubmitting: false,
         };
 
@@ -197,10 +192,10 @@ class Home extends React.Component<IHomeProps, IHomeState> {
     }
 
     onSubmit = () => {
-        const { connectionContext, inputs } = this.state;
+        const { connectionContext, inputs, isPhoneNumberValid } = this.state;
         const { createUserConnection, user } = this.props;
 
-        if (connectionContext === 'phone' && (!this.phone || !this.phone.isValidNumber())) {
+        if (connectionContext === 'phone' && !isPhoneNumberValid) {
             this.setState({
                 prevConnReqError: this.translate('forms.createConnection.errorMessages.invalidPhoneNumber'),
             });
@@ -217,7 +212,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
             reqBody.acceptingUserEmail = inputs.email;
         }
         if (connectionContext === 'phone') {
-            reqBody.acceptingUserPhoneNumber = this.phone.getValue();
+            reqBody.acceptingUserPhoneNumber = inputs.phoneNumber;
         }
 
         createUserConnection(reqBody, user.details)
@@ -225,7 +220,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                 this.setState({
                     inputs: {
                         email: '',
-                        phone: '',
+                        phoneNumber: '',
                     },
                     prevConnReqSuccess: this.translate('forms.createConnection.successMessages.connectionSent'),
                 });
@@ -239,44 +234,23 @@ class Home extends React.Component<IHomeProps, IHomeState> {
             });
     };
 
-    onCountryCodeSelect = (country) => {
-        this.phone.selectCountry(country.cca2.toLowerCase());
+    onPhoneInputChange = (value: string, isValid: boolean) => {
         this.setState({
-            countryCode: country.cca2,
-            isCountryPickerVisible: false,
-            prevConnReqError: '',
-            prevConnReqSuccess: '',
-        });
-    }
-
-    onPhoneInputChange = (value: string, iso2: string) => {
-        const newState: any = {
             inputs: {
                 ...this.state.inputs,
-                phone: value,
+                phoneNumber: value,
             },
             prevConnReqError: '',
             prevConnReqSuccess: '',
-        };
-        if (iso2) {
-            newState.countryCode = (iso2?.toUpperCase() as CountryCode);
-        }
-        this.setState(newState);
-    }
-
-    onPressFlag = () => {
-        this.setState({
-            isCountryPickerVisible: true,
+            isPhoneNumberValid: isValid,
         });
     }
 
     render() {
         const {
             connectionContext,
-            countryCode,
             emailErrorMessage,
             inputs,
-            isCountryPickerVisible,
             prevConnReqError,
             prevConnReqSuccess,
         } = this.state;
@@ -350,37 +324,12 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                     }
                                     {
                                         connectionContext === 'phone' &&
-                                        <View style={phoneStyles.phoneInputContainer}>
-                                            <PhoneInput
-                                                autoFormat={true}
-                                                ref={(ref) => { this.phone = ref; }}
-                                                onPressFlag={this.onPressFlag}
-                                                offset={0}
-                                                onChangePhoneNumber={this.onPhoneInputChange}
-                                                onSubmitEditing={this.onSubmit}
-                                                initialCountry={'us'}
-                                                flagStyle={styles.displayNone}
-                                                style={formStyles.phoneInput}
-                                                textProps={{
-                                                    placeholder: this.translate('forms.createConnection.placeholders.phone'),
-                                                    selectionColor: therrTheme.colors.ternary,
-                                                    style: {...formStyles.phoneInputText},
-                                                    placeholderTextColor: therrTheme.colors.placeholderTextColor,
-                                                }}
-                                            />
-                                            <View style={phoneStyles.countryFlagContainer}>
-                                                <CountryPicker
-                                                    closeButtonStyle={phoneStyles.pickerCloseButton}
-                                                    containerButtonStyle={phoneStyles.countryFlag}
-                                                    onSelect={(value)=> this.onCountryCodeSelect(value)}
-                                                    translation="common"
-                                                    countryCode={countryCode}
-                                                    // onSelect={this.onCountryCodeSelect}
-                                                    visible={isCountryPickerVisible}
-                                                    withAlphaFilter={true}
-                                                />
-                                            </View>
-                                        </View>
+                                        <PhoneNumberInput
+                                            onChangeText={this.onPhoneInputChange}
+                                            onSubmit={this.onSubmit}
+                                            placeholder={this.translate('forms.settings.labels.phoneNumber')}
+                                            translate={this.translate}
+                                        />
                                     }
                                     <Alert
                                         containerStyles={addMargins({

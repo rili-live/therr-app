@@ -54,11 +54,6 @@ usersServiceRouter.get('/users/:id', handleServiceRequest({
     method: 'get',
 }));
 
-usersServiceRouter.get('/users', handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'get',
-}));
-
 usersServiceRouter.put('/users/:id', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',

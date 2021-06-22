@@ -17,6 +17,7 @@ import styles, { addMargins } from '../styles';
 import beemoLayoutStyles from '../styles/layouts/beemo';
 import * as therrTheme from '../styles/themes';
 import formStyles, { beemoEditForm as editMomentFormStyles } from '../styles/forms';
+import editMomentStyles from '../styles/user-content/moments/editing';
 import userContentStyles from '../styles/user-content';
 import { youtubeLinkRegex } from '../constants';
 import Alert from '../components/Alert';
@@ -240,7 +241,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         });
     };
 
-    handleHashTagsBlur = (event) => {
+    handleHashTagsBlur = () => {
         const { hashtags, inputs } = this.state;
 
         if (inputs.hashTags?.trim().length) {
@@ -312,32 +313,14 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         contentContainerStyle={[styles.bodyScroll, beemoLayoutStyles.bodyEditScroll]}
                     >
                         <View style={beemoLayoutStyles.container}>
-                            <View style={{
-                                // marginTop: -10,
-                                // marginLeft: -20,
-                                // marginRight: -20,
-                                marginBottom: 30,
-                                marginLeft: 10,
-                                marginRight: 10,
-                                padding: 0,
-                                backgroundColor: therrTheme.colors.beemo2,
-                                borderColor: therrTheme.colors.beemoTextBlack,
-                                borderWidth: 1,
-                                flex: 1,
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}>
+                            <View style={editMomentStyles.mediaContainer}>
                                 <Image
                                     source={{ uri: imageDetails.uri }}
-                                    style={{
-                                        width: '100%',
-                                        height: '100%',
-                                        aspectRatio: 1,
-                                    }}
+                                    style={editMomentStyles.mediaImage}
                                 />
                             </View>
                             <BeemoInput
+                                maxLength={100}
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.notificationMsg'
                                 )}

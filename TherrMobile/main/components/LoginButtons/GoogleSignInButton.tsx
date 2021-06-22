@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button, Image } from 'react-native-elements';
 import auth from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import getConfig from '../../utilities/getConfig';
+import ssoButtonStyles from '../../styles/buttons/ssoButtons';
 
 const googleLogoImg = require('../../assets/google-letter-logo.png');
 
@@ -14,12 +15,15 @@ interface IGoogleSignInButtonProps {
     buttonTitle: string;
     onLoginError: Function;
     onLoginSuccess: Function;
+    disabled: boolean;
 }
 
 async function onGoogleButtonPress({
     onLoginError,
     onLoginSuccess,
+    setDisabled,
 }) {
+    setDisabled(true);
     // Get the users ID token
     const { idToken } = await GoogleSignin.signIn();
 
@@ -33,6 +37,9 @@ async function onGoogleButtonPress({
         })
         .catch((err) => {
             onLoginError(err);
+        })
+        .finally(() => {
+            setDisabled(false);
         });
 }
 
@@ -40,44 +47,30 @@ function GoogleSignInButton({
     buttonTitle,
     onLoginError,
     onLoginSuccess,
+    disabled,
 }: IGoogleSignInButtonProps) {
+    const [isDisabled, setDisabled] = useState(false);
+
     return (
         <Button
             title={buttonTitle}
             onPress={() => onGoogleButtonPress({
                 onLoginError,
                 onLoginSuccess,
+                setDisabled,
             })}
+            disabled={disabled || isDisabled}
             raised={true}
-            containerStyle={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                flex: 1,
-            }}
-            buttonStyle={{
-                backgroundColor: '#FFFFFF',
-                flex: 1,
-            }}
-            titleStyle={{
-                color: '#6b6969',
-                fontSize: 16,
-                textAlign: 'center',
-                paddingLeft: 12,
-                paddingRight: 12,
-                fontWeight: 'bold',
-            }}
+            containerStyle={ssoButtonStyles.googleButtonContainer}
+            buttonStyle={ssoButtonStyles.googleButton}
+            titleStyle={ssoButtonStyles.googleButtonTitle}
             icon={
                 <Image
                     source={googleLogoImg}
-                    style={{
-                        height: 22,
-                        width: 22,
-                        padding: 8,
-                    }}
+                    style={ssoButtonStyles.googleButtonIcon}
                 />}
         />
     );
-};
+}
 
 export default GoogleSignInButton;

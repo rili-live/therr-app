@@ -5,6 +5,11 @@ import { ISearchQuery } from '../types';
 interface ISearchMomentsArgs {
     distanceOverride?: number;
 }
+
+interface IGetMomentDetailsArgs {
+    withMedia?: boolean;
+    withUser?: boolean;
+}
 interface ICreateMomentBody {
     expiresAt?: any;
     fromUserId: number;
@@ -31,6 +36,12 @@ class MapsService {
         method: 'post',
         url: '/maps-service/moments',
         data,
+    })
+
+    getMomentDetails = (momentId: number, args: IGetMomentDetailsArgs) => axios({
+        method: 'post',
+        url: `/maps-service/moments/${momentId}/details`,
+        data: args,
     })
 
     searchMoments = (query: ISearchQuery, data: ISearchMomentsArgs = {}) => {

@@ -343,7 +343,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                             maxWidth: 4 * viewportWidth,
                             saveToPhotos: true,
                         },
-                        (response) => this.handleImageSelect(response, circleCenter),
+                        (cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter),
                     );
                 } else {
                     throw new Error('permissions denied');

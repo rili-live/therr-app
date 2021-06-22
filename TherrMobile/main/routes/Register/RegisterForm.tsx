@@ -1,14 +1,15 @@
 import * as React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { Button } from 'react-native-elements';
 import { PasswordRegex } from 'therr-js-utilities/constants';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import translator from '../../services/translator';
 import { addMargins } from '../../styles';
-import formStyles, { loginForm as loginFormStyles } from '../../styles/forms';
+import { loginForm as loginFormStyles } from '../../styles/forms';
 import * as therrTheme from '../../styles/themes';
 import Alert from '../../components/Alert';
 import SquareInput from '../../components/Input/Square';
+import PasswordRequirements from '../../components/Input/PasswordRequirements';
 
 // Regular component props
 interface IRegisterFormProps {
@@ -146,9 +147,6 @@ export class RegisterFormComponent extends React.Component<
             prevRegisterError,
         } = this.state;
         // const { alert, title } = this.props;
-        const passwordRequirements1 = this.translate('pages.register.passwordRequirements1');
-        const passwordRequirements2 = this.translate('pages.register.passwordRequirements2');
-        const passwordRequirements3 = this.translate('pages.register.passwordRequirements3');
 
         return (
             <>
@@ -170,20 +168,7 @@ export class RegisterFormComponent extends React.Component<
                         />
                     }
                 />
-                <View style={formStyles.textField}>
-                    <Text style={formStyles.textFieldInfoTextHeader}>
-                        Password Requirements
-                    </Text>
-                    <Text style={formStyles.textFieldInfoText}>
-                        {`* ${passwordRequirements1}`}
-                    </Text>
-                    <Text style={formStyles.textFieldInfoText}>
-                        {`* ${passwordRequirements2}`}
-                    </Text>
-                    <Text style={formStyles.textFieldInfoText}>
-                        {`* ${passwordRequirements3}`}
-                    </Text>
-                </View>
+                <PasswordRequirements translate={this.translate} password={this.state.inputs.password} />
                 {/* TODO: RMOBILE-26: Centralize password requirements */}
                 <SquareInput
                     autoCapitalize="none"

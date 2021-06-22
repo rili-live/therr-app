@@ -1,6 +1,7 @@
 import * as express from 'express';
 import {
     createMoment,
+    getMomentDetails,
     searchMoments,
     findMoments,
     getSignedUrlPublicBucket,
@@ -14,8 +15,8 @@ const router = express.Router();
 router.post('/', createMoment);
 
 // SEARCH
+router.post('/:momentId/details', getMomentDetails);
 router.post('/search', searchMoments);
-
 router.post('/find', findMoments);
 
 // GCS

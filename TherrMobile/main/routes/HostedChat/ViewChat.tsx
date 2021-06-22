@@ -24,9 +24,9 @@ import translator from '../../services/translator';
 import * as therrTheme from '../../styles/themes';
 import beemoLayoutStyles from '../../styles/layouts/beemo';
 import styles from '../../styles';
-import viewChatStyles from '../../styles/hosted-chat/view-chat';
+import viewChatStyles from '../../styles/user-content/hosted-chat/view-chat';
 import { beemoEditForm as beemoFormStyles } from '../../styles/forms';
-import messageStyles from '../../styles/messages';
+import messageStyles from '../../styles/user-content/messages';
 import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
 import BeemoInput from '../../components/Input/Beemo';
 
