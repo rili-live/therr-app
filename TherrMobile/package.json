@@ -1,6 +1,6 @@
 {
   "name": "Therr",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "private": true,
   "scripts": {
     "android": "export $(cat .env | xargs) && ./node_modules/.bin/react-native run-android",
@@ -17,7 +17,7 @@
     "env:export": "export $(cat .env | xargs)",
     "getSHA": "pushd android && ./gradlew signingReport && popd",
     "ios": "rm -rf node_modules/.cache/babel-loader/*, && npm run ios:bundle && ./node_modules/.bin/react-native run-ios",
-    "ios:bundle": "./node_modules/.bin/react-native bundle --entry-file='index.js' --bundle-output='./ios/main.jsbundle'",
+    "ios:bundle": "./node_modules/.bin/react-native bundle --entry-file='index.js' --bundle-output='./ios/main.jsbundle' --assets-dest ./ios",
     "ios:bundle:release": "./node_modules/.bin/react-native bundle --entry-file='index.js' --bundle-output='./ios/main.jsbundle' --assets-dest ./ios --dev=false --platform ios",
     "start": "./node_modules/.bin/react-native start",
     "test": "../node_modules/.bin/jest --no-cache",

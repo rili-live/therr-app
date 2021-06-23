@@ -89,7 +89,7 @@ const loaderStyles = StyleSheet.create({
 
 export default StyleSheet.create({
     safeAreaView: {
-        marginTop: Platform.OS === 'ios' ? IOS_STATUS_HEIGHT : 0,
+        marginTop: Platform.OS === 'ios' ? 0 : 0,
         flex: 1,
     },
     scrollView: {
