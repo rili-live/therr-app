@@ -49,32 +49,32 @@ export default ({
     viewportWidth,
 }) => {
 
-    if (Platform.OS === 'ios') {
-        return (
-            <>
-                <Carousel
-                    contentInsetAdjustmentBehavior="automatic"
-                    style={[styles.scrollViewFull, momentStyles.momentCarousel]}
-                    vertical={true}
-                    data={content.activeMoments}
-                    renderItem={(itemObj) => renderItem(itemObj, {
-                        content,
-                        expandMoment,
-                        formattedDate: formatDate(itemObj.item.createdAt),
-                        translate,
-                    })}
-                    sliderWidth={viewportWidth}
-                    sliderHeight={viewportHeight}
-                    itemWidth={viewportWidth}
-                    itemHeight={viewportHeight}
-                    slideStyle={{ width: viewportWidth }}
-                    inactiveSlideOpacity={1}
-                    inactiveSlideScale={1}
-                    windowSize={21}
-                />
-            </>
-        );
-    }
+    // if (Platform.OS === 'ios') {
+    //     return (
+    //         <>
+    //             <Carousel
+    //                 contentInsetAdjustmentBehavior="automatic"
+    //                 style={[styles.scrollViewFull, momentStyles.momentCarousel]}
+    //                 vertical={true}
+    //                 data={content.activeMoments}
+    //                 renderItem={(itemObj) => renderItem(itemObj, {
+    //                     content,
+    //                     expandMoment,
+    //                     formattedDate: formatDate(itemObj.item.createdAt),
+    //                     translate,
+    //                 })}
+    //                 sliderWidth={viewportWidth}
+    //                 sliderHeight={viewportHeight}
+    //                 itemWidth={viewportWidth}
+    //                 itemHeight={viewportHeight}
+    //                 slideStyle={{ width: viewportWidth }}
+    //                 inactiveSlideOpacity={1}
+    //                 inactiveSlideScale={1}
+    //                 windowSize={21}
+    //             />
+    //         </>
+    //     );
+    // }
 
     return (
         <>
