@@ -7,6 +7,7 @@
 #import <GoogleMaps/GoogleMaps.h>
 #import "ReactNativeConfig.h"
 #import <Firebase.h>
+#import "RNSplashScreen.h"
 
 #if DEBUG
 #import <FlipperKit/FlipperClient.h>
@@ -54,6 +55,8 @@ static void InitializeFlipper(UIApplication *application) {
   rootViewController.view = rootView;
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
+  
+  [RNSplashScreen show];
   return YES;
 }
 
