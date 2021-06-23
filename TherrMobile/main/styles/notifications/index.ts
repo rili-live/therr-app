@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { buttonMenuHeight } from '../navigation/buttonMenu';
 import * as therrTheme from '../themes';
 
 const messageContainerStyle: any = {
@@ -32,8 +33,8 @@ const rootStyle: any = {
 
 export const notifications = StyleSheet.create({
     container: {
-        marginTop: 10,
-        marginBottom: 145,
+        marginTop: 0,
+        marginBottom: buttonMenuHeight,
     },
     firstChildNotification: {
         borderTopWidth: 1,
