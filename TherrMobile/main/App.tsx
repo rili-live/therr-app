@@ -1,6 +1,7 @@
 import React from 'react';
 import { Provider } from 'shared/react-redux';
 import AnimatedLoader from 'react-native-animated-loader';
+import SplashScreen from 'react-native-splash-screen';
 import getStore from './getStore';
 import initInterceptors from './interceptors';
 import Layout from './components/Layout';
@@ -30,6 +31,10 @@ class App extends React.Component<any, any> {
                 isMinLoadTimeComplete: true,
             });
         }, MIN_LOAD_TIMEOUT + 200);
+    }
+
+    componentDidMount() {
+        SplashScreen.hide();
     }
 
     componentWillUnmount() {

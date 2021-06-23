@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Platform, FlatList } from 'react-native';
-import Carousel from 'react-native-snap-carousel';
+import { View, /* Platform, */ FlatList } from 'react-native';
+// import Carousel from 'react-native-snap-carousel';
 import styles from '../../styles';
 import momentStyles from '../../styles/user-content/moments';
 import MomentDisplay from '../../components/UserContent/MomentDisplay';
@@ -45,8 +45,8 @@ export default ({
     content,
     expandMoment,
     translate,
-    viewportHeight,
-    viewportWidth,
+    // viewportHeight,
+    // viewportWidth,
 }) => {
 
     // if (Platform.OS === 'ios') {
