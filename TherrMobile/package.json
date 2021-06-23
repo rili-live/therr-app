@@ -69,6 +69,7 @@
     "react-native-safe-area-context": "^3.1.9",
     "react-native-screens": "^2.10.1",
     "react-native-snap-carousel": "^3.9.1",
+    "react-native-splash-screen": "^3.2.0",
     "react-native-vector-icons": "^6.7.0",
     "react-native-webview": "^11.4.4",
     "react-native-youtube-iframe": "^1.4.0",
