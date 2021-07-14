@@ -1,6 +1,6 @@
 const path = require('path');
 const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-dependencies
-const merge = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
+const { merge } = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
 const parts = require('../../webpack.parts');
 
 // For externals
@@ -47,10 +47,10 @@ const common = merge([
         node: {
             __dirname: false,
         },
-        plugins: [
-            new webpack.NoEmitOnErrorsPlugin(),
-            new webpack.HashedModuleIdsPlugin(),
-        ],
+        optimization: {
+            emitOnErrors: true,
+            moduleIds: 'deterministic',
+        },
         externals: [
             ...Object.keys(localPkg.peerDependencies || {}),
             ...Object.keys(rootPkg.dependencies || {}),
@@ -88,7 +88,7 @@ const buildProd = () => merge([
 module.exports = (env) => {
     process.env.BABEL_ENV = env;
 
-    if (env === 'production') {
+    if (env.production) {
         return [buildProd()];
     }
 

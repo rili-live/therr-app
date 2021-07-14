@@ -25,6 +25,6 @@
   "author": "Therr, Inc.",
   "license": "MIT",
   "devDependencies": {
-    "webpack-cli": "^3.3.10"
+    "webpack-cli": "^4.7.2"
   }
 }

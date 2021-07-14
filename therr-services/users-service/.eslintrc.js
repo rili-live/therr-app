@@ -32,6 +32,14 @@ module.exports = {
                 'd.ts': 'never',
             }
         ],
+        'import/no-extraneous-dependencies': [
+            'warn',
+            {   packageDir: [
+                    path.join(__dirname, './'),
+                    path.join(__dirname, '../..'),
+                ],
+            },
+        ]
     },
     settings: {
         'import/external-module-folders': ['../../node_modules', '../../node_modules/@types'],

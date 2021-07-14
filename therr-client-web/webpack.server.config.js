@@ -1,11 +1,14 @@
 const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-dependencies
-const merge = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
+const { merge } = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
+const nodeExternals = require('webpack-node-externals');
+const ModuleFederationPlugin = require('webpack/lib/container/ModuleFederationPlugin');
 const parts = require('../webpack.parts');
 
 // For externals
 const pkg = require('./package.json');
+const deps = require('../package.json').dependencies;
 
 const PATHS = {
     src: path.join(__dirname, 'src'),
@@ -41,7 +44,30 @@ const common = merge([
                 'therr-styles': path.join(__dirname, '../therr-public-library/therr-styles/lib'),
                 'therr-js-utilities': path.join(__dirname, '../therr-public-library/therr-js-utilities/lib'),
             },
+            fallback: {
+                fs: false,
+                tls: false,
+                net: false,
+                os: false,
+                path: false,
+                zlib: false,
+                http: require.resolve('http-browserify'),
+                https: require.resolve('https-browserify'),
+                stream: false,
+                crypto: false,
+            },
         },
+        plugins: [
+            new ModuleFederationPlugin({
+                shared: {
+                    axios: {
+                        eager: true,
+                        requiredVersion: deps.axios,
+                        singleton: true,
+                    },
+                },
+            }),
+        ],
         externals: [
             ...Object.keys(pkg.peerDependencies || {}),
             nodeModules,
@@ -51,10 +77,10 @@ const common = merge([
             __dirname: true,
             __filename: true,
         },
-        plugins: [
-            new webpack.NoEmitOnErrorsPlugin(),
-            new webpack.HashedModuleIdsPlugin(),
-        ],
+        optimization: {
+            emitOnErrors: true,
+            moduleIds: 'deterministic',
+        },
     },
     parts.clean(),
     parts.loadSvg(),
@@ -67,6 +93,10 @@ const buildDev = () => merge([
     common,
     {
         mode: 'development',
+        externals: [
+            ...Object.keys(pkg.peerDependencies || {}),
+            nodeExternals(),
+        ],
     },
     parts.minifyJavaScript({ useSourceMap: false }),
 ]);
@@ -83,7 +113,7 @@ const buildProd = () => merge([
 module.exports = (env) => {
     process.env.BABEL_ENV = env;
 
-    if (env === 'production') {
+    if (env.production) {
         return [buildProd()];
     }
 

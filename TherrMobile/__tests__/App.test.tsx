@@ -1,5 +1,8 @@
+/**
+ * @jest-environment jsdom
+ */
 import 'react-native';
-import AsyncStorageMock from '@react-native-community/async-storage/jest/async-storage-mock';
+import AsyncStorageMock from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 // import React from 'react';
 import mock from 'react-native-permissions/mock';
 // import App from '../main/App';

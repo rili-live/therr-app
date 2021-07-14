@@ -1,9 +1,9 @@
-import Knex from 'knex';
+import KnexBuilder, { Knex } from 'knex';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { IConnection } from './connection';
 import { USERS_TABLE_NAME } from './UsersStore';
 
-const knex: Knex = Knex({ client: 'pg' });
+const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export const USER_CONNECTIONS_TABLE_NAME = 'main.userConnections';
 
@@ -36,7 +36,7 @@ export default class UserConnectionsStore {
     // TODO: This value is incorrect
     // Need to make the search query a transaction and include the count there
     countRecords(params, shouldCheckReverse?: string) {
-        let queryString: any = knex.count('*')
+        let queryString: any = knexBuilder.count('*')
             .from(USER_CONNECTIONS_TABLE_NAME)
             .innerJoin(USERS_TABLE_NAME, function () {
                 this.on(function () {
@@ -68,7 +68,7 @@ export default class UserConnectionsStore {
     getUserConnections(conditions: any = {}, shouldCheckReverse?: boolean) {
         let queryString;
         if (shouldCheckReverse) {
-            queryString = knex.select('*')
+            queryString = knexBuilder.select('*')
                 .from(USER_CONNECTIONS_TABLE_NAME)
                 .where({
                     requestingUserId: conditions.requestingUserId,
@@ -80,7 +80,7 @@ export default class UserConnectionsStore {
                 })
                 .toString();
         } else {
-            queryString = knex.select('*')
+            queryString = knexBuilder.select('*')
                 .from(USER_CONNECTIONS_TABLE_NAME)
                 .where({
                     ...conditions,
@@ -92,7 +92,7 @@ export default class UserConnectionsStore {
     }
 
     getExpandedUserConnections(conditions: any = {}) {
-        const queryString = knex.select([
+        const queryString = knexBuilder.select([
             `${USER_CONNECTIONS_TABLE_NAME}.id`,
             `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId`,
             `${USER_CONNECTIONS_TABLE_NAME}.acceptingUserId`,
@@ -127,7 +127,7 @@ export default class UserConnectionsStore {
     searchUserConnections(conditions: any = {}, returning, shouldCheckReverse?: string) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
-        let queryString: any = knex
+        let queryString: any = knexBuilder
             .select((returning && returning.length) ? returning : [
                 `${USER_CONNECTIONS_TABLE_NAME}.id`,
                 `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId`,
@@ -184,7 +184,7 @@ export default class UserConnectionsStore {
     }
 
     createUserConnection(params: ICreateUserConnectionParams) {
-        const queryString = knex.insert(params)
+        const queryString = knexBuilder.insert(params)
             .into(USER_CONNECTIONS_TABLE_NAME)
             .returning('*')
             .toString();
@@ -193,7 +193,7 @@ export default class UserConnectionsStore {
     }
 
     updateUserConnection(conditions: IUpdateUserConnectionConditions, params: IUpdateUserConnectionParams) {
-        const queryString = knex.update({
+        const queryString = knexBuilder.update({
             ...params,
             updatedAt: new Date(),
         })

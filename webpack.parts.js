@@ -6,8 +6,9 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const DuplicatePackageCheckerPlugin = require("duplicate-package-checker-webpack-plugin");
 const HappyPack = require('happypack');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const TerserPlugin = require('terser-webpack-plugin');
+const ESLintPlugin = require('eslint-webpack-plugin');
 
 // Max thread pool size for parallel tasks
 const THREAD_POOL_SIZE = 4;
@@ -105,17 +106,18 @@ exports.processTypescript = (paths, withHotLoader) => {
 };
 
 exports.lintJavaScript = ({ paths, options }) => ({
-    module: {
-        rules: [
-            {
-                test: /\.jsx?$/,
-                enforce: 'pre',
-                loader: 'eslint-loader',
-                include: paths,
-                options: options || {},
-            },
-        ],
-    },
+    // module: {
+    //     rules: [
+    //         {
+    //             test: /\.jsx?$/,
+    //             enforce: 'pre',
+    //             loader: 'eslint-loader',
+    //             include: paths,
+    //             options: options || {},
+    //         },
+    //     ],
+    // },
+    plugins: [new ESLintPlugin(options)],
 });
 
 exports.lintTypeScript = exports.lintJavaScript;
@@ -124,8 +126,8 @@ exports.loadCSS = (paths, env, dontHash) => {
     const miniCssExtractPlugin = new MiniCssExtractPlugin({
         // Options similar to the same options in webpackOptions.output
         // both options are optional
-        filename: (env === 'development' || dontHash) ? '[name].css' : '[name].[hash].css',
-        chunkFilename: (env === 'development' || dontHash) ? '[id].css' : '[id].[hash].css',
+        filename: (env === 'development' || dontHash) ? '[name].css' : '[name].[contenthash].css',
+        chunkFilename: (env === 'development' || dontHash) ? '[id].css' : '[id].[contenthash].css',
     });
 
     const response = {
@@ -200,7 +202,7 @@ exports.generateSourcemaps = type => ({
 exports.minifyCss = () => ({
     optimization: {
         minimizer: [
-            new OptimizeCSSAssetsPlugin({})
+            new CssMinimizerPlugin({})
         ],
     }
 })
@@ -209,7 +211,6 @@ exports.minifyJavaScript = ({ useSourceMap }) => ({
     optimization: {
         minimize: true,
         minimizer: [new TerserPlugin({
-            cache: true,
             parallel: true,
             terserOptions: {
                 compress: {

@@ -2,7 +2,7 @@ const path = require('path');
 
 module.exports = {
     env: {
-        jest: true
+        jest: true,
     },
     extends: '@react-native-community',
     parser: '@typescript-eslint/parser',
@@ -13,14 +13,14 @@ module.exports = {
         'react/sort-comp': [
             2,
             {
-                order: ['static-variables', 'static-methods', 'instance-variables', 'constructor', 'lifecycle', 'everything-else', 'render']
-            }
+                order: ['static-variables', 'static-methods', 'instance-variables', 'constructor', 'lifecycle', 'everything-else', 'render'],
+            },
         ],
         'indent': [2, 4, {
-            SwitchCase: 1
+            SwitchCase: 1,
         }],
         'max-len': [2, {
-            code: 160
+            code: 160,
         }],
         'prettier/prettier': 'off',
         '@typescript-eslint/explicit-function-return-type': 'off',
@@ -36,12 +36,12 @@ module.exports = {
         'import/prefer-default-export': 'off',
         'semi': 'error',
         'comma-dangle': 'error',
-        'no-trailing-spaces': 'error'
+        'no-trailing-spaces': 'error',
     },
     settings: {
         'import/external-module-folders': ['../node_modules', '../node_modules/@types'],
         'import/parsers': {
-            '@typescript-eslint/parser': ['.ts', '.tsx']
+            '@typescript-eslint/parser': ['.ts', '.tsx'],
         },
         'import/resolver': {
             // NOTE: These aliases must match aliases in metro.config.js
@@ -55,11 +55,11 @@ module.exports = {
                 extensions: ['.js', '.jsx', '.ts', '.json', '.scss'],
             },
             node: {
-                extensions: ['.js', '.jsx', '.ts', '.tsx']
-            }
+                extensions: ['.js', '.jsx', '.ts', '.tsx'],
+            },
         },
         react: {
             version: 'detect',
-        }
-    }
+        },
+    },
 };

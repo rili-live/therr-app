@@ -1,9 +1,9 @@
-import Knex from 'knex';
+import KnexBuilder, { Knex } from 'knex';
 import { getDbCountQueryString } from 'therr-js-utilities/db';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { IConnection } from './connection';
 
-const knex: Knex = Knex({ client: 'pg' });
+const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export const DIRECT_MESSAGES_TABLE_NAME = 'main.directMessages';
 
@@ -33,7 +33,7 @@ export default class DirectMessagesStore {
 
     countRecords(params) {
         const queryString = getDbCountQueryString({
-            queryBuilder: knex,
+            queryBuilder: knexBuilder,
             tableName: DIRECT_MESSAGES_TABLE_NAME,
             params,
             defaultConditions: {},
@@ -45,7 +45,7 @@ export default class DirectMessagesStore {
     searchDirectMessages(userId, conditions: any = {}, returning, shouldCheckReverse?: string) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
-        let queryString: any = knex
+        let queryString: any = knexBuilder
             .select((returning && returning.length) ? returning : '*')
             .from(DIRECT_MESSAGES_TABLE_NAME)
             .orderBy(`${DIRECT_MESSAGES_TABLE_NAME}.updatedAt`);
@@ -72,7 +72,7 @@ export default class DirectMessagesStore {
     }
 
     createDirectMessage(params: ICreateDirectMessageParams) {
-        const queryString = knex.insert(params)
+        const queryString = knexBuilder.insert(params)
             .into(DIRECT_MESSAGES_TABLE_NAME)
             .returning(['id', 'updatedAt'])
             .toString();

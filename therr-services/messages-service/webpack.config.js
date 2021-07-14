@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-dependencies
-const merge = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
+const { merge } = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
 const nodeExternals = require('webpack-node-externals');
 const parts = require('../../webpack.parts');
 
@@ -69,7 +69,7 @@ const buildDev = () => merge([
         externals: [
             ...Object.keys(pkg.peerDependencies || {}),
             nodeExternals({
-                whitelist: ['webpack/hot/poll?100'],
+                allowlist: ['webpack/hot/poll?100'],
             }),
         ],
         plugins: [
@@ -83,9 +83,10 @@ const buildProd = () => merge([
     common,
     {
         mode: 'production',
-        plugins: [
-            new webpack.HashedModuleIdsPlugin(),
-        ],
+        optimization: {
+            emitOnErrors: true,
+            moduleIds: 'deterministic',
+        },
     },
     // parts.analyzeBundle(),
     parts.minifyJavaScript({ useSourceMap: false }),
@@ -94,7 +95,7 @@ const buildProd = () => merge([
 module.exports = (env) => {
     process.env.BABEL_ENV = env;
 
-    if (env === 'production') {
+    if (env.production) {
         return [buildProd()];
     }
 

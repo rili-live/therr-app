@@ -1,7 +1,7 @@
-import Knex from 'knex';
+import KnexBuilder, { Knex } from 'knex';
 import { IConnection } from './connection';
 
-const knex = Knex({ client: 'pg' });
+const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export const MOMENT_REACTIONS_TABLE_NAME = 'main.momentReactions';
 
@@ -47,7 +47,7 @@ export default class MomentReactionsStore {
     get(conditions: any, momentIds?, filters = { limit: 100, offset: 0 }) {
         const restrictedLimit = (filters.limit) > 1000 ? 1000 : filters.limit;
 
-        let queryString = knex.select('*')
+        let queryString = knexBuilder.select('*')
             .from(MOMENT_REACTIONS_TABLE_NAME)
             .where(conditions)
             .limit(restrictedLimit)
@@ -64,7 +64,7 @@ export default class MomentReactionsStore {
         // TODO: RSERVE-52 | Remove hard limit and optimize for getting reaction counts
         const restrictedLimit = limit > 1000 ? 1000 : limit;
 
-        const queryString = knex.select('*')
+        const queryString = knexBuilder.select('*')
             .from(MOMENT_REACTIONS_TABLE_NAME)
             .where(conditions)
             .limit(restrictedLimit);
@@ -73,7 +73,7 @@ export default class MomentReactionsStore {
     }
 
     create(params: ICreateMomentReactionParams | ICreateMomentReactionParams[]) {
-        const queryString = knex(MOMENT_REACTIONS_TABLE_NAME)
+        const queryString = knexBuilder(MOMENT_REACTIONS_TABLE_NAME)
             .insert(params)
             .returning('*')
             .toString();
@@ -82,7 +82,7 @@ export default class MomentReactionsStore {
     }
 
     update(conditions: IUpdateMomentReactionConditions, params: IUpdateMomentReactionParams, whereIn?: IUpdateWhereInConfig) {
-        let queryString = knex.update({
+        let queryString = knexBuilder.update({
             ...params,
             updatedAt: new Date(),
         })
