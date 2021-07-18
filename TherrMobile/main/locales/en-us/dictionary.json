@@ -335,7 +335,7 @@
   "menus": {
     "main": {
       "buttons": {
-        "connections": "Connections",
+        "connections": "People",
         "moments": "Moments",
         "settings": "Settings",
         "notifications": "Notifications"

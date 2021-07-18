@@ -15,10 +15,11 @@
     "clean": "npm run clean:env && watchman watch-del-all && rm -rf $TMPDIR/react-native-packager-cache-* && rm -rf $TMPDIR/metro-bundler-cache-* && rm -rf node_modules/ && npm cache clean --force && npm install && npm start -- --reset-cache",
     "clean:env": "rm -rf node_modules/.cache/babel-loader/*",
     "env:export": "export $(cat .env | xargs)",
-    "getSHA": "pushd android && ./gradlew signingReport && popd",
-    "ios": "rm -rf node_modules/.cache/babel-loader/*, && npm run ios:bundle && ./node_modules/.bin/react-native run-ios",
+    "getSHA": "pushd android && ./gradlew signingReport; popd",
+    "ios": "rm -rf node_modules/.cache/babel-loader/*, && npm run ios:bundle && ./node_modules/.bin/react-native run-ios --scheme 'Therr_Debug'",
     "ios:bundle": "./node_modules/.bin/react-native bundle --entry-file='index.js' --bundle-output='./ios/main.jsbundle' --assets-dest ./ios",
     "ios:bundle:release": "./node_modules/.bin/react-native bundle --entry-file='index.js' --bundle-output='./ios/main.jsbundle' --assets-dest ./ios --dev=false --platform ios",
+    "ios:pod:install:m1": "pushd ios && arch -x86_64 pod install; popd",
     "start": "./node_modules/.bin/react-native start",
     "test": "../node_modules/.bin/jest --no-cache",
     "test:update": "../node_modules/.bin/jest -u",
@@ -27,7 +28,9 @@
     "lint": "../node_modules/.bin/eslint . --ext .js,.jsx,.ts,.tsx ./",
     "lint:fix": "../node_modules/.bin/eslint --ext .js,.jsx,.ts,.tsx --fix ./",
     "postinstall": "patch-package",
-    "app:uninstall": "adb uninstall app.therrmobile"
+    "app:uninstall": "adb uninstall app.therrmobile",
+    "troubleshoot:android:stopGradle": "pushd android; ./gradlew --stop; popd",
+    "troubleshoot:android:clean": "npm run android:clean"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^1.15.5",

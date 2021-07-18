@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 // import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 // import * as therrTheme from '../styles/themes';
 import styles from '../../styles';
@@ -124,7 +125,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
     }
 
     render() {
-        const { content } = this.props;
+        const { content, navigation, user } = this.props;
 
         return (
             <>
@@ -134,6 +135,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
                         this.renderCarousel(content)
                     }
                 </SafeAreaView>
+                <MainButtonMenu navigation={navigation} translate={this.translate} user={user} />
             </>
         );
     }

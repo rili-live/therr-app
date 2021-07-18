@@ -288,9 +288,8 @@ class Map extends React.Component<IMapProps, IMapState> {
     goToHome = () => {
         const { navigation } = this.props;
 
-        // navigation.navigate('Home');
         navigation.dispatch(
-            StackActions.replace('Home', {})
+            StackActions.replace('Moments', {})
         );
     };
 

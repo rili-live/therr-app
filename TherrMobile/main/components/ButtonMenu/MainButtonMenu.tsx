@@ -8,6 +8,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 // import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 // import therrIconConfig from '../../assets/therr-font-config.json';
 import { ButtonMenu, mapStateToProps, mapDispatchToProps } from '../ButtonMenu';
+import * as therrTheme from '../../styles/themes';
 import { buttonMenu } from '../../styles/navigation';
 import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 
@@ -50,12 +51,13 @@ class MainButtonMenu extends ButtonMenu {
     };
 
     render() {
-        const { notifications, translate } = this.props;
+        const { transparent, notifications, translate } = this.props;
         const currentScreen = this.getCurrentScreen();
         const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
+        const overrideStyles = transparent ? {} : { backgroundColor: therrTheme.colors.primary2 };
 
         return (
-            <View style={buttonMenu.container}>
+            <View style={[buttonMenu.container, overrideStyles]}>
                 <Button
                     title={translate('menus.main.buttons.connections')}
                     buttonStyle={

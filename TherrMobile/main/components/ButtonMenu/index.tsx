@@ -23,6 +23,7 @@ export interface IButtonMenuProps extends IStoreProps {
     navigation: any;
     onButtonPress?: Function;
     translate: Function;
+    transparent?: Boolean;
     user: any;
 }
 
