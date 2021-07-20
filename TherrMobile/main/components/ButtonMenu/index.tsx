@@ -21,6 +21,8 @@ interface IStoreProps extends IButtonMenuDispatchProps {
 // Regular component props
 export interface IButtonMenuProps extends IStoreProps {
     navigation: any;
+    onActionButtonPress?: Function;
+    isCompact?: Boolean;
     onButtonPress?: Function;
     translate: Function;
     transparent?: Boolean;

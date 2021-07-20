@@ -44,6 +44,7 @@ const renderItem = ({ item: moment }, {
 export default ({
     content,
     expandMoment,
+    containerRef,
     translate,
     // viewportHeight,
     // viewportWidth,
@@ -87,7 +88,10 @@ export default ({
                     formattedDate: formatDate(itemObj.item.createdAt),
                     translate,
                 })}
-                ref={(component) => (flatListRef = component)}
+                ref={(component) => {
+                    containerRef && containerRef(component);
+                    return flatListRef = component;
+                }}
                 style={[styles.stretch, momentStyles.momentCarousel]}
                 onContentSizeChange={() => content.activeMoments?.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
             />

@@ -30,6 +30,7 @@ async function onGoogleButtonPress({
     // Create a Google credential with the token
     const googleCredential = auth.GoogleAuthProvider.credential(idToken);
 
+    // TODO: Call auth().signOut() when user signs or token expires
     // Sign-in the user with the credential
     return auth().signInWithCredential(googleCredential)
         .then((userCredential) => {

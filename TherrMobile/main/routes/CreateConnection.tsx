@@ -247,6 +247,13 @@ class Home extends React.Component<IHomeProps, IHomeState> {
     }
 
     render() {
+        const {
+            connectionContext,
+            emailErrorMessage,
+            inputs,
+            prevConnReqError,
+            prevConnReqSuccess,
+        } = this.state;
         const { navigation, user } = this.props;
 
         return (
@@ -259,29 +266,86 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                     >
                         <View style={styles.body}>
                             <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitleCenter}>
-                                    {this.translate('pages.userProfile.h2.quoteOfTheDay')}
+                                <Text style={styles.sectionTitle}>
+                                    {this.translate('pages.userProfile.h2.createConnection')}
                                 </Text>
-                                <Text style={styles.sectionQuote}>
-                                    {`"${this.quote}" - ${this.quoteAuthor}`}
-                                </Text>
-                            </View>
-                            <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitleCenter}>
-                                    {this.translate('pages.userProfile.h2.howItWorks')}
-                                </Text>
-                                <Text style={styles.sectionDescription}>
-                                    {this.translate('pages.userProfile.siteDescription1')}
-                                </Text>
-                                <Text style={styles.sectionDescription}>
-                                    {this.translate('pages.userProfile.siteDescription2')}
-                                </Text>
-                                <Text style={styles.sectionDescription}>
-                                    {this.translate('pages.userProfile.siteDescription3')}
-                                </Text>
-                                <Text style={styles.sectionDescription}>
-                                    {this.translate('pages.userProfile.siteDescription4')}
-                                </Text>
+                                <View style={styles.sectionForm}>
+                                    <ReactPicker
+                                        selectedValue={connectionContext}
+                                        style={formStyles.picker}
+                                        itemStyle={formStyles.pickerItem}
+                                        onValueChange={(itemValue) =>
+                                            this.setState({ connectionContext: itemValue })
+                                        }>
+                                        <ReactPicker.Item label={this.translate(
+                                            'forms.createConnection.labels.phone'
+                                        )} value="phone" />
+                                        <ReactPicker.Item label={this.translate(
+                                            'forms.createConnection.labels.email'
+                                        )} value="email" />
+                                    </ReactPicker>
+                                    {
+                                        connectionContext === 'email' &&
+                                        <SquareInput
+                                            placeholder={this.translate(
+                                                'forms.createConnection.placeholders.email'
+                                            )}
+                                            value={inputs.email}
+                                            onChangeText={(text) =>
+                                                this.onInputChange('email', text)
+                                            }
+                                            onBlur={this.onBlurValidate}
+                                            onSubmitEditing={() => this.onSubmit()}
+                                            errorMessage={emailErrorMessage}
+                                            rightIcon={
+                                                <FontAwesomeIcon
+                                                    name="envelope"
+                                                    size={22}
+                                                    color={therrTheme.colors.primary3Faded}
+                                                />
+                                            }
+                                        />
+                                    }
+                                    {
+                                        connectionContext === 'phone' &&
+                                        <PhoneNumberInput
+                                            onChangeText={this.onPhoneInputChange}
+                                            onSubmit={this.onSubmit}
+                                            placeholder={this.translate('forms.settings.labels.phoneNumber')}
+                                            translate={this.translate}
+                                        />
+                                    }
+                                    <Alert
+                                        containerStyles={addMargins({
+                                            marginBottom: 24,
+                                        })}
+                                        isVisible={!!prevConnReqError}
+                                        message={prevConnReqError}
+                                        type={'error'}
+                                    />
+                                    <Alert
+                                        containerStyles={addMargins({
+                                            marginBottom: 24,
+                                        })}
+                                        isVisible={!!prevConnReqSuccess}
+                                        message={prevConnReqSuccess}
+                                        type={'success'}
+                                    />
+                                    <Button
+                                        containerStyle={addMargins({
+                                            marginBottom: 18,
+                                        })}
+                                        buttonStyle={formStyles.button}
+                                        disabledTitleStyle={formStyles.buttonTitleDisabled}
+                                        disabledStyle={formStyles.buttonDisabled}
+                                        title={this.translate(
+                                            'forms.createConnection.buttons.submit'
+                                        )}
+                                        onPress={this.onSubmit}
+                                        disabled={this.isConnReqFormDisabled()}
+                                        raised={true}
+                                    />
+                                </View>
                             </View>
                         </View>
                     </ScrollView>

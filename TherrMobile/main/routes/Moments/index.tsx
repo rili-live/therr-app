@@ -11,6 +11,7 @@ import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 // import * as therrTheme from '../styles/themes';
 import styles from '../../styles';
 import momentStyles from '../../styles/user-content/moments';
+import { buttonMenuHeight } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
 import MomentCarousel from './MomentCarousel';
 
@@ -53,6 +54,7 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class Moments extends React.Component<IMomentsProps, IMomentsState> {
+    private carouselRef;
     private translate: Function;
 
     constructor(props) {
@@ -98,6 +100,10 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         });
     };
 
+    scrollTop = () => {
+        this.carouselRef?.scrollToOffset({ animated: true, offset: 0 });
+    }
+
     renderCarousel = (content) => {
         const { isLoading } = this.state;
 
@@ -113,8 +119,9 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
                     content={content}
                     expandMoment={this.goToMoment}
                     translate={this.translate}
-                    viewportHeight={viewportHeight}
-                    viewportWidth={viewportWidth}
+                    containerRef={(component) => this.carouselRef = component}
+                    // viewportHeight={viewportHeight}
+                    // viewportWidth={viewportWidth}
                 />
             );
         }
@@ -130,12 +137,12 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         return (
             <>
                 <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
-                <SafeAreaView style={[styles.safeAreaView]}>
+                <SafeAreaView style={[styles.safeAreaView, { paddingBottom: buttonMenuHeight }]}>
                     {
                         this.renderCarousel(content)
                     }
                 </SafeAreaView>
-                <MainButtonMenu navigation={navigation} translate={this.translate} user={user} />
+                <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} />
             </>
         );
     }

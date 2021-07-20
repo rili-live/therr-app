@@ -176,6 +176,11 @@ export default StyleSheet.create({
         ...sectionTitle,
         color: therrTheme.colors.textWhite,
     },
+    sectionTitleCenter: {
+        ...sectionTitle,
+        color: therrTheme.colors.textWhite,
+        textAlign: 'center',
+    },
     sectionTitleAlt: {
         ...sectionTitle,
         color: therrTheme.colors.textBlack,
@@ -220,7 +225,7 @@ export default StyleSheet.create({
         textAlign: 'center',
         justifyContent: 'center',
         flex: 1,
-        letterSpacing: 7,
+        letterSpacing: 5,
         lineHeight: HEADER_HEIGHT,
         overflow: 'hidden',
     },

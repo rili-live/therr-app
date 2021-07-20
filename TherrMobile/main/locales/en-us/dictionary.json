@@ -337,6 +337,7 @@
       "buttons": {
         "connections": "People",
         "moments": "Moments",
+        "map": "Map",
         "settings": "Settings",
         "notifications": "Notifications"
       }
@@ -452,8 +453,8 @@
         "accountDetails": "Account Details",
         "connections": "Connections",
         "createConnection": "Create a Connection",
-        "quoteOfTheDay": "Words of Wisdom",
-        "howItWorks": "Welcome back!"
+        "quoteOfTheDay": "Daily Words of Wisdom",
+        "howItWorks": "Hi Therr!"
       },
       "labels": {
         "email": "E-mail",
@@ -464,7 +465,10 @@
         "userName": "Username"
       },
       "pageTitle": "User Profile",
-      "siteDescription": "Share a moment with your connections on the map or send a quick DM. Moments are proximity activated and entirely customizable.",
+      "siteDescription1": "Welcome to the beta version of Therr. As we gather feedback and develop new features, let us know how we can improve the experience.",
+      "siteDescription2": "So how does it work?",
+      "siteDescription3": "Share a moment with your connections on the map or send a quick DM. Moments are proximity activated and entirely customizable.",
+      "siteDescription4": "Then, check your feed for moments posted by others in the spaces you travel to. Get to know the local culture by searching content that was shared nearby (recently or historically), and filter your interests with hashtags, keywords, etc.",
       "noActiveConnections": "There are currently no active connections in your network",
       "requestRecommendation": "Send a request to make connections and build a network",
       "validationErrors": {

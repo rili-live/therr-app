@@ -20,6 +20,7 @@ import AnimatedLoader from 'react-native-animated-loader';
 import { distanceTo, insideCircle } from 'geolocation-utils';
 import * as ImagePicker from 'react-native-image-picker';
 import Alert from '../components/Alert';
+import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import { ILocationState } from '../types/redux/location';
 import LocationActions from '../redux/actions/LocationActions';
 import translator from '../services/translator';
@@ -661,11 +662,11 @@ class Map extends React.Component<IMapProps, IMapState> {
             isScrollEnabled,
             layers,
         } = this.state;
-        const { map } = this.props;
+        const { map, navigation, user } = this.props;
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
+                <StatusBar barStyle="light-content" animated={true} translucent={false} backgroundColor={therrTheme.colors.primary2}  />
                 {!(isLocationReady && isMinLoadTimeComplete) ? (
                     <AnimatedLoader
                         visible={true}
@@ -766,7 +767,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 })
                             }
                         </MapView>
-                        <View style={buttonStyles.collapse}>
+                        {/* <View style={buttonStyles.collapse}>
                             <Button
                                 buttonStyle={buttonStyles.btn}
                                 icon={
@@ -779,7 +780,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 raised={true}
                                 onPress={() => this.toggleMomentBtns()}
                             />
-                        </View>
+                        </View> */}
                         {
                             areButtonsVisible && (
                                 <>
@@ -903,6 +904,14 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 </>
                             )
                         }
+                        <MainButtonMenu
+                            navigation={navigation}
+                            onActionButtonPress={this.toggleMomentBtns}
+                            isCompact
+                            translate={this.translate}
+                            transparent
+                            user={user}
+                        />
                         <AnimatedOverlay
                             animationType="swing"
                             animationDuration={500}
