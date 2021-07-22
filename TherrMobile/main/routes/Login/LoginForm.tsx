@@ -105,7 +105,9 @@ export class LoginFormComponent extends React.Component<
             isSubmitting: true,
         });
         this.props
-            .login(loginArgs)
+            .login(loginArgs, {
+                googleSSOIdToken: ssoUserDetails?.idToken,
+            })
             .catch((error: any) => {
                 if (
                     error.statusCode === 400 ||
