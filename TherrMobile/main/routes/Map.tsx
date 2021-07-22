@@ -20,6 +20,7 @@ import AnimatedLoader from 'react-native-animated-loader';
 import { distanceTo, insideCircle } from 'geolocation-utils';
 import * as ImagePicker from 'react-native-image-picker';
 import Alert from '../components/Alert';
+import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import { ILocationState } from '../types/redux/location';
 import LocationActions from '../redux/actions/LocationActions';
 import translator from '../services/translator';
@@ -288,9 +289,8 @@ class Map extends React.Component<IMapProps, IMapState> {
     goToHome = () => {
         const { navigation } = this.props;
 
-        // navigation.navigate('Home');
         navigation.dispatch(
-            StackActions.replace('Home', {})
+            StackActions.replace('Moments', {})
         );
     };
 
@@ -662,11 +662,11 @@ class Map extends React.Component<IMapProps, IMapState> {
             isScrollEnabled,
             layers,
         } = this.state;
-        const { map } = this.props;
+        const { map, navigation, user } = this.props;
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
+                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor={therrTheme.colors.primary2}  />
                 {!(isLocationReady && isMinLoadTimeComplete) ? (
                     <AnimatedLoader
                         visible={true}
@@ -697,6 +697,8 @@ class Map extends React.Component<IMapProps, IMapState> {
                             scrollEnabled={isScrollEnabled}
                             onUserLocationChange={this.onUserLocationChange}
                             minZoomLevel={MIN_ZOOM_LEVEL}
+                            /* react-native-map-clustering */
+                            clusterColor={therrTheme.colors.primary2}
                         >
                             <Circle
                                 center={circleCenter}
@@ -710,29 +712,15 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 layers.connectionsMoments &&
                                 map.moments.map((moment) => {
                                     return (
-                                        <React.Fragment key={moment.id}>
-                                            <Marker
-                                                coordinate={{
-                                                    longitude: moment.longitude,
-                                                    latitude: moment.latitude,
-                                                }}
-                                                onPress={this.handleMapPress}
-                                                stopPropagation={true}
-                                            />
-                                            <Circle
-                                                center={{
-                                                    longitude: moment.longitude,
-                                                    latitude: moment.latitude,
-                                                }}
-                                                radius={moment.radius} /* meters */
-                                                strokeWidth={0}
-                                                strokeColor={therrTheme.colors.secondary}
-                                                fillColor={moment.id === activeMoment.id ?
-                                                    therrTheme.colors.map.momentsCircleFillActive :
-                                                    therrTheme.colors.map.momentsCircleFill}
-                                                zIndex={1}
-                                            />
-                                        </React.Fragment>
+                                        <Marker
+                                            key={moment.id}
+                                            coordinate={{
+                                                longitude: moment.longitude,
+                                                latitude: moment.latitude,
+                                            }}
+                                            onPress={this.handleMapPress}
+                                            stopPropagation={true}
+                                        />
                                     );
                                 })
                             }
@@ -740,34 +728,62 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 layers.myMoments &&
                                 map.myMoments.map((moment) => {
                                     return (
-                                        <React.Fragment key={moment.id}>
-                                            <Marker
-                                                coordinate={{
-                                                    longitude: moment.longitude,
-                                                    latitude: moment.latitude,
-                                                }}
-                                                onPress={this.handleMapPress}
-                                                stopPropagation={true}
-                                            />
-                                            <Circle
-                                                center={{
-                                                    longitude: moment.longitude,
-                                                    latitude: moment.latitude,
-                                                }}
-                                                radius={moment.radius} /* meters */
-                                                strokeWidth={0}
-                                                strokeColor={therrTheme.colors.secondary}
-                                                fillColor={moment.id === activeMoment.id ?
-                                                    therrTheme.colors.map.myMomentsCircleFillActive :
-                                                    therrTheme.colors.map.myMomentsCircleFill}
-                                                zIndex={1}
-                                            />
-                                        </React.Fragment>
+                                        <Marker
+                                            key={moment.id}
+                                            coordinate={{
+                                                longitude: moment.longitude,
+                                                latitude: moment.latitude,
+                                            }}
+                                            onPress={this.handleMapPress}
+                                            stopPropagation={true}
+                                        />
+                                    );
+                                })
+                            }
+                            {
+                                layers.connectionsMoments &&
+                                map.moments.map((moment) => {
+                                    return (
+                                        <Circle
+                                            key={moment.id}
+                                            center={{
+                                                longitude: moment.longitude,
+                                                latitude: moment.latitude,
+                                            }}
+                                            radius={moment.radius} /* meters */
+                                            strokeWidth={0}
+                                            strokeColor={therrTheme.colors.secondary}
+                                            fillColor={moment.id === activeMoment.id ?
+                                                therrTheme.colors.map.momentsCircleFillActive :
+                                                therrTheme.colors.map.momentsCircleFill}
+                                            zIndex={1}
+                                        />
+                                    );
+                                })
+                            }
+                            {
+                                layers.myMoments &&
+                                map.myMoments.map((moment) => {
+                                    return (
+                                        <Circle
+                                            key={moment.id}
+                                            center={{
+                                                longitude: moment.longitude,
+                                                latitude: moment.latitude,
+                                            }}
+                                            radius={moment.radius} /* meters */
+                                            strokeWidth={0}
+                                            strokeColor={therrTheme.colors.secondary}
+                                            fillColor={moment.id === activeMoment.id ?
+                                                therrTheme.colors.map.myMomentsCircleFillActive :
+                                                therrTheme.colors.map.myMomentsCircleFill}
+                                            zIndex={1}
+                                        />
                                     );
                                 })
                             }
                         </MapView>
-                        <View style={buttonStyles.collapse}>
+                        {/* <View style={buttonStyles.collapse}>
                             <Button
                                 buttonStyle={buttonStyles.btn}
                                 icon={
@@ -780,7 +796,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 raised={true}
                                 onPress={() => this.toggleMomentBtns()}
                             />
-                        </View>
+                        </View> */}
                         {
                             areButtonsVisible && (
                                 <>
@@ -904,6 +920,14 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 </>
                             )
                         }
+                        <MainButtonMenu
+                            navigation={navigation}
+                            onActionButtonPress={this.toggleMomentBtns}
+                            isCompact
+                            translate={this.translate}
+                            transparent
+                            user={user}
+                        />
                         <AnimatedOverlay
                             animationType="swing"
                             animationDuration={500}

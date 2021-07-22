@@ -1,19 +1,21 @@
 import React from 'react';
-import { Dimensions, SafeAreaView, Text, StatusBar } from 'react-native';
+import { SafeAreaView, Text, StatusBar } from 'react-native';
 // import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 // import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 // import * as therrTheme from '../styles/themes';
 import styles from '../../styles';
 import momentStyles from '../../styles/user-content/moments';
+import { buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
 import MomentCarousel from './MomentCarousel';
 
-const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
+// const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
 interface IMomentsDispatchProps {
     searchActiveMoments: Function;
@@ -52,6 +54,7 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class Moments extends React.Component<IMomentsProps, IMomentsState> {
+    private carouselRef;
     private translate: Function;
 
     constructor(props) {
@@ -97,6 +100,10 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         });
     };
 
+    scrollTop = () => {
+        this.carouselRef?.scrollToOffset({ animated: true, offset: 0 });
+    }
+
     renderCarousel = (content) => {
         const { isLoading } = this.state;
 
@@ -112,8 +119,9 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
                     content={content}
                     expandMoment={this.goToMoment}
                     translate={this.translate}
-                    viewportHeight={viewportHeight}
-                    viewportWidth={viewportWidth}
+                    containerRef={(component) => this.carouselRef = component}
+                    // viewportHeight={viewportHeight}
+                    // viewportWidth={viewportWidth}
                 />
             );
         }
@@ -124,16 +132,24 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
     }
 
     render() {
-        const { content } = this.props;
+        const { content, navigation, user } = this.props;
 
         return (
             <>
                 <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
-                <SafeAreaView style={[styles.safeAreaView]}>
+                <SafeAreaView style={[styles.safeAreaView, { paddingBottom: buttonMenuHeightCompact }]}>
                     {
                         this.renderCarousel(content)
                     }
                 </SafeAreaView>
+                {/* <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} /> */}
+                <MainButtonMenu
+                    navigation={navigation}
+                    onActionButtonPress={this.scrollTop}
+                    isCompact
+                    translate={this.translate}
+                    user={user}
+                />
             </>
         );
     }

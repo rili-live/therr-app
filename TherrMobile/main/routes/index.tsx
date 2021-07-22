@@ -10,6 +10,7 @@ import Map from './Map';
 import Moments from './Moments';
 import ActiveConnections from './ActiveConnections';
 import Contacts from './Contacts';
+import CreateConnection from './CreateConnection';
 import CreateProfile from './CreateProfile';
 import ForgotPassword from './ForgotPassword';
 import HostedChat from './HostedChat';
@@ -128,6 +129,17 @@ const routes: RouteConfig<
         component: Contacts,
         options: () => ({
             title: 'Contacts',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'CreateConnection',
+        component: CreateConnection,
+        options: () => ({
+            title: 'CreateConnection',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

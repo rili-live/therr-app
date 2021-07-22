@@ -5,6 +5,7 @@ import Logger from './Logger';
 
 const serviceAccount = JSON.parse(Buffer.from(process.env.PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64 || '', 'base64').toString());
 
+// eslint-disable-next-line no-shadow
 enum PushNotificationTypes {
     newDirectMessage = 'new-direct-message',
     newMomentsActivated = 'new-moments-activated',

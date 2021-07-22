@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import * as React from 'react';
 import { mount } from 'enzyme';
 import Input from '../Input';

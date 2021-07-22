@@ -19,14 +19,16 @@ const colors = {
     brandingOrange: '#f9ad2a',
     brandingLightBlue: '#d8f0f2',
 
+    backgroundCream: '#fefbf0',
     backgroundWhite: '#ffffff',
     backgroundGray: '#f6fbff',
+
     borderLight: 'gray',
     placeholderTextColor: '#78909b',
 
     hyperlink: '#0e01b3',
 
-    beemo1: '#5cb19e',
+    beemo1: '#26a69a',
     beemo1Fade: '#97c5bb',
     beemo2: '#cbffdc',
     beemo3: '#218a35',
@@ -52,6 +54,7 @@ const colors = {
 
 const colorVariations = {
     primaryFade: new Color(colors.primary).fade(0.35).toString(),
+    primary2Fade: new Color(colors.primary2).fade(0.35).toString(),
     primary2Darken: new Color(colors.primary2).darken(0.075).toString(),
     primary3Fade: new Color(colors.primary3).fade(0.25).toString(),
     textBlackFade: new Color(colors.textBlack).fade(0.75).toString(),

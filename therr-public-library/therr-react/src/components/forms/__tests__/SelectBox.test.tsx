@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import * as React from 'react';
 import { shallow } from 'enzyme';
 import { Key as KeyCode } from 'ts-keycode-enum';

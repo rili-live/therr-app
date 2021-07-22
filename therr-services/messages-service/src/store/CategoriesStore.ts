@@ -1,9 +1,9 @@
-import Knex from 'knex';
+import KnexBuilder, { Knex } from 'knex';
 import { getDbCountQueryString } from 'therr-js-utilities/db';
 // import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { IConnection } from './connection';
 
-const knex: Knex = Knex({ client: 'pg' });
+const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export const CATEGORIES_TABLE_NAME = 'main.categories';
 
@@ -22,7 +22,7 @@ export default class CategoriesStore {
     // TODO: Update to actually match searchCategories (infinite scroll)
     countRecords(params) {
         const queryString = getDbCountQueryString({
-            queryBuilder: knex,
+            queryBuilder: knexBuilder,
             tableName: CATEGORIES_TABLE_NAME,
             params,
             defaultConditions: {},
@@ -34,7 +34,7 @@ export default class CategoriesStore {
     searchCategories(conditions: any = {}, returning) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
-        let queryString: any = knex
+        let queryString: any = knexBuilder
             .select((returning && returning.length) ? returning : '*')
             .from(CATEGORIES_TABLE_NAME)
             .orderBy(`${CATEGORIES_TABLE_NAME}.updatedAt`);
@@ -54,7 +54,7 @@ export default class CategoriesStore {
     }
 
     createCategory(params: ICreateCategoryParams) {
-        const queryString = knex.insert(params)
+        const queryString = knexBuilder.insert(params)
             .into(CATEGORIES_TABLE_NAME)
             .returning('id')
             .toString();

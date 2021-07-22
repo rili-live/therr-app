@@ -1,11 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-dependencies
-const merge = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
+const { merge } = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
+const ModuleFederationPlugin = require('webpack/lib/container/ModuleFederationPlugin');
 const parts = require('../webpack.parts');
 
 // For externals
 const pkg = require('./package.json');
+const deps = require('../package.json').dependencies;
 
 const PATHS = {
     app: path.join(__dirname, 'src'),
@@ -44,10 +46,29 @@ const common = merge([
                 'therr-styles': path.join(__dirname, '../therr-public-library/therr-styles/lib'),
                 'therr-js-utilities': path.join(__dirname, '../therr-public-library/therr-js-utilities/lib'),
             },
+            fallback: {
+                os: false,
+                zlib: false,
+                http: false,
+                https: false,
+                stream: false,
+                tty: false,
+            },
+        },
+        optimization: {
+            emitOnErrors: true,
         },
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
-            new webpack.HashedModuleIdsPlugin(),
+            new ModuleFederationPlugin({
+                shared: {
+                    axios: {
+                        eager: true,
+                        requiredVersion: deps.axios,
+                        singleton: true,
+                    },
+                },
+            }),
         ],
         externals: Object.keys(pkg.peerDependencies || {}),
     },

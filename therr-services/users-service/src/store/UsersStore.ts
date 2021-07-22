@@ -1,8 +1,8 @@
-import Knex from 'knex';
+import KnexBuilder, { Knex } from 'knex';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import { IConnection } from './connection';
 
-const knex: Knex = Knex({ client: 'pg' });
+const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export const USERS_TABLE_NAME = 'main.users';
 
@@ -37,7 +37,7 @@ export default class UsersStore {
 
     // Deprecated
     getUsers(conditions = {}, orConditions = {}, anotherOrConditions = {}) {
-        const queryString = knex.select(['*'])
+        const queryString = knexBuilder.select(['*'])
             .from(USERS_TABLE_NAME)
             .orderBy('id')
             .where(conditions)
@@ -53,7 +53,7 @@ export default class UsersStore {
         userName,
         phoneNumber,
     }: IFindUserArgs, returning: any = '*') {
-        let queryString: any = knex.select(returning).from('main.users')
+        let queryString: any = knexBuilder.select(returning).from('main.users')
             .where(function () {
                 return id ? this.where({ id }) : this;
             });
@@ -74,7 +74,7 @@ export default class UsersStore {
     findUsers({
         ids,
     }: IFindUsersArgs, returning: any = ['id', 'userName', 'firstName', 'lastName']) {
-        let queryString: any = knex.select(returning).from('main.users')
+        let queryString: any = knexBuilder.select(returning).from('main.users')
             .whereIn('id', ids || []);
 
         queryString = queryString.toString();
@@ -86,7 +86,7 @@ export default class UsersStore {
             ...params,
             userName: params?.userName?.toLowerCase(),
         };
-        const queryString = knex.insert(sanitizedParams)
+        const queryString = knexBuilder.insert(sanitizedParams)
             .into(USERS_TABLE_NAME)
             .returning('*')
             .toString();
@@ -137,7 +137,7 @@ export default class UsersStore {
             modifiedParams.verificationCodes = params.verificationCodes;
         }
 
-        const queryString = knex.update({
+        const queryString = knexBuilder.update({
             ...modifiedParams,
             updatedAt: new Date(),
         })
@@ -150,7 +150,7 @@ export default class UsersStore {
     }
 
     deleteUsers(conditions) {
-        const queryString = knex.delete()
+        const queryString = knexBuilder.delete()
             .from(USERS_TABLE_NAME)
             .where(conditions)
             .toString();

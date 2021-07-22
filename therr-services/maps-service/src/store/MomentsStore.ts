@@ -1,4 +1,4 @@
-import Knex from 'knex';
+import KnexBuilder, { Knex } from 'knex';
 import * as countryGeo from 'country-reverse-geocoding';
 import { Location } from 'therr-js-utilities/constants';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
@@ -8,7 +8,7 @@ import MediaStore, { ICreateMediaParams } from './MediaStore';
 import getBucket from '../utilities/getBucket';
 import findUsers from '../utilities/findUsers';
 
-const knex: Knex = Knex({ client: 'pg' });
+const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export const MOMENTS_TABLE_NAME = 'main.moments';
 
@@ -56,11 +56,11 @@ export default class MomentsStore {
         if ((params.filterBy && params.filterBy === 'distance') && params.query) {
             proximityMax = params.query;
         }
-        let queryString = knex
-            .count('*')
+        let queryString = knexBuilder
             .from(MOMENTS_TABLE_NAME)
+            .count('*')
             // NOTE: Cast to a geography type to search distance within n meters
-            .where(knex.raw(`ST_DWithin(geom, ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${proximityMax})`));
+            .where(knexBuilder.raw(`ST_DWithin(geom, ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${proximityMax})`));
 
         if ((params.filterBy && params.filterBy !== 'distance')) {
             if (params.filterBy === 'fromUserIds') {
@@ -84,13 +84,13 @@ export default class MomentsStore {
         if ((conditions.filterBy && conditions.filterBy === 'distance') && conditions.query) {
             proximityMax = conditions.query;
         }
-        let queryString: any = knex
+        let queryString: any = knexBuilder
             .select((returning && returning.length) ? returning : '*')
             .from(MOMENTS_TABLE_NAME)
             // TODO: Determine a better way to select moments that are most relevant to the user
             // .orderBy(`${MOMENTS_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
             // NOTE: Cast to a geography type to search distance within n meters
-            .where(knex.raw(`ST_DWithin(geom, ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${proximityMax})`)); // eslint-disable-line quotes, max-len
+            .where(knexBuilder.raw(`ST_DWithin(geom, ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${proximityMax})`)); // eslint-disable-line quotes, max-len
 
         if ((conditions.filterBy && conditions.filterBy !== 'distance') && conditions.query != undefined) { // eslint-disable-line eqeqeq
             const operator = conditions.filterOperator || '=';
@@ -120,7 +120,7 @@ export default class MomentsStore {
         // hard limit to prevent overloading client
         const restrictedLimit = (filters.limit) > 1000 ? 1000 : filters.limit;
 
-        const query = knex
+        const query = knexBuilder
             .from(MOMENTS_TABLE_NAME)
             .orderBy(`${MOMENTS_TABLE_NAME}.updatedAt`, 'desc')
             .whereIn('id', momentIds || [])
@@ -252,10 +252,10 @@ export default class MomentsStore {
                 radius: params.radius,
                 region: region.code,
                 polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
-                geom: knex.raw(`ST_SetSRID(ST_MakePoint(${params.longitude}, ${params.latitude}), 4326)`),
+                geom: knexBuilder.raw(`ST_SetSRID(ST_MakePoint(${params.longitude}, ${params.latitude}), 4326)`),
             };
 
-            const queryString = knex.insert(sanitizedParams)
+            const queryString = knexBuilder.insert(sanitizedParams)
                 .into(MOMENTS_TABLE_NAME)
                 .returning('*')
                 .toString();
@@ -266,7 +266,7 @@ export default class MomentsStore {
 
     deleteMoments(params: IDeleteMomentsParams) {
         // TODO: RSERV-52 | Consider archiving only, and delete associated reactions from reactions-service
-        const queryString = knex.delete()
+        const queryString = knexBuilder.delete()
             .from(MOMENTS_TABLE_NAME)
             .where('fromUserId', params.fromUserId)
             .whereIn('id', params.ids)

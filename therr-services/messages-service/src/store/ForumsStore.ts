@@ -1,11 +1,11 @@
-import Knex from 'knex';
+import KnexBuilder, { Knex } from 'knex';
 import { getDbCountQueryString } from 'therr-js-utilities/db';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { CATEGORIES_TABLE_NAME } from './CategoriesStore';
 import { IConnection } from './connection';
 import { FORUM_CATEGORIES_TABLE_NAME } from './ForumCategoriesStore';
 
-const knex: Knex = Knex({ client: 'pg' });
+const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export const FORUMS_TABLE_NAME = 'main.forums';
 
@@ -67,7 +67,7 @@ export default class ForumsStore {
     // TODO: Update to actually match searchForums (infinite scroll)
     countRecords(params) {
         const queryString = getDbCountQueryString({
-            queryBuilder: knex,
+            queryBuilder: knexBuilder,
             tableName: FORUMS_TABLE_NAME,
             params,
             defaultConditions: {},
@@ -79,7 +79,7 @@ export default class ForumsStore {
     async searchForums(conditions: any = {}, returning, options: ISearchForumOptions) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
-        let queryString: any = knex
+        let queryString: any = knexBuilder
             .select((returning && returning.length) ? returning : [
                 `${FORUMS_TABLE_NAME}.id`,
                 `${FORUMS_TABLE_NAME}.authorId`,
@@ -122,7 +122,7 @@ export default class ForumsStore {
             // Use forumCategries table to filter
             // May be able to improve speed by combining queries
             // Keep in mind sharding will add further complexity
-            const categoriesQueryString: any = knex
+            const categoriesQueryString: any = knexBuilder
                 .select('*')
                 .from(FORUM_CATEGORIES_TABLE_NAME)
                 .whereIn('categoryTag', options.categoryTags)
@@ -161,7 +161,7 @@ export default class ForumsStore {
 
         delete forumParams.categoryTags;
 
-        const queryString = knex.insert(forumParams)
+        const queryString = knexBuilder.insert(forumParams)
             .into(FORUMS_TABLE_NAME)
             .returning('*')
             .toString();
@@ -174,7 +174,7 @@ export default class ForumsStore {
             }));
 
             return this.db.write.query(
-                knex.insert(forumCategories)
+                knexBuilder.insert(forumCategories)
                     .into(FORUM_CATEGORIES_TABLE_NAME)
                     .toString(),
             ).then(() => response.rows);
@@ -193,7 +193,7 @@ export default class ForumsStore {
 
         // ]);
 
-        const forumQueryString = knex.update({
+        const forumQueryString = knexBuilder.update({
             ...forumParams,
             updatedAt: new Date(),
         })

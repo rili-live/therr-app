@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { buttonMenuHeightCompact } from '../navigation/buttonMenu';
 import * as therrTheme from '../themes';
 
 const btnStyles: any = {
@@ -7,11 +8,13 @@ const btnStyles: any = {
     borderWidth: 0,
 };
 
+const collapseOffset = 20;
+
 export default StyleSheet.create({
     addMoment: {
         position: 'absolute',
         right: 18,
-        bottom: 44,
+        bottom: 44 + buttonMenuHeightCompact - collapseOffset,
         shadowColor: therrTheme.colors.textBlack,
         shadowOffset: {
             height: 1,
@@ -21,25 +24,25 @@ export default StyleSheet.create({
         borderRadius: 100,
         padding: 0,
     },
-    collapse: {
-        position: 'absolute',
-        right: 18,
-        bottom: 10,
-        shadowColor: therrTheme.colors.textBlack,
-        shadowOffset: {
-            height: 1,
-            width: 1,
-        },
-        shadowRadius: 4,
-        borderRadius: 100,
-        padding: 0,
-        width: 96,
-        height: 20,
-    },
+    // collapse: {
+    //     position: 'absolute',
+    //     right: 18,
+    //     bottom: collapseOffset + buttonMenuHeightCompact,
+    //     shadowColor: therrTheme.colors.textBlack,
+    //     shadowOffset: {
+    //         height: 1,
+    //         width: 1,
+    //     },
+    //     shadowRadius: 4,
+    //     borderRadius: 100,
+    //     padding: 0,
+    //     width: 96,
+    //     height: 20,
+    // },
     compass: {
         position: 'absolute',
         right: 84,
-        bottom: 44,
+        bottom: 44 + buttonMenuHeightCompact - collapseOffset,
         shadowColor: therrTheme.colors.textBlack,
         shadowOffset: {
             height: 1,
@@ -52,7 +55,7 @@ export default StyleSheet.create({
     toggleFollow: {
         position: 'absolute',
         left: 18,
-        bottom: 110,
+        bottom: 110 + buttonMenuHeightCompact - collapseOffset,
         shadowColor: therrTheme.colors.textBlack,
         shadowOffset: {
             height: 1,
@@ -65,7 +68,7 @@ export default StyleSheet.create({
     recenter: {
         position: 'absolute',
         right: 18,
-        bottom: 110,
+        bottom: 110 + buttonMenuHeightCompact - collapseOffset,
         shadowColor: therrTheme.colors.textBlack,
         shadowOffset: {
             height: 1,
@@ -78,7 +81,7 @@ export default StyleSheet.create({
     momentLayers: {
         position: 'absolute',
         left: 90,
-        bottom: 44,
+        bottom: 44 + buttonMenuHeightCompact - collapseOffset,
         shadowColor: therrTheme.colors.textBlack,
         shadowOffset: {
             height: 1,
@@ -91,7 +94,7 @@ export default StyleSheet.create({
     momentLayerOption1: {
         position: 'absolute',
         left: 96,
-        bottom: 100,
+        bottom: 100 + buttonMenuHeightCompact - collapseOffset,
         shadowColor: therrTheme.colors.textBlack,
         shadowOffset: {
             height: 1,
@@ -106,7 +109,7 @@ export default StyleSheet.create({
     momentLayerOption2: {
         position: 'absolute',
         left: 96,
-        bottom: 144,
+        bottom: 144 + buttonMenuHeightCompact - collapseOffset,
         shadowColor: therrTheme.colors.textBlack,
         shadowOffset: {
             height: 1,
@@ -121,7 +124,7 @@ export default StyleSheet.create({
     refreshMoments: {
         position: 'absolute',
         left: 18,
-        bottom: 44,
+        bottom: 44 + buttonMenuHeightCompact - collapseOffset,
         shadowColor: therrTheme.colors.textBlack,
         shadowOffset: {
             height: 1,

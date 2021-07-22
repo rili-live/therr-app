@@ -6,7 +6,7 @@ import viewing, { getViewingMomentStyles } from './viewing';
 const dividerHeight = 10;
 
 const momentTextStyles: any = {
-    color: therrTheme.colors.textWhite,
+    color: therrTheme.colors.textBlack,
 };
 
 const androidMomentContainerStyles: any = {

@@ -25,7 +25,8 @@ declare global {
 /* eslint-enable */
 
 if (!process.env.BROWSER) {
-    global.window = {}; // Temporarily define window for server-side
+    global.window = ({ document: {} } as any); // Temporarily define window for server-side
+    global.document = ({} as any); // Temporarily define window for server-side
 }
 import Layout from './components/Layout'; // eslint-disable-line
 import getRoutes, { IRoute } from './routes'; // eslint-disable-line
