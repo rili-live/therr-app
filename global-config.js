@@ -12,6 +12,9 @@ const hostProd = 'therr.com';
 const googleOAuth2WebClientId = '718962923226-k1ejo7drgp89h7b375ifkda4l1vapevr.apps.googleusercontent.com';
 
 module.exports = {
+    any: {
+        googleOAuth2WebClientId
+    },
     development: {
         baseApiGatewayRoute: `http://${hostDev}:${apiGatewayPort}/v1`,
         baseMapsServiceRoute: `http://${hostDev}:${apiMapsPort}/v1`,
