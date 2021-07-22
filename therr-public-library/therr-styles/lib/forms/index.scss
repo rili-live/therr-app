@@ -1,3 +1,4 @@
+@use 'sass:math';
 @import '../variables';
 @import './radio-group';
 @import './search-box';
@@ -62,7 +63,7 @@ select,
 textarea {
     background-color: $therr-white;
     border: 1px solid #cdcdcd;
-    border-radius: (2.375rem/2);
+    border-radius: math.div(2.375rem, 2);
     box-shadow: none;
     box-sizing: border-box;
     color: #262626;

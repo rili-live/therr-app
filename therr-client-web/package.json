@@ -6,11 +6,11 @@
   "scripts": {
     "build": "npm run build:app && npm run build:server && node ./update-views.js",
     "build:dev": "npm run build:app:dev && npm run build:server:dev && node ./update-views.js",
-    "build:app": "../node_modules/.bin/webpack --config webpack.app.config.js --env.production",
-    "build:app:dev": "../node_modules/.bin/webpack --config webpack.app.config.js --env.development",
+    "build:app": "../node_modules/.bin/webpack --config webpack.app.config.js --env production",
+    "build:app:dev": "../node_modules/.bin/webpack --config webpack.app.config.js --env development",
     "build:server": "../node_modules/.bin/webpack --config webpack.server.config.js --env production",
     "build:server:dev": "../node_modules/.bin/webpack --config webpack.server.config.js --env development",
-    "build:watch": "npm run build:server:dev && ../node_modules/.bin/webpack --config webpack.app.config.js --watch --env.development",
+    "build:watch": "npm run build:server:dev && ../node_modules/.bin/webpack --config webpack.app.config.js --watch --env development",
     "lint:fix": "../node_modules/.bin/eslint --ext .js,.jsx,.ts,.tsx --fix ./",
     "lint": "../node_modules/.bin/eslint --quiet --ext .js,.jsx,.ts,.tsx ./",
     "start": "../node_modules/.bin/nodemon --require=../node_modules/dotenv/config ./build/server-client.js dotenv_config_path=../.env",
@@ -32,7 +32,6 @@
     "defaults"
   ],
   "devDependencies": {
-    "webpack-cli": "^3.3.12"
-  },
-  "dependencies": {}
+    "webpack-cli": "^4.7.2"
+  }
 }

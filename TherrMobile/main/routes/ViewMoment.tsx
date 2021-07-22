@@ -9,6 +9,7 @@ import { bindActionCreators } from 'redux';
 import { Button } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 // import { Button }  from 'react-native-elements';
+import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IContentState, IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
@@ -16,6 +17,7 @@ import YoutubePlayer from 'react-native-youtube-iframe';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
 import styles from '../styles';
+import * as therrTheme from '../styles/themes';
 import formStyles, { beemoEditForm as beemoFormStyles } from '../styles/forms';
 import beemoLayoutStyles from '../styles/layouts/beemo';
 import userContentStyles from '../styles/user-content';
@@ -74,6 +76,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     private hashtags;
     private scrollViewRef;
     private translate: Function;
+    private unsubscribeNavListener;
 
     constructor(props) {
         super(props);
@@ -98,6 +101,8 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         this.hashtags = moment.hashTags ? moment.hashTags.split(',') : [];
 
         this.date = formatDate(moment.updatedAt);
+
+        changeNavigationBarColor(therrTheme.colors.beemo1, false, true);
     }
 
     componentDidMount() {
@@ -117,6 +122,14 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         navigation.setOptions({
             title: this.notificationMsg,
         });
+
+        this.unsubscribeNavListener = navigation.addListener('beforeRemove', () => {
+            changeNavigationBarColor(therrTheme.colors.primary, false, true);
+        });
+    }
+
+    componentWillUnmount() {
+        this.unsubscribeNavListener();
     }
 
     renderHashtagPill = (tag, key) => {

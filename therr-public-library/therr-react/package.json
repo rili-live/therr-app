@@ -28,9 +28,7 @@
   "files": [
     "lib/"
   ],
-  "peerDependencies": {},
-  "devDependencies": {},
-  "dependencies": {
-    "react-native-android-location-services-dialog-box": "^2.8.2"
+  "devDependencies": {
+    "webpack-cli": "^4.7.2"
   }
 }

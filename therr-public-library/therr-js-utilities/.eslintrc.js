@@ -5,18 +5,19 @@ module.exports = {
     env: {
         browser: true,
         jest: true,
-        mocha: true
+        mocha: true,
     },
     extends: [
         'airbnb-base',
-        'plugin:@typescript-eslint/recommended'
+        'plugin:@typescript-eslint/recommended',
     ],
     plugins: [
-        '@typescript-eslint'
+        '@typescript-eslint',
     ],
     parser: '@typescript-eslint/parser',
+    ignorePatterns: ["**/.eslintrc.js"],
     rules: {
-        'indent': [2, 4, { SwitchCase: 1 }],
+        indent: [2, 4, { SwitchCase: 1 }],
         'max-len': [2, { code: 140 }],
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
@@ -28,22 +29,32 @@ module.exports = {
             'error',
             'always',
             {
-                'js': 'always',
-                'ts': 'never',
+                js: 'always',
+                ts: 'never',
                 'd.ts': 'never',
-            }
+            },
         ],
+        'import/no-extraneous-dependencies': [
+            'warn',
+            {
+                packageDir: [
+                    path.join(__dirname, './'),
+                    path.join(__dirname, '../..'),
+                ],
+            },
+        ],
+        'no-shadow': 'off',
+        '@typescript-eslint/ban-types': 'off',
     },
     settings: {
         'import/external-module-folders': ['../node_modules', '../node_modules/@types'],
         'import/parsers': {
-            '@typescript-eslint/parser': ['.ts']
+            '@typescript-eslint/parser': ['.ts'],
         },
         'import/resolver': {
             node: {
-                extensions: ['.js', '.ts']
-            }
-        }
-    }
+                extensions: ['.js', '.ts'],
+            },
+        },
+    },
 };
-

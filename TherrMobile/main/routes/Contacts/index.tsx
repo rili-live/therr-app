@@ -9,6 +9,7 @@ import ConnectionsButtonMenu from '../../components/ButtonMenu/ConnectionsButton
 import styles from '../../styles';
 import translator from '../../services/translator';
 import ContactsSearch from './ContactsSearch';
+import CreateConnectionButton from '../../components/CreateConnectionButton';
 
 interface IContactsDispatchProps {
     logout: Function;
@@ -132,6 +133,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         </View>
                     </ScrollView>
                 </SafeAreaView>
+                <CreateConnectionButton navigation={navigation} />
                 <ConnectionsButtonMenu navigation={navigation} translate={this.translate} user={user} />
             </>
         );

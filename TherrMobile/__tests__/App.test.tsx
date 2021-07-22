@@ -1,5 +1,8 @@
+/**
+ * @jest-environment jsdom
+ */
 import 'react-native';
-import AsyncStorageMock from '@react-native-community/async-storage/jest/async-storage-mock';
+import AsyncStorageMock from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 // import React from 'react';
 import mock from 'react-native-permissions/mock';
 // import App from '../main/App';
@@ -42,10 +45,12 @@ afterEach(() => {
     jest.clearAllTimers();
 });
 
-it('renders correctly', async () => {
-    AsyncStorageMock.getItem = jest.fn((key, callback) => {
-        // do something here to retrieve data
-        callback(JSON.stringify({}));
+describe('App', () => {
+    it.skip('renders correctly', async () => {
+        AsyncStorageMock.getItem = jest.fn((key, callback) => {
+            // do something here to retrieve data
+            callback(JSON.stringify({}));
+        });
+        // renderer.create(<App />);
     });
-    // renderer.create(<App />);
 });

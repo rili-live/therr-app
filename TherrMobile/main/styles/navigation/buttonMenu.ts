@@ -2,6 +2,7 @@ import { StyleSheet } from 'react-native';
 import * as therrTheme from '../themes';
 
 export const buttonMenuHeight = 74;
+export const buttonMenuHeightCompact = 48;
 
 const buttonStyle: any = {
     backgroundColor: 'transparent',
@@ -47,6 +48,7 @@ export default StyleSheet.create({
             width: 0,
             height: 0,
         },
+        color: therrTheme.colors.primary3,
     },
     container: {
         position: 'absolute',
@@ -60,6 +62,7 @@ export default StyleSheet.create({
         bottom: 0,
         borderTopWidth: 1,
         borderTopColor: therrTheme.colorVariations.primaryFade,
+        zIndex: 10,
     },
     buttonIcon: iconStyle,
     buttonIconActive: {
@@ -69,6 +72,7 @@ export default StyleSheet.create({
             height: 0,
         },
         textShadowRadius: 0,
+        color: therrTheme.colors.primary3,
     },
     notificationCircle: {
         position: 'absolute',

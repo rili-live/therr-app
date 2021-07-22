@@ -1,10 +1,11 @@
+@use 'sass:math';
 @import './variables';
 
 button,
 [type='button'],
 [type='reset'],
 [type='submit'] {
-    border-radius: (2.125rem/2);
+    border-radius: math.div(2.125rem, 2);
 }
 
 button {

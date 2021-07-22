@@ -1,8 +1,8 @@
 const path = require('path');
 const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-dependencies
-const merge = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
+const { merge } = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
 const HtmlWebpackPlugin = require('html-webpack-plugin'); // eslint-disable-line import/no-extraneous-dependencies
-const DeclarationBundlerPlugin = require('declaration-bundler-webpack-plugin');
+const ModuleFederationPlugin = require('webpack/lib/container/ModuleFederationPlugin');
 const parts = require('../../webpack.parts');
 
 // For externals
@@ -53,10 +53,31 @@ const common = merge([
                 'therr-styles': path.join(__dirname, '../therr-styles/lib'),
                 'therr-js-utilities': path.join(__dirname, '../therr-js-utilities/lib'),
             },
+            fallback: {
+                fs: false,
+                tls: false,
+                net: false,
+                os: false,
+                path: false,
+                zlib: false,
+                http: false,
+                https: false,
+                stream: false,
+                crypto: false,
+            },
         },
         target: 'node',
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
+            new ModuleFederationPlugin({
+                shared: {
+                    axios: {
+                        eager: true,
+                        requiredVersion: rootPkg.dependencies.axios,
+                        singleton: true,
+                    },
+                },
+            }),
             new HtmlWebpackPlugin({
                 template: 'src/index.html',
                 inject: false,
@@ -82,9 +103,9 @@ const buildDev = () => merge([
     parts.clean(),
     {
         mode: 'development',
-        plugins: [
-            new webpack.NamedModulesPlugin(),
-        ],
+        optimization: {
+            moduleIds: 'named',
+        },
     },
     parts.loadCSS(null, 'development'),
 ]);
@@ -93,9 +114,10 @@ const buildProd = () => merge([
     common,
     {
         mode: 'production',
-        plugins: [
-            new webpack.HashedModuleIdsPlugin(),
-        ],
+        optimization: {
+            emitOnErrors: true,
+            moduleIds: 'deterministic',
+        },
         externals: [
             ...Object.keys(localPkg.peerDependencies || {}),
             ...Object.keys(rootPkg.dependencies || {}),
@@ -114,8 +136,9 @@ const buildProd = () => merge([
 
 module.exports = (env) => {
     process.env.BABEL_ENV = env;
+    console.log('Environment: ', env);
 
-    if (env === 'production') {
+    if (env.production) {
         return [buildProd()];
     }
 

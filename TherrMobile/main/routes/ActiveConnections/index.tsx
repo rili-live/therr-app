@@ -9,6 +9,7 @@ import ConnectionsButtonMenu from '../../components/ButtonMenu/ConnectionsButton
 import styles from '../../styles';
 import translator from '../../services/translator';
 import ActiveConnections from './ActiveConnections';
+import CreateConnectionButton from '../../components/CreateConnectionButton';
 
 interface IActiveConnectionsDispatchProps {
     logout: Function;
@@ -132,6 +133,7 @@ class ActiveConnectionsComponent extends React.Component<
                         </View>
                     </ScrollView>
                 </SafeAreaView>
+                <CreateConnectionButton navigation={navigation} />
                 <ConnectionsButtonMenu navigation={navigation} translate={this.translate} user={user} />
             </>
         );

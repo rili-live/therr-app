@@ -40,14 +40,14 @@ def flipper_post_install(installer)
   installer.pods_project.targets.each do |target|
     if target.name == 'YogaKit'
       target.build_configurations.each do |config|
-        config.build_settings['SWIFT_VERSION'] = '4.1'
+        config.build_settings['SWIFT_VERSION'] = '5.0'
       end
     end
   end
 end
 
 target 'Therr' do
-  project 'Therr', 'Therr_debug' => :debug, 'Debug' => :debug, 'Therr_Release' => :release, 'Release' => :release
+  project 'Therr', 'Therr_Debug' => :debug, 'Debug' => :debug, 'Therr_Release' => :release, 'Release' => :release
   # React Native Maps dependencies
   rn_maps_path = '../node_modules/react-native-maps'
   pod 'react-native-google-maps', :path => rn_maps_path
@@ -95,7 +95,7 @@ target 'Therr' do
   pod 'React-Core/RCTWebSocket', :path => '../node_modules/react-native/'
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
   pod 'Firebase/Analytics'
-
+  pod 'RNCAsyncStorage', :path => '../node_modules/@react-native-async-storage/async-storage'
   pod 'React-cxxreact', :path => '../node_modules/react-native/ReactCommon/cxxreact'
   pod 'React-jsi', :path => '../node_modules/react-native/ReactCommon/jsi'
   pod 'React-jsiexecutor', :path => '../node_modules/react-native/ReactCommon/jsiexecutor'
@@ -122,6 +122,7 @@ target 'Therr' do
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.0'
+       config.build_settings["ONLY_ACTIVE_ARCH"] = "NO"
       end
     end
   end

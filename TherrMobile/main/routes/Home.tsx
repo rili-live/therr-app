@@ -1,23 +1,15 @@
 import React from 'react';
 import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
-import { Button } from 'react-native-elements';
-import { Picker as ReactPicker } from '@react-native-picker/picker';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
-import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import isEmail from 'validator/es/lib/isEmail';
-import Alert from '../components/Alert';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
-import SquareInput from '../components/Input/Square';
-import PhoneNumberInput from '../components/Input/PhoneNumberInput';
-import * as therrTheme from '../styles/themes';
-import styles, { addMargins } from '../styles';
-import formStyles from '../styles/forms';
+import styles from '../styles';
 
 interface IHomeDispatchProps {
     createUserConnection: Function;
@@ -247,13 +239,6 @@ class Home extends React.Component<IHomeProps, IHomeState> {
     }
 
     render() {
-        const {
-            connectionContext,
-            emailErrorMessage,
-            inputs,
-            prevConnReqError,
-            prevConnReqSuccess,
-        } = this.state;
         const { navigation, user } = this.props;
 
         return (
@@ -266,15 +251,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                     >
                         <View style={styles.body}>
                             <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitle}>
-                                    {this.translate('pages.userProfile.h2.howItWorks')}
-                                </Text>
-                                <Text style={styles.sectionDescription}>
-                                    {this.translate('pages.userProfile.siteDescription')}
-                                </Text>
-                            </View>
-                            <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitle}>
+                                <Text style={styles.sectionTitleCenter}>
                                     {this.translate('pages.userProfile.h2.quoteOfTheDay')}
                                 </Text>
                                 <Text style={styles.sectionQuote}>
@@ -282,86 +259,21 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                 </Text>
                             </View>
                             <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitle}>
-                                    {this.translate('pages.userProfile.h2.createConnection')}
+                                <Text style={styles.sectionTitleCenter}>
+                                    {this.translate('pages.userProfile.h2.howItWorks')}
                                 </Text>
-                                <View style={styles.sectionForm}>
-                                    <ReactPicker
-                                        selectedValue={connectionContext}
-                                        style={formStyles.picker}
-                                        itemStyle={formStyles.pickerItem}
-                                        onValueChange={(itemValue) =>
-                                            this.setState({ connectionContext: itemValue })
-                                        }>
-                                        <ReactPicker.Item label={this.translate(
-                                            'forms.createConnection.labels.phone'
-                                        )} value="phone" />
-                                        <ReactPicker.Item label={this.translate(
-                                            'forms.createConnection.labels.email'
-                                        )} value="email" />
-                                    </ReactPicker>
-                                    {
-                                        connectionContext === 'email' &&
-                                        <SquareInput
-                                            placeholder={this.translate(
-                                                'forms.createConnection.placeholders.email'
-                                            )}
-                                            value={inputs.email}
-                                            onChangeText={(text) =>
-                                                this.onInputChange('email', text)
-                                            }
-                                            onBlur={this.onBlurValidate}
-                                            onSubmitEditing={() => this.onSubmit()}
-                                            errorMessage={emailErrorMessage}
-                                            rightIcon={
-                                                <FontAwesomeIcon
-                                                    name="envelope"
-                                                    size={22}
-                                                    color={therrTheme.colors.primary3Faded}
-                                                />
-                                            }
-                                        />
-                                    }
-                                    {
-                                        connectionContext === 'phone' &&
-                                        <PhoneNumberInput
-                                            onChangeText={this.onPhoneInputChange}
-                                            onSubmit={this.onSubmit}
-                                            placeholder={this.translate('forms.settings.labels.phoneNumber')}
-                                            translate={this.translate}
-                                        />
-                                    }
-                                    <Alert
-                                        containerStyles={addMargins({
-                                            marginBottom: 24,
-                                        })}
-                                        isVisible={!!prevConnReqError}
-                                        message={prevConnReqError}
-                                        type={'error'}
-                                    />
-                                    <Alert
-                                        containerStyles={addMargins({
-                                            marginBottom: 24,
-                                        })}
-                                        isVisible={!!prevConnReqSuccess}
-                                        message={prevConnReqSuccess}
-                                        type={'success'}
-                                    />
-                                    <Button
-                                        containerStyle={addMargins({
-                                            marginBottom: 18,
-                                        })}
-                                        buttonStyle={formStyles.button}
-                                        disabledTitleStyle={formStyles.buttonTitleDisabled}
-                                        disabledStyle={formStyles.buttonDisabled}
-                                        title={this.translate(
-                                            'forms.createConnection.buttons.submit'
-                                        )}
-                                        onPress={this.onSubmit}
-                                        disabled={this.isConnReqFormDisabled()}
-                                        raised={true}
-                                    />
-                                </View>
+                                <Text style={styles.sectionDescription}>
+                                    {this.translate('pages.userProfile.siteDescription1')}
+                                </Text>
+                                <Text style={styles.sectionDescription}>
+                                    {this.translate('pages.userProfile.siteDescription2')}
+                                </Text>
+                                <Text style={styles.sectionDescription}>
+                                    {this.translate('pages.userProfile.siteDescription3')}
+                                </Text>
+                                <Text style={styles.sectionDescription}>
+                                    {this.translate('pages.userProfile.siteDescription4')}
+                                </Text>
                             </View>
                         </View>
                     </ScrollView>

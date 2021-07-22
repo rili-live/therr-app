@@ -1,11 +1,11 @@
-import Knex from 'knex';
+import KnexBuilder, { Knex } from 'knex';
 import { Notifications } from 'therr-js-utilities/constants';
 import { getDbCountQueryString } from 'therr-js-utilities/db';
 import formatSQLJoinAsJSON from 'therr-js-utilities/format-sql-join-as-json';
 import { IConnection } from './connection';
 import { USER_CONNECTIONS_TABLE_NAME } from './UserConnectionsStore';
 
-const knex: Knex = Knex({ client: 'pg' });
+const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export const NOTIFICATIONS_TABLE_NAME = 'main.notifications';
 
@@ -43,7 +43,7 @@ export default class NotificationsStore {
     // Need to make the search query a transaction and include the count there
     countRecords(params) {
         const queryString = getDbCountQueryString({
-            queryBuilder: knex,
+            queryBuilder: knexBuilder,
             tableName: NOTIFICATIONS_TABLE_NAME,
             params,
             defaultConditions: {},
@@ -53,7 +53,7 @@ export default class NotificationsStore {
     }
 
     getNotifications(conditions = {}) {
-        const queryString = knex.select('*')
+        const queryString = knexBuilder.select('*')
             .from(NOTIFICATIONS_TABLE_NAME)
             .where(conditions)
             .toString();
@@ -65,7 +65,7 @@ export default class NotificationsStore {
     searchNotifications(conditions: any = {}) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
-        let queryString: any = knex
+        let queryString: any = knexBuilder
             .select([
                 `${NOTIFICATIONS_TABLE_NAME}.id`,
                 `${NOTIFICATIONS_TABLE_NAME}.userId`,
@@ -79,7 +79,7 @@ export default class NotificationsStore {
             ])
             .from(NOTIFICATIONS_TABLE_NAME)
             .leftJoin(USER_CONNECTIONS_TABLE_NAME, function () {
-                this.on(knex.raw(`"main"."notifications"."associationId" = "main"."userConnections".id AND (${NOTIFICATIONS_TABLE_NAME}.type = '${Notifications.Types.CONNECTION_REQUEST_ACCEPTED}' OR ${NOTIFICATIONS_TABLE_NAME}.type = '${Notifications.Types.CONNECTION_REQUEST_RECEIVED}')`)); // eslint-disable-line max-len
+                this.on(knexBuilder.raw(`"main"."notifications"."associationId" = "main"."userConnections".id AND (${NOTIFICATIONS_TABLE_NAME}.type = '${Notifications.Types.CONNECTION_REQUEST_ACCEPTED}' OR ${NOTIFICATIONS_TABLE_NAME}.type = '${Notifications.Types.CONNECTION_REQUEST_RECEIVED}')`)); // eslint-disable-line max-len
             })
             .columns([
                 `${USER_CONNECTIONS_TABLE_NAME}.requestingUserId as userConnection.requestingUserId`,
@@ -115,7 +115,7 @@ export default class NotificationsStore {
             ...params,
             messageParams: JSON.stringify(params.messageParams),
         };
-        const queryString = knex.insert(modifiedParams)
+        const queryString = knexBuilder.insert(modifiedParams)
             .into(NOTIFICATIONS_TABLE_NAME)
             .returning('*')
             .toString();
@@ -124,7 +124,7 @@ export default class NotificationsStore {
     }
 
     updateNotification(conditions: IUpdateNotificationConditions, params: IUpdateNotificationParams) {
-        const queryString = knex.update({
+        const queryString = knexBuilder.update({
             ...params,
             updatedAt: new Date(),
         })

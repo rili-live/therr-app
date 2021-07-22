@@ -7,6 +7,7 @@ import RedirectWithStatus from './RedirectWithStatus';
 
 // interface IAuthRouteRouterProps {
 // }
+// eslint-disable-next-line @typescript-eslint/ban-types
 interface IAuthRouteProps extends RouteComponentProps<{}> {
     access: any;
     component?: any;
@@ -17,6 +18,7 @@ interface IAuthRouteProps extends RouteComponentProps<{}> {
     path: any;
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 type IHomeProps = RouteComponentProps<{}>
 
 const mapStateToProps = (state: any) => ({

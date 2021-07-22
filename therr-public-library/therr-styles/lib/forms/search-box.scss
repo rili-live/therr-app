@@ -1,3 +1,4 @@
+@use 'sass:math';
 @import '../variables';
 
 $field-height: 2.25rem;
@@ -53,7 +54,7 @@ $search-box-padding-top: 1rem;
             font-weight: 600;
             line-height: .875rem;
             padding: 0 .1875rem;
-            transform: translate(.5rem, $search-box-padding-top / 2) scale(.85);
+            transform: translate(.5rem, math.div($search-box-padding-top, 2)) scale(.85);
         }
 
         &::before {
