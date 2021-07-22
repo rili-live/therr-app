@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, SafeAreaView, Text, StatusBar } from 'react-native';
+import { SafeAreaView, Text, StatusBar } from 'react-native';
 // import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -11,11 +11,11 @@ import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 // import * as therrTheme from '../styles/themes';
 import styles from '../../styles';
 import momentStyles from '../../styles/user-content/moments';
-import { buttonMenuHeight } from '../../styles/navigation/buttonMenu';
+import { buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
 import MomentCarousel from './MomentCarousel';
 
-const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
+// const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
 interface IMomentsDispatchProps {
     searchActiveMoments: Function;
@@ -137,12 +137,19 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         return (
             <>
                 <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
-                <SafeAreaView style={[styles.safeAreaView, { paddingBottom: buttonMenuHeight }]}>
+                <SafeAreaView style={[styles.safeAreaView, { paddingBottom: buttonMenuHeightCompact }]}>
                     {
                         this.renderCarousel(content)
                     }
                 </SafeAreaView>
-                <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} />
+                {/* <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} /> */}
+                <MainButtonMenu
+                    navigation={navigation}
+                    onActionButtonPress={this.scrollTop}
+                    isCompact
+                    translate={this.translate}
+                    user={user}
+                />
             </>
         );
     }

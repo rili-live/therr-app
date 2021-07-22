@@ -33,7 +33,7 @@ const rootStyle: any = {
 
 export const notifications = StyleSheet.create({
     container: {
-        marginTop: 0,
+        marginTop: 20,
         marginBottom: buttonMenuHeight,
     },
     firstChildNotification: {

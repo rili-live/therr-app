@@ -33,7 +33,7 @@ class App extends React.Component<any, any> {
                 isMinLoadTimeComplete: true,
             });
         }, MIN_LOAD_TIMEOUT + 200);
-        changeNavigationBarColor(therrTheme.colors.primary2, false, true);
+        changeNavigationBarColor(therrTheme.colors.primary, false, true);
     }
 
     componentDidMount() {

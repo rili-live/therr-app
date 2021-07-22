@@ -1,23 +1,15 @@
 import React from 'react';
 import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
-import { Button } from 'react-native-elements';
-import { Picker as ReactPicker } from '@react-native-picker/picker';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
-import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import isEmail from 'validator/es/lib/isEmail';
-import Alert from '../components/Alert';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
-import SquareInput from '../components/Input/Square';
-import PhoneNumberInput from '../components/Input/PhoneNumberInput';
-import * as therrTheme from '../styles/themes';
-import styles, { addMargins } from '../styles';
-import formStyles from '../styles/forms';
+import styles from '../styles';
 
 interface IHomeDispatchProps {
     createUserConnection: Function;

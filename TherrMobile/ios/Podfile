@@ -95,7 +95,7 @@ target 'Therr' do
   pod 'React-Core/RCTWebSocket', :path => '../node_modules/react-native/'
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
   pod 'Firebase/Analytics'
-
+  pod 'RNCAsyncStorage', :path => '../node_modules/@react-native-async-storage/async-storage'
   pod 'React-cxxreact', :path => '../node_modules/react-native/ReactCommon/cxxreact'
   pod 'React-jsi', :path => '../node_modules/react-native/ReactCommon/jsi'
   pod 'React-jsiexecutor', :path => '../node_modules/react-native/ReactCommon/jsiexecutor'

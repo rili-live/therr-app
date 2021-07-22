@@ -5,6 +5,7 @@ import { bindActionCreators } from 'redux';
 import { Button, Slider, Image } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'rn-fetch-blob';
+import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
@@ -67,6 +68,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 export class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
     private scrollViewRef;
     private translate: Function;
+    private unsubscribeNavListener;
 
     constructor(props) {
         super(props);
@@ -83,12 +85,22 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
+        changeNavigationBarColor(therrTheme.colors.beemo1, false, true);
     }
 
     componentDidMount() {
-        this.props.navigation.setOptions({
+        const { navigation } = this.props;
+        navigation.setOptions({
             title: this.translate('pages.editMoment.headerTitle'),
         });
+
+        this.unsubscribeNavListener = navigation.addListener('beforeRemove', () => {
+            changeNavigationBarColor(therrTheme.colors.primary, false, true);
+        });
+    }
+
+    componentWillUnmount() {
+        this.unsubscribeNavListener();
     }
 
     isFormDisabled() {

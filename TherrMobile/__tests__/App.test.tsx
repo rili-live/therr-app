@@ -45,10 +45,12 @@ afterEach(() => {
     jest.clearAllTimers();
 });
 
-it('renders correctly', async () => {
-    AsyncStorageMock.getItem = jest.fn((key, callback) => {
-        // do something here to retrieve data
-        callback(JSON.stringify({}));
+describe('App', () => {
+    it.skip('renders correctly', async () => {
+        AsyncStorageMock.getItem = jest.fn((key, callback) => {
+            // do something here to retrieve data
+            callback(JSON.stringify({}));
+        });
+        // renderer.create(<App />);
     });
-    // renderer.create(<App />);
 });

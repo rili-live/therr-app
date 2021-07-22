@@ -666,7 +666,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={false} backgroundColor={therrTheme.colors.primary2}  />
+                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor={therrTheme.colors.primary2}  />
                 {!(isLocationReady && isMinLoadTimeComplete) ? (
                     <AnimatedLoader
                         visible={true}
@@ -697,6 +697,8 @@ class Map extends React.Component<IMapProps, IMapState> {
                             scrollEnabled={isScrollEnabled}
                             onUserLocationChange={this.onUserLocationChange}
                             minZoomLevel={MIN_ZOOM_LEVEL}
+                            /* react-native-map-clustering */
+                            clusterColor={therrTheme.colors.primary2}
                         >
                             <Circle
                                 center={circleCenter}
@@ -710,29 +712,15 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 layers.connectionsMoments &&
                                 map.moments.map((moment) => {
                                     return (
-                                        <React.Fragment key={moment.id}>
-                                            <Marker
-                                                coordinate={{
-                                                    longitude: moment.longitude,
-                                                    latitude: moment.latitude,
-                                                }}
-                                                onPress={this.handleMapPress}
-                                                stopPropagation={true}
-                                            />
-                                            <Circle
-                                                center={{
-                                                    longitude: moment.longitude,
-                                                    latitude: moment.latitude,
-                                                }}
-                                                radius={moment.radius} /* meters */
-                                                strokeWidth={0}
-                                                strokeColor={therrTheme.colors.secondary}
-                                                fillColor={moment.id === activeMoment.id ?
-                                                    therrTheme.colors.map.momentsCircleFillActive :
-                                                    therrTheme.colors.map.momentsCircleFill}
-                                                zIndex={1}
-                                            />
-                                        </React.Fragment>
+                                        <Marker
+                                            key={moment.id}
+                                            coordinate={{
+                                                longitude: moment.longitude,
+                                                latitude: moment.latitude,
+                                            }}
+                                            onPress={this.handleMapPress}
+                                            stopPropagation={true}
+                                        />
                                     );
                                 })
                             }
@@ -740,29 +728,57 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 layers.myMoments &&
                                 map.myMoments.map((moment) => {
                                     return (
-                                        <React.Fragment key={moment.id}>
-                                            <Marker
-                                                coordinate={{
-                                                    longitude: moment.longitude,
-                                                    latitude: moment.latitude,
-                                                }}
-                                                onPress={this.handleMapPress}
-                                                stopPropagation={true}
-                                            />
-                                            <Circle
-                                                center={{
-                                                    longitude: moment.longitude,
-                                                    latitude: moment.latitude,
-                                                }}
-                                                radius={moment.radius} /* meters */
-                                                strokeWidth={0}
-                                                strokeColor={therrTheme.colors.secondary}
-                                                fillColor={moment.id === activeMoment.id ?
-                                                    therrTheme.colors.map.myMomentsCircleFillActive :
-                                                    therrTheme.colors.map.myMomentsCircleFill}
-                                                zIndex={1}
-                                            />
-                                        </React.Fragment>
+                                        <Marker
+                                            key={moment.id}
+                                            coordinate={{
+                                                longitude: moment.longitude,
+                                                latitude: moment.latitude,
+                                            }}
+                                            onPress={this.handleMapPress}
+                                            stopPropagation={true}
+                                        />
+                                    );
+                                })
+                            }
+                            {
+                                layers.connectionsMoments &&
+                                map.moments.map((moment) => {
+                                    return (
+                                        <Circle
+                                            key={moment.id}
+                                            center={{
+                                                longitude: moment.longitude,
+                                                latitude: moment.latitude,
+                                            }}
+                                            radius={moment.radius} /* meters */
+                                            strokeWidth={0}
+                                            strokeColor={therrTheme.colors.secondary}
+                                            fillColor={moment.id === activeMoment.id ?
+                                                therrTheme.colors.map.momentsCircleFillActive :
+                                                therrTheme.colors.map.momentsCircleFill}
+                                            zIndex={1}
+                                        />
+                                    );
+                                })
+                            }
+                            {
+                                layers.myMoments &&
+                                map.myMoments.map((moment) => {
+                                    return (
+                                        <Circle
+                                            key={moment.id}
+                                            center={{
+                                                longitude: moment.longitude,
+                                                latitude: moment.latitude,
+                                            }}
+                                            radius={moment.radius} /* meters */
+                                            strokeWidth={0}
+                                            strokeColor={therrTheme.colors.secondary}
+                                            fillColor={moment.id === activeMoment.id ?
+                                                therrTheme.colors.map.myMomentsCircleFillActive :
+                                                therrTheme.colors.map.myMomentsCircleFill}
+                                            zIndex={1}
+                                        />
                                     );
                                 })
                             }

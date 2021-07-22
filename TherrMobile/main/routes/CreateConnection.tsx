@@ -63,10 +63,6 @@ const mapDispatchToProps = (dispatch: any) =>
 class Home extends React.Component<IHomeProps, IHomeState> {
     private translate: Function;
 
-    private quote: string;
-
-    private quoteAuthor: string;
-
     constructor(props) {
         super(props);
 
@@ -82,18 +78,13 @@ class Home extends React.Component<IHomeProps, IHomeState> {
 
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
-
-        const quote = this.translate('quoteOfTheDay');
-        const quoteSplit = quote.split(' - ');
-        this.quote = quoteSplit[0];
-        this.quoteAuthor = quoteSplit[1];
     }
 
     componentDidMount() {
         const { navigation, user, userConnections } = this.props;
 
         navigation.setOptions({
-            title: 'Therr',
+            title: this.translate('pages.activeConnections.headerTitle'),
         });
 
         if (!userConnections.connections.length) {
@@ -162,6 +153,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         };
 
         if (name === 'email') {
+            newInputChanges[name] = value.toLowerCase();
             if (!this.isEmailValid()) {
                 emailErrorMessage = this.translate('forms.createConnection.errorMessages.invalidEmail');
             }

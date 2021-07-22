@@ -6,7 +6,6 @@ import { CommonActions, StackActions } from '@react-navigation/native';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 // import therrIconConfig from '../assets/therr-font-config.json';
 // import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import { INotificationsState } from 'therr-react/types';
@@ -165,10 +164,10 @@ class HeaderMenuRight extends React.Component<
     };
 
     render() {
-        const { isVisible, isEmailVerifed, notifications, styleName, user } = this.props;
+        const { isVisible, isEmailVerifed, styleName, user } = this.props;
         const { isModalVisible } = this.state;
         const currentScreen = this.getCurrentScreen();
-        const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
+        // const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
         let imageStyle = headerMenuModal.toggleIcon;
 
         if (styleName === 'light') {
@@ -272,7 +271,7 @@ class HeaderMenuRight extends React.Component<
                                             }
                                             onPress={() => this.navTo('Home')}
                                         />
-                                        <Button
+                                        {/* <Button
                                             buttonStyle={
                                                 currentScreen === 'Map'
                                                     ? headerMenuModal.buttonsActive
@@ -351,7 +350,7 @@ class HeaderMenuRight extends React.Component<
                                                 }
                                                 onPress={() => this.navTo('Notifications')}
                                             />
-                                        </View>
+                                        </View> */}
                                         {/* <Button
                                             buttonStyle={
                                                 currentScreen === 'HostedChat'
@@ -377,7 +376,7 @@ class HeaderMenuRight extends React.Component<
                                             }
                                             onPress={() => this.navTo('HostedChat')}
                                         /> */}
-                                        <Button
+                                        {/* <Button
                                             buttonStyle={
                                                 currentScreen === 'ActiveConnections'
                                                     ? headerMenuModal.buttonsActive
@@ -401,7 +400,7 @@ class HeaderMenuRight extends React.Component<
                                                 />
                                             }
                                             onPress={() => this.navTo('ActiveConnections')}
-                                        />
+                                        /> */}
                                         <Button
                                             buttonStyle={
                                                 currentScreen === 'Settings'

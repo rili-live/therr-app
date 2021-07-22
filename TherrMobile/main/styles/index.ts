@@ -11,7 +11,7 @@ export const theme = {
     dark: true,
     colors: {
         primary: therrTheme.colors.primary,
-        background: therrTheme.colors.primary2,
+        background: therrTheme.colors.primary,
         card: therrTheme.colors.primary,
         text: therrTheme.colors.textWhite,
         border: therrTheme.colors.primary3,
@@ -44,7 +44,7 @@ const sectionTitle: any = {
 };
 
 const bodyStyle: any = {
-    backgroundColor: therrTheme.colors.primary2,
+    backgroundColor: therrTheme.colors.primary,
     color: therrTheme.colors.textWhite,
     marginTop: 0,
     top: 0,
@@ -111,14 +111,14 @@ export default StyleSheet.create({
         padding: 20,
     },
     bodyScroll: {
-        backgroundColor: therrTheme.colors.primary2,
+        backgroundColor: therrTheme.colors.primary,
         color: therrTheme.colors.textWhite,
         justifyContent: 'center',
         display: 'flex',
         minHeight: '90%',
     },
     bodyScrollSmall: {
-        backgroundColor: therrTheme.colors.primary2,
+        backgroundColor: therrTheme.colors.primary,
         color: therrTheme.colors.textWhite,
         justifyContent: 'center',
         display: 'flex',

@@ -55,7 +55,7 @@ class MainButtonMenu extends ButtonMenu {
         const { transparent, onActionButtonPress, isCompact, notifications, translate } = this.props;
         const currentScreen = this.getCurrentScreen();
         const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
-        const overrideStyles = transparent ? { backgroundColor: therrTheme.colors.primary2 } : { backgroundColor: therrTheme.colors.primary2 };
+        const overrideStyles = transparent ? { backgroundColor: therrTheme.colorVariations.primaryFade } : { backgroundColor: therrTheme.colors.primary };
         const containerHeight = isCompact ? buttonMenuHeightCompact : buttonMenuHeight;
 
         return (
@@ -167,7 +167,6 @@ class MainButtonMenu extends ButtonMenu {
                 {
                     onActionButtonPress &&
                     <Button
-                        title={currentScreen === 'Map' ? undefined : 'Scroll Top'}
                         buttonStyle={buttonMenu.buttons}
                         containerStyle={buttonMenu.buttonContainer}
                         titleStyle={buttonMenu.buttonsTitle}
