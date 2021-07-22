@@ -3,17 +3,23 @@ import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { IUser, UserActionTypes } from '../../types/redux/user';
 import UsersService from '../../services/UsersService';
 
+interface ILoginSSOTokens {
+    google?: string;
+}
 class UsersActions {
-    constructor(socketIO, NativeStorage?) {
+    constructor(socketIO, NativeStorage?, GoogleSignin?) {
         this.socketIO = socketIO;
+        this.GoogleSignin = GoogleSignin;
         this.NativeStorage = NativeStorage;
     }
 
     private socketIO;
 
+    private GoogleSignin;
+
     private NativeStorage;
 
-    login = (data: any) => async (dispatch: any) => {
+    login = (data: any, idTokens?: ILoginSSOTokens) => async (dispatch: any) => {
         await UsersService.authenticate(data).then(async (response) => {
             const {
                 accessLevels,
@@ -40,10 +46,12 @@ class UsersActions {
             };
             // Connect and get socketIO.id
             this.socketIO.on('connect', () => {
+                const sessionData = { id: this.socketIO.id, idTokens: idTokens || {} };
                 // NOTE: Native Storage methods return a promise, but in this case we don't need to await
-                (this.NativeStorage || sessionStorage).setItem('therrSession', JSON.stringify({ id: this.socketIO.id }));
+                (this.NativeStorage || sessionStorage)
+                    .setItem('therrSession', JSON.stringify(sessionData));
                 if (data.rememberMe && !this.NativeStorage) {
-                    localStorage.setItem('therrSession', JSON.stringify({ id: this.socketIO.id }));
+                    localStorage.setItem('therrSession', JSON.stringify(sessionData));
                 }
 
                 // These two dispatches were moved here to fix a bug when one dispatch happened before the callback
@@ -93,6 +101,7 @@ class UsersActions {
         });
         this.socketIO.removeAllListeners('connect');
         this.socketIO.disconnect();
+        this.GoogleSignin?.signOut();
         // NOTE: Socket will disconnect in reducer after event response from server (SESSION_CLOSED)
     }
 

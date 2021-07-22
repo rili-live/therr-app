@@ -2,14 +2,9 @@ import React, { useState } from 'react';
 import { Button, Image } from 'react-native-elements';
 import auth from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import getConfig from '../../utilities/getConfig';
 import ssoButtonStyles from '../../styles/buttons/ssoButtons';
 
 const googleLogoImg = require('../../assets/google-letter-logo.png');
-
-GoogleSignin.configure({
-    webClientId: getConfig().googleOAuth2WebClientId,
-});
 
 interface IGoogleSignInButtonProps {
     buttonTitle: string;
