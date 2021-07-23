@@ -20,7 +20,7 @@ let connectionTimerId;
 // const redisPubCluster = new Redis.Cluster(nodes);
 // const redisSubCluster = new Redis.Cluster(nodes);
 
-const redisKeyPrefix = 'websocket-service';
+const redisKeyPrefix = 'websocket-service:';
 
 const redisPub: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
     connectionName: 'redisSocketPub',

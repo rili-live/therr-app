@@ -165,6 +165,7 @@ class HeaderMenuRight extends React.Component<
 
     render() {
         const { isVisible, isEmailVerifed, styleName, user } = this.props;
+
         const { isModalVisible } = this.state;
         const currentScreen = this.getCurrentScreen();
         // const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);

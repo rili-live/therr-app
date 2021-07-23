@@ -96,9 +96,9 @@ export default class UsersStore {
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 
-    updateUser(params, conditions: any = {}) {
+    updateUser(params, conditions: any) {
         const modifiedParams: any = {};
-        const normalizedConditions: any = {};
+        const normalizedConditions: any = { ...conditions };
 
         if (params.accessLevels) {
             modifiedParams.accessLevels = params.accessLevels;
@@ -145,6 +145,11 @@ export default class UsersStore {
             modifiedParams.verificationCodes = params.verificationCodes;
         }
 
+        // Security: Prevent updating multiple users
+        if (!normalizedConditions.id && !normalizedConditions.email) {
+            throw new Error('User ID or email is required to call updateUser');
+        }
+
         const queryString = knexBuilder.update({
             ...modifiedParams,
             updatedAt: new Date(),
@@ -158,9 +163,21 @@ export default class UsersStore {
     }
 
     deleteUsers(conditions) {
+        const normalizedConditions: any = { ...conditions };
+
+        // Normalize Email
+        if (conditions.email) {
+            normalizedConditions.email = normalizeEmail(conditions.email);
+        }
+
+        // Security: Prevent updating multiple users
+        if (!normalizedConditions.id && !normalizedConditions.email) {
+            throw new Error('User ID or email is required to call deleteUser'); // Prevent deleting all users
+        }
+
         const queryString = knexBuilder.delete()
             .from(USERS_TABLE_NAME)
-            .where(conditions)
+            .where(normalizedConditions)
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);
