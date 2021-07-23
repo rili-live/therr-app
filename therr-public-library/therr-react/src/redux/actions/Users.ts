@@ -45,10 +45,10 @@ class UsersActions {
                 token: idToken,
             };
             // Connect and get socketIO.id
-            this.socketIO.on('connect', () => {
+            this.socketIO.on('connect', async () => {
                 const sessionData = { id: this.socketIO.id, idTokens: idTokens || {} };
                 // NOTE: Native Storage methods return a promise, but in this case we don't need to await
-                (this.NativeStorage || sessionStorage)
+                await (this.NativeStorage || sessionStorage)
                     .setItem('therrSession', JSON.stringify(sessionData));
                 if (data.rememberMe && !this.NativeStorage) {
                     localStorage.setItem('therrSession', JSON.stringify(sessionData));
@@ -89,7 +89,7 @@ class UsersActions {
             sessionStorage.removeItem('therrSession');
             sessionStorage.removeItem('therrUser');
         } else {
-            this.NativeStorage.multiRemove(['therrSession', 'therrUser']);
+            await this.NativeStorage.multiRemove(['therrSession', 'therrUser']);
         }
         dispatch({
             type: SocketClientActionTypes.LOGOUT,

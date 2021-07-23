@@ -110,7 +110,7 @@ export const createUserHelper = (userDetails, isSSO) => {
         })
         .catch((error) => {
             // Delete user to allow re-registration
-            if (user) {
+            if (user && user.id) {
                 Store.users.deleteUsers({ id: user.id });
             }
             throw error;
@@ -172,82 +172,87 @@ const findUsers: RequestHandler = (req: any, res: any) => Store.users.findUsers(
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
 // UPDATE
-const updateUser = (req, res) => Store.users.findUser({ id: req.params.id, ...req.body })
-    .then((userSearchResults) => {
-        const locale = req.headers['x-localecode'] || 'en-us';
-        const userId = req.headers['x-userid'];
-        const {
-            email,
-            password,
-            oldPassword,
-            userName,
-        } = req.body;
+const updateUser = (req, res) => {
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const userId = req.headers['x-userid'];
 
-        if (!userSearchResults.length) {
-            return handleHttpError({
-                res,
-                message: `No user found with id, ${req.params.id}.`,
-                statusCode: 404,
-            });
-        }
+    return Store.users.findUser({ id: userId, ...req.body })
+        .then((userSearchResults) => {
+            const {
+                email,
+                password,
+                oldPassword,
+                userName,
+            } = req.body;
 
-        // TODO: If password, validate and update password
-        let passwordPromise: Promise<any> = Promise.resolve();
+            if (!userSearchResults.length) {
+                return handleHttpError({
+                    res,
+                    message: `No user found with id, ${userId}.`,
+                    statusCode: 404,
+                });
+            }
 
-        if (password && oldPassword) {
-            passwordPromise = updatePassword({
-                hashedPassword: userSearchResults[0].password,
-                inputPassword: oldPassword,
-                locale,
-                oneTimePassword: userSearchResults[0].oneTimePassword,
-                res,
-                emailArgs: {
-                    email,
-                    userName,
-                },
-                newPassword: password,
-                userId,
-            });
-        }
+            // TODO: If password, validate and update password
+            let passwordPromise: Promise<any> = Promise.resolve();
 
-        const updateArgs: any = {
-            firstName: req.body.firstName,
-            lastName: req.body.lastName,
-            phoneNumber: req.body.phoneNumber,
-            userName: req.body.userName,
-            deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
-        };
+            if (password && oldPassword) {
+                passwordPromise = updatePassword({
+                    hashedPassword: userSearchResults[0].password,
+                    inputPassword: oldPassword,
+                    locale,
+                    oneTimePassword: userSearchResults[0].oneTimePassword,
+                    res,
+                    emailArgs: {
+                        email,
+                        userName,
+                    },
+                    newPassword: password,
+                    userId,
+                });
+            }
 
-        const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
+            const updateArgs: any = {
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
+                phoneNumber: req.body.phoneNumber,
+                userName: req.body.userName,
+                deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
+            };
 
-        if (isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED)) {
-            const userAccessLevels = userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED);
-            userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
-            updateArgs.accessLevels = JSON.stringify(userAccessLevels);
-        }
-        if (!isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
-            const userAccessLevels = userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
-            userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
-            updateArgs.accessLevels = JSON.stringify(userAccessLevels);
-        }
+            const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
 
-        passwordPromise
-            .then(() => Store.users
-                .updateUser(updateArgs, {
-                    id: req.params.id,
-                })
-                .then((results) => {
-                    const user = results[0];
-                    delete user.password;
-                    return res.status(202).send(user);
-                }))
-            .catch((e) => handleHttpError({
-                res,
-                message: translate(locale, 'User/password combination is incorrect'),
-                statusCode: 400,
-            }));
-    })
-    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+            if (isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED)) {
+                const userAccessLevels = userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED);
+                userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+                updateArgs.accessLevels = JSON.stringify(userAccessLevels);
+            }
+            if (!isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
+                const userAccessLevels = userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+                userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
+                updateArgs.accessLevels = JSON.stringify(userAccessLevels);
+            }
+
+            passwordPromise
+                .then(() => Store.users
+                    .updateUser(updateArgs, {
+                        id: userId,
+                    })
+                    .then((results) => {
+                        const user = results[0];
+                        delete user.password;
+                        // TODO: Investigate security issue
+                        // Lockdown updateUser
+                        return res.status(202).send({ ...user, id: userId }); // Precaution, always return correct request userID to prevent polution
+                    }))
+                .catch((e) => handleHttpError({
+                    res,
+                    message: translate(locale, 'User/password combination is incorrect'),
+                    statusCode: 400,
+                }));
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+};
 
 // UPDATE PASSWORD
 const updateUserPassword = (req, res) => Store.users.findUser({ id: req.headers['x-userid'] })
