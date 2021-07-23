@@ -138,32 +138,37 @@ class MainButtonMenu extends ButtonMenu {
                     }
                     onPress={() => this.navTo('Map')}
                 />
-                <Button
-                    title={!isCompact ? translate('menus.main.buttons.notifications') : null}
-                    buttonStyle={
-                        currentScreen === 'Notifications'
-                            ? buttonMenu.buttonsActive
-                            : buttonMenu.buttons
+                <View style={buttonMenu.notificationContainer}>
+                    <Button
+                        title={!isCompact ? translate('menus.main.buttons.notifications') : null}
+                        buttonStyle={
+                            currentScreen === 'Notifications'
+                                ? buttonMenu.buttonsActive
+                                : buttonMenu.buttons
+                        }
+                        containerStyle={buttonMenu.buttonContainer}
+                        titleStyle={
+                            currentScreen === 'Notifications'
+                                ? buttonMenu.buttonsTitleActive
+                                : buttonMenu.buttonsTitle
+                        }
+                        icon={
+                            <FontAwesomeIcon
+                                name={hasNotifications ? 'bell' : 'bell-slash'}
+                                size={26}
+                                style={
+                                    currentScreen === 'Notifications'
+                                        ? buttonMenu.buttonIconActive
+                                        : buttonMenu.buttonIcon
+                                }
+                            />
+                        }
+                        onPress={() => this.navTo('Notifications')}
+                    />
+                    {
+                        hasNotifications && <View style={onActionButtonPress ? buttonMenu.notificationCircleAlt : buttonMenu.notificationCircle} />
                     }
-                    containerStyle={buttonMenu.buttonContainer}
-                    titleStyle={
-                        currentScreen === 'Notifications'
-                            ? buttonMenu.buttonsTitleActive
-                            : buttonMenu.buttonsTitle
-                    }
-                    icon={
-                        <FontAwesomeIcon
-                            name={hasNotifications ? 'bell' : 'bell-slash'}
-                            size={26}
-                            style={
-                                currentScreen === 'Notifications'
-                                    ? buttonMenu.buttonIconActive
-                                    : buttonMenu.buttonIcon
-                            }
-                        />
-                    }
-                    onPress={() => this.navTo('Notifications')}
-                />
+                </View>
                 {
                     onActionButtonPress &&
                     <Button
@@ -179,9 +184,6 @@ class MainButtonMenu extends ButtonMenu {
                         }
                         onPress={onActionButtonPress as any}
                     />
-                }
-                {
-                    hasNotifications && <View style={buttonMenu.notificationCircle} />
                 }
             </View>
         );

@@ -186,6 +186,7 @@
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.95.7",
     "moment": "^2.27.0",
+    "normalize-email": "^1.1.1",
     "password-generator": "^2.3.2",
     "pg": "^8.5.1",
     "prop-types": "^15.7.2",

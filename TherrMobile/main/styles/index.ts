@@ -38,6 +38,7 @@ export const addMargins = (marginStyles) => {
 const HEADER_HEIGHT_MARGIN = 80;
 
 const sectionTitle: any = {
+    fontFamily: 'sans-serif-condensed',
     marginBottom: 8,
     fontSize: 24,
     fontWeight: '500',
@@ -221,11 +222,12 @@ export default StyleSheet.create({
     },
     headerTitleStyle: {
         fontSize: 18,
+        fontFamily: 'sans-serif',
         alignSelf: 'center',
         textAlign: 'center',
         justifyContent: 'center',
         flex: 1,
-        letterSpacing: 5,
+        letterSpacing: 4,
         lineHeight: HEADER_HEIGHT,
         overflow: 'hidden',
     },

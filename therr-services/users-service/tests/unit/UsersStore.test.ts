@@ -42,8 +42,24 @@ describe('UsersStore', () => {
 
             expect(mockStore.read.query.args[0][0]).to.be.equal(expected);
         });
+
+        it('normalizes email', () => {
+            const expected = `select * from "main"."users" where ("email" = 'testabc@gmail.com')`;
+            const mockStore = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            store.findUser({
+                email: 'test.a.b.c@gmail.com',
+            });
+
+            expect(mockStore.read.query.args[0][0]).to.be.equal(expected);
+        });
     });
 
+    // Should not allow updating email (for security purposes)
     describe('updateUser', () => {
         it('only updates specific properties', () => {
             const expected = `update "main"."users" set "userName" = 'tests', "phoneNumber" = '+3176665849', "updatedAt" =`;

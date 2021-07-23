@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import { AccessLevels, ErrorCodes } from 'therr-js-utilities/constants';
+import normalizeEmail from 'normalize-email';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { hashPassword } from '../utilities/userHelpers';
@@ -309,7 +310,7 @@ const deleteUser = (req, res) => Store.users.deleteUsers({ id: req.params.id })
 const createOneTimePassword = (req, res) => {
     const { email } = req.body;
 
-    return Store.users.getUsers({ email })
+    return Store.users.getUsers({ email: normalizeEmail(email) })
         .then((userDetails) => {
             if (!userDetails.length) {
                 return handleHttpError({
@@ -354,7 +355,7 @@ const verifyUserAccount = (req, res) => {
         return handleHttpError({ err: e, res, message: 'SQL:USER_ROUTES:ERROR' });
     }
 
-    return Store.users.getUsers({ email: decodedToken.email })
+    return Store.users.getUsers({ email: normalizeEmail(decodedToken.email) })
         .then((userSearchResults) => {
             if (!userSearchResults.length) {
                 return handleHttpError({
@@ -436,7 +437,7 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
     let userVerificationCodes;
 
     Store.users.getUsers({
-        email: req.body.email,
+        email: normalizeEmail(req.body.email),
     })
         .then((users) => {
             if (!users.length) {

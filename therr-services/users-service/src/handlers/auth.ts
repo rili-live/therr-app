@@ -2,6 +2,7 @@ import { RequestHandler } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import { AccessLevels } from 'therr-js-utilities/constants';
+import normalizeEmail from 'normalize-email';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { createUserToken } from '../utilities/userHelpers';
@@ -18,7 +19,11 @@ const login: RequestHandler = (req: any, res: any) => {
     const userNameEmailPhone = req.body.userName || req.body.userEmail;
 
     return Store.users
-        .getUsers({ userName: userNameEmailPhone }, { email: userNameEmailPhone }, { phoneNumber: userNameEmailPhone.replace(/\s/g, '') })
+        .getUsers(
+            { userName: userNameEmailPhone },
+            { email: normalizeEmail(userNameEmailPhone) },
+            { phoneNumber: userNameEmailPhone.replace(/\s/g, '') },
+        )
         .then((userSearchResults) => {
             const locale = req.headers['x-localecode'] || 'en-us';
 

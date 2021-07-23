@@ -139,7 +139,7 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
                 <SafeAreaView  style={styles.safeAreaView}>
                     <ScrollView style={styles.bodyFlex} contentContainerStyle={styles.bodyScrollSmall}>
                         <View style={styles.sectionContainerAlt}>
-                            <Text style={styles.sectionDescription}>
+                            <Text style={styles.sectionTitle}>
                                 {pageHeader}
                             </Text>
                             <Text style={styles.sectionDescription}>
