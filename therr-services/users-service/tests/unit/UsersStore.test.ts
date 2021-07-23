@@ -74,9 +74,47 @@ describe('UsersStore', () => {
                 userName: 'tests',
                 createdAt: 'blah',
                 phoneNumber: '+3176665849',
+            }, {
+                id: 5,
             });
 
             expect(mockStore.write.query.args[0][0].includes(expected)).to.be.equal(true);
+        });
+
+        it('requires email or id', () => {
+            const mockStore = {
+                write: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            const update = () => store.updateUser({
+                email: 'test@email.com',
+                userName: 'tests',
+                createdAt: 'blah',
+                phoneNumber: '+3176665849',
+            }, {});
+
+            expect(update).to.throw('User ID or email is required to call updateUser');
+        });
+    });
+
+    // Should not allow updating email (for security purposes)
+    describe('deleteUsers', () => {
+        it('requires email or id', () => {
+            const mockStore = {
+                write: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({})),
+                },
+            };
+            const store = new UsersStore(mockStore);
+            const delUser = () => store.deleteUsers({
+                userName: 'tests',
+                createdAt: 'blah',
+                phoneNumber: '+3176665849',
+            });
+
+            expect(delUser).to.throw('User ID or email is required to call deleteUser');
         });
     });
 });
