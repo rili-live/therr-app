@@ -1,5 +1,6 @@
 import KnexBuilder, { Knex } from 'knex';
 import { AccessLevels } from 'therr-js-utilities/constants';
+import normalizeEmail from 'normalize-email';
 import { IConnection } from './connection';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
@@ -58,7 +59,7 @@ export default class UsersStore {
                 return id ? this.where({ id }) : this;
             });
         if (email) {
-            queryString = queryString.orWhere({ email });
+            queryString = queryString.orWhere({ email: normalizeEmail(email) });
         }
         if (userName) {
             queryString = queryString.orWhere({ userName });
@@ -85,6 +86,7 @@ export default class UsersStore {
         const sanitizedParams = {
             ...params,
             userName: params?.userName?.toLowerCase(),
+            email: normalizeEmail(params.email),
         };
         const queryString = knexBuilder.insert(sanitizedParams)
             .into(USERS_TABLE_NAME)
@@ -94,11 +96,17 @@ export default class UsersStore {
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 
-    updateUser(params, conditions = {}) {
+    updateUser(params, conditions: any = {}) {
         const modifiedParams: any = {};
+        const normalizedConditions: any = {};
 
         if (params.accessLevels) {
             modifiedParams.accessLevels = params.accessLevels;
+        }
+
+        // Normalize Email
+        if (conditions.email) {
+            normalizedConditions.email = normalizeEmail(conditions.email);
         }
 
         if (params.firstName) {
@@ -142,7 +150,7 @@ export default class UsersStore {
             updatedAt: new Date(),
         })
             .into(USERS_TABLE_NAME)
-            .where(conditions)
+            .where(normalizedConditions)
             .returning('*')
             .toString();
 

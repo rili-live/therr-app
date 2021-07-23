@@ -2,6 +2,7 @@ import { StyleSheet } from 'react-native';
 import * as therrTheme from '../themes';
 
 const titleStyles: any = {
+    fontFamily: 'sans-serif-condensed',
     color: therrTheme.colors.textWhite,
     fontSize: 28,
     marginTop: 6,
