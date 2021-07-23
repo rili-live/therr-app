@@ -29,6 +29,16 @@ const buttonsTitleStyle: any = {
     ...iconStyle,
 };
 
+const notificationCircleStyles: any = {
+    position: 'absolute',
+    borderWidth: 4,
+    borderRadius: 20,
+    width: 4,
+    height: 4,
+    borderColor: therrTheme.colors.ternary,
+    top: 12,
+};
+
 export default StyleSheet.create({
     buttons: buttonStyle,
     buttonsActive: {
@@ -74,14 +84,19 @@ export default StyleSheet.create({
         textShadowRadius: 0,
         color: therrTheme.colors.primary3,
     },
+    notificationContainer: {
+        display: 'flex',
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     notificationCircle: {
-        position: 'absolute',
-        borderWidth: 4,
-        borderRadius: 20,
-        width: 4,
-        height: 4,
-        borderColor: therrTheme.colors.ternary,
-        right: 30,
-        top: 12,
+        ...notificationCircleStyles,
+        right: 25,
+    },
+    notificationCircleAlt: {
+        ...notificationCircleStyles,
+        right: 15,
     },
 });

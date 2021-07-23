@@ -11,6 +11,8 @@ const buttonContainerStyles: any = {
     marginTop: 20,
 };
 
+const backButtonDimension = 42;
+
 export default StyleSheet.create({
     button: {
         backgroundColor: therrTheme.colors.primary3,
@@ -26,8 +28,10 @@ export default StyleSheet.create({
         paddingBottom: 6,
     },
     backButton: {
-        borderRadius: 50,
+        // borderRadius: 50,
         backgroundColor: therrTheme.colors.beemo1,
+        height: backButtonDimension,
+        width: backButtonDimension,
     },
     backButtonContainer: {
         display: 'flex',
@@ -37,6 +41,7 @@ export default StyleSheet.create({
         left: 20,
         bottom: 20,
         elevation: 3,
+        borderRadius: backButtonDimension / 2,
     },
     backButtonContainerFixed: {
         display: 'flex',

@@ -6,7 +6,7 @@ import {
 
 export const createUserValidation = [
     body('phoneNumber').optional().isMobilePhone('any'),
-    body('email').exists().isString(),
+    body('email').exists().isEmail().normalizeEmail(),
     body('password').exists().isString().isLength({ min: 8 }), // TODO: RMOBILE-26: Centralize password requirements
     body('userName').optional().isString(),
 ];
@@ -14,12 +14,12 @@ export const createUserValidation = [
 export const changePasswordValidation = [
     body('oldPassword').exists().isString(),
     body('newPassword').exists().isString(),
-    body('email').exists().isString(),
+    body('email').exists().isEmail().normalizeEmail(),
     body('userName').exists().isString(),
 ];
 
 export const forgotPasswordValidation = [
-    body('email').exists().isString(),
+    body('email').exists().isEmail().normalizeEmail(),
 ];
 
 export const verifyUserAccountValidation = [
@@ -35,5 +35,5 @@ export const resendVerificationValidation = [
         body('type').exists().isString().equals('email'),
         body('type').exists().isString().equals('mobile'),
     ]),
-    body('email').exists().isString(),
+    body('email').exists().isEmail().normalizeEmail(),
 ];

@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 import { Notifications } from 'therr-js-utilities/constants';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
+import normalizeEmail from 'normalize-email';
 import beeline from '../beeline';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';

@@ -252,14 +252,6 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                         <View style={styles.body}>
                             <View style={styles.sectionContainer}>
                                 <Text style={styles.sectionTitleCenter}>
-                                    {this.translate('pages.userProfile.h2.quoteOfTheDay')}
-                                </Text>
-                                <Text style={styles.sectionQuote}>
-                                    {`"${this.quote}" - ${this.quoteAuthor}`}
-                                </Text>
-                            </View>
-                            <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitleCenter}>
                                     {this.translate('pages.userProfile.h2.howItWorks')}
                                 </Text>
                                 <Text style={styles.sectionDescription}>
@@ -273,6 +265,14 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                 </Text>
                                 <Text style={styles.sectionDescription}>
                                     {this.translate('pages.userProfile.siteDescription4')}
+                                </Text>
+                            </View>
+                            <View style={styles.sectionContainer}>
+                                <Text style={styles.sectionTitleCenter}>
+                                    {this.translate('pages.userProfile.h2.quoteOfTheDay')}
+                                </Text>
+                                <Text style={styles.sectionQuote}>
+                                    {`"${this.quote}" - ${this.quoteAuthor}`}
                                 </Text>
                             </View>
                         </View>
