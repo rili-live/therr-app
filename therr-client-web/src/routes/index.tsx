@@ -69,8 +69,8 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
         component: ChangePassword,
         exact: true,
         access: {
-            type: AccessCheckType.ALL,
-            levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+            type: AccessCheckType.ANY,
+            levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
         },
         redirectPath: '/create-profile',
     },
