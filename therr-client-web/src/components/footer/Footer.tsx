@@ -4,7 +4,9 @@ import {
     AccessControl,
     SvgButton,
 } from 'therr-react/components';
-import { IUserState } from 'therr-react/types';
+import { AccessCheckType, IUserState } from 'therr-react/types';
+import { UsersService } from 'therr-react/services';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import { bindActionCreators } from 'redux';
 import MessagingContainer, { IMessagingContext } from './MessagingContainer';
 import { INavMenuContext } from '../../types';
@@ -63,12 +65,16 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
             isMessagingOpen,
             messagingContext,
             toggleMessaging,
+            user,
         } = this.props;
 
         return (
             <footer>
                 <div className="footer-menu-item">
-                    <AccessControl isAuthorized={isAuthorized}>
+                    <AccessControl isAuthorized={UsersService.isAuthorized({
+                        type: AccessCheckType.ALL,
+                        levels: [AccessLevels.EMAIL_VERIFIED],
+                    }, user)}>
                         <MessagingContainer
                             isMessagingOpen={isMessagingOpen}
                             isMsgContainerOpen={isMsgContainerOpen}
@@ -86,7 +92,10 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
                     </AccessControl>
                 </div>
                 <div className="footer-menu-item">
-                    <AccessControl isAuthorized={isAuthorized}>
+                    <AccessControl isAuthorized={UsersService.isAuthorized({
+                        type: AccessCheckType.ALL,
+                        levels: [AccessLevels.EMAIL_VERIFIED],
+                    }, user)}>
                         <SvgButton
                             id="footer_messages"
                             name="messages"

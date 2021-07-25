@@ -2,43 +2,46 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { IUserState } from 'therr-react/types';
 import translator from '../services/translator';
-import RegisterForm from '../components/forms/RegisterForm';
+import CreateProfileForm from '../components/forms/CreateProfileForm';
 import UsersActions from '../redux/actions/UsersActions';
 
-interface IRegisterRouterProps {
+interface ICreateProfileRouterProps {
     history: any;
 }
 
-interface IRegisterDispatchProps {
-    register: Function;
+interface ICreateProfileDispatchProps {
+    updateUser: Function;
 }
 
-type IStoreProps = IRegisterDispatchProps
+type IStoreProps = ICreateProfileDispatchProps
 
 // Regular component props
-interface IRegisterProps extends RouteComponentProps<IRegisterRouterProps>, IStoreProps {
+interface ICreateProfileProps extends RouteComponentProps<ICreateProfileRouterProps>, IStoreProps {
+    user?: IUserState;
 }
 
-interface IRegisterState {
+interface ICreateProfileState {
     errorMessage: string;
     inputs: any;
 }
 
 const mapStateToProps = (state: any) => ({
+    user: state.user,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    register: UsersActions.register,
+    updateUser: UsersActions.update,
 }, dispatch);
 
 /**
  * Login
  */
-export class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> {
+export class CreateProfileComponent extends React.Component<ICreateProfileProps, ICreateProfileState> {
     private translate: Function;
 
-    constructor(props: IRegisterProps) {
+    constructor(props: ICreateProfileProps) {
         super(props);
 
         this.state = {
@@ -50,15 +53,17 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Therr | ${this.translate('pages.register.pageTitle')}`;
+        document.title = `Therr | ${this.translate('pages.createProfile.pageTitle')}`;
     }
 
-    register = (credentials: any) => {
-        this.props.register(credentials).then((response: any) => {
-            this.props.history.push({
+    onSubmit = (updateArgs: any) => {
+        const { history, user, updateUser } = this.props;
+
+        updateUser(user.details.id, updateArgs).then((response: any) => {
+            history.push({
                 pathname: '/login',
                 state: {
-                    successMessage: this.translate('pages.register.registerSuccess'),
+                    successMessage: this.translate('pages.createProfile.createProfileSuccess'),
                 },
             });
         }).catch((error: any) => {
@@ -68,7 +73,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
                 });
             } else {
                 this.setState({
-                    errorMessage: this.translate('pages.register.registerError'),
+                    errorMessage: this.translate('pages.createProfile.createProfileError'),
                 });
             }
         });
@@ -79,8 +84,8 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
 
         return (
             <>
-                <div id="page_register" className="flex-box">
-                    <RegisterForm register={this.register} title={this.translate('pages.register.pageTitle')} />
+                <div id="page_create_profile" className="flex-box">
+                    <CreateProfileForm onSubmit={this.onSubmit} title={this.translate('pages.createProfile.pageTitle')} />
 
                 </div>
                 {
@@ -92,4 +97,4 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(RegisterComponent));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(CreateProfileComponent));

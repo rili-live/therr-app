@@ -4,6 +4,7 @@ import { AccessCheckType, IAccess } from 'therr-react/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import Forum from './Forum';
 import CreateForum from './CreateForum';
+import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
 import PageNotFound from './PageNotFound';
 import Register from './Register';
@@ -32,7 +33,6 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
         path: '/',
         component: Home,
         exact: true,
-        redirectPath: '/',
     },
     {
         path: '/forums/:roomId',
@@ -40,8 +40,9 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
         exact: true,
         access: {
             type: AccessCheckType.ALL,
-            levels: [AccessLevels.DEFAULT],
+            levels: [AccessLevels.EMAIL_VERIFIED],
         },
+        redirectPath: '/create-profile',
     },
     {
         path: '/create-forum',
@@ -49,8 +50,19 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
         exact: true,
         access: {
             type: AccessCheckType.ALL,
-            levels: [AccessLevels.DEFAULT],
+            levels: [AccessLevels.EMAIL_VERIFIED],
         },
+        redirectPath: '/create-profile',
+    },
+    {
+        path: '/create-profile',
+        component: CreateProfile,
+        exact: true,
+        access: {
+            type: AccessCheckType.ALL,
+            levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+        },
+        redirectPath: '/login',
     },
     {
         path: '/users/change-password',
@@ -58,8 +70,9 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
         exact: true,
         access: {
             type: AccessCheckType.ALL,
-            levels: [AccessLevels.DEFAULT],
+            levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
         },
+        redirectPath: '/create-profile',
     },
     {
         path: '/reset-password',
@@ -87,8 +100,9 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
         exact: true,
         access: {
             type: AccessCheckType.ALL,
-            levels: [AccessLevels.DEFAULT],
+            levels: [AccessLevels.EMAIL_VERIFIED],
         },
+        redirectPath: '/create-profile',
     },
 
     // If no route matches, return NotFound component

@@ -4,7 +4,7 @@ import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { IUserState } from 'therr-react/types';
 import translator from '../services/translator';
-import LoginForm from '../components/LoginForm';
+import LoginForm from '../components/forms/LoginForm';
 import UsersActions from '../redux/actions/UsersActions';
 
 export const shouldRenderLoginForm = (props: ILoginProps) => !props.user
@@ -48,6 +48,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     private translate: Function;
 
     static getDerivedStateFromProps(nextProps: ILoginProps) {
+        // TODO: Choose route based on accessLevels
         if (!shouldRenderLoginForm(nextProps)) {
             nextProps.history.push('/user/profile');
             return null;
