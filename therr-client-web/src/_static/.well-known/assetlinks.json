@@ -1,0 +1,11 @@
+[{
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+        "namespace": "android_app",
+        "package_name": "app.therrmobile",
+        "sha256_cert_fingerprints": [
+            "33:38:A9:34:7B:5C:07:BD:3B:B3:5A:51:6A:C8:8A:3B:AD:9B:BD:99",
+            "5E:8F:16:06:2E:A3:CD:2C:4A:0D:54:78:76:BA:A6:F3:8C:AB:F6:25"
+        ]
+    }
+}]
