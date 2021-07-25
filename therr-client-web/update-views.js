@@ -38,7 +38,7 @@ fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
     const scrapJsRegex = new RegExp(/^theme-.*\.js$/);
 
     files.forEach(file => {
-        // Delete the scrop javascript files that were used to bundle theme specific css files
+        // Delete the scrap javascript files that were used to bundle theme specific css files
         if (scrapJsRegex.test(file)) {
             console.log('FILE', file);
             fs.unlink(path.join(__dirname, `build/static/${file}`), (err) => {

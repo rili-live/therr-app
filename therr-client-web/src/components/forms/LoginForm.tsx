@@ -6,7 +6,7 @@ import {
     ButtonPrimary,
     Input,
 } from 'therr-react/components';
-import translator from '../services/translator';
+import translator from '../../services/translator';
 
 // Regular component props
 interface ILoginFormProps {

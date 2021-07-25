@@ -1,12 +1,11 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
-import flags from 'react-phone-number-input/flags'; // eslint-disable-line import/extensions
+import { isValidPhoneNumber } from 'react-phone-number-input';
 import {
     ButtonPrimary,
     Input,
 } from 'therr-react/components';
-import translator from '../services/translator';
+import translator from '../../services/translator';
 
 // Regular component props
 interface IRegisterFormProps {
@@ -37,11 +36,11 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
     }
 
     isFormDisabled() {
-        return !this.state.inputs.userName || !this.state.inputs.password || !this.isFormValid();
+        return !this.state.inputs.password || !this.isFormValid();
     }
 
     isFormValid() {
-        return this.state.inputs.password === this.state.inputs.repeatPassword && isValidPhoneNumber(this.state.inputs.phoneNumber);
+        return this.state.inputs.password === this.state.inputs.repeatPassword;
     }
 
     onSubmit = (event: any) => {
@@ -86,42 +85,6 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
             <div className="register-container">
                 <h1 className="text-center">{this.props.title}</h1>
 
-                <label className="required" htmlFor="first_name">{this.translate('components.registerForm.labels.firstName')}:</label>
-                <Input
-                    type="text"
-                    id="first_name"
-                    name="firstName"
-                    value={this.state.inputs.firstName}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    validations={['isRequired']}
-                />
-
-                <label className="required" htmlFor="last_name">{this.translate('components.registerForm.labels.lastName')}:</label>
-                <Input
-                    type="text"
-                    id="last_name"
-                    name="lastName"
-                    value={this.state.inputs.lastName}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    validations={['isRequired']}
-                />
-
-                <label className="required" htmlFor="user_name">{this.translate('components.registerForm.labels.userName')}:</label>
-                <Input
-                    type="text"
-                    id="user_name"
-                    name="userName"
-                    value={this.state.inputs.userName}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    validations={['isRequired']}
-                />
-
                 <label className="required" htmlFor="e_mail">{this.translate('components.registerForm.labels.email')}:</label>
                 <Input
                     type="text"
@@ -133,27 +96,6 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     translate={this.translate}
                     validations={['isRequired', 'email']}
                 />
-
-                <label className="required" htmlFor="phone_number">{this.translate('components.registerForm.labels.mobilePhone')}:</label>
-                <div className="form-field">
-                    <PhoneInput
-                        defaultCountry="US"
-                        country="US"
-                        international={true}
-                        flags={flags}
-                        value={this.state.inputs.phoneNumber}
-                        onChange={this.onPhoneInputChange} />
-                    {
-                        !isPhoneNumberValid
-                        && <div className="validation-errors">
-                            <div className="message-container icon-small attention-alert">
-                                <em className="message">
-                                    {this.translate('components.registerForm.validationErrors.phoneNumber')}
-                                </em>
-                            </div>
-                        </div>
-                    }
-                </div>
 
                 {/* TODO: RMOBILE-26: Centralize password requirements */}
                 <label className="required" htmlFor="password">{this.translate('components.registerForm.labels.password')}:</label>
