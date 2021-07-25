@@ -4,7 +4,7 @@ import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { IUserState } from 'therr-react/types';
 import translator from '../services/translator';
-import LoginForm from '../components/LoginForm';
+import LoginForm from '../components/forms/LoginForm';
 import { shouldRenderLoginForm, ILoginProps } from './Login';
 import UsersActions from '../redux/actions/UsersActions';
 

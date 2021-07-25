@@ -16,6 +16,21 @@
         "login": "Login"
       }
     },
+    "createProfileForm": {
+      "buttons": {
+        "backToLogin": "Back to Login",
+        "submit": "Continue"
+      },
+      "labels": {
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "mobilePhone": "Mobile Phone #",
+        "userName": "Username"
+      },
+      "validationErrors": {
+        "phoneNumber": "Invalid phone number"
+      }
+    },
     "loginForm": {
       "buttons": {
         "login": "Log In",
@@ -25,7 +40,7 @@
       "defaultTitle": "Login",
       "labels": {
         "password": "Password",
-        "userName": "Username"
+        "userName": "Username/Email"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
       "oneTimePasswordExpired": "Your one-time password has expired.",
@@ -156,6 +171,11 @@
       },
       "noForumsMessage": "No chats are currently active. Click 'Create Hosted Chat' to start a new one.",
       "pageTitle": "Hosted Chats"
+    },
+    "createProfile": {
+      "pageTitle": "Create Profile",
+      "createProfileSuccess": "Profile successfully updated!",
+      "createProfileError": "Oops, something went wrong"
     },
     "login": {
       "pageTitle": "Login"
