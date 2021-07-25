@@ -23,16 +23,16 @@ const replaceInFile = (fileToUpdate, replacementString) => {
 };
 
 fs.mkdir(path.join(__dirname, 'build/static/assets'), () => {
-    fs.copy(path.join(__dirname, 'src/assets'), path.join(__dirname, 'build/static/assets'), (err) => {
+    fs.copy(path.join(__dirname, 'src/_static'), path.join(__dirname, 'build/static'), (err) => {
         if (err) {
-            return console.log('Failed to copy assets directory', err);
+            return console.log('Failed to copy static assets directory', err);
         }
     
         console.log('Successfully copied assets directory');
     });
 });
 
-// We need to keep the css file path up to date becuase we use hashing in the build compilation
+// We need to keep the css file path up to date because we use hashing in the build compilation
 fs.readdir(path.join(__dirname, 'build/static'), (err, files) => {
     const fileNameRegex = new RegExp(/^app.*\.css$/);
     const scrapJsRegex = new RegExp(/^theme-.*\.js$/);
