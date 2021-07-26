@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { SafeAreaView, View, StatusBar } from 'react-native';
+import { Linking, Platform, SafeAreaView, View, StatusBar } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Image from '../../components/BaseImage';
 import 'react-native-gesture-handler';
@@ -55,9 +55,42 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     }
 
     componentDidMount() {
-        this.props.navigation.setOptions({
+        const { navigation } = this.props;
+
+        navigation.setOptions({
             title: this.translate('pages.login.headerTitle'),
         });
+
+        if (Platform.OS === 'android') {
+            // TODO: Listen on event listener in android with changes to MainActivity.java
+            Linking.getInitialURL().then(this.handleAppUniversalLinkURL);
+            Linking.addEventListener('url', (url) => {
+                this.handleOpenIOSUniversalLink(url);
+            });
+        } else {
+            Linking.addEventListener('url', this.handleOpenIOSUniversalLink);
+        }
+    }
+
+    componentWillUnmount() { // C
+        Linking.removeEventListener('url', this.handleOpenIOSUniversalLink);
+    }
+
+    handleOpenIOSUniversalLink = (event) => { // D
+        this.handleAppUniversalLinkURL(event.url);
+    }
+
+    handleAppUniversalLinkURL = (url) => {
+        // const { navigation } = this.props;
+        const urlSplit = url?.split('?') || [];
+
+        if (url?.includes('verify-email')) {
+            if (urlSplit[1] && urlSplit[1].includes('token=')) {
+                const verificationToken = urlSplit[1]?.split('token=')[1];
+                console.log('VERIFICATION_TOKEN', verificationToken);
+                // TODO: Navigation to VerifyEmail route and pass in token
+            }
+        }
     }
 
     render() {
