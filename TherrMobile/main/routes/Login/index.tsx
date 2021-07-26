@@ -81,7 +81,7 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     }
 
     handleAppUniversalLinkURL = (url) => {
-        // const { navigation } = this.props;
+        const { navigation } = this.props;
         const urlSplit = url?.split('?') || [];
 
         if (url?.includes('verify-email')) {
@@ -89,6 +89,9 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                 const verificationToken = urlSplit[1]?.split('token=')[1];
                 console.log('VERIFICATION_TOKEN', verificationToken);
                 // TODO: Navigation to VerifyEmail route and pass in token
+                navigation.navigate('EmailVerification', {
+                    verificationToken,
+                });
             }
         }
     }

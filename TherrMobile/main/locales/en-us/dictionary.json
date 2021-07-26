@@ -385,6 +385,24 @@
       "headerTitle": "Create a Moment",
       "previewHeader": "Preview:"
     },
+    "emailVerification": {
+      "buttons": {
+        "send": "Send E-mail"
+      },
+      "failedMessage": "Failed to verify your e-mail. Invalid verification code.",
+      "failedMessageExpired": "Failed to verify your e-mail. Verification code has expired.",
+      "failedMessageAlreadyVerified": "Your e-mail is already verified. Log in to continue.",
+      "failedMessageVerificationResent": "A new verification code has been sent to {email}.",
+      "failedMessageUserNotFound": "No user found. Try a different e-mail or create an account to continue.",
+      "labels": {
+        "email": "E-mail"
+      },
+      "pageTitle": "Account Verification",
+      "headerTitle": "Account Verification",
+      "returnToLogin": "Return to login page",
+      "successMessage": "Your!",
+      "successVerifiedMessage": "Your account has been verified. Log in to continue."
+    },
     "forgotPassword": {
       "headerTitle": "Password Reset",
       "instructions": "Enter your account e-mail below, and we'll send you a temporary password.",
