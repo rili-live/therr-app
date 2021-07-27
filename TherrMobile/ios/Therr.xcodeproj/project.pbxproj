@@ -1107,7 +1107,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Therr/TherrRelease.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 22AN4MZ6H5;
@@ -1285,7 +1285,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.therr.mobile.Therr;
 				PRODUCT_NAME = Therr;
-				PROVISIONING_PROFILE_SPECIFIER = "Therr App Development";
+				PROVISIONING_PROFILE_SPECIFIER = "Therr App Distribution";
 				SWIFT_OBJC_BRIDGING_HEADER = "Therr-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
