@@ -1,6 +1,11 @@
 import React from 'react';
 import axios from 'axios';
-import { DeviceEventEmitter, PermissionsAndroid, Platform, View } from 'react-native';
+import {
+    DeviceEventEmitter,
+    PermissionsAndroid,
+    Platform,
+    View,
+} from 'react-native';
 import LocationServicesDialogBox  from 'react-native-android-location-services-dialog-box';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import messaging from '@react-native-firebase/messaging';
@@ -305,12 +310,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 >
                     {routes
                         .filter((route: any) => {
-                            if (
-                                route.name === 'Login' &&
-                                user.isAuthenticated
-                            ) {
-                                return false;
-                            }
                             if (
                                 !(
                                     route.options &&

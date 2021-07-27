@@ -27,6 +27,18 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
+        <intent-filter android:label="@string/filter_view_https_therr">
+          <action android:name="android.intent.action.VIEW" />
+          <category android:name="android.intent.category.DEFAULT" />
+          <category android:name="android.intent.category.BROWSABLE" />
+          <!-- Accepts URIs that begin with "http://www.therr.com -->
+          <data android:scheme="https"
+                android:host="www.therr.com"  />
+          <!-- note that the leading "/" is required for pathPrefix-->
+          <data android:scheme="https"
+                android:host="therr.com"  />
+          <!-- note that the leading "/" is required for pathPrefix-->
+        </intent-filter>
       </activity>
 
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />

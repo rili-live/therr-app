@@ -1,16 +1,13 @@
 import React from 'react';
 import { Provider } from 'shared/react-redux';
-import AnimatedLoader from 'react-native-animated-loader';
 import SplashScreen from 'react-native-splash-screen';
 import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import getStore from './getStore';
 import initInterceptors from './interceptors';
 import Layout from './components/Layout';
 import * as therrTheme from './styles/themes';
-import { loaderStyles } from './styles';
 import { MIN_LOAD_TIMEOUT } from './constants';
-
-const earthLoader = require('./assets/earth-loader.json');
+import EarthLoader from './components/Loaders/EarthLoader';
 
 class App extends React.Component<any, any> {
     // TODO: Add typescript
@@ -57,11 +54,8 @@ class App extends React.Component<any, any> {
 
         if (!isMinLoadTimeComplete || isLoading || !this.store) {
             return (
-                <AnimatedLoader
+                <EarthLoader
                     visible={true}
-                    overlayColor="rgba(255,255,255,0.75)"
-                    source={earthLoader}
-                    animationStyle={loaderStyles.lottie}
                     speed={1.25}
                 />
             );

@@ -218,6 +218,14 @@
       "backendSuccessMessage": "User settings successfully updated!",
       "backendErrorMessage": "Connection error. Please try again later."
     },
+    "emailVerification": {
+      "buttons": {
+        "send": "Resend E-mail"
+      },
+      "labels": {
+        "email": "E-mail"
+      }
+    },
     "hostedChat": {
       "noResultsFound": "No results found...",
       "searchPlaceholder": "Search by name..."
@@ -384,6 +392,25 @@
     "editMoment": {
       "headerTitle": "Create a Moment",
       "previewHeader": "Preview:"
+    },
+    "emailVerification": {
+      "buttons": {
+        "send": "Send E-mail"
+      },
+      "failedMessage": "Failed to verify your e-mail. Invalid verification code.",
+      "failedMessageExpired": "Failed to verify your e-mail. Verification code has expired.",
+      "failedMessageAlreadyVerified": "Your e-mail is already verified. Log in to continue.",
+      "failedMessageVerificationResent": "A new verification code has been sent to {email}.",
+      "failedMessageUserNotFound": "No user found. Try a different e-mail or create an account to continue.",
+      "labels": {
+        "email": "E-mail"
+      },
+      "pageTitle": "Account Verification",
+      "headerTitle": "Account Verification",
+      "pageHeader": "Verify Email",
+      "returnToLogin": "Return to login page",
+      "successMessage": "Your!",
+      "successVerifiedMessage": "Your account has been verified. Log in to continue."
     },
     "forgotPassword": {
       "headerTitle": "Password Reset",

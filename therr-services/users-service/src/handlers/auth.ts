@@ -8,7 +8,7 @@ import Store from '../store';
 import { createUserToken } from '../utilities/userHelpers';
 import translate from '../utilities/translator';
 import { validatePassword } from '../utilities/passwordUtils';
-import { createUserHelper } from './users';
+import { createUserHelper, isUserProfileIncomplete } from './users';
 import * as globalConfig from '../../../../global-config';
 
 const googleOAuth2ClientId = `${globalConfig[process.env.NODE_ENV].googleOAuth2WebClientId}`;
@@ -67,7 +67,18 @@ const login: RequestHandler = (req: any, res: any) => {
                             }, true).then((user) => [true, user]);
                         }
 
-                        return [true, userSearchResults[0]];
+                        // Verify user because they are using email SSO
+                        const isMissingUserProps = isUserProfileIncomplete(userSearchResults[0]);
+                        const userAccessLevels = [
+                            AccessLevels.DEFAULT,
+                        ];
+                        if (isMissingUserProps) {
+                            userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+                        } else {
+                            userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
+                        }
+
+                        return [true, { ...userSearchResults[0], accessLevels: userAccessLevels }];
                     });
                 }
 
@@ -87,19 +98,21 @@ const login: RequestHandler = (req: any, res: any) => {
                         isSSO: !!req.body.isSSO,
                     };
                     const idToken = createUserToken(user, req.body.rememberMe);
-                    delete user.password; // don't send these in response
-                    delete user.oneTimePassword; // don't send these in response
 
                     // Fire and forget
-                    Store.users.updateUser({
+                    return Store.users.updateUser({
+                        accessLevels: JSON.stringify(user.accessLevels),
                         loginCount: user.loginCount + 1,
                     }, {
                         id: user.id,
-                    });
-
-                    return res.status(201).send({
-                        ...user,
-                        idToken,
+                    }).then((userResponse) => {
+                        const finalUser = userResponse[0];
+                        delete finalUser.password; // don't send these in response
+                        delete finalUser.oneTimePassword; // don't send these in response
+                        return res.status(201).send({
+                            ...finalUser,
+                            idToken,
+                        });
                     });
                 }
 

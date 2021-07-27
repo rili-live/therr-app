@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { SafeAreaView, View, StatusBar } from 'react-native';
+import { Linking, Platform, SafeAreaView, View, StatusBar } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Image from '../../components/BaseImage';
 import 'react-native-gesture-handler';
@@ -45,6 +45,7 @@ const mapDispatchToProps = (dispatch: any) =>
 class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     private translate;
     private cachedUserId;
+    private urlEventListener;
 
     constructor(props) {
         super(props);
@@ -54,15 +55,52 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         this.cachedUserId = (props.user && props.user.details && props.user.details.id);
     }
 
+    // TODO: On logout, ignore any deep link logic
     componentDidMount() {
-        this.props.navigation.setOptions({
-            title: this.translate('pages.login.headerTitle'),
-        });
+        const { navigation, route } = this.props;
+        const isVerifySuccess = route.params?.isVerifySuccess;
+
+        if (!isVerifySuccess) {
+            navigation.setOptions({
+                title: this.translate('pages.login.headerTitle'),
+            });
+
+            if (Platform.OS === 'android') {
+                Linking.getInitialURL().then(this.handleAppUniversalLinkURL);
+            }
+
+            // Do this for both Android and IOS
+            this.urlEventListener = Linking.addEventListener('url', this.handleUrlEvent);
+        }
+    }
+
+    componentWillUnmount() {
+        this.urlEventListener.remove();
+    }
+
+    handleUrlEvent = (event) => {
+        this.handleAppUniversalLinkURL(event.url);
+    }
+
+    handleAppUniversalLinkURL = (url) => {
+        const { navigation } = this.props;
+        const urlSplit = url?.split('?') || [];
+        console.log(url);
+
+        if (url?.includes('verify-account')) {
+            if (urlSplit[1] && urlSplit[1].includes('token=')) {
+                const verificationToken = urlSplit[1]?.split('token=')[1];
+                console.log('VERIFICATION_TOKEN', verificationToken);
+                navigation.navigate('EmailVerification', {
+                    verificationToken,
+                });
+            }
+        }
     }
 
     render() {
         const { route } = this.props;
-        const userMessage = route.params && route.params.userMessage;
+        const { userMessage } = route?.params || '';
 
         return (
             <>
