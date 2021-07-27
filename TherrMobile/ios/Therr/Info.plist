@@ -54,6 +54,8 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Camera usage is needed for taking photos of various locations and sharing with social connections.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Microphone usage is needed for recording audio in various locations and sharing with social connections.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This allows querying the user's current location to find nearby content shared by a user's connections</string>
 	<key>NSLocationAlwaysUsageDescription</key>
