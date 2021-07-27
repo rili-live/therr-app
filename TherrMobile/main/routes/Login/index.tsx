@@ -2,9 +2,12 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Linking, Platform, SafeAreaView, View, StatusBar } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { AccessCheckType } from '../../types';
 import Image from '../../components/BaseImage';
 import 'react-native-gesture-handler';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
+import { UsersService } from 'therr-react/services';
 import styles from '../../styles';
 import mixins from '../../styles/mixins';
 import LoginForm from './LoginForm';
@@ -75,7 +78,7 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     }
 
     componentWillUnmount() {
-        this.urlEventListener.remove();
+        this.urlEventListener?.remove();
     }
 
     handleUrlEvent = (event) => {
@@ -83,7 +86,7 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     }
 
     handleAppUniversalLinkURL = (url) => {
-        const { navigation } = this.props;
+        const { navigation, user } = this.props;
         const urlSplit = url?.split('?') || [];
         console.log(url);
 
@@ -91,9 +94,19 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
             if (urlSplit[1] && urlSplit[1].includes('token=')) {
                 const verificationToken = urlSplit[1]?.split('token=')[1];
                 console.log('VERIFICATION_TOKEN', verificationToken);
-                navigation.navigate('EmailVerification', {
-                    verificationToken,
-                });
+                const isAuthorized = UsersService.isAuthorized(
+                    {
+                        type: AccessCheckType.NONE,
+                        levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+                        isPublic: true,
+                    },
+                    user
+                );
+                if (isAuthorized) {
+                    navigation.navigate('EmailVerification', {
+                        verificationToken,
+                    });
+                }
             }
         }
     }

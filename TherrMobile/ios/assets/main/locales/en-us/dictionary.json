@@ -218,6 +218,14 @@
       "backendSuccessMessage": "User settings successfully updated!",
       "backendErrorMessage": "Connection error. Please try again later."
     },
+    "emailVerification": {
+      "buttons": {
+        "send": "Resend E-mail"
+      },
+      "labels": {
+        "email": "E-mail"
+      }
+    },
     "hostedChat": {
       "noResultsFound": "No results found...",
       "searchPlaceholder": "Search by name..."
@@ -335,8 +343,9 @@
   "menus": {
     "main": {
       "buttons": {
-        "connections": "Connections",
+        "connections": "People",
         "moments": "Moments",
+        "map": "Map",
         "settings": "Settings",
         "notifications": "Notifications"
       }
@@ -383,6 +392,25 @@
     "editMoment": {
       "headerTitle": "Create a Moment",
       "previewHeader": "Preview:"
+    },
+    "emailVerification": {
+      "buttons": {
+        "send": "Send E-mail"
+      },
+      "failedMessage": "Failed to verify your e-mail. Invalid verification code.",
+      "failedMessageExpired": "Failed to verify your e-mail. Verification code has expired.",
+      "failedMessageAlreadyVerified": "Your e-mail is already verified. Log in to continue.",
+      "failedMessageVerificationResent": "A new verification code has been sent to {email}.",
+      "failedMessageUserNotFound": "No user found. Try a different e-mail or create an account to continue.",
+      "labels": {
+        "email": "E-mail"
+      },
+      "pageTitle": "Account Verification",
+      "headerTitle": "Account Verification",
+      "pageHeader": "Verify Email",
+      "returnToLogin": "Return to login page",
+      "successMessage": "Your!",
+      "successVerifiedMessage": "Your account has been verified. Log in to continue."
     },
     "forgotPassword": {
       "headerTitle": "Password Reset",
@@ -452,7 +480,7 @@
         "accountDetails": "Account Details",
         "connections": "Connections",
         "createConnection": "Create a Connection",
-        "quoteOfTheDay": "Words of Wisdom",
+        "quoteOfTheDay": "Daily Words of Wisdom",
         "howItWorks": "Welcome back!"
       },
       "labels": {
@@ -464,7 +492,10 @@
         "userName": "Username"
       },
       "pageTitle": "User Profile",
-      "siteDescription": "Share a moment with your connections on the map or send a quick DM. Moments are proximity activated and entirely customizable.",
+      "siteDescription1": "Welcome to the beta version of Therr. As we gather feedback and develop new features, let us know how we can improve the experience.",
+      "siteDescription2": "So how does it work?",
+      "siteDescription3": "Share a moment with your connections on the map or send a quick DM. Moments are proximity activated and entirely customizable.",
+      "siteDescription4": "Then, check your feed for moments posted by others in the spaces you travel to. Get to know the local culture by searching content that was shared nearby (recently or historically), and filter your interests with hashtags, keywords, etc.",
       "noActiveConnections": "There are currently no active connections in your network",
       "requestRecommendation": "Send a request to make connections and build a network",
       "validationErrors": {

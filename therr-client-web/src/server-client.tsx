@@ -49,7 +49,7 @@ app.get('/apple-app-site-association', (req, res) => res.status(200).json({
         apps: [],
         details: [
             {
-                appID: '3MTP9WL5PF.com.therr.mobile.Therr',
+                appID: '22AN4MZ6H5.com.therr.mobile.Therr',
                 paths: ['*'],
             },
         ],
