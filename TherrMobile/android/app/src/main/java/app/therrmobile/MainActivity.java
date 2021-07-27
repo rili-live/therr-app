@@ -34,11 +34,9 @@ public class MainActivity extends ReactActivity {
 
   @Override
   public void onNewIntent(Intent intent) {
-      setIntent(intent); // TODO: Not sure if this should get called every time
-
       String deepLinkURL = intent.getData().toString();
 
-      if (deepLinkURL.contains("verify-email")) {
+      if (deepLinkURL.contains("verify-account")) {
           WritableMap event = Arguments.createMap();
           // Put data to map
           event.putString("url", deepLinkURL);
@@ -46,6 +44,8 @@ public class MainActivity extends ReactActivity {
           getReactInstanceManager().getCurrentReactContext()
               .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
               .emit("url", event);
+      } else {
+          setIntent(intent);
       }
 
       super.onNewIntent(intent);

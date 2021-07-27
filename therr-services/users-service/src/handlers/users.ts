@@ -13,7 +13,7 @@ import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
 import sendSSONewUserEmail from '../api/email/sendSSONewUserEmail';
 
 // TODO: Write unit tests for this function
-const isUserProfileIncomplete = (updateArgs, existingUser?) => {
+export const isUserProfileIncomplete = (updateArgs, existingUser?) => {
     if (!existingUser) {
         const requestIsMissingProperties = !updateArgs.phoneNumber
             || !updateArgs.userName

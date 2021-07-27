@@ -1,5 +1,6 @@
 import React from 'react';
 import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
+import { CommonActions } from '@react-navigation/native';
 import { Button }  from 'react-native-elements';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
@@ -7,12 +8,13 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import styles, { addMargins } from '../styles';
 import * as therrTheme from '../styles/themes';
-import formStyles, { emailVerificationForm as emailVerificationFormStyles } from '../styles/forms';
+import formStyles, { verifyEmailForm as verifyEmailFormStyles } from '../styles/forms';
 import translator from '../services/translator';
 import UsersActions from '../redux/actions/UsersActions';
 import Alert from '../components/Alert';
 import VerificationCodesService from '../services/VerificationCodesService';
 import RoundInput from '../components/Input/Round';
+import EarthLoader from '../components/Loaders/EarthLoader';
 
 interface IEmailVerificationDispatchProps {
     updateUser: Function;
@@ -58,37 +60,55 @@ class EmailVerification extends React.Component<IEmailVerificationProps, IEmailV
 
     componentDidMount() {
         const { route, navigation } = this.props;
-        const { verificationToken } = route.params;
+        let verificationToken;
 
         navigation.setOptions({
             title: this.translate('pages.emailVerification.headerTitle'),
         });
 
-        VerificationCodesService.verifyEmail(verificationToken)
-            .then(() => {
-                this.setState({
-                    verificationStatus: 'success',
-                }, () => {
-                    navigation.navigate('login', {
-                        successMessage: this.translate('pages.emailVerification.successVerifiedMessage')
-                    });
-                });
-            })
-            .catch((error) => {
-                if (error.message === 'Token has expired') {
+        if (route.params) {
+            verificationToken = route.params.verificationToken;
+
+            VerificationCodesService.verifyEmail(verificationToken)
+                .then(() => {
                     this.setState({
-                        errorReason: 'TokenExpired',
+                        verificationStatus: 'success',
+                    }, () => {
+                        navigation.dispatch(
+                            CommonActions.reset({
+                                index: 1,
+                                routes: [
+                                    {
+                                        name: 'Login',
+                                        params: {
+                                            userMessage: this.translate('pages.emailVerification.successVerifiedMessage'),
+                                            isVerifySuccess: true,
+                                        },
+                                    },
+                                ],
+                            })
+                        );
+                        // navigation.navigate('Login', {
+                        //     userMessage: this.translate('pages.emailVerification.successVerifiedMessage'),
+                        // });
                     });
-                }
-                this.setState({
-                    verificationStatus: 'failed',
-                });
-            })
-            .finally(() => {
-                this.setState({
-                    isSubmitting: false,
                 })
-            });
+                .catch((error) => {
+                    if (error.message === 'Token has expired') {
+                        this.setState({
+                            errorReason: 'TokenExpired',
+                        });
+                    }
+                    this.setState({
+                        verificationStatus: 'failed',
+                    });
+                })
+                .finally(() => {
+                    this.setState({
+                        isSubmitting: false,
+                    });
+                });
+        }
     }
 
     isFormDisabled() {
@@ -97,25 +117,49 @@ class EmailVerification extends React.Component<IEmailVerificationProps, IEmailV
         return !email || isSubmitting;
     }
 
-    onSubmit = (event: any) => {
-        event.preventDefault();
-
+    onSubmit = () => {
         const { navigation } = this.props;
         const { email } = this.state;
 
         VerificationCodesService.resendVerification(email)
             .then(() => {
-                navigation.navigate('login', {
-                    successMessage: this.translate('pages.emailVerification.failedMessageVerificationResent', {
-                        email: email,
-                    }),
-                });
+                navigation.dispatch(
+                    CommonActions.reset({
+                        index: 1,
+                        routes: [
+                            {
+                                name: 'Login',
+                                params: {
+                                    userMessage: this.translate('pages.emailVerification.successVerifiedMessage'),
+                                    isVerifySuccess: true,
+                                },
+                            },
+                        ],
+                    })
+                );
+                // navigation.navigate('Login', {
+                //     userMessage: this.translate('pages.emailVerification.successVerifiedMessage'),
+                // });
             })
             .catch((error) => {
                 if (error.message === 'Email already verified') {
-                    navigation.navigate('login', {
-                        successMessage: this.translate('pages.emailVerification.failedMessageAlreadyVerified'),
-                    });
+                    navigation.dispatch(
+                        CommonActions.reset({
+                            index: 1,
+                            routes: [
+                                {
+                                    name: 'Login',
+                                    params: {
+                                        userMessage: this.translate('pages.emailVerification.failedMessageAlreadyVerified'),
+                                        isVerifySuccess: true,
+                                    },
+                                },
+                            ],
+                        })
+                    );
+                    // navigation.navigate('Login', {
+                    //     userMessage: this.translate('pages.emailVerification.failedMessageAlreadyVerified'),
+                    // });
                 }
 
                 if (error.message === 'User not found') {
@@ -137,8 +181,6 @@ class EmailVerification extends React.Component<IEmailVerificationProps, IEmailV
 
         if (verificationStatus === 'pending') {
 
-        } else if (verificationStatus === 'success') {
-            // errorMessage = this.translate('pages.emailVerification.successMessage');
         } else if (verificationStatus === 'failed') {
             if (errorReason === 'TokenExpired') {
                 return this.translate('pages.emailVerification.failedMessageExpired');
@@ -154,8 +196,17 @@ class EmailVerification extends React.Component<IEmailVerificationProps, IEmailV
     }
 
     render() {
-        const { email } = this.state;
+        const { email, verificationStatus } = this.state;
         const pageHeader = this.translate('pages.emailVerification.pageHeader');
+
+        if (verificationStatus === 'pending') {
+            return (
+                <EarthLoader
+                    visible={true}
+                    speed={1.25}
+                />
+            );
+        }
 
         return (
             <>
@@ -166,11 +217,8 @@ class EmailVerification extends React.Component<IEmailVerificationProps, IEmailV
                             <Text style={styles.sectionTitle}>
                                 {pageHeader}
                             </Text>
-                            <Text style={styles.sectionDescription}>
-                                {this.translate('pages.emailVerification.instructions')}
-                            </Text>
                         </View>
-                        <View style={emailVerificationFormStyles.inputsContainer}>
+                        <View style={verifyEmailFormStyles.inputsContainer}>
                             <RoundInput
                                 autoCapitalize="none"
                                 autoCompleteType="email"
@@ -199,7 +247,7 @@ class EmailVerification extends React.Component<IEmailVerificationProps, IEmailV
                                 type={'error'}
                             />
                         </View>
-                        <View style={emailVerificationFormStyles.submitButtonContainer}>
+                        <View style={verifyEmailFormStyles.submitButtonContainer}>
                             <Button
                                 buttonStyle={formStyles.button}
                                 title={this.translate(

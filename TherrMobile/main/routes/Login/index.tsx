@@ -45,6 +45,7 @@ const mapDispatchToProps = (dispatch: any) =>
 class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     private translate;
     private cachedUserId;
+    private urlEventListener;
 
     constructor(props) {
         super(props);
@@ -54,41 +55,42 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         this.cachedUserId = (props.user && props.user.details && props.user.details.id);
     }
 
+    // TODO: On logout, ignore any deep link logic
     componentDidMount() {
-        const { navigation } = this.props;
+        const { navigation, route } = this.props;
+        const isVerifySuccess = route.params?.isVerifySuccess;
 
-        navigation.setOptions({
-            title: this.translate('pages.login.headerTitle'),
-        });
-
-        if (Platform.OS === 'android') {
-            // TODO: Listen on event listener in android with changes to MainActivity.java
-            Linking.getInitialURL().then(this.handleAppUniversalLinkURL);
-            Linking.addEventListener('url', (url) => {
-                this.handleOpenIOSUniversalLink(url);
+        if (!isVerifySuccess) {
+            navigation.setOptions({
+                title: this.translate('pages.login.headerTitle'),
             });
-        } else {
-            Linking.addEventListener('url', this.handleOpenIOSUniversalLink);
+
+            if (Platform.OS === 'android') {
+                Linking.getInitialURL().then(this.handleAppUniversalLinkURL);
+            }
+
+            // Do this for both Android and IOS
+            this.urlEventListener = Linking.addEventListener('url', this.handleUrlEvent);
         }
     }
 
-    componentWillUnmount() { // C
-        Linking.removeEventListener('url', this.handleOpenIOSUniversalLink);
+    componentWillUnmount() {
+        this.urlEventListener.remove();
     }
 
-    handleOpenIOSUniversalLink = (event) => { // D
+    handleUrlEvent = (event) => {
         this.handleAppUniversalLinkURL(event.url);
     }
 
     handleAppUniversalLinkURL = (url) => {
         const { navigation } = this.props;
         const urlSplit = url?.split('?') || [];
+        console.log(url);
 
-        if (url?.includes('verify-email')) {
+        if (url?.includes('verify-account')) {
             if (urlSplit[1] && urlSplit[1].includes('token=')) {
                 const verificationToken = urlSplit[1]?.split('token=')[1];
                 console.log('VERIFICATION_TOKEN', verificationToken);
-                // TODO: Navigation to VerifyEmail route and pass in token
                 navigation.navigate('EmailVerification', {
                     verificationToken,
                 });
@@ -98,7 +100,7 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
 
     render() {
         const { route } = this.props;
-        const userMessage = route.params && route.params.userMessage;
+        const { userMessage } = route?.params || '';
 
         return (
             <>

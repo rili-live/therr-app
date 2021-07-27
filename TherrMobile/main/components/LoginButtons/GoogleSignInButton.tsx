@@ -20,7 +20,16 @@ async function onGoogleButtonPress({
 }) {
     setDisabled(true);
     // Get the users ID token
-    const { idToken } = await GoogleSignin.signIn();
+    let idToken;
+    try {
+        const { idToken: token } = await GoogleSignin.signIn();
+        idToken = token;
+    } catch (error) {
+        console.log('CAUgHT');
+        onLoginError(error);
+        setDisabled(false);
+        return;
+    }
 
     // Create a Google credential with the token
     const googleCredential = auth.GoogleAuthProvider.credential(idToken);

@@ -52,7 +52,6 @@ interface ILayoutDispatchProps {
 interface IStoreProps extends ILayoutDispatchProps {
     forums: IForumsState;
     location: ILocationState;
-    navigation: any;
     notifications: INotificationsState;
     user: IUserState;
 }
@@ -311,12 +310,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 >
                     {routes
                         .filter((route: any) => {
-                            if (
-                                route.name === 'Login' &&
-                                user.isAuthenticated
-                            ) {
-                                return false;
-                            }
                             if (
                                 !(
                                     route.options &&
