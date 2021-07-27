@@ -65,7 +65,11 @@ class UsersService {
     })
 
     isAuthorized = (access: IAccess, user: IUserState) => {
-        if (user && user.details && user.details.accessLevels) {
+        const userAccessLevels = user?.details?.accessLevels;
+        if (access.isPublic || userAccessLevels) {
+            if (!userAccessLevels) {
+                return true;
+            }
             if (access.type === AccessCheckType.NONE) {
                 // User does not have any of the access levels from the check
                 return !access.levels.some((lvl) => user.details.accessLevels.includes(lvl));

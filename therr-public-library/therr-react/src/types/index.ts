@@ -53,6 +53,7 @@ export enum AccessCheckType {
 export interface IAccess {
     type: AccessCheckType;
     levels: Array<string>;
+    isPublic?: boolean;
 }
 
 export {

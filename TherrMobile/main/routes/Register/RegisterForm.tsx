@@ -202,6 +202,7 @@ export class RegisterFormComponent extends React.Component<
                     }
                     errorMessage={passwordErrorMessage}
                     secureTextEntry={true}
+                    onSubmitEditing={this.onSubmit}
                     rightIcon={
                         <MaterialIcon
                             name="lock"

@@ -12,6 +12,7 @@ import ActiveConnections from './ActiveConnections';
 import Contacts from './Contacts';
 import CreateConnection from './CreateConnection';
 import CreateProfile from './CreateProfile';
+import EmailVerification from './EmailVerification';
 import ForgotPassword from './ForgotPassword';
 import HostedChat from './HostedChat';
 import Notifications from './Notifications';
@@ -63,10 +64,15 @@ const routes: RouteConfig<
     {
         name: 'Login',
         component: Login,
-        options: {
+        options: () => ({
             title: 'Login',
+            access: {
+                type: AccessCheckType.NONE,
+                levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+                isPublic: true,
+            },
             headerStyle: styles.headerStyleAlt,
-        },
+        }),
     },
     {
         name: 'CreateProfile',
@@ -162,10 +168,15 @@ const routes: RouteConfig<
     {
         name: 'ForgotPassword',
         component: ForgotPassword,
-        options: {
+        options: () => ({
             title: 'Password Reset',
+            access: {
+                type: AccessCheckType.NONE,
+                levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+                isPublic: true,
+            },
             headerStyle: styles.headerStyleAlt,
-        },
+        }),
     },
     {
         name: 'HostedChat',
@@ -190,11 +201,28 @@ const routes: RouteConfig<
         }),
     },
     {
+        name: 'EmailVerification',
+        component: EmailVerification,
+        options: () => ({
+            title: 'EmailVerification',
+            access: {
+                type: AccessCheckType.NONE,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+                isPublic: true,
+            },
+        }),
+    },
+    {
         name: 'Register',
         component: Register,
-        options: {
+        options: () => ({
             title: 'Create Account',
-        },
+            access: {
+                type: AccessCheckType.NONE,
+                levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+                isPublic: true,
+            },
+        }),
     },
     {
         name: 'Settings',

@@ -141,7 +141,7 @@ export default StyleSheet.create({
         marginLeft: 2,
     },
     logoIconDark: {
-        color: therrTheme.colors.secondary,
+        color: therrTheme.colors.primary2Faded,
         marginLeft: 2,
         elevation: 1,
         textShadowOffset: { width: 1, height: 1 },

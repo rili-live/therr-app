@@ -43,6 +43,19 @@ app.set('views', path.join(__dirname, 'views'));
 // Define the folder that will be used for static assets
 app.use(express.static(path.join(__dirname, '/../build/static/')));
 
+// Apple universal link (Opens ios app when clicking therr URLs from mobile)
+app.get('/apple-app-site-association', (req, res) => res.status(200).json({
+    applinks: {
+        apps: [],
+        details: [
+            {
+                appID: '3MTP9WL5PF.com.therr.mobile.Therr',
+                paths: ['*'],
+            },
+        ],
+    },
+})); // Healthcheck
+
 // Universal routing and rendering for SEO
 routeConfig.forEach((config) => {
     const routePath = config.route;

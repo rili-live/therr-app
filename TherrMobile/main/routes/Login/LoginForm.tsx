@@ -64,8 +64,10 @@ export class LoginFormComponent extends React.Component<
         );
     }
 
-    onSSOLoginError = (error) => {
-        console.log(error);
+    onSSOLoginError = () => {
+        this.setState({
+            isSubmitting: false,
+        });
     }
 
     onSSOLoginSuccess = (idToken, user, additionalUserInfo) => {

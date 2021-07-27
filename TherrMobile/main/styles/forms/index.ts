@@ -1,6 +1,7 @@
 import { Platform, StyleSheet } from 'react-native';
 import beemoEditForm from './beemoEditForm';
 import forgotPasswordForm from './forgotPasswordForm';
+import verifyEmailForm from './verifyEmailForm';
 import loginForm from './loginForm';
 import phoneInput from './phoneInput';
 import settingsForm from './settingsForm';
@@ -174,4 +175,5 @@ export {
     loginForm,
     phoneInput,
     settingsForm,
+    verifyEmailForm,
 };
