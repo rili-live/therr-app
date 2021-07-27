@@ -1,8 +1,8 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import * as therrTheme from '../themes';
 
 const titleStyles: any = {
-    fontFamily: 'sans-serif-condensed',
+    fontFamily: Platform.OS === 'ios' ? 'KohinoorBangla-Light' : 'sans-serif-condensed',
     color: therrTheme.colors.textWhite,
     fontSize: 28,
     marginTop: 6,
