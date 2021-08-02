@@ -1,29 +1,34 @@
 import React, { Ref } from 'react';
-import { Dimensions, PermissionsAndroid, Platform, StatusBar, View } from 'react-native';
+import { Dimensions, PermissionsAndroid, Platform, StatusBar } from 'react-native';
 import { StackActions } from '@react-navigation/native';
 import { PERMISSIONS } from 'react-native-permissions';
 import MapView from 'react-native-map-clustering';
 import { PROVIDER_GOOGLE, Circle, Marker } from 'react-native-maps';
-import { Button } from 'react-native-elements';
+// import { Button } from 'react-native-elements';
 import AnimatedOverlay from 'react-native-modal-overlay';
 import 'react-native-gesture-handler';
-import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import OctIcon from 'react-native-vector-icons/Octicons';
+// import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
+// import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+// import OctIcon from 'react-native-vector-icons/Octicons';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { PushNotificationsService } from 'therr-react/services';
+import { UsersService, PushNotificationsService } from 'therr-react/services';
 import { IMapState as IMapReduxState, IReactionsState, IUserState } from 'therr-react/types';
 import { MapActions, ReactionActions } from 'therr-react/redux/actions';
+import { AccessLevels } from 'therr-js-utilities/constants';
 import Geolocation from '@react-native-community/geolocation';
 import AnimatedLoader from 'react-native-animated-loader';
 import { distanceTo, insideCircle } from 'geolocation-utils';
 import * as ImagePicker from 'react-native-image-picker';
-import Alert from '../components/Alert';
-import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
-import { ILocationState } from '../types/redux/location';
-import LocationActions from '../redux/actions/LocationActions';
-import translator from '../services/translator';
+// import MapActionButtons from './MapActionButtons';
+import MapActionButtonsAlt from './MapActionButtonsAlt';
+import Alert from '../../components/Alert';
+import { AccessCheckType } from '../../types';
+// import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
+import MainButtonMenuAlt from 'main/components/ButtonMenu/MainButtonMenuAlt';
+import { ILocationState } from '../../types/redux/location';
+import LocationActions from '../../redux/actions/LocationActions';
+import translator from '../../services/translator';
 import {
     INITIAL_LATITUDE_DELTA,
     INITIAL_LONGITUDE_DELTA,
@@ -34,16 +39,15 @@ import {
     MIN_ZOOM_LEVEL,
     MOMENTS_REFRESH_THROTTLE_MS,
     LOCATION_PROCESSING_THROTTLE_MS,
-} from '../constants';
-import * as therrTheme from '../styles/themes';
-import styles, { loaderStyles } from '../styles';
-import buttonStyles from '../styles/buttons';
-import mapStyles from '../styles/map';
-import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
+} from '../../constants';
+import * as therrTheme from '../../styles/themes';
+import styles, { loaderStyles } from '../../styles';
+import mapStyles from '../../styles/map';
+import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 import {
     requestOSMapPermissions,
     requestOSCameraPermissions,
-} from '../utilities/requestOSPermissions';
+} from '../../utilities/requestOSPermissions';
 
 const { width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../assets/earth-loader.json');
@@ -80,7 +84,7 @@ interface IMapState {
     activeMomentDetails: any;
     areButtonsVisible: boolean;
     areLayersVisible: boolean;
-    followsUserLocation: boolean;
+    shouldFollowUserLocation: boolean;
     isMomentAlertVisible: boolean;
     isScrollEnabled: boolean;
     isLocationReady: boolean;
@@ -134,7 +138,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             activeMomentDetails: {},
             areButtonsVisible: true,
             areLayersVisible: false,
-            followsUserLocation: false,
+            shouldFollowUserLocation: false,
             isScrollEnabled: true,
             isMomentAlertVisible: false,
             isLocationReady: false,
@@ -294,6 +298,14 @@ class Map extends React.Component<IMapProps, IMapState> {
         );
     };
 
+    goToNotifications = () => {
+        const { navigation } = this.props;
+
+        navigation.dispatch(
+            StackActions.replace('Notifications', {})
+        );
+    };
+
     cancelMomentAlert = () => {
         this.setState({
             isMomentAlertVisible: false,
@@ -357,6 +369,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         }
     };
 
+    // TODO: Ask for location permissions if not enabled
     handleCompassRealign = () => {
         this.mapRef && this.mapRef.animateCamera({ heading: 0 });
         this.setState({
@@ -503,6 +516,17 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     };
 
+    isAuthorized = () => {
+        const { user } = this.props;
+        return UsersService.isAuthorized(
+            {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+            user
+        );
+    }
+
     onDeleteMoment = (moment) => {
         const { deleteMoment, user } = this.props;
         if (moment.fromUserId === user.details.id) {
@@ -518,7 +542,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
     onUserLocationChange = (event) => {
         const {
-            followsUserLocation,
+            shouldFollowUserLocation,
             lastLocationSendForProcessing,
             lastLocationSendForProcessingCoords,
         } = this.state;
@@ -536,7 +560,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             circleCenter: coords,
         });
 
-        if (followsUserLocation) {
+        if (shouldFollowUserLocation) {
             const loc = {
                 latitude: coords.latitude,
                 longitude: coords.longitude,
@@ -607,12 +631,12 @@ class Map extends React.Component<IMapProps, IMapState> {
 
     toggleMapFollow = () => {
         const {
-            followsUserLocation,
+            shouldFollowUserLocation,
             isScrollEnabled,
         } = this.state;
         const { map } = this.props;
 
-        if (followsUserLocation === false) {
+        if (shouldFollowUserLocation === false) {
             this.mapRef && this.mapRef.animateToRegion({
                 longitude: map.longitude,
                 latitude: map.latitude,
@@ -622,7 +646,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         }
 
         this.setState({
-            followsUserLocation: !followsUserLocation,
+            shouldFollowUserLocation: !shouldFollowUserLocation,
             isScrollEnabled: !isScrollEnabled,
         });
     }
@@ -653,9 +677,9 @@ class Map extends React.Component<IMapProps, IMapState> {
         const {
             activeMoment,
             areButtonsVisible,
-            areLayersVisible,
+            // areLayersVisible,
             circleCenter,
-            followsUserLocation,
+            shouldFollowUserLocation,
             isLocationReady,
             isMinLoadTimeComplete,
             isMomentAlertVisible,
@@ -693,7 +717,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                             showsBuildings={true}
                             showsMyLocationButton={false}
                             showsCompass={false}
-                            followsUserLocation={followsUserLocation}
+                            followsUserLocation={shouldFollowUserLocation}
                             scrollEnabled={isScrollEnabled}
                             onUserLocationChange={this.onUserLocationChange}
                             minZoomLevel={MIN_ZOOM_LEVEL}
@@ -798,134 +822,18 @@ class Map extends React.Component<IMapProps, IMapState> {
                             />
                         </View> */}
                         {
-                            areButtonsVisible && (
-                                <>
-                                    <View style={buttonStyles.toggleFollow}>
-                                        <Button
-                                            buttonStyle={buttonStyles.btn}
-                                            icon={
-                                                <MaterialIcon
-                                                    name={followsUserLocation ? 'near-me' : 'navigation'}
-                                                    size={28}
-                                                    style={buttonStyles.btnIcon}
-                                                />
-                                            }
-                                            raised={true}
-                                            onPress={() => this.toggleMapFollow()}
-                                        />
-                                    </View>
-                                    <View style={buttonStyles.momentLayers}>
-                                        <Button
-                                            buttonStyle={buttonStyles.btn}
-                                            icon={
-                                                <MaterialIcon
-                                                    name="layers"
-                                                    size={44}
-                                                    style={buttonStyles.btnIcon}
-                                                />
-                                            }
-                                            raised={true}
-                                            onPress={() => this.toggleLayers()}
-                                        />
-                                    </View>
-                                    {
-                                        areLayersVisible &&
-                                        <>
-                                            <View style={buttonStyles.momentLayerOption1}>
-                                                <Button
-                                                    buttonStyle={buttonStyles.btn}
-                                                    icon={
-                                                        <FontAwesomeIcon
-                                                            name="globe"
-                                                            size={28}
-                                                            style={layers.connectionsMoments ? buttonStyles.btnIcon : buttonStyles.btnIconInactive}
-                                                        />
-                                                    }
-                                                    raised={true}
-                                                    onPress={() => this.toggleLayer('connectionsMoments')}
-                                                />
-                                            </View>
-                                            <View style={buttonStyles.momentLayerOption2}>
-                                                <Button
-                                                    buttonStyle={buttonStyles.btn}
-                                                    icon={
-                                                        <FontAwesomeIcon
-                                                            name="child"
-                                                            size={28}
-                                                            style={layers.myMoments ? buttonStyles.btnIcon : buttonStyles.btnIconInactive}
-                                                        />
-                                                    }
-                                                    raised={true}
-                                                    onPress={() => this.toggleLayer('myMoments')}
-                                                />
-                                            </View>
-                                        </>
-                                    }
-                                    <View style={buttonStyles.refreshMoments}>
-                                        <Button
-                                            buttonStyle={buttonStyles.btn}
-                                            icon={
-                                                <FontAwesomeIcon
-                                                    name="sync"
-                                                    size={44}
-                                                    style={buttonStyles.btnIcon}
-                                                />
-                                            }
-                                            raised={true}
-                                            onPress={() => this.handleRefreshMoments(false)}
-                                        />
-                                    </View>
-                                    <View style={buttonStyles.addMoment}>
-                                        <Button
-                                            buttonStyle={buttonStyles.btn}
-                                            icon={
-                                                <OctIcon
-                                                    name="device-camera"
-                                                    size={44}
-                                                    style={buttonStyles.btnIcon}
-                                                />
-                                            }
-                                            raised={true}
-                                            onPress={this.handleCreateMoment}
-                                        />
-                                    </View>
-                                    <View style={buttonStyles.compass}>
-                                        <Button
-                                            buttonStyle={buttonStyles.btn}
-                                            icon={
-                                                <FontAwesomeIcon
-                                                    name="compass"
-                                                    size={28}
-                                                    style={buttonStyles.btnIcon}
-                                                />
-                                            }
-                                            raised={true}
-                                            onPress={this.handleCompassRealign}
-                                        />
-                                    </View>
-                                    <View style={buttonStyles.recenter}>
-                                        <Button
-                                            buttonStyle={buttonStyles.btn}
-                                            icon={
-                                                <MaterialIcon
-                                                    name="gps-fixed"
-                                                    size={28}
-                                                    style={buttonStyles.btnIcon}
-                                                />
-                                            }
-                                            raised={true}
-                                            onPress={this.handleGpsRecenter}
-                                        />
-                                    </View>
-                                </>
-                            )
+                            areButtonsVisible &&
+                                <MapActionButtonsAlt
+                                    goToNotifications={this.goToNotifications}
+                                    handleCreateMoment={this.handleCreateMoment}
+                                    handleCompassRealign={this.handleCompassRealign}
+                                    isAuthorized={this.isAuthorized}
+                                />
                         }
-                        <MainButtonMenu
+                        <MainButtonMenuAlt
                             navigation={navigation}
                             onActionButtonPress={this.toggleMomentBtns}
-                            isCompact
                             translate={this.translate}
-                            transparent
                             user={user}
                         />
                         <AnimatedOverlay

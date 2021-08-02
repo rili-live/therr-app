@@ -22,6 +22,7 @@ interface IStoreProps extends IButtonMenuDispatchProps {
 export interface IButtonMenuProps extends IStoreProps {
     navigation: any;
     onActionButtonPress?: Function;
+    isAbsolute?: Boolean;
     isCompact?: Boolean;
     onButtonPress?: Function;
     translate: Function;

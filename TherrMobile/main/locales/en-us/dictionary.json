@@ -343,9 +343,12 @@
   "menus": {
     "main": {
       "buttons": {
+        "account": "Account",
         "connections": "People",
-        "moments": "Moments",
+        "bookmarked": "Saved",
         "map": "Map",
+        "messages": "Messages",
+        "moments": "Moments",
         "settings": "Settings",
         "notifications": "Notifications"
       }
@@ -360,6 +363,9 @@
   "pages": {
     "activeConnections": {
       "headerTitle": "Connections"
+    },
+    "bookmarked": {
+      "headerTitle": "Favorited"
     },
     "chatForum": {
       "pageTitle": "Forums",

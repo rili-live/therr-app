@@ -2,15 +2,71 @@ import { StyleSheet } from 'react-native';
 import { buttonMenuHeightCompact } from '../navigation/buttonMenu';
 import * as therrTheme from '../themes';
 
+const collapseOffset = 20;
+
 const btnStyles: any = {
     borderRadius: 100,
     padding: 0,
     borderWidth: 0,
 };
 
-const collapseOffset = 20;
+const btnGroupBtnStyles: any = {
+    padding: 0,
+    borderWidth: 0,
+    backgroundColor: therrTheme.colors.beemo1,
+};
+
+const bottomLeftBtnViewStyles: any = {
+    position: 'absolute',
+    left: 18,
+    bottom: 44 + buttonMenuHeightCompact - collapseOffset,
+    shadowColor: therrTheme.colors.textBlack,
+    shadowOffset: {
+        height: 1,
+        width: 1,
+    },
+    shadowRadius: 4,
+    borderRadius: 100,
+    padding: 0,
+};
+const leftSmallButton1ViewStyles: any = {
+    position: 'absolute',
+    left: 18,
+    bottom: 110 + buttonMenuHeightCompact - collapseOffset,
+    shadowColor: therrTheme.colors.textBlack,
+    shadowOffset: {
+        height: 1,
+        width: 1,
+    },
+    shadowRadius: 4,
+    borderRadius: 100,
+    padding: 0,
+};
 
 export default StyleSheet.create({
+    buttonGroup: {
+        width: '100%',
+        position: 'absolute',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        bottom: 44 + buttonMenuHeightCompact - collapseOffset,
+        shadowColor: therrTheme.colors.textBlack,
+        shadowOffset: {
+            height: 1,
+            width: 1,
+        },
+        shadowRadius: 4,
+        borderRadius: 100,
+    },
+    mapViewToggle: {},
+    searchFilters: {},
+    mapViewToggleButton: {
+        ...btnGroupBtnStyles,
+    },
+    searchFiltersButton: {
+        ...btnGroupBtnStyles,
+    },
     addMoment: {
         position: 'absolute',
         right: 18,
@@ -53,17 +109,10 @@ export default StyleSheet.create({
         padding: 0,
     },
     toggleFollow: {
-        position: 'absolute',
-        left: 18,
-        bottom: 110 + buttonMenuHeightCompact - collapseOffset,
-        shadowColor: therrTheme.colors.textBlack,
-        shadowOffset: {
-            height: 1,
-            width: 1,
-        },
-        shadowRadius: 4,
-        borderRadius: 100,
-        padding: 0,
+        ...leftSmallButton1ViewStyles,
+    },
+    locationEnable: {
+        ...leftSmallButton1ViewStyles,
     },
     recenter: {
         position: 'absolute',
@@ -121,18 +170,11 @@ export default StyleSheet.create({
         height: 32,
         width: 32,
     },
+    notifications: {
+        ...bottomLeftBtnViewStyles,
+    },
     refreshMoments: {
-        position: 'absolute',
-        left: 18,
-        bottom: 44 + buttonMenuHeightCompact - collapseOffset,
-        shadowColor: therrTheme.colors.textBlack,
-        shadowOffset: {
-            height: 1,
-            width: 1,
-        },
-        shadowRadius: 4,
-        borderRadius: 100,
-        padding: 0,
+        ...bottomLeftBtnViewStyles,
     },
     btn: {
         ...btnStyles,

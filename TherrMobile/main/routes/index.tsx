@@ -2,6 +2,7 @@ import { RouteConfig, StackNavigationState } from '@react-navigation/native';
 import { StackNavigationOptions } from '@react-navigation/stack';
 import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/src/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
+import BookMarked from './BookMarked';
 import Home from './Home';
 import DirectMessage from './DirectMessage';
 import Login from './Login';
@@ -14,7 +15,7 @@ import CreateConnection from './CreateConnection';
 import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
 import ForgotPassword from './ForgotPassword';
-import HostedChat from './HostedChat';
+// import HostedChat from './HostedChat';
 import Notifications from './Notifications';
 import Register from './Register';
 import Settings from './Settings';
@@ -75,6 +76,17 @@ const routes: RouteConfig<
         }),
     },
     {
+        name: 'BookMarked',
+        component: BookMarked,
+        options: () => ({
+            title: 'BookMarked',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
         name: 'CreateProfile',
         component: CreateProfile,
         options: () => ({
@@ -94,7 +106,6 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerTransparent: true,
         }),
     },
     {
@@ -178,17 +189,17 @@ const routes: RouteConfig<
             headerStyle: styles.headerStyleAlt,
         }),
     },
-    {
-        name: 'HostedChat',
-        component: HostedChat,
-        options: () => ({
-            title: 'HostedChat',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-        }),
-    },
+    // {
+    //     name: 'HostedChat',
+    //     component: HostedChat,
+    //     options: () => ({
+    //         title: 'HostedChat',
+    //         access: {
+    //             type: AccessCheckType.ALL,
+    //             levels: [AccessLevels.EMAIL_VERIFIED],
+    //         },
+    //     }),
+    // },
     {
         name: 'Notifications',
         component: Notifications,
