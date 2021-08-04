@@ -1,18 +1,25 @@
 import * as React from 'react';
 import { View } from 'react-native';
 import { Button } from 'react-native-elements';
-import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import buttonStyles from '../../styles/buttons';
 
+interface MapActionButtonsAltProps {
+    handleCreateMoment: any;
+    handleGpsRecenter: any;
+    isAuthorized: any;
+    goToMap?: any;
+    goToMoments?: any;
+    goToNotifications: any;
+}
+
 export default ({
     handleCreateMoment,
-    handleCompassRealign,
+    handleGpsRecenter,
     isAuthorized,
-    isMapView,
     goToNotifications,
-}) => {
+}: MapActionButtonsAltProps) => {
     const shouldShowCreateButton = isAuthorized();
 
     return (
@@ -22,7 +29,7 @@ export default ({
                     buttonStyle={buttonStyles.btn}
                     icon={
                         <MaterialIcon
-                            name="bell"
+                            name="notifications"
                             size={28}
                             style={buttonStyles.btnIcon}
                         />
@@ -52,58 +59,14 @@ export default ({
                 <Button
                     buttonStyle={buttonStyles.btn}
                     icon={
-                        <FontAwesomeIcon
-                            name="compass"
+                        <MaterialIcon
+                            name="gps-fixed"
                             size={28}
                             style={buttonStyles.btnIcon}
                         />
                     }
                     raised={true}
-                    onPress={handleCompassRealign}
-                />
-            </View>
-            <View style={buttonStyles.buttonGroup}>
-                {
-                    isMapView ?
-                        <Button
-                            buttonStyle={buttonStyles.mapViewToggleButton}
-                            containerStyle={buttonStyles.mapViewToggle}
-                            icon={
-                                <FontAwesomeIcon
-                                    name="globe"
-                                    size={22}
-                                    style={buttonStyles.btnIcon}
-                                />
-                            }
-                            iconRight
-                            onPress={handleCompassRealign}
-                        /> :
-                        <Button
-                            buttonStyle={buttonStyles.searchFiltersButton}
-                            containerStyle={buttonStyles.searchFilters}
-                            icon={
-                                <FontAwesomeIcon
-                                    name="filters"
-                                    size={22}
-                                    style={buttonStyles.btnIcon}
-                                />
-                            }
-                            iconRight
-                            raised={true}
-                            onPress={handleCompassRealign}
-                        />
-                }
-                <Button
-                    buttonStyle={buttonStyles.btn}
-                    icon={
-                        <FontAwesomeIcon
-                            name="filters"
-                            size={28}
-                            style={buttonStyles.btnIcon}
-                        />
-                    }
-                    raised={true}
-                    onPress={handleCompassRealign}
+                    onPress={handleGpsRecenter}
                 />
             </View>
         </>

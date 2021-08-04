@@ -1,11 +1,11 @@
 import React from 'react';
 import { Provider } from 'shared/react-redux';
 import SplashScreen from 'react-native-splash-screen';
-import changeNavigationBarColor from 'react-native-navigation-bar-color';
+// import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import getStore from './getStore';
 import initInterceptors from './interceptors';
 import Layout from './components/Layout';
-import * as therrTheme from './styles/themes';
+// import * as therrTheme from './styles/themes';
 import { MIN_LOAD_TIMEOUT } from './constants';
 import EarthLoader from './components/Loaders/EarthLoader';
 
@@ -30,7 +30,7 @@ class App extends React.Component<any, any> {
                 isMinLoadTimeComplete: true,
             });
         }, MIN_LOAD_TIMEOUT + 200);
-        changeNavigationBarColor(therrTheme.colors.primary, false, true);
+        // changeNavigationBarColor(therrTheme.colors.primary, false, true);
     }
 
     componentDidMount() {

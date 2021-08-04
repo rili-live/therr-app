@@ -1,6 +1,5 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { View } from 'react-native';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
@@ -25,7 +24,7 @@ class ConnectionsButtonMenu extends ButtonMenu {
         const currentScreen = this.getCurrentScreen();
 
         return (
-            <View style={buttonMenu.container}>
+            <ButtonMenu {...this.props}>
                 <Button
                     title={translate('menus.connections.buttons.activeConnections')}
                     buttonStyle={
@@ -78,7 +77,7 @@ class ConnectionsButtonMenu extends ButtonMenu {
                     }
                     onPress={() => this.navTo('Contacts')}
                 />
-            </View>
+            </ButtonMenu>
         );
     }
 }

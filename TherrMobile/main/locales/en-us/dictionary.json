@@ -346,10 +346,14 @@
         "account": "Account",
         "connections": "People",
         "bookmarked": "Saved",
+        "goToTop": "Go To Top",
+        "list": "List",
         "map": "Map",
         "messages": "Messages",
         "moments": "Moments",
+        "refresh": "Refresh",
         "settings": "Settings",
+        "toggle": "Toggle",
         "notifications": "Notifications"
       }
     },
@@ -358,6 +362,9 @@
         "activeConnections": "Active Connections",
         "searchContacts": "Search Contacts"
       }
+    },
+    "filters": {
+      "title": "Filters"
     }
   },
   "pages": {
@@ -365,7 +372,8 @@
       "headerTitle": "Connections"
     },
     "bookmarked": {
-      "headerTitle": "Favorited"
+      "headerTitle": "Favorited",
+      "noBookmarksFound": "Mark content as favorited by clicking the bookmark icon on a post"
     },
     "chatForum": {
       "pageTitle": "Forums",

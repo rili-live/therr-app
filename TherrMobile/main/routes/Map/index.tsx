@@ -1,5 +1,5 @@
 import React, { Ref } from 'react';
-import { Dimensions, PermissionsAndroid, Platform, StatusBar } from 'react-native';
+import { Dimensions, PermissionsAndroid, Platform, SafeAreaView } from 'react-native';
 import { StackActions } from '@react-navigation/native';
 import { PERMISSIONS } from 'react-native-permissions';
 import MapView from 'react-native-map-clustering';
@@ -25,7 +25,7 @@ import MapActionButtonsAlt from './MapActionButtonsAlt';
 import Alert from '../../components/Alert';
 import { AccessCheckType } from '../../types';
 // import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
-import MainButtonMenuAlt from 'main/components/ButtonMenu/MainButtonMenuAlt';
+import MainButtonMenuAlt from '../../components/ButtonMenu/MainButtonMenuAlt';
 import { ILocationState } from '../../types/redux/location';
 import LocationActions from '../../redux/actions/LocationActions';
 import translator from '../../services/translator';
@@ -48,10 +48,12 @@ import {
     requestOSMapPermissions,
     requestOSCameraPermissions,
 } from '../../utilities/requestOSPermissions';
+import FiltersButtonGroup from '../../components/FiltersButtonGroup';
+import BaseStatusBar from '../../components/BaseStatusBar';
+import mapCustomStyle from '../../styles/map/googleCustom';
 
 const { width: viewportWidth } = Dimensions.get('window');
-const earthLoader = require('../assets/earth-loader.json');
-const mapCustomStyle = require('../styles/map/style.json');
+const earthLoader = require('../../assets/earth-loader.json');
 
 const ANIMATE_TO_REGION_DURATION = 750;
 const ANIMATE_TO_REGION_DURATION_SLOW = 1500;
@@ -290,6 +292,12 @@ class Map extends React.Component<IMapProps, IMapState> {
         clearTimeout(this.timeoutIdShowMoment);
     }
 
+    goToMoments = () => {
+        const { navigation } = this.props;
+
+        navigation.navigate('Moments');
+    };
+
     goToHome = () => {
         const { navigation } = this.props;
 
@@ -301,9 +309,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     goToNotifications = () => {
         const { navigation } = this.props;
 
-        navigation.dispatch(
-            StackActions.replace('Notifications', {})
-        );
+        navigation.navigate('Notifications');
     };
 
     cancelMomentAlert = () => {
@@ -690,171 +696,180 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor={therrTheme.colors.primary2}  />
-                {!(isLocationReady && isMinLoadTimeComplete) ? (
-                    <AnimatedLoader
-                        visible={true}
-                        overlayColor="rgba(255,255,255,0.75)"
-                        source={earthLoader}
-                        animationStyle={loaderStyles.lottie}
-                        speed={1.5}
-                    />
-                ) : (
-                    <>
-                        <MapView
-                            mapRef={(ref: Ref<MapView>) => { this.mapRef = ref; }}
-                            provider={PROVIDER_GOOGLE}
-                            style={mapStyles.mapView}
-                            customMapStyle={mapCustomStyle}
-                            initialRegion={{
-                                latitude: circleCenter.latitude,
-                                longitude: circleCenter.longitude,
-                                latitudeDelta: map.hasUserLocationLoaded ? PRIMARY_LATITUDE_DELTA : INITIAL_LATITUDE_DELTA,
-                                longitudeDelta: map.hasUserLocationLoaded ? PRIMARY_LONGITUDE_DELTA : INITIAL_LONGITUDE_DELTA,
-                            }}
-                            onPress={this.handleMapPress}
-                            showsUserLocation={true}
-                            showsBuildings={true}
-                            showsMyLocationButton={false}
-                            showsCompass={false}
-                            followsUserLocation={shouldFollowUserLocation}
-                            scrollEnabled={isScrollEnabled}
-                            onUserLocationChange={this.onUserLocationChange}
-                            minZoomLevel={MIN_ZOOM_LEVEL}
-                            /* react-native-map-clustering */
-                            clusterColor={therrTheme.colors.primary2}
-                        >
-                            <Circle
-                                center={circleCenter}
-                                radius={DEFAULT_MOMENT_PROXIMITY} /* meters */
-                                strokeWidth={1}
-                                strokeColor={therrTheme.colors.primary2}
-                                fillColor={therrTheme.colors.map.userCircleFill}
-                                zIndex={0}
-                            />
-                            {
-                                layers.connectionsMoments &&
-                                map.moments.map((moment) => {
-                                    return (
-                                        <Marker
-                                            key={moment.id}
-                                            coordinate={{
-                                                longitude: moment.longitude,
-                                                latitude: moment.latitude,
-                                            }}
-                                            onPress={this.handleMapPress}
-                                            stopPropagation={true}
-                                        />
-                                    );
-                                })
-                            }
-                            {
-                                layers.myMoments &&
-                                map.myMoments.map((moment) => {
-                                    return (
-                                        <Marker
-                                            key={moment.id}
-                                            coordinate={{
-                                                longitude: moment.longitude,
-                                                latitude: moment.latitude,
-                                            }}
-                                            onPress={this.handleMapPress}
-                                            stopPropagation={true}
-                                        />
-                                    );
-                                })
-                            }
-                            {
-                                layers.connectionsMoments &&
-                                map.moments.map((moment) => {
-                                    return (
-                                        <Circle
-                                            key={moment.id}
-                                            center={{
-                                                longitude: moment.longitude,
-                                                latitude: moment.latitude,
-                                            }}
-                                            radius={moment.radius} /* meters */
-                                            strokeWidth={0}
-                                            strokeColor={therrTheme.colors.secondary}
-                                            fillColor={moment.id === activeMoment.id ?
-                                                therrTheme.colors.map.momentsCircleFillActive :
-                                                therrTheme.colors.map.momentsCircleFill}
-                                            zIndex={1}
-                                        />
-                                    );
-                                })
-                            }
-                            {
-                                layers.myMoments &&
-                                map.myMoments.map((moment) => {
-                                    return (
-                                        <Circle
-                                            key={moment.id}
-                                            center={{
-                                                longitude: moment.longitude,
-                                                latitude: moment.latitude,
-                                            }}
-                                            radius={moment.radius} /* meters */
-                                            strokeWidth={0}
-                                            strokeColor={therrTheme.colors.secondary}
-                                            fillColor={moment.id === activeMoment.id ?
-                                                therrTheme.colors.map.myMomentsCircleFillActive :
-                                                therrTheme.colors.map.myMomentsCircleFill}
-                                            zIndex={1}
-                                        />
-                                    );
-                                })
-                            }
-                        </MapView>
-                        {/* <View style={buttonStyles.collapse}>
-                            <Button
-                                buttonStyle={buttonStyles.btn}
-                                icon={
-                                    <FontAwesomeIcon
-                                        name="ellipsis-h"
-                                        size={20}
-                                        style={buttonStyles.btnIcon}
-                                    />
-                                }
-                                raised={true}
-                                onPress={() => this.toggleMomentBtns()}
-                            />
-                        </View> */}
-                        {
-                            areButtonsVisible &&
-                                <MapActionButtonsAlt
-                                    goToNotifications={this.goToNotifications}
-                                    handleCreateMoment={this.handleCreateMoment}
-                                    handleCompassRealign={this.handleCompassRealign}
-                                    isAuthorized={this.isAuthorized}
-                                />
-                        }
-                        <MainButtonMenuAlt
-                            navigation={navigation}
-                            onActionButtonPress={this.toggleMomentBtns}
-                            translate={this.translate}
-                            user={user}
+                <BaseStatusBar />
+                <SafeAreaView style={styles.safeAreaView}>
+                    {!(isLocationReady && isMinLoadTimeComplete) ? (
+                        <AnimatedLoader
+                            visible={true}
+                            overlayColor="rgba(255,255,255,0.75)"
+                            source={earthLoader}
+                            animationStyle={loaderStyles.lottie}
+                            speed={1.5}
                         />
-                        <AnimatedOverlay
-                            animationType="swing"
-                            animationDuration={500}
-                            easing="linear"
-                            visible={isMomentAlertVisible}
-                            onClose={this.cancelMomentAlert}
-                            closeOnTouchOutside
-                            containerStyle={styles.overlay}
-                            childrenWrapperStyle={mapStyles.momentAlertOverlayContainer}
-                        >
-                            <Alert
-                                containerStyles={{}}
-                                isVisible={isMomentAlertVisible}
-                                message={this.translate('pages.map.momentAlerts.walkCloser')}
-                                type="error"
-                            />
-                        </AnimatedOverlay>
+                    ) : (
+                        <>
+                            <MapView
+                                mapRef={(ref: Ref<MapView>) => { this.mapRef = ref; }}
+                                provider={PROVIDER_GOOGLE}
+                                style={mapStyles.mapView}
+                                customMapStyle={mapCustomStyle}
+                                initialRegion={{
+                                    latitude: circleCenter.latitude,
+                                    longitude: circleCenter.longitude,
+                                    latitudeDelta: map.hasUserLocationLoaded ? PRIMARY_LATITUDE_DELTA : INITIAL_LATITUDE_DELTA,
+                                    longitudeDelta: map.hasUserLocationLoaded ? PRIMARY_LONGITUDE_DELTA : INITIAL_LONGITUDE_DELTA,
+                                }}
+                                onPress={this.handleMapPress}
+                                showsUserLocation={true}
+                                showsBuildings={true}
+                                showsMyLocationButton={false}
+                                showsCompass={false}
+                                followsUserLocation={shouldFollowUserLocation}
+                                scrollEnabled={isScrollEnabled}
+                                onUserLocationChange={this.onUserLocationChange}
+                                minZoomLevel={MIN_ZOOM_LEVEL}
+                                /* react-native-map-clustering */
+                                clusterColor={therrTheme.colors.primary2}
+                            >
+                                <Circle
+                                    center={circleCenter}
+                                    radius={DEFAULT_MOMENT_PROXIMITY} /* meters */
+                                    strokeWidth={1}
+                                    strokeColor={therrTheme.colors.primary2}
+                                    fillColor={therrTheme.colors.map.userCircleFill}
+                                    zIndex={0}
+                                />
+                                {
+                                    layers.connectionsMoments &&
+                                    map.moments.map((moment) => {
+                                        return (
+                                            <Marker
+                                                key={moment.id}
+                                                coordinate={{
+                                                    longitude: moment.longitude,
+                                                    latitude: moment.latitude,
+                                                }}
+                                                onPress={this.handleMapPress}
+                                                stopPropagation={true}
+                                            />
+                                        );
+                                    })
+                                }
+                                {
+                                    layers.myMoments &&
+                                    map.myMoments.map((moment) => {
+                                        return (
+                                            <Marker
+                                                key={moment.id}
+                                                coordinate={{
+                                                    longitude: moment.longitude,
+                                                    latitude: moment.latitude,
+                                                }}
+                                                onPress={this.handleMapPress}
+                                                stopPropagation={true}
+                                            />
+                                        );
+                                    })
+                                }
+                                {
+                                    layers.connectionsMoments &&
+                                    map.moments.map((moment) => {
+                                        return (
+                                            <Circle
+                                                key={moment.id}
+                                                center={{
+                                                    longitude: moment.longitude,
+                                                    latitude: moment.latitude,
+                                                }}
+                                                radius={moment.radius} /* meters */
+                                                strokeWidth={0}
+                                                strokeColor={therrTheme.colors.secondary}
+                                                fillColor={moment.id === activeMoment.id ?
+                                                    therrTheme.colors.map.momentsCircleFillActive :
+                                                    therrTheme.colors.map.momentsCircleFill}
+                                                zIndex={1}
+                                            />
+                                        );
+                                    })
+                                }
+                                {
+                                    layers.myMoments &&
+                                    map.myMoments.map((moment) => {
+                                        return (
+                                            <Circle
+                                                key={moment.id}
+                                                center={{
+                                                    longitude: moment.longitude,
+                                                    latitude: moment.latitude,
+                                                }}
+                                                radius={moment.radius} /* meters */
+                                                strokeWidth={0}
+                                                strokeColor={therrTheme.colors.secondary}
+                                                fillColor={moment.id === activeMoment.id ?
+                                                    therrTheme.colors.map.myMomentsCircleFillActive :
+                                                    therrTheme.colors.map.myMomentsCircleFill}
+                                                zIndex={1}
+                                            />
+                                        );
+                                    })
+                                }
+                            </MapView>
+                            {/* <View style={buttonStyles.collapse}>
+                                <Button
+                                    buttonStyle={buttonStyles.btn}
+                                    icon={
+                                        <FontAwesomeIcon
+                                            name="ellipsis-h"
+                                            size={20}
+                                            style={buttonStyles.btnIcon}
+                                        />
+                                    }
+                                    raised={true}
+                                    onPress={() => this.toggleMomentBtns()}
+                                />
+                            </View> */}
+                            <AnimatedOverlay
+                                animationType="swing"
+                                animationDuration={500}
+                                easing="linear"
+                                visible={isMomentAlertVisible}
+                                onClose={this.cancelMomentAlert}
+                                closeOnTouchOutside
+                                containerStyle={styles.overlay}
+                                childrenWrapperStyle={mapStyles.momentAlertOverlayContainer}
+                            >
+                                <Alert
+                                    containerStyles={{}}
+                                    isVisible={isMomentAlertVisible}
+                                    message={this.translate('pages.map.momentAlerts.walkCloser')}
+                                    type="error"
+                                />
+                            </AnimatedOverlay>
+                        </>
+                    )}
+                </SafeAreaView>
+                {
+                    isLocationReady && isMinLoadTimeComplete && areButtonsVisible &&
+                    <>
+                        <MapActionButtonsAlt
+                            goToMoments={this.goToMoments}
+                            goToNotifications={this.goToNotifications}
+                            handleCreateMoment={this.handleCreateMoment}
+                            handleGpsRecenter={this.handleGpsRecenter}
+                            isAuthorized={this.isAuthorized}
+                        />
+                        <FiltersButtonGroup
+                            goToMoments={this.goToMoments}
+                            translate={this.translate}
+                        />
                     </>
-                )}
+                }
+                <MainButtonMenuAlt
+                    navigation={navigation}
+                    onActionButtonPress={this.toggleMomentBtns}
+                    translate={this.translate}
+                    user={user}
+                />
             </>
         );
     }

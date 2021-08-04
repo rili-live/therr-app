@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, FlatList, SafeAreaView, StatusBar, View } from 'react-native';
+import { Text, FlatList, SafeAreaView, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -17,6 +17,7 @@ import buttonStyles from '../../styles/buttons';
 import hostedChatStyles from '../../styles/user-content/hosted-chat';
 import ChatCategories from './ChatCategories';
 import renderChatTile from './ChatTile';
+import BaseStatusBar from '../../components/BaseStatusBar';
 
 const chatKeyExtractor = (item) => item.id.toString();
 
@@ -193,7 +194,7 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
+                <BaseStatusBar />
                 <SafeAreaView style={styles.safeAreaView}>
                     <View style={hostedChatStyles.searchContainer}>
                         <RoundInput
@@ -217,7 +218,7 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
                     </View>
                     <ChatCategories
                         style={{}}
-                        backgroundColor={therrTheme.colors.primary2}
+                        backgroundColor={therrTheme.colors.primary}
                         categories={categories}
                         onCategoryPress={this.handleCategoryPress}
                         translate={this.translate}

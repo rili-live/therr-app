@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
+import { SafeAreaView, ScrollView, View, Text } from 'react-native';
 import { Button } from 'react-native-elements';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
 import 'react-native-gesture-handler';
@@ -10,7 +10,7 @@ import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import isEmail from 'validator/es/lib/isEmail';
 import Alert from '../components/Alert';
-import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
+import MainButtonMenuAlt from '../components/ButtonMenu/MainButtonMenuAlt';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
 import SquareInput from '../components/Input/Square';
@@ -18,6 +18,7 @@ import PhoneNumberInput from '../components/Input/PhoneNumberInput';
 import * as therrTheme from '../styles/themes';
 import styles, { addMargins } from '../styles';
 import formStyles from '../styles/forms';
+import BaseStatusBar from '../components/BaseStatusBar';
 
 interface IHomeDispatchProps {
     createUserConnection: Function;
@@ -238,6 +239,10 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         });
     }
 
+    handleRefresh = () => {
+        console.log('refresh');
+    }
+
     render() {
         const {
             connectionContext,
@@ -250,7 +255,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
+                <BaseStatusBar />
                 <SafeAreaView style={styles.safeAreaView}>
                     <ScrollView
                         contentInsetAdjustmentBehavior="automatic"
@@ -293,7 +298,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                                 <FontAwesomeIcon
                                                     name="envelope"
                                                     size={22}
-                                                    color={therrTheme.colors.primary3Faded}
+                                                    color={therrTheme.colorVariations.primary3Fade}
                                                 />
                                             }
                                         />
@@ -342,7 +347,12 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                         </View>
                     </ScrollView>
                 </SafeAreaView>
-                <MainButtonMenu navigation={navigation} translate={this.translate} user={user} />
+                <MainButtonMenuAlt
+                    navigation={navigation}
+                    onActionButtonPress={this.handleRefresh}
+                    translate={this.translate}
+                    user={user}
+                />
             </>
         );
     }

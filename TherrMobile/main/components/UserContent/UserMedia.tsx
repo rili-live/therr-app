@@ -1,7 +1,6 @@
 import React from 'react';
-import { Platform, Text, View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { WebView } from 'react-native-webview';
-import * as therrTheme from '../../styles/themes';
 import userContentStyles from '../../styles/user-content';
 
 interface IUserMediaProps {
@@ -14,17 +13,9 @@ interface IUserMediaProps {
 
 export default ({
     media,
-    isDarkMode,
     isVisible,
-    overlayMsg,
     viewportWidth,
 }) => {
-    const modeStyles = isDarkMode ? {
-        color: therrTheme.colors.textWhite,
-    } : {
-        color: therrTheme.colors.beemoTextBlack,
-    };
-
     return (
         <View style={{ display: 'flex', position: 'relative' }}>
             {
@@ -45,15 +36,6 @@ export default ({
                     showsHorizontalScrollIndicator={false}
                     showsVerticalScrollIndicator={false}
                 />
-            }
-            {
-                overlayMsg &&
-                <Text
-                    style={[userContentStyles.overlayText, modeStyles]}
-                    numberOfLines={2}
-                >
-                    {overlayMsg}
-                </Text>
             }
         </View>
     );

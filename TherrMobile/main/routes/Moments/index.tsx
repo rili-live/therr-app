@@ -1,19 +1,21 @@
 import React from 'react';
-import { SafeAreaView, Text, StatusBar } from 'react-native';
+import { SafeAreaView, Text } from 'react-native';
 // import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
-import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 // import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 // import * as therrTheme from '../styles/themes';
 import styles from '../../styles';
 import momentStyles from '../../styles/user-content/moments';
-import { buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
+// import { buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
 import MomentCarousel from './MomentCarousel';
+import MainButtonMenuAlt from '../../components/ButtonMenu/MainButtonMenuAlt';
+import BaseStatusBar from '../../components/BaseStatusBar';
+import FiltersButtonGroup from '../../components/FiltersButtonGroup';
 
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
@@ -88,6 +90,11 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         }
     }
 
+    goToMap = () => {
+        const { navigation } = this.props;
+        navigation.navigate('Map');
+    }
+
     goToMoment = (moment) => {
         const { navigation, user } = this.props;
 
@@ -136,17 +143,20 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
-                <SafeAreaView style={[styles.safeAreaView, { paddingBottom: buttonMenuHeightCompact }]}>
+                <BaseStatusBar />
+                <SafeAreaView style={styles.safeAreaView}>
                     {
                         this.renderCarousel(content)
                     }
                 </SafeAreaView>
                 {/* <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} /> */}
-                <MainButtonMenu
+                <FiltersButtonGroup
+                    goToMap={this.goToMap}
+                    translate={this.translate}
+                />
+                <MainButtonMenuAlt
                     navigation={navigation}
                     onActionButtonPress={this.scrollTop}
-                    isCompact
                     translate={this.translate}
                     user={user}
                 />

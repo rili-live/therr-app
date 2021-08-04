@@ -4,7 +4,6 @@ import {
     FlatList,
     SafeAreaView,
     Text,
-    StatusBar,
     View,
 } from 'react-native';
 import { Button, Image } from 'react-native-elements';
@@ -29,6 +28,7 @@ import { beemoEditForm as beemoFormStyles } from '../../styles/forms';
 import messageStyles from '../../styles/user-content/messages';
 import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
 import BeemoInput from '../../components/Input/Beemo';
+import BaseStatusBar from '../../components/BaseStatusBar';
 
 const userColors: any = {}; // local state
 
@@ -179,7 +179,7 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
+                <BaseStatusBar />
                 <SafeAreaView style={styles.safeAreaView}>
                     <View
                         style={[styles.bodyFlex, beemoLayoutStyles.bodyEdit]}

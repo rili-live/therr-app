@@ -2,14 +2,13 @@ import React from 'react';
 import {
     SafeAreaView,
     View,
-    StatusBar,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 // import { Button }  from 'react-native-elements';
-import changeNavigationBarColor from 'react-native-navigation-bar-color';
+// import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IContentState, IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
@@ -17,7 +16,7 @@ import YoutubePlayer from 'react-native-youtube-iframe';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
 import styles from '../styles';
-import * as therrTheme from '../styles/themes';
+// import * as therrTheme from '../styles/themes';
 import formStyles, { beemoEditForm as beemoFormStyles } from '../styles/forms';
 import beemoLayoutStyles from '../styles/layouts/beemo';
 import userContentStyles from '../styles/user-content';
@@ -25,6 +24,7 @@ import { viewing as viewMomentStyles } from '../styles/user-content/moments';
 import { youtubeLinkRegex } from '../constants';
 import MomentDisplay from '../components/UserContent/MomentDisplay';
 import formatDate from '../utilities/formatDate';
+import BaseStatusBar from '../components/BaseStatusBar';
 // import * as therrTheme from '../styles/themes';
 // import formStyles, { settingsForm as settingsFormStyles } from '../styles/forms';
 // import BeemoInput from '../components/Input/Beemo';
@@ -102,7 +102,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
 
         this.date = formatDate(moment.updatedAt);
 
-        changeNavigationBarColor(therrTheme.colors.beemo1, false, true);
+        // changeNavigationBarColor(therrTheme.colors.beemo1, false, true);
     }
 
     componentDidMount() {
@@ -124,7 +124,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         });
 
         this.unsubscribeNavListener = navigation.addListener('beforeRemove', () => {
-            changeNavigationBarColor(therrTheme.colors.primary, false, true);
+            // changeNavigationBarColor(therrTheme.colors.primary, false, true);
         });
     }
 
@@ -213,7 +213,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
+                <BaseStatusBar />
                 <SafeAreaView  style={styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
@@ -227,7 +227,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 date={this.date}
                                 expandMoment={() => null}
                                 hashtags={this.hashtags}
-                                isDarkMode={false}
+                                isDarkMode={true}
                                 isExpanded={true}
                                 moment={moment}
                                 // TODO: User Username from response

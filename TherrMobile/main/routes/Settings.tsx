@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, View, Text, StatusBar } from 'react-native';
+import { SafeAreaView, View, Text } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Button }  from 'react-native-elements';
 import { connect } from 'react-redux';
@@ -17,6 +17,7 @@ import * as therrTheme from '../styles/themes';
 import formStyles, { settingsForm as settingsFormStyles } from '../styles/forms';
 import SquareInput from '../components/Input/Square';
 import PasswordRequirements from '../components/Input/PasswordRequirements';
+import BaseStatusBar from '../components/BaseStatusBar';
 
 
 
@@ -204,7 +205,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
+                <BaseStatusBar />
                 <SafeAreaView  style={styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"

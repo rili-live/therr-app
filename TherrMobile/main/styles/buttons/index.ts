@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { buttonMenuHeightCompact } from '../navigation/buttonMenu';
+import { buttonMenuHeight } from '../navigation/buttonMenu';
 import * as therrTheme from '../themes';
 
 const collapseOffset = 20;
@@ -11,15 +11,20 @@ const btnStyles: any = {
 };
 
 const btnGroupBtnStyles: any = {
-    padding: 0,
+    padding: 4,
     borderWidth: 0,
     backgroundColor: therrTheme.colors.beemo1,
+    borderRadius: 0,
+    height: 32,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
 };
 
 const bottomLeftBtnViewStyles: any = {
     position: 'absolute',
     left: 18,
-    bottom: 44 + buttonMenuHeightCompact - collapseOffset,
+    bottom: 60 + buttonMenuHeight - collapseOffset,
     shadowColor: therrTheme.colors.textBlack,
     shadowOffset: {
         height: 1,
@@ -32,7 +37,7 @@ const bottomLeftBtnViewStyles: any = {
 const leftSmallButton1ViewStyles: any = {
     position: 'absolute',
     left: 18,
-    bottom: 110 + buttonMenuHeightCompact - collapseOffset,
+    bottom: 106 + buttonMenuHeight - collapseOffset,
     shadowColor: therrTheme.colors.textBlack,
     shadowOffset: {
         height: 1,
@@ -50,27 +55,57 @@ export default StyleSheet.create({
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        bottom: 44 + buttonMenuHeightCompact - collapseOffset,
+        flexDirection: 'row',
+        bottom: 40 + buttonMenuHeight - collapseOffset,
+        paddingVertical: 4,
+    },
+    buttonGroupContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
         shadowColor: therrTheme.colors.textBlack,
         shadowOffset: {
             height: 1,
             width: 1,
         },
         shadowRadius: 4,
-        borderRadius: 100,
+        elevation: 2,
+        borderRadius: 50,
+        shadowOpacity: 0.5,
     },
-    mapViewToggle: {},
-    searchFilters: {},
+    leftBtnGroupButtonContainer: {
+        borderTopLeftRadius: 50,
+        borderBottomLeftRadius: 50,
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
+    },
+    rightBtnGroupButtonContainer: {
+        borderTopLeftRadius: 0,
+        borderBottomLeftRadius: 0,
+        borderTopRightRadius: 50,
+        borderBottomRightRadius: 50,
+    },
+    btnGroupButtonContainer: {
+        borderRadius: 50,
+        minWidth: 100,
+    },
     mapViewToggleButton: {
         ...btnGroupBtnStyles,
     },
     searchFiltersButton: {
         ...btnGroupBtnStyles,
     },
+    searchFiltersTitle: {
+        color: therrTheme.colors.beemoTextWhite,
+        paddingLeft: 5,
+        fontSize: 14,
+        lineHeight: 18,
+    },
     addMoment: {
         position: 'absolute',
         right: 18,
-        bottom: 44 + buttonMenuHeightCompact - collapseOffset,
+        bottom: 40 + buttonMenuHeight - collapseOffset,
         shadowColor: therrTheme.colors.textBlack,
         shadowOffset: {
             height: 1,
@@ -83,7 +118,7 @@ export default StyleSheet.create({
     // collapse: {
     //     position: 'absolute',
     //     right: 18,
-    //     bottom: collapseOffset + buttonMenuHeightCompact,
+    //     bottom: collapseOffset + buttonMenuHeight,
     //     shadowColor: therrTheme.colors.textBlack,
     //     shadowOffset: {
     //         height: 1,
@@ -98,7 +133,7 @@ export default StyleSheet.create({
     compass: {
         position: 'absolute',
         right: 84,
-        bottom: 44 + buttonMenuHeightCompact - collapseOffset,
+        bottom: 60 + buttonMenuHeight - collapseOffset,
         shadowColor: therrTheme.colors.textBlack,
         shadowOffset: {
             height: 1,
@@ -117,7 +152,7 @@ export default StyleSheet.create({
     recenter: {
         position: 'absolute',
         right: 18,
-        bottom: 110 + buttonMenuHeightCompact - collapseOffset,
+        bottom: 126 + buttonMenuHeight - collapseOffset,
         shadowColor: therrTheme.colors.textBlack,
         shadowOffset: {
             height: 1,
@@ -130,7 +165,7 @@ export default StyleSheet.create({
     momentLayers: {
         position: 'absolute',
         left: 90,
-        bottom: 44 + buttonMenuHeightCompact - collapseOffset,
+        bottom: 60 + buttonMenuHeight - collapseOffset,
         shadowColor: therrTheme.colors.textBlack,
         shadowOffset: {
             height: 1,
@@ -143,7 +178,7 @@ export default StyleSheet.create({
     momentLayerOption1: {
         position: 'absolute',
         left: 96,
-        bottom: 100 + buttonMenuHeightCompact - collapseOffset,
+        bottom: 100 + buttonMenuHeight - collapseOffset,
         shadowColor: therrTheme.colors.textBlack,
         shadowOffset: {
             height: 1,
@@ -158,7 +193,7 @@ export default StyleSheet.create({
     momentLayerOption2: {
         position: 'absolute',
         left: 96,
-        bottom: 144 + buttonMenuHeightCompact - collapseOffset,
+        bottom: 160 + buttonMenuHeight - collapseOffset,
         shadowColor: therrTheme.colors.textBlack,
         shadowOffset: {
             height: 1,
@@ -186,6 +221,10 @@ export default StyleSheet.create({
     },
     btnIcon: {
         color: therrTheme.colors.ternary,
+        padding: 0,
+    },
+    btnIconWhite: {
+        color: therrTheme.colors.beemoTextWhite,
         padding: 0,
     },
     btnIconInactive: {

@@ -131,7 +131,7 @@ export default StyleSheet.create({
         color: therrTheme.colors.primary3,
     },
     buttonDisabled: {
-        backgroundColor: therrTheme.colors.primary3Faded,
+        backgroundColor: therrTheme.colorVariations.primary3Fade,
     },
     buttonTitleDisabled: {
         color: therrTheme.colors.textGray,

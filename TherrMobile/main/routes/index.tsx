@@ -24,7 +24,6 @@ import EditMoment from './EditMoment';
 import EditChat from './HostedChat/EditChat';
 import ViewChat from './HostedChat/ViewChat';
 import styles from '../styles';
-import * as therrTheme from '../styles/themes';
 
 const momentTransitionSpec: any = {
     open: {
@@ -76,17 +75,6 @@ const routes: RouteConfig<
         }),
     },
     {
-        name: 'BookMarked',
-        component: BookMarked,
-        options: () => ({
-            title: 'BookMarked',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-        }),
-    },
-    {
         name: 'CreateProfile',
         component: CreateProfile,
         options: () => ({
@@ -113,6 +101,17 @@ const routes: RouteConfig<
         component: Moments,
         options: () => ({
             title: 'Moments',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'BookMarked',
+        component: BookMarked,
+        options: () => ({
+            title: 'BookMarked',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -259,7 +258,6 @@ const routes: RouteConfig<
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',
-                color: therrTheme.colors.beemoTextBlack,
                 textShadowOffset: { width: 0, height: 0 },
                 textShadowRadius: 0,
                 letterSpacing: 2,
@@ -280,7 +278,6 @@ const routes: RouteConfig<
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',
-                color: therrTheme.colors.beemoTextBlack,
                 textShadowOffset: { width: 0, height: 0 },
                 textShadowRadius: 0,
                 letterSpacing: 2,
@@ -303,7 +300,6 @@ const routes: RouteConfig<
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',
-                color: therrTheme.colors.beemoTextBlack,
                 textShadowOffset: { width: 0, height: 0 },
                 textShadowRadius: 0,
                 letterSpacing: 2,
@@ -326,7 +322,6 @@ const routes: RouteConfig<
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',
-                color: therrTheme.colors.beemoTextBlack,
                 textShadowOffset: { width: 0, height: 0 },
                 textShadowRadius: 0,
                 letterSpacing: 2,
