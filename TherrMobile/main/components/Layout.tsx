@@ -259,15 +259,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             <NavigationContainer theme={theme}>
                 <Stack.Navigator
                     screenOptions={({ navigation }) => {
-                        const isMap = this.getCurrentScreen(navigation) === 'Map';
                         const isMoment = this.getCurrentScreen(navigation) === 'ViewMoment'
                             || this.getCurrentScreen(navigation) === 'EditMoment';
                         let headerStyleName: any = 'light';
                         let headerTitleColor = therrTheme.colors.textWhite;
-                        if (isMap) {
-                            headerStyleName = 'dark';
-                            headerTitleColor = therrTheme.colors.secondaryFaded;
-                        }
                         if (isMoment) {
                             headerStyleName = 'beemo';
                             headerTitleColor = therrTheme.colors.beemoTextBlack;
@@ -300,8 +295,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             headerTitleStyle: {
                                 ...styles.headerTitleStyle,
                                 color: headerTitleColor,
-                                textShadowOffset: isMap ? { width: 1, height: 1 } : { width: 0, height: 0 },
-                                textShadowRadius: isMap ? 1 : 0,
+                                textShadowOffset: { width: 0, height: 0 },
+                                textShadowRadius: 0,
                             },
                             headerStyle: styles.headerStyle,
                             headerTransparent: false,

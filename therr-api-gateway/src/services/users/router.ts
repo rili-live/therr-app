@@ -17,8 +17,11 @@ import {
 import {
     createUserConnectionValidation,
 } from './validation/userConnections';
+import {
+    subscribersSignupValidation,
+} from './validation/subscribers';
 import { updateNotificationValidation } from './validation/notifications';
-import { loginAttemptLimiter } from './limitation/auth';
+import { loginAttemptLimiter, subscribeAttemptLimiter } from './limitation/auth';
 
 const usersServiceRouter = express.Router();
 
@@ -124,6 +127,12 @@ usersServiceRouter.get('/users/notifications', handleServiceRequest({
 usersServiceRouter.put('/users/notifications/:notificationId', updateNotificationValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
+}));
+
+// Subscribers
+usersServiceRouter.post('/subscribers/signup', subscribeAttemptLimiter, subscribersSignupValidation, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
 }));
 
 export default usersServiceRouter;

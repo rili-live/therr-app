@@ -94,7 +94,7 @@ export default class MomentDisplay extends React.Component<IMomentDisplayProps, 
                                 <Icon
                                     name="more-horiz"
                                     size={24}
-                                    color={therrTheme.colors.textWhite}
+                                    color={isDarkMode ? therrTheme.colors.textWhite : therrTheme.colors.tertiary}
                                 />
                             }
                             onPress={() => expandMoment(moment)}
@@ -107,9 +107,29 @@ export default class MomentDisplay extends React.Component<IMomentDisplayProps, 
                     viewportWidth={viewportWidth}
                     media={momentMedia}
                     isVisible={momentMedia}
-                    isDarkMode={isDarkMode}
-                    overlayMsg={sanitizeNotificationMsg(moment.notificationMsg)}
                 />
+                <View style={this.viewMomentStyles.momentContentTitleContainer}>
+                    <Text
+                        style={this.viewMomentStyles.momentContentTitle}
+                        numberOfLines={2}
+                    >
+                        {sanitizeNotificationMsg(moment.notificationMsg)}
+                    </Text>
+                    <Button
+                        containerStyle={this.viewMomentStyles.moreButtonContainer}
+                        buttonStyle={this.viewMomentStyles.moreButton}
+                        icon={
+                            <Icon
+                                name="bookmark-border"
+                                size={24}
+                                color={isDarkMode ? therrTheme.colors.textWhite : therrTheme.colors.tertiary}
+                            />
+                        }
+                        onPress={() => expandMoment(moment)}
+                        type="clear"
+                        TouchableComponent={TouchableWithoutFeedbackComponent}
+                    />
+                </View>
                 <Text style={this.viewMomentStyles.momentMessage}>
                     <Autolink
                         text={moment.message}

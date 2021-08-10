@@ -50,6 +50,8 @@ app.use(express.static(path.join(__dirname, 'static')));
 // Authentication
 app.use(authenticate.unless({
     path: [
+        { url: '/', methods: ['GET'] }, // healthcheck
+        { url: '/v1/users-service/subscribers/signup', methods: ['POST'] }, // email marketing subscribe
         { url: '/v1/users-service/auth', methods: ['POST'] }, // login
         { url: '/v1/users-service/users', methods: ['POST'] }, // register
         { url: '/v1/users-service/users/forgot-password', methods: ['POST'] }, // one time password

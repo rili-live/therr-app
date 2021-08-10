@@ -1,11 +1,11 @@
 import React from 'react';
-import { Platform, SafeAreaView, Keyboard, Text, View, StatusBar } from 'react-native';
+import { Platform, SafeAreaView, Keyboard, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button, Slider, Image } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'rn-fetch-blob';
-import changeNavigationBarColor from 'react-native-navigation-bar-color';
+// import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
 import { MapsService } from 'therr-react/services';
@@ -26,6 +26,7 @@ import formatHashtags from '../utilities/formatHashtags';
 import BeemoInput from '../components/Input/Beemo';
 import BeemoTextInput from '../components/TextInput/Beemo';
 import HashtagsContainer from '../components/UserContent/HashtagsContainer';
+import BaseStatusBar from '../components/BaseStatusBar';
 
 export const DEFAULT_RADIUS = 10;
 export const MIN_RADIUS_PRIVATE = 3;
@@ -85,7 +86,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
-        changeNavigationBarColor(therrTheme.colors.beemo1, false, true);
+        // changeNavigationBarColor(therrTheme.colors.beemo1, false, true);
     }
 
     componentDidMount() {
@@ -95,7 +96,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         });
 
         this.unsubscribeNavListener = navigation.addListener('beforeRemove', () => {
-            changeNavigationBarColor(therrTheme.colors.primary, false, true);
+            // changeNavigationBarColor(therrTheme.colors.primary, false, true);
         });
     }
 
@@ -316,7 +317,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
+                <BaseStatusBar />
                 <SafeAreaView style={styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"

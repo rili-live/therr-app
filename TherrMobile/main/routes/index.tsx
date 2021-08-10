@@ -2,6 +2,7 @@ import { RouteConfig, StackNavigationState } from '@react-navigation/native';
 import { StackNavigationOptions } from '@react-navigation/stack';
 import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/src/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
+import BookMarked from './BookMarked';
 import Home from './Home';
 import DirectMessage from './DirectMessage';
 import Login from './Login';
@@ -14,7 +15,7 @@ import CreateConnection from './CreateConnection';
 import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
 import ForgotPassword from './ForgotPassword';
-import HostedChat from './HostedChat';
+// import HostedChat from './HostedChat';
 import Notifications from './Notifications';
 import Register from './Register';
 import Settings from './Settings';
@@ -23,7 +24,6 @@ import EditMoment from './EditMoment';
 import EditChat from './HostedChat/EditChat';
 import ViewChat from './HostedChat/ViewChat';
 import styles from '../styles';
-import * as therrTheme from '../styles/themes';
 
 const momentTransitionSpec: any = {
     open: {
@@ -94,7 +94,6 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerTransparent: true,
         }),
     },
     {
@@ -102,6 +101,17 @@ const routes: RouteConfig<
         component: Moments,
         options: () => ({
             title: 'Moments',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'BookMarked',
+        component: BookMarked,
+        options: () => ({
+            title: 'BookMarked',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -178,17 +188,17 @@ const routes: RouteConfig<
             headerStyle: styles.headerStyleAlt,
         }),
     },
-    {
-        name: 'HostedChat',
-        component: HostedChat,
-        options: () => ({
-            title: 'HostedChat',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-        }),
-    },
+    // {
+    //     name: 'HostedChat',
+    //     component: HostedChat,
+    //     options: () => ({
+    //         title: 'HostedChat',
+    //         access: {
+    //             type: AccessCheckType.ALL,
+    //             levels: [AccessLevels.EMAIL_VERIFIED],
+    //         },
+    //     }),
+    // },
     {
         name: 'Notifications',
         component: Notifications,
@@ -248,7 +258,6 @@ const routes: RouteConfig<
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',
-                color: therrTheme.colors.beemoTextBlack,
                 textShadowOffset: { width: 0, height: 0 },
                 textShadowRadius: 0,
                 letterSpacing: 2,
@@ -269,7 +278,6 @@ const routes: RouteConfig<
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',
-                color: therrTheme.colors.beemoTextBlack,
                 textShadowOffset: { width: 0, height: 0 },
                 textShadowRadius: 0,
                 letterSpacing: 2,
@@ -292,7 +300,6 @@ const routes: RouteConfig<
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',
-                color: therrTheme.colors.beemoTextBlack,
                 textShadowOffset: { width: 0, height: 0 },
                 textShadowRadius: 0,
                 letterSpacing: 2,
@@ -315,7 +322,6 @@ const routes: RouteConfig<
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',
-                color: therrTheme.colors.beemoTextBlack,
                 textShadowOffset: { width: 0, height: 0 },
                 textShadowRadius: 0,
                 letterSpacing: 2,

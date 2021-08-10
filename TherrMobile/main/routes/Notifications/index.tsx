@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, FlatList, View, Text, StatusBar } from 'react-native';
+import { SafeAreaView, FlatList, View, Text } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -12,10 +12,11 @@ import {
     IUserConnectionsState,
     INotificationsState as IStoreNotificationsState,
 } from 'therr-react/types';
+import BaseStatusBar from '../../components/BaseStatusBar';
 import styles from '../../styles';
 import { notifications as notificationStyles } from '../../styles/notifications';
 import translator from '../../services/translator';
-import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
+import MainButtonMenuAlt from '../../components/ButtonMenu/MainButtonMenuAlt';
 import Notification from './Notification';
 
 interface INotificationsDispatchProps {
@@ -106,12 +107,16 @@ class Notifications extends React.Component<
         }
     }
 
+    scrollTop = () => {
+        this.flatListRef?.scrollToOffset({ animated: true, offset: 0 });
+    }
+
     render() {
         const { navigation, notifications, user } = this.props;
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
+                <BaseStatusBar />
                 <SafeAreaView  style={styles.safeAreaView}>
                     {
                         notifications.messages.length ? (
@@ -146,7 +151,12 @@ class Notifications extends React.Component<
                             </View>
                     }
                 </SafeAreaView>
-                <MainButtonMenu navigation={navigation} translate={this.translate} user={user} />
+                <MainButtonMenuAlt
+                    navigation={navigation}
+                    onActionButtonPress={this.scrollTop}
+                    translate={this.translate}
+                    user={user}
+                />
             </>
         );
     }

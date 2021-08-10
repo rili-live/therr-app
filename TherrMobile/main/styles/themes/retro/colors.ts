@@ -1,34 +1,43 @@
 import Color from 'color';
 
 const colors = {
-    primary: '#1d6f79',
-    primary2: '#387a82',
-    primary2Faded: '#438a92',
+    // Main
+    primary: '#1D8691',
+    primary2: '#20919E',
     primary3: '#143b54',
-    primary3Faded: '#355469',
-
     secondary: '#388254',
     secondaryFaded: '#4e8e67',
     ternary: '#e0c845',
     ternary2: '#ffc269',
+    tertiary: '#104B52',
+
+    // Text
     textBlack: '#363636',
     textGray: '#bfc7d5',
     textDarkGray: '#728f94',
     textWhite: '#fcfeff',
+
+    // Branding
     brandingMapYellow: '#ebc300',
     brandingOrange: '#f9ad2a',
     brandingLightBlue: '#d8f0f2',
 
+    // Background
     backgroundCream: '#fefbf0',
     backgroundWhite: '#ffffff',
-    backgroundGray: '#f6fbff',
+    backgroundGray: '#f3f4f6',
+    backgroundNeutral: '#e7eaed',
 
     borderLight: 'gray',
     placeholderTextColor: '#78909b',
 
     hyperlink: '#0e01b3',
 
-    beemo1: '#26a69a',
+    // Alerts
+    alertError: '#AC3E59',
+
+    // Beemo
+    beemo1: '#20919E',
     beemo1Fade: '#97c5bb',
     beemo2: '#cbffdc',
     beemo3: '#218a35',
@@ -39,7 +48,7 @@ const colors = {
     beemoYellow: '#fed61e',
     beemoBlue: '#17657D',
     beemoPurple: '#0e01b3',
-    beemoTeal: '#00def3',
+    beemoTeal: '#2CCCDE',
     beemoLime: '#00f729',
     beemoDivider: '#4950571c',
 

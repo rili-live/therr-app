@@ -6,7 +6,7 @@ import momentStyles from '../../styles/user-content/moments';
 import MomentDisplay from '../../components/UserContent/MomentDisplay';
 import formatDate from '../../utilities/formatDate';
 
-let flatListRef;
+// let flatListRef;
 
 const renderItem = ({ item: moment }, {
     content,
@@ -29,7 +29,7 @@ const renderItem = ({ item: moment }, {
                     userName: moment.fromUserName || moment.fromUserId,
                 }}
                 momentMedia={momentMedia}
-                isDarkMode={true}
+                isDarkMode={false}
             />
         </View>
     );
@@ -88,12 +88,14 @@ export default ({
                     formattedDate: formatDate(itemObj.item.createdAt),
                     translate,
                 })}
+                ListHeaderComponent={<View  style={momentStyles.momentCarouselHeader} />}
+                ListFooterComponent={<View  style={momentStyles.momentCarouselFooter} />}
                 ref={(component) => {
                     containerRef && containerRef(component);
-                    return flatListRef = component;
+                    return component;
                 }}
                 style={[styles.stretch, momentStyles.momentCarousel]}
-                onContentSizeChange={() => content.activeMoments?.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
+                // onContentSizeChange={() => content.activeMoments?.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
             />
         </>
     );

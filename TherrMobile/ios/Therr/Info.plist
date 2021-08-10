@@ -60,6 +60,8 @@
 	<string>This allows querying the user's current location to find nearby content shared by a user's connections</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Location is used to allow content sharing from the user's specific longitude/latitude. Other uses can access content within a specified distance of the original location.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Microphone usage is needed for recording audio in various locations and sharing with social connections.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This permission allows the user to access and share photos from their library to the social space of the app.</string>
 	<key>UIAppFonts</key>

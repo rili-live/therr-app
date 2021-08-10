@@ -1,14 +1,15 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
+import { SafeAreaView, ScrollView, View, Text } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import isEmail from 'validator/es/lib/isEmail';
-import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
+import MainButtonMenuAlt from '../components/ButtonMenu/MainButtonMenuAlt';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
+import BaseStatusBar from '../components/BaseStatusBar';
 import styles from '../styles';
 
 interface IHomeDispatchProps {
@@ -238,12 +239,16 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         });
     }
 
+    handleRefresh = () => {
+        console.log('refresh');
+    }
+
     render() {
         const { navigation, user } = this.props;
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
+                <BaseStatusBar />
                 <SafeAreaView style={styles.safeAreaView}>
                     <ScrollView
                         contentInsetAdjustmentBehavior="automatic"
@@ -278,7 +283,12 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                         </View>
                     </ScrollView>
                 </SafeAreaView>
-                <MainButtonMenu navigation={navigation} translate={this.translate} user={user} />
+                <MainButtonMenuAlt
+                    navigation={navigation}
+                    onActionButtonPress={this.handleRefresh}
+                    translate={this.translate}
+                    user={user}
+                />
             </>
         );
     }

@@ -53,8 +53,6 @@ const bodyStyle: any = {
 
 export const headerStyles: any = {
     backgroundColor: bodyStyle.backgroundColor,
-    shadowOpacity: 0,
-    elevation: 0,
     borderBottomColor: therrTheme.colors.primary,
     height: Platform.OS === 'ios'
         ? (IOS_STATUS_HEIGHT + IOS_TOP_GAP + HEADER_HEIGHT)
@@ -62,12 +60,17 @@ export const headerStyles: any = {
     minHeight: Platform.OS === 'ios'
         ? (IOS_STATUS_HEIGHT + IOS_TOP_GAP + HEADER_HEIGHT)
         : (HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + 20),
-    shadowRadius: 0,
-    shadowOffset: {
-        height: 0,
-    },
-    shadowColor: 'transparent',
     borderBottomWidth: 0,
+
+    // Shadow
+    shadowColor: therrTheme.colors.tertiary,
+    shadowOffset: {
+        height: 7,
+        width: 0,
+    },
+    shadowRadius: 4,
+    elevation: 8,
+    shadowOpacity: 0,
 };
 
 const overlayStyles: any = {
@@ -141,7 +144,7 @@ export default StyleSheet.create({
         marginLeft: 2,
     },
     logoIconDark: {
-        color: therrTheme.colors.primary2Faded,
+        color: therrTheme.colorVariations.primary2Darken,
         marginLeft: 2,
         elevation: 1,
         textShadowOffset: { width: 1, height: 1 },

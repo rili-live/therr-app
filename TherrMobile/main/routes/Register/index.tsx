@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Text, View, SafeAreaView, StatusBar } from 'react-native';
+import { Text, View, SafeAreaView } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';
@@ -10,6 +10,7 @@ import { bindActionCreators } from 'redux';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
 import firstTimeUIStyles from '../../styles/first-time-ui';
+import BaseStatusBar from '../../components/BaseStatusBar';
 
 interface IRegisterDispatchProps {
     register: Function;
@@ -67,7 +68,7 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
+                <BaseStatusBar />
                 <SafeAreaView  style={styles.safeAreaView}>
                     <KeyboardAwareScrollView style={styles.bodyFlex} contentContainerStyle={styles.bodyScroll} enableOnAndroid>
                         <View style={styles.sectionContainer}>

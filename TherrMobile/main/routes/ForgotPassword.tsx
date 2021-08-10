@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
+import { SafeAreaView, ScrollView, View, Text } from 'react-native';
 import { Button }  from 'react-native-elements';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
@@ -13,6 +13,7 @@ import UsersActions from '../redux/actions/UsersActions';
 import Alert from '../components/Alert';
 import VerificationCodesService from '../services/VerificationCodesService';
 import RoundInput from '../components/Input/Round';
+import BaseStatusBar from '../components/BaseStatusBar';
 
 interface IForgotPasswordDispatchProps {
     updateUser: Function;
@@ -135,7 +136,7 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
+                <BaseStatusBar />
                 <SafeAreaView  style={styles.safeAreaView}>
                     <ScrollView style={styles.bodyFlex} contentContainerStyle={styles.bodyScrollSmall}>
                         <View style={styles.sectionContainerAlt}>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, View, Text, StatusBar } from 'react-native';
+import { SafeAreaView, ScrollView, View, Text } from 'react-native';
 import { CommonActions } from '@react-navigation/native';
 import { Button }  from 'react-native-elements';
 import 'react-native-gesture-handler';
@@ -15,6 +15,7 @@ import Alert from '../components/Alert';
 import VerificationCodesService from '../services/VerificationCodesService';
 import RoundInput from '../components/Input/Round';
 import EarthLoader from '../components/Loaders/EarthLoader';
+import BaseStatusBar from '../components/BaseStatusBar';
 
 interface IEmailVerificationDispatchProps {
     updateUser: Function;
@@ -210,7 +211,7 @@ class EmailVerification extends React.Component<IEmailVerificationProps, IEmailV
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
+                <BaseStatusBar />
                 <SafeAreaView  style={styles.safeAreaView}>
                     <ScrollView style={styles.bodyFlex} contentContainerStyle={styles.bodyScrollSmall}>
                         <View style={styles.sectionContainerAlt}>

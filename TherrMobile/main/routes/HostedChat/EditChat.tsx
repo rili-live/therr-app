@@ -1,5 +1,5 @@
 import React from 'react';
-import { Keyboard, SafeAreaView, StatusBar, View } from 'react-native';
+import { Keyboard, SafeAreaView, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import 'react-native-gesture-handler';
@@ -18,6 +18,7 @@ import BeemoInput from '../../components/Input/Beemo';
 import BeemoTextInput from '../../components/TextInput/Beemo';
 import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
 import ChatCategories from './ChatCategories';
+import BaseStatusBar from '../../components/BaseStatusBar';
 
 interface IEditChatDispatchProps {
     logout: Function;
@@ -244,7 +245,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
+                <BaseStatusBar />
                 <SafeAreaView style={styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"

@@ -9,6 +9,8 @@ const buttonStyle: any = {
     display: 'flex',
     flexDirection: 'column',
     flex: 1,
+    width: '100%',
+    borderRadius: 0,
 };
 
 const iconStyle: any = {
@@ -47,9 +49,12 @@ export default StyleSheet.create({
     buttonContainer: {
         display: 'flex',
         flex: 1,
-        flexDirection: 'row',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
+        margin: 0,
+        height: '100%',
+        borderRadius: 0,
     },
     buttonsTitle: buttonsTitleStyle,
     buttonsTitleActive: {
@@ -67,12 +72,27 @@ export default StyleSheet.create({
         width: '100%',
         alignSelf: 'flex-end',
         flexDirection: 'row',
-        borderRadius: 0,
-        padding: 0,
-        bottom: 0,
-        borderTopWidth: 1,
-        borderTopColor: therrTheme.colorVariations.primaryFade,
         zIndex: 10,
+        backgroundColor: 'transparent',
+    },
+    containerInner: {
+        display: 'flex',
+        height: buttonMenuHeight,
+        width: '100%',
+        alignSelf: 'flex-end',
+        flexDirection: 'row',
+        marginTop: 100,
+        backgroundColor: therrTheme.colors.primary,
+
+        // Shadow
+        // shadowColor: therrTheme.colors.textBlack,
+        // shadowOffset: {
+        //     height: -5,
+        //     width: 0,
+        // },
+        // shadowRadius: 4,
+        // elevation: 2,
+        // shadowOpacity: 0.5,
     },
     buttonIcon: iconStyle,
     buttonIconActive: {
