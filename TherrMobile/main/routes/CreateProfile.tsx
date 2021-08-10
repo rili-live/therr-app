@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, View, Text, StatusBar } from 'react-native';
+import { SafeAreaView, View, Text } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -11,6 +11,7 @@ import styles from '../styles';
 import firstTimeUIStyles from '../styles/first-time-ui';
 import CreateProfileStageA from '../components/0_First_Time_UI/CreateProfileStageA';
 import CreateProfileStageB from '../components/0_First_Time_UI/CreateProfileStageB';
+import BaseStatusBar from '../components/BaseStatusBar';
 
 const profileLoader = require('../assets/profile-circling.json');
 const verifyPhoneLoader = require('../assets/verify-phone-shield.json');
@@ -192,7 +193,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
+                <BaseStatusBar />
                 <SafeAreaView  style={styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"

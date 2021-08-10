@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import * as therrTheme from '../themes';
+// import * as therrTheme from '../themes';
 
 export default StyleSheet.create({
     hashtagsContainer: {
@@ -11,15 +11,6 @@ export default StyleSheet.create({
         flexDirection: 'row',
         marginBottom: 10,
         marginHorizontal: 14,
-    },
-    overlayText: {
-        // position: 'absolute',
-        fontSize: 18,
-        // top: 10,
-        width: '100%',
-        paddingVertical: 3,
-        paddingHorizontal: 8,
-        color: therrTheme.colors.textWhite,
     },
     preview: {
         paddingHorizontal: 20,

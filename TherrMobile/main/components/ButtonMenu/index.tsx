@@ -7,7 +7,7 @@ import { INotificationsState } from 'therr-react/types';
 import LocationActions from '../../redux/actions/LocationActions';
 import { ILocationState } from '../../types/redux/location';
 import { buttonMenu } from '../../styles/navigation';
-
+import { buttonMenuHeight, buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
 
 interface IButtonMenuDispatchProps {
     updateGpsStatus: Function;
@@ -22,10 +22,10 @@ interface IStoreProps extends IButtonMenuDispatchProps {
 export interface IButtonMenuProps extends IStoreProps {
     navigation: any;
     onActionButtonPress?: Function;
+    isAbsolute?: Boolean;
     isCompact?: Boolean;
     onButtonPress?: Function;
     translate: Function;
-    transparent?: Boolean;
     user: any;
 }
 
@@ -67,7 +67,20 @@ export class ButtonMenu extends React.Component<IButtonMenuProps, IButtonMenuSta
     };
 
     render() {
-        return <View style={buttonMenu.container}>{this.props.children}</View>;
+        const { isAbsolute, isCompact } = this.props;
+        const overrideStyles: any = {};
+        if (!isAbsolute) {
+            overrideStyles.position = 'relative';
+        }
+        const containerHeight = isCompact ? buttonMenuHeightCompact : buttonMenuHeight;
+
+        return (
+            <View style={[buttonMenu.container, overrideStyles, { height: containerHeight }]}>
+                <View style={buttonMenu.containerInner}>
+                    {this.props.children}
+                </View>
+            </View>
+        );
     }
 }
 

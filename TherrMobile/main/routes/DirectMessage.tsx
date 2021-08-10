@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, ActivityIndicator, FlatList, View, Text, StatusBar } from 'react-native';
+import { SafeAreaView, ActivityIndicator, FlatList, View, Text } from 'react-native';
 import { Button, Image } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -12,6 +12,7 @@ import messageStyles from '../styles/user-content/messages';
 import translator from '../services/translator';
 import TextMessage from '../components/TextMessage';
 import RoundInput from '../components/Input/Round';
+import BaseStatusBar from '../components/BaseStatusBar';
 
 interface IDirectMessageDispatchProps {
     searchDms: Function;
@@ -125,7 +126,7 @@ class DirectMessage extends React.Component<
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
+                <BaseStatusBar />
                 <SafeAreaView style={[styles.safeAreaView]}>
                     <View style={messageStyles.container}>
                         <View style={styles.body}>

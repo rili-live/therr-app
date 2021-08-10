@@ -1,25 +1,13 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { View } from 'react-native';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-// import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
-// import therrIconConfig from '../../assets/therr-font-config.json';
-import { ButtonMenu, mapStateToProps, mapDispatchToProps } from '../ButtonMenu';
-import * as therrTheme from '../../styles/themes';
+import { ButtonMenu, mapStateToProps, mapDispatchToProps } from '.';
 import { buttonMenu } from '../../styles/navigation';
-import { buttonMenuHeight, buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
 import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 
-// const TherrIcon = createIconSetFromIcoMoon(
-//     therrIconConfig,
-//     'TherrFont',
-//     'TherrFont.ttf'
-// );
-
-class MainButtonMenu extends ButtonMenu {
+class MainButtonMenuAlt extends ButtonMenu {
     constructor(props) {
         super(props);
 
@@ -51,70 +39,45 @@ class MainButtonMenu extends ButtonMenu {
         }
     };
 
-    render() {
-        const { transparent, onActionButtonPress, isAbsolute, isCompact, notifications, translate } = this.props;
-        const currentScreen = this.getCurrentScreen();
-        const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
-        const overrideStyles: any = transparent ? { backgroundColor: therrTheme.colorVariations.primaryFade } : { backgroundColor: therrTheme.colors.primary };
-        if (!isAbsolute) {
-            overrideStyles.position = 'relative';
+    getActionButtonIcon = (currentScreen) => {
+        if (currentScreen === 'Map') {
+            return 'ellipsis-h';
         }
-        const containerHeight = isCompact ? buttonMenuHeightCompact : buttonMenuHeight;
+
+        if (currentScreen === 'Moments' || currentScreen === 'Notifications') {
+            return 'arrow-up';
+        }
+
+        return 'sync';
+    }
+
+    getActionButtonTitle = ({
+        isCompact,
+        currentScreen,
+        translate,
+    }) => {
+        if (isCompact) {
+            return '';
+        }
+
+        if (currentScreen === 'Map') {
+            return translate('menus.main.buttons.toggle');
+        }
+
+        if (currentScreen === 'Moments' || currentScreen === 'Notifications') {
+            return translate('menus.main.buttons.goToTop');
+        }
+
+        return translate('menus.main.buttons.refresh');
+    }
+
+    render() {
+        const { onActionButtonPress, isCompact, translate } = this.props;
+        const currentScreen = this.getCurrentScreen();
+        const isMessageViewActive = currentScreen === 'Contacts' || currentScreen === 'ActiveConnections' || currentScreen === 'CreateConnection';
 
         return (
-            <View style={[buttonMenu.container, overrideStyles, { height: containerHeight }]}>
-                <Button
-                    title={!isCompact ? translate('menus.main.buttons.connections') : null}
-                    buttonStyle={
-                        currentScreen === 'Contacts' || currentScreen === 'ActiveConnections'
-                            ? buttonMenu.buttonsActive
-                            : buttonMenu.buttons
-                    }
-                    containerStyle={buttonMenu.buttonContainer}
-                    titleStyle={
-                        currentScreen === 'Contacts' || currentScreen === 'ActiveConnections'
-                            ? buttonMenu.buttonsTitleActive
-                            : buttonMenu.buttonsTitle
-                    }
-                    icon={
-                        <FontAwesomeIcon
-                            name="users"
-                            size={26}
-                            style={
-                                currentScreen === 'Contacts' || currentScreen === 'ActiveConnections'
-                                    ? buttonMenu.buttonIconActive
-                                    : buttonMenu.buttonIcon
-                            }
-                        />
-                    }
-                    onPress={() => this.navTo('ActiveConnections')}
-                />
-                <Button
-                    title={!isCompact ? translate('menus.main.buttons.moments') : null}
-                    buttonStyle={
-                        currentScreen === 'Moments'
-                            ? buttonMenu.buttonsActive
-                            : buttonMenu.buttons
-                    }
-                    containerStyle={buttonMenu.buttonContainer}
-                    titleStyle={
-                        currentScreen === 'Moments'
-                            ? buttonMenu.buttonsTitleActive
-                            : buttonMenu.buttonsTitle
-                    }
-                    icon={
-                        <MaterialIcon
-                            name="watch"
-                            size={26}
-                            style={
-                                currentScreen === 'Moments'
-                                    ? buttonMenu.buttonIconActive
-                                    : buttonMenu.buttonIcon
-                            }
-                        />
-                    }
-                    onPress={() => this.navTo('Moments')}
-                />
+            <ButtonMenu {...this.props}>
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.map') : null}
                     buttonStyle={
@@ -141,46 +104,120 @@ class MainButtonMenu extends ButtonMenu {
                     }
                     onPress={() => this.navTo('Map')}
                 />
-                <View style={buttonMenu.notificationContainer}>
-                    <Button
-                        title={!isCompact ? translate('menus.main.buttons.notifications') : null}
-                        buttonStyle={
-                            currentScreen === 'Notifications'
-                                ? buttonMenu.buttonsActive
-                                : buttonMenu.buttons
-                        }
-                        containerStyle={buttonMenu.buttonContainer}
-                        titleStyle={
-                            currentScreen === 'Notifications'
-                                ? buttonMenu.buttonsTitleActive
-                                : buttonMenu.buttonsTitle
-                        }
-                        icon={
-                            <FontAwesomeIcon
-                                name={hasNotifications ? 'bell' : 'bell-slash'}
-                                size={26}
-                                style={
-                                    currentScreen === 'Notifications'
-                                        ? buttonMenu.buttonIconActive
-                                        : buttonMenu.buttonIcon
-                                }
-                            />
-                        }
-                        onPress={() => this.navTo('Notifications')}
-                    />
-                    {
-                        hasNotifications && <View style={onActionButtonPress ? buttonMenu.notificationCircleAlt : buttonMenu.notificationCircle} />
+                <Button
+                    title={!isCompact ? translate('menus.main.buttons.list') : null}
+                    buttonStyle={
+                        currentScreen === 'Moments'
+                            ? buttonMenu.buttonsActive
+                            : buttonMenu.buttons
                     }
-                </View>
+                    containerStyle={buttonMenu.buttonContainer}
+                    titleStyle={
+                        currentScreen === 'Moments'
+                            ? buttonMenu.buttonsTitleActive
+                            : buttonMenu.buttonsTitle
+                    }
+                    icon={
+                        <FontAwesomeIcon
+                            name="list"
+                            size={26}
+                            style={
+                                currentScreen === 'Moments'
+                                    ? buttonMenu.buttonIconActive
+                                    : buttonMenu.buttonIcon
+                            }
+                        />
+                    }
+                    onPress={() => this.navTo('Moments')}
+                />
+                <Button
+                    title={!isCompact ? translate('menus.main.buttons.bookmarked') : null}
+                    buttonStyle={
+                        currentScreen === 'BookMarked'
+                            ? buttonMenu.buttonsActive
+                            : buttonMenu.buttons
+                    }
+                    containerStyle={buttonMenu.buttonContainer}
+                    titleStyle={
+                        currentScreen === 'BookMarked'
+                            ? buttonMenu.buttonsTitleActive
+                            : buttonMenu.buttonsTitle
+                    }
+                    icon={
+                        <FontAwesomeIcon
+                            name="bookmark"
+                            size={26}
+                            style={
+                                currentScreen === 'BookMarked'
+                                    ? buttonMenu.buttonIconActive
+                                    : buttonMenu.buttonIcon
+                            }
+                        />
+                    }
+                    onPress={() => this.navTo('BookMarked')}
+                />
+                <Button
+                    title={!isCompact ? translate('menus.main.buttons.messages') : null}
+                    buttonStyle={
+                        isMessageViewActive
+                            ? buttonMenu.buttonsActive
+                            : buttonMenu.buttons
+                    }
+                    containerStyle={buttonMenu.buttonContainer}
+                    titleStyle={
+                        isMessageViewActive
+                            ? buttonMenu.buttonsTitleActive
+                            : buttonMenu.buttonsTitle
+                    }
+                    icon={
+                        <FontAwesomeIcon
+                            name="comment"
+                            size={26}
+                            style={
+                                isMessageViewActive
+                                    ? buttonMenu.buttonIconActive
+                                    : buttonMenu.buttonIcon
+                            }
+                        />
+                    }
+                    onPress={() => this.navTo('ActiveConnections')}
+                />
+                {/* <Button
+                    title={!isCompact ? translate('menus.main.buttons.account') : null}
+                    buttonStyle={
+                        currentScreen === 'Settings'
+                            ? buttonMenu.buttonsActive
+                            : buttonMenu.buttons
+                    }
+                    containerStyle={buttonMenu.buttonContainer}
+                    titleStyle={
+                        currentScreen === 'Settings'
+                            ? buttonMenu.buttonsTitleActive
+                            : buttonMenu.buttonsTitle
+                    }
+                    icon={
+                        <FontAwesomeIcon
+                            name="user-cog"
+                            size={26}
+                            style={
+                                currentScreen === 'Settings'
+                                    ? buttonMenu.buttonIconActive
+                                    : buttonMenu.buttonIcon
+                            }
+                        />
+                    }
+                    onPress={() => this.navTo('Settings')}
+                /> */}
                 {
                     onActionButtonPress &&
                     <Button
                         buttonStyle={buttonMenu.buttons}
                         containerStyle={buttonMenu.buttonContainer}
                         titleStyle={buttonMenu.buttonsTitle}
+                        title={this.getActionButtonTitle({ currentScreen, isCompact, translate })}
                         icon={
                             <FontAwesomeIcon
-                                name={currentScreen === 'Map' ? 'ellipsis-h' : 'arrow-up'}
+                                name={this.getActionButtonIcon(currentScreen)}
                                 size={26}
                                 style={buttonMenu.buttonIcon}
                             />
@@ -188,9 +225,9 @@ class MainButtonMenu extends ButtonMenu {
                         onPress={onActionButtonPress as any}
                     />
                 }
-            </View>
+            </ButtonMenu>
         );
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(MainButtonMenu);
+export default connect(mapStateToProps, mapDispatchToProps)(MainButtonMenuAlt);

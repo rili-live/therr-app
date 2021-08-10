@@ -164,11 +164,11 @@ class HeaderMenuRight extends React.Component<
     };
 
     render() {
-        const { isVisible, isEmailVerifed, styleName, user } = this.props;
+        const { isVisible, isEmailVerifed, notifications, styleName, user } = this.props;
 
         const { isModalVisible } = this.state;
         const currentScreen = this.getCurrentScreen();
-        // const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
+        const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
         let imageStyle = headerMenuModal.toggleIcon;
 
         if (styleName === 'light') {
@@ -321,7 +321,7 @@ class HeaderMenuRight extends React.Component<
                                                 />
                                             }
                                             onPress={() => this.navTo('Moments')}
-                                        />
+                                        /> */}
                                         <View style={headerMenuModal.notificationsItemContainer}>
                                             {
                                                 hasNotifications && <View style={headerMenuModal.notificationCircle} />
@@ -351,7 +351,7 @@ class HeaderMenuRight extends React.Component<
                                                 }
                                                 onPress={() => this.navTo('Notifications')}
                                             />
-                                        </View> */}
+                                        </View>
                                         {/* <Button
                                             buttonStyle={
                                                 currentScreen === 'HostedChat'

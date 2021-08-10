@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Linking, Platform, SafeAreaView, View, StatusBar } from 'react-native';
+import { Linking, Platform, SafeAreaView, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { AccessCheckType } from '../../types';
 import Image from '../../components/BaseImage';
@@ -14,6 +14,7 @@ import LoginForm from './LoginForm';
 import { bindActionCreators } from 'redux';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
+import BaseStatusBar from '../../components/BaseStatusBar';
 
 interface ILoginDispatchProps {
     login: Function;
@@ -117,7 +118,7 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
+                <BaseStatusBar />
                 <SafeAreaView  style={styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"

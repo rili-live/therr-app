@@ -8,6 +8,7 @@
 #import "ReactNativeConfig.h"
 #import <Firebase.h>
 #import "RNSplashScreen.h"
+#import <React/RCTLinkingManager.h>
 
 #if DEBUG
 #import <FlipperKit/FlipperClient.h>
@@ -16,7 +17,7 @@
 #import <FlipperKitNetworkPlugin/FlipperKitNetworkPlugin.h>
 #import <SKIOSNetworkPlugin/SKIOSNetworkAdapter.h>
 #import <FlipperKitReactPlugin/FlipperKitReactPlugin.h>
-#import <React/RCTLinkingManager.h>
+
 
 static void InitializeFlipper(UIApplication *application) {
   FlipperClient *client = [FlipperClient sharedClient];

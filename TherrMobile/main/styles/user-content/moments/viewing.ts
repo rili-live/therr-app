@@ -81,11 +81,11 @@ const getViewingMomentStyles = ({
     momentUserName: {
         fontSize: 15,
         paddingBottom: 1,
-        color: isDarkMode ? therrTheme.colors.beemoTextWhite : therrTheme.colors.beemoTextBlack,
+        color: isDarkMode ? therrTheme.colors.beemoTextWhite : therrTheme.colors.tertiary,
     },
     dateTime: {
         fontSize: 11,
-        color: isDarkMode ? therrTheme.colors.beemoTextWhite : therrTheme.colors.beemoTextBlack,
+        color: isDarkMode ? therrTheme.colors.beemoTextWhite : therrTheme.colors.tertiary,
     },
     moreButtonContainer: {
         display: 'flex',
@@ -96,9 +96,29 @@ const getViewingMomentStyles = ({
     moreButton: {
         height: '100%',
     },
+    momentContentTitleContainer: {
+        display: 'flex',
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+        width: '100%',
+        paddingBottom: 5,
+        paddingHorizontal: 2,
+        position: 'relative',
+    },
+    momentContentTitle: {
+        flex: 1,
+        color: isDarkMode ? therrTheme.colors.beemoTextWhite : therrTheme.colors.tertiary,
+        // position: 'absolute',
+        fontSize: 18,
+        // top: 10,
+        paddingVertical: 3,
+        paddingHorizontal: 8,
+    },
     momentMessage: {
         fontSize: 16,
-        color: isDarkMode ? therrTheme.colors.beemoTextWhite : therrTheme.colors.beemoTextBlack,
+        color: isDarkMode ? therrTheme.colors.beemoTextWhite : therrTheme.colors.tertiary,
         overflow: 'scroll',
         width: '100%',
         paddingHorizontal: 8,

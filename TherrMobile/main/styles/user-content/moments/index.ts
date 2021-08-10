@@ -24,15 +24,33 @@ export default StyleSheet.create({
         width: '100%',
     },
     momentCarousel: {
-        backgroundColor: therrTheme.colorVariations.primary2Darken,
+        backgroundColor: therrTheme.colors.backgroundNeutral,
+    },
+    momentCarouselHeader: {
+        marginBottom: dividerHeight / 2,
+    },
+    momentCarouselFooter: {
+        marginTop: dividerHeight / 2,
     },
     momentContainer: {
         flex: 1,
         overflow: 'hidden',
         paddingBottom: 10,
-        backgroundColor: therrTheme.colors.primary2,
-        marginBottom: dividerHeight,
+        backgroundColor: therrTheme.colors.backgroundGray,
+        marginVertical: dividerHeight / 2,
+        marginHorizontal: dividerHeight,
+        borderRadius: 7,
         ...(Platform.OS === 'ios' ? iosMomentContainerStyles : androidMomentContainerStyles),
+
+        // shadow
+        shadowColor: therrTheme.colors.tertiary,
+        shadowOffset: {
+            height: 2,
+            width: 2,
+        },
+        shadowRadius: 4,
+        elevation: 1,
+        shadowOpacity: 0.5,
     },
     momentTitle: {
         ...momentTextStyles,
@@ -49,10 +67,11 @@ export default StyleSheet.create({
     },
     noMomentsFoundText: {
         ...momentTextStyles,
-        marginTop: 20,
+        marginVertical: 50,
         paddingHorizontal: 10,
-        fontSize: 16,
+        fontSize: 20,
         textAlign: 'center',
+        color: therrTheme.colors.backgroundCream,
     },
 });
 

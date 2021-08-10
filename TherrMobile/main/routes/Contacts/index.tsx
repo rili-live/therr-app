@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, View, StatusBar } from 'react-native';
+import { SafeAreaView, ScrollView, View } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -10,6 +10,7 @@ import styles from '../../styles';
 import translator from '../../services/translator';
 import ContactsSearch from './ContactsSearch';
 import CreateConnectionButton from '../../components/CreateConnectionButton';
+import BaseStatusBar from '../../components/BaseStatusBar';
 
 interface IContactsDispatchProps {
     logout: Function;
@@ -113,7 +114,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
         return (
             <>
-                <StatusBar barStyle="light-content" animated={true} translucent={true} backgroundColor="transparent"  />
+                <BaseStatusBar />
                 <SafeAreaView style={styles.safeAreaView}>
                     <ScrollView
                         contentInsetAdjustmentBehavior="automatic"
