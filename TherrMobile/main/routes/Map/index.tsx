@@ -6,24 +6,23 @@ import MapView from 'react-native-map-clustering';
 import { PROVIDER_GOOGLE, Circle, Marker } from 'react-native-maps';
 // import { Button } from 'react-native-elements';
 import AnimatedOverlay from 'react-native-modal-overlay';
-import 'react-native-gesture-handler';
 // import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 // import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 // import OctIcon from 'react-native-vector-icons/Octicons';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { UsersService, PushNotificationsService } from 'therr-react/services';
-import { IMapState as IMapReduxState, IReactionsState, IUserState } from 'therr-react/types';
-import { MapActions, ReactionActions } from 'therr-react/redux/actions';
+import { MapsService, UsersService, PushNotificationsService } from 'therr-react/services';
+import { AccessCheckType, IMapState as IMapReduxState, IReactionsState, IUserState } from 'therr-react/types';
+import { MapActions, ReactionActions, UserInterfaceActions } from 'therr-react/redux/actions';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import Geolocation from '@react-native-community/geolocation';
 import AnimatedLoader from 'react-native-animated-loader';
 import { distanceTo, insideCircle } from 'geolocation-utils';
 import * as ImagePicker from 'react-native-image-picker';
+import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
 // import MapActionButtons from './MapActionButtons';
 import MapActionButtonsAlt from './MapActionButtonsAlt';
 import Alert from '../../components/Alert';
-import { AccessCheckType } from '../../types';
 // import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import MainButtonMenuAlt from '../../components/ButtonMenu/MainButtonMenuAlt';
 import { ILocationState } from '../../types/redux/location';
@@ -51,8 +50,9 @@ import {
 import FiltersButtonGroup from '../../components/FiltersButtonGroup';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import mapCustomStyle from '../../styles/map/googleCustom';
+import SearchTypeAhead from '../../components/SearchTypeAhead';
 
-const { width: viewportWidth } = Dimensions.get('window');
+const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../../assets/earth-loader.json');
 
 const ANIMATE_TO_REGION_DURATION = 750;
@@ -60,10 +60,12 @@ const ANIMATE_TO_REGION_DURATION_SLOW = 1500;
 const ANIMATE_TO_REGION_DURATION_FAST = 500;
 
 interface IMapDispatchProps {
+    captureClickTarget: Function;
     createOrUpdateReaction: Function;
     updateCoordinates: Function;
     searchMoments: Function;
     setInitialUserLocation: Function;
+    setSearchDropdownVisibility: Function;
     deleteMoment: Function;
     updateGpsStatus: Function;
     updateLocationPermissions: Function;
@@ -111,9 +113,11 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
+            captureClickTarget: UserInterfaceActions.captureClickEvent,
             updateCoordinates: MapActions.updateCoordinates,
             searchMoments: MapActions.searchMoments,
             setInitialUserLocation: MapActions.setInitialUserLocation,
+            setSearchDropdownVisibility: MapActions.setSearchDropdownVisibility,
             deleteMoment: MapActions.deleteMoment,
             createOrUpdateReaction: ReactionActions.createOrUpdateMomentReactions,
             updateGpsStatus: LocationActions.updateGpsStatus,
@@ -131,6 +135,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     private timeoutIdRefreshMoments;
     private timeoutIdShowMoment;
     private translate: Function;
+    private unsubscribeNavigationListener: any;
 
     constructor(props) {
         super(props);
@@ -160,6 +165,125 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     componentDidMount = async () => {
+        const { navigation, setSearchDropdownVisibility } = this.props;
+
+        this.unsubscribeNavigationListener = navigation.addListener('state', () => {
+            setSearchDropdownVisibility(false);
+        });
+
+        navigation.setOptions({
+            title: this.translate('pages.map.headerTitle'),
+        });
+
+        this.timeoutId = setTimeout(() => {
+            this.setState({
+                isMinLoadTimeComplete: true,
+                isLocationReady: true,
+            });
+        }, MIN_LOAD_TIMEOUT);
+    };
+
+    componentWillUnmount() {
+        Geolocation.clearWatch(this.mapWatchId);
+        clearTimeout(this.timeoutId);
+        clearTimeout(this.timeoutIdGPSStart);
+        clearTimeout(this.timeoutIdRefreshMoments);
+        clearTimeout(this.timeoutIdShowMoment);
+        this.unsubscribeNavigationListener();
+    }
+
+    goToMoments = () => {
+        const { navigation } = this.props;
+
+        navigation.navigate('Moments');
+    };
+
+    goToHome = () => {
+        const { navigation } = this.props;
+
+        navigation.dispatch(
+            StackActions.replace('Moments', {})
+        );
+    };
+
+    goToNotifications = () => {
+        const { navigation } = this.props;
+
+        navigation.navigate('Notifications');
+    };
+
+    cancelMomentAlert = () => {
+        this.setState({
+            isMomentAlertVisible: false,
+        });
+    }
+
+    getMomentDetails = (moment) => new Promise((resolve) => {
+        const { user } = this.props;
+        const details: any = {};
+
+        if (moment.fromUserId === user.details.id) {
+            details.userDetails = user.details;
+        }
+
+        return resolve(details);
+    });
+
+    handleImageSelect = (imageResponse, userCoords) => {
+        const { navigation } = this.props;
+
+        if (!imageResponse.didCancel) {
+            return navigation.navigate('EditMoment', {
+                ...userCoords,
+                imageDetails: imageResponse,
+            });
+        }
+    }
+
+    handleCreateMoment = () => {
+        const { location } = this.props;
+        const { circleCenter } = this.state;
+
+        if (location?.settings?.isGpsEnabled) {
+            // TODO: Store permissions in redux
+            const storePermissions = () => {};
+
+            return requestOSCameraPermissions(storePermissions).then((response) => {
+                const permissionsDenied = Object.keys(response).some((key) => {
+                    return response[key] !== 'granted';
+                });
+                if (!permissionsDenied) {
+                    return ImagePicker.launchCamera(
+                        {
+                            mediaType: 'photo',
+                            includeBase64: false,
+                            maxHeight: 4 * viewportWidth,
+                            maxWidth: 4 * viewportWidth,
+                            saveToPhotos: true,
+                        },
+                        (cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter),
+                    );
+                } else {
+                    throw new Error('permissions denied');
+                }
+            }).catch(() => {
+                // Handle Permissions denied
+            });
+
+        } else {
+            // TODO: Alert that GPS is required to create a moment
+        }
+    };
+
+    // TODO: Ask for location permissions if not enabled
+    handleCompassRealign = () => {
+        this.mapRef && this.mapRef.animateCamera({ heading: 0 });
+        this.setState({
+            areLayersVisible: false,
+        });
+    };
+
+    handleGpsRecenterPress = () => {
         const {
             location,
             navigation,
@@ -182,7 +306,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         let perms;
 
-        requestLocationServiceActivation({
+        return requestLocationServiceActivation({
             isGpsEnabled: location?.settings?.isGpsEnabled,
             translate: this.translate,
         }).then((response: any) => {
@@ -282,106 +406,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             console.log('locationServiceActivationError', error);
             this.goToHome();
         });
-    };
-
-    componentWillUnmount() {
-        Geolocation.clearWatch(this.mapWatchId);
-        clearTimeout(this.timeoutId);
-        clearTimeout(this.timeoutIdGPSStart);
-        clearTimeout(this.timeoutIdRefreshMoments);
-        clearTimeout(this.timeoutIdShowMoment);
     }
-
-    goToMoments = () => {
-        const { navigation } = this.props;
-
-        navigation.navigate('Moments');
-    };
-
-    goToHome = () => {
-        const { navigation } = this.props;
-
-        navigation.dispatch(
-            StackActions.replace('Moments', {})
-        );
-    };
-
-    goToNotifications = () => {
-        const { navigation } = this.props;
-
-        navigation.navigate('Notifications');
-    };
-
-    cancelMomentAlert = () => {
-        this.setState({
-            isMomentAlertVisible: false,
-        });
-    }
-
-    getMomentDetails = (moment) => new Promise((resolve) => {
-        const { user } = this.props;
-        const details: any = {};
-
-        if (moment.fromUserId === user.details.id) {
-            details.userDetails = user.details;
-        }
-
-        return resolve(details);
-    });
-
-    handleImageSelect = (imageResponse, userCoords) => {
-        const { navigation } = this.props;
-
-        if (!imageResponse.didCancel) {
-            return navigation.navigate('EditMoment', {
-                ...userCoords,
-                imageDetails: imageResponse,
-            });
-        }
-    }
-
-    handleCreateMoment = () => {
-        const { location } = this.props;
-        const { circleCenter } = this.state;
-
-        if (location?.settings?.isGpsEnabled) {
-            // TODO: Store permissions in redux
-            const storePermissions = () => {};
-
-            return requestOSCameraPermissions(storePermissions).then((response) => {
-                const permissionsDenied = Object.keys(response).some((key) => {
-                    return response[key] !== 'granted';
-                });
-                if (!permissionsDenied) {
-                    return ImagePicker.launchCamera(
-                        {
-                            mediaType: 'photo',
-                            includeBase64: false,
-                            maxHeight: 4 * viewportWidth,
-                            maxWidth: 4 * viewportWidth,
-                            saveToPhotos: true,
-                        },
-                        (cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter),
-                    );
-                } else {
-                    throw new Error('permissions denied');
-                }
-            }).catch(() => {
-                // Handle Permissions denied
-            });
-
-        } else {
-            // TODO: Alert that GPS is required to create a moment
-        }
-    };
-
-    // TODO: Ask for location permissions if not enabled
-    handleCompassRealign = () => {
-        this.mapRef && this.mapRef.animateCamera({ heading: 0 });
-        this.setState({
-            areLayersVisible: false,
-        });
-    };
 
     handleGpsRecenter = (coords?, delta?, duration?) => {
         const { circleCenter } = this.state;
@@ -398,9 +423,11 @@ class Map extends React.Component<IMapProps, IMapState> {
     };
 
     handleMapPress = ({ nativeEvent }) => {
-        const { createOrUpdateReaction, location, map, navigation, user } = this.props;
+        const { createOrUpdateReaction, location, map, navigation, setSearchDropdownVisibility, user } = this.props;
         const { circleCenter, layers } = this.state;
         let visibleMoments: any[] = [];
+
+        setSearchDropdownVisibility(false);
 
         this.setState({
             areLayersVisible: false,
@@ -521,6 +548,33 @@ class Map extends React.Component<IMapProps, IMapState> {
             lastMomentsRefresh: Date.now(),
         });
     };
+
+    handleSearchSelect = (selection) => {
+        const { setSearchDropdownVisibility } = this.props;
+
+        setSearchDropdownVisibility(false);
+
+        MapsService.getPlaceDetails({
+            apiKey: Platform.OS === 'ios' ? GOOGLE_APIS_IOS_KEY : GOOGLE_APIS_ANDROID_KEY,
+            placeId: selection?.place_id,
+        }).then((response) => {
+            const geometry = response.data?.result?.geometry;
+            if (geometry) {
+                const latDelta = geometry.viewport.northeast.lat - geometry.viewport.southwest.lat;
+                const lngDelta = geometry.viewport.northeast.lng - geometry.viewport.southwest.lng;
+                const loc = {
+                    latitude: geometry.location.lat,
+                    longitude: geometry.location.lng,
+                    latitudeDelta: Math.max(latDelta, PRIMARY_LATITUDE_DELTA),
+                    longitudeDelta: Math.max(lngDelta, PRIMARY_LONGITUDE_DELTA),
+                };
+                this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_SLOW);
+                // TODO: Search for "moments" within the nearby area
+            }
+        }).catch((error) => {
+            console.log(error);
+        });
+    }
 
     isAuthorized = () => {
         const { user } = this.props;
@@ -692,12 +746,20 @@ class Map extends React.Component<IMapProps, IMapState> {
             isScrollEnabled,
             layers,
         } = this.state;
-        const { map, navigation, user } = this.props;
+        const { captureClickTarget, map, navigation, user } = this.props;
+        const searchPredictionResults = map?.searchPredictions?.results || [];
+        const isDropdownVisible = map?.searchPredictions?.isSearchDropdownVisible;
 
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={styles.safeAreaView}>
+                <SafeAreaView style={styles.safeAreaView} onStartShouldSetResponder={(event: any) => {
+                    event.persist();
+                    if (event?.target?._nativeTag) {
+                        captureClickTarget(event?.target?._nativeTag);
+                    }
+                    return false;
+                }}>
                     {!(isLocationReady && isMinLoadTimeComplete) ? (
                         <AnimatedLoader
                             visible={true}
@@ -708,6 +770,14 @@ class Map extends React.Component<IMapProps, IMapState> {
                         />
                     ) : (
                         <>
+                            {
+                                isDropdownVisible &&
+                                <SearchTypeAhead
+                                    handleSelect={this.handleSearchSelect}
+                                    viewPortHeight={viewPortHeight}
+                                    searchPredictionResults={searchPredictionResults}
+                                />
+                            }
                             <MapView
                                 mapRef={(ref: Ref<MapView>) => { this.mapRef = ref; }}
                                 provider={PROVIDER_GOOGLE}
@@ -855,7 +925,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                             goToMoments={this.goToMoments}
                             goToNotifications={this.goToNotifications}
                             handleCreateMoment={this.handleCreateMoment}
-                            handleGpsRecenter={this.handleGpsRecenter}
+                            handleGpsRecenter={this.handleGpsRecenterPress}
                             isAuthorized={this.isAuthorized}
                         />
                         <FiltersButtonGroup

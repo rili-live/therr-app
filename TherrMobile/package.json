@@ -19,7 +19,8 @@
     "ios": "rm -rf node_modules/.cache/babel-loader/*, && npm run ios:bundle && ./node_modules/.bin/react-native run-ios --scheme 'Therr_Debug'",
     "ios:bundle": "./node_modules/.bin/react-native bundle --entry-file='index.js' --bundle-output='./ios/main.jsbundle' --assets-dest ./ios",
     "ios:bundle:release": "./node_modules/.bin/react-native bundle --entry-file='index.js' --bundle-output='./ios/main.jsbundle' --assets-dest ./ios --dev=false --platform ios",
-    "ios:pod:install:m1": "pushd ios && arch -x86_64 pod install; popd",
+    "ios:pod:install:m1": "pushd ios && arch -x86_64 gem install ffi && arch -x86_64 pod install; popd",
+    "react-devtools": "./node_modules/.bin/react-devtools",
     "start": "./node_modules/.bin/react-native start",
     "test": "../node_modules/.bin/jest --no-cache",
     "test:update": "../node_modules/.bin/jest -u",
@@ -57,10 +58,11 @@
     "react-native-config": "^1.4.2",
     "react-native-country-picker-modal": "^2.0.0",
     "react-native-device-info": "^6.2.0",
-    "react-native-dotenv": "^2.5.3",
+    "react-native-dotenv": "^3.2.0",
     "react-native-elements": "^2.2.0",
     "react-native-gesture-handler": "^1.10.1",
-    "react-native-gps-state": "^2.0.3",
+    "react-native-gps-state": "github:neuberoliveira/react-native-gps-state#290c8e73cb565d5e858a541ec50e9a65884ee2b6",
+    "react-native-haptic-feedback": "^1.11.0",
     "react-native-image-picker": "^3.5.0",
     "react-native-keyboard-aware-scroll-view": "^0.9.3",
     "react-native-map-clustering": "^3.4.2",
@@ -88,7 +90,8 @@
     "@types/rn-fetch-blob": "^1.2.1",
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "metro-react-native-babel-preset": "^0.58.0",
-    "patch-package": "^6.2.2"
+    "patch-package": "^6.2.2",
+    "react-devtools": "^4.15.0"
   },
   "rnpm": {
     "assets": [

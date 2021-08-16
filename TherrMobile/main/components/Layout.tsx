@@ -10,7 +10,7 @@ import LocationServicesDialogBox  from 'react-native-android-location-services-d
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import messaging from '@react-native-firebase/messaging';
 import { UsersService } from 'therr-react/services';
-import { IForumsState, INotificationsState, IUserState } from 'therr-react/types';
+import { AccessCheckType, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions } from 'therr-react/redux/actions';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import { NavigationContainer } from '@react-navigation/native';
@@ -21,7 +21,6 @@ import { theme } from '../styles';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import HeaderMenuRight from './HeaderMenuRight';
-import { AccessCheckType } from '../types';
 import LocationActions from '../redux/actions/LocationActions';
 import UsersActions from '../redux/actions/UsersActions';
 import { ILocationState } from '../types/redux/location';
@@ -259,8 +258,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             <NavigationContainer theme={theme}>
                 <Stack.Navigator
                     screenOptions={({ navigation }) => {
-                        const isMoment = this.getCurrentScreen(navigation) === 'ViewMoment'
-                            || this.getCurrentScreen(navigation) === 'EditMoment';
+                        const currentScreen = this.getCurrentScreen(navigation);
+                        const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
                         let headerStyleName: any = 'light';
                         let headerTitleColor = therrTheme.colors.textWhite;
                         if (isMoment) {
@@ -269,7 +268,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         }
 
                         return ({
-                            animationEnabled: true,
+                            animationEnabled: false,
                             cardStyleInterpolator: forFade,
                             headerLeft: () => (
                                 <HeaderMenuLeft

@@ -2,7 +2,7 @@ import Color from 'color';
 
 const colors = {
     // Main
-    primary: '#1D8691',
+    primary: '#1C7F8A',
     primary2: '#20919E',
     primary3: '#143b54',
     secondary: '#388254',
@@ -37,7 +37,7 @@ const colors = {
     alertError: '#AC3E59',
 
     // Beemo
-    beemo1: '#20919E',
+    beemo1: '#1E8A96',
     beemo1Fade: '#97c5bb',
     beemo2: '#cbffdc',
     beemo3: '#218a35',
@@ -48,7 +48,7 @@ const colors = {
     beemoYellow: '#fed61e',
     beemoBlue: '#17657D',
     beemoPurple: '#0e01b3',
-    beemoTeal: '#2CCCDE',
+    beemoTeal: '#2BC5D6',
     beemoLime: '#00f729',
     beemoDivider: '#4950571c',
 

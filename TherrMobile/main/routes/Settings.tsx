@@ -8,7 +8,7 @@ import { IUserState } from 'therr-react/types';
 import { PasswordRegex } from 'therr-js-utilities/constants';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
+import MainButtonMenuAlt from '../components/ButtonMenu/MainButtonMenuAlt';
 import UsersActions from '../redux/actions/UsersActions';
 import Alert from '../components/Alert';
 import translator from '../services/translator';
@@ -197,6 +197,10 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         });
     };
 
+    handleRefresh = () => {
+        console.log('refresh');
+    }
+
     render() {
         const { navigation, user } = this.props;
         const { errorMsg, successMsg, inputs, passwordErrorMessage } = this.state;
@@ -383,7 +387,12 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                         </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>
-                <MainButtonMenu navigation={navigation} translate={this.translate} user={user} />
+                <MainButtonMenuAlt
+                    navigation={navigation}
+                    onActionButtonPress={this.handleRefresh}
+                    translate={this.translate}
+                    user={user}
+                />
             </>
         );
     }

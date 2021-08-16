@@ -6,6 +6,7 @@ export const IOS_STATUS_HEIGHT = 20;
 export const IOS_TOP_GAP = 28;
 export const HEADER_EXTRA_HEIGHT = 4;
 export const HEADER_HEIGHT = 48 + HEADER_EXTRA_HEIGHT;
+export const HEADER_PADDING_BOTTOM = 20;
 
 export const theme = {
     dark: true,
@@ -53,7 +54,7 @@ const bodyStyle: any = {
 
 export const headerStyles: any = {
     backgroundColor: bodyStyle.backgroundColor,
-    borderBottomColor: therrTheme.colors.primary,
+    borderBottomColor: therrTheme.colors.primary3,
     height: Platform.OS === 'ios'
         ? (IOS_STATUS_HEIGHT + IOS_TOP_GAP + HEADER_HEIGHT)
         : (HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + 20),
@@ -61,16 +62,8 @@ export const headerStyles: any = {
         ? (IOS_STATUS_HEIGHT + IOS_TOP_GAP + HEADER_HEIGHT)
         : (HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + 20),
     borderBottomWidth: 0,
-
-    // Shadow
-    shadowColor: therrTheme.colors.tertiary,
-    shadowOffset: {
-        height: 7,
-        width: 0,
-    },
-    shadowRadius: 4,
-    elevation: 8,
-    shadowOpacity: 0,
+    elevation: 0,
+    shadowColor: 'transparent',
 };
 
 const overlayStyles: any = {
@@ -162,7 +155,7 @@ export default StyleSheet.create({
         width: 32,
     },
     sectionContainer: {
-        marginTop: 8,
+        marginTop: 18,
         marginBottom: 8,
         paddingHorizontal: 24,
     },
@@ -212,15 +205,16 @@ export default StyleSheet.create({
     },
     headerStyle: {
         ...headerStyles,
-        borderBottomWidth: 1,
+        // borderBottomWidth: 2,
     },
-    headerStyleAlt: {
+    headerStyleNoShadow: {
         ...headerStyles,
+        // shadowColor: 'transparent',
     },
     headerStyleBeemo: {
         ...headerStyles,
         backgroundColor: therrTheme.colors.beemo1,
-        borderBottomWidth: 2,
+        // borderBottomWidth: 2,
         borderBottomColor: therrTheme.colors.beemoDivider,
     },
     headerTitleStyle: {

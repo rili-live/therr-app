@@ -1,7 +1,4 @@
 import {
-    // Index
-    ISearchQuery,
-
     // Content
     IContentState,
     ContentActionTypes,
@@ -42,22 +39,40 @@ import {
     IUserConnection,
     IUserConnectionsState,
     UserConnectionActionTypes,
+
+    // User Interface
+    IUserInterfaceState,
+    UserInterfaceActionTypes,
 } from './redux';
 
-export enum AccessCheckType {
+enum AccessCheckType {
     ALL = 'all', // User has all of the access levels from the check
     ANY = 'any', // User has at least one of the access levels from the check
     NONE = 'none', // User does not have any of the access levels from the check
 }
 
-export interface IAccess {
+interface IAccess {
     type: AccessCheckType;
     levels: Array<string>;
     isPublic?: boolean;
 }
 
+interface ISearchQuery {
+    filterBy?: string;
+    filterOperator?: string;
+    query?: string;
+    itemsPerPage?: number;
+    pageNumber?: number;
+    returning?: string;
+    shouldCheckReverse?: string;
+    longitude?: number;
+    latitude?: number;
+}
+
 export {
-    // Index
+    // Auth
+    AccessCheckType,
+    IAccess,
     ISearchQuery,
 
     // Content
@@ -100,4 +115,8 @@ export {
     IUserConnection,
     IUserConnectionsState,
     UserConnectionActionTypes,
+
+    // User Interface
+    IUserInterfaceState,
+    UserInterfaceActionTypes,
 };

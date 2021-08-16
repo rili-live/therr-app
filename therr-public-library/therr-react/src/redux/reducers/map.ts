@@ -5,6 +5,7 @@ import { IMapState, MapActionTypes } from '../../types/redux/maps';
 const initialState: IMapState = Immutable.from({
     moments: Immutable.from([]),
     myMoments: Immutable.from([]),
+    searchPredictions: Immutable.from({}),
 });
 
 const map = (state: IMapState = initialState, action: any) => {
@@ -67,8 +68,14 @@ const map = (state: IMapState = initialState, action: any) => {
                 .setIn(['prevLatitude'], state.latitude);
         case MapActionTypes.USER_LOCATION_DETERMINED:
             return state.setIn(['hasUserLocationLoaded'], true);
+        case MapActionTypes.AUTOCOMPLETE_UPDATE:
+            return state.setIn(['searchPredictions', 'results'], action.data.predictions);
+        case MapActionTypes.SET_DROPDOWN_VISIBILITY:
+            return state.setIn(['searchPredictions', 'isSearchDropdownVisible'], action.data.isSearchDropdownVisible);
         case SocketClientActionTypes.LOGOUT:
             return state
+                .setIn(['searchPredictions', 'results'], [])
+                .setIn(['searchPredictions', 'isSearchDropdownVisible'], false)
                 .setIn(['hasUserLocationLoaded'], false)
                 .setIn(['myMoments'], Immutable.from([]));
         default:

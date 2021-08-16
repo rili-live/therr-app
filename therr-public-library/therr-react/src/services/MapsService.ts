@@ -31,6 +31,19 @@ interface IDeleteMomentsBody {
     ids: string[];
 }
 
+export interface IPlacesAutoCompleteArgs {
+    longitude: string;
+    latitude: string;
+    radius?: number | string;
+    apiKey: string,
+    input: string;
+}
+
+export interface IPlaceDetailsArgs {
+    apiKey: string;
+    placeId: string;
+}
+
 class MapsService {
     createMoment = (data: ICreateMomentBody) => axios({
         method: 'post',
@@ -77,6 +90,47 @@ class MapsService {
         url: '/maps-service/moments',
         data,
     })
+
+    // Google Maps
+    // TODO: Use sessiontoken to prevent being over-billed
+    getPlacesSearchAutoComplete = ({
+        longitude,
+        latitude,
+        radius,
+        apiKey,
+        input,
+    }: IPlacesAutoCompleteArgs) => {
+        let url = 'https://maps.googleapis.com/maps/api/place/autocomplete/json?';
+
+        url = `${url}input=${input}&location=${latitude},${longitude}`;
+
+        if (radius) {
+            url = `${url}&radius=${radius}`;
+        }
+
+        url = `${url}&key=${apiKey}`;
+
+        return axios({
+            method: 'get',
+            url,
+            headers: {},
+        });
+    }
+
+    getPlaceDetails = ({
+        apiKey,
+        placeId,
+    }: IPlaceDetailsArgs) => {
+        let url = 'https://maps.googleapis.com/maps/api/place/details/json?fields=geometry&';
+
+        url = `${url}place_id=${placeId}&key=${apiKey}`;
+
+        return axios({
+            method: 'get',
+            url,
+            headers: {},
+        });
+    }
 }
 
 export default new MapsService();

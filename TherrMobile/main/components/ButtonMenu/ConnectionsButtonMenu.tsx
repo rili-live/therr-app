@@ -77,6 +77,32 @@ class ConnectionsButtonMenu extends ButtonMenu {
                     }
                     onPress={() => this.navTo('Contacts')}
                 />
+                <Button
+                    title={translate('menus.connections.buttons.createConnection')}
+                    buttonStyle={
+                        currentScreen === 'CreateConnection'
+                            ? buttonMenu.buttonsActive
+                            : buttonMenu.buttons
+                    }
+                    containerStyle={buttonMenu.buttonContainer}
+                    titleStyle={
+                        currentScreen === 'CreateConnection'
+                            ? buttonMenu.buttonsTitleActive
+                            : buttonMenu.buttonsTitle
+                    }
+                    icon={
+                        <FontAwesomeIcon
+                            name="plus"
+                            size={26}
+                            style={
+                                currentScreen === 'CreateConnection'
+                                    ? buttonMenu.buttonIconActive
+                                    : buttonMenu.buttonIcon
+                            }
+                        />
+                    }
+                    onPress={() => this.navTo('CreateConnection')}
+                />
             </ButtonMenu>
         );
     }

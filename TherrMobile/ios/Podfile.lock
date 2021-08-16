@@ -33,21 +33,21 @@ PODS:
     - React-Core (= 0.64.2)
     - React-jsi (= 0.64.2)
     - ReactCommon/turbomodule/core (= 0.64.2)
-  - Firebase/Analytics (8.1.1):
+  - Firebase/Analytics (8.4.0):
     - Firebase/Core
-  - Firebase/Auth (8.1.1):
+  - Firebase/Auth (8.4.0):
     - Firebase/CoreOnly
-    - FirebaseAuth (~> 8.1.0)
-  - Firebase/Core (8.1.1):
+    - FirebaseAuth (~> 8.4.0)
+  - Firebase/Core (8.4.0):
     - Firebase/CoreOnly
-    - FirebaseAnalytics (~> 8.1.0)
-  - Firebase/CoreOnly (8.1.1):
-    - FirebaseCore (= 8.1.0)
-  - Firebase/Messaging (8.1.1):
+    - FirebaseAnalytics (~> 8.4.0)
+  - Firebase/CoreOnly (8.4.0):
+    - FirebaseCore (= 8.4.0)
+  - Firebase/Messaging (8.4.0):
     - Firebase/CoreOnly
-    - FirebaseMessaging (~> 8.1.0)
-  - FirebaseAnalytics (8.1.1):
-    - FirebaseAnalytics/AdIdSupport (= 8.1.1)
+    - FirebaseMessaging (~> 8.4.0)
+  - FirebaseAnalytics (8.4.0):
+    - FirebaseAnalytics/AdIdSupport (= 8.4.0)
     - FirebaseCore (~> 8.0)
     - FirebaseInstallations (~> 8.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 7.4)
@@ -55,44 +55,35 @@ PODS:
     - GoogleUtilities/Network (~> 7.4)
     - "GoogleUtilities/NSData+zlib (~> 7.4)"
     - nanopb (~> 2.30908.0)
-  - FirebaseAnalytics/AdIdSupport (8.1.1):
-    - FirebaseAnalytics/Base (= 8.1.1)
+  - FirebaseAnalytics/AdIdSupport (8.4.0):
     - FirebaseCore (~> 8.0)
     - FirebaseInstallations (~> 8.0)
-    - GoogleAppMeasurement (= 8.1.1)
+    - GoogleAppMeasurement (= 8.4.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 7.4)
     - GoogleUtilities/MethodSwizzler (~> 7.4)
     - GoogleUtilities/Network (~> 7.4)
     - "GoogleUtilities/NSData+zlib (~> 7.4)"
     - nanopb (~> 2.30908.0)
-  - FirebaseAnalytics/Base (8.1.1):
-    - FirebaseCore (~> 8.0)
-    - FirebaseInstallations (~> 8.0)
-    - GoogleUtilities/AppDelegateSwizzler (~> 7.4)
-    - GoogleUtilities/MethodSwizzler (~> 7.4)
-    - GoogleUtilities/Network (~> 7.4)
-    - "GoogleUtilities/NSData+zlib (~> 7.4)"
-    - nanopb (~> 2.30908.0)
-  - FirebaseAuth (8.1.0):
+  - FirebaseAuth (8.4.0):
     - FirebaseCore (~> 8.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 7.4)
     - GoogleUtilities/Environment (~> 7.4)
     - GTMSessionFetcher/Core (~> 1.5)
-  - FirebaseCore (8.1.0):
+  - FirebaseCore (8.4.0):
     - FirebaseCoreDiagnostics (~> 8.0)
     - GoogleUtilities/Environment (~> 7.4)
     - GoogleUtilities/Logger (~> 7.4)
-  - FirebaseCoreDiagnostics (8.3.0):
+  - FirebaseCoreDiagnostics (8.5.0):
     - GoogleDataTransport (~> 9.0)
     - GoogleUtilities/Environment (~> 7.4)
     - GoogleUtilities/Logger (~> 7.4)
     - nanopb (~> 2.30908.0)
-  - FirebaseInstallations (8.3.0):
+  - FirebaseInstallations (8.5.0):
     - FirebaseCore (~> 8.0)
     - GoogleUtilities/Environment (~> 7.4)
     - GoogleUtilities/UserDefaults (~> 7.4)
-    - PromisesObjC (~> 1.2)
-  - FirebaseMessaging (8.1.0):
+    - PromisesObjC (< 3.0, >= 1.2)
+  - FirebaseMessaging (8.4.0):
     - FirebaseCore (~> 8.0)
     - FirebaseInstallations (~> 8.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 7.4)
@@ -173,14 +164,14 @@ PODS:
     - GoogleMaps
   - Google-Maps-iOS-Utils/QuadTree (2.1.0):
     - GoogleMaps
-  - GoogleAppMeasurement (8.1.1):
-    - GoogleAppMeasurement/AdIdSupport (= 8.1.1)
+  - GoogleAppMeasurement (8.4.0):
+    - GoogleAppMeasurement/AdIdSupport (= 8.4.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 7.4)
     - GoogleUtilities/MethodSwizzler (~> 7.4)
     - GoogleUtilities/Network (~> 7.4)
     - "GoogleUtilities/NSData+zlib (~> 7.4)"
     - nanopb (~> 2.30908.0)
-  - GoogleAppMeasurement/AdIdSupport (8.1.1):
+  - GoogleAppMeasurement/AdIdSupport (8.4.0):
     - GoogleUtilities/AppDelegateSwizzler (~> 7.4)
     - GoogleUtilities/MethodSwizzler (~> 7.4)
     - GoogleUtilities/Network (~> 7.4)
@@ -224,7 +215,7 @@ PODS:
   - GTMSessionFetcher/Core (1.6.1)
   - libevent (2.1.12)
   - lottie-ios (3.1.8)
-  - lottie-react-native (4.0.2):
+  - lottie-react-native (4.0.0):
     - lottie-ios (~> 3.1.8)
     - React-Core
   - nanopb (2.30908.0):
@@ -233,23 +224,23 @@ PODS:
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
   - OpenSSL-Universal (1.1.180)
-  - Permission-Camera (3.0.0):
+  - Permission-Camera (3.0.5):
     - RNPermissions
-  - Permission-LocationAccuracy (3.0.0):
+  - Permission-LocationAccuracy (3.0.5):
     - RNPermissions
-  - Permission-LocationAlways (3.0.0):
+  - Permission-LocationAlways (3.0.5):
     - RNPermissions
-  - Permission-LocationWhenInUse (3.0.0):
+  - Permission-LocationWhenInUse (3.0.5):
     - RNPermissions
-  - Permission-MediaLibrary (3.0.0):
+  - Permission-MediaLibrary (3.0.5):
     - RNPermissions
-  - Permission-Microphone (3.0.0):
+  - Permission-Microphone (3.0.5):
     - RNPermissions
-  - Permission-Notifications (3.0.0):
+  - Permission-Notifications (3.0.5):
     - RNPermissions
-  - Permission-PhotoLibrary (3.0.0):
+  - Permission-PhotoLibrary (3.0.5):
     - RNPermissions
-  - PromisesObjC (1.2.12)
+  - PromisesObjC (2.0.0)
   - RCT-Folly (2020.01.13.00):
     - boost-for-react-native
     - DoubleConversion
@@ -443,9 +434,9 @@ PODS:
     - React-jsi (= 0.64.2)
     - React-perflogger (= 0.64.2)
   - React-jsinspector (0.64.2)
-  - react-native-config (1.4.2):
-    - react-native-config/App (= 1.4.2)
-  - react-native-config/App (1.4.2):
+  - react-native-config (1.4.3):
+    - react-native-config/App (= 1.4.3)
+  - react-native-config/App (1.4.3):
     - React-Core
   - react-native-geolocation (2.0.2):
     - React
@@ -455,15 +446,15 @@ PODS:
     - React
   - react-native-gps-state (2.0.3):
     - React
-  - react-native-image-picker (3.5.0):
+  - react-native-image-picker (3.8.1):
     - React-Core
   - react-native-maps (0.27.1):
     - React
-  - react-native-safe-area-context (3.1.9):
+  - react-native-safe-area-context (3.2.0):
     - React-Core
   - react-native-splash-screen (3.2.0):
     - React
-  - react-native-webview (11.4.4):
+  - react-native-webview (11.6.5):
     - React-Core
   - React-perflogger (0.64.2)
   - React-RCTActionSheet (0.64.2):
@@ -533,33 +524,35 @@ PODS:
     - React-Core
   - RNCAsyncStorage (1.15.5):
     - React-Core
-  - RNCMaskedView (0.1.10):
+  - RNCMaskedView (0.1.11):
     - React
-  - RNCPicker (1.9.11):
+  - RNCPicker (1.16.3):
     - React-Core
   - RNDeviceInfo (6.2.1):
     - React-Core
-  - RNFBApp (12.1.0):
-    - Firebase/CoreOnly (= 8.1.1)
+  - RNFBApp (12.3.0):
+    - Firebase/CoreOnly (= 8.4.0)
     - React-Core
-  - RNFBAuth (12.1.0):
-    - Firebase/Auth (= 8.1.1)
-    - React-Core
-    - RNFBApp
-  - RNFBMessaging (12.1.0):
-    - Firebase/Messaging (= 8.1.1)
+  - RNFBAuth (12.3.0):
+    - Firebase/Auth (= 8.4.0)
     - React-Core
     - RNFBApp
-  - RNGestureHandler (1.10.1):
+  - RNFBMessaging (12.3.0):
+    - Firebase/Messaging (= 8.4.0)
     - React-Core
-  - RNGoogleSignin (6.0.0):
+    - RNFBApp
+  - RNGestureHandler (1.10.3):
+    - React-Core
+  - RNGoogleSignin (6.0.1):
     - GoogleSignIn (~> 5.0.0)
     - React-Core
-  - RNPermissions (3.0.0):
+  - RNPermissions (3.0.5):
     - React-Core
-  - RNReanimated (1.13.2):
+  - RNReactNativeHapticFeedback (1.11.0):
     - React-Core
-  - RNScreens (2.17.1):
+  - RNReanimated (1.13.3):
+    - React-Core
+  - RNScreens (2.18.1):
     - React-Core
   - RNVectorIcons (6.7.0):
     - React
@@ -655,6 +648,7 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
   - RNPermissions (from `../node_modules/react-native-permissions`)
+  - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
@@ -817,6 +811,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-google-signin/google-signin"
   RNPermissions:
     :path: "../node_modules/react-native-permissions"
+  RNReactNativeHapticFeedback:
+    :path: "../node_modules/react-native-haptic-feedback"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
@@ -840,13 +836,13 @@ SPEC CHECKSUMS:
   DoubleConversion: cf9b38bf0b2d048436d9a82ad2abe1404f11e7de
   FBLazyVector: e686045572151edef46010a6f819ade377dfeb4b
   FBReactNativeSpec: 7daad26a6a09229e58ec7027973aa22f19b23355
-  Firebase: 4bb49ae87756034cef870fa3c4006235eb46f475
-  FirebaseAnalytics: d6dd061b26a04744cb988c66e29697181152b2a3
-  FirebaseAuth: e069ff5736fe9d5dcf61f36244bb1b1ce1897d17
-  FirebaseCore: 389c4ce9a7cce4a7e25eb22326b4bee0050557b2
-  FirebaseCoreDiagnostics: 7e873baabcfaa9512f538554ae4fa0817aaafbdb
-  FirebaseInstallations: b69db7680870dbac17bba7a51fc0b5c4b365baa7
-  FirebaseMessaging: c8871b0907dcf4e76de81241eb6a62be6d657d2f
+  Firebase: 54cdc8bc9c9b3de54f43dab86e62f5a76b47034f
+  FirebaseAnalytics: 4751d6a49598a2b58da678cc07df696bcd809ab9
+  FirebaseAuth: 8ef169751d795f20921d425f7b0131cc1c70935c
+  FirebaseCore: 31f389c37ac1ea52454a53d3081f2d7019485a4a
+  FirebaseCoreDiagnostics: 7bf55d386f9fc690d971b70a582142321a390eb8
+  FirebaseInstallations: f2bc590b291d25fb40a9a05b8281c02a881b5117
+  FirebaseMessaging: 78025c56654f05c7ebd6f7f87f9d4b12c5231207
   Flipper: 1bd2db48dcc31e4b167b9a33ec1df01c2ded4893
   Flipper-DoubleConversion: 38631e41ef4f9b12861c67d17cb5518d06badc41
   Flipper-Folly: 755929a4f851b2fb2c347d533a23f191b008554c
@@ -856,7 +852,7 @@ SPEC CHECKSUMS:
   FlipperKit: 651f50a42eb95c01b3e89a60996dd6aded529eeb
   glog: 73c2498ac6884b13ede40eda8228cb1eee9d9d62
   Google-Maps-iOS-Utils: c32891ff472eaaa1fca032beedafa1a013af7875
-  GoogleAppMeasurement: 31c7d7655818784b7dd34bdf6884f75b465d5f6c
+  GoogleAppMeasurement: 6b6a08fd9c71f4dbc89e0e812acca81d797aa342
   GoogleDataTransport: 85fd18ff3019bb85d3f2c551d04c481dedf71fc9
   GoogleMaps: 32ca02de09de357a10ac773f2c70f1986751392d
   GoogleSignIn: 7137d297ddc022a7e0aa4619c86d72c909fa7213
@@ -865,18 +861,18 @@ SPEC CHECKSUMS:
   GTMSessionFetcher: 36689134877faeb055b27dfa4ccc9ceaa42e029e
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   lottie-ios: 48fac6be217c76937e36e340e2d09cf7b10b7f5f
-  lottie-react-native: 4dff8fe8d10ddef9e7880e770080f4a56121397e
+  lottie-react-native: 4ccc2268f97234cf7eb2f129d5996cd563b67ba3
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
   OpenSSL-Universal: 1aa4f6a6ee7256b83db99ec1ccdaa80d10f9af9b
-  Permission-Camera: 119b01de97a5b3edb637999e38476b68143b9d17
-  Permission-LocationAccuracy: e748463597fb8789cacdab1f9aa7d7a5924faae5
-  Permission-LocationAlways: c083f45f28c4b78ddc6f9668cf1a984d879a80ec
-  Permission-LocationWhenInUse: e2b8c40ce0f3675a521f26787ab47ebb9bace503
-  Permission-MediaLibrary: 37de8bf0149851d5213b74380aa9fbe76754e4c8
-  Permission-Microphone: e426a115ddf9591e8c30c55ea2b28572d4cbd07e
-  Permission-Notifications: 5c69bf2f6c1e30345af4f25e2981dc1c8dafbc22
-  Permission-PhotoLibrary: cb9cdc1e3744e26ab404297a8e289d50c8ee27e8
-  PromisesObjC: 3113f7f76903778cf4a0586bd1ab89329a0b7b97
+  Permission-Camera: ac603073e4128e51e6ca3c39129778f05b4082fa
+  Permission-LocationAccuracy: c008fa8c4a90fcb6e33f465c2a8684e92d93b794
+  Permission-LocationAlways: 0704c3bcce11f98f8d6ddf34c49c65893ec64b09
+  Permission-LocationWhenInUse: e1168a583654f1d2d34d3a18c4c6518ce409ad2a
+  Permission-MediaLibrary: ca07553882f0533f67739cdea7486c369b6556f0
+  Permission-Microphone: f795f37089f6de4c71ae147b32770a5ebfdee08c
+  Permission-Notifications: 16ccd862111103378a7bab9fb1c5c71addffc348
+  Permission-PhotoLibrary: 0748c1a490fad126dfe36dbea8234dedfe59cc27
+  PromisesObjC: 68159ce6952d93e17b2dfe273b8c40907db5ba58
   RCT-Folly: ec7a233ccc97cc556cf7237f0db1ff65b986f27c
   RCTRequired: 6d3e854f0e7260a648badd0d44fc364bc9da9728
   RCTTypeSafety: c1f31d19349c6b53085766359caac425926fafaa
@@ -888,15 +884,15 @@ SPEC CHECKSUMS:
   React-jsi: 67747b9722f6dab2ffe15b011bcf6b3f2c3f1427
   React-jsiexecutor: 80c46bd381fd06e418e0d4f53672dc1d1945c4c3
   React-jsinspector: cc614ec18a9ca96fd275100c16d74d62ee11f0ae
-  react-native-config: c98128a72bc2c3a1ca72caec0b021f0fa944aa29
+  react-native-config: 387b1ea507bc50a2059e69149dac1342b9532f58
   react-native-geolocation: c956aeb136625c23e0dce0467664af2c437888c9
   react-native-google-maps: 0a989abda71059db2caa98b9dacca7a8f38a47d0
   react-native-gps-state: a9c7f0745f94d6d7a932ab50f83d03debc62f3b1
-  react-native-image-picker: 05eefd9232123c5ebde7979c3eefb890b57a87ff
+  react-native-image-picker: 31971f6184e7c1dcb4fc1f122e1ba2c3fb11ef1e
   react-native-maps: f4b89da81626ad7f151a8bfcb79733295d31ce5c
-  react-native-safe-area-context: b6e0e284002381d2ff29fa4fff42b4d8282e3c94
+  react-native-safe-area-context: f0906bf8bc9835ac9a9d3f97e8bde2a997d8da79
   react-native-splash-screen: 200d11d188e2e78cea3ad319964f6142b6384865
-  react-native-webview: cc2a1fd8149a2654d1408793daa62baadfc0bd96
+  react-native-webview: 2e8fe70dc32b50d3231c23043f8e8b5a5525d346
   React-perflogger: 25373e382fed75ce768a443822f07098a15ab737
   React-RCTActionSheet: af7796ba49ffe4ca92e7277a5d992d37203f7da5
   React-RCTAnimation: 6a2e76ab50c6f25b428d81b76a5a45351c4d77aa
@@ -911,17 +907,18 @@ SPEC CHECKSUMS:
   ReactCommon: 149906e01aa51142707a10665185db879898e966
   rn-fetch-blob: f065bb7ab7fb48dd002629f8bdcb0336602d3cba
   RNCAsyncStorage: 56a3355a10b5d660c48c6e37325ac85ebfd09885
-  RNCMaskedView: 5a8ec07677aa885546a0d98da336457e2bea557f
-  RNCPicker: 6780c753e9e674065db90d9c965920516402579d
+  RNCMaskedView: 0e1bc4bfa8365eba5fbbb71e07fbdc0555249489
+  RNCPicker: 6724ab5fcca83c34fe1f18a89baa13e9885f0393
   RNDeviceInfo: 9b6aba9ffaed69ecb72bd13c7bcb0debf277bc9f
-  RNFBApp: 406bc9586c70ccf20504b4d3b54ac4341c98993f
-  RNFBAuth: 638d012551135969cfd12d122def3ee40c05974d
-  RNFBMessaging: 154dc7815e2b6c55941793630ffb3a55f03d77e6
-  RNGestureHandler: 5e58135436aacc1c5d29b75547d3d2b9430d052c
-  RNGoogleSignin: 111fd4792913208f338fe3178005f7a22e490ff9
-  RNPermissions: 99dd8d4a30ff13509b949ca63cd1f69edc461775
-  RNReanimated: e03f7425cb7a38dcf1b644d680d1bfc91c3337ad
-  RNScreens: b6c9607e6fe47c1b6e2f1910d2acd46dd7ecea3a
+  RNFBApp: 64c90ab78b6010ed5c3ade026dfe5ff6442c21fd
+  RNFBAuth: 59fe503707ab7bd2c2790ac5b7a11d4e14b44452
+  RNFBMessaging: 35a027803f202ecaf911e66a940ca0c5690cb6a0
+  RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
+  RNGoogleSignin: e64616a4080cf7d83f4b292fad82d174587444e2
+  RNPermissions: 7043bacbf928eae25808275cfe73799b8f618911
+  RNReactNativeHapticFeedback: 653a8c126a0f5e88ce15ffe280b3ff37e1fbb285
+  RNReanimated: 514a11da3a2bcc6c3dfd9de32b38e2b9bf101926
+  RNScreens: f7ad633b2e0190b77b6a7aab7f914fad6f198d8d
   RNVectorIcons: 368d6d8b8301224e5ffb6254191f4f8876c2be0d
   toolbar-android: 85f3ef4d691469f2d304e7dee4bca013aa1ba1ff
   Yoga: 575c581c63e0d35c9a83f4b46d01d63abc1100ac

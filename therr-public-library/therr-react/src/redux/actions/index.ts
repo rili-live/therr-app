@@ -6,6 +6,7 @@ import NotificationActions from './Notifications';
 import ReactionActions from './Reactions';
 import SocketActions from './Socket';
 import UserConnectionsActions from './UserConnections';
+import UserInterfaceActions from './UserInterface';
 import UsersActions from './Users';
 
 export {
@@ -17,5 +18,6 @@ export {
     ReactionActions,
     SocketActions,
     UserConnectionsActions,
+    UserInterfaceActions,
     UsersActions,
 };

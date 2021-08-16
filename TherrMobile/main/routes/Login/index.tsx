@@ -89,12 +89,10 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     handleAppUniversalLinkURL = (url) => {
         const { navigation, user } = this.props;
         const urlSplit = url?.split('?') || [];
-        console.log(url);
 
         if (url?.includes('verify-account')) {
             if (urlSplit[1] && urlSplit[1].includes('token=')) {
                 const verificationToken = urlSplit[1]?.split('token=')[1];
-                console.log('VERIFICATION_TOKEN', verificationToken);
                 const isAuthorized = UsersService.isAuthorized(
                     {
                         type: AccessCheckType.NONE,
