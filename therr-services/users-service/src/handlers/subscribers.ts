@@ -2,6 +2,7 @@ import { RequestHandler } from 'express';
 import { ErrorCodes } from 'therr-js-utilities/constants';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
+import sendSubscriberVerificationEmail from '../api/email/sendSubscriberVerificationEmail';
 
 // CREATE
 const createSubscriber: RequestHandler = (req: any, res: any) => {
@@ -25,7 +26,14 @@ const createSubscriber: RequestHandler = (req: any, res: any) => {
                 });
             }
 
-            return Store.subscribers.createSubscriber(req.body).then((subscribers) => res.status(201).send(subscribers[0]));
+            return Store.subscribers.createSubscriber(req.body).then((subscribers) => {
+                sendSubscriberVerificationEmail({
+                    subject: '[Account Created] Therr One-Time Password',
+                    toAddresses: [req.body.email],
+                }, {});
+
+                return res.status(201).send(subscribers[0]);
+            });
         })
         .catch((err) => handleHttpError({
             err,

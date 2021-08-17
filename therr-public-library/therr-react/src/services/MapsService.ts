@@ -1,6 +1,9 @@
 import axios from 'axios';
+import uuid from 'react-native-uuid';
 import { getSearchQueryString } from 'therr-js-utilities/http';
 import { ISearchQuery } from '../types';
+
+let googleDynamicSessionToken = uuid.v4(); // This gets stored in the local state of this file/module
 
 interface ISearchMomentsArgs {
     distanceOverride?: number;
@@ -35,13 +38,15 @@ export interface IPlacesAutoCompleteArgs {
     longitude: string;
     latitude: string;
     radius?: number | string;
-    apiKey: string,
+    apiKey: string;
     input: string;
+    sessiontoken?: string;
 }
 
 export interface IPlaceDetailsArgs {
     apiKey: string;
     placeId: string;
+    sessiontoken?: string;
 }
 
 class MapsService {
@@ -99,6 +104,7 @@ class MapsService {
         radius,
         apiKey,
         input,
+        sessiontoken,
     }: IPlacesAutoCompleteArgs) => {
         let url = 'https://maps.googleapis.com/maps/api/place/autocomplete/json?';
 
@@ -108,7 +114,7 @@ class MapsService {
             url = `${url}&radius=${radius}`;
         }
 
-        url = `${url}&key=${apiKey}`;
+        url = `${url}&sessiontoken=${sessiontoken || googleDynamicSessionToken}&key=${apiKey}`;
 
         return axios({
             method: 'get',
@@ -120,15 +126,18 @@ class MapsService {
     getPlaceDetails = ({
         apiKey,
         placeId,
+        sessiontoken,
     }: IPlaceDetailsArgs) => {
         let url = 'https://maps.googleapis.com/maps/api/place/details/json?fields=geometry&';
 
-        url = `${url}place_id=${placeId}&key=${apiKey}`;
+        url = `${url}place_id=${placeId}&sessiontoken=${sessiontoken || googleDynamicSessionToken}&key=${apiKey}`;
 
         return axios({
             method: 'get',
             url,
             headers: {},
+        }).finally(() => {
+            googleDynamicSessionToken = uuid.v4(); // This must be updated after each call to get place details
         });
     }
 }
