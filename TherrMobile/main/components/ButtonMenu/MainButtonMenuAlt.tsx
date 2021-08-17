@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import { ButtonMenu, mapStateToProps, mapDispatchToProps } from '.';
+import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';
 import { buttonMenu } from '../../styles/navigation';
 import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 
@@ -79,32 +79,6 @@ class MainButtonMenuAlt extends ButtonMenu {
         return (
             <ButtonMenu {...this.props}>
                 <Button
-                    title={!isCompact ? translate('menus.main.buttons.map') : null}
-                    buttonStyle={
-                        currentScreen === 'Map'
-                            ? buttonMenu.buttonsActive
-                            : buttonMenu.buttons
-                    }
-                    containerStyle={buttonMenu.buttonContainer}
-                    titleStyle={
-                        currentScreen === 'Map'
-                            ? buttonMenu.buttonsTitleActive
-                            : buttonMenu.buttonsTitle
-                    }
-                    icon={
-                        <FontAwesomeIcon
-                            name="globe-americas"
-                            size={26}
-                            style={
-                                currentScreen === 'Map'
-                                    ? buttonMenu.buttonIconActive
-                                    : buttonMenu.buttonIcon
-                            }
-                        />
-                    }
-                    onPress={() => this.navTo('Map')}
-                />
-                <Button
                     title={!isCompact ? translate('menus.main.buttons.list') : null}
                     buttonStyle={
                         currentScreen === 'Moments'
@@ -129,6 +103,32 @@ class MainButtonMenuAlt extends ButtonMenu {
                         />
                     }
                     onPress={() => this.navTo('Moments')}
+                />
+                <Button
+                    title={!isCompact ? translate('menus.main.buttons.map') : null}
+                    buttonStyle={
+                        currentScreen === 'Map'
+                            ? buttonMenu.buttonsActive
+                            : buttonMenu.buttons
+                    }
+                    containerStyle={buttonMenu.buttonContainer}
+                    titleStyle={
+                        currentScreen === 'Map'
+                            ? buttonMenu.buttonsTitleActive
+                            : buttonMenu.buttonsTitle
+                    }
+                    icon={
+                        <FontAwesomeIcon
+                            name="globe-americas"
+                            size={26}
+                            style={
+                                currentScreen === 'Map'
+                                    ? buttonMenu.buttonIconActive
+                                    : buttonMenu.buttonIcon
+                            }
+                        />
+                    }
+                    onPress={() => this.navTo('Map')}
                 />
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.bookmarked') : null}

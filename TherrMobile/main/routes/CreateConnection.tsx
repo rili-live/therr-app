@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, View, Text } from 'react-native';
+import { SafeAreaView, View, Text } from 'react-native';
 import { Button } from 'react-native-elements';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
 import 'react-native-gesture-handler';
@@ -19,6 +19,8 @@ import * as therrTheme from '../styles/themes';
 import styles, { addMargins } from '../styles';
 import formStyles from '../styles/forms';
 import BaseStatusBar from '../components/BaseStatusBar';
+import MessagesContactsTabs from '../components/FlatListHeaderTabs/MessagesContactsTabs';
+import { FlatList } from 'react-native-gesture-handler';
 
 interface IHomeDispatchProps {
     createUserConnection: Function;
@@ -257,95 +259,102 @@ class Home extends React.Component<IHomeProps, IHomeState> {
             <>
                 <BaseStatusBar />
                 <SafeAreaView style={styles.safeAreaView}>
-                    <ScrollView
-                        contentInsetAdjustmentBehavior="automatic"
-                        style={styles.scrollView}
-                    >
-                        <View style={styles.body}>
-                            <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitle}>
-                                    {this.translate('pages.userProfile.h2.createConnection')}
-                                </Text>
-                                <View style={styles.sectionForm}>
-                                    <ReactPicker
-                                        selectedValue={connectionContext}
-                                        style={formStyles.picker}
-                                        itemStyle={formStyles.pickerItem}
-                                        onValueChange={(itemValue) =>
-                                            this.setState({ connectionContext: itemValue })
-                                        }>
-                                        <ReactPicker.Item label={this.translate(
-                                            'forms.createConnection.labels.phone'
-                                        )} value="phone" />
-                                        <ReactPicker.Item label={this.translate(
-                                            'forms.createConnection.labels.email'
-                                        )} value="email" />
-                                    </ReactPicker>
-                                    {
-                                        connectionContext === 'email' &&
-                                        <SquareInput
-                                            placeholder={this.translate(
-                                                'forms.createConnection.placeholders.email'
+                    <FlatList
+                        data={[{}]}
+                        keyExtractor={(item) => String(item.id)}
+                        renderItem={() => (
+                            <View style={styles.body}>
+                                <View style={styles.sectionContainer}>
+                                    <Text style={styles.sectionTitle}>
+                                        {this.translate('pages.userProfile.h2.createConnection')}
+                                    </Text>
+                                    <View style={styles.sectionForm}>
+                                        <ReactPicker
+                                            selectedValue={connectionContext}
+                                            style={formStyles.picker}
+                                            itemStyle={formStyles.pickerItem}
+                                            onValueChange={(itemValue) =>
+                                                this.setState({ connectionContext: itemValue })
+                                            }>
+                                            <ReactPicker.Item label={this.translate(
+                                                'forms.createConnection.labels.phone'
+                                            )} value="phone" />
+                                            <ReactPicker.Item label={this.translate(
+                                                'forms.createConnection.labels.email'
+                                            )} value="email" />
+                                        </ReactPicker>
+                                        {
+                                            connectionContext === 'email' &&
+                                            <SquareInput
+                                                placeholder={this.translate(
+                                                    'forms.createConnection.placeholders.email'
+                                                )}
+                                                value={inputs.email}
+                                                onChangeText={(text) =>
+                                                    this.onInputChange('email', text)
+                                                }
+                                                onBlur={this.onBlurValidate}
+                                                onSubmitEditing={() => this.onSubmit()}
+                                                errorMessage={emailErrorMessage}
+                                                rightIcon={
+                                                    <FontAwesomeIcon
+                                                        name="envelope"
+                                                        size={22}
+                                                        color={therrTheme.colorVariations.primary3Fade}
+                                                    />
+                                                }
+                                            />
+                                        }
+                                        {
+                                            connectionContext === 'phone' &&
+                                            <PhoneNumberInput
+                                                onChangeText={this.onPhoneInputChange}
+                                                onSubmit={this.onSubmit}
+                                                placeholder={this.translate('forms.settings.labels.phoneNumber')}
+                                                translate={this.translate}
+                                            />
+                                        }
+                                        <Alert
+                                            containerStyles={addMargins({
+                                                marginBottom: 24,
+                                            })}
+                                            isVisible={!!prevConnReqError}
+                                            message={prevConnReqError}
+                                            type={'error'}
+                                        />
+                                        <Alert
+                                            containerStyles={addMargins({
+                                                marginBottom: 24,
+                                            })}
+                                            isVisible={!!prevConnReqSuccess}
+                                            message={prevConnReqSuccess}
+                                            type={'success'}
+                                        />
+                                        <Button
+                                            buttonStyle={formStyles.button}
+                                            // disabledTitleStyle={formStyles.buttonTitleDisabled}
+                                            disabledStyle={formStyles.buttonDisabled}
+                                            title={this.translate(
+                                                'forms.createConnection.buttons.submit'
                                             )}
-                                            value={inputs.email}
-                                            onChangeText={(text) =>
-                                                this.onInputChange('email', text)
-                                            }
-                                            onBlur={this.onBlurValidate}
-                                            onSubmitEditing={() => this.onSubmit()}
-                                            errorMessage={emailErrorMessage}
-                                            rightIcon={
-                                                <FontAwesomeIcon
-                                                    name="envelope"
-                                                    size={22}
-                                                    color={therrTheme.colorVariations.primary3Fade}
-                                                />
-                                            }
+                                            onPress={this.onSubmit}
+                                            disabled={this.isConnReqFormDisabled()}
+                                            raised={false}
                                         />
-                                    }
-                                    {
-                                        connectionContext === 'phone' &&
-                                        <PhoneNumberInput
-                                            onChangeText={this.onPhoneInputChange}
-                                            onSubmit={this.onSubmit}
-                                            placeholder={this.translate('forms.settings.labels.phoneNumber')}
-                                            translate={this.translate}
-                                        />
-                                    }
-                                    <Alert
-                                        containerStyles={addMargins({
-                                            marginBottom: 24,
-                                        })}
-                                        isVisible={!!prevConnReqError}
-                                        message={prevConnReqError}
-                                        type={'error'}
-                                    />
-                                    <Alert
-                                        containerStyles={addMargins({
-                                            marginBottom: 24,
-                                        })}
-                                        isVisible={!!prevConnReqSuccess}
-                                        message={prevConnReqSuccess}
-                                        type={'success'}
-                                    />
-                                    <Button
-                                        containerStyle={addMargins({
-                                            marginBottom: 18,
-                                        })}
-                                        buttonStyle={formStyles.button}
-                                        disabledTitleStyle={formStyles.buttonTitleDisabled}
-                                        disabledStyle={formStyles.buttonDisabled}
-                                        title={this.translate(
-                                            'forms.createConnection.buttons.submit'
-                                        )}
-                                        onPress={this.onSubmit}
-                                        disabled={this.isConnReqFormDisabled()}
-                                        raised={true}
-                                    />
+                                    </View>
                                 </View>
                             </View>
-                        </View>
-                    </ScrollView>
+                        )}
+                        ListHeaderComponent={() => (
+                            <MessagesContactsTabs
+                                tabName="CreateConnection"
+                                navigation={navigation}
+                                translate={this.translate}
+                            />
+                        )}
+                        stickyHeaderIndices={[0]}
+                        // onContentSizeChange={() => connections.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
+                    />
                 </SafeAreaView>
                 <MainButtonMenuAlt
                     navigation={navigation}

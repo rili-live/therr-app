@@ -17,7 +17,9 @@ const renderItem = ({ item: moment }, {
     const momentMedia = content?.media[moment.media && moment.media[0]?.id];
 
     return (
-        <View style={momentStyles.momentContainer}>
+        <View
+            style={momentStyles.momentContainer}
+        >
             <MomentDisplay
                 translate={translate}
                 date={formattedDate}

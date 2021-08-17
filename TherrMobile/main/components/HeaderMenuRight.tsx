@@ -352,6 +352,31 @@ class HeaderMenuRight extends React.Component<
                                                 onPress={() => this.navTo('Notifications')}
                                             />
                                         </View>
+                                        <Button
+                                            buttonStyle={
+                                                currentScreen === 'CreateConnection'
+                                                    ? headerMenuModal.buttonsActive
+                                                    : headerMenuModal.buttons
+                                            }
+                                            titleStyle={
+                                                currentScreen === 'CreateConnection'
+                                                    ? headerMenuModal.buttonsTitleActive
+                                                    : headerMenuModal.buttonsTitle
+                                            }
+                                            title={this.translate('components.headerMenuRight.menuItems.addConnection')}
+                                            icon={
+                                                <FontAwesomeIcon
+                                                    style={
+                                                        currentScreen === 'CreateConnection'
+                                                            ? headerMenuModal.iconStyleActive
+                                                            : headerMenuModal.iconStyle
+                                                    }
+                                                    name="user-plus"
+                                                    size={22}
+                                                />
+                                            }
+                                            onPress={() => this.navTo('CreateConnection')}
+                                        />
                                         {/* <Button
                                             buttonStyle={
                                                 currentScreen === 'HostedChat'

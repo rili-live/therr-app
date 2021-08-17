@@ -6,6 +6,7 @@ export interface IMapState extends Immutable.ImmutableObject<any> {
     latitude?: number;
     moments: any;
     myMoments: any;
+    searchPredictions: any;
 }
 
 export enum MapActionTypes {
@@ -17,4 +18,8 @@ export enum MapActionTypes {
     GET_MY_MOMENTS = 'GET_MY_MOMENTS',
     USER_LOCATION_DETERMINED = 'USER_LOCATION_DETERMINED',
     UPDATE_COORDS = 'UPDATE_COORDS',
+
+    // Google API
+    AUTOCOMPLETE_UPDATE = 'AUTOCOMPLETE_UPDATE',
+    SET_DROPDOWN_VISIBILITY = 'SET_DROPDOWN_VISIBILITY',
 }

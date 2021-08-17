@@ -25,7 +25,6 @@ async function onGoogleButtonPress({
         const { idToken: token } = await GoogleSignin.signIn();
         idToken = token;
     } catch (error) {
-        console.log('CAUgHT');
         onLoginError(error);
         setDisabled(false);
         return;

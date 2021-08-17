@@ -1,12 +1,13 @@
+import React from 'react';
 import { RouteConfig, StackNavigationState } from '@react-navigation/native';
 import { StackNavigationOptions } from '@react-navigation/stack';
 import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/src/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
+import { IAccess, AccessCheckType } from 'therr-react/types';
 import BookMarked from './BookMarked';
 import Home from './Home';
 import DirectMessage from './DirectMessage';
 import Login from './Login';
-import { IAccess, AccessCheckType } from '../types';
 import Map from './Map';
 import Moments from './Moments';
 import ActiveConnections from './ActiveConnections';
@@ -24,6 +25,7 @@ import EditMoment from './EditMoment';
 import EditChat from './HostedChat/EditChat';
 import ViewChat from './HostedChat/ViewChat';
 import styles from '../styles';
+import HeaderSearchInput from '../components/Input/HeaderSearchInput';
 
 const momentTransitionSpec: any = {
     open: {
@@ -71,7 +73,7 @@ const routes: RouteConfig<
                 levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
                 isPublic: true,
             },
-            headerStyle: styles.headerStyleAlt,
+            headerStyle: styles.headerStyleNoShadow,
         }),
     },
     {
@@ -94,6 +96,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
+            headerTitle: () => <HeaderSearchInput />,
         }),
     },
     {
@@ -105,6 +108,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
+            headerTitle: () => <HeaderSearchInput />,
         }),
     },
     {
@@ -138,6 +142,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
+            headerStyle: styles.headerStyleNoShadow,
         }),
     },
     {
@@ -149,6 +154,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
+            headerStyle: styles.headerStyleNoShadow,
         }),
     },
     {
@@ -185,7 +191,7 @@ const routes: RouteConfig<
                 levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
                 isPublic: true,
             },
-            headerStyle: styles.headerStyleAlt,
+            headerStyle: styles.headerStyleNoShadow,
         }),
     },
     // {
@@ -232,6 +238,7 @@ const routes: RouteConfig<
                 levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
                 isPublic: true,
             },
+            headerStyle: styles.headerStyleNoShadow,
         }),
     },
     {

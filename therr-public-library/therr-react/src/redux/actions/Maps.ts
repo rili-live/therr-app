@@ -1,5 +1,5 @@
 import { MapActionTypes } from '../../types/redux/maps';
-import MapsService from '../../services/MapsService';
+import MapsService, { IPlacesAutoCompleteArgs } from '../../services/MapsService';
 
 const Maps = {
     createMoment: (data: any) => (dispatch: any) => MapsService.createMoment(data).then((response: any) => {
@@ -50,6 +50,28 @@ const Maps = {
             },
         });
     }),
+
+    // Google API
+    getPlacesSearchAutoComplete: (args: IPlacesAutoCompleteArgs) => (dispatch: any) => MapsService.getPlacesSearchAutoComplete(args)
+        .then((response) => {
+            dispatch({
+                type: MapActionTypes.AUTOCOMPLETE_UPDATE,
+                data: {
+                    predictions: response.data?.predictions || [],
+                },
+            });
+        })
+        .catch((error) => {
+            console.log(error);
+        }),
+    setSearchDropdownVisibility: (isVisible: boolean) => (dispatch: any) => {
+        dispatch({
+            type: MapActionTypes.SET_DROPDOWN_VISIBILITY,
+            data: {
+                isSearchDropdownVisible: isVisible,
+            },
+        });
+    },
 };
 
 export default Maps;
