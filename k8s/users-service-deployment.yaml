@@ -47,7 +47,7 @@ spec:
         - name: AWS_SES_REGION
           value: "us-east-2"
         - name: AWS_SES_FROM_EMAIL
-          value: "therr.main@gmail.com"
+          value: "info@therr.com"
         - name: USERS_SERVICE_API_PORT
           value: "7771"
         - name: URI_WHITELIST
