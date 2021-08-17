@@ -1,6 +1,5 @@
 import * as Immutable from 'seamless-immutable';
 
-
 export interface IUserConnection {
   id: string;
   phoneNumber: string;

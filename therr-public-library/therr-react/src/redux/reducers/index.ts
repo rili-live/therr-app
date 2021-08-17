@@ -9,6 +9,7 @@ import map from './map';
 import notifications from './notifications';
 import reactions from './reactions';
 import userConnections from './userConnections';
+import userInterface from './userInterface';
 import getUserReducer from './user';
 
 export default (socketIO, additionalReducers = {}) => combineReducers({
@@ -26,5 +27,6 @@ export default (socketIO, additionalReducers = {}) => combineReducers({
     reactions,
     user: getUserReducer(socketIO),
     userConnections,
+    userInterface,
     ...additionalReducers,
 });

@@ -7,10 +7,8 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 // import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 // import therrIconConfig from '../../assets/therr-font-config.json';
-import { ButtonMenu, mapStateToProps, mapDispatchToProps } from '../ButtonMenu';
-import * as therrTheme from '../../styles/themes';
+import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';
 import { buttonMenu } from '../../styles/navigation';
-import { buttonMenuHeight, buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
 import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 
 // const TherrIcon = createIconSetFromIcoMoon(
@@ -52,17 +50,13 @@ class MainButtonMenu extends ButtonMenu {
     };
 
     render() {
-        const { transparent, onActionButtonPress, isAbsolute, isCompact, notifications, translate } = this.props;
+        const { onActionButtonPress, isCompact, notifications, translate } = this.props;
         const currentScreen = this.getCurrentScreen();
-        const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
-        const overrideStyles: any = transparent ? { backgroundColor: therrTheme.colorVariations.primaryFade } : { backgroundColor: therrTheme.colors.primary };
-        if (!isAbsolute) {
-            overrideStyles.position = 'relative';
-        }
-        const containerHeight = isCompact ? buttonMenuHeightCompact : buttonMenuHeight;
+        const hasNotifications = notifications?.messages.some(m => m.isUnread);
+
 
         return (
-            <View style={[buttonMenu.container, overrideStyles, { height: containerHeight }]}>
+            <ButtonMenu {...this.props}>
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.connections') : null}
                     buttonStyle={
@@ -188,7 +182,7 @@ class MainButtonMenu extends ButtonMenu {
                         onPress={onActionButtonPress as any}
                     />
                 }
-            </View>
+            </ButtonMenu>
         );
     }
 }

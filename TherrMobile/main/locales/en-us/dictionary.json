@@ -142,11 +142,15 @@
     "header": {
       "buttons": {
         "login": "Login"
+      },
+      "searchInput": {
+        "placeholder": "Search..."
       }
     },
     "headerMenuRight": {
       "menuItems": {
         "account": "MY ACCOUNT",
+        "addConnection": "NEW CONNECTION",
         "connections": "CONNECTIONS",
         "home": "HOME",
         "hostedChat": "HOSTED CHAT",
@@ -360,7 +364,8 @@
     "connections": {
       "buttons": {
         "activeConnections": "Active Connections",
-        "searchContacts": "Search Contacts"
+        "searchContacts": "Search Contacts",
+        "createConnection": "Add Connection"
       }
     },
     "filters": {

@@ -7,7 +7,7 @@ module.exports = {
                 path: '.env',
                 moduleName: 'react-native-dotenv',
                 allowUndefined: false,
-                whitelist: ['EXAMPLE'],
+                allowlist: ['GOOGLE_APIS_ANDROID_KEY', 'GOOGLE_APIS_IOS_KEY'],
             },
         ],
         'transform-inline-environment-variables',

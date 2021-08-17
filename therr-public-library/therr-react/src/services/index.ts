@@ -1,5 +1,5 @@
 import ForumsService from './ForumsService';
-import MapsService from './MapsService';
+import MapsService, { IPlacesAutoCompleteArgs, IPlaceDetailsArgs } from './MapsService';
 import MessagesService from './MessagesService';
 import NotificationsService from './NotificationsService';
 import PushNotificationsService from './PushNotificationsService';
@@ -10,6 +10,8 @@ import UsersService from './UsersService';
 export {
     ForumsService,
     MapsService,
+    IPlacesAutoCompleteArgs,
+    IPlaceDetailsArgs,
     MessagesService,
     NotificationsService,
     PushNotificationsService,

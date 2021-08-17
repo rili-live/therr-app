@@ -142,11 +142,15 @@
     "header": {
       "buttons": {
         "login": "Login"
+      },
+      "searchInput": {
+        "placeholder": "Search..."
       }
     },
     "headerMenuRight": {
       "menuItems": {
         "account": "MY ACCOUNT",
+        "addConnection": "NEW CONNECTION",
         "connections": "CONNECTIONS",
         "home": "HOME",
         "hostedChat": "HOSTED CHAT",
@@ -343,23 +347,38 @@
   "menus": {
     "main": {
       "buttons": {
+        "account": "Account",
         "connections": "People",
-        "moments": "Moments",
+        "bookmarked": "Saved",
+        "goToTop": "Go To Top",
+        "list": "List",
         "map": "Map",
+        "messages": "Messages",
+        "moments": "Moments",
+        "refresh": "Refresh",
         "settings": "Settings",
+        "toggle": "Toggle",
         "notifications": "Notifications"
       }
     },
     "connections": {
       "buttons": {
         "activeConnections": "Active Connections",
-        "searchContacts": "Search Contacts"
+        "searchContacts": "Search Contacts",
+        "createConnection": "Add Connection"
       }
+    },
+    "filters": {
+      "title": "Filters"
     }
   },
   "pages": {
     "activeConnections": {
       "headerTitle": "Connections"
+    },
+    "bookmarked": {
+      "headerTitle": "Favorited",
+      "noBookmarksFound": "Mark content as favorited by clicking the bookmark icon on a post"
     },
     "chatForum": {
       "pageTitle": "Forums",

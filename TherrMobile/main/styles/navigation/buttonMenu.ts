@@ -1,7 +1,7 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import * as therrTheme from '../themes';
 
-export const buttonMenuHeight = 74;
+export const buttonMenuHeight = Platform.OS === 'ios' ? 94 : 74;
 export const buttonMenuHeightCompact = 48;
 
 const buttonStyle: any = {
@@ -39,6 +39,14 @@ const notificationCircleStyles: any = {
     height: 4,
     borderColor: therrTheme.colors.ternary,
     top: 12,
+};
+
+const tabStyles: any = {
+    flex: 1,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 48,
 };
 
 export default StyleSheet.create({
@@ -118,5 +126,32 @@ export default StyleSheet.create({
     notificationCircleAlt: {
         ...notificationCircleStyles,
         right: 15,
+    },
+    tabsContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: therrTheme.colors.primary,
+        shadowColor: 'black',
+        shadowOffset: {
+            height: 2,
+            width: 0,
+        },
+        shadowRadius: 4,
+        elevation: 1,
+        shadowOpacity: 0.25,
+        paddingHorizontal: 20,
+    },
+    tab: {
+        ...tabStyles,
+    },
+    tabActive: {
+        ...tabStyles,
+        borderBottomWidth: 2,
+        borderBottomColor: therrTheme.colors.backgroundCream,
+    },
+    tabText: {
+        color: therrTheme.colors.textWhite,
     },
 });
