@@ -51,6 +51,7 @@ app.use(express.static(path.join(__dirname, 'static')));
 app.use(authenticate.unless({
     path: [
         { url: '/', methods: ['GET'] }, // healthcheck
+        { url: new RegExp('/v1/maps-service/place/*'), methods: ['GET'] }, // Google Maps: Places proxy
         { url: '/v1/users-service/subscribers/signup', methods: ['POST'] }, // email marketing subscribe
         { url: '/v1/users-service/auth', methods: ['POST'] }, // login
         { url: '/v1/users-service/users', methods: ['POST'] }, // register

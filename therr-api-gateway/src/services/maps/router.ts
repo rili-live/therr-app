@@ -1,4 +1,5 @@
 import express from 'express';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 import * as globalConfig from '../../../../global-config';
 import handleServiceRequest from '../../middleware/handleServiceRequest';
 import { validate } from '../../validation';
@@ -41,6 +42,13 @@ mapsServiceRouter.get('/moments/signed-url/private', getSignedUrlValidation, val
 mapsServiceRouter.delete('/moments', deleteMomentsValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'delete',
+}));
+
+// TODO: Add rate limiter?
+mapsServiceRouter.use('/place', createProxyMiddleware({
+    target: 'https://maps.googleapis.com',
+    pathRewrite: { '^/v1/maps-service/place': '/maps/api/place' },
+    changeOrigin: true,
 }));
 
 export default mapsServiceRouter;
