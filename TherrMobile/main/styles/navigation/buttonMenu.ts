@@ -1,7 +1,7 @@
 import { Platform, StyleSheet } from 'react-native';
 import * as therrTheme from '../themes';
 
-export const buttonMenuHeight = Platform.OS === 'ios' ? 94 : 74;
+export const buttonMenuHeight = Platform.OS === 'ios' ? 80 : 60;
 export const buttonMenuHeightCompact = 48;
 
 const buttonStyle: any = {
@@ -28,6 +28,7 @@ const buttonsTitleStyle: any = {
     color: therrTheme.colors.textWhite,
     fontSize: 10,
     marginTop: 5,
+    paddingBottom: Platform.OS === 'ios' ? 10 : 0,
     ...iconStyle,
 };
 

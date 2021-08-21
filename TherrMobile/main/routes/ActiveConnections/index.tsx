@@ -131,7 +131,7 @@ class ActiveConnectionsComponent extends React.Component<
                         renderItem={({ item: connection }) => (
                             <ConnectionItem
                                 key={connection.id}
-                                connectionDetails={connection}
+                                connectionDetails={this.getConnectionDetails(connection)}
                                 getConnectionSubtitle={this.getConnectionSubtitle}
                                 onConnectionPress={this.onConnectionPress}
                             />

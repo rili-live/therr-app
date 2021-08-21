@@ -129,7 +129,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                         renderItem={({ item: connection }) => (
                             <ConnectionItem
                                 key={connection.id}
-                                connectionDetails={connection}
+                                connectionDetails={this.getConnectionDetails(connection)}
                                 getConnectionSubtitle={this.getConnectionSubtitle}
                                 onConnectionPress={this.onConnectionPress}
                             />

@@ -2,7 +2,7 @@ import 'react-native';
 // import React from 'react';
 // import { Settings } from '../../main/routes/Settings';
 
-// // Note: test renderer must be required after react-native.
+// Note: test renderer must be required after react-native.
 // import renderer from 'react-test-renderer';
 
 jest.mock('react-native-keyboard-aware-scroll-view');
@@ -19,7 +19,6 @@ afterEach(() => {
 
 describe('Settings', () => {
     it('renders correctly', () => {
-        expect(true).toBe(true);
         // const mockNavigation = {
         //     navigate: jest.fn(),
         //     setOptions: jest.fn(),

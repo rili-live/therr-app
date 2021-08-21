@@ -1,11 +1,22 @@
 import { Platform } from 'react-native';
 import LocationServicesDialogBox from 'react-native-android-location-services-dialog-box';
 
+interface IRequestLocationServiceActivationConfig {
+    isGpsEnabled: Boolean;
+    translate: Function;
+    shouldIgnoreRequirement?: Boolean;
+}
+
 export default ({
     isGpsEnabled,
     translate,
-}) => new Promise((resolve, reject) => {
-    if (Platform.OS !== 'ios' && !isGpsEnabled) {
+    shouldIgnoreRequirement,
+}: IRequestLocationServiceActivationConfig) => new Promise((resolve, reject) => {
+    let shouldRequireToViewMap = true;
+    if (shouldIgnoreRequirement == null) {
+        shouldRequireToViewMap = false;
+    }
+    if (shouldRequireToViewMap && Platform.OS !== 'ios' && !isGpsEnabled) {
         const permissionHeader = translate('permissions.locationGps.header');
         const permissionDescription1 = translate('permissions.locationGps.description1');
         const permissionDescription2 = translate('permissions.locationGps.description2');
