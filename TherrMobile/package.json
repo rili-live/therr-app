@@ -9,6 +9,8 @@
     "android:log": "adb logcat *:S ReactNative:V ReactNativeJS:V",
     "android:deps": "pushd android && ./gradlew :app:dependencies && popd",
     "build:dev": "echo \"Error: no dev build for mobile app\" && exit 0",
+    "build:android": "npm run build:release:apk",
+    "build:ios": "npm run ios:bundle:release",
     "build:release": "export $(cat .env | xargs) && pushd android && ./gradlew bundleRelease && popd",
     "build:release:apk": "export $(cat .env | xargs) && pushd android && ./gradlew assembleRelease && popd",
     "build:release:ipa": "export $(cat .env | xargs) && ./node_modules/.bin/react-native run-ios --configuration Release",

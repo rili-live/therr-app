@@ -48,7 +48,7 @@ mapsServiceRouter.delete('/moments', deleteMomentsValidation, validate, handleSe
 mapsServiceRouter.use('/place', createProxyMiddleware({
     target: 'https://maps.googleapis.com',
     // pathRewrite: { '^/v1/maps-service/place': '/maps/api/place' },
-    pathRewrite: (path, req) => `${path.replace('/v1/maps-service/place', '/maps/api/place')}&key=${process.env.MAPS_SERVICE_GOOGLE_MAPS_PLACES_API_KEY}`,
+    pathRewrite: (path, req) => `${path.replace('/v1/maps-service/place', '/maps/api/place')}&key=${process.env.GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY}`,
     changeOrigin: true,
 }));
 
