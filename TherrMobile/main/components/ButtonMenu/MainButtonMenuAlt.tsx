@@ -94,7 +94,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                     icon={
                         <FontAwesomeIcon
                             name="list"
-                            size={26}
+                            size={20}
                             style={
                                 currentScreen === 'Moments'
                                     ? buttonMenu.buttonIconActive
@@ -120,7 +120,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                     icon={
                         <FontAwesomeIcon
                             name="globe-americas"
-                            size={26}
+                            size={20}
                             style={
                                 currentScreen === 'Map'
                                     ? buttonMenu.buttonIconActive
@@ -146,7 +146,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                     icon={
                         <FontAwesomeIcon
                             name="bookmark"
-                            size={26}
+                            size={20}
                             style={
                                 currentScreen === 'BookMarked'
                                     ? buttonMenu.buttonIconActive
@@ -172,7 +172,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                     icon={
                         <FontAwesomeIcon
                             name="comment"
-                            size={26}
+                            size={20}
                             style={
                                 isMessageViewActive
                                     ? buttonMenu.buttonIconActive
@@ -198,7 +198,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                     icon={
                         <FontAwesomeIcon
                             name="user-cog"
-                            size={26}
+                            size={20}
                             style={
                                 currentScreen === 'Settings'
                                     ? buttonMenu.buttonIconActive
@@ -218,7 +218,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                         icon={
                             <FontAwesomeIcon
                                 name={this.getActionButtonIcon(currentScreen)}
-                                size={26}
+                                size={20}
                                 style={buttonMenu.buttonIcon}
                             />
                         }
