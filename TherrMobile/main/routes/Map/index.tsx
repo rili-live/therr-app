@@ -50,7 +50,7 @@ import {
 import FiltersButtonGroup from '../../components/FiltersButtonGroup';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import mapCustomStyle from '../../styles/map/googleCustom';
-import SearchTypeAhead from '../../components/SearchTypeAhead';
+import SearchTypeAheadResults from '../../components/SearchTypeAheadResults';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../../assets/earth-loader.json');
@@ -555,7 +555,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     };
 
     handleSearchSelect = (selection) => {
-        const { setSearchDropdownVisibility } = this.props;
+        const { setSearchDropdownVisibility, searchMoments } = this.props;
 
         setSearchDropdownVisibility(false);
 
@@ -574,6 +574,15 @@ class Map extends React.Component<IMapProps, IMapState> {
                     longitudeDelta: Math.max(lngDelta, PRIMARY_LONGITUDE_DELTA),
                 };
                 this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_SLOW);
+                searchMoments({
+                    query: 'connections',
+                    itemsPerPage: 50,
+                    pageNumber: 1,
+                    order: 'desc',
+                    filterBy: 'fromUserIds',
+                    latitude: geometry.location.lat,
+                    longitude: geometry.location.lng,
+                });
                 // TODO: Search for "moments" within the nearby area
             }
         }).catch((error) => {
@@ -777,7 +786,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                         <>
                             {
                                 isDropdownVisible &&
-                                <SearchTypeAhead
+                                <SearchTypeAheadResults
                                     handleSelect={this.handleSearchSelect}
                                     viewPortHeight={viewPortHeight}
                                     searchPredictionResults={searchPredictionResults}

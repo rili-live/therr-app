@@ -98,10 +98,21 @@ export default class MomentsStore {
 
             if (conditions.filterBy === 'fromUserIds') {
                 queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
-                    builder.whereIn('fromUserId', fromUserIds);
+                    builder
+                        .whereIn('fromUserId', fromUserIds)
+                        .orWhere({
+                            isPublic: true,
+                        });
                 });
             } else {
-                queryString = queryString.andWhere(conditions.filterBy, operator, query);
+                queryString = queryString.andWandWhere(conditions.filterBy, operator, query);
+                queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
+                    builder
+                        .where(conditions.filterBy, operator, query)
+                        .orWhere({
+                            isPublic: true,
+                        });
+                });
             }
         }
 
