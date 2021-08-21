@@ -43,6 +43,11 @@ spec:
             secretKeyRef:
               name: honeycomb-writekey
               key: HONEYCOMB
+        - name: GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: google-maps-places-server-side-api-key
+              key: GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY
         - name: LOG_LEVEL
           value: "info"
         - name: LOGGING_DATASET

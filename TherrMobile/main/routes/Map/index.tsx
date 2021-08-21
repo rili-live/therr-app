@@ -169,6 +169,11 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         this.unsubscribeNavigationListener = navigation.addListener('state', () => {
             setSearchDropdownVisibility(false);
+            clearTimeout(this.timeoutId);
+            this.setState({
+                isMinLoadTimeComplete: true,
+                isLocationReady: true,
+            });
         });
 
         navigation.setOptions({

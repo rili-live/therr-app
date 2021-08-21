@@ -106,7 +106,7 @@ class MapsService {
         input,
         sessiontoken,
     }: IPlacesAutoCompleteArgs) => {
-        let url = 'https://maps.googleapis.com/maps/api/place/autocomplete/json?';
+        let url = '/maps-service/place/autocomplete/json?';
 
         url = `${url}input=${input}&location=${latitude},${longitude}`;
 
@@ -114,7 +114,7 @@ class MapsService {
             url = `${url}&radius=${radius}`;
         }
 
-        url = `${url}&sessiontoken=${sessiontoken || googleDynamicSessionToken}&key=${apiKey}`;
+        url = `${url}&sessiontoken=${sessiontoken || googleDynamicSessionToken}`;
 
         return axios({
             method: 'get',
@@ -128,9 +128,9 @@ class MapsService {
         placeId,
         sessiontoken,
     }: IPlaceDetailsArgs) => {
-        let url = 'https://maps.googleapis.com/maps/api/place/details/json?fields=geometry&';
+        let url = '/maps-service/place/details/json?fields=geometry&';
 
-        url = `${url}place_id=${placeId}&sessiontoken=${sessiontoken || googleDynamicSessionToken}&key=${apiKey}`;
+        url = `${url}place_id=${placeId}&sessiontoken=${sessiontoken || googleDynamicSessionToken}`;
 
         return axios({
             method: 'get',

@@ -161,7 +161,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
                 this.getIosNotificationPermissions()
                     .then(() => {
-                        return messaging().registerDeviceForRemoteMessages();
+                        // return messaging().registerDeviceForRemoteMessages();
+                        return Promise.resolve();
                     })
                     .then(() => {
                         // Get the token
@@ -260,6 +261,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     screenOptions={({ navigation }) => {
                         const currentScreen = this.getCurrentScreen(navigation);
                         const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
+                        // const isMap = currentScreen === 'Map';
                         let headerStyleName: any = 'light';
                         let headerTitleColor = therrTheme.colors.textWhite;
                         if (isMoment) {
