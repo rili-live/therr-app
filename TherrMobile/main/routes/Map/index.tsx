@@ -574,6 +574,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                     longitudeDelta: Math.max(lngDelta, PRIMARY_LONGITUDE_DELTA),
                 };
                 this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_SLOW);
+                // TODO: Determine if it would be best to combine these requests. Implement layers filter through filter button
                 searchMoments({
                     query: 'connections',
                     itemsPerPage: 50,
@@ -583,7 +584,15 @@ class Map extends React.Component<IMapProps, IMapState> {
                     latitude: geometry.location.lat,
                     longitude: geometry.location.lng,
                 });
-                // TODO: Search for "moments" within the nearby area
+                searchMoments({
+                    query: 'me',
+                    itemsPerPage: 20,
+                    pageNumber: 1,
+                    order: 'desc',
+                    filterBy: 'fromUserIds',
+                    latitude: geometry.location.lat,
+                    longitude: geometry.location.lng,
+                });
             }
         }).catch((error) => {
             console.log(error);

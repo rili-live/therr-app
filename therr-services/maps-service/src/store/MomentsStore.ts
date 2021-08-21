@@ -77,7 +77,7 @@ export default class MomentsStore {
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
-    searchMoments(conditions: any = {}, returning, fromUserIds = [], overrides?: any) {
+    searchMoments(conditions: any = {}, returning, fromUserIds = [], overrides?: any, includePublicResults = true) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
         let proximityMax = overrides?.distanceOverride || Location.MOMENT_PROXIMITY_METERS;
@@ -98,20 +98,18 @@ export default class MomentsStore {
 
             if (conditions.filterBy === 'fromUserIds') {
                 queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
-                    builder
-                        .whereIn('fromUserId', fromUserIds)
-                        .orWhere({
-                            isPublic: true,
-                        });
+                    builder.whereIn('fromUserId', fromUserIds);
+                    if (includePublicResults) {
+                        builder.orWhere({ isPublic: true });
+                    }
                 });
             } else {
                 queryString = queryString.andWandWhere(conditions.filterBy, operator, query);
                 queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
-                    builder
-                        .where(conditions.filterBy, operator, query)
-                        .orWhere({
-                            isPublic: true,
-                        });
+                    builder.where(conditions.filterBy, operator, query);
+                    if (includePublicResults) {
+                        builder.orWhere({ isPublic: true });
+                    }
                 });
             }
         }
