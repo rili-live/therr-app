@@ -202,7 +202,7 @@ class HeaderMenuRight extends React.Component<
                                     <FontAwesomeIcon
                                         style={headerMenuModal.logoutIcon}
                                         name="sign-out-alt"
-                                        size={22}
+                                        size={20}
                                     />
                                 }
                                 onPress={() => this.handleLogout()}
@@ -242,6 +242,7 @@ class HeaderMenuRight extends React.Component<
                                                     color={therrTheme.colors.primary3}
                                                 />
                                             }
+                                            iconRight
                                             onPress={hideModal}
                                             type="clear"
                                         />
@@ -267,9 +268,10 @@ class HeaderMenuRight extends React.Component<
                                                             : headerMenuModal.iconStyle
                                                     }
                                                     name="home"
-                                                    size={22}
+                                                    size={20}
                                                 />
                                             }
+                                            iconRight
                                             onPress={() => this.navTo('Home')}
                                         />
                                         {/* <Button
@@ -292,7 +294,7 @@ class HeaderMenuRight extends React.Component<
                                                             : headerMenuModal.iconStyle
                                                     }
                                                     name="globe-americas"
-                                                    size={22}
+                                                    size={20}
                                                 />
                                             }
                                             onPress={() => this.navTo('Map')}
@@ -317,7 +319,7 @@ class HeaderMenuRight extends React.Component<
                                                             : headerMenuModal.iconStyle
                                                     }
                                                     name="watch"
-                                                    size={22}
+                                                    size={20}
                                                 />
                                             }
                                             onPress={() => this.navTo('Moments')}
@@ -332,6 +334,7 @@ class HeaderMenuRight extends React.Component<
                                                         ? headerMenuModal.buttonsActive
                                                         : headerMenuModal.buttons
                                                 }
+                                                containerStyle={{ width: '100%' }}
                                                 titleStyle={
                                                     currentScreen === 'Notifications'
                                                         ? headerMenuModal.buttonsTitleActive
@@ -346,9 +349,10 @@ class HeaderMenuRight extends React.Component<
                                                                 : headerMenuModal.iconStyle
                                                         }
                                                         name={hasNotifications ? 'bell' : 'bell-slash'}
-                                                        size={22}
+                                                        size={20}
                                                     />
                                                 }
+                                                iconRight
                                                 onPress={() => this.navTo('Notifications')}
                                             />
                                         </View>
@@ -372,9 +376,10 @@ class HeaderMenuRight extends React.Component<
                                                             : headerMenuModal.iconStyle
                                                     }
                                                     name="user-plus"
-                                                    size={22}
+                                                    size={20}
                                                 />
                                             }
+                                            iconRight
                                             onPress={() => this.navTo('CreateConnection')}
                                         />
                                         {/* <Button
@@ -397,7 +402,7 @@ class HeaderMenuRight extends React.Component<
                                                             : headerMenuModal.iconStyle
                                                     }
                                                     name="chat"
-                                                    size={22}
+                                                    size={20}
                                                 />
                                             }
                                             onPress={() => this.navTo('HostedChat')}
@@ -422,7 +427,7 @@ class HeaderMenuRight extends React.Component<
                                                             : headerMenuModal.iconStyle
                                                     }
                                                     name="users"
-                                                    size={22}
+                                                    size={20}
                                                 />
                                             }
                                             onPress={() => this.navTo('ActiveConnections')}
@@ -447,9 +452,10 @@ class HeaderMenuRight extends React.Component<
                                                             : headerMenuModal.iconStyle
                                                     }
                                                     name="user-cog"
-                                                    size={22}
+                                                    size={20}
                                                 />
                                             }
+                                            iconRight
                                             onPress={() => this.navTo('Settings')}
                                         />
                                     </View>
@@ -463,7 +469,7 @@ class HeaderMenuRight extends React.Component<
                                                 <FontAwesomeIcon
                                                     style={headerMenuModal.iconStyle}
                                                     name="sign-out-alt"
-                                                    size={22}
+                                                    size={20}
                                                 />
                                             }
                                             onPress={() => this.handleLogout(hideModal)}

@@ -1,14 +1,16 @@
 import React from 'react';
-import { SafeAreaView, Text } from 'react-native';
+import { SafeAreaView, Text, View } from 'react-native';
 // import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import LottieView from 'lottie-react-native';
 // import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 // import * as therrTheme from '../styles/themes';
 import styles from '../../styles';
+import * as therrTheme from '../../styles/themes';
 import momentStyles from '../../styles/user-content/moments';
 // import { buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
@@ -16,6 +18,7 @@ import MomentCarousel from './MomentCarousel';
 import MainButtonMenuAlt from '../../components/ButtonMenu/MainButtonMenuAlt';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import FiltersButtonGroup from '../../components/FiltersButtonGroup';
+import carLoader from '../../assets/sports-car.json';
 
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
@@ -78,7 +81,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         });
 
         if (!content.activeMoments || !content.activeMoments.length || content.activeMoments.length < 21) {
-            updateActiveMoments().then(() => {
+            updateActiveMoments().finally(() => {
                 this.setState({
                     isLoading: false,
                 });
@@ -107,6 +110,15 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         });
     };
 
+    handleRefresh = () => {
+        const { updateActiveMoments } = this.props;
+        this.setState({ isLoading: true });
+
+        return updateActiveMoments().finally(() => {
+            this.setState({ isLoading: false });
+        });
+    }
+
     scrollTop = () => {
         this.carouselRef?.scrollToOffset({ animated: true, offset: 0 });
     }
@@ -116,7 +128,16 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
 
         if (isLoading) {
             return (
-                <Text style={momentStyles.noMomentsFoundText}>Loading...</Text>
+                <View style={momentStyles.loadingGraphic}>
+                    <LottieView
+                        source={carLoader}
+                        // resizeMode="cover"
+                        speed={1}
+                        autoPlay
+                        loop
+                    />
+                    <Text style={momentStyles.noMomentsFoundText}>Loading...</Text>
+                </View>
             );
         }
 
@@ -127,6 +148,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
                     expandMoment={this.goToMoment}
                     translate={this.translate}
                     containerRef={(component) => this.carouselRef = component}
+                    handleRefresh={this.handleRefresh}
                     // viewportHeight={viewportHeight}
                     // viewportWidth={viewportWidth}
                 />
@@ -144,7 +166,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={styles.safeAreaView}>
+                <SafeAreaView style={[styles.safeAreaView, { backgroundColor: therrTheme.colorVariations.backgroundNeutral }]}>
                     {
                         this.renderCarousel(content)
                     }

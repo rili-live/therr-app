@@ -24,7 +24,7 @@ export default StyleSheet.create({
         width: '100%',
     },
     momentCarousel: {
-        backgroundColor: therrTheme.colors.backgroundNeutral,
+        backgroundColor: therrTheme.colorVariations.backgroundNeutral,
     },
     momentCarouselHeader: {
         marginBottom: dividerHeight / 2,
@@ -36,10 +36,10 @@ export default StyleSheet.create({
         flex: 1,
         overflow: 'hidden',
         paddingBottom: 10,
-        backgroundColor: therrTheme.colors.backgroundGray,
+        backgroundColor: therrTheme.colors.backgroundNeutral,
         marginVertical: dividerHeight / 2,
         marginHorizontal: dividerHeight,
-        borderRadius: 7,
+        borderRadius: 2,
         ...(Platform.OS === 'ios' ? iosMomentContainerStyles : androidMomentContainerStyles),
 
         // shadow
@@ -72,6 +72,14 @@ export default StyleSheet.create({
         fontSize: 20,
         textAlign: 'center',
         color: therrTheme.colors.backgroundCream,
+    },
+    loadingGraphic: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flex: 1,
+        padding: 8,
+        zIndex: -1,
     },
 });
 

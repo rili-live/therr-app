@@ -144,7 +144,7 @@ export class HeaderSearchInput<IHeaderSearchInputProps> extends RoundInput {
             <RoundInput
                 errorStyle={{ display: 'none' }}
                 containerStyle={[formStyles.headerSearchContainer, { width: screenWidth - 100  }]}
-                inputStyle={Platform.OS !== 'ios' ? formStyles.input : formStyles.inputAlt}
+                inputStyle={[Platform.OS !== 'ios' ? formStyles.input : formStyles.inputAlt, { fontSize: Platform.OS !== 'ios' ? 16 : 19 }]}
                 inputContainerStyle={[formStyles.inputContainerRound, formStyles.headerSearchInputContainer]}
                 onChangeText={this.onInputChange}
                 onFocus={this.handlePress}

@@ -1,5 +1,5 @@
 import React, { Ref } from 'react';
-import { Dimensions, PermissionsAndroid, Platform, SafeAreaView } from 'react-native';
+import { Dimensions, PermissionsAndroid, Keyboard, Platform, SafeAreaView, View } from 'react-native';
 import { StackActions } from '@react-navigation/native';
 import { PERMISSIONS } from 'react-native-permissions';
 import MapView from 'react-native-map-clustering';
@@ -51,6 +51,8 @@ import FiltersButtonGroup from '../../components/FiltersButtonGroup';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import mapCustomStyle from '../../styles/map/googleCustom';
 import SearchTypeAheadResults from '../../components/SearchTypeAheadResults';
+import SearchThisAreaButtonGroup from '../../components/SearchThisAreaButtonGroup';
+import CameraMarkerIcon from './CameraMarkerIcon';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../../assets/earth-loader.json');
@@ -88,11 +90,19 @@ interface IMapState {
     activeMomentDetails: any;
     areButtonsVisible: boolean;
     areLayersVisible: boolean;
+    region: {
+        latitude?: number,
+        longitude?: number,
+        latitudeDelta?: number,
+        longitudeDelta?: number,
+    };
     shouldFollowUserLocation: boolean;
     isMomentAlertVisible: boolean;
     isScrollEnabled: boolean;
     isLocationReady: boolean;
     isMinLoadTimeComplete: boolean;
+    isSearchThisLocationBtnVisible: boolean;
+    shouldIgnoreSearchThisAreaButton: boolean;
     lastMomentsRefresh?: number,
     lastLocationSendForProcessing?: number,
     lastLocationSendForProcessingCoords?: {
@@ -134,6 +144,8 @@ class Map extends React.Component<IMapProps, IMapState> {
     private timeoutIdGPSStart;
     private timeoutIdRefreshMoments;
     private timeoutIdShowMoment;
+    private timeoutIdSearchButton;
+    private timeoutIdWaitForSearchSelect;
     private translate: Function;
     private unsubscribeNavigationListener: any;
 
@@ -145,11 +157,14 @@ class Map extends React.Component<IMapProps, IMapState> {
             activeMomentDetails: {},
             areButtonsVisible: true,
             areLayersVisible: false,
+            region: {},
             shouldFollowUserLocation: false,
             isScrollEnabled: true,
             isMomentAlertVisible: false,
             isLocationReady: false,
             isMinLoadTimeComplete: false,
+            isSearchThisLocationBtnVisible: false,
+            shouldIgnoreSearchThisAreaButton: false,
             layers: {
                 myMoments: false,
                 connectionsMoments: true,
@@ -194,7 +209,23 @@ class Map extends React.Component<IMapProps, IMapState> {
         clearTimeout(this.timeoutIdGPSStart);
         clearTimeout(this.timeoutIdRefreshMoments);
         clearTimeout(this.timeoutIdShowMoment);
+        clearTimeout(this.timeoutIdSearchButton);
+        clearTimeout(this.timeoutIdWaitForSearchSelect);
         this.unsubscribeNavigationListener();
+    }
+
+    animateToWithHelp = (doAnimate) => {
+        this.setState({
+            shouldIgnoreSearchThisAreaButton: true,
+        });
+        doAnimate();
+        clearTimeout(this.timeoutIdSearchButton);
+        clearTimeout(this.timeoutIdWaitForSearchSelect);
+        this.timeoutIdWaitForSearchSelect = setTimeout(() => {
+            this.setState({
+                shouldIgnoreSearchThisAreaButton: false,
+            });
+        }, ANIMATE_TO_REGION_DURATION_SLOW + 2000); // Add some buffer room
     }
 
     goToMoments = () => {
@@ -314,6 +345,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         return requestLocationServiceActivation({
             isGpsEnabled: location?.settings?.isGpsEnabled,
             translate: this.translate,
+            shouldIgnoreRequirement: false,
         }).then((response: any) => {
             if (response?.status || Platform.OS === 'ios') {
                 return updateGpsStatus(response?.status || 'enabled');
@@ -403,13 +435,11 @@ class Map extends React.Component<IMapProps, IMapState> {
                     if (error === 'permissionDenied') {
                         updateLocationPermissions(perms);
                     }
-                    this.goToHome();
+                    // this.goToHome();
                 });
         }).catch((error) => {
-            // TODO: Allow viewing map when gps is disable
-            // but disallow GPS required actions like viewing/deleting moments
             console.log('locationServiceActivationError', error);
-            this.goToHome();
+            // this.goToHome();
         });
     }
 
@@ -421,7 +451,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             latitudeDelta: delta?.latitudeDelta || PRIMARY_LATITUDE_DELTA,
             longitudeDelta: delta?.longitudeDelta || PRIMARY_LONGITUDE_DELTA,
         };
-        this.mapRef && this.mapRef.animateToRegion(loc, duration || ANIMATE_TO_REGION_DURATION);
+        this.animateToWithHelp(() => this.mapRef && this.mapRef.animateToRegion(loc, duration || ANIMATE_TO_REGION_DURATION));
         this.setState({
             areLayersVisible: false,
         });
@@ -555,7 +585,9 @@ class Map extends React.Component<IMapProps, IMapState> {
     };
 
     handleSearchSelect = (selection) => {
-        const { setSearchDropdownVisibility, searchMoments } = this.props;
+        const { setSearchDropdownVisibility } = this.props;
+
+        Keyboard.dismiss();
 
         setSearchDropdownVisibility(false);
 
@@ -573,30 +605,51 @@ class Map extends React.Component<IMapProps, IMapState> {
                     latitudeDelta: Math.max(latDelta, PRIMARY_LATITUDE_DELTA),
                     longitudeDelta: Math.max(lngDelta, PRIMARY_LONGITUDE_DELTA),
                 };
-                this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_SLOW);
+                this.animateToWithHelp(() => this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_SLOW));
                 // TODO: Determine if it would be best to combine these requests. Implement layers filter through filter button
-                searchMoments({
-                    query: 'connections',
-                    itemsPerPage: 50,
-                    pageNumber: 1,
-                    order: 'desc',
-                    filterBy: 'fromUserIds',
-                    latitude: geometry.location.lat,
-                    longitude: geometry.location.lng,
-                });
-                searchMoments({
-                    query: 'me',
-                    itemsPerPage: 20,
-                    pageNumber: 1,
-                    order: 'desc',
-                    filterBy: 'fromUserIds',
-                    latitude: geometry.location.lat,
-                    longitude: geometry.location.lng,
-                });
+                this.handleSearchThisLocation(geometry.location.lat, geometry.location.lng);
             }
         }).catch((error) => {
             console.log(error);
         });
+    }
+
+    handleSearchThisLocation = (latitude?, longitude?) => {
+        const { searchMoments } = this.props;
+        const { region } = this.state;
+        this.setState({
+            isSearchThisLocationBtnVisible: false,
+        });
+
+        let lat = latitude;
+        let long = longitude;
+
+        if (!latitude || !longitude) {
+            lat = region.latitude;
+            long = region.longitude;
+        }
+
+
+        if (lat && long) {
+            searchMoments({
+                query: 'connections',
+                itemsPerPage: 50,
+                pageNumber: 1,
+                order: 'desc',
+                filterBy: 'fromUserIds',
+                latitude: lat,
+                longitude: long,
+            });
+            searchMoments({
+                query: 'me',
+                itemsPerPage: 20,
+                pageNumber: 1,
+                order: 'desc',
+                filterBy: 'fromUserIds',
+                latitude: lat,
+                longitude: long,
+            });
+        }
     }
 
     isAuthorized = () => {
@@ -650,7 +703,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                 latitudeDelta: PRIMARY_LATITUDE_DELTA,
                 longitudeDelta: PRIMARY_LONGITUDE_DELTA,
             };
-            this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_FAST);
+            this.animateToWithHelp(() => this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_FAST));
         }
 
 
@@ -700,6 +753,33 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     };
 
+    onRegionChange = (region) => {
+        if (region.latitude.toFixed(6) === this.state.region?.latitude?.toFixed(6)
+            && region.longitude.toFixed(6) === this.state.region?.longitude?.toFixed(6)) {
+            return;
+        }
+
+        this.setState({
+            isSearchThisLocationBtnVisible: false,
+            region,
+        });
+
+        clearTimeout(this.timeoutIdSearchButton);
+        if (!this.state.shouldIgnoreSearchThisAreaButton) {
+            this.timeoutIdSearchButton = setTimeout(() => {
+                this.setState({
+                    isSearchThisLocationBtnVisible: true,
+                });
+            }, 1500);
+        }
+    }
+
+    onRegionChangeComplete = () => {
+        this.setState({
+            isSearchThisLocationBtnVisible: false,
+        });
+    }
+
     showMomentAlert = () => {
         this.setState({
             isMomentAlertVisible: true,
@@ -720,12 +800,14 @@ class Map extends React.Component<IMapProps, IMapState> {
         const { map } = this.props;
 
         if (shouldFollowUserLocation === false) {
-            this.mapRef && this.mapRef.animateToRegion({
-                longitude: map.longitude,
-                latitude: map.latitude,
-                latitudeDelta: PRIMARY_LATITUDE_DELTA,
-                longitudeDelta: PRIMARY_LONGITUDE_DELTA,
-            }, ANIMATE_TO_REGION_DURATION);
+            this.animateToWithHelp(() => {
+                this.mapRef && this.mapRef.animateToRegion({
+                    longitude: map.longitude,
+                    latitude: map.latitude,
+                    latitudeDelta: PRIMARY_LATITUDE_DELTA,
+                    longitudeDelta: PRIMARY_LONGITUDE_DELTA,
+                }, ANIMATE_TO_REGION_DURATION);
+            });
         }
 
         this.setState({
@@ -767,9 +849,10 @@ class Map extends React.Component<IMapProps, IMapState> {
             isMinLoadTimeComplete,
             isMomentAlertVisible,
             isScrollEnabled,
+            isSearchThisLocationBtnVisible,
             layers,
         } = this.state;
-        const { captureClickTarget, map, navigation, user } = this.props;
+        const { captureClickTarget, location, map, navigation, user } = this.props;
         const searchPredictionResults = map?.searchPredictions?.results || [];
         const isDropdownVisible = map?.searchPredictions?.isSearchDropdownVisible;
 
@@ -813,13 +896,15 @@ class Map extends React.Component<IMapProps, IMapState> {
                                     longitudeDelta: map.hasUserLocationLoaded ? PRIMARY_LONGITUDE_DELTA : INITIAL_LONGITUDE_DELTA,
                                 }}
                                 onPress={this.handleMapPress}
+                                onRegionChange={this.onRegionChange}
+                                onRegionChangeComplete={this.onRegionChangeComplete}
+                                onUserLocationChange={this.onUserLocationChange}
                                 showsUserLocation={true}
                                 showsBuildings={true}
                                 showsMyLocationButton={false}
                                 showsCompass={false}
                                 followsUserLocation={shouldFollowUserLocation}
                                 scrollEnabled={isScrollEnabled}
-                                onUserLocationChange={this.onUserLocationChange}
                                 minZoomLevel={MIN_ZOOM_LEVEL}
                                 /* react-native-map-clustering */
                                 clusterColor={therrTheme.colors.primary2}
@@ -837,6 +922,10 @@ class Map extends React.Component<IMapProps, IMapState> {
                                     map.moments.map((moment) => {
                                         return (
                                             <Marker
+                                                anchor={{
+                                                    x: 0.5,
+                                                    y: 0.5,
+                                                }}
                                                 key={moment.id}
                                                 coordinate={{
                                                     longitude: moment.longitude,
@@ -844,7 +933,11 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 }}
                                                 onPress={this.handleMapPress}
                                                 stopPropagation={true}
-                                            />
+                                            >
+                                                <View>
+                                                    <CameraMarkerIcon />
+                                                </View>
+                                            </Marker>
                                         );
                                     })
                                 }
@@ -853,6 +946,10 @@ class Map extends React.Component<IMapProps, IMapState> {
                                     map.myMoments.map((moment) => {
                                         return (
                                             <Marker
+                                                anchor={{
+                                                    x: 0.5,
+                                                    y: 0.5,
+                                                }}
                                                 key={moment.id}
                                                 coordinate={{
                                                     longitude: moment.longitude,
@@ -860,7 +957,11 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 }}
                                                 onPress={this.handleMapPress}
                                                 stopPropagation={true}
-                                            />
+                                            >
+                                                <View style={{ transform: [{ translateY: 0 }] }}>
+                                                    <CameraMarkerIcon />
+                                                </View>
+                                            </Marker>
                                         );
                                     })
                                 }
@@ -940,6 +1041,13 @@ class Map extends React.Component<IMapProps, IMapState> {
                             </AnimatedOverlay>
                         </>
                     )}
+                    {
+                        (isSearchThisLocationBtnVisible && !isDropdownVisible) &&
+                        <SearchThisAreaButtonGroup
+                            handleSearchLocation={this.handleSearchThisLocation}
+                            translate={this.translate}
+                        />
+                    }
                 </SafeAreaView>
                 {
                     isLocationReady && isMinLoadTimeComplete && areButtonsVisible &&
@@ -950,6 +1058,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                             handleCreateMoment={this.handleCreateMoment}
                             handleGpsRecenter={this.handleGpsRecenterPress}
                             isAuthorized={this.isAuthorized}
+                            isGpsEnabled={location?.settings?.isGpsEnabled}
                         />
                         <FiltersButtonGroup
                             goToMoments={this.goToMoments}

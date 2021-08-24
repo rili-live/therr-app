@@ -48,16 +48,25 @@ const leftSmallButton1ViewStyles: any = {
     padding: 0,
 };
 
+const buttonGroupStyles: any = {
+    width: '100%',
+    position: 'absolute',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    paddingVertical: 4,
+};
+
 export default StyleSheet.create({
     buttonGroup: {
-        width: '100%',
-        position: 'absolute',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        flexDirection: 'row',
+        ...buttonGroupStyles,
         bottom: 40 + buttonMenuHeight - collapseOffset,
-        paddingVertical: 4,
+    },
+    buttonGroupTop: {
+        ...buttonGroupStyles,
+        top: 10,
+        zIndex: 100,
     },
     buttonGroupContainer: {
         display: 'flex',
@@ -96,11 +105,21 @@ export default StyleSheet.create({
     searchFiltersButton: {
         ...btnGroupBtnStyles,
     },
+    searchThisAreaButton: {
+        ...btnGroupBtnStyles,
+        paddingHorizontal: 15,
+        backgroundColor: therrTheme.colors.beemo1,
+    },
     searchFiltersTitle: {
         color: therrTheme.colors.beemoTextWhite,
         paddingLeft: 5,
         fontSize: 14,
         lineHeight: 18,
+    },
+    searchThisAreaTitle: {
+        color: therrTheme.colors.beemoTextWhite,
+        fontSize: 12,
+        lineHeight: 13,
     },
     addMoment: {
         position: 'absolute',

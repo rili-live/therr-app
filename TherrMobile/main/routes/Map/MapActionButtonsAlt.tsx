@@ -9,6 +9,7 @@ interface MapActionButtonsAltProps {
     handleCreateMoment: any;
     handleGpsRecenter: any;
     isAuthorized: any;
+    isGpsEnabled: any;
     goToMap?: any;
     goToMoments?: any;
     goToNotifications: any;
@@ -18,9 +19,10 @@ export default ({
     handleCreateMoment,
     handleGpsRecenter,
     isAuthorized,
+    isGpsEnabled,
     goToNotifications,
 }: MapActionButtonsAltProps) => {
-    const shouldShowCreateButton = isAuthorized();
+    const shouldShowCreateButton = isAuthorized() && isGpsEnabled;
 
     return (
         <>
@@ -60,7 +62,7 @@ export default ({
                     buttonStyle={buttonStyles.btn}
                     icon={
                         <MaterialIcon
-                            name="gps-fixed"
+                            name={ isGpsEnabled ? 'gps-fixed' : 'gps-off' }
                             size={28}
                             style={buttonStyles.btnIcon}
                         />

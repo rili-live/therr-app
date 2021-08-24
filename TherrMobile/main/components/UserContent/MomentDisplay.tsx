@@ -143,6 +143,7 @@ export default class MomentDisplay extends React.Component<IMomentDisplayProps, 
                         hashtags={hashtags}
                         onHashtagPress={() => {}}
                         visibleCount={20}
+                        right
                     />
                 </View>
             </>
