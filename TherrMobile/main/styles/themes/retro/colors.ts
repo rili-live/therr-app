@@ -74,6 +74,7 @@ const colorVariations = {
 
     // Background
     backgroundNeutral: new Color(colors.backgroundNeutral).darken(0.1).toString(),
+    backgroundNeutralLighter: new Color(colors.backgroundNeutral).lighten(0.05).toString(),
 };
 
 export default colors;

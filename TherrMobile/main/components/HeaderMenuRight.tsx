@@ -16,7 +16,7 @@ import translator from '../services/translator';
 import { ILocationState } from '../types/redux/location';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
 
-const ANIMATION_DURATION = 200;
+const ANIMATION_DURATION = 180;
 
 // const TherrIcon = createIconSetFromIcoMoon(
 //     therrIconConfig,
@@ -202,7 +202,7 @@ class HeaderMenuRight extends React.Component<
                                     <FontAwesomeIcon
                                         style={headerMenuModal.logoutIcon}
                                         name="sign-out-alt"
-                                        size={20}
+                                        size={18}
                                     />
                                 }
                                 onPress={() => this.handleLogout()}
@@ -268,7 +268,7 @@ class HeaderMenuRight extends React.Component<
                                                             : headerMenuModal.iconStyle
                                                     }
                                                     name="home"
-                                                    size={20}
+                                                    size={18}
                                                 />
                                             }
                                             iconRight
@@ -294,7 +294,7 @@ class HeaderMenuRight extends React.Component<
                                                             : headerMenuModal.iconStyle
                                                     }
                                                     name="globe-americas"
-                                                    size={20}
+                                                    size={18}
                                                 />
                                             }
                                             onPress={() => this.navTo('Map')}
@@ -319,15 +319,12 @@ class HeaderMenuRight extends React.Component<
                                                             : headerMenuModal.iconStyle
                                                     }
                                                     name="watch"
-                                                    size={20}
+                                                    size={18}
                                                 />
                                             }
                                             onPress={() => this.navTo('Moments')}
                                         /> */}
                                         <View style={headerMenuModal.notificationsItemContainer}>
-                                            {
-                                                hasNotifications && <View style={headerMenuModal.notificationCircle} />
-                                            }
                                             <Button
                                                 buttonStyle={
                                                     currentScreen === 'Notifications'
@@ -349,12 +346,15 @@ class HeaderMenuRight extends React.Component<
                                                                 : headerMenuModal.iconStyle
                                                         }
                                                         name={hasNotifications ? 'bell' : 'bell-slash'}
-                                                        size={20}
+                                                        size={18}
                                                     />
                                                 }
                                                 iconRight
                                                 onPress={() => this.navTo('Notifications')}
                                             />
+                                            {
+                                                hasNotifications && <View style={headerMenuModal.notificationCircle} />
+                                            }
                                         </View>
                                         <Button
                                             buttonStyle={
@@ -376,7 +376,7 @@ class HeaderMenuRight extends React.Component<
                                                             : headerMenuModal.iconStyle
                                                     }
                                                     name="user-plus"
-                                                    size={20}
+                                                    size={18}
                                                 />
                                             }
                                             iconRight
@@ -402,7 +402,7 @@ class HeaderMenuRight extends React.Component<
                                                             : headerMenuModal.iconStyle
                                                     }
                                                     name="chat"
-                                                    size={20}
+                                                    size={18}
                                                 />
                                             }
                                             onPress={() => this.navTo('HostedChat')}
@@ -427,7 +427,7 @@ class HeaderMenuRight extends React.Component<
                                                             : headerMenuModal.iconStyle
                                                     }
                                                     name="users"
-                                                    size={20}
+                                                    size={18}
                                                 />
                                             }
                                             onPress={() => this.navTo('ActiveConnections')}
@@ -452,7 +452,7 @@ class HeaderMenuRight extends React.Component<
                                                             : headerMenuModal.iconStyle
                                                     }
                                                     name="user-cog"
-                                                    size={20}
+                                                    size={18}
                                                 />
                                             }
                                             iconRight
@@ -469,7 +469,7 @@ class HeaderMenuRight extends React.Component<
                                                 <FontAwesomeIcon
                                                     style={headerMenuModal.iconStyle}
                                                     name="sign-out-alt"
-                                                    size={20}
+                                                    size={18}
                                                 />
                                             }
                                             onPress={() => this.handleLogout(hideModal)}

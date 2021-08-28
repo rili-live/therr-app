@@ -20,8 +20,12 @@ interface IHeaderSearchInputDispatchProps extends InputProps {
     setSearchDropdownVisibility: Function;
 }
 
-interface IHeaderSearchInputProps extends IHeaderSearchInputDispatchProps {
+interface IHeaderSearchInputStoreProps extends IHeaderSearchInputDispatchProps {
     map: IMapReduxState;
+}
+
+interface IHeaderSearchInputProps extends IHeaderSearchInputStoreProps {
+    icon: String;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -139,6 +143,7 @@ export class HeaderSearchInput<IHeaderSearchInputProps> extends RoundInput {
     }
 
     render() {
+        const { icon } = this.props;
 
         return (
             <RoundInput
@@ -151,7 +156,7 @@ export class HeaderSearchInput<IHeaderSearchInputProps> extends RoundInput {
                 placeholder={this.translate('components.header.searchInput.placeholder')}
                 rightIcon={
                     <MaterialIcon
-                        name="search"
+                        name={icon}
                         size={22}
                         color={therrTheme.colors.primary3}
                     />

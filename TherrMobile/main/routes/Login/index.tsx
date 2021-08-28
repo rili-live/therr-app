@@ -124,10 +124,13 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                         contentContainerStyle={styles.bodyScroll}
                     >
                         {
-                            this.cachedUserId
-                            && <View style={[mixins.flexCenter, mixins.marginMediumBot]}>
-                                <Image source={{ uri: `https://robohash.org/${this.cachedUserId}?size=200x200` }} loaderSize="large" />
-                            </View>
+                            this.cachedUserId ?
+                                <View style={[mixins.flexCenter, mixins.marginMediumBot, mixins.marginMediumTop]}>
+                                    <Image source={{ uri: `https://robohash.org/${this.cachedUserId}?size=200x200` }} loaderSize="large" />
+                                </View> :
+                                <View style={[mixins.flexCenter, mixins.marginMediumBot, mixins.marginMediumTop]}>
+                                    <Image source={require('../../assets/profile-placeholder-white.png')} loaderSize="large" />
+                                </View>
                         }
                         <LoginForm login={this.props.login} navigation={this.props.navigation} userMessage={userMessage} />
                     </KeyboardAwareScrollView>

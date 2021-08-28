@@ -96,7 +96,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerTitle: () => <HeaderSearchInput />,
+            headerTitle: () => <HeaderSearchInput icon="search" />,
         }),
     },
     {
@@ -108,7 +108,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerTitle: () => <HeaderSearchInput />,
+            headerTitle: () => <HeaderSearchInput icon="tune" />,
         }),
     },
     {

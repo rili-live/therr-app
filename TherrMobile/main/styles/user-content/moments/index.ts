@@ -36,7 +36,7 @@ export default StyleSheet.create({
         flex: 1,
         overflow: 'hidden',
         paddingBottom: 10,
-        backgroundColor: therrTheme.colors.backgroundNeutral,
+        backgroundColor: therrTheme.colorVariations.backgroundNeutralLighter,
         marginVertical: dividerHeight / 2,
         marginHorizontal: dividerHeight,
         borderRadius: 2,

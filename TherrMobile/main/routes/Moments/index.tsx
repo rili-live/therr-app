@@ -17,7 +17,6 @@ import translator from '../../services/translator';
 import MomentCarousel from './MomentCarousel';
 import MainButtonMenuAlt from '../../components/ButtonMenu/MainButtonMenuAlt';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import FiltersButtonGroup from '../../components/FiltersButtonGroup';
 import carLoader from '../../assets/sports-car.json';
 
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
@@ -172,10 +171,6 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
                     }
                 </SafeAreaView>
                 {/* <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} /> */}
-                <FiltersButtonGroup
-                    goToMap={this.goToMap}
-                    translate={this.translate}
-                />
                 <MainButtonMenuAlt
                     navigation={navigation}
                     onActionButtonPress={this.scrollTop}

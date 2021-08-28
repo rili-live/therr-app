@@ -1,5 +1,5 @@
 import React from 'react';
-import { RefreshControl, View, /* Platform, */ FlatList } from 'react-native';
+import { RefreshControl, View, /* Platform, */ FlatList, Pressable } from 'react-native';
 // import Carousel from 'react-native-snap-carousel';
 import styles from '../../styles';
 import momentStyles from '../../styles/user-content/moments';
@@ -17,8 +17,9 @@ const renderItem = ({ item: moment }, {
     const momentMedia = content?.media[moment.media && moment.media[0]?.id];
 
     return (
-        <View
+        <Pressable
             style={momentStyles.momentContainer}
+            onPress={() => expandMoment(moment)}
         >
             <MomentDisplay
                 translate={translate}
@@ -33,7 +34,7 @@ const renderItem = ({ item: moment }, {
                 momentMedia={momentMedia}
                 isDarkMode={false}
             />
-        </View>
+        </Pressable>
     );
 };
 

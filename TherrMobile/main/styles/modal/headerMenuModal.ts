@@ -57,11 +57,14 @@ export default StyleSheet.create({
         justifyContent: 'center',
     },
     notificationCircle: {
+        position: 'absolute',
+        top: 7,
+        right: 14,
         borderWidth: 4,
-        borderRadius: 2,
+        borderRadius: 3,
         width: 4,
         height: 4,
-        borderColor: therrTheme.colors.ternary,
+        borderColor: therrTheme.colors.brandingOrange,
     },
     overlayContainer: {
         backgroundColor: containerBackgroundColor,

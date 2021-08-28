@@ -130,7 +130,7 @@ export default class MomentDisplay extends React.Component<IMomentDisplayProps, 
                         TouchableComponent={TouchableWithoutFeedbackComponent}
                     />
                 </View>
-                <Text style={this.viewMomentStyles.momentMessage}>
+                <Text style={this.viewMomentStyles.momentMessage} numberOfLines={3}>
                     <Autolink
                         text={moment.message}
                         linkStyle={styles.link}

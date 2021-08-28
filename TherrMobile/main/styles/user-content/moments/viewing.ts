@@ -4,6 +4,7 @@ import * as therrTheme from '../../themes';
 const momentUserAvatarImgPadding = 2;
 const momentUserAvatarImgWidth = 52 - (2 * momentUserAvatarImgPadding);
 const momentUserAvatarImgRadius = momentUserAvatarImgWidth / 2;
+const contentTitleContainerHeight = 38;
 
 const getViewingMomentStyles = ({
     isDarkMode,
@@ -106,6 +107,7 @@ const getViewingMomentStyles = ({
         paddingBottom: 0,
         paddingHorizontal: 2,
         position: 'relative',
+        maxHeight: contentTitleContainerHeight,
     },
     momentContentTitle: {
         flex: 1,
@@ -113,11 +115,12 @@ const getViewingMomentStyles = ({
         // position: 'absolute',
         fontSize: 18,
         // top: 10,
-        paddingVertical: 4,
+        paddingVertical: ((contentTitleContainerHeight - 18) / 2) - 3,
         paddingHorizontal: 6,
+        height: '100%',
     },
     momentMessage: {
-        fontSize: 16,
+        fontSize: 15,
         color: isDarkMode ? therrTheme.colors.beemoTextWhite : therrTheme.colors.tertiary,
         overflow: 'scroll',
         width: '100%',
