@@ -5,6 +5,7 @@ import redisClient from '../../../store/redisClient';
 
 const limitReachedStatusCode = 429;
 const limitReachedMessage = 'Too many login attempts, please try again later.';
+const feedbackLimitReachedMessage = 'Too many requests to send feedback.';
 const subscribeLimitReachedMessage = 'Too many requests to subscribe.';
 
 const loginAttemptLimiter = new RateLimit({
@@ -22,7 +23,7 @@ const loginAttemptLimiter = new RateLimit({
     }),
 });
 
-const subscribeAttemptLimiter = new RateLimit({
+const buildRateLimiter = (msg) => new RateLimit({
     store: new RedisStore({
         client: redisClient,
     }),
@@ -32,12 +33,16 @@ const subscribeAttemptLimiter = new RateLimit({
     keyGenerator: (req) => `${req.method}${req.path}${req.ip}`,
     handler: (req, res) => handleHttpError({
         res,
-        message: subscribeLimitReachedMessage,
+        message: msg,
         statusCode: limitReachedStatusCode,
     }),
 });
 
+const feedbackAttemptLimiter = buildRateLimiter(feedbackLimitReachedMessage);
+const subscribeAttemptLimiter = buildRateLimiter(subscribeLimitReachedMessage);
+
 export {
     loginAttemptLimiter,
+    feedbackAttemptLimiter,
     subscribeAttemptLimiter,
 };
