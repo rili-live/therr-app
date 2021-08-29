@@ -4,9 +4,38 @@ import printLogs from 'therr-js-utilities/print-logs';
 import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
+import sendUserFeedbackEmail from '../api/email/sendUserFeedbackEmail';
 import sendSubscriberVerificationEmail from '../api/email/sendSubscriberVerificationEmail';
 
 // CREATE
+const createFeedback: RequestHandler = (req: any, res: any) => {
+    const fromUserId = req.headers['x-userid'];
+    return sendUserFeedbackEmail({
+        subject: '[Therr] New User Feedback',
+        toAddresses: [process.env.AWS_SES_FROM_EMAIL],
+    }, {
+        fromUserId,
+        feedback: req.body.feedback,
+    }).catch((error) => {
+        printLogs({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: ['Feedback message email failed', error?.message],
+            tracer: beeline,
+            traceArgs: {
+                userEmail: req.body.email,
+            },
+        });
+    }).then(() => {
+        return res.status(201).send();
+    }).catch((err) => handleHttpError({
+        err,
+        res,
+        message: 'SQL:USER_ROUTES:ERROR',
+    }));
+    
+};
+
 const createSubscriber: RequestHandler = (req: any, res: any) => {
     if (!req.body.email) {
         return handleHttpError({
@@ -55,5 +84,6 @@ const createSubscriber: RequestHandler = (req: any, res: any) => {
 };
 
 export {
+    createFeedback,
     createSubscriber,
 };
