@@ -12,7 +12,7 @@ const createFeedback: RequestHandler = (req: any, res: any) => {
     const fromUserId = req.headers['x-userid'];
     return sendUserFeedbackEmail({
         subject: '[Therr] New User Feedback',
-        toAddresses: [process.env.AWS_SES_FROM_EMAIL],
+        toAddresses: [process.env.AWS_SES_FROM_EMAIL as any],
     }, {
         fromUserId,
         feedback: req.body.feedback,
@@ -26,14 +26,11 @@ const createFeedback: RequestHandler = (req: any, res: any) => {
                 userEmail: req.body.email,
             },
         });
-    }).then(() => {
-        return res.status(201).send();
-    }).catch((err) => handleHttpError({
+    }).then(() => res.status(201).send()).catch((err) => handleHttpError({
         err,
         res,
         message: 'SQL:USER_ROUTES:ERROR',
     }));
-    
 };
 
 const createSubscriber: RequestHandler = (req: any, res: any) => {

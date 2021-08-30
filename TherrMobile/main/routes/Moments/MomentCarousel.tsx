@@ -25,7 +25,7 @@ const renderItem = ({ item: moment }, {
                 translate={translate}
                 date={formattedDate}
                 expandMoment={expandMoment}
-                hashtags={['todo']}
+                hashtags={moment.hashTags ? moment.hashTags.split(",") : []}
                 moment={moment}
                 // TODO: Get username from response
                 userDetails={{

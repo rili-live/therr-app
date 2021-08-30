@@ -6,6 +6,17 @@ const momentUserAvatarImgWidth = 52 - (2 * momentUserAvatarImgPadding);
 const momentUserAvatarImgRadius = momentUserAvatarImgWidth / 2;
 const contentTitleContainerHeight = 38;
 
+const buttonContainerStyles: any = {
+    display: 'flex',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+};
+
+const buttonStyle: any = {
+    height: '100%',
+};
+
 const getViewingMomentStyles = ({
     isDarkMode,
 }) => StyleSheet.create({
@@ -89,13 +100,16 @@ const getViewingMomentStyles = ({
         color: isDarkMode ? therrTheme.colors.beemoTextWhite : therrTheme.colors.tertiary,
     },
     moreButtonContainer: {
-        display: 'flex',
-        height: '100%',
-        alignItems: 'center',
-        justifyContent: 'center',
+        ...buttonContainerStyles,
     },
     moreButton: {
-        height: '100%',
+        ...buttonStyle,
+    },
+    bookmarkButtonContainer: {
+        ...buttonContainerStyles,
+    },
+    bookmarkButton: {
+        ...buttonStyle,
     },
     momentContentTitleContainer: {
         display: 'flex',
@@ -118,6 +132,7 @@ const getViewingMomentStyles = ({
         paddingVertical: ((contentTitleContainerHeight - 18) / 2) - 3,
         paddingHorizontal: 6,
         height: '100%',
+        fontWeight: 'bold',
     },
     momentMessage: {
         fontSize: 15,
