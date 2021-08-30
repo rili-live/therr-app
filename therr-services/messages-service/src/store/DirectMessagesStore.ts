@@ -48,7 +48,7 @@ export default class DirectMessagesStore {
         let queryString: any = knexBuilder
             .select((returning && returning.length) ? returning : '*')
             .from(DIRECT_MESSAGES_TABLE_NAME)
-            .orderBy(`${DIRECT_MESSAGES_TABLE_NAME}.updatedAt`);
+            .orderBy(`${DIRECT_MESSAGES_TABLE_NAME}.updatedAt`, 'desc');
 
         if (conditions.filterBy && conditions.query) {
             const operator = conditions.filterOperator || '=';

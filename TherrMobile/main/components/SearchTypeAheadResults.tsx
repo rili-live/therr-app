@@ -38,6 +38,7 @@ export default ({
                 keyExtractor={(item) => String(item.place_id)}
                 renderItem={({ item }) => renderListItem(item, { handleSelect, styles })}
                 ItemSeparatorComponent={() => <View style={styles.separator} />}
+                keyboardShouldPersistTaps="always"
                 // ref={(component) => (this.flatListRef = component)}
                 // style={styles.stretch}
                 // onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}

@@ -1,6 +1,6 @@
 import React from 'react';
-import { SafeAreaView, ActivityIndicator, FlatList, View, Text } from 'react-native';
-import { Button, Image } from 'react-native-elements';
+import { SafeAreaView, FlatList, View } from 'react-native';
+import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { connect } from 'react-redux';
@@ -118,9 +118,15 @@ class DirectMessage extends React.Component<
         }
     };
 
+    isFirstOfMessage = (messages, index) => {
+        if (!messages[index + 1]) { return true; }
+
+        return messages[index].fromUserName !== messages[index + 1].fromUserName;
+    }
+
     render() {
         const { msgInputVal } = this.state;
-        const { messages, route } = this.props;
+        const { messages, route, user } = this.props;
         const { connectionDetails } = route.params;
         const dms = messages.dms ? (messages.dms[connectionDetails.id] || []) : [];
 
@@ -129,31 +135,22 @@ class DirectMessage extends React.Component<
                 <BaseStatusBar />
                 <SafeAreaView style={[styles.safeAreaView]}>
                     <View style={messageStyles.container}>
-                        <View style={styles.body}>
-                            <View style={messageStyles.sectionContainer}>
-                                <Image
-                                    source={{ uri: `https://robohash.org/${connectionDetails.id}?size=50x50` }}
-                                    style={messageStyles.userImage}
-                                    PlaceholderContent={<ActivityIndicator />}
-                                />
-                                <Text style={styles.sectionTitle}>
-                                    {connectionDetails.firstName}{' '}
-                                    {connectionDetails.lastName}
-                                </Text>
-                            </View>
-                        </View>
                         <FlatList
                             data={dms}
+                            inverted
                             keyExtractor={(item) => String(item.key)}
-                            renderItem={({ item }) => (
+                            renderItem={({ item, index }) => (
                                 <TextMessage
+                                    connectionDetails={connectionDetails}
+                                    userDetails={user.details}
                                     message={item}
-                                    isLeft={item.fromUserName && item.fromUserName.toLowerCase().includes('you')}
+                                    isLeft={!item.fromUserName?.toLowerCase().includes('you')}
+                                    isFirstOfMessage={this.isFirstOfMessage(dms, index)}
                                 />
                             )}
                             ref={(component) => (this.flatListRef = component)}
                             style={styles.stretch}
-                            onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}
+                            // onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}
                         />
                         <View style={messageStyles.sendInputsContainer}>
                             <RoundInput

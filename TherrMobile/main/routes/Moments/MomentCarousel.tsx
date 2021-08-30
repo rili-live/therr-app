@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, /* Platform, */ FlatList } from 'react-native';
+import { RefreshControl, View, /* Platform, */ FlatList, Pressable } from 'react-native';
 // import Carousel from 'react-native-snap-carousel';
 import styles from '../../styles';
 import momentStyles from '../../styles/user-content/moments';
@@ -17,14 +17,15 @@ const renderItem = ({ item: moment }, {
     const momentMedia = content?.media[moment.media && moment.media[0]?.id];
 
     return (
-        <View
+        <Pressable
             style={momentStyles.momentContainer}
+            onPress={() => expandMoment(moment)}
         >
             <MomentDisplay
                 translate={translate}
                 date={formattedDate}
                 expandMoment={expandMoment}
-                hashtags={['todo']}
+                hashtags={moment.hashTags ? moment.hashTags.split(",") : []}
                 moment={moment}
                 // TODO: Get username from response
                 userDetails={{
@@ -33,7 +34,7 @@ const renderItem = ({ item: moment }, {
                 momentMedia={momentMedia}
                 isDarkMode={false}
             />
-        </View>
+        </Pressable>
     );
 };
 
@@ -47,10 +48,17 @@ export default ({
     content,
     expandMoment,
     containerRef,
+    handleRefresh,
     translate,
     // viewportHeight,
     // viewportWidth,
 }) => {
+    const [refreshing, setRefreshing] = React.useState(false);
+
+    const onRefresh = React.useCallback(() => {
+        setRefreshing(true);
+        handleRefresh().finally(() => setRefreshing(false));
+    }, [handleRefresh]);
 
     // if (Platform.OS === 'ios') {
     //     return (
@@ -96,6 +104,10 @@ export default ({
                     containerRef && containerRef(component);
                     return component;
                 }}
+                refreshControl={<RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                />}
                 style={[styles.stretch, momentStyles.momentCarousel]}
                 // onContentSizeChange={() => content.activeMoments?.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
             />

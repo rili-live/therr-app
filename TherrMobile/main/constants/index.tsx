@@ -5,7 +5,7 @@ const PRIMARY_LONGITUDE_DELTA = 0.00102;
 const MAX_LOAD_TIMEOUT = 5000;
 const MIN_LOAD_TIMEOUT = 250;
 const DEFAULT_MOMENT_PROXIMITY = 25;
-const MIN_ZOOM_LEVEL = 10; // Setting this too low may break animation to regions that excede the minimum zoom
+const MIN_ZOOM_LEVEL = 1; // Setting this too high may break animation to regions that excede the minimum zoom
 const MOMENTS_REFRESH_THROTTLE_MS = 30 * 1000;
 const LOCATION_PROCESSING_THROTTLE_MS = 5 * 1000;
 

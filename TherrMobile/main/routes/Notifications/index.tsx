@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, FlatList, View, Text } from 'react-native';
+import { RefreshControl, SafeAreaView, FlatList, View, Text } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -37,7 +37,9 @@ export interface INotificationsProps extends IStoreProps {
     navigation: any;
 }
 
-interface INotificationsState {}
+interface INotificationsState {
+    isRefreshing: boolean;
+}
 
 const mapStateToProps = (state) => ({
     notifications: state.notifications,
@@ -59,7 +61,9 @@ class Notifications extends React.Component<
     constructor(props) {
         super(props);
 
-        this.state = {};
+        this.state = {
+            isRefreshing: false,
+        };
 
         this.translate = (key: string, params: any): string =>
             translator('en-us', key, params);
@@ -111,8 +115,14 @@ class Notifications extends React.Component<
         this.flatListRef?.scrollToOffset({ animated: true, offset: 0 });
     }
 
+    handleRefresh = () => {
+        this.setState({ isRefreshing: true });
+        return Promise.resolve().finally(() => this.setState({ isRefreshing: false }));
+    }
+
     render() {
         const { navigation, notifications, user } = this.props;
+        const { isRefreshing } = this.state;
 
         return (
             <>
@@ -139,6 +149,10 @@ class Notifications extends React.Component<
                                     index: 0,
                                     animated: true,
                                 })}
+                                refreshControl={<RefreshControl
+                                    refreshing={isRefreshing}
+                                    onRefresh={this.handleRefresh}
+                                />}
                                 style={notificationStyles.container}
                             />
                         ) :
