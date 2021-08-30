@@ -18,10 +18,11 @@ import {
     createUserConnectionValidation,
 } from './validation/userConnections';
 import {
+    sendFeedbackValidation,
     subscribersSignupValidation,
 } from './validation/subscribers';
 import { updateNotificationValidation } from './validation/notifications';
-import { loginAttemptLimiter, subscribeAttemptLimiter } from './limitation/auth';
+import { feedbackAttemptLimiter, loginAttemptLimiter, subscribeAttemptLimiter } from './limitation/auth';
 
 const usersServiceRouter = express.Router();
 
@@ -130,6 +131,11 @@ usersServiceRouter.put('/users/notifications/:notificationId', updateNotificatio
 }));
 
 // Subscribers
+usersServiceRouter.post('/subscribers/send-feedback', feedbackAttemptLimiter, sendFeedbackValidation, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
 usersServiceRouter.post('/subscribers/signup', subscribeAttemptLimiter, subscribersSignupValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
