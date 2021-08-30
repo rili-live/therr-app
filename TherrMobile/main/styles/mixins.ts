@@ -1,6 +1,10 @@
 import { StyleSheet } from 'react-native';
 // import * as therrTheme from './themes';
 
+const SMALL = 10;
+const MEDIUM = 30;
+const LARGE = 55;
+
 export default StyleSheet.create({
     flexCenter: {
         display: 'flex',
@@ -9,12 +13,21 @@ export default StyleSheet.create({
         width: '100%',
     },
     marginSmallBot: {
-        marginBottom: 10,
+        marginBottom: SMALL,
     },
     marginMediumBot: {
-        marginBottom: 30,
+        marginBottom: MEDIUM,
     },
     marginLargeBot: {
-        marginBottom: 55,
+        marginBottom: LARGE,
+    },
+    marginSmallTop: {
+        marginTop: SMALL,
+    },
+    marginMediumTop: {
+        marginTop: MEDIUM,
+    },
+    marginLargeTop: {
+        marginTop: LARGE,
     },
 });

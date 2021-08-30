@@ -370,6 +370,9 @@
     },
     "filters": {
       "title": "Filters"
+    },
+    "searchThisArea": {
+      "title": "Search this area"
     }
   },
   "pages": {

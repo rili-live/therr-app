@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, SafeAreaView, Keyboard, Text, View } from 'react-native';
+import { Platform, Pressable, SafeAreaView, Keyboard, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button, Slider, Image } from 'react-native-elements';
@@ -321,11 +321,12 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 <SafeAreaView style={styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
+                        keyboardShouldPersistTaps="always"
                         ref={(component) => (this.scrollViewRef = component)}
                         style={[styles.bodyFlex, beemoLayoutStyles.bodyEdit]}
                         contentContainerStyle={[styles.bodyScroll, beemoLayoutStyles.bodyEditScroll]}
                     >
-                        <View style={beemoLayoutStyles.container}>
+                        <Pressable style={beemoLayoutStyles.container} onPress={Keyboard.dismiss}>
                             <View style={editMomentStyles.mediaContainer}>
                                 <Image
                                     source={{ uri: imageDetails.uri }}
@@ -379,6 +380,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     thumbTouchSize={{ width: 100, height: 100 }}
                                     minimumTrackTintColor={therrTheme.colorVariations.beemoBlueLightFade}
                                     maximumTrackTintColor={therrTheme.colorVariations.beemoBlueHeavyFade}
+                                    onSlidingStart={Keyboard.dismiss}
                                 />
                                 <Text style={formStyles.inputLabelDark}>
                                     {`${this.translate('forms.editMoment.labels.radius', { meters: inputs.radius })}`}
@@ -419,7 +421,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     this.onInputChange('expiresAt', text)
                                 }
                             /> */}
-                        </View>
+                        </Pressable>
                         {
                             !!previewLinkId
                             && <View style={[userContentStyles.preview, editMomentFormStyles.previewContainer, previewStyleState]}>

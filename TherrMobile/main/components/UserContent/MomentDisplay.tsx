@@ -116,8 +116,8 @@ export default class MomentDisplay extends React.Component<IMomentDisplayProps, 
                         {sanitizeNotificationMsg(moment.notificationMsg)}
                     </Text>
                     <Button
-                        containerStyle={this.viewMomentStyles.moreButtonContainer}
-                        buttonStyle={this.viewMomentStyles.moreButton}
+                        containerStyle={this.viewMomentStyles.bookmarkButtonContainer}
+                        buttonStyle={this.viewMomentStyles.bookmarkButton}
                         icon={
                             <Icon
                                 name="bookmark-border"
@@ -130,7 +130,7 @@ export default class MomentDisplay extends React.Component<IMomentDisplayProps, 
                         TouchableComponent={TouchableWithoutFeedbackComponent}
                     />
                 </View>
-                <Text style={this.viewMomentStyles.momentMessage}>
+                <Text style={this.viewMomentStyles.momentMessage} numberOfLines={3}>
                     <Autolink
                         text={moment.message}
                         linkStyle={styles.link}
@@ -142,7 +142,8 @@ export default class MomentDisplay extends React.Component<IMomentDisplayProps, 
                         hasIcon={false}
                         hashtags={hashtags}
                         onHashtagPress={() => {}}
-                        visibleCount={20}
+                        visibleCount={isExpanded ? 20 : 5}
+                        right
                     />
                 </View>
             </>

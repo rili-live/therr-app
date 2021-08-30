@@ -38,7 +38,7 @@ const messages = (state: IMessagesState = initialState, action: any) => {
         case SocketServerActionTypes.SEND_DIRECT_MESSAGE:
             const directMessages = (state.dms[action.data.contextUserId] // eslint-disable-line no-case-declarations
                 && state.dms[action.data.contextUserId].asMutable()) || [];
-            directMessages.push(action.data.message);
+            directMessages.unshift(action.data.message);
             return state.setIn(['dms', action.data.contextUserId], directMessages);
         case SocketClientActionTypes.LOGOUT:
             return state.setIn(['forums'], Immutable.from([]))

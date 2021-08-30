@@ -219,7 +219,7 @@ export default StyleSheet.create({
     },
     headerTitleStyle: {
         fontSize: 18,
-        fontFamily: Platform.OS === 'ios' ? 'Helvetica' : 'sans-serif',
+        fontFamily: Platform.OS === 'ios' ? 'Helvetica' : 'monospace',
         alignSelf: 'center',
         textAlign: 'center',
         justifyContent: 'center',
@@ -227,7 +227,7 @@ export default StyleSheet.create({
         letterSpacing: Platform.OS === 'ios' ? 3 : 4,
         lineHeight: HEADER_HEIGHT,
         overflow: 'hidden',
-        fontWeight: Platform.OS === 'ios' ? '400' : '400',
+        fontWeight: Platform.OS === 'ios' ? '400' : 'bold',
     },
     highlight: {
         fontWeight: '700',

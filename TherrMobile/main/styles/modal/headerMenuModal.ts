@@ -17,10 +17,14 @@ export default StyleSheet.create({
     buttons: {
         backgroundColor: 'transparent',
         height: HEADER_HEIGHT - HEADER_EXTRA_HEIGHT,
+        display: 'flex',
+        justifyContent: 'space-between',
     },
     buttonsActive: {
         backgroundColor: 'transparent',
         height: HEADER_HEIGHT - HEADER_EXTRA_HEIGHT,
+        display: 'flex',
+        justifyContent: 'space-between',
     },
     buttonsTitle: {
         backgroundColor: 'transparent',
@@ -38,11 +42,13 @@ export default StyleSheet.create({
         color: therrTheme.colors.beemoAlt,
         // position: 'absolute',
         // left: 20
+        paddingRight: 10,
     },
     iconStyleActive: {
         color: therrTheme.colors.primary,
         // position: 'absolute',
         // left: 20
+        paddingRight: 10,
     },
     notificationsItemContainer: {
         display: 'flex',
@@ -51,11 +57,14 @@ export default StyleSheet.create({
         justifyContent: 'center',
     },
     notificationCircle: {
+        position: 'absolute',
+        top: 7,
+        right: 14,
         borderWidth: 4,
-        borderRadius: 2,
+        borderRadius: 3,
         width: 4,
         height: 4,
-        borderColor: therrTheme.colors.ternary,
+        borderColor: therrTheme.colors.brandingOrange,
     },
     overlayContainer: {
         backgroundColor: containerBackgroundColor,
