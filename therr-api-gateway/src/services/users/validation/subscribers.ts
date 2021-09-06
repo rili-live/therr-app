@@ -3,7 +3,7 @@ import {
 } from 'express-validator/check'; // eslint-disable-line import/extensions
 
 export const sendFeedbackValidation = [
-    body('feedbacok').exists().isString(),
+    body('feedback').exists().isString(),
 ];
 
 export const subscribersSignupValidation = [

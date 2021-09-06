@@ -92,6 +92,14 @@ class UsersService {
         url: '/users-service/auth/logout',
         data,
     })
+
+    sendFeedback = (feedback: string) => axios({
+        method: 'post',
+        url: '/users-service/subscribers/send-feeback',
+        data: {
+            feedback,
+        },
+    })
 }
 
 export default new UsersService();
