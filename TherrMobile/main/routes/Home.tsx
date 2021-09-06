@@ -9,7 +9,7 @@ import Alert from '../components/Alert';
 import BeemoTextInput from '../components/TextInput/Beemo';
 import MainButtonMenuAlt from '../components/ButtonMenu/MainButtonMenuAlt';
 import UsersActions from '../redux/actions/UsersActions';
-import UsersService from '../redux/services/UsersService';
+import { UsersService } from 'therr-react/services';
 import translator from '../services/translator';
 import BaseStatusBar from '../components/BaseStatusBar';
 import styles, { addMargins } from '../styles';
@@ -99,21 +99,21 @@ class Home extends React.Component<IHomeProps, IHomeState> {
     onSubmit = () => {
         const { inputs } = this.state;
 
-        UsersService.sendFeedback(inputs.feedback)
-            .then(() => {
+        UsersService.sendFeedback(inputs.feedbackMessage)
+            .then((response) => {
+                console.log(response);
                 this.setState({
                     inputs: {
-                        feedback: '',
+                        feedbackMessage: '',
                     },
                     prevReqSuccess: this.translate('pages.userProfile.messages.success'),
                 });
             })
             .catch((error) => {
-                if (error.statusCode === 400 || error.statusCode === 404) {
-                    this.setState({
-                        prevReqError: this.translate('pages.userProfile.messages.error'),
-                    });
-                }
+                console.log(error);
+                this.setState({
+                    prevReqError: this.translate('pages.userProfile.messages.error'),
+                });
             });
     };
 
@@ -134,23 +134,6 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                         style={styles.scrollView}
                     >
                         <View style={styles.body}>
-                            <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitleCenter}>
-                                    {this.translate('pages.userProfile.h2.howItWorks')}
-                                </Text>
-                                <Text style={styles.sectionDescription}>
-                                    {this.translate('pages.userProfile.siteDescription1')}
-                                </Text>
-                                <Text style={styles.sectionDescription}>
-                                    {this.translate('pages.userProfile.siteDescription2')}
-                                </Text>
-                                <Text style={styles.sectionDescription}>
-                                    {this.translate('pages.userProfile.siteDescription3')}
-                                </Text>
-                                <Text style={styles.sectionDescription}>
-                                    {this.translate('pages.userProfile.siteDescription4')}
-                                </Text>
-                            </View>
                             <View style={styles.sectionContainer}>
                                 <Text style={styles.sectionTitleCenter}>
                                     {this.translate('pages.userProfile.h2.quoteOfTheDay')}
@@ -185,12 +168,29 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                     buttonStyle={formStyles.button}
                                     disabledStyle={formStyles.buttonDisabled}
                                     title={this.translate(
-                                        'forms.userProfile.buttons.send'
+                                        'pages.userProfile.buttons.send'
                                     )}
                                     onPress={this.onSubmit}
                                     disabled={this.isFormDisabled()}
                                     raised={false}
                                 />
+                            </View>
+                            <View style={styles.sectionContainer}>
+                                <Text style={styles.sectionTitleCenter}>
+                                    {this.translate('pages.userProfile.h2.howItWorks')}
+                                </Text>
+                                <Text style={styles.sectionDescription}>
+                                    {this.translate('pages.userProfile.siteDescription1')}
+                                </Text>
+                                <Text style={styles.sectionDescription}>
+                                    {this.translate('pages.userProfile.siteDescription2')}
+                                </Text>
+                                <Text style={styles.sectionDescription}>
+                                    {this.translate('pages.userProfile.siteDescription3')}
+                                </Text>
+                                <Text style={styles.sectionDescription}>
+                                    {this.translate('pages.userProfile.siteDescription4')}
+                                </Text>
                             </View>
                         </View>
                     </ScrollView>
