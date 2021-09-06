@@ -95,7 +95,7 @@ class UsersService {
 
     sendFeedback = (feedback: string) => axios({
         method: 'post',
-        url: '/users-service/subscribers/send-feeback',
+        url: '/users-service/subscribers/send-feedback',
         data: {
             feedback,
         },
