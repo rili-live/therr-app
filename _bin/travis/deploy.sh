@@ -13,11 +13,11 @@ if [ ! -z "$TRAVIS_PULL_REQUEST_BRANCH" ]; then
   DESTINATION_BRANCH=$TRAVIS_BRANCH
   echo "Destination branch is $TRAVIS_BRANCH"
 else
-  DESTINATION_BRANCH="master"
+  DESTINATION_BRANCH="main"
 fi
 
-# Only build the docker images when the source branch is stage or master
-if [[ ("$CURRENT_BRANCH" != "stage") && ("$CURRENT_BRANCH" != "master") ]]; then
+# Only build the docker images when the source branch is stage or main
+if [[ ("$CURRENT_BRANCH" != "stage") && ("$CURRENT_BRANCH" != "main") ]]; then
   echo "Skipping post build stage."
   exit 0
 fi
