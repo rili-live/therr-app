@@ -82,8 +82,6 @@ class Home extends React.Component<IHomeProps, IHomeState> {
     isFormDisabled = () => !this.state?.inputs?.feedbackMessage;
 
     onInputChange = (name: string, value: string) => {
-        let reqErrorMessage = '';
-
         const newInputChanges = {
             [name]: value,
         };
@@ -93,7 +91,6 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                 ...this.state.inputs,
                 ...newInputChanges,
             },
-            reqErrorMessage,
             prevReqError: '',
             prevReqSuccess: '',
         });
@@ -126,7 +123,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
 
     render() {
         const { navigation, user } = this.props;
-        const { prevReqSuccess, prevReqError } = this.state;
+        const { inputs, prevReqSuccess, prevReqError } = this.state;
 
         return (
             <>
