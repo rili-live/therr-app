@@ -122,6 +122,10 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         this.carouselRef?.scrollToOffset({ animated: true, offset: 0 });
     }
 
+    tryLoadMore = () => {
+        console.log('Try to load more');
+    }
+
     renderCarousel = (content) => {
         const { isLoading } = this.state;
 
@@ -148,6 +152,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
                     translate={this.translate}
                     containerRef={(component) => this.carouselRef = component}
                     handleRefresh={this.handleRefresh}
+                    onEndReached={this.tryLoadMore}
                     // viewportHeight={viewportHeight}
                     // viewportWidth={viewportWidth}
                 />
