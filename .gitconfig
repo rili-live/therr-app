@@ -27,9 +27,9 @@
 [branch "develop"]
     remote = origin
     merge = refs/heads/develop
-[branch "master"]
+[branch "main"]
     remote = origin
-    merge = refs/heads/master
+    merge = refs/heads/main
 [diff]
     tool = meld
     renameLimit = 999999
