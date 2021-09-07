@@ -8,18 +8,16 @@ const Content = {
             data: newActiveMoments,
         });
     },
-    searchActiveMoments: (options: ISearchActiveMomentsParams) => (dispatch: any) => ReactionsService.searchActiveMoments(options)
+    searchActiveMoments: (options: ISearchActiveMomentsParams, limit = 21) => (dispatch: any) => ReactionsService
+        .searchActiveMoments(options, limit)
         .then((response: any) => {
             dispatch({
                 type: ContentActionTypes.SEARCH_ACTIVE_MOMENTS,
                 data: response?.data,
             });
         }),
-    updateActiveMoments: () => (dispatch: any) => ReactionsService.searchActiveMoments({
-        offset: 0,
-        withMedia: true,
-        withUser: true,
-    })
+    updateActiveMoments: (options: ISearchActiveMomentsParams, limit = 21) => (dispatch: any) => ReactionsService
+        .searchActiveMoments(options, limit)
         .then((response: any) => {
             dispatch({
                 type: ContentActionTypes.UPDATE_ACTIVE_MOMENTS,
