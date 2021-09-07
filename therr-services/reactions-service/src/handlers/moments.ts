@@ -46,6 +46,11 @@ const searchActiveMoments: RequestHandler = async (req: any, res: any) => {
         .then((response) => res.status(200).send({
             moments: response?.data?.moments,
             media: response?.data?.media,
+            pagination: {
+                itemsPerPage: limit,
+                offset,
+                isLastPage: response?.data?.moments?.length < limit,
+            },
         }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
 };

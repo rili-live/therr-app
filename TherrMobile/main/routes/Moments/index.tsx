@@ -79,8 +79,12 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
             title: this.translate('pages.moments.headerTitle'),
         });
 
-        if (!content.activeMoments || !content.activeMoments.length || content.activeMoments.length < 21) {
-            updateActiveMoments().finally(() => {
+        if (!content?.activeMoments?.length || content.activeMoments.length < 21) {
+            updateActiveMoments({
+                withMedia: true,
+                withUser: true,
+                offset: 0,
+            }).finally(() => {
                 this.setState({
                     isLoading: false,
                 });
@@ -113,7 +117,11 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         const { updateActiveMoments } = this.props;
         this.setState({ isLoading: true });
 
-        return updateActiveMoments().finally(() => {
+        return updateActiveMoments({
+            withMedia: true,
+            withUser: true,
+            offset: 0,
+        }).finally(() => {
             this.setState({ isLoading: false });
         });
     }
@@ -123,7 +131,16 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
     }
 
     tryLoadMore = () => {
-        console.log('Try to load more');
+        const { content, searchActiveMoments } = this.props;
+        console.log('ZACK');
+
+        if (!content.activeMomentsPagination.isLastPage) {
+            return searchActiveMoments({
+                withMedia: true,
+                withUser: true,
+                offset: content.activeMomentsPagination.offset + content.activeMomentsPagination.itemsPerPage,
+            });
+        }
     }
 
     renderCarousel = (content) => {
