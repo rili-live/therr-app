@@ -111,7 +111,7 @@ export default ({
                 />}
                 style={[styles.stretch, momentStyles.momentCarousel]}
                 onEndReached={onEndReached}
-                onEndReachedThreshold={0.5}
+                onEndReachedThreshold={10}
                 // onContentSizeChange={() => content.activeMoments?.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
             />
         </>
