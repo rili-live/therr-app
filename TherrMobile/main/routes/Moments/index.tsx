@@ -132,7 +132,6 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
 
     tryLoadMore = () => {
         const { content, searchActiveMoments } = this.props;
-        console.log('ZACK');
 
         if (!content.activeMomentsPagination.isLastPage) {
             return searchActiveMoments({
