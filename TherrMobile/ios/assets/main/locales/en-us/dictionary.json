@@ -495,7 +495,8 @@
     "userProfile": {
       "buttons": {
         "createAForum": "Create a Forum",
-        "sendRequest": "Send Request"
+        "sendRequest": "Send Request",
+        "send": "Send"
       },
       "connectionSent": "You connection request is on the way!",
       "h2": {
@@ -503,11 +504,13 @@
         "connections": "Connections",
         "createConnection": "Create a Connection",
         "quoteOfTheDay": "Daily Words of Wisdom",
-        "howItWorks": "Welcome back!"
+        "howItWorks": "Welcome back!",
+        "shareFeedback": "Share Feedback"
       },
       "labels": {
         "email": "E-mail",
         "firstName": "Firstname",
+        "feedbackPlaceholder": "Tell us what you love or hate about the app...",
         "lastName": "Lastname",
         "phone": "Phone",
         "phoneNumber": "Phone Number",
@@ -522,6 +525,10 @@
       "requestRecommendation": "Send a request to make connections and build a network",
       "validationErrors": {
         "phoneNumber": "Invalid phone number"
+      },
+      "messages": {
+        "error": "An error occured while trying to send your feedback. Please try again later.",
+        "success": "Your feedback has been received. Thank you!"
       }
     }
   },

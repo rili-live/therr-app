@@ -12,7 +12,7 @@ const createFeedback: RequestHandler = (req: any, res: any) => {
     const fromUserId = req.headers['x-userid'];
     return sendUserFeedbackEmail({
         subject: '[Therr] New User Feedback',
-        toAddresses: [process.env.AWS_SES_FROM_EMAIL as any],
+        toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
     }, {
         fromUserId,
         feedback: req.body.feedback,

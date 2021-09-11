@@ -1,8 +1,8 @@
 # Therr App
-master: [![Build Status](https://travis-ci.org/rili-live/therr-app.svg?branch=master)](https://travis-ci.org/rili-live/therr-app) | stage: [![Build Status](https://travis-ci.org/rili-live/therr-app.svg?branch=stage)](https://travis-ci.org/rili-live/therr-app)
+main: [![Build Status](https://travis-ci.org/rili-live/therr-app.svg?branch=main)](https://travis-ci.org/rili-live/therr-app) | stage: [![Build Status](https://travis-ci.org/rili-live/therr-app.svg?branch=stage)](https://travis-ci.org/rili-live/therr-app)
 #
 ## Mobile Build
-master: [![Build status](https://build.appcenter.ms/v0.1/apps/0f4a527c-5807-47dc-bea5-ff66fbdab26c/branches/master/badge)](https://appcenter.ms)
+main: [![Build status](https://build.appcenter.ms/v0.1/apps/0f4a527c-5807-47dc-bea5-ff66fbdab26c/branches/main/badge)](https://appcenter.ms)
 #
 
 ## Description

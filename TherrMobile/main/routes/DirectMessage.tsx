@@ -14,6 +14,8 @@ import TextMessage from '../components/TextMessage';
 import RoundInput from '../components/Input/Round';
 import BaseStatusBar from '../components/BaseStatusBar';
 
+const ITEMS_PER_PAGE = 50;
+
 interface IDirectMessageDispatchProps {
     searchDms: Function;
     sendDirectMessage: Function;
@@ -33,6 +35,7 @@ export interface IDirectMessageProps extends IStoreProps {
 interface IDirectMessageState {
     msgInputVal: string;
     msgScrollPosition: number;
+    pageNumber: number;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -62,6 +65,7 @@ class DirectMessage extends React.Component<
         this.state = {
             msgInputVal: '',
             msgScrollPosition: 0,
+            pageNumber: 1,
         };
 
         this.translate = (key: string, params: any) =>
@@ -69,20 +73,30 @@ class DirectMessage extends React.Component<
     }
 
     componentDidMount() {
-        const { messages, navigation, route, searchDms } = this.props;
+        const { messages, navigation, route } = this.props;
         const { connectionDetails } = route.params;
 
         navigation.setOptions({
             title: connectionDetails.userName,
         });
 
-        if (connectionDetails && !messages.dms || !messages.dms[connectionDetails.id]) {
+        // TODO: Add logic to update this when user navigates away then returns
+        if (!messages.dms || !messages.dms[connectionDetails.id]) {
+            this.searchDmsByPage(1);
+        }
+    }
+
+    searchDmsByPage = (pageNumber: number) => {
+        const { route, searchDms } = this.props;
+        const { connectionDetails } = route.params;
+
+        if (connectionDetails) {
             searchDms(
                 {
                     filterBy: 'fromUserId',
                     query: connectionDetails.id,
-                    itemsPerPage: 50,
-                    pageNumber: 1,
+                    itemsPerPage: ITEMS_PER_PAGE,
+                    pageNumber,
                     orderBy: 'interactionCount',
                     order: 'desc',
                     shouldCheckReverse: true,
@@ -124,6 +138,24 @@ class DirectMessage extends React.Component<
         return messages[index].fromUserName !== messages[index + 1].fromUserName;
     }
 
+    tryLoadMore = () => {
+        const { pageNumber } = this.state;
+        const { messages, route } = this.props;
+        const { connectionDetails } = route.params;
+        const dms = messages.dms ? (messages.dms[connectionDetails.id] || []) : [];
+
+        if (!dms.length || dms[dms.length - 1].isFirstMessage) {
+            // Already loaded all historical messages
+            return;
+        }
+
+        const nextPage = pageNumber + 1;
+        this.searchDmsByPage(nextPage);
+        this.setState({
+            pageNumber: nextPage,
+        });
+    }
+
     render() {
         const { msgInputVal } = this.state;
         const { messages, route, user } = this.props;
@@ -151,6 +183,8 @@ class DirectMessage extends React.Component<
                             ref={(component) => (this.flatListRef = component)}
                             style={styles.stretch}
                             // onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}
+                            onEndReached={this.tryLoadMore}
+                            onEndReachedThreshold={10}
                         />
                         <View style={messageStyles.sendInputsContainer}>
                             <RoundInput

@@ -49,6 +49,7 @@ export default ({
     expandMoment,
     containerRef,
     handleRefresh,
+    onEndReached,
     translate,
     // viewportHeight,
     // viewportWidth,
@@ -109,6 +110,8 @@ export default ({
                     onRefresh={onRefresh}
                 />}
                 style={[styles.stretch, momentStyles.momentCarousel]}
+                onEndReached={onEndReached}
+                onEndReachedThreshold={10}
                 // onContentSizeChange={() => content.activeMoments?.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
             />
         </>

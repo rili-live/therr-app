@@ -33,5 +33,6 @@ export interface IMessagesState extends Immutable.ImmutableObject<any> {
 
 export enum MessageActionTypes {
     GET_DIRECT_MESSAGES = 'GET_DIRECT_MESSAGES',
+    GET_MORE_DIRECT_MESSAGES = 'GET_MORE_DIRECT_MESSAGES',
     GET_FORUM_MESSAGES = 'GET_FORUM_MESSAGES',
 }

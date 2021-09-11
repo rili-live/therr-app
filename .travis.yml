@@ -33,4 +33,4 @@ deploy:
   provider: script
   script: _bin/travis/deploy.sh
   on:
-    branch: master
+    branch: main

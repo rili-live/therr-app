@@ -14,7 +14,7 @@ source _bin/travis/git.sh
 #   git add -A
 #   git commit -a -m "Committed by Travis-CI build number, $((TRAVIS_JOB_ID - 1))" --no-verify
 #   git remote set-url origin https://${GH_TOKEN}@github.com/rili-live/therr-app.git >/dev/null 2>&1
-#   git push origin HEAD:${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH} # Push to the source branch before it gets merged to stage/master
+#   git push origin HEAD:${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH} # Push to the source branch before it gets merged to stage/main
 #   PACKAGE_VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]')
 #   git tag $PACKAGE_VERSION
 #   git push --tags
