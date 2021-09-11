@@ -5,7 +5,7 @@ import Store from '../store';
 // import translate from '../utilities/translator';
 import * as globalConfig from '../../../../global-config';
 
-const searchActiveMoments: RequestHandler = async (req: any, res: any) => {
+const searchActiveMoments = async (req: any, res: any) => {
     const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
@@ -14,6 +14,7 @@ const searchActiveMoments: RequestHandler = async (req: any, res: any) => {
         offset,
         withMedia,
         withUser,
+        withBookmark,
     } = req.body;
 
     const conditions: any = {
@@ -21,10 +22,15 @@ const searchActiveMoments: RequestHandler = async (req: any, res: any) => {
         userHasActivated: true,
     };
 
+    const customs: any = {};
+    if (withBookmark) {
+        customs.withBookmark = true;
+    }
+
     return Store.momentReactions.get(conditions, undefined, {
         limit,
         offset,
-    })
+    }, customs)
         .then((reactions) => {
             const momentIds = reactions?.map((reaction) => reaction.momentId) || [];
 
@@ -50,6 +56,13 @@ const searchActiveMoments: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
 };
 
+const searchBookmarkedMoments = async (req: any, res: any) => {
+    req.body.withBookmark = true;
+
+    return searchActiveMoments(req, res);
+};
+
 export {
     searchActiveMoments,
+    searchBookmarkedMoments,
 };

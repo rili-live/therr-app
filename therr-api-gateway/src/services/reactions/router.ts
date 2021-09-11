@@ -7,6 +7,7 @@ import {
     getMomentReactionsByMomentIdValidation,
     createOrUpdateMomentReactionValidation,
     searchActiveMomentsValidation,
+    searchBookmarkedMomentsValidation,
 } from './validation/momentReactions';
 
 const reactionsServiceRouter = express.Router();
@@ -28,6 +29,11 @@ reactionsServiceRouter.get('/moment-reactions/:momentId', getMomentReactionsByMo
 }));
 
 reactionsServiceRouter.post('/moments/active/search', searchActiveMomentsValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'post',
+}));
+
+reactionsServiceRouter.post('/moments/bookmarked/search', searchBookmarkedMomentsValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
     method: 'post',
 }));

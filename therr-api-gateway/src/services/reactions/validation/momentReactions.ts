@@ -36,3 +36,5 @@ export const searchActiveMomentsValidation = [
     body('withMedia').isBoolean().optional(),
     body('withUser').isBoolean().optional(),
 ];
+
+export const searchBookmarkedMomentsValidation = searchActiveMomentsValidation;
