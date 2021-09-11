@@ -26,6 +26,13 @@ const Content = {
                 data: response?.data,
             });
         }),
+    searchBookmarkedMoments: (options: ISearchActiveMomentsParams) => (dispatch: any) => ReactionsService.searchBookmarkedMoments(options)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.SEARCH_BOOKMARKED_MOMENTS,
+                data: response?.data,
+            });
+        }),
 };
 
 export default Content;

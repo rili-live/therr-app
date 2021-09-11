@@ -318,17 +318,9 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                             containerStyles={addMargins({
                                                 marginBottom: 24,
                                             })}
-                                            isVisible={!!prevConnReqError}
-                                            message={prevConnReqError}
-                                            type={'error'}
-                                        />
-                                        <Alert
-                                            containerStyles={addMargins({
-                                                marginBottom: 24,
-                                            })}
-                                            isVisible={!!prevConnReqSuccess}
-                                            message={prevConnReqSuccess}
-                                            type={'success'}
+                                            isVisible={!!prevConnReqSuccess || !!prevConnReqError}
+                                            message={!!prevConnReqSuccess ? prevConnReqSuccess : prevConnReqError}
+                                            type={!!prevConnReqSuccess ? 'success' : 'error'}
                                         />
                                         <Button
                                             buttonStyle={formStyles.button}

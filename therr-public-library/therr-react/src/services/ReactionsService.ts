@@ -30,6 +30,9 @@ export interface ISearchActiveMomentsParams {
     withUser: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ISearchBookmarkedMomentsParams extends ISearchActiveMomentsParams {}
+
 class ReactionsService {
     createOrUpdateMomentReactions = (momentId: number, data: ICreateOrUpdateMomentReactionBody) => axios({
         method: 'post',
@@ -66,6 +69,17 @@ class ReactionsService {
     searchActiveMoments = (options: ISearchActiveMomentsParams, limit = 21) => axios({
         method: 'post',
         url: '/reactions-service/moments/active/search',
+        data: {
+            offset: options.offset,
+            limit,
+            withMedia: options.withMedia,
+            withUser: options.withUser,
+        },
+    });
+
+    searchBookmarkedMoments = (options: ISearchBookmarkedMomentsParams, limit = 21) => axios({
+        method: 'post',
+        url: '/reactions-service/moments/bookmarked/search',
         data: {
             offset: options.offset,
             limit,

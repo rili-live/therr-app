@@ -3,24 +3,24 @@ import { SafeAreaView, ScrollView, View, Text } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { UserConnectionsActions } from 'therr-react/redux/actions';
-import { IUserState, IUserConnectionsState } from 'therr-react/types';
-import isEmail from 'validator/es/lib/isEmail';
+import { Button } from 'react-native-elements';
+import { IUserState } from 'therr-react/types';
+import Alert from '../components/Alert';
+import BeemoTextInput from '../components/TextInput/Beemo';
 import MainButtonMenuAlt from '../components/ButtonMenu/MainButtonMenuAlt';
 import UsersActions from '../redux/actions/UsersActions';
+import UsersService from '../redux/services/UsersService';
 import translator from '../services/translator';
 import BaseStatusBar from '../components/BaseStatusBar';
-import styles from '../styles';
+import styles, { addMargins } from '../styles';
+import formStyles from '../styles/forms';
 
 interface IHomeDispatchProps {
-    createUserConnection: Function;
     logout: Function;
-    searchUserConnections: Function;
 }
 
 interface IStoreProps extends IHomeDispatchProps {
     user: IUserState;
-    userConnections: IUserConnectionsState;
 }
 
 // Regular component props
@@ -29,26 +29,19 @@ export interface IHomeProps extends IStoreProps {
 }
 
 interface IHomeState {
-    connectionContext: any;
-    emailErrorMessage: string;
     inputs: any;
-    isPhoneNumberValid: boolean;
-    prevConnReqSuccess: string;
-    prevConnReqError: string;
-    isSubmitting: boolean;
+    prevReqSuccess: string;
+    prevReqError: string;
 }
 
 const mapStateToProps = (state: any) => ({
     user: state.user,
-    userConnections: state.userConnections,
 });
 
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
-            createUserConnection: UserConnectionsActions.create,
             logout: UsersActions.logout,
-            searchUserConnections: UserConnectionsActions.search,
         },
         dispatch
     );
@@ -64,13 +57,9 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         super(props);
 
         this.state = {
-            connectionContext: 'phone',
-            emailErrorMessage: '',
             inputs: {},
-            prevConnReqError: '',
-            prevConnReqSuccess: '',
-            isPhoneNumberValid: false,
-            isSubmitting: false,
+            prevReqError: '',
+            prevReqSuccess: '',
         };
 
         this.translate = (key: string, params: any) =>
@@ -83,161 +72,53 @@ class Home extends React.Component<IHomeProps, IHomeState> {
     }
 
     componentDidMount() {
-        const { navigation, user, userConnections } = this.props;
+        const { navigation } = this.props;
 
         navigation.setOptions({
             title: 'Therr',
         });
-
-        if (!userConnections.connections.length) {
-            this.props
-                .searchUserConnections(
-                    {
-                        filterBy: 'acceptingUserId',
-                        query: user.details && user.details.id,
-                        itemsPerPage: 50,
-                        pageNumber: 1,
-                        orderBy: 'interactionCount',
-                        order: 'desc',
-                        shouldCheckReverse: true,
-                    },
-                    user.details && user.details.id
-                )
-                .catch(() => {});
-        }
     }
 
-    getConnectionDetails = (connection) => {
-        const { user } = this.props;
-
-        // Active connection format
-        if (!connection.users) {
-            return connection;
-        }
-
-        // User <-> User connection format
-        return (
-            connection.users.find(
-                (u) => user.details && u.id !== user.details.id
-            ) || {}
-        );
-    };
-
-    getConnectionSubtitle = (connectionDetails) => {
-        return `${connectionDetails.firstName || ''} ${
-            connectionDetails.lastName || ''
-        }`;
-    };
-
-    isConnReqFormDisabled = () => {
-        const { connectionContext } = this.state;
-
-        return connectionContext === 'email' && !this.isEmailValid();
-    };
-
-    isEmailValid = () => {
-        return isEmail(this.state.inputs.email || '');
-    }
-
-    onConnectionPress = (connectionDetails) => {
-        const { navigation } = this.props;
-
-        navigation.navigate('DirectMessage', {
-            connectionDetails,
-        });
-    };
+    isFormDisabled = () => !this.state?.inputs?.feedbackMessage;
 
     onInputChange = (name: string, value: string) => {
-        let emailErrorMessage = '';
+        let reqErrorMessage = '';
 
         const newInputChanges = {
             [name]: value,
         };
-
-        if (name === 'email') {
-            if (!this.isEmailValid()) {
-                emailErrorMessage = this.translate('forms.createConnection.errorMessages.invalidEmail');
-            }
-        }
 
         this.setState({
             inputs: {
                 ...this.state.inputs,
                 ...newInputChanges,
             },
-            emailErrorMessage,
-            prevConnReqError: '',
-            prevConnReqSuccess: '',
-            isSubmitting: false,
+            reqErrorMessage,
+            prevReqError: '',
+            prevReqSuccess: '',
         });
     };
 
-    onBlurValidate = () => {
-        let emailErrorMessage = '';
-
-        if (!this.isEmailValid()) {
-            emailErrorMessage = this.translate('forms.createConnection.errorMessages.invalidEmail');
-        }
-
-        this.setState({
-            emailErrorMessage,
-        });
-    }
-
     onSubmit = () => {
-        const { connectionContext, inputs, isPhoneNumberValid } = this.state;
-        const { createUserConnection, user } = this.props;
+        const { inputs } = this.state;
 
-        if (connectionContext === 'phone' && !isPhoneNumberValid) {
-            this.setState({
-                prevConnReqError: this.translate('forms.createConnection.errorMessages.invalidPhoneNumber'),
-            });
-            return;
-        }
-
-        const reqBody: any = {
-            requestingUserId: user.details.id,
-            requestingUserFirstName: user.details.firstName,
-            requestingUserLastName: user.details.lastName,
-        };
-
-        if (connectionContext === 'email') {
-            reqBody.acceptingUserEmail = inputs.email;
-        }
-        if (connectionContext === 'phone') {
-            reqBody.acceptingUserPhoneNumber = inputs.phoneNumber;
-        }
-
-        createUserConnection(reqBody, user.details)
+        UsersService.sendFeedback(inputs.feedback)
             .then(() => {
                 this.setState({
                     inputs: {
-                        email: '',
-                        phoneNumber: '',
+                        feedback: '',
                     },
-                    prevConnReqSuccess: this.translate('forms.createConnection.successMessages.connectionSent'),
+                    prevReqSuccess: this.translate('pages.userProfile.messages.success'),
                 });
             })
             .catch((error) => {
                 if (error.statusCode === 400 || error.statusCode === 404) {
                     this.setState({
-                        prevConnReqError: error.message,
+                        prevReqError: this.translate('pages.userProfile.messages.error'),
                     });
                 }
             });
     };
-
-    onPhoneInputChange = (value: string, isValid: boolean) => {
-        this.setState({
-            inputs: {
-                ...this.state.inputs,
-                phoneNumber: value,
-            },
-            prevConnReqError: '',
-            prevConnReqSuccess: '',
-            isPhoneNumberValid: isValid,
-        });
-    }
 
     handleRefresh = () => {
         console.log('refresh');
@@ -245,6 +126,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
 
     render() {
         const { navigation, user } = this.props;
+        const { prevReqSuccess, prevReqError } = this.state;
 
         return (
             <>
@@ -279,6 +161,39 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                 <Text style={styles.sectionQuote}>
                                     {`"${this.quote}" - ${this.quoteAuthor}`}
                                 </Text>
+                            </View>
+                            <View style={styles.sectionContainer}>
+                                <Text style={styles.sectionTitleCenter}>
+                                    {this.translate('pages.userProfile.h2.shareFeedback')}
+                                </Text>
+                                <BeemoTextInput
+                                    placeholder={this.translate(
+                                        'pages.userProfile.labels.feedbackPlaceholder'
+                                    )}
+                                    value={inputs.feedbackMessage}
+                                    onChangeText={(text) =>
+                                        this.onInputChange('feedbackMessage', text)
+                                    }
+                                    numberOfLines={5}
+                                />
+                                <Alert
+                                    containerStyles={addMargins({
+                                        marginBottom: 24,
+                                    })}
+                                    isVisible={!!prevReqSuccess || !!prevReqError}
+                                    message={!!prevReqSuccess ? prevReqSuccess : prevReqError}
+                                    type={!!prevReqSuccess ? 'success' : 'error'}
+                                />
+                                <Button
+                                    buttonStyle={formStyles.button}
+                                    disabledStyle={formStyles.buttonDisabled}
+                                    title={this.translate(
+                                        'forms.userProfile.buttons.send'
+                                    )}
+                                    onPress={this.onSubmit}
+                                    disabled={this.isFormDisabled()}
+                                    raised={false}
+                                />
                             </View>
                         </View>
                     </ScrollView>
