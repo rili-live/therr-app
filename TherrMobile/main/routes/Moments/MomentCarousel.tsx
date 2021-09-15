@@ -13,6 +13,7 @@ const renderItem = ({ item: moment }, {
     expandMoment,
     formattedDate,
     translate,
+    updateMomentReaction,
 }) => {
     const momentMedia = content?.media[moment.media && moment.media[0]?.id];
 
@@ -31,6 +32,7 @@ const renderItem = ({ item: moment }, {
                 userDetails={{
                     userName: moment.fromUserName || moment.fromUserId,
                 }}
+                updateMomentReaction={updateMomentReaction}
                 momentMedia={momentMedia}
                 isDarkMode={false}
             />
@@ -49,8 +51,10 @@ export default ({
     expandMoment,
     containerRef,
     handleRefresh,
+    isForBookmarks,
     onEndReached,
     translate,
+    updateMomentReaction,
     // viewportHeight,
     // viewportWidth,
 }) => {
@@ -91,13 +95,14 @@ export default ({
     return (
         <>
             <FlatList
-                data={content.activeMoments}
+                data={isForBookmarks ? content.bookmarkedMoments : content.activeMoments}
                 keyExtractor={(item) => String(item.id)}
                 renderItem={(itemObj) => renderItem(itemObj, {
                     content,
                     expandMoment,
                     formattedDate: formatDate(itemObj.item.createdAt),
                     translate,
+                    updateMomentReaction,
                 })}
                 ListHeaderComponent={<View  style={momentStyles.momentCarouselHeader} />}
                 ListFooterComponent={<View  style={momentStyles.momentCarouselFooter} />}
@@ -111,7 +116,7 @@ export default ({
                 />}
                 style={[styles.stretch, momentStyles.momentCarousel]}
                 onEndReached={onEndReached}
-                onEndReachedThreshold={10}
+                onEndReachedThreshold={0.5}
                 // onContentSizeChange={() => content.activeMoments?.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
             />
         </>

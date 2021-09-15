@@ -10,7 +10,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 // import { Button }  from 'react-native-elements';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IContentState, IUserState } from 'therr-react/types';
-import { MapActions } from 'therr-react/redux/actions';
+import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import YoutubePlayer from 'react-native-youtube-iframe';
 // import Alert from '../components/Alert';
@@ -38,6 +38,7 @@ interface IMomentDetails {
 interface IViewMomentDispatchProps {
     getMomentDetails: Function;
     deleteMoment: Function;
+    createOrUpdateMomentReaction: Function;
 }
 
 interface IStoreProps extends IViewMomentDispatchProps {
@@ -68,6 +69,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getMomentDetails: MapActions.getMomentDetails,
     deleteMoment: MapActions.deleteMoment,
+    createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
 }, dispatch);
 
 export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
@@ -202,6 +204,21 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         }
     }
 
+    onUpdateMomentReaction = (momentId, data) => {
+        const { createOrUpdateMomentReaction, navigation, route } = this.props;
+        const { moment } = route.params;
+        navigation.setParams({
+            moment: {
+                ...moment,
+                reaction: {
+                    ...moment.reaction,
+                    userBookmarkCategory: !!moment.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+                },
+            },
+        });
+        return createOrUpdateMomentReaction(momentId, data);
+    }
+
     render() {
         const { isDeleting, isVerifyingDelete, previewLinkId, previewStyleState } = this.state;
         const { content, route, user } = this.props;
@@ -230,6 +247,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 isDarkMode={true}
                                 isExpanded={true}
                                 moment={moment}
+                                updateMomentReaction={(momentId, data) => this.onUpdateMomentReaction(momentId, data)}
                                 // TODO: User Username from response
                                 userDetails={{
                                     userName: momentUserName || moment.fromUserId,

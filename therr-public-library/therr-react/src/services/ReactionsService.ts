@@ -34,7 +34,7 @@ export interface ISearchActiveMomentsParams {
 export interface ISearchBookmarkedMomentsParams extends ISearchActiveMomentsParams {}
 
 class ReactionsService {
-    createOrUpdateMomentReactions = (momentId: number, data: ICreateOrUpdateMomentReactionBody) => axios({
+    createOrUpdateMomentReaction = (momentId: number, data: ICreateOrUpdateMomentReactionBody) => axios({
         method: 'post',
         url: `/reactions-service/moment-reactions/${momentId}`,
         data,

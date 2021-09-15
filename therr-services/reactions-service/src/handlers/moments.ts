@@ -1,4 +1,3 @@
-import { RequestHandler } from 'express';
 import axios from 'axios';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
@@ -27,11 +26,14 @@ const searchActiveMoments = async (req: any, res: any) => {
         customs.withBookmark = true;
     }
 
+    let reactions;
+
     return Store.momentReactions.get(conditions, undefined, {
-        limit,
+        limit: limit || 50,
         offset,
     }, customs)
-        .then((reactions) => {
+        .then((reactionsResponse) => {
+            reactions = reactionsResponse;
             const momentIds = reactions?.map((reaction) => reaction.momentId) || [];
 
             return axios({
@@ -49,15 +51,22 @@ const searchActiveMoments = async (req: any, res: any) => {
                 },
             });
         })
-        .then((response) => res.status(200).send({
-            moments: response?.data?.moments,
-            media: response?.data?.media,
-            pagination: {
-                itemsPerPage: limit,
-                offset,
-                isLastPage: response?.data?.moments?.length < limit,
-            },
-        }))
+        .then((response) => {
+            let moments = response?.data?.moments;
+            moments = moments.map((moment) => ({
+                ...moment,
+                reaction: reactions.find((reaction) => reaction.momentId === moment.id) || {},
+            }));
+            return res.status(200).send({
+                moments,
+                media: response?.data?.media,
+                pagination: {
+                    itemsPerPage: limit,
+                    offset,
+                    isLastPage: response?.data?.moments?.length < limit,
+                },
+            });
+        })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
 };
 

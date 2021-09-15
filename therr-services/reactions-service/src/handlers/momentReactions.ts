@@ -117,7 +117,7 @@ const getReactionsByMomentId: RequestHandler = async (req: any, res: any) => {
 
         return Store.momentReactions.getByMomentId({
             momentId,
-        }, parseInt(req.query.limit, 10))
+        }, parseInt(req.query.limit || 100, 10))
             .then(([reaction]) => res.status(200).send(reaction))
             .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
     });

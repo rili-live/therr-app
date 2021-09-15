@@ -129,7 +129,7 @@ const mapDispatchToProps = (dispatch: any) =>
             setInitialUserLocation: MapActions.setInitialUserLocation,
             setSearchDropdownVisibility: MapActions.setSearchDropdownVisibility,
             deleteMoment: MapActions.deleteMoment,
-            createOrUpdateReaction: ReactionActions.createOrUpdateMomentReactions,
+            createOrUpdateReaction: ReactionActions.createOrUpdateMomentReaction,
             updateGpsStatus: LocationActions.updateGpsStatus,
             updateLocationPermissions: LocationActions.updateLocationPermissions,
         },
