@@ -1,5 +1,5 @@
 import { ContentActionTypes } from '../../types/redux/content';
-import ReactionsService, { ISearchActiveMomentsParams } from '../../services/ReactionsService';
+import ReactionsService, { ISearchActiveMomentsParams, ICreateOrUpdateMomentReactionBody } from '../../services/ReactionsService';
 
 const Content = {
     insertActiveMoments: (newActiveMoments: any) => (dispatch: any) => {
@@ -21,6 +21,22 @@ const Content = {
         .then((response: any) => {
             dispatch({
                 type: ContentActionTypes.UPDATE_ACTIVE_MOMENTS,
+                data: response?.data,
+            });
+        }),
+    createOrUpdateMomentReaction: (reactionId: number, params: ICreateOrUpdateMomentReactionBody) => (dispatch: any) => ReactionsService
+        .createOrUpdateMomentReaction(reactionId, params)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.UPDATE_ACTIVE_MOMENT_REACTION,
+                data: response?.data,
+            });
+        }),
+    searchBookmarkedMoments: (options: ISearchActiveMomentsParams) => (dispatch: any) => ReactionsService
+        .searchBookmarkedMoments(options, 100)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.SEARCH_BOOKMARKED_MOMENTS,
                 data: response?.data,
             });
         }),

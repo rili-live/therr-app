@@ -44,7 +44,7 @@ export default class MomentReactionsStore {
         this.db = dbConnection;
     }
 
-    get(conditions: any, momentIds?, filters = { limit: 100, offset: 0 }) {
+    get(conditions: any, momentIds?, filters = { limit: 100, offset: 0 }, customs: any = {}) {
         const restrictedLimit = (filters.limit) > 1000 ? 1000 : filters.limit;
 
         let queryString = knexBuilder.select('*')
@@ -52,6 +52,10 @@ export default class MomentReactionsStore {
             .where(conditions)
             .limit(restrictedLimit)
             .offset(filters.offset);
+
+        if (customs.withBookmark) {
+            queryString = queryString.whereNotNull('userBookmarkCategory');
+        }
 
         if (momentIds && momentIds.length) {
             queryString = queryString.whereIn('momentId', momentIds);

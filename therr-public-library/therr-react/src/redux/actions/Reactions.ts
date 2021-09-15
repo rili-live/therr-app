@@ -5,8 +5,8 @@ import ReactionsService, {
 } from '../../services/ReactionsService';
 
 const Reactions = {
-    createOrUpdateMomentReactions: (momentId: number, data: ICreateOrUpdateMomentReactionBody) => (dispatch: any) => ReactionsService
-        .createOrUpdateMomentReactions(momentId, data).then((response: any) => {
+    createOrUpdateMomentReaction: (momentId: number, data: ICreateOrUpdateMomentReactionBody) => (dispatch: any) => ReactionsService
+        .createOrUpdateMomentReaction(momentId, data).then((response: any) => {
             dispatch({
                 type: ReactionActionTypes.MOMENT_REACTION_CREATED_OR_UPDATED,
                 data: response.data,

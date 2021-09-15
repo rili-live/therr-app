@@ -32,6 +32,7 @@ interface IMomentDisplayProps {
     isExpanded?: boolean;
     moment: any;
     momentMedia: string;
+    updateMomentReaction: Function;
     userDetails: IUserDetails;
 }
 
@@ -52,6 +53,14 @@ export default class MomentDisplay extends React.Component<IMomentDisplayProps, 
         });
     }
 
+    onBookmarkPress = (moment) => {
+        const { updateMomentReaction } = this.props;
+
+        updateMomentReaction(moment.id, {
+            userBookmarkCategory: !!moment.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+        });
+    }
+
     render() {
         const {
             date,
@@ -63,6 +72,8 @@ export default class MomentDisplay extends React.Component<IMomentDisplayProps, 
             momentMedia,
             userDetails,
         } = this.props;
+
+        const isBookmarked = moment.reaction?.userBookmarkCategory;
 
         return (
             <>
@@ -120,12 +131,12 @@ export default class MomentDisplay extends React.Component<IMomentDisplayProps, 
                         buttonStyle={this.viewMomentStyles.bookmarkButton}
                         icon={
                             <Icon
-                                name="bookmark-border"
+                                name={ isBookmarked ? 'bookmark' : 'bookmark-border' }
                                 size={24}
                                 color={isDarkMode ? therrTheme.colors.textWhite : therrTheme.colors.tertiary}
                             />
                         }
-                        onPress={() => expandMoment(moment)}
+                        onPress={() => this.onBookmarkPress(moment)}
                         type="clear"
                         TouchableComponent={TouchableWithoutFeedbackComponent}
                     />

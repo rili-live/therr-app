@@ -1,11 +1,10 @@
-import { RequestHandler } from 'express';
 import axios from 'axios';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 // import translate from '../utilities/translator';
 import * as globalConfig from '../../../../global-config';
 
-const searchActiveMoments: RequestHandler = async (req: any, res: any) => {
+const searchActiveMoments = async (req: any, res: any) => {
     const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
@@ -14,6 +13,7 @@ const searchActiveMoments: RequestHandler = async (req: any, res: any) => {
         offset,
         withMedia,
         withUser,
+        withBookmark,
     } = req.body;
 
     const conditions: any = {
@@ -21,11 +21,19 @@ const searchActiveMoments: RequestHandler = async (req: any, res: any) => {
         userHasActivated: true,
     };
 
+    const customs: any = {};
+    if (withBookmark) {
+        customs.withBookmark = true;
+    }
+
+    let reactions;
+
     return Store.momentReactions.get(conditions, undefined, {
-        limit,
+        limit: limit || 50,
         offset,
-    })
-        .then((reactions) => {
+    }, customs)
+        .then((reactionsResponse) => {
+            reactions = reactionsResponse;
             const momentIds = reactions?.map((reaction) => reaction.momentId) || [];
 
             return axios({
@@ -43,18 +51,32 @@ const searchActiveMoments: RequestHandler = async (req: any, res: any) => {
                 },
             });
         })
-        .then((response) => res.status(200).send({
-            moments: response?.data?.moments,
-            media: response?.data?.media,
-            pagination: {
-                itemsPerPage: limit,
-                offset,
-                isLastPage: response?.data?.moments?.length < limit,
-            },
-        }))
+        .then((response) => {
+            let moments = response?.data?.moments;
+            moments = moments.map((moment) => ({
+                ...moment,
+                reaction: reactions.find((reaction) => reaction.momentId === moment.id) || {},
+            }));
+            return res.status(200).send({
+                moments,
+                media: response?.data?.media,
+                pagination: {
+                    itemsPerPage: limit,
+                    offset,
+                    isLastPage: response?.data?.moments?.length < limit,
+                },
+            });
+        })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
+};
+
+const searchBookmarkedMoments = async (req: any, res: any) => {
+    req.body.withBookmark = true;
+
+    return searchActiveMoments(req, res);
 };
 
 export {
     searchActiveMoments,
+    searchBookmarkedMoments,
 };
