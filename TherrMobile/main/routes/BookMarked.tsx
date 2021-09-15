@@ -3,10 +3,9 @@ import { SafeAreaView, Text } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { UserConnectionsActions } from 'therr-react/redux/actions';
-import { IUserState, IUserConnectionsState } from 'therr-react/types';
+import { ContentActions } from 'therr-react/redux/actions';
+import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import MainButtonMenuAlt from '../components/ButtonMenu/MainButtonMenuAlt';
-import UsersActions from '../redux/actions/UsersActions';
 import BaseStatusBar from '../components/BaseStatusBar';
 import translator from '../services/translator';
 import styles from '../styles';
@@ -14,12 +13,12 @@ import momentStyles from '../styles/user-content/moments';
 import MomentCarousel from './Moments/MomentCarousel';
 
 interface IBookMarkedDispatchProps {
-    createUserConnection: Function;
-    logout: Function;
-    searchUserConnections: Function;
+    searchBookmarkedMoments: Function;
+    createOrUpdateMomentReaction: Function;
 }
 
 interface IStoreProps extends IBookMarkedDispatchProps {
+    content: IContentState;
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
@@ -34,6 +33,7 @@ interface IBookMarkedState {
 }
 
 const mapStateToProps = (state: any) => ({
+    content: state.content,
     user: state.user,
     userConnections: state.userConnections,
 });
@@ -41,9 +41,8 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
-            createUserConnection: UserConnectionsActions.create,
-            logout: UsersActions.logout,
-            searchUserConnections: UserConnectionsActions.search,
+            searchBookmarkedMoments: ContentActions.searchBookmarkedMoments,
+            createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
         },
         dispatch
     );
@@ -64,7 +63,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
     }
 
     componentDidMount() {
-        const { navigation } = this.props;
+        const { navigation, searchBookmarkedMoments } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.bookmarked.headerTitle'),
@@ -73,11 +72,27 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         this.setState({
             isLoading: false,
         });
+
+        searchBookmarkedMoments({
+            withMedia: true,
+            withUser: true,
+            offset: 0,
+        }).finally(() => {
+            this.setState({
+                isLoading: false,
+            });
+        });
     }
 
 
     handleRefresh = () => {
-        console.log('refresh');
+        const { searchBookmarkedMoments } = this.props;
+
+        searchBookmarkedMoments({
+            withMedia: true,
+            withUser: true,
+            offset: 0,
+        });
     }
 
     goToMoment = (moment) => {
@@ -92,8 +107,13 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         });
     };
 
+    tryLoadMore = () => {
+        console.log('try load more');
+    }
+
     renderCarousel = (content) => {
         const { isLoading } = this.state;
+        const { createOrUpdateMomentReaction } = this.props;
 
         if (isLoading) {
             return (
@@ -101,13 +121,17 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
             );
         }
 
-        if (content.activeMoments?.length) {
+        if (content.bookmarkedMoments?.length) {
             return (
                 <MomentCarousel
                     content={content}
                     expandMoment={this.goToMoment}
                     translate={this.translate}
                     containerRef={(component) => this.carouselRef = component}
+                    handleRefresh={() => Promise.resolve(this.handleRefresh())}
+                    isForBookmarks
+                    onEndReached={this.tryLoadMore}
+                    updateMomentReaction={createOrUpdateMomentReaction}
                     // viewportHeight={viewportHeight}
                     // viewportWidth={viewportWidth}
                 />
@@ -120,8 +144,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
     }
 
     render() {
-        const { navigation, user } = this.props;
-        const content = []; // TODO - Get Favorites
+        const { content, navigation, user } = this.props;
 
         return (
             <>

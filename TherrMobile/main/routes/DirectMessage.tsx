@@ -184,7 +184,7 @@ class DirectMessage extends React.Component<
                             style={styles.stretch}
                             // onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}
                             onEndReached={this.tryLoadMore}
-                            onEndReachedThreshold={10}
+                            onEndReachedThreshold={0.5}
                         />
                         <View style={messageStyles.sendInputsContainer}>
                             <RoundInput

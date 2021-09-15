@@ -24,6 +24,7 @@ import carLoader from '../../assets/sports-car.json';
 interface IMomentsDispatchProps {
     searchActiveMoments: Function;
     updateActiveMoments: Function;
+    createOrUpdateMomentReaction: Function;
     logout: Function;
 }
 
@@ -53,6 +54,7 @@ const mapDispatchToProps = (dispatch: any) =>
         {
             searchActiveMoments: ContentActions.searchActiveMoments,
             updateActiveMoments: ContentActions.updateActiveMoments,
+            createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
         },
         dispatch
     );
@@ -143,6 +145,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
     }
 
     renderCarousel = (content) => {
+        const { createOrUpdateMomentReaction } = this.props;
         const { isLoading } = this.state;
 
         if (isLoading) {
@@ -166,9 +169,11 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
                     content={content}
                     expandMoment={this.goToMoment}
                     translate={this.translate}
+                    isForBookmarks={false}
                     containerRef={(component) => this.carouselRef = component}
                     handleRefresh={this.handleRefresh}
                     onEndReached={this.tryLoadMore}
+                    updateMomentReaction={createOrUpdateMomentReaction}
                     // viewportHeight={viewportHeight}
                     // viewportWidth={viewportWidth}
                 />
