@@ -1,5 +1,5 @@
 import React from 'react';
-import { RefreshControl, View, /* Platform, */ FlatList, Pressable } from 'react-native';
+import { RefreshControl, View, Text, /* Platform, */ FlatList, Pressable } from 'react-native';
 // import Carousel from 'react-native-snap-carousel';
 import styles from '../../styles';
 import momentStyles from '../../styles/user-content/moments';
@@ -55,6 +55,7 @@ export default ({
     onEndReached,
     translate,
     updateMomentReaction,
+    emptyListMessage,
     // viewportHeight,
     // viewportWidth,
 }) => {
@@ -104,6 +105,7 @@ export default ({
                     translate,
                     updateMomentReaction,
                 })}
+                ListEmptyComponent={<Text style={momentStyles.noMomentsFoundText}>{emptyListMessage}</Text>}
                 ListHeaderComponent={<View  style={momentStyles.momentCarouselHeader} />}
                 ListFooterComponent={<View  style={momentStyles.momentCarouselFooter} />}
                 ref={(component) => {
