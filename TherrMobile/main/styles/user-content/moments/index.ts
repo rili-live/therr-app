@@ -71,7 +71,7 @@ export default StyleSheet.create({
         paddingHorizontal: 10,
         fontSize: 20,
         textAlign: 'center',
-        color: therrTheme.colors.backgroundCream,
+        color: therrTheme.colors.textBlack,
     },
     loadingGraphic: {
         display: 'flex',
