@@ -121,25 +121,20 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
             );
         }
 
-        if (content.bookmarkedMoments?.length) {
-            return (
-                <MomentCarousel
-                    content={content}
-                    expandMoment={this.goToMoment}
-                    translate={this.translate}
-                    containerRef={(component) => this.carouselRef = component}
-                    handleRefresh={() => Promise.resolve(this.handleRefresh())}
-                    isForBookmarks
-                    onEndReached={this.tryLoadMore}
-                    updateMomentReaction={createOrUpdateMomentReaction}
-                    // viewportHeight={viewportHeight}
-                    // viewportWidth={viewportWidth}
-                />
-            );
-        }
-
         return (
-            <Text style={momentStyles.noMomentsFoundText}>{this.translate('pages.bookmarked.noBookmarksFound')}</Text>
+            <MomentCarousel
+                content={content}
+                expandMoment={this.goToMoment}
+                translate={this.translate}
+                containerRef={(component) => this.carouselRef = component}
+                handleRefresh={() => Promise.resolve(this.handleRefresh())}
+                isForBookmarks
+                onEndReached={this.tryLoadMore}
+                updateMomentReaction={createOrUpdateMomentReaction}
+                emptyListMessage={this.translate('pages.bookmarked.noBookmarksFound')}
+                // viewportHeight={viewportHeight}
+                // viewportWidth={viewportWidth}
+            />
         );
     }
 

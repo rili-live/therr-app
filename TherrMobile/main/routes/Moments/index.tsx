@@ -163,25 +163,20 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
             );
         }
 
-        if (content.activeMoments?.length) {
-            return (
-                <MomentCarousel
-                    content={content}
-                    expandMoment={this.goToMoment}
-                    translate={this.translate}
-                    isForBookmarks={false}
-                    containerRef={(component) => this.carouselRef = component}
-                    handleRefresh={this.handleRefresh}
-                    onEndReached={this.tryLoadMore}
-                    updateMomentReaction={createOrUpdateMomentReaction}
-                    // viewportHeight={viewportHeight}
-                    // viewportWidth={viewportWidth}
-                />
-            );
-        }
-
         return (
-            <Text style={momentStyles.noMomentsFoundText}>{this.translate('pages.moments.noMomentsFound')}</Text>
+            <MomentCarousel
+                content={content}
+                expandMoment={this.goToMoment}
+                translate={this.translate}
+                isForBookmarks={false}
+                containerRef={(component) => this.carouselRef = component}
+                handleRefresh={this.handleRefresh}
+                onEndReached={this.tryLoadMore}
+                updateMomentReaction={createOrUpdateMomentReaction}
+                emptyListMessage={this.translate('pages.moments.noMomentsFound')}
+                // viewportHeight={viewportHeight}
+                // viewportWidth={viewportWidth}
+            />
         );
     }
 

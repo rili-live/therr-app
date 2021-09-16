@@ -381,7 +381,7 @@
     },
     "bookmarked": {
       "headerTitle": "Favorited",
-      "noBookmarksFound": "Mark content as favorited by clicking the bookmark icon on a post"
+      "noBookmarksFound": "No bookmarks to display. Mark content as favorited by clicking the bookmark icon on a post"
     },
     "chatForum": {
       "pageTitle": "Forums",

@@ -17,14 +17,22 @@ const content = (state: IContentState = initialState, action: any) => {
     }
 
     let modifiedActiveMoments = [];
-    let moddedIndex = -1;
+    let modifiedBookmarkedMoments = [];
+    let moddedActiveIndex = -1;
+    let moddedBookmarkedIndex = -1;
 
     if (state.activeMoments) {
         modifiedActiveMoments = JSON.parse(JSON.stringify(state.activeMoments));
-        moddedIndex = modifiedActiveMoments.findIndex((moment) => moment.id === action.data?.momentId);
+        modifiedBookmarkedMoments = JSON.parse(JSON.stringify(state.bookmarkedMoments));
+        moddedActiveIndex = modifiedActiveMoments.findIndex((moment) => moment.id === action.data?.momentId);
+        moddedBookmarkedIndex = modifiedBookmarkedMoments.findIndex((moment) => moment.id === action.data?.momentId);
 
-        if (moddedIndex !== -1 && action.type === ContentActionTypes.UPDATE_ACTIVE_MOMENT_REACTION) {
-            modifiedActiveMoments[moddedIndex].reaction = { ...action.data };
+        if (moddedActiveIndex !== -1 && action.type === ContentActionTypes.UPDATE_ACTIVE_MOMENT_REACTION) {
+            modifiedActiveMoments[moddedActiveIndex].reaction = { ...action.data };
+        }
+
+        if (moddedBookmarkedIndex !== -1 && action.type === ContentActionTypes.UPDATE_ACTIVE_MOMENT_REACTION) {
+            modifiedBookmarkedMoments[moddedBookmarkedIndex].reaction = { ...action.data };
         }
     }
 
@@ -34,7 +42,8 @@ const content = (state: IContentState = initialState, action: any) => {
             // Add latest moments to start
             return state.setIn(['activeMoments'], [...action.data, ...state.activeMoments]);
         case ContentActionTypes.UPDATE_ACTIVE_MOMENT_REACTION:
-            return state.setIn(['activeMoments'], modifiedActiveMoments);
+            return state.setIn(['activeMoments'], modifiedActiveMoments)
+                .setIn(['bookmarkedMoments'], modifiedBookmarkedMoments);
         case ContentActionTypes.SEARCH_ACTIVE_MOMENTS:
             // Add next offset of moments to end
             return state.setIn(['activeMoments'], [...state.activeMoments, ...action.data.moments])
