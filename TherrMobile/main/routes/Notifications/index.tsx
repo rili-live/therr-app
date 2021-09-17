@@ -22,6 +22,7 @@ import Notification from './Notification';
 interface INotificationsDispatchProps {
     logout: Function;
     searchUserConnections: Function;
+    searchNotifications: Function;
     updateNotification: Function;
     updateUserConnection: Function;
 }
@@ -47,6 +48,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    searchNotifications: NotificationActions.search,
     updateNotification: NotificationActions.update,
     updateUserConnection: UserConnectionsActions.update,
 }, dispatch);
@@ -116,8 +118,16 @@ class Notifications extends React.Component<
     }
 
     handleRefresh = () => {
+        const { searchNotifications, user } = this.props;
         this.setState({ isRefreshing: true });
-        return Promise.resolve().finally(() => this.setState({ isRefreshing: false }));
+
+        searchNotifications({
+            filterBy: 'userId',
+            query: user.details.id,
+            itemsPerPage: 50,
+            pageNumber: 1,
+            order: 'desc',
+        }).finally(() => this.setState({ isRefreshing: false }));
     }
 
     render() {
