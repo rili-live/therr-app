@@ -21,6 +21,7 @@ interface IHeaderSearchInputDispatchProps extends InputProps {
 }
 
 interface IHeaderSearchInputStoreProps extends IHeaderSearchInputDispatchProps {
+    isAdvancedSearch: Boolean;
     map: IMapReduxState;
 }
 
@@ -131,16 +132,22 @@ export class HeaderSearchInput<IHeaderSearchInputProps> extends RoundInput {
     }
 
     handlePress = () => {
-        const { setSearchDropdownVisibility } = this.props;
+        const { isAdvancedSearch, navigation, setSearchDropdownVisibility } = this.props;
         const { inputText } = this.state;
 
-        setSearchDropdownVisibility(!!inputText?.length);
-        this.onInputChange(inputText || '');
+        if (isAdvancedSearch) {
+            navigation.navigate('AdvancedSearch');
+        } else {
+            setSearchDropdownVisibility(!!inputText?.length);
+            this.onInputChange(inputText || '');
+        }
     }
 
     componentWillUnmount = () => {
         clearTimeout(this.throttleTimeoutId);
     }
+
+    // TODO: Display red dot to show filters enabled
 
     render() {
         const { icon } = this.props;

@@ -1,6 +1,10 @@
 import { ContentActionTypes } from '../../types/redux/content';
 import ReactionsService, { ISearchActiveMomentsParams, ICreateOrUpdateMomentReactionBody } from '../../services/ReactionsService';
 
+interface IActiveMomentsFilters {
+    order: 'ASC' | 'DESC';
+}
+
 const Content = {
     insertActiveMoments: (newActiveMoments: any) => (dispatch: any) => {
         dispatch({
@@ -16,6 +20,10 @@ const Content = {
                 data: response?.data,
             });
         }),
+    setActiveMomentsFilters: (filters: IActiveMomentsFilters) => (dispatch: any) => dispatch({
+        type: ContentActionTypes.SET_ACTIVE_MOMENTS_FILTERS,
+        data: filters,
+    }),
     updateActiveMoments: (options: ISearchActiveMomentsParams, limit = 21) => (dispatch: any) => ReactionsService
         .searchActiveMoments(options, limit)
         .then((response: any) => {

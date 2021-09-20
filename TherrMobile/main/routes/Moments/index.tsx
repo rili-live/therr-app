@@ -75,22 +75,14 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
     }
 
     componentDidMount() {
-        const { content, navigation, updateActiveMoments } = this.props;
+        const { content, navigation } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.moments.headerTitle'),
         });
 
         if (!content?.activeMoments?.length || content.activeMoments.length < 21) {
-            updateActiveMoments({
-                withMedia: true,
-                withUser: true,
-                offset: 0,
-            }).finally(() => {
-                this.setState({
-                    isLoading: false,
-                });
-            });
+            this.handleRefresh();
         } else {
             this.setState({
                 isLoading: false,
@@ -116,13 +108,14 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
     };
 
     handleRefresh = () => {
-        const { updateActiveMoments } = this.props;
+        const { content, updateActiveMoments } = this.props;
         this.setState({ isLoading: true });
 
         return updateActiveMoments({
             withMedia: true,
             withUser: true,
             offset: 0,
+            ...content.activeMomentsFilters,
         }).finally(() => {
             this.setState({ isLoading: false });
         });
@@ -140,6 +133,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
                 withMedia: true,
                 withUser: true,
                 offset: content.activeMomentsPagination.offset + content.activeMomentsPagination.itemsPerPage,
+                ...content.activeMomentsFilters,
             });
         }
     }

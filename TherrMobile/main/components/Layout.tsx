@@ -8,11 +8,13 @@ import {
 } from 'react-native';
 import LocationServicesDialogBox  from 'react-native-android-location-services-dialog-box';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
+import analytics from '@react-native-firebase/analytics';
 import messaging from '@react-native-firebase/messaging';
 import { UsersService } from 'therr-react/services';
 import { AccessCheckType, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions } from 'therr-react/redux/actions';
 import { AccessLevels } from 'therr-js-utilities/constants';
+import { NavigationContainerRef } from '@react-navigation/core';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
@@ -88,6 +90,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private translate;
 
     private unsubscribePushNotifications;
+    private navigationRef: NavigationContainerRef | undefined;
+    private routeNameRef: any = {};
 
     constructor(props) {
         super(props);
@@ -256,7 +260,25 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const { location, notifications, updateGpsStatus, user } = this.props;
 
         return (
-            <NavigationContainer theme={theme}>
+            <NavigationContainer
+                theme={theme}
+                ref={(ref: NavigationContainerRef) => this.navigationRef = ref}
+                onReady={() => {
+                    this.routeNameRef.current = this.navigationRef?.getCurrentRoute()?.name;
+                }}
+                onStateChange={async () => {
+                    const previousRouteName = this.routeNameRef.current;
+                    const currentRouteName = this.navigationRef?.getCurrentRoute()?.name;
+
+                    if (previousRouteName !== currentRouteName) {
+                        await analytics().logScreenView({
+                            screen_name: currentRouteName,
+                            screen_class: currentRouteName,
+                        });
+                    }
+                    this.routeNameRef.current = currentRouteName;
+                }}
+            >
                 <Stack.Navigator
                     screenOptions={({ navigation }) => {
                         const currentScreen = this.getCurrentScreen(navigation);
