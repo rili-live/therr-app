@@ -11,6 +11,7 @@ const searchActiveMoments = async (req: any, res: any) => {
     const {
         limit,
         offset,
+        order,
         withMedia,
         withUser,
         withBookmark,
@@ -31,6 +32,7 @@ const searchActiveMoments = async (req: any, res: any) => {
     return Store.momentReactions.get(conditions, undefined, {
         limit: limit || 50,
         offset,
+        order,
     }, customs)
         .then((reactionsResponse) => {
             reactions = reactionsResponse;

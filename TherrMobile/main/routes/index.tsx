@@ -4,6 +4,7 @@ import { StackNavigationOptions } from '@react-navigation/stack';
 import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/src/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import { IAccess, AccessCheckType } from 'therr-react/types';
+import AdvancedSearch from './AdvancedSearch';
 import BookMarked from './BookMarked';
 import Home from './Home';
 import DirectMessage from './DirectMessage';
@@ -108,7 +109,18 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerTitle: () => <HeaderSearchInput icon="tune" />,
+            headerTitle: () => <HeaderSearchInput icon="tune" isAdvancedSearch />,
+        }),
+    },
+    {
+        name: 'AdvancedSearch',
+        component: AdvancedSearch,
+        options: () => ({
+            title: 'AdvancedSearch',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
         }),
     },
     {

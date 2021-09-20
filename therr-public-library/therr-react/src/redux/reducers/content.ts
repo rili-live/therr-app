@@ -5,6 +5,9 @@ import { MapActionTypes } from '../../types';
 
 const initialState: IContentState = Immutable.from({
     activeMoments: Immutable.from([]),
+    activeMomentsFilters: Immutable.from({
+        order: 'DESC',
+    }),
     activeMomentsPagination: Immutable.from({}),
     bookmarkedMoments: Immutable.from([]),
     media: Immutable.from({}),
@@ -49,6 +52,8 @@ const content = (state: IContentState = initialState, action: any) => {
             return state.setIn(['activeMoments'], [...state.activeMoments, ...action.data.moments])
                 .setIn(['media'], { ...state.media, ...action.data.media })
                 .setIn(['activeMomentsPagination'], { ...action.data.pagination });
+        case ContentActionTypes.SET_ACTIVE_MOMENTS_FILTERS:
+            return state.setIn(['activeMomentsFilters'], { ...action.data });
         case ContentActionTypes.UPDATE_ACTIVE_MOMENTS:
             // Reset moments from scratch
             return state.setIn(['activeMoments'], action.data.moments)

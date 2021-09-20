@@ -44,13 +44,14 @@ export default class MomentReactionsStore {
         this.db = dbConnection;
     }
 
-    get(conditions: any, momentIds?, filters = { limit: 100, offset: 0 }, customs: any = {}) {
+    get(conditions: any, momentIds?, filters = { limit: 100, offset: 0, order: 'DESC' }, customs: any = {}) {
         const restrictedLimit = (filters.limit) > 1000 ? 1000 : filters.limit;
 
         let queryString = knexBuilder.select('*')
             .from(MOMENT_REACTIONS_TABLE_NAME)
             .where(conditions)
             .limit(restrictedLimit)
+            .orderBy('createdAt', filters.order)
             .offset(filters.offset);
 
         if (customs.withBookmark) {
