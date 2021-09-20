@@ -12,6 +12,7 @@ import Store from '../store';
 
 // CREATE
 const createMoment = (req, res) => {
+    const authorization = req.headers.authorization;
     const locale = req.headers['x-localecode'] || 'en-us';
     const userId = req.headers['x-userid'];
 
@@ -20,7 +21,19 @@ const createMoment = (req, res) => {
         locale,
         fromUserId: userId,
     })
-        .then(([moments]) => res.status(201).send(moments))
+        .then(([moment]) => axios({ // Create companion reaction for user's own moment
+            method: 'post',
+            url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/${moment.id}`,
+            headers: {
+                authorization,
+                'x-localecode': locale,
+                'x-userid': userId,
+            },
+            data: {
+                userHasActivated: true,
+            },
+        }).finally(() => moment))
+        .then((moment) => res.status(201).send(moment))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
 
