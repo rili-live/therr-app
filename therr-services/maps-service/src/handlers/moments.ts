@@ -155,6 +155,7 @@ const findMoments: RequestHandler = async (req: any, res: any) => {
 
     const {
         limit,
+        order,
         momentIds,
         withMedia,
         withUser,
@@ -162,6 +163,7 @@ const findMoments: RequestHandler = async (req: any, res: any) => {
 
     return Store.moments.findMoments(momentIds, {
         limit: limit || 21,
+        order,
     }, {
         withMedia: !!withMedia,
         withUser: !!withUser,

@@ -9,6 +9,7 @@
 #import <Firebase.h>
 #import "RNSplashScreen.h"
 #import <React/RCTLinkingManager.h>
+#import <TSBackgroundFetch/TSBackgroundFetch.h>
 
 #if DEBUG
 #import <FlipperKit/FlipperClient.h>
@@ -75,6 +76,10 @@ static void InitializeFlipper(UIApplication *application) {
   [self.window makeKeyAndVisible];
   
   [RNSplashScreen show];
+
+  // [REQUIRED] Register BackgroundFetch
+  [[TSBackgroundFetch sharedInstance] didFinishLaunching];
+
   return YES;
 }
 

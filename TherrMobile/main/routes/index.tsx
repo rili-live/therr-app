@@ -91,25 +91,25 @@ const routes: RouteConfig<
     {
         name: 'Map',
         component: Map,
-        options: () => ({
+        options: (params) => ({
             title: 'Map',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerTitle: () => <HeaderSearchInput icon="search" />,
+            headerTitle: () => <HeaderSearchInput icon="search" navigation={params?.navigation} />,
         }),
     },
     {
         name: 'Moments',
         component: Moments,
-        options: () => ({
+        options: (params) => ({
             title: 'Moments',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerTitle: () => <HeaderSearchInput icon="tune" isAdvancedSearch />,
+            headerTitle: () => <HeaderSearchInput icon="tune" isAdvancedSearch navigation={params?.navigation} />,
         }),
     },
     {

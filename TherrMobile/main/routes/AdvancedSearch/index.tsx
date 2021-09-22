@@ -93,7 +93,7 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
                 withMedia: true,
                 withUser: true,
                 offset: 0,
-                ...content.activeMomentsFilters,
+                ...this.props.content.activeMomentsFilters,
             });
         });
     }
@@ -131,7 +131,7 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
                     <View style={styles.body}>
                         <View style={styles.sectionContainer}>
                             <Text style={styles.sectionTitle}>
-                                {this.translate('pages.advanceSearch.labels.searchOrder')}
+                                {this.translate('pages.advancedSearch.labels.searchOrder')}
                             </Text>
                             <View style={styles.sectionForm}>
                                 <ReactPicker
@@ -140,10 +140,10 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
                                     itemStyle={formStyles.pickerItem}
                                     onValueChange={this.onSearchOrderSelect}>
                                     <ReactPicker.Item label={this.translate(
-                                        'pages.advanceSearch.labels.desc'
+                                        'pages.advancedSearch.labels.desc'
                                     )} value="DESC" />
                                     <ReactPicker.Item label={this.translate(
-                                        'pages.advanceSearch.labels.asc'
+                                        'pages.advancedSearch.labels.asc'
                                     )} value="ASC" />
                                 </ReactPicker>
                             </View>
