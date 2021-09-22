@@ -26,6 +26,7 @@ interface IHeaderSearchInputStoreProps extends IHeaderSearchInputDispatchProps {
 }
 
 interface IHeaderSearchInputProps extends IHeaderSearchInputStoreProps {
+    navigation: any;
     icon: String;
 }
 

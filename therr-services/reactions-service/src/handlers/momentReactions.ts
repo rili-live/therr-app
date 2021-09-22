@@ -93,6 +93,7 @@ const getMomentReactions: RequestHandler = async (req: any, res: any) => {
     return Store.momentReactions.get(queryParams, momentIds, {
         limit: parseInt(req.query.limit, 10),
         offset: 0,
+        order: req.query.order || 'DESC',
     })
         .then(([moments]) => res.status(200).send(moments))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
@@ -131,6 +132,7 @@ const findMomentReactions: RequestHandler = async (req: any, res: any) => {
         userHasActivated,
         limit,
         offset,
+        order,
     } = req.body;
 
     const conditions: any = {
@@ -144,6 +146,7 @@ const findMomentReactions: RequestHandler = async (req: any, res: any) => {
     return Store.momentReactions.get(conditions, momentIds, {
         limit,
         offset,
+        order,
     })
         .then((reactions) => res.status(200).send({
             reactions,

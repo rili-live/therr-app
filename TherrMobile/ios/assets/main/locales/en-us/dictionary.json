@@ -379,6 +379,14 @@
     "activeConnections": {
       "headerTitle": "Connections"
     },
+    "advancedSearch": {
+      "headerTitle": "Advanced Search",
+      "labels": {
+        "asc": "Oldest to Newest",
+        "desc": "Newest to Oldest",
+        "searchOrder": "Order Results By: Date"
+      }
+    },
     "bookmarked": {
       "headerTitle": "Favorited",
       "noBookmarksFound": "No bookmarks to display. Mark content as favorited by clicking the bookmark icon on a post"

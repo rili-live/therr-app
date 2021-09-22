@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.transistorsoft.fetch</string>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -55,11 +59,11 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Camera usage is needed for taking photos of various locations and sharing with social connections.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>This allows querying the user's current location to find nearby content shared by a user's connections</string>
+	<string>This allows querying the user&apos;s current location to find nearby content shared by a user&apos;s connections</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>This allows querying the user's current location to find nearby content shared by a user's connections</string>
+	<string>This allows querying the user&apos;s current location to find nearby content shared by a user&apos;s connections</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Location is used to allow content sharing from the user's specific longitude/latitude. Other uses can access content within a specified distance of the original location.</string>
+	<string>Location is used to allow content sharing from the user&apos;s specific longitude/latitude. Other uses can access content within a specified distance of the original location.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Microphone usage is needed for recording audio in various locations and sharing with social connections.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
@@ -79,6 +83,7 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
+		<string>processing</string>
 		<string>remote-notification</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
