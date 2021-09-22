@@ -166,7 +166,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             isSearchThisLocationBtnVisible: false,
             shouldIgnoreSearchThisAreaButton: false,
             layers: {
-                myMoments: false,
+                myMoments: true,
                 connectionsMoments: true,
             },
             circleCenter: {
@@ -562,7 +562,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         if (shouldSearchAll || layers.myMoments) {
             searchMoments({
                 query: 'me',
-                itemsPerPage: 20,
+                itemsPerPage: 50,
                 pageNumber: 1,
                 order: 'desc',
                 filterBy: 'fromUserIds',
@@ -572,7 +572,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         if (shouldSearchAll || layers.connectionsMoments) {
             searchMoments({
                 query: 'connections',
-                itemsPerPage: 20,
+                itemsPerPage: 50,
                 pageNumber: 1,
                 order: 'desc',
                 filterBy: 'fromUserIds',

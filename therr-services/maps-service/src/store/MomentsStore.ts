@@ -128,10 +128,12 @@ export default class MomentsStore {
     findMoments(momentIds, filters, options: any = {}) {
         // hard limit to prevent overloading client
         const restrictedLimit = (filters.limit) > 1000 ? 1000 : filters.limit;
+        const orderBy = filters.orderBy || `${MOMENTS_TABLE_NAME}.updatedAt`;
+        const order = filters.order || 'DESC';
 
         const query = knexBuilder
             .from(MOMENTS_TABLE_NAME)
-            .orderBy(`${MOMENTS_TABLE_NAME}.updatedAt`, 'desc')
+            .orderBy(orderBy, order)
             .whereIn('id', momentIds || [])
             .limit(restrictedLimit);
 

@@ -226,6 +226,7 @@ export default StyleSheet.create({
     },
     notifications: {
         ...bottomLeftBtnViewStyles,
+        zIndex: 10,
     },
     refreshMoments: {
         ...bottomLeftBtnViewStyles,

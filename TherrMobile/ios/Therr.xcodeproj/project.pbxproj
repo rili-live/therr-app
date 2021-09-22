@@ -24,6 +24,8 @@
 		714EBB3C25C6FCA700910449 /* TherrFont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 714EBB3B25C6FCA600910449 /* TherrFont.ttf */; };
 		715B89602618EA6300408914 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 715B895E2618EA6300408914 /* GoogleService-Info.plist */; };
 		715B89612618EA6300408914 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 715B895E2618EA6300408914 /* GoogleService-Info.plist */; };
+		717DDE3F26FB61B900A0E99B /* RNBackgroundFetch+AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 717DDE3E26FB61B900A0E99B /* RNBackgroundFetch+AppDelegate.m */; };
+		717DDE4026FB61B900A0E99B /* RNBackgroundFetch+AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 717DDE3E26FB61B900A0E99B /* RNBackgroundFetch+AppDelegate.m */; };
 		71AB94C026B09B3700EDA342 /* libreact-native-config.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 71AB94BF26B09B3700EDA342 /* libreact-native-config.a */; };
 		71C492D026A463B5004D33C1 /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71C492CF26A463B5004D33C1 /* File.swift */; };
 		71ED0B43267D2AAD002AA90C /* libRNGoogleSignin.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 71ED0B42267D2AAD002AA90C /* libRNGoogleSignin.a */; };
@@ -86,6 +88,7 @@
 		715B895E2618EA6300408914 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		715B89BF2619FD6600408914 /* TherrDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = TherrDebug.entitlements; path = Therr/TherrDebug.entitlements; sourceTree = "<group>"; };
 		715B89C52619FD9100408914 /* TherrRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = TherrRelease.entitlements; path = Therr/TherrRelease.entitlements; sourceTree = "<group>"; };
+		717DDE3E26FB61B900A0E99B /* RNBackgroundFetch+AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "RNBackgroundFetch+AppDelegate.m"; path = "../node_modules/react-native-background-fetch/ios/RNBackgroundFetch/RNBackgroundFetch+AppDelegate.m"; sourceTree = "<group>"; };
 		71AB94BF26B09B3700EDA342 /* libreact-native-config.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libreact-native-config.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		71AD19E4265046B100498CBE /* Therr-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Therr-Bridging-Header.h"; sourceTree = "<group>"; };
 		71AD19E5265046B100498CBE /* TherrTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TherrTests-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -169,6 +172,7 @@
 		13B07FAE1A68108700A75B9A /* Therr */ = {
 			isa = PBXGroup;
 			children = (
+				717DDE3E26FB61B900A0E99B /* RNBackgroundFetch+AppDelegate.m */,
 				715B89C52619FD9100408914 /* TherrRelease.entitlements */,
 				715B89BF2619FD6600408914 /* TherrDebug.entitlements */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
@@ -602,6 +606,7 @@
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf",
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Zocial.ttf",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/TOCropViewController/TOCropViewControllerBundle.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
@@ -624,6 +629,7 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/SimpleLineIcons.ttf",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Zocial.ttf",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AccessibilityResources.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/TOCropViewControllerBundle.bundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -656,6 +662,7 @@
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf",
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Zocial.ttf",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/TOCropViewController/TOCropViewControllerBundle.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
@@ -678,6 +685,7 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/SimpleLineIcons.ttf",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Zocial.ttf",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AccessibilityResources.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/TOCropViewControllerBundle.bundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -797,6 +805,7 @@
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
 				71C492D026A463B5004D33C1 /* File.swift in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				717DDE3F26FB61B900A0E99B /* RNBackgroundFetch+AppDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -804,6 +813,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				717DDE4026FB61B900A0E99B /* RNBackgroundFetch+AppDelegate.m in Sources */,
 				2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */,
 				2D02E4BC1E0B4A80006451C7 /* AppDelegate.m in Sources */,
 			);
