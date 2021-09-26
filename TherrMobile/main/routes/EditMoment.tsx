@@ -30,9 +30,9 @@ import BaseStatusBar from '../components/BaseStatusBar';
 
 export const DEFAULT_RADIUS = 10;
 export const MIN_RADIUS_PRIVATE = 3;
-export const MAX_RADIUS_PRIVATE = 25;
+export const MAX_RADIUS_PRIVATE = 50;
 export const MIN_RADIUS_PUBLIC = 3;
-export const MAX_RADIUS_PUBLIC = 50;
+export const MAX_RADIUS_PUBLIC = 200;
 
 interface IEditMomentDispatchProps {
     createMoment: Function;

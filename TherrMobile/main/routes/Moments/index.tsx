@@ -18,6 +18,7 @@ import MomentCarousel from './MomentCarousel';
 import MainButtonMenuAlt from '../../components/ButtonMenu/MainButtonMenuAlt';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import carLoader from '../../assets/sports-car.json';
+import { isMyMoment } from '../../utilities/content';
 
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
@@ -100,7 +101,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
 
         // navigation.navigate('Home');
         navigation.navigate('ViewMoment', {
-            isMyMoment: moment.fromUserId === user.details.id,
+            isMyMoment: isMyMoment(moment, user),
             previousView: 'Moments',
             moment,
             momentDetails: {},
