@@ -14,6 +14,7 @@ import Moments from './Moments';
 import ActiveConnections from './ActiveConnections';
 import Contacts from './Contacts';
 import CreateConnection from './CreateConnection';
+import CropImage from './CropImage';
 import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
 import ForgotPassword from './ForgotPassword';
@@ -128,6 +129,17 @@ const routes: RouteConfig<
         component: BookMarked,
         options: () => ({
             title: 'BookMarked',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'CropImage',
+        component: CropImage,
+        options: () => ({
+            title: 'CropImage',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

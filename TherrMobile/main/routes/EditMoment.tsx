@@ -133,6 +133,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             longitude,
         } = route.params;
         const { imageDetails } = route.params;
+        const { croppedImage } = imageDetails;
 
         const createArgs: any = {
             fromUserId: user.details.id,
@@ -166,6 +167,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 createArgs.media[0].path = response?.data?.path;
 
                 const localFilePath = Platform.OS === 'ios' ? imageDetails.uri.replace('file:///', '') : imageDetails.uri;
+                const localFileCroppedPath = Platform.OS === 'ios' ? imageDetails.uri.replace('file:///', '').replace('file:/', '') : croppedImage?.uri;
 
                 // Upload to Google Cloud
                 return RNFB.fetch(
@@ -175,7 +177,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         'Content-Type': imageDetails.type,
                         'Content-Disposition': 'inline',
                     },
-                    RNFB.wrap(localFilePath),
+                    RNFB.wrap(localFileCroppedPath || localFilePath),
                 );
             }).then(() => {
                 this.props
@@ -314,6 +316,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         const { errorMsg, successMsg, hashtags, inputs, previewLinkId, previewStyleState } = this.state;
 
         const { imageDetails } = route.params;
+        const { croppedImage } = imageDetails;
 
         return (
             <>
@@ -329,7 +332,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         <Pressable style={beemoLayoutStyles.container} onPress={Keyboard.dismiss}>
                             <View style={editMomentStyles.mediaContainer}>
                                 <Image
-                                    source={{ uri: imageDetails.uri }}
+                                    source={{ uri: croppedImage?.uri || imageDetails.uri }}
                                     style={editMomentStyles.mediaImage}
                                 />
                             </View>

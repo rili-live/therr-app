@@ -270,7 +270,11 @@ class Map extends React.Component<IMapProps, IMapState> {
         const { navigation } = this.props;
 
         if (!imageResponse.didCancel) {
-            return navigation.navigate('EditMoment', {
+            // return navigation.navigate('EditMoment', {
+            //     ...userCoords,
+            //     imageDetails: imageResponse,
+            // });
+            return navigation.navigate('CropImage', {
                 ...userCoords,
                 imageDetails: imageResponse,
             });
