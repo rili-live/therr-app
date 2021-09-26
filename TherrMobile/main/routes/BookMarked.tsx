@@ -11,6 +11,7 @@ import translator from '../services/translator';
 import styles from '../styles';
 import momentStyles from '../styles/user-content/moments';
 import MomentCarousel from './Moments/MomentCarousel';
+import { isMyMoment } from '../utilities/content';
 
 interface IBookMarkedDispatchProps {
     searchBookmarkedMoments: Function;
@@ -100,7 +101,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
 
         // navigation.navigate('Home');
         navigation.navigate('ViewMoment', {
-            isMyMoment: moment.fromUserId === user.details.id,
+            isMyMoment: isMyMoment(moment, user),
             previousView: 'Moments',
             moment,
             momentDetails: {},

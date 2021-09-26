@@ -53,6 +53,7 @@ import mapCustomStyle from '../../styles/map/googleCustom';
 import SearchTypeAheadResults from '../../components/SearchTypeAheadResults';
 import SearchThisAreaButtonGroup from '../../components/SearchThisAreaButtonGroup';
 import CameraMarkerIcon from './CameraMarkerIcon';
+import { isMyMoment } from '../../utilities/content';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../../assets/earth-loader.json');
@@ -258,7 +259,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         const { user } = this.props;
         const details: any = {};
 
-        if (moment.fromUserId === user.details.id) {
+        if (isMyMoment(moment, user)) {
             details.userDetails = user.details;
         }
 
@@ -276,7 +277,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         }
     }
 
-    handleCreateMoment = () => {
+    handleCreateMoment = (isCamera: boolean = true) => {
         const { location } = this.props;
         const { circleCenter } = this.state;
 
@@ -289,16 +290,29 @@ class Map extends React.Component<IMapProps, IMapState> {
                     return response[key] !== 'granted';
                 });
                 if (!permissionsDenied) {
-                    return ImagePicker.launchCamera(
-                        {
-                            mediaType: 'photo',
-                            includeBase64: false,
-                            maxHeight: 4 * viewportWidth,
-                            maxWidth: 4 * viewportWidth,
-                            saveToPhotos: true,
-                        },
-                        (cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter),
-                    );
+                    if (isCamera) {
+                        return ImagePicker.launchCamera(
+                            {
+                                mediaType: 'photo',
+                                includeBase64: false,
+                                maxHeight: 4 * viewportWidth,
+                                maxWidth: 4 * viewportWidth,
+                                saveToPhotos: true,
+                            },
+                            (cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter),
+                        );
+                    } else {
+                        return ImagePicker.launchImageLibrary(
+                            {
+                                mediaType: 'photo',
+                                includeBase64: false,
+                                maxHeight: 4 * viewportWidth,
+                                maxWidth: 4 * viewportWidth,
+                                selectionLimit: 1,
+                            },
+                            (cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter),
+                        );
+                    }
                 } else {
                     throw new Error('permissions denied');
                 }
@@ -492,7 +506,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             });
             const isProximitySatisfied = distToCenter - selectedMoment.radius <= selectedMoment.maxProximity;
             if (!isProximitySatisfied
-                && selectedMoment.fromUserId !== user.details.id
+                && !isMyMoment(selectedMoment, user)
                 && !(selectedMoment.userHasActivated && !selectedMoment.doesRequireProximityToView)) {
                 // Deny activation
                 this.showMomentAlert();
@@ -510,7 +524,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                         }, () => {
                             if (location?.settings?.isGpsEnabled) {
                                 navigation.navigate('ViewMoment', {
-                                    isMyMoment: selectedMoment.fromUserId === user.details.id,
+                                    isMyMoment: isMyMoment(selectedMoment, user),
                                     moment: selectedMoment,
                                     momentDetails: details,
                                 });
@@ -665,7 +679,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
     onDeleteMoment = (moment) => {
         const { deleteMoment, user } = this.props;
-        if (moment.fromUserId === user.details.id) {
+        if (isMyMoment(moment, user)) {
             deleteMoment({ ids: [moment.id] })
                 .then(() => {
                     console.log('Moment successfully deleted');

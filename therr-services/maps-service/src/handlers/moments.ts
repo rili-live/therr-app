@@ -23,7 +23,7 @@ const createMoment = (req, res) => {
     })
         .then(([moment]) => axios({ // Create companion reaction for user's own moment
             method: 'post',
-            url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/${moment.id}`,
+            url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/moment-reactions/${moment.id}`,
             headers: {
                 authorization,
                 'x-localecode': locale,
@@ -32,8 +32,10 @@ const createMoment = (req, res) => {
             data: {
                 userHasActivated: true,
             },
-        }).finally(() => moment))
-        .then((moment) => res.status(201).send(moment))
+        }).then(({ data: reaction }) => res.status(201).send({
+            ...moment,
+            reaction,
+        })))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
 

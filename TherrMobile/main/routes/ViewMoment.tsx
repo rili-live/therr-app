@@ -25,6 +25,7 @@ import { youtubeLinkRegex } from '../constants';
 import MomentDisplay from '../components/UserContent/MomentDisplay';
 import formatDate from '../utilities/formatDate';
 import BaseStatusBar from '../components/BaseStatusBar';
+import { isMyMoment as checkIsMyMoment } from '../utilities/content';
 // import * as therrTheme from '../styles/themes';
 // import formStyles, { settingsForm as settingsFormStyles } from '../styles/forms';
 // import BeemoInput from '../components/Input/Beemo';
@@ -179,7 +180,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         this.setState({
             isDeleting: true,
         });
-        if (moment.fromUserId === user.details.id) {
+        if (checkIsMyMoment(moment, user)) {
             deleteMoment({ ids: [moment.id] })
                 .then(() => {
                     navigation.navigate('Map');
