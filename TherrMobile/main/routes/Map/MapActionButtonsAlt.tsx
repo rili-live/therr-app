@@ -42,20 +42,36 @@ export default ({
             </View>
             {
                 shouldShowCreateButton &&
-                    <View style={buttonStyles.addMoment}>
-                        <Button
-                            buttonStyle={buttonStyles.btn}
-                            icon={
-                                <OctIcon
-                                    name="device-camera"
-                                    size={44}
-                                    style={buttonStyles.btnIcon}
-                                />
-                            }
-                            raised={true}
-                            onPress={handleCreateMoment}
-                        />
-                    </View>
+                    <>
+                        <View style={buttonStyles.addMomentFromMedia}>
+                            <Button
+                                buttonStyle={buttonStyles.btnLarge}
+                                icon={
+                                    <OctIcon
+                                        name="file-media"
+                                        size={44}
+                                        style={buttonStyles.btnIcon}
+                                    />
+                                }
+                                raised={true}
+                                onPress={() => handleCreateMoment(false)}
+                            />
+                        </View>
+                        <View style={buttonStyles.addMoment}>
+                            <Button
+                                buttonStyle={buttonStyles.btnLarge}
+                                icon={
+                                    <OctIcon
+                                        name="device-camera"
+                                        size={44}
+                                        style={buttonStyles.btnIcon}
+                                    />
+                                }
+                                raised={true}
+                                onPress={() => handleCreateMoment(true)}
+                            />
+                        </View>
+                    </>
             }
             <View style={buttonStyles.locationEnable}>
                 <Button
