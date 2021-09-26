@@ -73,7 +73,7 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
         const { content, navigation, updateActiveMoments } = this.props;
 
         navigation.setOptions({
-            title: this.translate('pages.moments.headerTitle'),
+            title: this.translate('pages.advancedSearch.headerTitle'),
         });
 
         if (!content?.activeAdvancedSearch?.length || content.activeAdvancedSearch.length < 21) {

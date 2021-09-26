@@ -345,6 +345,14 @@
     }
   },
   "menus": {
+    "crop": {
+      "buttons": {
+        "aspectRatio": "1:1",
+        "cancel": "Cancel",
+        "done": "Done",
+        "rotate": "Rotate"
+      }
+    },
     "main": {
       "buttons": {
         "account": "Account",
@@ -411,6 +419,9 @@
       "headerTitle": "Therr",
       "pageHeaderA": "Create your profile",
       "pageHeaderB": "Keep it secure"
+    },
+    "cropImage": {
+      "headerTitle": "Crop Image"
     },
     "directMessage": {
       "inputPlaceholder": "Enter a message..."
