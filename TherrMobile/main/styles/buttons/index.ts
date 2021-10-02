@@ -76,6 +76,12 @@ export default StyleSheet.create({
         top: 10,
         zIndex: 100,
     },
+    buttonGroupFilterList: {
+        ...buttonGroupStyles,
+        justifyContent: 'space-around',
+        bottom: 100 + buttonMenuHeight - collapseOffset,
+        zIndex: 100,
+    },
     buttonGroupContainer: {
         display: 'flex',
         flexDirection: 'row',
@@ -237,6 +243,30 @@ export default StyleSheet.create({
         position: 'absolute',
         left: 96,
         bottom: 160 + buttonMenuHeight - collapseOffset,
+        shadowColor: therrTheme.colors.textBlack,
+        shadowOffset: {
+            height: 1,
+            width: 1,
+        },
+        shadowRadius: 4,
+        borderRadius: 100,
+        padding: 0,
+        height: 32,
+        width: 32,
+    },
+    momentLayerOption3: {
+        shadowColor: therrTheme.colors.textBlack,
+        shadowOffset: {
+            height: 1,
+            width: 1,
+        },
+        shadowRadius: 4,
+        borderRadius: 100,
+        padding: 0,
+        height: 32,
+        width: 32,
+    },
+    momentLayerOption4: {
         shadowColor: therrTheme.colors.textBlack,
         shadowOffset: {
             height: 1,
