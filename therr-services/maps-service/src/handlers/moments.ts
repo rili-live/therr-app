@@ -98,6 +98,7 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
     const {
         distanceOverride,
     } = req.body;
+    console.log('distanceOverride', distanceOverride);
     const integerColumns = ['maxViews', 'longitude', 'latitude'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
     let fromUserIds;

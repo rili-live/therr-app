@@ -5,7 +5,7 @@ import { ISearchQuery } from '../types';
 
 let googleDynamicSessionToken = uuid.v4(); // This gets stored in the local state of this file/module
 
-interface ISearchMomentsArgs {
+export interface ISearchMomentsArgs {
     distanceOverride?: number;
 }
 
