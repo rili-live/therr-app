@@ -8,6 +8,7 @@ import 'react-native-gesture-handler';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import { UsersService } from 'therr-react/services';
+import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import styles from '../../styles';
 import mixins from '../../styles/mixins';
 import LoginForm from './LoginForm';
@@ -15,6 +16,14 @@ import { bindActionCreators } from 'redux';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import therrIconConfig from '../../assets/therr-font-config.json';
+
+const LogoIcon = createIconSetFromIcoMoon(
+    therrIconConfig,
+    'TherrFont',
+    'TherrFont.ttf'
+);
+
 
 interface ILoginDispatchProps {
     login: Function;
@@ -129,7 +138,11 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                                     <Image source={{ uri: `https://robohash.org/${this.cachedUserId}?size=200x200` }} loaderSize="large" />
                                 </View> :
                                 <View style={[mixins.flexCenter, mixins.marginMediumBot, mixins.marginMediumTop]}>
-                                    <Image source={require('../../assets/profile-placeholder-white.png')} loaderSize="large" />
+                                    <LogoIcon
+                                        name="therr-logo"
+                                        size={150}
+                                        style={[styles.logoIcon, { marginLeft: 0 }]}
+                                    />
                                 </View>
                         }
                         <LoginForm login={this.props.login} navigation={this.props.navigation} userMessage={userMessage} />

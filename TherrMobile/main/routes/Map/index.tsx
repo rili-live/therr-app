@@ -14,7 +14,7 @@ import { bindActionCreators } from 'redux';
 import { MapsService, UsersService, PushNotificationsService } from 'therr-react/services';
 import { AccessCheckType, IMapState as IMapReduxState, IReactionsState, IUserState } from 'therr-react/types';
 import { MapActions, ReactionActions, UserInterfaceActions } from 'therr-react/redux/actions';
-import { AccessLevels } from 'therr-js-utilities/constants';
+import { AccessLevels, Location } from 'therr-js-utilities/constants';
 import Geolocation from '@react-native-community/geolocation';
 import AnimatedLoader from 'react-native-animated-loader';
 import { distanceTo, insideCircle } from 'geolocation-utils';
@@ -312,7 +312,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 includeBase64: false,
                                 maxHeight: 4 * viewportWidth,
                                 maxWidth: 4 * viewportWidth,
-                                selectionLimit: 1,
+                                // selectionLimit: 1,
                             },
                             (cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter),
                         );
@@ -623,16 +623,26 @@ class Map extends React.Component<IMapProps, IMapState> {
                     latitudeDelta: Math.max(latDelta, PRIMARY_LATITUDE_DELTA),
                     longitudeDelta: Math.max(lngDelta, PRIMARY_LONGITUDE_DELTA),
                 };
+                let searchRadiusMeters = distanceTo({
+                    lon: loc.longitude,
+                    lat: loc.latitude,
+                }, {
+                    // TODO: Use search polygon rather than rough estimate radius
+                    lon: geometry.viewport.northeast.lng,
+                    lat: geometry.viewport.northeast.lat,
+                });
+                searchRadiusMeters = Math.max(searchRadiusMeters, Location.MOMENT_PROXIMITY_METERS);
+                searchRadiusMeters = searchRadiusMeters + (searchRadiusMeters * 0.10); // add 10% padding
                 this.animateToWithHelp(() => this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_SLOW));
                 // TODO: Determine if it would be best to combine these requests. Implement layers filter through filter button
-                this.handleSearchThisLocation(geometry.location.lat, geometry.location.lng);
+                this.handleSearchThisLocation(searchRadiusMeters, geometry.location.lat, geometry.location.lng);
             }
         }).catch((error) => {
             console.log(error);
         });
     }
 
-    handleSearchThisLocation = (latitude?, longitude?) => {
+    handleSearchThisLocation = (searchRadius = Location.MOMENT_PROXIMITY_METERS, latitude?, longitude?) => {
         const { searchMoments } = this.props;
         const { region } = this.state;
         this.setState({
@@ -657,6 +667,8 @@ class Map extends React.Component<IMapProps, IMapState> {
                 filterBy: 'fromUserIds',
                 latitude: lat,
                 longitude: long,
+            }, {
+                distanceOverride: searchRadius,
             });
             searchMoments({
                 query: 'me',
@@ -666,6 +678,8 @@ class Map extends React.Component<IMapProps, IMapState> {
                 filterBy: 'fromUserIds',
                 latitude: lat,
                 longitude: long,
+            }, {
+                distanceOverride: searchRadius,
             });
         }
     }
@@ -860,7 +874,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         const {
             activeMoment,
             areButtonsVisible,
-            // areLayersVisible,
+            areLayersVisible,
             circleCenter,
             shouldFollowUserLocation,
             isLocationReady,
@@ -1026,20 +1040,6 @@ class Map extends React.Component<IMapProps, IMapState> {
                                     })
                                 }
                             </MapView>
-                            {/* <View style={buttonStyles.collapse}>
-                                <Button
-                                    buttonStyle={buttonStyles.btn}
-                                    icon={
-                                        <FontAwesomeIcon
-                                            name="ellipsis-h"
-                                            size={20}
-                                            style={buttonStyles.btnIcon}
-                                        />
-                                    }
-                                    raised={true}
-                                    onPress={() => this.toggleMomentBtns()}
-                                />
-                            </View> */}
                             <AnimatedOverlay
                                 animationType="swing"
                                 animationDuration={500}
@@ -1070,15 +1070,22 @@ class Map extends React.Component<IMapProps, IMapState> {
                 {
                     isLocationReady && isMinLoadTimeComplete && areButtonsVisible &&
                     <>
-                        <MapActionButtonsAlt
-                            goToMoments={this.goToMoments}
-                            goToNotifications={this.goToNotifications}
-                            handleCreateMoment={this.handleCreateMoment}
-                            handleGpsRecenter={this.handleGpsRecenterPress}
-                            isAuthorized={this.isAuthorized}
-                            isGpsEnabled={location?.settings?.isGpsEnabled}
-                        />
+                        {
+                            !areLayersVisible &&
+                            <MapActionButtonsAlt
+                                goToMoments={this.goToMoments}
+                                goToNotifications={this.goToNotifications}
+                                handleCreateMoment={this.handleCreateMoment}
+                                handleGpsRecenter={this.handleGpsRecenterPress}
+                                isAuthorized={this.isAuthorized}
+                                isGpsEnabled={location?.settings?.isGpsEnabled}
+                            />
+                        }
                         <FiltersButtonGroup
+                            areLayersVisible={areLayersVisible}
+                            layers={layers}
+                            toggleLayer={this.toggleLayer}
+                            toggleLayers={this.toggleLayers}
                             goToMoments={this.goToMoments}
                             translate={this.translate}
                         />
