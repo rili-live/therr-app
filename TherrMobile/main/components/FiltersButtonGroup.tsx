@@ -35,7 +35,7 @@ export default ({
                 <View style={buttonStyles.buttonGroupFilterList}>
                     <View style={buttonStyles.momentLayerOption3}>
                         <Button
-                            buttonStyle={buttonStyles.btn}
+                            buttonStyle={buttonStyles.btnMedium}
                             icon={
                                 <FontAwesomeIcon
                                     name="globe"
@@ -49,7 +49,7 @@ export default ({
                     </View>
                     <View style={buttonStyles.momentLayerOption4}>
                         <Button
-                            buttonStyle={buttonStyles.btn}
+                            buttonStyle={buttonStyles.btnMedium}
                             icon={
                                 <FontAwesomeIcon
                                     name="child"

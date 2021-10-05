@@ -602,6 +602,20 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     };
 
+    getSearchRadius = (locationCenter, locationEdge) => {
+        let searchRadiusMeters = distanceTo({
+            lon: locationCenter.longitude,
+            lat: locationCenter.latitude,
+        }, {
+            // TODO: Use search polygon rather than rough estimate radius
+            lon: locationEdge.longitude,
+            lat: locationEdge.latitude,
+        });
+        searchRadiusMeters = Math.max(searchRadiusMeters, Location.MOMENT_PROXIMITY_METERS);
+        searchRadiusMeters = searchRadiusMeters + (searchRadiusMeters * 0.10); // add 10% padding
+        return searchRadiusMeters;
+    }
+
     handleSearchSelect = (selection) => {
         const { setSearchDropdownVisibility } = this.props;
 
@@ -623,16 +637,10 @@ class Map extends React.Component<IMapProps, IMapState> {
                     latitudeDelta: Math.max(latDelta, PRIMARY_LATITUDE_DELTA),
                     longitudeDelta: Math.max(lngDelta, PRIMARY_LONGITUDE_DELTA),
                 };
-                let searchRadiusMeters = distanceTo({
-                    lon: loc.longitude,
-                    lat: loc.latitude,
-                }, {
-                    // TODO: Use search polygon rather than rough estimate radius
-                    lon: geometry.viewport.northeast.lng,
-                    lat: geometry.viewport.northeast.lat,
+                const searchRadiusMeters = this.getSearchRadius(loc, {
+                    longitude: geometry.viewport.northeast.lng,
+                    latitude: geometry.viewport.northeast.lat,
                 });
-                searchRadiusMeters = Math.max(searchRadiusMeters, Location.MOMENT_PROXIMITY_METERS);
-                searchRadiusMeters = searchRadiusMeters + (searchRadiusMeters * 0.10); // add 10% padding
                 this.animateToWithHelp(() => this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_SLOW));
                 // TODO: Determine if it would be best to combine these requests. Implement layers filter through filter button
                 this.handleSearchThisLocation(searchRadiusMeters, geometry.location.lat, geometry.location.lng);
@@ -642,7 +650,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     }
 
-    handleSearchThisLocation = (searchRadius = Location.MOMENT_PROXIMITY_METERS, latitude?, longitude?) => {
+    handleSearchThisLocation = (searchRadius?, latitude?, longitude?) => {
         const { searchMoments } = this.props;
         const { region } = this.state;
         this.setState({
@@ -657,6 +665,13 @@ class Map extends React.Component<IMapProps, IMapState> {
             long = region.longitude;
         }
 
+        let radius = searchRadius || this.getSearchRadius({
+            longitude: long,
+            latitude: lat,
+        }, {
+            longitude: long + region.longitudeDelta,
+            latitude: lat + region.latitudeDelta,
+        });
 
         if (lat && long) {
             searchMoments({
@@ -668,7 +683,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                 latitude: lat,
                 longitude: long,
             }, {
-                distanceOverride: searchRadius,
+                distanceOverride: radius,
             });
             searchMoments({
                 query: 'me',
@@ -679,7 +694,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                 latitude: lat,
                 longitude: long,
             }, {
-                distanceOverride: searchRadius,
+                distanceOverride: radius,
             });
         }
     }
