@@ -11,6 +11,7 @@ import formatDate from '../../utilities/formatDate';
 const renderItem = ({ item: moment }, {
     content,
     expandMoment,
+    toggleMomentOptions,
     formattedDate,
     translate,
     updateMomentReaction,
@@ -25,7 +26,7 @@ const renderItem = ({ item: moment }, {
             <MomentDisplay
                 translate={translate}
                 date={formattedDate}
-                expandMoment={expandMoment}
+                toggleMomentOptions={toggleMomentOptions}
                 hashtags={moment.hashTags ? moment.hashTags.split(",") : []}
                 moment={moment}
                 // TODO: Get username from response
@@ -53,6 +54,7 @@ export default ({
     handleRefresh,
     isForBookmarks,
     onEndReached,
+    toggleMomentOptions,
     translate,
     updateMomentReaction,
     emptyListMessage,
@@ -102,6 +104,7 @@ export default ({
                     content,
                     expandMoment,
                     formattedDate: formatDate(itemObj.item.createdAt),
+                    toggleMomentOptions,
                     translate,
                     updateMomentReaction,
                 })}

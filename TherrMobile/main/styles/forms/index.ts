@@ -20,7 +20,8 @@ const platformSpecificInputStyles = Platform.OS !== 'ios' ? {
     shadowOpacity: 0.99,
     shadowRadius: 2,
 } : {
-    backgroundColor: therrTheme.colors.backgroundGray,
+    // backgroundColor: therrTheme.colors.backgroundWhite,
+    backgroundColor: 'rgba(16,72,82,.7)', // colors.teriary with 70% opacity
     color: 'black',
 };
 
@@ -31,7 +32,8 @@ export default StyleSheet.create({
     },
     inputAlt: {
         ...inputStyle,
-        color: therrTheme.colors.textBlack,
+        // color: therrTheme.colors.textBlack,
+        color: therrTheme.colors.textWhite,
     },
     inputBeemo: {
         ...inputStyle,

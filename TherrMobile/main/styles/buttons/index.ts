@@ -6,7 +6,7 @@ const collapseOffset = 20;
 
 const btnStyles: any = {
     borderRadius: 100,
-    padding: 0,
+    padding: 1,
     borderWidth: 0,
     alignItems: 'center',
     justifyContent: 'center',
@@ -263,8 +263,11 @@ export default StyleSheet.create({
         shadowRadius: 4,
         borderRadius: 100,
         padding: 0,
-        height: 32,
-        width: 32,
+        height: 36,
+        width: 36,
+        alignItems: 'center',
+        justifyContent: 'center',
+        display: 'flex',
     },
     momentLayerOption4: {
         shadowColor: therrTheme.colors.textBlack,
@@ -289,6 +292,12 @@ export default StyleSheet.create({
         ...btnStyles,
         backgroundColor: therrTheme.colors.beemo1,
     },
+    btnMedium: {
+        ...btnStyles,
+        backgroundColor: therrTheme.colors.beemo1,
+        height: 34,
+        width: 34,
+    },
     btnLarge: {
         ...btnStyles,
         backgroundColor: therrTheme.colors.beemo1,
@@ -305,9 +314,16 @@ export default StyleSheet.create({
         color: therrTheme.colors.beemoTextWhite,
         padding: 0,
     },
+    btnIconBlack: {
+        color: therrTheme.colors.beemoTextBlack,
+        padding: 0,
+    },
     btnIconInactive: {
         color: therrTheme.colors.primary3,
         padding: 0,
+    },
+    btnTitleBlack: {
+        color: therrTheme.colors.beemoTextBlack,
     },
     mapView: {
         flex: 1,

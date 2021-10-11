@@ -30,6 +30,7 @@ interface IUpdateUser {
     userName: string;
     password?: string;
     newPassword?: string;
+    shouldHideMatureContent?: boolean;
 }
 
 interface IChangePasswordArgs {

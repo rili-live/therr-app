@@ -13,6 +13,7 @@ export interface ICreateMomentReactionParams {
     userHasLiked?: boolean;
     userHasSuperLiked?: boolean;
     userHasDisliked?: boolean;
+    userHasReported?: boolean;
     userHasSuperDisliked?: boolean;
     userLocale?: string;
 }
@@ -28,6 +29,7 @@ export interface IUpdateMomentReactionParams {
     userHasLiked?: boolean;
     userHasSuperLiked?: boolean;
     userHasDisliked?: boolean;
+    userHasReported?: boolean;
     userHasSuperDisliked?: boolean;
     userLocale?: string;
 }
