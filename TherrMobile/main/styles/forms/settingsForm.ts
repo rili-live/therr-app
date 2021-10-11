@@ -1,28 +1,31 @@
 import { StyleSheet } from 'react-native';
 import * as therrTheme from '../themes';
 
+const container: any = {
+    backgroundColor: 'transparent',
+    borderRadius: 16,
+    marginTop: 0,
+    maxWidth: '100%',
+    minWidth: '98%',
+    padding: 24,
+    paddingTop: 4,
+};
+
 export default StyleSheet.create({
     userContainer: {
-        backgroundColor: 'transparent',
-        borderRadius: 16,
-        marginTop: 0,
+        ...container,
         marginBottom: 4,
-        maxWidth: '100%',
-        minWidth: '98%',
-        padding: 24,
         paddingBottom: 4,
-        paddingTop: 4,
+    },
+    settingsContainer: {
+        ...container,
+        marginBottom: 4,
+        paddingBottom: 4,
     },
     passwordContainer: {
-        backgroundColor: 'transparent',
-        borderRadius: 16,
-        marginTop: 0,
+        ...container,
         marginBottom: '4%',
-        maxWidth: '100%',
-        minWidth: '98%',
-        padding: 24,
         paddingBottom: 58,
-        paddingTop: 4,
     },
     button: {
         backgroundColor: therrTheme.colors.primary3,

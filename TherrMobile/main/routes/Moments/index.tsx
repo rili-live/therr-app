@@ -19,6 +19,8 @@ import MainButtonMenuAlt from '../../components/ButtonMenu/MainButtonMenuAlt';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import carLoader from '../../assets/sports-car.json';
 import { isMyMoment } from '../../utilities/content';
+import MomentOptionsModal, { ISelectionType } from '../../components/Modals/MomentOptionsModal';
+import { getReactionUpdateArgs } from '../../utilities/reactions';
 
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
@@ -42,6 +44,8 @@ export interface IMomentsProps extends IStoreProps {
 
 interface IMomentsState {
     isLoading: boolean;
+    areMomentOptionsVisible: boolean;
+    selectedMoment: any;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -69,6 +73,8 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
 
         this.state = {
             isLoading: true,
+            areMomentOptionsVisible: false,
+            selectedMoment: {},
         };
 
         this.translate = (key: string, params: any) =>
@@ -122,6 +128,16 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         });
     }
 
+    onMomentOptionSelect = (type: ISelectionType) => {
+        const { selectedMoment } = this.state;
+        const { createOrUpdateMomentReaction } = this.props;
+        const requestArgs: any = getReactionUpdateArgs(type);
+
+        createOrUpdateMomentReaction(selectedMoment.id, requestArgs).finally(() => {
+            this.toggleMomentOptions(selectedMoment);
+        });
+    }
+
     scrollTop = () => {
         this.carouselRef?.scrollToOffset({ animated: true, offset: 0 });
     }
@@ -137,6 +153,14 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
                 ...content.activeMomentsFilters,
             });
         }
+    }
+
+    toggleMomentOptions = (moment) => {
+        const { areMomentOptionsVisible } = this.state;
+        this.setState({
+            areMomentOptionsVisible: !areMomentOptionsVisible,
+            selectedMoment: areMomentOptionsVisible ? {} : moment,
+        });
     }
 
     renderCarousel = (content) => {
@@ -162,6 +186,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
             <MomentCarousel
                 content={content}
                 expandMoment={this.goToMoment}
+                toggleMomentOptions={this.toggleMomentOptions}
                 translate={this.translate}
                 isForBookmarks={false}
                 containerRef={(component) => this.carouselRef = component}
@@ -176,6 +201,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
     }
 
     render() {
+        const { areMomentOptionsVisible, selectedMoment } = this.state;
         const { content, navigation, user } = this.props;
 
         return (
@@ -186,6 +212,12 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
                         this.renderCarousel(content)
                     }
                 </SafeAreaView>
+                <MomentOptionsModal
+                    isVisible={areMomentOptionsVisible}
+                    onRequestClose={() => this.toggleMomentOptions(selectedMoment)}
+                    translate={this.translate}
+                    onSelect={this.onMomentOptionSelect}
+                />
                 {/* <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} /> */}
                 <MainButtonMenuAlt
                     navigation={navigation}

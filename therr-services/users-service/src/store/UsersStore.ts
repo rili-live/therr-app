@@ -145,6 +145,10 @@ export default class UsersStore {
             modifiedParams.verificationCodes = params.verificationCodes;
         }
 
+        if (params.shouldHideMatureContent != null) {
+            modifiedParams.shouldHideMatureContent = params.shouldHideMatureContent;
+        }
+
         // Security: Prevent updating multiple users
         if (!normalizedConditions.id && !normalizedConditions.email) {
             throw new Error('User ID or email is required to call updateUser');

@@ -26,6 +26,8 @@ import MomentDisplay from '../components/UserContent/MomentDisplay';
 import formatDate from '../utilities/formatDate';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { isMyMoment as checkIsMyMoment } from '../utilities/content';
+import MomentOptionsModal, { ISelectionType } from '../components/Modals/MomentOptionsModal';
+import { getReactionUpdateArgs } from '../utilities/reactions';
 // import * as therrTheme from '../styles/themes';
 // import formStyles, { settingsForm as settingsFormStyles } from '../styles/forms';
 // import BeemoInput from '../components/Input/Beemo';
@@ -54,12 +56,14 @@ export interface IViewMomentProps extends IStoreProps {
 }
 
 interface IViewMomentState {
+    areMomentOptionsVisible: boolean;
     errorMsg: string;
     successMsg: string;
     isDeleting: boolean;
     isVerifyingDelete: boolean;
     previewLinkId?: string;
     previewStyleState: any;
+    selectedMoment: any;
 }
 
 const mapStateToProps = (state) => ({
@@ -90,12 +94,14 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         const youtubeMatches = (moment.message || '').match(youtubeLinkRegex);
 
         this.state = {
+            areMomentOptionsVisible: false,
             errorMsg: '',
             successMsg: '',
             isDeleting: false,
             isVerifyingDelete: false,
             previewStyleState: {},
             previewLinkId: youtubeMatches && youtubeMatches[1],
+            selectedMoment: {},
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -195,6 +201,16 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         }
     }
 
+    onMomentOptionSelect = (type: ISelectionType) => {
+        const { selectedMoment } = this.state;
+        const { createOrUpdateMomentReaction } = this.props;
+        const requestArgs: any = getReactionUpdateArgs(type);
+
+        createOrUpdateMomentReaction(selectedMoment.id, requestArgs).finally(() => {
+            this.toggleMomentOptions(selectedMoment);
+        });
+    }
+
     goBack = () => {
         const { navigation, route } = this.props;
         const { previousView } = route.params;
@@ -220,8 +236,16 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         return createOrUpdateMomentReaction(momentId, data);
     }
 
+    toggleMomentOptions = (moment) => {
+        const { areMomentOptionsVisible } = this.state;
+        this.setState({
+            areMomentOptionsVisible: !areMomentOptionsVisible,
+            selectedMoment: areMomentOptionsVisible ? {} : moment,
+        });
+    }
+
     render() {
-        const { isDeleting, isVerifyingDelete, previewLinkId, previewStyleState } = this.state;
+        const { areMomentOptionsVisible, isDeleting, isVerifyingDelete, previewLinkId, previewStyleState, selectedMoment } = this.state;
         const { content, route, user } = this.props;
         const { moment, isMyMoment } = route.params;
         // TODO: Fetch moment media
@@ -243,7 +267,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                             <MomentDisplay
                                 translate={this.translate}
                                 date={this.date}
-                                expandMoment={() => null}
+                                toggleMomentOptions={() => this.toggleMomentOptions(moment)}
                                 hashtags={this.hashtags}
                                 isDarkMode={true}
                                 isExpanded={true}
@@ -345,6 +369,12 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                         </View>
                     }
                 </SafeAreaView>
+                <MomentOptionsModal
+                    isVisible={areMomentOptionsVisible}
+                    onRequestClose={() => this.toggleMomentOptions(selectedMoment)}
+                    translate={this.translate}
+                    onSelect={this.onMomentOptionSelect}
+                />
             </>
         );
     }

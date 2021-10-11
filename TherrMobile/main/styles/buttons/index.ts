@@ -314,9 +314,16 @@ export default StyleSheet.create({
         color: therrTheme.colors.beemoTextWhite,
         padding: 0,
     },
+    btnIconBlack: {
+        color: therrTheme.colors.beemoTextBlack,
+        padding: 0,
+    },
     btnIconInactive: {
         color: therrTheme.colors.primary3,
         padding: 0,
+    },
+    btnTitleBlack: {
+        color: therrTheme.colors.beemoTextBlack,
     },
     mapView: {
         flex: 1,

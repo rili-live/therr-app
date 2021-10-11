@@ -26,7 +26,7 @@ interface IUserDetails {
 interface IMomentDisplayProps {
     translate: Function;
     date: string;
-    expandMoment: Function;
+    toggleMomentOptions: Function;
     hashtags: any[];
     isDarkMode: boolean;
     isExpanded?: boolean;
@@ -64,7 +64,7 @@ export default class MomentDisplay extends React.Component<IMomentDisplayProps, 
     render() {
         const {
             date,
-            expandMoment,
+            toggleMomentOptions,
             hashtags,
             isDarkMode,
             isExpanded,
@@ -96,23 +96,20 @@ export default class MomentDisplay extends React.Component<IMomentDisplayProps, 
                             {date}
                         </Text>
                     </View>
-                    {
-                        !isExpanded &&
-                        <Button
-                            containerStyle={this.viewMomentStyles.moreButtonContainer}
-                            buttonStyle={this.viewMomentStyles.moreButton}
-                            icon={
-                                <Icon
-                                    name="more-horiz"
-                                    size={24}
-                                    color={isDarkMode ? therrTheme.colors.textWhite : therrTheme.colors.tertiary}
-                                />
-                            }
-                            onPress={() => expandMoment(moment)}
-                            type="clear"
-                            TouchableComponent={TouchableWithoutFeedbackComponent}
-                        />
-                    }
+                    <Button
+                        containerStyle={this.viewMomentStyles.moreButtonContainer}
+                        buttonStyle={this.viewMomentStyles.moreButton}
+                        icon={
+                            <Icon
+                                name="more-horiz"
+                                size={24}
+                                color={isDarkMode ? therrTheme.colors.textWhite : therrTheme.colors.tertiary}
+                            />
+                        }
+                        onPress={() => toggleMomentOptions(moment)}
+                        type="clear"
+                        TouchableComponent={TouchableWithoutFeedbackComponent}
+                    />
                 </View>
                 <UserMedia
                     viewportWidth={viewportWidth}

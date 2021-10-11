@@ -218,6 +218,7 @@ const updateUser = (req, res) => {
                 phoneNumber: req.body.phoneNumber,
                 userName: req.body.userName,
                 deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
+                shouldHideMatureContent: req.body.shouldHideMatureContent,
             };
 
             const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);

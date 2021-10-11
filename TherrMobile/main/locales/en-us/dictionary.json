@@ -123,13 +123,6 @@
       "author": "Tim Howard"
     }
   ],
-  "validations": {
-    "email": "Invalid email address",
-    "isRequired": "This is a required field",
-    "lettersOnly": "Input only accepts alphabetic values",
-    "mobilePhoneNumber": "Input must be a valid, international mobile number beginning with '+'",
-    "numbersOnly": "Input only accepts numeric values"
-  },
   "components": {
     "activeConnections": {
       "noActiveConnections": "There are currently no active connections in your network",
@@ -338,7 +331,9 @@
         "repeatPassword": "Repeat Password",
         "firstName": "Firstname",
         "lastName": "Lastname",
-        "userName": "Username"
+        "userName": "Username",
+        "hideReportedContent": "Hide Mature Content",
+        "showReportedContent": "Show Mature Content"
       },
       "backendSuccessMessage": "User settings successfully updated!",
       "backendErrorMessage": "Connection error. Please try again later."
@@ -505,7 +500,8 @@
     "settings": {
       "headerTitle": "Settings",
       "pageHeaderUser": "User Profile",
-      "pageHeaderPassword": "Update Password"
+      "pageHeaderPassword": "Update Password",
+      "pageHeaderSettings": "Content Settings"
     },
     "template": {
       "pageTitle": "Template",
@@ -551,6 +547,15 @@
       }
     }
   },
+  "modals": {
+    "momentOptions": {
+      "buttons": {
+        "like": "'Like' this",
+        "dislike": "'Dislike' this",
+        "report": "Report this content..."
+      }
+    }
+  },
   "permissions": {
     "accessFineLocation": {
       "title": "Therr Mobile",
@@ -567,5 +572,12 @@
       "no": "NO",
       "yes": "YES"
     }
-  }
+  },
+  "validations": {
+    "email": "Invalid email address",
+    "isRequired": "This is a required field",
+    "lettersOnly": "Input only accepts alphabetic values",
+    "mobilePhoneNumber": "Input must be a valid, international mobile number beginning with '+'",
+    "numbersOnly": "Input only accepts numeric values"
+  },
 }
