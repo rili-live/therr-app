@@ -579,5 +579,5 @@
     "lettersOnly": "Input only accepts alphabetic values",
     "mobilePhoneNumber": "Input must be a valid, international mobile number beginning with '+'",
     "numbersOnly": "Input only accepts numeric values"
-  },
+  }
 }
