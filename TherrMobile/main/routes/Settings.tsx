@@ -4,6 +4,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { Button }  from 'react-native-elements';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { Picker as ReactPicker } from '@react-native-picker/picker';
 import { IUserState } from 'therr-react/types';
 import { PasswordRegex } from 'therr-js-utilities/constants';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
@@ -66,6 +67,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 lastName: props.user.details.lastName,
                 userName: props.user.details.userName,
                 phoneNumber: props.user.details.phoneNumber,
+                shouldHideMatureContent: props.user.details.shouldHideMatureContent || true,
             },
             isSubmitting: false,
             passwordErrorMessage: '',
@@ -104,10 +106,11 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             phoneNumber,
             password,
             repeatPassword,
+            shouldHideMatureContent,
         } = this.state.inputs;
         const { user } = this.props;
 
-        if (!PasswordRegex.test(password)) {
+        if (password && !PasswordRegex.test(password)) {
             this.setState({
                 errorMsg: this.translate(
                     'forms.settings.errorMessages.passwordInsecure'
@@ -123,6 +126,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             firstName,
             lastName,
             userName: userName.toLowerCase(),
+            shouldHideMatureContent,
         };
 
         if (oldPassword && password === repeatPassword) {
@@ -206,6 +210,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const { errorMsg, successMsg, inputs, passwordErrorMessage } = this.state;
         const pageHeaderUser = this.translate('pages.settings.pageHeaderUser');
         const pageHeaderPassword = this.translate('pages.settings.pageHeaderPassword');
+        const pageHeaderSettings = this.translate('pages.settings.pageHeaderSettings');
 
         return (
             <>
@@ -312,6 +317,27 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         />
                                     }
                                 />
+                            </View>
+                            <View style={styles.sectionContainer}>
+                                <Text style={styles.sectionTitle}>
+                                    {pageHeaderSettings}
+                                </Text>
+                            </View>
+                            <View style={settingsFormStyles.settingsContainer}>
+                                <ReactPicker
+                                    selectedValue={inputs.shouldHideMatureContent}
+                                    style={formStyles.picker}
+                                    itemStyle={formStyles.pickerItem}
+                                    onValueChange={(itemValue) =>
+                                        this.onInputChange('shouldHideMatureContent', itemValue)
+                                    }>
+                                    <ReactPicker.Item label={this.translate(
+                                        'forms.settings.labels.hideReportedContent'
+                                    )} value={true} />
+                                    <ReactPicker.Item label={this.translate(
+                                        'forms.settings.labels.showReportedContent'
+                                    )} value={false} />
+                                </ReactPicker>
                             </View>
                             <View style={styles.sectionContainer}>
                                 <Text style={styles.sectionTitle}>

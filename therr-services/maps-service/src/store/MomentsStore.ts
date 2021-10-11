@@ -90,7 +90,10 @@ export default class MomentsStore {
             // TODO: Determine a better way to select moments that are most relevant to the user
             // .orderBy(`${MOMENTS_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
             // NOTE: Cast to a geography type to search distance within n meters
-            .where(knexBuilder.raw(`ST_DWithin(geom, ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${proximityMax})`)); // eslint-disable-line quotes, max-len
+            .where(knexBuilder.raw(`ST_DWithin(geom, ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${proximityMax})`)) // eslint-disable-line quotes, max-len
+            .andWhere({
+                isMatureContent: false, // content that has been blocked
+            });
 
         if ((conditions.filterBy && conditions.filterBy !== 'distance') && conditions.query != undefined) { // eslint-disable-line eqeqeq
             const operator = conditions.filterOperator || '=';

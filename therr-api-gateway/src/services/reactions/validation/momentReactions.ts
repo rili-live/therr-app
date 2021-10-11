@@ -12,6 +12,7 @@ export const createOrUpdateMomentReactionValidation = [
     body('userHasLiked').isBoolean().optional(),
     body('userHasSuperLiked').isBoolean().optional(),
     body('userHasDisliked').isBoolean().optional(),
+    body('userHasReported').isBoolean().optional(),
     body('userHasSuperDisliked').isBoolean().optional(),
     body('userBookmarkCategory').optional(),
     body('userBookmarkPriority').isNumeric().optional(),
