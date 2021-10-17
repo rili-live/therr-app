@@ -10,6 +10,15 @@ const Location = {
         });
         return Promise.resolve();
     },
+    updateLocationDisclosure: (isAcknowledged: boolean) => (dispatch: any) => {
+        dispatch({
+            type: LocationActionTypes.LOCATION_DISCLOSURE_UPDATED,
+            data: {
+                complete: isAcknowledged,
+            },
+        });
+        return Promise.resolve();
+    },
     updateLocationPermissions: (permissions) => (dispatch: any) => {
         dispatch({
             type: LocationActionTypes.LOCATION_PERMISSIONS_UPDATED,

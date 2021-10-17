@@ -17,10 +17,15 @@ const locations = (state: ILocationState = initialState, action: any) => {
     }
 
     switch (action.type) {
+        case LocationActionTypes.LOCATION_DISCLOSURE_UPDATED:
+            return state.setIn(
+                ['settings', 'isLocationDislosureComplete'],
+                !!action.data?.complete
+            );
         case LocationActionTypes.GPS_STATUS_UPDATED:
             return state.setIn(
                 ['settings', 'isGpsEnabled'],
-                action.data && action.data.status === 'enabled'
+                action.data?.status === 'enabled'
             );
         case LocationActionTypes.LOCATION_PERMISSIONS_UPDATED:
             return state.setIn(['permissions'], {

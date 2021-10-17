@@ -32,13 +32,21 @@ const Content = {
                 data: response?.data,
             });
         }),
-    createOrUpdateMomentReaction: (reactionId: number, params: ICreateOrUpdateMomentReactionBody) => (dispatch: any) => ReactionsService
-        .createOrUpdateMomentReaction(reactionId, params)
+    createOrUpdateMomentReaction: (momentId: number, params: ICreateOrUpdateMomentReactionBody) => (dispatch: any) => ReactionsService
+        .createOrUpdateMomentReaction(momentId, params)
         .then((response: any) => {
             dispatch({
                 type: ContentActionTypes.UPDATE_ACTIVE_MOMENT_REACTION,
                 data: response?.data,
             });
+            if (params?.userHasReported) {
+                dispatch({
+                    type: ContentActionTypes.REMOVE_ACTIVE_MOMENTS,
+                    data: {
+                        momentId,
+                    },
+                });
+            }
         }),
     searchBookmarkedMoments: (options: ISearchActiveMomentsParams) => (dispatch: any) => ReactionsService
         .searchBookmarkedMoments(options, 100)
