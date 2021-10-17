@@ -566,11 +566,12 @@
     },
     "locationGps": {
       "header": "User Location?",
-      "description1": "This app wants to change your device settings:",
-      "description2": "Use GPS, Wi-Fi, and cell network for location",
+      "description1": "This app wants to change your device settings: Use GPS, Wi-Fi, and cell network for location",
+      "description2": "This app collects location data in the background to enable content discovery by proximity and to send related notifications. Location is required in the foreground to enable content posting",
       "link": "Learn more",
       "no": "NO",
-      "yes": "YES"
+      "yes": "YES",
+      "close": "Close"
     }
   },
   "validations": {

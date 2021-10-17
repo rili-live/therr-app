@@ -31,6 +31,7 @@ class MainButtonMenu extends ButtonMenu {
             requestLocationServiceActivation({
                 isGpsEnabled: location.settings.isGpsEnabled,
                 translate,
+                shouldIgnoreRequirement: true,
             }).then((response: any) => {
                 if (response?.status) {
                     return updateGpsStatus(response.status); // wait for redux state to update

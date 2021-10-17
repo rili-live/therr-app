@@ -5,7 +5,7 @@ import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';
 import { buttonMenu } from '../../styles/navigation';
-import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
+// import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 
 class MainButtonMenuAlt extends ButtonMenu {
     constructor(props) {
@@ -15,28 +15,32 @@ class MainButtonMenuAlt extends ButtonMenu {
     }
 
     navTo = (routeName) => {
-        const { location, navigation, translate, updateGpsStatus } = this.props;
+        // const { location, navigation, translate, updateGpsStatus } = this.props;
+        const { navigation } = this.props;
 
-        if (routeName === 'Map') {
-            requestLocationServiceActivation({
-                isGpsEnabled: location.settings.isGpsEnabled,
-                translate,
-            }).then((response: any) => {
-                if (response?.status) {
-                    return updateGpsStatus(response.status); // wait for redux state to update
-                }
+        // if (routeName === 'Map') {
+        //     requestLocationServiceActivation({
+        //         isGpsEnabled: location.settings.isGpsEnabled,
+        //         translate,
+        //         shouldIgnoreRequirement: true,
+        //     }).then((response: any) => {
+        //         if (response?.status) {
+        //             return updateGpsStatus(response.status); // wait for redux state to update
+        //         }
 
-                return Promise.resolve();
-            }).then(() => {
-                navigation.navigate(routeName);
-            }).catch((error) => {
-                // TODO: Allow viewing map when gps is disable
-                // but disallow GPS required actions like viewing/deleting moments
-                console.log(error);
-            });
-        } else {
-            navigation.navigate(routeName);
-        }
+        //         return Promise.resolve();
+        //     }).then(() => {
+        //         navigation.navigate(routeName);
+        //     }).catch((error) => {
+        //         // TODO: Allow viewing map when gps is disable
+        //         // but disallow GPS required actions like viewing/deleting moments
+        //         console.log(error);
+        //     });
+        // } else {
+        //     navigation.navigate(routeName);
+        // }
+
+        navigation.navigate(routeName);
     };
 
     getActionButtonIcon = (currentScreen) => {
