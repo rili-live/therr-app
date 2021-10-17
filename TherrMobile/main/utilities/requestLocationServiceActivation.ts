@@ -12,11 +12,7 @@ export default ({
     translate,
     shouldIgnoreRequirement,
 }: IRequestLocationServiceActivationConfig) => new Promise((resolve, reject) => {
-    let shouldRequireToViewMap = true;
-    if (shouldIgnoreRequirement == null) {
-        shouldRequireToViewMap = false;
-    }
-    if (shouldRequireToViewMap && Platform.OS !== 'ios' && !isGpsEnabled) {
+    if (Platform.OS !== 'ios' && !isGpsEnabled) {
         const permissionHeader = translate('permissions.locationGps.header');
         const permissionDescription1 = translate('permissions.locationGps.description1');
         const permissionDescription2 = translate('permissions.locationGps.description2');
@@ -39,9 +35,14 @@ export default ({
             .then((success) => {
                 return resolve(success);
             }).catch((error) => {
-                return reject(error);
+                if (!shouldIgnoreRequirement) {
+                    return reject(error);
+                }
+                return resolve(null);
             });
     }
 
-    return resolve(null);
+    return resolve({
+        status: Platform.OS !== 'ios' ? 'enabled' : null,
+    });
 });

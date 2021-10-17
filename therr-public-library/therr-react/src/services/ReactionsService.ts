@@ -20,6 +20,7 @@ export interface ICreateOrUpdateMomentReactionBody {
     userViewCount?: number;
     userHasActivated?: boolean;
     userHasLiked?: boolean;
+    userHasReported?: boolean;
     userHasSuperLiked?: boolean;
     userHasDisliked?: boolean;
     userHasSuperDisliked?: boolean;

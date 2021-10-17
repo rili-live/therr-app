@@ -88,6 +88,7 @@ class HeaderMenuRight extends React.Component<
             requestLocationServiceActivation({
                 isGpsEnabled: location.settings.isGpsEnabled,
                 translate: this.translate,
+                shouldIgnoreRequirement: true,
             }).then((response: any) => {
                 if (response?.status) {
                     return updateGpsStatus(response.status); // wait for redux state to update

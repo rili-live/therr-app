@@ -30,8 +30,12 @@ const content = (state: IContentState = initialState, action: any) => {
         moddedActiveIndex = modifiedActiveMoments.findIndex((moment) => moment.id === action.data?.momentId);
         moddedBookmarkedIndex = modifiedBookmarkedMoments.findIndex((moment) => moment.id === action.data?.momentId);
 
-        if (moddedActiveIndex !== -1 && action.type === ContentActionTypes.UPDATE_ACTIVE_MOMENT_REACTION) {
-            modifiedActiveMoments[moddedActiveIndex].reaction = { ...action.data };
+        if (moddedActiveIndex !== -1) {
+            if (action.type === ContentActionTypes.UPDATE_ACTIVE_MOMENT_REACTION) {
+                modifiedActiveMoments[moddedActiveIndex].reaction = { ...action.data };
+            } else if (action.type === ContentActionTypes.REMOVE_ACTIVE_MOMENTS) {
+                modifiedActiveMoments.splice(moddedActiveIndex, 1);
+            }
         }
 
         if (moddedBookmarkedIndex !== -1 && action.type === ContentActionTypes.UPDATE_ACTIVE_MOMENT_REACTION) {
@@ -44,6 +48,9 @@ const content = (state: IContentState = initialState, action: any) => {
         case ContentActionTypes.INSERT_ACTIVE_MOMENTS:
             // Add latest moments to start
             return state.setIn(['activeMoments'], [...action.data, ...state.activeMoments]);
+        case ContentActionTypes.REMOVE_ACTIVE_MOMENTS:
+            // Remove (reported) moments
+            return state.setIn(['activeMoments'], modifiedActiveMoments);
         case ContentActionTypes.UPDATE_ACTIVE_MOMENT_REACTION:
             return state.setIn(['activeMoments'], modifiedActiveMoments)
                 .setIn(['bookmarkedMoments'], modifiedBookmarkedMoments);

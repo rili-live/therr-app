@@ -10,4 +10,5 @@ export enum LocationActionTypes {
     FINE_LOCATION_ALLOWED = 'fine_location_allowed',
     GPS_STATUS_UPDATED = 'gps_status_updated',
     LOCATION_PERMISSIONS_UPDATED = 'location_permissions_updated',
+    LOCATION_DISCLOSURE_UPDATED = 'location_disclosure_updated'
 }

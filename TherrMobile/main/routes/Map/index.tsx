@@ -54,6 +54,7 @@ import SearchTypeAheadResults from '../../components/SearchTypeAheadResults';
 import SearchThisAreaButtonGroup from '../../components/SearchThisAreaButtonGroup';
 import CameraMarkerIcon from './CameraMarkerIcon';
 import { isMyMoment } from '../../utilities/content';
+import LocationUseDisclosureModal from '../../components/Modals/LocationUseDisclosureModal';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../../assets/earth-loader.json');
@@ -71,6 +72,7 @@ interface IMapDispatchProps {
     setSearchDropdownVisibility: Function;
     deleteMoment: Function;
     updateGpsStatus: Function;
+    updateLocationDisclosure: Function;
     updateLocationPermissions: Function;
 }
 
@@ -101,6 +103,7 @@ interface IMapState {
     isMomentAlertVisible: boolean;
     isScrollEnabled: boolean;
     isLocationReady: boolean;
+    isLocationUseDisclosureModalVisible: boolean;
     isMinLoadTimeComplete: boolean;
     isSearchThisLocationBtnVisible: boolean;
     shouldIgnoreSearchThisAreaButton: boolean;
@@ -132,6 +135,7 @@ const mapDispatchToProps = (dispatch: any) =>
             deleteMoment: MapActions.deleteMoment,
             createOrUpdateReaction: ReactionActions.createOrUpdateMomentReaction,
             updateGpsStatus: LocationActions.updateGpsStatus,
+            updateLocationDisclosure: LocationActions.updateLocationDisclosure,
             updateLocationPermissions: LocationActions.updateLocationPermissions,
         },
         dispatch
@@ -162,6 +166,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             shouldFollowUserLocation: false,
             isScrollEnabled: true,
             isMomentAlertVisible: false,
+            isLocationUseDisclosureModalVisible: false,
             isLocationReady: false,
             isMinLoadTimeComplete: false,
             isSearchThisLocationBtnVisible: false,
@@ -345,6 +350,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             setInitialUserLocation,
             updateCoordinates,
             updateGpsStatus,
+            updateLocationDisclosure,
             updateLocationPermissions,
         } = this.props;
 
@@ -366,11 +372,25 @@ class Map extends React.Component<IMapProps, IMapState> {
             shouldIgnoreRequirement: false,
         }).then((response: any) => {
             if (response?.status || Platform.OS === 'ios') {
+                if (response?.alreadyEnabled && !location?.settings?.isLocationDislosureComplete) {
+                    // Ensure that the user sees location disclosure even if gps is already enabled (otherwise requestOSMapPermissions will handle it)
+                    if (!location?.settings?.isLocationDislosureComplete) {
+                        this.setState({
+                            isLocationUseDisclosureModalVisible: true,
+                        });
+                        return true;
+                    }
+                } else {
+                    updateLocationDisclosure(true);
+                }
                 return updateGpsStatus(response?.status || 'enabled');
             }
 
             return Promise.resolve();
-        }).then(() => {
+        }).then((shouldAbort) => {
+            if (shouldAbort) { // short-circuit because backup disclosure is in progress
+                return;
+            }
             requestOSMapPermissions(updateLocationPermissions).then((permissions) => {
                 return new Promise((resolve, reject) => {
                     perms = permissions;
@@ -616,6 +636,16 @@ class Map extends React.Component<IMapProps, IMapState> {
         return searchRadiusMeters;
     }
 
+    handleLocationDisclosureSelect = (selection) => {
+        const { updateLocationDisclosure } = this.props;
+        // TODO: Decide if selection should be dynamic
+        console.log(selection);
+        updateLocationDisclosure(true).then(() => {
+            this.toggleLocationUseDisclosure();
+            this.handleGpsRecenterPress();
+        });
+    }
+
     handleSearchSelect = (selection) => {
         const { setSearchDropdownVisibility } = this.props;
 
@@ -722,6 +752,13 @@ class Map extends React.Component<IMapProps, IMapState> {
                 });
         }
     };
+
+    toggleLocationUseDisclosure = () => {
+        const { isLocationUseDisclosureModalVisible } = this.state;
+        this.setState({
+            isLocationUseDisclosureModalVisible: !isLocationUseDisclosureModalVisible,
+        });
+    }
 
     onUserLocationChange = (event) => {
         const {
@@ -893,6 +930,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             circleCenter,
             shouldFollowUserLocation,
             isLocationReady,
+            isLocationUseDisclosureModalVisible,
             isMinLoadTimeComplete,
             isMomentAlertVisible,
             isScrollEnabled,
@@ -1106,6 +1144,12 @@ class Map extends React.Component<IMapProps, IMapState> {
                         />
                     </>
                 }
+                <LocationUseDisclosureModal
+                    isVisible={isLocationUseDisclosureModalVisible}
+                    translate={this.translate}
+                    onRequestClose={this.toggleLocationUseDisclosure}
+                    onSelect={this.handleLocationDisclosureSelect}
+                />
                 <MainButtonMenuAlt
                     navigation={navigation}
                     onActionButtonPress={this.toggleMomentBtns}
