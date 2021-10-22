@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import * as jwt from 'jsonwebtoken';
+import appleSignin from 'apple-signin-auth';
 import { OAuth2Client } from 'google-auth-library';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import normalizeEmail from 'normalize-email';
@@ -48,14 +49,29 @@ const login: RequestHandler = (req: any, res: any) => {
             // eslint-disable-next-line arrow-body-style
             const validateCredentials = () => {
                 if (req.body.isSSO) {
-                    return googleOAuth2Client.verifyIdToken({
-                        idToken: req.body.idToken,
-                        audience: googleOAuth2ClientId, // Specify the CLIENT_ID of the app that accesses the backend
-                        // Or, if multiple clients access the backend:
-                        // [CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
-                    }).then((response) => {
+                    let verifyTokenPromise;
+                    if (req.body.ssoProvider === 'google') {
+                        verifyTokenPromise = googleOAuth2Client.verifyIdToken({
+                            idToken: req.body.idToken,
+                            audience: googleOAuth2ClientId, // Specify the CLIENT_ID of the app that accesses the backend
+                            // Or, if multiple clients access the backend:
+                            // [CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
+                        });
+                    } else if (req.body.ssoProvider === 'apple') {
+                        verifyTokenPromise = appleSignin.verifyIdToken(req.body.idToken, {
+                            // Optional Options for further verification - Full list can be found
+                            // here https://github.com/auth0/node-jsonwebtoken#jwtverifytoken-secretorpublickey-options-callback
+                            audience: 'com.therr.mobile.Therr', // client id - can also be an array
+                            nonce: req.body.nonce,
+                            ignoreExpiration: false, // default is false
+                        });
+                    } else {
+                        verifyTokenPromise = Promise.reject(new Error('Unsupported SSO Provider'));
+                    }
+                    return verifyTokenPromise.then((response) => {
                         // Make sure that Google account email is verified
-                        if (!response.getPayload()?.email_verified) {
+                        if ((req.body.ssoProvider === 'google' && !response.getPayload()?.email_verified)
+                            || (req.body.ssoProvider === 'apple' && !response.email_verified)) {
                             return [false, userSearchResults[0]];
                         }
 
