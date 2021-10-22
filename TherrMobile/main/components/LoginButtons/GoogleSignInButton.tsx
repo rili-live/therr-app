@@ -37,7 +37,7 @@ async function onGoogleButtonPress({
     // Sign-in the user with the credential
     return auth().signInWithCredential(googleCredential)
         .then((userCredential) => {
-            onLoginSuccess(idToken, userCredential.user, userCredential?.additionalUserInfo?.profile);
+            onLoginSuccess(idToken, userCredential.user, userCredential?.additionalUserInfo?.profile, 'google');
         })
         .catch((err) => {
             onLoginError(err);

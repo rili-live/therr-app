@@ -1,19 +1,23 @@
 import * as React from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
+import { appleAuth } from '@invertase/react-native-apple-authentication';
 import translator from '../../services/translator';
 import { addMargins } from '../../styles';
 import formStyles, { loginForm as styles } from '../../styles/forms';
 import * as therrTheme from '../../styles/themes';
 import Alert from '../../components/Alert';
 import RoundInput from '../../components/Input/Round';
+import AppleSignInButton from '../../components/LoginButtons/AppleSignInButton';
 import GoogleSignInButton from '../../components/LoginButtons/GoogleSignInButton';
 
 interface ISSOUserDetails {
     isSSO: boolean;
     idToken: string;
+    nonce?: string;
+    ssoProvider: string;
     userFirstName?: string;
     userLastName?: string;
     userEmail: string;
@@ -70,13 +74,16 @@ export class LoginFormComponent extends React.Component<
         });
     }
 
-    onSSOLoginSuccess = (idToken, user, additionalUserInfo) => {
+    onSSOLoginSuccess = (idToken, user, additionalUserInfo, provider = 'google') => {
         if (user.emailVerified) {
             const firstName = additionalUserInfo?.given_name || (user.displayName?.split[0]);
             const lastName = additionalUserInfo?.family_name || (user.displayName?.split[1]);
+            const nonce = additionalUserInfo?.profile?.nonce;
             this.onSubmit({
                 isSSO: true,
                 idToken,
+                nonce,
+                ssoProvider: provider,
                 userFirstName: firstName,
                 userLastName: lastName,
                 userEmail: user.email,
@@ -230,6 +237,17 @@ export class LoginFormComponent extends React.Component<
                         onLoginSuccess={this.onSSOLoginSuccess}
                     />
                 </View>
+                {
+                    Platform.OS === 'ios' && appleAuth.isSupported &&
+                    <View style={styles.submitButtonContainer}>
+                        <AppleSignInButton
+                            disabled={isSubmitting}
+                            buttonTitle={this.translate('forms.loginForm.sso.appleButtonTitle')}
+                            onLoginError={this.onSSOLoginError}
+                            onLoginSuccess={this.onSSOLoginSuccess}
+                        />
+                    </View>
+                }
                 <Alert
                     containerStyles={addMargins({
                         marginBottom: 24,

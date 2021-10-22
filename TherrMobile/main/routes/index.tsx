@@ -27,6 +27,7 @@ import EditMoment from './EditMoment';
 import EditChat from './HostedChat/EditChat';
 import ViewChat from './HostedChat/ViewChat';
 import styles from '../styles';
+import HeaderTherrLogo from '../components/HeaderTherrLogo';
 import HeaderSearchInput from '../components/Input/HeaderSearchInput';
 
 const momentTransitionSpec: any = {
@@ -68,7 +69,7 @@ const routes: RouteConfig<
     {
         name: 'Login',
         component: Login,
-        options: () => ({
+        options: (params) => ({
             title: 'Login',
             access: {
                 type: AccessCheckType.NONE,
@@ -76,6 +77,7 @@ const routes: RouteConfig<
                 isPublic: true,
             },
             headerStyle: styles.headerStyleNoShadow,
+            headerTitle: () => <HeaderTherrLogo navigation={params?.navigation} />,
         }),
     },
     {
@@ -149,12 +151,13 @@ const routes: RouteConfig<
     {
         name: 'Home',
         component: Home,
-        options: () => ({
+        options: (params) => ({
             title: 'Home',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
+            headerTitle: () => <HeaderTherrLogo navigation={params?.navigation} />,
         }),
     },
     {

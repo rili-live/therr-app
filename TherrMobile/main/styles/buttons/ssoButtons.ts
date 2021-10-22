@@ -27,4 +27,11 @@ export default StyleSheet.create({
         width: 22,
         padding: 8,
     },
+
+    // APPLE
+    appleButtonIcon: {
+        height: 22,
+        width: 18,
+        padding: 8,
+    },
 });

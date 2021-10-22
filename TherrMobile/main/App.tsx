@@ -1,6 +1,7 @@
 import React from 'react';
 import { Provider } from 'shared/react-redux';
 import SplashScreen from 'react-native-splash-screen';
+import { appleAuth } from '@invertase/react-native-apple-authentication';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import getStore from './getStore';
 import initInterceptors from './interceptors';
@@ -10,8 +11,7 @@ import { MIN_LOAD_TIMEOUT, MAX_LOAD_TIMEOUT } from './constants';
 import EarthLoader from './components/Loaders/EarthLoader';
 
 class App extends React.Component<any, any> {
-    // TODO: Add typescript
-
+    private authCredentialListener;
     private store;
     private timeoutIdMin;
     private timeoutIdMax;
@@ -42,10 +42,20 @@ class App extends React.Component<any, any> {
 
     componentDidMount() {
         SplashScreen.hide();
+
+        if (appleAuth.isSupported) {
+            this.authCredentialListener = appleAuth.onCredentialRevoked(async () => {
+                // TODO: Logout user
+                console.warn('Credential Revoked');
+            });
+        }
     }
 
     componentWillUnmount() {
         clearTimeout(this.timeoutIdMin);
+        if (this.authCredentialListener) {
+            this.authCredentialListener();
+        }
     }
 
     loadStorage = async () => {
