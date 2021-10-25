@@ -28,6 +28,7 @@ export interface ICreateOrUpdateMomentReactionBody {
 export interface ISearchActiveMomentsParams {
     offset: number;
     order?: string;
+    blockedUsers: number[];
     shouldHideMatureContent: boolean;
     withMedia: boolean;
     withUser: boolean;
@@ -76,6 +77,7 @@ class ReactionsService {
             offset: options.offset,
             limit,
             order: options.order,
+            blockedUsers: options.blockedUsers,
             shouldHideMatureContent: options.shouldHideMatureContent,
             withMedia: options.withMedia,
             withUser: options.withUser,

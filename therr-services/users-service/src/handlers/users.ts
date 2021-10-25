@@ -293,10 +293,10 @@ const blockUser = (req, res) => Store.users.findUser({ id: req.params.id })
         return Store.users
             .updateUser({
                 // remove duplicates using Set()
-                blockedUsers: [...new Set([...findResults[0].blockedUsers, Number(req.params.id)])],
+                blockedUsers: [...new Set([...(req.body.blockedUsers || []), Number(req.params.id)])],
             }, {
                 id: userId,
-            }).then(() => res.status(200).send());
+            }).then((response) => res.status(200).send({ blockedUsers: response[0].blockedUsers }));
     }).catch((e) => handleHttpError({
         res,
         message: e.message,

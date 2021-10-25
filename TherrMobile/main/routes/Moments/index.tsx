@@ -131,6 +131,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
             withUser: true,
             offset: 0,
             ...content.activeMomentsFilters,
+            blockedUsers: user.details.blockedUsers,
             shouldHideMatureContent: user.details.shouldHideMatureContent,
         }).finally(() => {
             this.setState({ isLoading: false });
@@ -160,6 +161,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
                 withUser: true,
                 offset: content.activeMomentsPagination.offset + content.activeMomentsPagination.itemsPerPage,
                 ...content.activeMomentsFilters,
+                blockedUsers: user.details.blockedUsers,
                 shouldHideMatureContent: user.details.shouldHideMatureContent,
             });
         }
