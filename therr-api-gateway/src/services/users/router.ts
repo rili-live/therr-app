@@ -63,6 +63,16 @@ usersServiceRouter.put('/users/:id', handleServiceRequest({
     method: 'put',
 }));
 
+usersServiceRouter.put('/users/:id/block', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+
+usersServiceRouter.put('/users/:id/report', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+
 usersServiceRouter.put('/users/:id/report', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',

@@ -104,6 +104,10 @@ export default class UsersStore {
             modifiedParams.accessLevels = params.accessLevels;
         }
 
+        if (params.blockedUsers) {
+            modifiedParams.blockedUsers = JSON.stringify(params.blockedUsers);
+        }
+
         // Normalize Email
         if (conditions.email) {
             normalizedConditions.email = normalizeEmail(conditions.email);

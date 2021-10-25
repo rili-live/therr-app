@@ -278,6 +278,31 @@ const updateUser = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 };
 
+const blockUser = (req, res) => Store.users.findUser({ id: req.params.id })
+    .then((findResults) => {
+        const userId = req.headers['x-userid'];
+
+        if (!findResults.length) {
+            return handleHttpError({
+                res,
+                message: 'User not found',
+                statusCode: 404,
+            });
+        }
+
+        return Store.users
+            .updateUser({
+                // remove duplicates using Set()
+                blockedUsers: [...new Set([...findResults[0].blockedUsers, Number(req.params.id)])],
+            }, {
+                id: userId,
+            }).then(() => res.status(200).send());
+    }).catch((e) => handleHttpError({
+        res,
+        message: e.message,
+        statusCode: 400,
+    }));
+
 const reportUser = (req, res) => Store.users.findUser({ id: req.params.id })
     .then((findResults) => {
         const userId = req.headers['x-userid'];
@@ -293,7 +318,7 @@ const reportUser = (req, res) => Store.users.findUser({ id: req.params.id })
         return Store.users
             .updateUser({
                 // remove duplicates using Set()
-                wasReportedBy: [...new Set([...findResults[0].wasReportedBy, userId])],
+                wasReportedBy: [...new Set([...findResults[0].wasReportedBy, Number(userId)])],
             }, {
                 id: req.params.id,
             }).then(() => res.status(200).send());
@@ -554,6 +579,7 @@ export {
     getUsers,
     findUsers,
     updateUser,
+    blockUser,
     reportUser,
     updateUserPassword,
     deleteUser,

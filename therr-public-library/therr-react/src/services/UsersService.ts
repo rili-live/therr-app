@@ -47,6 +47,12 @@ class UsersService {
         data,
     })
 
+    block = (userId: string) => axios({
+        method: 'put',
+        url: `/users-service/users/${userId}/block`,
+        data: {},
+    })
+
     changePassword = (data: IChangePasswordArgs) => axios({
         method: 'put',
         url: '/users-service/users/change-password',

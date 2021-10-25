@@ -13,6 +13,7 @@ import {
     IUserState,
     IUserConnectionsState,
 } from 'therr-react/types';
+import UsersActions from '../../redux/actions/UsersActions';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import styles from '../../styles';
 import translator from '../../services/translator';
@@ -22,7 +23,7 @@ import UserDisplay from './UserDisplay';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 
 interface IViewUserDispatchProps {
-    updateNotification: Function;
+    blockUser: Function;
     updateUserConnection: Function
 }
 
@@ -50,6 +51,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    blockUser: UsersActions.block,
     updateUserConnection: UserConnectionsActions.update,
 }, dispatch);
 
@@ -170,13 +172,16 @@ class ViewUser extends React.Component<
 
     onAcceptConfirmModal = () => {
         const { activeConfirmModal, fetchedUserInView } = this.state;
-        const { navigation, updateUserConnection, user } = this.props;
+        const { blockUser, navigation, updateUserConnection, user } = this.props;
 
         if (activeConfirmModal === 'report-user') {
             UsersService.report(fetchedUserInView.id);
             // TODO: Add success toast
         } else if (activeConfirmModal === 'block-user') {
+            // TODO: Add success toast
             // TODO: RMOBILE-35: ...
+            blockUser(fetchedUserInView.id);
+            navigation.navigate('Moments');
         } else if (activeConfirmModal === 'send-connection-request') {
             navigation.navigate('CreateConnection');
         } else if (activeConfirmModal === 'remove-connection-request') {
