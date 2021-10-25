@@ -12,6 +12,7 @@ const searchActiveMoments = async (req: any, res: any) => {
         limit,
         offset,
         order,
+        shouldHideMatureContent,
         withMedia,
         withUser,
         withBookmark,
@@ -21,6 +22,11 @@ const searchActiveMoments = async (req: any, res: any) => {
         userId,
         userHasActivated: true,
     };
+
+    // Hide reported content
+    if (shouldHideMatureContent) {
+        conditions.userHasReported = false;
+    }
 
     const customs: any = {};
     if (withBookmark) {

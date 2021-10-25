@@ -28,6 +28,7 @@ export interface ICreateOrUpdateMomentReactionBody {
 export interface ISearchActiveMomentsParams {
     offset: number;
     order?: string;
+    shouldHideMatureContent: boolean;
     withMedia: boolean;
     withUser: boolean;
 }
@@ -75,6 +76,7 @@ class ReactionsService {
             offset: options.offset,
             limit,
             order: options.order,
+            shouldHideMatureContent: options.shouldHideMatureContent,
             withMedia: options.withMedia,
             withUser: options.withUser,
         },

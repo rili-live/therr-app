@@ -150,6 +150,7 @@ class UsersActions {
             blockedUsers,
             email,
             firstName,
+            shouldHideMatureContent,
             lastName,
             userName,
         } = response && response.data;
@@ -169,6 +170,7 @@ class UsersActions {
                 blockedUsers,
                 email,
                 id,
+                shouldHideMatureContent,
                 firstName,
                 lastName,
                 userName,
