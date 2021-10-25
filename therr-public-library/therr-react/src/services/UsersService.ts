@@ -47,10 +47,12 @@ class UsersService {
         data,
     })
 
-    block = (userId: string) => axios({
+    block = (userId: string, alreadyBockedUsers: number[]) => axios({
         method: 'put',
         url: `/users-service/users/${userId}/block`,
-        data: {},
+        data: {
+            blockedUsers: alreadyBockedUsers,
+        },
     })
 
     changePassword = (data: IChangePasswordArgs) => axios({

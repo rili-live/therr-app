@@ -612,7 +612,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         if (shouldSearchAll || layers.connectionsMoments) {
             searchMoments({
                 query: 'connections',
-                itemsPerPage: 50,
+                itemsPerPage: 500,
                 pageNumber: 1,
                 order: 'desc',
                 filterBy: 'fromUserIds',

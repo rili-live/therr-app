@@ -12,6 +12,8 @@ const searchActiveMoments = async (req: any, res: any) => {
         limit,
         offset,
         order,
+        blockedUsers,
+        shouldHideMatureContent,
         withMedia,
         withUser,
         withBookmark,
@@ -21,6 +23,11 @@ const searchActiveMoments = async (req: any, res: any) => {
         userId,
         userHasActivated: true,
     };
+
+    // Hide reported content
+    if (shouldHideMatureContent) {
+        conditions.userHasReported = false;
+    }
 
     const customs: any = {};
     if (withBookmark) {
@@ -59,7 +66,7 @@ const searchActiveMoments = async (req: any, res: any) => {
             moments = moments.map((moment) => ({
                 ...moment,
                 reaction: reactions.find((reaction) => reaction.momentId === moment.id) || {},
-            }));
+            })).filter((moment) => !blockedUsers.includes(moment.fromUserId));
             return res.status(200).send({
                 moments,
                 media: response?.data?.media,

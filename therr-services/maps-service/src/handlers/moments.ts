@@ -108,7 +108,7 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
         let queryString = getSearchQueryString({
             filterBy: 'acceptingUserId',
             query: userId,
-            itemsPerPage: 50,
+            itemsPerPage,
             pageNumber: 1,
             orderBy: 'interactionCount',
             order: 'desc',
