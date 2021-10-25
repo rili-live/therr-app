@@ -94,7 +94,6 @@ class ViewUser extends React.Component<
             : UsersService.get(userInView.id).then((response) => response.data);
 
         getUserPromise.then((userResponse) => {
-            console.log('FOO', userResponse);
             this.setState({
                 fetchedUserInView: userResponse,
             });
@@ -123,7 +122,6 @@ class ViewUser extends React.Component<
     }
 
     onBlockUser = (context, selectedUser) => {
-        console.log('onBlockUser', selectedUser);
         this.setState({
             confirmModalText: this.translate('modals.confirmModal.blockUser', { userName: selectedUser.userName }),
             activeConfirmModal: 'block-user',
@@ -131,7 +129,6 @@ class ViewUser extends React.Component<
     }
 
     onConnectionRequest = (context, selectedUser) => {
-        console.log('onConnectionRequest', selectedUser);
         if (selectedUser.isNotConnected) {
             this.setState({
                 confirmModalText: this.translate('modals.confirmModal.connect', { userName: selectedUser.userName }),
@@ -148,7 +145,6 @@ class ViewUser extends React.Component<
     onMessageUser = (context, selectedUser) => {
         // TODO: Update DirectMessage to support messaging non-connected users
         const { navigation } = this.props;
-        console.log('onMessageUser', selectedUser);
         navigation.navigate('DirectMessage', {
             connectionDetails: {
                 id: selectedUser.id,
