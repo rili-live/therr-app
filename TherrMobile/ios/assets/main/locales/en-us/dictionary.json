@@ -549,6 +549,9 @@
         "error": "An error occured while trying to send your feedback. Please try again later.",
         "success": "Your feedback has been received. Thank you!"
       }
+    },
+    "viewUser": {
+      "headerTitle": "View User"
     }
   },
   "permissions": {

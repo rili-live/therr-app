@@ -15,10 +15,13 @@ class UserConnectionsService {
         data,
     })
 
-    update = (requestingUserId: string | number, data: ICreateConnectionBody) => axios({
+    update = (otherUserId: number, data: ICreateConnectionBody) => axios({
         method: 'put',
-        url: `/users-service/users/connections/${requestingUserId}`,
-        data,
+        url: '/users-service/users/connections',
+        data: {
+            ...data,
+            otherUserId,
+        },
     })
 
     search = (query: ISearchQuery) => {

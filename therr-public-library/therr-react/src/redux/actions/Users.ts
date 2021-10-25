@@ -19,6 +19,27 @@ class UsersActions {
 
     private NativeStorage;
 
+    block = (userIdToBlock: string) => (dispatch: any) => UsersService.block(userIdToBlock).then(async (response) => {
+        const {
+            blockedUsers,
+        } = response && response.data;
+        // TODO: Dispatch event to filter blocked users from content display
+        const userDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || {});
+        const userData: IUser = Immutable.from({
+            ...userDetails,
+            ...response.data,
+        });
+        (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
+
+        dispatch({
+            type: SocketClientActionTypes.UPDATE_USER,
+            data: {
+                blockedUsers,
+            },
+        });
+        return { blockedUsers };
+    });
+
     login = (data: any, idTokens?: ILoginSSOTokens) => async (dispatch: any) => {
         await UsersService.authenticate(data).then(async (response) => {
             const {
@@ -126,6 +147,7 @@ class UsersActions {
     update = (id: string, data: any) => (dispatch: any) => UsersService.update(id, data).then(async (response) => {
         const {
             accessLevels,
+            blockedUsers,
             email,
             firstName,
             lastName,
@@ -144,6 +166,7 @@ class UsersActions {
             type: SocketClientActionTypes.UPDATE_USER,
             data: {
                 accessLevels,
+                blockedUsers,
                 email,
                 id,
                 firstName,

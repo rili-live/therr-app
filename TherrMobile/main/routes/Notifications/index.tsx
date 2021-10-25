@@ -79,6 +79,11 @@ class Notifications extends React.Component<
 
     handleConnectionRequestAction = (e: any, notification, isAccepted) => {
         const { user, updateUserConnection } = this.props;
+        let otherUserId = Number(notification.userConnection.acceptingUserId);
+
+        if (otherUserId === Number(user.details.id)) {
+            otherUserId = Number(notification.userConnection.requestingUserId);
+        }
 
         const updatedUserConnection = {
             ...notification.userConnection,
@@ -89,7 +94,10 @@ class Notifications extends React.Component<
         this.markNotificationAsRead(e, notification, updatedUserConnection);
 
         updateUserConnection({
-            connection: updatedUserConnection,
+            connection: {
+                otherUserId,
+                requestStatus: isAccepted ? 'complete' : 'denied',
+            },
             user: user.details,
         });
     }

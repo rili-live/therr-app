@@ -8,6 +8,7 @@ import buttonStyles from '../../styles/buttons';
 interface MapActionButtonsAltProps {
     handleCreateMoment: any;
     handleGpsRecenter: any;
+    hasNotifications: boolean;
     isAuthorized: any;
     isGpsEnabled: any;
     goToMap?: any;
@@ -18,6 +19,7 @@ interface MapActionButtonsAltProps {
 export default ({
     handleCreateMoment,
     handleGpsRecenter,
+    hasNotifications,
     isAuthorized,
     isGpsEnabled,
     goToNotifications,
@@ -31,9 +33,9 @@ export default ({
                     buttonStyle={buttonStyles.btn}
                     icon={
                         <MaterialIcon
-                            name="notifications"
+                            name={ hasNotifications ? 'notifications-active' : 'notifications' }
                             size={28}
-                            style={buttonStyles.btnIcon}
+                            style={hasNotifications ? buttonStyles.btnIconBright : buttonStyles.btnIcon}
                         />
                     }
                     raised={true}
