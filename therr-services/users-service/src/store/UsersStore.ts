@@ -104,6 +104,10 @@ export default class UsersStore {
             modifiedParams.accessLevels = params.accessLevels;
         }
 
+        if (params.blockedUsers) {
+            modifiedParams.blockedUsers = JSON.stringify(params.blockedUsers);
+        }
+
         // Normalize Email
         if (conditions.email) {
             normalizedConditions.email = normalizeEmail(conditions.email);
@@ -143,6 +147,10 @@ export default class UsersStore {
 
         if (params.verificationCodes) {
             modifiedParams.verificationCodes = params.verificationCodes;
+        }
+
+        if (params.wasReportedBy) {
+            modifiedParams.wasReportedBy = JSON.stringify(params.wasReportedBy);
         }
 
         if (params.shouldHideMatureContent != null) {

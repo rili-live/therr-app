@@ -26,6 +26,7 @@ import ViewMoment from './ViewMoment';
 import EditMoment from './EditMoment';
 import EditChat from './HostedChat/EditChat';
 import ViewChat from './HostedChat/ViewChat';
+import ViewUser from './ViewUser/index.tsx';
 import styles from '../styles';
 import HeaderTherrLogo from '../components/HeaderTherrLogo';
 import HeaderSearchInput from '../components/Input/HeaderSearchInput';
@@ -361,6 +362,19 @@ const routes: RouteConfig<
                 letterSpacing: 2,
             },
             headerLeft: () => null,
+            cardStyleInterpolator: undefined,
+            transitionSpec: momentTransitionSpec,
+        }),
+    },
+    {
+        name: 'ViewUser',
+        component: ViewUser,
+        options: () => ({
+            title: 'ViewUser',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
             cardStyleInterpolator: undefined,
             transitionSpec: momentTransitionSpec,
         }),

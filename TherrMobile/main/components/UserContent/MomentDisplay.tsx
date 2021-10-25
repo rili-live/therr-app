@@ -3,6 +3,7 @@ import React from 'react';
 import {
     ActivityIndicator,
     Dimensions,
+    Pressable,
     Text,
     TouchableWithoutFeedbackComponent,
     View,
@@ -32,6 +33,7 @@ interface IMomentDisplayProps {
     isExpanded?: boolean;
     moment: any;
     momentMedia: string;
+    goToViewUser: Function;
     updateMomentReaction: Function;
     userDetails: IUserDetails;
 }
@@ -70,6 +72,7 @@ export default class MomentDisplay extends React.Component<IMomentDisplayProps, 
             isExpanded,
             moment,
             momentMedia,
+            goToViewUser,
             userDetails,
         } = this.props;
 
@@ -78,13 +81,17 @@ export default class MomentDisplay extends React.Component<IMomentDisplayProps, 
         return (
             <>
                 <View style={this.viewMomentStyles.momentAuthorContainer}>
-                    <Image
-                        source={{ uri: `https://robohash.org/${moment.fromUserId}?size=52x52` }}
-                        style={this.viewMomentStyles.momentUserAvatarImg}
-                        containerStyle={this.viewMomentStyles.momentUserAvatarImgContainer}
-                        PlaceholderContent={<ActivityIndicator size="large" color={therrTheme.colors.primary}/>}
-                        transition={false}
-                    />
+                    <Pressable
+                        onPress={() => goToViewUser(moment.fromUserId)}
+                    >
+                        <Image
+                            source={{ uri: `https://robohash.org/${moment.fromUserId}?size=52x52` }}
+                            style={this.viewMomentStyles.momentUserAvatarImg}
+                            containerStyle={this.viewMomentStyles.momentUserAvatarImgContainer}
+                            PlaceholderContent={<ActivityIndicator size="large" color={therrTheme.colors.primary}/>}
+                            transition={false}
+                        />
+                    </Pressable>
                     <View style={this.viewMomentStyles.momentAuthorTextContainer}>
                         {
                             userDetails &&

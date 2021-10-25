@@ -140,6 +140,8 @@ const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(
 // READ
 const getUser = (req, res) => Store.users.getUsers({ id: req.params.id })
     .then((results) => {
+        const userId = req.headers['x-userid'];
+
         if (!results.length) {
             return handleHttpError({
                 res,
@@ -147,9 +149,27 @@ const getUser = (req, res) => Store.users.getUsers({ id: req.params.id })
                 statusCode: 404,
             });
         }
-        const user = results[0];
-        delete user.password;
-        return res.status(200).send(user);
+
+        return Store.userConnections.getUserConnections({
+            acceptingUserId: req.params.id,
+            requestingUserId: userId,
+        }, true).then((connections) => {
+            const user = results[0];
+            delete user.password;
+            delete user.oneTimePassword;
+
+            if (connections.length && connections[0].requestStatus === 'complete' && !connections[0].isConnectionBroken) {
+                return res.status(200).send(user);
+            }
+
+            // Do not return private info if users are not connected
+            return res.status(200).send({
+                id: user.id,
+                userName: user.userName,
+                isNotConnected: true,
+                isPendingConnection: connections.length ? (connections[0].requestStatus === 'denied' || connections[0].requestStatus === 'pending') : false,
+            });
+        });
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
@@ -157,6 +177,7 @@ const getUsers: RequestHandler = (req: any, res: any) => Store.users.getUsers()
     .then((results) => {
         res.status(200).send(results.map((user) => {
             delete user.password; // eslint-disable-line no-param-reassign
+            delete user.oneTimePassword; // eslint-disable-line no-param-reassign
             return user;
         }));
     })
@@ -166,6 +187,7 @@ const findUsers: RequestHandler = (req: any, res: any) => Store.users.findUsers(
     .then((results) => {
         res.status(200).send(results.map((user) => {
             delete user.password; // eslint-disable-line no-param-reassign
+            delete user.oneTimePassword; // eslint-disable-line no-param-reassign
             return user;
         }));
     })
@@ -242,6 +264,7 @@ const updateUser = (req, res) => {
                     .then((results) => {
                         const user = results[0];
                         delete user.password;
+                        delete user.oneTimePassword;
                         // TODO: Investigate security issue
                         // Lockdown updateUser
                         return res.status(202).send({ ...user, id: userId }); // Precaution, always return correct request userID to prevent polution
@@ -254,6 +277,56 @@ const updateUser = (req, res) => {
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 };
+
+const blockUser = (req, res) => Store.users.findUser({ id: req.params.id })
+    .then((findResults) => {
+        const userId = req.headers['x-userid'];
+
+        if (!findResults.length) {
+            return handleHttpError({
+                res,
+                message: 'User not found',
+                statusCode: 404,
+            });
+        }
+
+        return Store.users
+            .updateUser({
+                // remove duplicates using Set()
+                blockedUsers: [...new Set([...findResults[0].blockedUsers, Number(req.params.id)])],
+            }, {
+                id: userId,
+            }).then(() => res.status(200).send());
+    }).catch((e) => handleHttpError({
+        res,
+        message: e.message,
+        statusCode: 400,
+    }));
+
+const reportUser = (req, res) => Store.users.findUser({ id: req.params.id })
+    .then((findResults) => {
+        const userId = req.headers['x-userid'];
+
+        if (!findResults.length) {
+            return handleHttpError({
+                res,
+                message: 'User not found',
+                statusCode: 404,
+            });
+        }
+
+        return Store.users
+            .updateUser({
+                // remove duplicates using Set()
+                wasReportedBy: [...new Set([...findResults[0].wasReportedBy, Number(userId)])],
+            }, {
+                id: req.params.id,
+            }).then(() => res.status(200).send());
+    }).catch((e) => handleHttpError({
+        res,
+        message: e.message,
+        statusCode: 400,
+    }));
 
 // UPDATE PASSWORD
 const updateUserPassword = (req, res) => Store.users.findUser({ id: req.headers['x-userid'] })
@@ -476,6 +549,7 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
                 .then((results) => {
                     const user = results[0];
                     delete user.password;
+                    delete user.oneTimePassword;
 
                     return sendVerificationEmail({
                         subject: '[Account Verification] Therr User Account',
@@ -505,6 +579,8 @@ export {
     getUsers,
     findUsers,
     updateUser,
+    blockUser,
+    reportUser,
     updateUserPassword,
     deleteUser,
     createOneTimePassword,

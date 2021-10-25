@@ -546,9 +546,20 @@
         "error": "An error occured while trying to send your feedback. Please try again later.",
         "success": "Your feedback has been received. Thank you!"
       }
+    },
+    "viewUser": {
+      "headerTitle": "View User"
     }
   },
   "modals": {
+    "confirmModal": {
+      "confirm": "Yes",
+      "cancel": "Cancel",
+      "blockUser": "Are you sure you want to block {userName}?",
+      "connect": "Send connection request to {userName}?",
+      "reportUser": "Are you sure you want to report {userName}?",
+      "unconnect": "Remove connection with {userName}? You will no be able to activate new content from this user."
+    },
     "momentOptions": {
       "buttons": {
         "like": "'Like' this",
@@ -581,5 +592,17 @@
     "lettersOnly": "Input only accepts alphabetic values",
     "mobilePhoneNumber": "Input must be a valid, international mobile number beginning with '+'",
     "numbersOnly": "Input only accepts numeric values"
+  },
+  "user": {
+    "profile": {
+      "actions": {
+        "block": "Block This User?",
+        "connect": "Send Connection Request",
+        "message": "Send Message",
+        "pendingConnection": "Connection Request Pending",
+        "report": "Report This User?",
+        "unconnect": "Remove Connection?"
+      }
+    }
   }
 }

@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 import { Notifications } from 'therr-js-utilities/constants';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
-import normalizeEmail from 'normalize-email';
+// import normalizeEmail from 'normalize-email';
 import beeline from '../beeline';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
@@ -60,7 +60,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
         acceptingUserId: acceptingId,
     }, true)
         .then((getResults) => {
-            if (getResults.length) {
+            if (getResults.length && !getResults[0].isConnectionBroken) {
                 return handleHttpError({
                     res,
                     message: translate(locale, 'errorMessages.userConnections.alreadyExists'),
@@ -68,11 +68,27 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 });
             }
 
-            return Store.userConnections.createUserConnection({
-                requestingUserId,
-                acceptingUserId: acceptingId,
-                requestStatus: 'pending',
-            }).then(([userConnection]) => Store.notifications.createNotification({
+            let connectionPromise;
+
+            if (getResults.length && getResults[0].isConnectionBroken) {
+                // Re-create connection after unconnection
+                connectionPromise = Store.userConnections.updateUserConnection({
+                    requestingUserId: getResults[0].requestingUserId,
+                    acceptingUserId: getResults[0].acceptingUserId,
+                }, {
+                    isConnectionBroken: false,
+                    requestStatus: 'pending',
+                });
+            } else {
+                connectionPromise = Store.userConnections.createUserConnection({
+                    requestingUserId,
+                    acceptingUserId: acceptingId,
+                    requestStatus: 'pending',
+                });
+            }
+
+            // TODO: Send Push Notification
+            return connectionPromise.then(([userConnection]) => Store.notifications.createNotification({
                 userId: acceptingId,
                 type: Notifications.Types.CONNECTION_REQUEST_RECEIVED,
                 associationId: userConnection.id,
@@ -147,43 +163,48 @@ const searchUserConnections: RequestHandler = (req: any, res: any) => {
 };
 
 // UPDATE
-// TODO: Assess security implications to prevent anyone from hacking this endpoint
 // TODO: RSERV-32 - return associated users (same as search userConnections does)
-const updateUserConnection = (req, res) => Store.userConnections.getUserConnections({
-    requestingUserId: Number(req.params.requestingUserId),
-    acceptingUserId: req.body.acceptingUserId,
-})
-    .then((getResults) => {
-        const {
-            interactionCount,
-            isConnectionBroken,
-            requestStatus,
-        } = req.body;
+const updateUserConnection = (req, res) => {
+    const userId = req.headers['x-userid'];
+    const acceptingUserId = Number(userId);
+    const requestingUserId = Number(req.body.otherUserId);
 
-        if (!getResults.length) {
-            return handleHttpError({
-                res,
-                message: `No user connection found with requesting user id, ${req.params.requestingUserId}.`,
-                statusCode: 404,
-            });
-        }
-
-        return Store.userConnections
-            .updateUserConnection({
-                requestingUserId: req.params.requestingUserId,
-                acceptingUserId: req.body.acceptingUserId,
-            }, {
+    return Store.userConnections.getUserConnections({
+        requestingUserId,
+        acceptingUserId,
+    }, true)
+        .then((getResults) => {
+            const {
                 interactionCount,
                 isConnectionBroken,
                 requestStatus,
-            })
-            .then(() => Store.userConnections.getExpandedUserConnections({
-                requestingUserId: req.params.requestingUserId,
-                acceptingUserId: req.body.acceptingUserId,
-            }))
-            .then((results) => res.status(202).send(results[0]));
-    })
-    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
+            } = req.body;
+
+            if (!getResults.length) {
+                return handleHttpError({
+                    res,
+                    message: `No user connection found with requesting user id, ${req.params.requestingUserId}.`,
+                    statusCode: 404,
+                });
+            }
+
+            return Store.userConnections
+                .updateUserConnection({
+                    requestingUserId: getResults[0].requestingUserId,
+                    acceptingUserId: getResults[0].acceptingUserId,
+                }, {
+                    interactionCount,
+                    isConnectionBroken,
+                    requestStatus,
+                })
+                .then(() => Store.userConnections.getExpandedUserConnections({
+                    requestingUserId: getResults[0].requestingUserId,
+                    acceptingUserId: getResults[0].acceptingUserId,
+                }))
+                .then((results) => res.status(202).send(results[0]));
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR' }));
+};
 
 export {
     createUserConnection,

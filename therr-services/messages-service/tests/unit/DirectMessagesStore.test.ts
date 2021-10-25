@@ -24,7 +24,7 @@ describe('DirectMessagesStore', () => {
 
     describe('searchMoments', () => {
         it('queries and paginates response', () => {
-            const expected = `select * from "main"."directMessages" where "toUserId" = 10 and "main"."directMessages"."toUserId" > 7 order by "main"."directMessages"."updatedAt" asc limit 100 offset 100`;
+            const expected = `select * from "main"."directMessages" where "toUserId" = 10 and "main"."directMessages"."toUserId" > 7 order by "main"."directMessages"."updatedAt" desc limit 100 offset 100`;
             const mockStore = {
                 read: {
                     query: sinon.stub().callsFake(() => Promise.resolve({})),

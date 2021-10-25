@@ -310,6 +310,10 @@ export default StyleSheet.create({
     btnIcon: {
         ...btnIconStyle,
     },
+    btnIconBright: {
+        ...btnIconStyle,
+        color: therrTheme.colors.brandingMapYellow,
+    },
     btnIconWhite: {
         color: therrTheme.colors.beemoTextWhite,
         padding: 0,

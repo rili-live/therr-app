@@ -1,26 +1,24 @@
 import React from 'react';
-import { SafeAreaView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native';
 // import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
-import LottieView from 'lottie-react-native';
 // import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 // import * as therrTheme from '../styles/themes';
 import styles from '../../styles';
 import * as therrTheme from '../../styles/themes';
-import momentStyles from '../../styles/user-content/moments';
 // import { buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
 import MomentCarousel from './MomentCarousel';
 import MainButtonMenuAlt from '../../components/ButtonMenu/MainButtonMenuAlt';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import carLoader from '../../assets/sports-car.json';
 import { isMyMoment } from '../../utilities/content';
 import MomentOptionsModal, { ISelectionType } from '../../components/Modals/MomentOptionsModal';
 import { getReactionUpdateArgs } from '../../utilities/reactions';
+import LottieLoader from '../../components/LottieLoader';
 
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
@@ -114,6 +112,16 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         });
     };
 
+    goToViewUser = (userId) => {
+        const { navigation } = this.props;
+
+        navigation.navigate('ViewUser', {
+            userInView: {
+                id: userId,
+            },
+        });
+    }
+
     handleRefresh = () => {
         const { content, updateActiveMoments } = this.props;
         this.setState({ isLoading: true });
@@ -168,24 +176,14 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         const { isLoading } = this.state;
 
         if (isLoading) {
-            return (
-                <View style={momentStyles.loadingGraphic}>
-                    <LottieView
-                        source={carLoader}
-                        // resizeMode="cover"
-                        speed={1}
-                        autoPlay
-                        loop
-                    />
-                    <Text style={momentStyles.noMomentsFoundText}>Loading...</Text>
-                </View>
-            );
+            return <LottieLoader id="yellow-car" />;
         }
 
         return (
             <MomentCarousel
                 content={content}
                 expandMoment={this.goToMoment}
+                goToViewUser={this.goToViewUser}
                 toggleMomentOptions={this.toggleMomentOptions}
                 translate={this.translate}
                 isForBookmarks={false}

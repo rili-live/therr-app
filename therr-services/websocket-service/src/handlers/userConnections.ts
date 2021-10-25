@@ -12,7 +12,12 @@ interface ICreateUserConnectionData {
 }
 
 interface IUpdateUserConnectionData {
-    connection: any;
+    connection: {
+        interactionCount?: number;
+        isConnectionBroken?: boolean,
+        otherUserId: number,
+        requestStatus?: 'complete' | 'pending' | 'denied',
+    };
     user: any;
 }
 
@@ -57,30 +62,44 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
 
     return restRequest({
         method: 'put',
-        url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/connections/${data.connection.requestingUserId}`,
-        data: data.connection,
+        url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/connections`,
+        data: {
+            interactionCount: data.connection.interactionCount,
+            isConnectionBroken: data.connection.isConnectionBroken,
+            otherUserId: data.connection.otherUserId,
+            requestStatus: data.connection.requestStatus,
+        },
     }, socket, decodedAuthenticationToken).then(({ data: connection }) => {
         Promise.all([
-            redisSessions.getUserById(data.connection.requestingUserId),
-            redisSessions.getUserById(data.connection.acceptingUserId),
+            redisSessions.getUserById(connection.requestingUserId),
+            redisSessions.getUserById(connection.acceptingUserId),
         ]).then(([rUserResponse, aUserResponse]) => {
             const rUserSocketId = rUserResponse && rUserResponse.socketId;
             if (rUserSocketId) {
-                if (connection.requestStatus === 'complete') { // Do not send notification when connection denied
+                if (connection.isConnectionBroken) {
+                    // send socket event to remove connection and content from blocked/connection-removed user
+                    // TO USER WHO SENT REQUEST...
+                    socket.to(rUserSocketId).emit(SOCKET_MIDDLEWARE_ACTION, {
+                        type: SocketServerActionTypes.USER_CONNECTION_UPDATED,
+                        data: connection,
+                    });
+                } else if (connection.requestStatus === 'complete') { // Do not send notification when connection denied
                     // TO USER WHO SENT REQUEST...
                     socket.to(rUserSocketId).emit(SOCKET_MIDDLEWARE_ACTION, {
                         type: SocketServerActionTypes.USER_CONNECTION_UPDATED,
                         data: connection,
                     });
 
-                    const acceptingUser = {
-                        ...aUserResponse.user,
-                    };
-                    delete acceptingUser.idToken; // IMPORTANT - don't sent id token to another user
-                    socket.to(rUserSocketId).emit(SOCKET_MIDDLEWARE_ACTION, {
-                        type: SocketServerActionTypes.ACTIVE_CONNECTIONS_ADDED,
-                        data: acceptingUser,
-                    });
+                    if (aUserResponse.user) {
+                        const acceptingUser = {
+                            ...aUserResponse.user,
+                        };
+                        delete acceptingUser.idToken; // IMPORTANT - don't sent id token to another user
+                        socket.to(rUserSocketId).emit(SOCKET_MIDDLEWARE_ACTION, {
+                            type: SocketServerActionTypes.ACTIVE_CONNECTIONS_ADDED,
+                            data: acceptingUser,
+                        });
+                    }
 
                     // TO USER ACCEPTING REQUEST...
                     socket.emit(SOCKET_MIDDLEWARE_ACTION, {
@@ -88,14 +107,16 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
                         data: connection,
                     });
 
-                    const requestingUser = {
-                        ...rUserResponse.user,
-                    };
-                    delete requestingUser.idToken; // IMPORTANT - don't sent id token to another user
-                    socket.emit(SOCKET_MIDDLEWARE_ACTION, {
-                        type: SocketServerActionTypes.ACTIVE_CONNECTIONS_ADDED,
-                        data: requestingUser,
-                    });
+                    if (rUserResponse.user) {
+                        const requestingUser = {
+                            ...rUserResponse.user,
+                        };
+                        delete requestingUser.idToken; // IMPORTANT - don't sent id token to another user
+                        socket.emit(SOCKET_MIDDLEWARE_ACTION, {
+                            type: SocketServerActionTypes.ACTIVE_CONNECTIONS_ADDED,
+                            data: requestingUser,
+                        });
+                    }
                 }
             }
         });
@@ -107,7 +128,7 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
                 method: 'post',
                 url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/notifications`,
                 data: {
-                    userId: data.connection.requestingUserId,
+                    userId: connection.requestingUserId,
                     type: Notifications.Types.CONNECTION_REQUEST_ACCEPTED,
                     associationId: connection.id,
                     isUnread: true,

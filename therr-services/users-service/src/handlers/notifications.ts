@@ -5,6 +5,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
 import * as globalConfig from '../../../../global-config';
+import sendPushNotification from '../utilities/sendPushNotification';
 
 export const translateNotification = (notification, locale = 'en-us') => ({
     ...notification,
@@ -26,22 +27,15 @@ const createNotification = (req, res) => Store.notifications.createNotification(
         const fromUserId = req.headers['x-userid'];
         const { shouldSendPushNotification, userId: toUserId, fromUserName } = req.body;
 
+        // TODO: Handle additional notification types (currently only handles DM notification)
         if (shouldSendPushNotification) {
             // Fire and forget
-            Store.users.findUser({ id: toUserId }, ['deviceMobileFirebaseToken']).then(([destinationUser]) => axios({
-                method: 'post',
-                url: `${globalConfig[process.env.NODE_ENV].basePushNotificationsServiceRoute}/notifications/send`,
-                headers: {
-                    authorization,
-                    'x-localecode': locale,
-                    'x-userid': fromUserId,
-                },
-                data: {
-                    fromUserName,
-                    toUserDeviceToken: destinationUser.deviceMobileFirebaseToken,
-                },
-            })).catch((error) => {
-                console.log(error);
+            sendPushNotification(Store.users.findUser, {
+                authorization,
+                fromUserName,
+                fromUserId,
+                locale,
+                toUserId,
             });
         }
 

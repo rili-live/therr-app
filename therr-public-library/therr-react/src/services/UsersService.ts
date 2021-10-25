@@ -47,6 +47,12 @@ class UsersService {
         data,
     })
 
+    block = (userId: string) => axios({
+        method: 'put',
+        url: `/users-service/users/${userId}/block`,
+        data: {},
+    })
+
     changePassword = (data: IChangePasswordArgs) => axios({
         method: 'put',
         url: '/users-service/users/change-password',
@@ -57,6 +63,17 @@ class UsersService {
         method: 'post',
         url: '/users-service/users',
         data,
+    })
+
+    get = (id: number) => axios({
+        method: 'get',
+        url: `/users-service/users/${id}`,
+    })
+
+    report = (userId: string) => axios({
+        method: 'put',
+        url: `/users-service/users/${userId}/report`,
+        data: {},
     })
 
     update = (userId: string, data: IUpdateUser) => axios({
