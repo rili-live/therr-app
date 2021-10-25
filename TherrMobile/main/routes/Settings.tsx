@@ -67,7 +67,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 lastName: props.user.details.lastName,
                 userName: props.user.details.userName,
                 phoneNumber: props.user.details.phoneNumber,
-                shouldHideMatureContent: props.user.details.shouldHideMatureContent || true,
+                shouldHideMatureContent: props.user.details.shouldHideMatureContent,
             },
             isSubmitting: false,
             passwordErrorMessage: '',

@@ -123,7 +123,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
     }
 
     handleRefresh = () => {
-        const { content, updateActiveMoments } = this.props;
+        const { content, updateActiveMoments, user } = this.props;
         this.setState({ isLoading: true });
 
         return updateActiveMoments({
@@ -131,6 +131,8 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
             withUser: true,
             offset: 0,
             ...content.activeMomentsFilters,
+            blockedUsers: user.details.blockedUsers,
+            shouldHideMatureContent: user.details.shouldHideMatureContent,
         }).finally(() => {
             this.setState({ isLoading: false });
         });
@@ -151,7 +153,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
     }
 
     tryLoadMore = () => {
-        const { content, searchActiveMoments } = this.props;
+        const { content, searchActiveMoments, user } = this.props;
 
         if (!content.activeMomentsPagination.isLastPage) {
             return searchActiveMoments({
@@ -159,6 +161,8 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
                 withUser: true,
                 offset: content.activeMomentsPagination.offset + content.activeMomentsPagination.itemsPerPage,
                 ...content.activeMomentsFilters,
+                blockedUsers: user.details.blockedUsers,
+                shouldHideMatureContent: user.details.shouldHideMatureContent,
             });
         }
     }
