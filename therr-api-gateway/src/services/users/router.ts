@@ -15,7 +15,7 @@ import {
     verifyUserAccountValidation,
 } from './validation/users';
 import {
-    createUserConnectionValidation,
+    createUserConnectionValidation, updateUserConnectionValidation,
 } from './validation/userConnections';
 import {
     sendFeedbackValidation,
@@ -63,6 +63,11 @@ usersServiceRouter.put('/users/:id', handleServiceRequest({
     method: 'put',
 }));
 
+usersServiceRouter.put('/users/:id/report', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+
 usersServiceRouter.put('/users/change-password', changePasswordValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
@@ -104,7 +109,7 @@ usersServiceRouter.get('/users/connections', handleServiceRequest({
     method: 'get',
 }));
 
-usersServiceRouter.put('/users/connections/:requestingUserId', handleServiceRequest({
+usersServiceRouter.put('/users/connections', updateUserConnectionValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
 }));

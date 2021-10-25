@@ -21,6 +21,7 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
     } = req.body;
 
     return predictAndSendNotification(
+        // TODO: This endpoint should accept a type
         PushNotificationTypes.newDirectMessage,
         {
             fromUser: {

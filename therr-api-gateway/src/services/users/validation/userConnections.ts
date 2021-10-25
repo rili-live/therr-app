@@ -19,3 +19,7 @@ export const createUserConnectionValidation = [
             .normalizeEmail(),
     ]),
 ];
+
+export const updateUserConnectionValidation = [
+    body('otherUserId').isNumeric().exists(),
+];

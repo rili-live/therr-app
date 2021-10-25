@@ -59,6 +59,17 @@ class UsersService {
         data,
     })
 
+    get = (id: number) => axios({
+        method: 'get',
+        url: `/users-service/users/${id}`,
+    })
+
+    report = (userId: string) => axios({
+        method: 'put',
+        url: `/users-service/users/${userId}/report`,
+        data: {},
+    })
+
     update = (userId: string, data: IUpdateUser) => axios({
         method: 'put',
         url: `/users-service/users/${userId}`,

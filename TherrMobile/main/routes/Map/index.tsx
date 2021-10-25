@@ -12,7 +12,7 @@ import AnimatedOverlay from 'react-native-modal-overlay';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { MapsService, UsersService, PushNotificationsService } from 'therr-react/services';
-import { AccessCheckType, IMapState as IMapReduxState, IReactionsState, IUserState } from 'therr-react/types';
+import { AccessCheckType, IMapState as IMapReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
 import { MapActions, ReactionActions, UserInterfaceActions } from 'therr-react/redux/actions';
 import { AccessLevels, Location } from 'therr-js-utilities/constants';
 import Geolocation from '@react-native-community/geolocation';
@@ -79,6 +79,7 @@ interface IMapDispatchProps {
 interface IStoreProps extends IMapDispatchProps {
     location: ILocationState;
     map: IMapReduxState;
+    notifications: INotificationsState;
     reactions: IReactionsState;
     user: IUserState;
 }
@@ -120,6 +121,7 @@ interface IMapState {
 const mapStateToProps = (state: any) => ({
     location: state.location,
     map: state.map,
+    notifications: state.notifications,
     reactions: state.reactions,
     user: state.user,
 });
@@ -937,9 +939,10 @@ class Map extends React.Component<IMapProps, IMapState> {
             isSearchThisLocationBtnVisible,
             layers,
         } = this.state;
-        const { captureClickTarget, location, map, navigation, user } = this.props;
+        const { captureClickTarget, location, map, navigation, notifications, user } = this.props;
         const searchPredictionResults = map?.searchPredictions?.results || [];
         const isDropdownVisible = map?.searchPredictions?.isSearchDropdownVisible;
+        const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
 
         return (
             <>
@@ -1128,6 +1131,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                             <MapActionButtonsAlt
                                 goToMoments={this.goToMoments}
                                 goToNotifications={this.goToNotifications}
+                                hasNotifications={hasNotifications}
                                 handleCreateMoment={this.handleCreateMoment}
                                 handleGpsRecenter={this.handleGpsRecenterPress}
                                 isAuthorized={this.isAuthorized}

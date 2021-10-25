@@ -145,6 +145,10 @@ export default class UsersStore {
             modifiedParams.verificationCodes = params.verificationCodes;
         }
 
+        if (params.wasReportedBy) {
+            modifiedParams.wasReportedBy = JSON.stringify(params.wasReportedBy);
+        }
+
         if (params.shouldHideMatureContent != null) {
             modifiedParams.shouldHideMatureContent = params.shouldHideMatureContent;
         }

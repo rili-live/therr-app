@@ -7,6 +7,7 @@ import Store from '../store';
 // CREATE
 const createDirectMessage = (req, res) => {
     const locale = req.headers['x-localecode'] || 'en-us';
+    console.log(req.body);
 
     return Store.directMessages.createDirectMessage({
         message: req.body.message,

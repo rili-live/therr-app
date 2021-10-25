@@ -221,6 +221,16 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         }
     }
 
+    goToViewUser = (userId) => {
+        const { navigation } = this.props;
+
+        navigation.navigate('ViewUser', {
+            userInView: {
+                id: userId,
+            },
+        });
+    }
+
     onUpdateMomentReaction = (momentId, data) => {
         const { createOrUpdateMomentReaction, navigation, route } = this.props;
         const { moment } = route.params;
@@ -272,6 +282,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 isDarkMode={true}
                                 isExpanded={true}
                                 moment={moment}
+                                goToViewUser={this.goToViewUser}
                                 updateMomentReaction={(momentId, data) => this.onUpdateMomentReaction(momentId, data)}
                                 // TODO: User Username from response
                                 userDetails={{

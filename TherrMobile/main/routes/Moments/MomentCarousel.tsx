@@ -13,6 +13,7 @@ const renderItem = ({ item: moment }, {
     expandMoment,
     toggleMomentOptions,
     formattedDate,
+    goToViewUser,
     translate,
     updateMomentReaction,
 }) => {
@@ -26,6 +27,7 @@ const renderItem = ({ item: moment }, {
             <MomentDisplay
                 translate={translate}
                 date={formattedDate}
+                goToViewUser={goToViewUser}
                 toggleMomentOptions={toggleMomentOptions}
                 hashtags={moment.hashTags ? moment.hashTags.split(",") : []}
                 moment={moment}
@@ -51,6 +53,7 @@ export default ({
     content,
     expandMoment,
     containerRef,
+    goToViewUser,
     handleRefresh,
     isForBookmarks,
     onEndReached,
@@ -104,6 +107,7 @@ export default ({
                     content,
                     expandMoment,
                     formattedDate: formatDate(itemObj.item.createdAt),
+                    goToViewUser,
                     toggleMomentOptions,
                     translate,
                     updateMomentReaction,

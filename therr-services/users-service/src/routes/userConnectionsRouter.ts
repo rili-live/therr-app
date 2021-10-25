@@ -16,6 +16,6 @@ router.get('/:requestingUserId', getUserConnection);
 router.get('/', searchUserConnections);
 
 // UPDATE
-router.put('/:requestingUserId', updateUserConnection);
+router.put('/', updateUserConnection);
 
 export default router;

@@ -5,6 +5,7 @@ import {
     getUsers,
     findUsers,
     updateUser,
+    reportUser,
     updateUserPassword,
     deleteUser,
     createOneTimePassword,
@@ -25,6 +26,7 @@ router.post('/find', findUsers);
 // UPDATE
 router.put('/change-password', updateUserPassword);
 router.put('/:id', updateUser);
+router.put('/:id/report', reportUser);
 
 // DELETE
 router.delete('/:id', deleteUser);
