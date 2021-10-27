@@ -282,7 +282,6 @@ class Map extends React.Component<IMapProps, IMapState> {
 
     handleImageSelect = (imageResponse, userCoords) => {
         const { navigation } = this.props;
-        console.log('POOP', imageResponse);
 
         if (!imageResponse.didCancel && !imageResponse.errorCode) {
             // return navigation.navigate('EditMoment', {
