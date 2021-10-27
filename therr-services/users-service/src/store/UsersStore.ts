@@ -121,6 +121,10 @@ export default class UsersStore {
             modifiedParams.lastName = params.lastName;
         }
 
+        if (params.hasAgreedToTerms) {
+            modifiedParams.hasAgreedToTerms = params.hasAgreedToTerms;
+        }
+
         if (params.oneTimePassword) {
             modifiedParams.oneTimePassword = params.oneTimePassword;
         }

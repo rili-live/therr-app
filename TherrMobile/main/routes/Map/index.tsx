@@ -55,6 +55,9 @@ import SearchThisAreaButtonGroup from '../../components/SearchThisAreaButtonGrou
 import CameraMarkerIcon from './CameraMarkerIcon';
 import { isMyMoment } from '../../utilities/content';
 import LocationUseDisclosureModal from '../../components/Modals/LocationUseDisclosureModal';
+import ConfirmModal from '../../components/Modals/ConfirmModal';
+import eula from './EULA';
+import UsersActions from '../../redux/actions/UsersActions';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../../assets/earth-loader.json');
@@ -74,6 +77,7 @@ interface IMapDispatchProps {
     updateGpsStatus: Function;
     updateLocationDisclosure: Function;
     updateLocationPermissions: Function;
+    updateUser: Function;
 }
 
 interface IStoreProps extends IMapDispatchProps {
@@ -101,6 +105,7 @@ interface IMapState {
         longitudeDelta?: number,
     };
     shouldFollowUserLocation: boolean;
+    isConfirmModalVisible: boolean;
     isMomentAlertVisible: boolean;
     isScrollEnabled: boolean;
     isLocationReady: boolean;
@@ -139,6 +144,7 @@ const mapDispatchToProps = (dispatch: any) =>
             updateGpsStatus: LocationActions.updateGpsStatus,
             updateLocationDisclosure: LocationActions.updateLocationDisclosure,
             updateLocationPermissions: LocationActions.updateLocationPermissions,
+            updateUser: UsersActions.update,
         },
         dispatch
     );
@@ -166,6 +172,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             areLayersVisible: false,
             region: {},
             shouldFollowUserLocation: false,
+            isConfirmModalVisible: false,
             isScrollEnabled: true,
             isMomentAlertVisible: false,
             isLocationUseDisclosureModalVisible: false,
@@ -276,7 +283,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     handleImageSelect = (imageResponse, userCoords) => {
         const { navigation } = this.props;
 
-        if (!imageResponse.didCancel) {
+        if (!imageResponse.didCancel && !imageResponse.errorCode) {
             // return navigation.navigate('EditMoment', {
             //     ...userCoords,
             //     imageDetails: imageResponse,
@@ -289,8 +296,15 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     handleCreateMoment = (isCamera: boolean = true) => {
-        const { location } = this.props;
+        const { location, user } = this.props;
         const { circleCenter } = this.state;
+
+        if (Platform.OS === 'ios' && !user.details.hasAgreedToTerms) {
+            this.setState({
+                isConfirmModalVisible: true,
+            });
+            return;
+        }
 
         if (location?.settings?.isGpsEnabled) {
             // TODO: Store permissions in redux
@@ -742,6 +756,24 @@ class Map extends React.Component<IMapProps, IMapState> {
         );
     }
 
+    onConfirmModalCancel = () => {
+        this.setState({
+            isConfirmModalVisible: false,
+        });
+    }
+
+    onConfirmModalAccept = () => {
+        const { user, updateUser } = this.props;
+        this.setState({
+            isConfirmModalVisible: false,
+        });
+
+        // Update user property to show confirmed
+        updateUser(user.details.id, { hasAgreedToTerms: true }).then(() => {
+            this.handleCreateMoment(false);
+        });
+    }
+
     onDeleteMoment = (moment) => {
         const { deleteMoment, user } = this.props;
         if (isMyMoment(moment, user)) {
@@ -931,6 +963,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             areLayersVisible,
             circleCenter,
             shouldFollowUserLocation,
+            isConfirmModalVisible,
             isLocationReady,
             isLocationUseDisclosureModalVisible,
             isMinLoadTimeComplete,
@@ -1148,6 +1181,15 @@ class Map extends React.Component<IMapProps, IMapState> {
                         />
                     </>
                 }
+                <ConfirmModal
+                    headerText={this.translate('modals.confirmModal.header.eula')}
+                    isVisible={isConfirmModalVisible}
+                    onCancel={this.onConfirmModalCancel}
+                    onConfirm={this.onConfirmModalAccept}
+                    text={eula}
+                    textConfirm={this.translate('modals.confirmModal.agree')}
+                    translate={this.translate}
+                />
                 <LocationUseDisclosureModal
                     isVisible={isLocationUseDisclosureModalVisible}
                     translate={this.translate}

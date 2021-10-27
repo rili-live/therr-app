@@ -4,12 +4,16 @@ import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import styles from '../../styles/modal/confirmModal';
 import buttonStyles from '../../styles/buttons';
+import { ScrollView } from 'react-native-gesture-handler';
 
 interface IConfirmModal {
+    headerText?: string;
     isVisible: boolean;
     onCancel: any;
     onConfirm: any;
     text: string;
+    textConfirm?: string;
+    textCancel?: string;
     translate: Function;
     width?: string;
 }
@@ -38,10 +42,13 @@ const ModalButton = ({ title, hasBorderRight, iconName, onPress }) => {
 };
 
 export default ({
+    headerText,
     isVisible,
     onCancel,
     onConfirm,
     text,
+    textConfirm,
+    textCancel,
     translate,
     width,
 }: IConfirmModal) => {
@@ -58,17 +65,28 @@ export default ({
                 onPress={onCancel}
                 style={styles.overlay}>
                 <Pressable style={[styles.container, extraStyles]}>
-                    <Text style={styles.header}>{text}</Text>
+                    {
+                        headerText ?
+                            <>
+                                <View style={styles.header}>
+                                    <Text style={styles.headerText}>{headerText}</Text>
+                                </View>
+                                <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
+                                    <Text style={styles.bodyText}>{text}</Text>
+                                </ScrollView>
+                            </> :
+                            <Text style={styles.bodyTextBold}>{text}</Text>
+                    }
                     <View style={styles.buttonsContainer}>
                         <ModalButton
                             iconName="close"
-                            title={translate('modals.confirmModal.cancel')}
+                            title={textCancel || translate('modals.confirmModal.cancel')}
                             onPress={() => onCancel()}
                             hasBorderRight={true}
                         />
                         <ModalButton
                             iconName="check"
-                            title={translate('modals.confirmModal.confirm')}
+                            title={textConfirm || translate('modals.confirmModal.confirm')}
                             onPress={() => onConfirm()}
                             hasBorderRight={false}
                         />
