@@ -12,17 +12,31 @@ export default StyleSheet.create({
         display: 'flex',
         justifyContent: 'flex-start',
         alignItems: 'center',
+        maxHeight: '50%',
         width: '75%',
         backgroundColor: therrTheme.colors.backgroundGray,
         elevation: 5,
         borderRadius: 12,
     },
     header: {
+        width: '100%',
+        paddingVertical: 8,
+        paddingHorizontal: 5,
+        borderBottomColor: therrTheme.colorVariations.textBlackFade,
+        borderBottomWidth: 1,
+    },
+    headerText: {
         fontSize: 20,
-        fontWeight: '400',
-        padding: 10,
-        paddingVertical: 20,
+        fontWeight: '800',
         textAlign: 'center',
+    },
+    body: {
+        height: '100%',
+        paddingBottom: 10,
+    },
+    bodyContent: {
+        display: 'flex',
+        minHeight: '100%',
     },
     buttonsContainer: {
         display: 'flex',
@@ -38,7 +52,18 @@ export default StyleSheet.create({
         borderTopRightRadius: 0,
         borderBottomRightRadius: 0,
     },
-    text: {
-        paddingBottom: 5,
+    bodyText: {
+        fontSize: 16,
+        fontWeight: '400',
+        padding: 10,
+        textAlign: 'center',
+    },
+    bodyTextBold: {
+        fontSize: 20,
+        fontWeight: '600',
+        padding: 10,
+        paddingTop: 15,
+        paddingBottom: 20,
+        textAlign: 'center',
     },
 });
