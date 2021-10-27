@@ -104,7 +104,7 @@ export class CropImage extends React.Component<ICropImageProps, ICropImageState>
         const { navigation, route, user } = this.props;
 
         const { imageDetails } = route.params;
-        const localFilePath = Platform.OS === 'ios' ? imageDetails.uri.replace('file:///', '') : imageDetails.uri;
+        const localFilePath = Platform.OS === 'ios' ? imageDetails.uri?.replace('file:///', '') : imageDetails.uri;
 
         return (
             <>
