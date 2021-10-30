@@ -9,6 +9,7 @@ import {
 import LocationServicesDialogBox  from 'react-native-android-location-services-dialog-box';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import analytics from '@react-native-firebase/analytics';
+import crashlytics from '@react-native-firebase/crashlytics';
 import messaging from '@react-native-firebase/messaging';
 import { UsersService } from 'therr-react/services';
 import { AccessCheckType, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
@@ -122,6 +123,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         if (user?.isAuthenticated !== this.state.isAuthenticated) {
             if (user.isAuthenticated) { // Happens after login
+                crashlytics().setUserId(user.details?.id?.toString());
                 searchNotifications({
                     filterBy: 'userId',
                     query: user.details.id,

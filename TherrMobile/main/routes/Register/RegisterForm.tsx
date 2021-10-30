@@ -17,6 +17,7 @@ interface IRegisterFormProps {
     onSuccess: Function;
     register: Function;
     title?: string;
+    toggleEULA: Function;
 }
 
 interface IRegisterFormState {
@@ -146,7 +147,7 @@ export class RegisterFormComponent extends React.Component<
             passwordErrorMessage,
             prevRegisterError,
         } = this.state;
-        // const { alert, title } = this.props;
+        const { toggleEULA } = this.props;
 
         return (
             <>
@@ -227,6 +228,16 @@ export class RegisterFormComponent extends React.Component<
                         )}
                         onPress={this.onSubmit}
                         disabled={this.isRegisterFormDisabled()}
+                    />
+                </View>
+                <View style={loginFormStyles.moreLinksContainer}>
+                    <Button
+                        type="clear"
+                        titleStyle={loginFormStyles.buttonLink}
+                        title={this.translate(
+                            'forms.registerForm.buttons.eula'
+                        )}
+                        onPress={() => toggleEULA()}
                     />
                 </View>
             </>

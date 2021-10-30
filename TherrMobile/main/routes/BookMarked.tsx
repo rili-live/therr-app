@@ -31,6 +31,8 @@ export interface IBookMarkedProps extends IStoreProps {
 
 interface IBookMarkedState {
     isLoading: boolean;
+    areMomentOptionsVisible: boolean;
+    selectedMoment: any;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -57,6 +59,8 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
 
         this.state = {
             isLoading: true,
+            areMomentOptionsVisible: false,
+            selectedMoment: {},
         };
 
         this.translate = (key: string, params: any) =>
@@ -64,20 +68,24 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
     }
 
     componentDidMount() {
-        const { navigation, searchBookmarkedMoments } = this.props;
+        const { navigation, searchBookmarkedMoments, user } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.bookmarked.headerTitle'),
         });
 
         this.setState({
+            areMomentOptionsVisible: false,
             isLoading: false,
+            selectedMoment: {},
         });
 
         searchBookmarkedMoments({
             withMedia: true,
             withUser: true,
             offset: 0,
+            blockedUsers: user.details.blockedUsers,
+            shouldHideMatureContent: user.details.shouldHideMatureContent,
         }).finally(() => {
             this.setState({
                 isLoading: false,
@@ -87,12 +95,14 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
 
 
     handleRefresh = () => {
-        const { searchBookmarkedMoments } = this.props;
+        const { searchBookmarkedMoments, user } = this.props;
 
         searchBookmarkedMoments({
             withMedia: true,
             withUser: true,
             offset: 0,
+            blockedUsers: user.details.blockedUsers,
+            shouldHideMatureContent: user.details.shouldHideMatureContent,
         });
     }
 
@@ -107,6 +117,24 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
             momentDetails: {},
         });
     };
+
+    goToViewUser = (userId) => {
+        const { navigation } = this.props;
+
+        navigation.navigate('ViewUser', {
+            userInView: {
+                id: userId,
+            },
+        });
+    }
+
+    toggleMomentOptions = (moment) => {
+        const { areMomentOptionsVisible } = this.state;
+        this.setState({
+            areMomentOptionsVisible: !areMomentOptionsVisible,
+            selectedMoment: areMomentOptionsVisible ? {} : moment,
+        });
+    }
 
     tryLoadMore = () => {
         console.log('try load more');
@@ -128,7 +156,9 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
                 expandMoment={this.goToMoment}
                 translate={this.translate}
                 containerRef={(component) => this.carouselRef = component}
+                goToViewUser={this.goToViewUser}
                 handleRefresh={() => Promise.resolve(this.handleRefresh())}
+                toggleMomentOptions={this.toggleMomentOptions}
                 isForBookmarks
                 onEndReached={this.tryLoadMore}
                 updateMomentReaction={createOrUpdateMomentReaction}

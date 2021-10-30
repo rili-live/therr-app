@@ -1,11 +1,12 @@
 import * as React from 'react';
-import { ActivityIndicator, View, Text } from 'react-native';
+import { ActivityIndicator, View, Text, Pressable } from 'react-native';
 import { Image } from 'react-native-elements';
 import styles from '../styles';
 import messageStyles from '../styles/user-content/messages';
 
 export default ({
     connectionDetails,
+    goToUser,
     userDetails,
     isLeft,
     isFirstOfMessage,
@@ -32,11 +33,15 @@ export default ({
             {
                 isFirstOfMessage &&
                 <View style={[messageStyles.sectionContainer, { justifyContent: isYou() ? 'flex-end' : 'flex-start' }]}>
-                    <Image
-                        source={{ uri: `https://robohash.org/${isYou() ? userDetails.id : connectionDetails.id}?size=50x50` }}
-                        style={messageStyles.userImage}
-                        PlaceholderContent={<ActivityIndicator />}
-                    />
+                    <Pressable
+                        onPress={() => goToUser(isYou() ? userDetails.id : connectionDetails.id)}
+                    >
+                        <Image
+                            source={{ uri: `https://robohash.org/${isYou() ? userDetails.id : connectionDetails.id}?size=50x50` }}
+                            style={messageStyles.userImage}
+                            PlaceholderContent={<ActivityIndicator />}
+                        />
+                    </Pressable>
                     <Text style={styles.sectionTitle}>
                         {getName()}
                     </Text>

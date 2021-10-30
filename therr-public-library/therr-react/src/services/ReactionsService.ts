@@ -92,6 +92,8 @@ class ReactionsService {
             limit,
             withMedia: options.withMedia,
             withUser: options.withUser,
+            blockedUsers: options.blockedUsers,
+            shouldHideMatureContent: options.shouldHideMatureContent,
         },
     });
 }
