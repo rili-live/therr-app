@@ -226,7 +226,7 @@ class ViewUser extends React.Component<
                     onConfirm={this.onAcceptConfirmModal}
                     text={confirmModalText}
                     translate={this.translate}
-                    width="60%"
+                    width={activeConfirmModal === 'remove-connection-request' ? '70%' : '60%'}
                 />
                 <MainButtonMenuAlt
                     navigation={navigation}

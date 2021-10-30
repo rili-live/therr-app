@@ -231,7 +231,7 @@ class HeaderMenuRight extends React.Component<
                                                 style={headerMenuModal.headerTitleIcon}
                                                 transition={false}
                                             />
-                                            <Text style={headerMenuModal.headerTitleText}>
+                                            <Text numberOfLines={1} style={headerMenuModal.headerTitleText}>
                                                 {user.details?.userName}
                                             </Text>
                                         </View>

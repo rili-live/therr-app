@@ -11,6 +11,8 @@ import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
 import firstTimeUIStyles from '../../styles/first-time-ui';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import ConfirmModal from '../../components/Modals/ConfirmModal';
+import eula from '../Map/EULA';
 
 interface IRegisterDispatchProps {
     register: Function;
@@ -26,7 +28,7 @@ export interface IRegisterProps extends IStoreProps {
 }
 
 interface IRegisterState {
-    isAuthenticating: boolean;
+    isEULAVisible: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -47,6 +49,10 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
     constructor(props) {
         super(props);
 
+        this.state = {
+            isEULAVisible: false,
+        };
+
         this.translate = (key: string, params: any): string =>
             translator('en-us', key, params);
     }
@@ -63,7 +69,15 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
         });
     }
 
+    toggleEULA = () => {
+        const { isEULAVisible } = this.state;
+        this.setState({
+            isEULAVisible: !isEULAVisible,
+        });
+    }
+
     render() {
+        const { isEULAVisible } = this.state;
         const pageTitle = this.translate('pages.register.pageTitle');
 
         return (
@@ -76,9 +90,18 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
                                 {pageTitle}
                             </Text>
                         </View>
-                        <RegisterForm register={this.props.register} onSuccess={this.onSuccess}/>
+                        <RegisterForm register={this.props.register} onSuccess={this.onSuccess} toggleEULA={this.toggleEULA} />
                     </KeyboardAwareScrollView>
                 </SafeAreaView>
+                <ConfirmModal
+                    headerText={this.translate('modals.confirmModal.header.eula')}
+                    isVisible={isEULAVisible}
+                    onCancel={this.toggleEULA}
+                    onConfirm={this.toggleEULA}
+                    text={eula}
+                    textConfirm={this.translate('modals.confirmModal.agree')}
+                    translate={this.translate}
+                />
             </>
         );
     }

@@ -86,6 +86,15 @@ class DirectMessage extends React.Component<
         }
     }
 
+    goToUser = (userId) => {
+        const { navigation } = this.props;
+        navigation.navigate('ViewUser', {
+            userInView: {
+                id: userId,
+            },
+        });
+    }
+
     searchDmsByPage = (pageNumber: number) => {
         const { route, searchDms } = this.props;
         const { connectionDetails } = route.params;
@@ -174,6 +183,7 @@ class DirectMessage extends React.Component<
                             renderItem={({ item, index }) => (
                                 <TextMessage
                                     connectionDetails={connectionDetails}
+                                    goToUser={this.goToUser}
                                     userDetails={user.details}
                                     message={item}
                                     isLeft={!item.fromUserName?.toLowerCase().includes('you')}
