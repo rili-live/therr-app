@@ -294,7 +294,8 @@
     "registerForm": {
       "buttons": {
         "backToLogin": "Back to Login",
-        "register": "Create"
+        "register": "Create",
+        "eula": "End User Agreement"
       },
       "defaultTitle": "Create an Account",
       "errorMessages": {
@@ -533,7 +534,7 @@
         "userName": "Username"
       },
       "pageTitle": "User Profile",
-      "siteDescription1": "Welcome to the beta version of Therr. As we gather feedback and develop new features, let us know how we can improve the experience.",
+      "siteDescription1": "Welcome to Therr app. As we gather feedback and develop new features, let us know how we can improve the experience.",
       "siteDescription2": "So how does it work?",
       "siteDescription3": "Share a moment with your connections on the map or send a quick DM. Moments are proximity activated and entirely customizable.",
       "siteDescription4": "Then, check your feed for moments posted by others in the spaces you travel to. Get to know the local culture by searching content that was shared nearby (recently or historically), and filter your interests with hashtags, keywords, etc.",
@@ -559,7 +560,7 @@
       "blockUser": "Are you sure you want to block {userName}?",
       "connect": "Send connection request to {userName}?",
       "reportUser": "Are you sure you want to report {userName}?",
-      "unconnect": "Remove connection with {userName}? You will no be able to activate new content from this user.",
+      "unconnect": "Remove connection with {userName}? (You will no longer be able to activate new content from this user)",
       "header": {
         "eula": "End-User License Agreement (EULA)"
       }

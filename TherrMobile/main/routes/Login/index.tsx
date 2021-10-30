@@ -140,7 +140,7 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                                 <View style={[mixins.flexCenter, mixins.marginMediumBot, mixins.marginMediumTop]}>
                                     <LogoIcon
                                         name="therr-logo"
-                                        size={150}
+                                        size={140}
                                         style={[styles.logoIcon, { marginLeft: 0 }]}
                                     />
                                 </View>
