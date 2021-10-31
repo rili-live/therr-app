@@ -12,6 +12,16 @@ buildscript {
     repositories {
         google()  // Google's Maven repository
         jcenter()
+
+        // force dependency versions on all subprojects
+        // https://github.com/facebook/react-native/issues/23764
+        // configurations.all {
+        //     resolutionStrategy {
+
+        //         // use 0.9.0 to fix crash on Android 11
+        //         force "com.facebook.soloader:soloader:0.9.0"
+		// 	}
+		// }
     }
     dependencies {
         classpath('com.android.tools.build:gradle:4.2.2')
