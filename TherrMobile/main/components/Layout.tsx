@@ -123,7 +123,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         if (user?.isAuthenticated !== this.state.isAuthenticated) {
             if (user.isAuthenticated) { // Happens after login
-                crashlytics().setUserId(user.details?.id?.toString());
+                if (user.details?.id) {
+                    crashlytics().setUserId(user.details?.id?.toString());
+                }
                 searchNotifications({
                     filterBy: 'userId',
                     query: user.details.id,

@@ -53,6 +53,7 @@ class App extends React.Component<any, any> {
 
     componentWillUnmount() {
         clearTimeout(this.timeoutIdMin);
+        clearTimeout(this.timeoutIdMax);
         if (this.authCredentialListener) {
             this.authCredentialListener();
         }
