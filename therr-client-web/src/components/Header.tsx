@@ -80,11 +80,11 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
 
         return (
             <header>
-                <div id="rili">
+                <div id="therr">
                     <SvgButton
-                        id="rili_svg_button"
-                        iconClassName="rili-icon"
-                        name="rili"
+                        id="therr_svg_button"
+                        iconClassName="therr-icon"
+                        name="therr"
                         onClick={() => goHome()}
                         buttonType="primary"
                     />
