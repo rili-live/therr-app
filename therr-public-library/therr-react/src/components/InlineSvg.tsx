@@ -17,7 +17,7 @@ const iconMap: { [index: string]: string } = {
     notifications: require('../svg-icons/notifications.svg').toString(),
     people: require('../svg-icons/people.svg').toString(),
     'people-alt': require('../svg-icons/people-alt.svg').toString(),
-    rili: require('../svg-icons/rili.svg').toString(),
+    therr: require('../svg-icons/therr.svg').toString(),
     send: require('../svg-icons/send.svg').toString(),
     settings: require('../svg-icons/settings.svg').toString(),
     world: require('../svg-icons/world.svg').toString(),

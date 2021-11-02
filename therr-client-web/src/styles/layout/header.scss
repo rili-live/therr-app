@@ -11,7 +11,7 @@ header {
     box-shadow: $box-shadow-fixed-top;
     border-bottom: rem-calc(4px) solid $therr-primary-2;
 
-    #rili {
+    #therr {
         display: flex;
         justify-content: center;
         align-items: center;
@@ -21,15 +21,13 @@ header {
         letter-spacing: .15rem;
         text-shadow: rem-calc(11px) rem-calc(9px) rem-calc(2px) $therr-black;
 
-        #rili_svg_button {
+        #therr_svg_button {
             background: transparent;
             padding: 0;
             width: rem-calc(34px);
-            border: 2px solid $therr-secondary-1;
             margin-right: .75rem;
-            box-shadow: inset 0 0 4px 2px transparentize($therr-black, .35);
 
-            .rili-icon {
+            .therr-icon {
                 path {
                     stroke: transparent !important;
                 }
