@@ -245,7 +245,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             searchDms({
                 filterBy: 'fromUserId',
                 query: connectionDetails.id,
-                itemsPerPage: 50,
+                itemsPerPage: 200,
                 pageNumber: 1,
                 orderBy: 'interactionCount',
                 order: 'desc',

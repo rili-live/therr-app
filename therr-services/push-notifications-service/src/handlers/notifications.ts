@@ -18,11 +18,12 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
     const {
         fromUserName,
         toUserDeviceToken,
+        type,
     } = req.body;
 
     return predictAndSendNotification(
         // TODO: This endpoint should accept a type
-        PushNotificationTypes.newDirectMessage,
+        type || PushNotificationTypes.newDirectMessage,
         {
             fromUser: {
                 userName: fromUserName,

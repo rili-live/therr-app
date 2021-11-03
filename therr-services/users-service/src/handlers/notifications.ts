@@ -1,10 +1,9 @@
-import axios from 'axios';
 import { RequestHandler } from 'express';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
-import * as globalConfig from '../../../../global-config';
+// import * as globalConfig from '../../../../global-config';
 import sendPushNotification from '../utilities/sendPushNotification';
 
 export const translateNotification = (notification, locale = 'en-us') => ({
@@ -36,6 +35,7 @@ const createNotification = (req, res) => Store.notifications.createNotification(
                 fromUserId,
                 locale,
                 toUserId,
+                type: 'new-direct-message',
             });
         }
 

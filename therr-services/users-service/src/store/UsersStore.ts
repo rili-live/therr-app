@@ -48,12 +48,12 @@ export default class UsersStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
-    findUser({
+    findUser = ({
         id,
         email,
         userName,
         phoneNumber,
-    }: IFindUserArgs, returning: any = '*') {
+    }: IFindUserArgs, returning: any = '*') => {
         let queryString: any = knexBuilder.select(returning).from('main.users')
             .where(function () {
                 return id ? this.where({ id }) : this;

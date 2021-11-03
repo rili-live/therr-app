@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 import { Notifications } from 'therr-js-utilities/constants';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
+import sendPushNotification from '../utilities/sendPushNotification';
 // import normalizeEmail from 'normalize-email';
 import beeline from '../beeline';
 import Store from '../store';
@@ -19,6 +20,10 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
         acceptingUserPhoneNumber,
         acceptingUserEmail,
     } = req.body;
+    const authorization = req.headers.authorization;
+    const userId = req.headers['x-userid'];
+    // eslint-disable-next-line eqeqeq
+    const fromUserFullName = Number(acceptingUserId) === Number(userId) ? requestingUserFirstName : requestingUserFirstName;
     const locale = req.headers['x-localecode'] || 'en-us';
     let acceptingId = acceptingUserId;
 
@@ -60,6 +65,8 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
         acceptingUserId: acceptingId,
     }, true)
         .then((getResults) => {
+            const toUserIdForNotification = acceptingId;
+
             if (getResults.length && !getResults[0].isConnectionBroken) {
                 return handleHttpError({
                     res,
@@ -87,7 +94,15 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 });
             }
 
-            // TODO: Send Push Notification
+            sendPushNotification(Store.users.findUser, {
+                authorization,
+                fromUserName: fromUserFullName,
+                fromUserId: userId,
+                locale,
+                toUserId: toUserIdForNotification,
+                type: 'new-connection-request',
+            });
+
             return connectionPromise.then(([userConnection]) => Store.notifications.createNotification({
                 userId: acceptingId,
                 type: Notifications.Types.CONNECTION_REQUEST_RECEIVED,
@@ -165,8 +180,10 @@ const searchUserConnections: RequestHandler = (req: any, res: any) => {
 // UPDATE
 // TODO: RSERV-32 - return associated users (same as search userConnections does)
 const updateUserConnection = (req, res) => {
+    const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
     const acceptingUserId = Number(userId);
+    const locale = req.headers['x-localecode'] || 'en-us';
     const requestingUserId = Number(req.body.otherUserId);
 
     return Store.userConnections.getUserConnections({
@@ -187,6 +204,15 @@ const updateUserConnection = (req, res) => {
                     statusCode: 404,
                 });
             }
+
+            sendPushNotification(Store.users.findUser, {
+                authorization,
+                fromUserName: '', // TODO: Fetch this or send it from the frontend
+                fromUserId: userId,
+                locale,
+                toUserId: getResults[0].acceptingUserId,
+                type: 'connection-request-accepted',
+            });
 
             return Store.userConnections
                 .updateUserConnection({
