@@ -1,8 +1,16 @@
 {
   "notifications": {
+    "connectionRequestAccepted": {
+      "title": "New Connection",
+      "body": "Your connection request was accepted! Check the app to start a new conversation"
+    },
     "discoveredUniqueMoment": {
       "title": "You found a unique moment!",
       "body": "Check the map to activate a moment with special attributes"
+    },
+    "newConnectionRequest": {
+      "title": "New Connection Request",
+      "body": "You have a new connection request from {userName}"
     },
     "newDirectMessage": {
       "title": "New Unread Messages",

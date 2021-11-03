@@ -5,8 +5,11 @@ import Logger from './Logger';
 
 const serviceAccount = JSON.parse(Buffer.from(process.env.PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64 || '', 'base64').toString());
 
+// TODO: Move these to therr-utilities and share with other services
 // eslint-disable-next-line no-shadow
 enum PushNotificationTypes {
+    connectionRequestAccepted = 'connection-request-accepted',
+    newConnectionRequest = 'new-connection-request',
     newDirectMessage = 'new-direct-message',
     newMomentsActivated = 'new-moments-activated',
     proximityRequiredMoment = 'proximity-required-moment',
@@ -36,6 +39,40 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
     Object.keys(data).forEach((key) => { modifiedData[key] = JSON.stringify(data[key]); });
 
     switch (type) {
+        case PushNotificationTypes.connectionRequestAccepted:
+            return {
+                data: modifiedData,
+                notification: {
+                    title: translate(config.userLocale, 'notifications.connectionRequestAccepted.title'),
+                    body: translate(config.userLocale, 'notifications.connectionRequestAccepted.body', {
+                        userName: config.fromUserName,
+                    }),
+                },
+                android: {
+                    notification: {
+                        icon: 'ic_notification_icon',
+                        color: '#0f7b82',
+                    },
+                },
+                token: config.deviceToken,
+            };
+        case PushNotificationTypes.newConnectionRequest:
+            return {
+                data: modifiedData,
+                notification: {
+                    title: translate(config.userLocale, 'notifications.newConnectionRequest.title'),
+                    body: translate(config.userLocale, 'notifications.newConnectionRequest.body', {
+                        userName: config.fromUserName,
+                    }),
+                },
+                android: {
+                    notification: {
+                        icon: 'ic_notification_icon',
+                        color: '#0f7b82',
+                    },
+                },
+                token: config.deviceToken,
+            };
         case PushNotificationTypes.newDirectMessage:
             return {
                 data: modifiedData,
@@ -104,6 +141,14 @@ const predictAndSendNotification = (
         .then(() => {
             if (!message) {
                 return;
+            }
+
+            if (type === PushNotificationTypes.connectionRequestAccepted) {
+                return admin.messaging().send(message);
+            }
+
+            if (type === PushNotificationTypes.newConnectionRequest) {
+                return admin.messaging().send(message);
             }
 
             if (type === PushNotificationTypes.newDirectMessage) {

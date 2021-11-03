@@ -7,6 +7,7 @@ export default (findUser, {
     fromUserId,
     locale,
     toUserId,
+    type,
 }) => {
     findUser({ id: toUserId }, ['deviceMobileFirebaseToken']).then(([destinationUser]) => axios({
         method: 'post',
@@ -19,6 +20,7 @@ export default (findUser, {
         data: {
             fromUserName,
             toUserDeviceToken: destinationUser.deviceMobileFirebaseToken,
+            type,
         },
     })).catch((error) => {
         console.log(error);

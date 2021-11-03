@@ -196,6 +196,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
         const contextFirstName = messagingContext && messagingContext.firstName;
         const contextLastName = messagingContext && messagingContext.lastName;
         const dms = messages.dms && messages.dms[messagingContext && messagingContext.id];
+        const reversedDms = dms ? [...dms].reverse() : [];
 
         return (
             <>
@@ -219,10 +220,10 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
                     {
                         <span className="dms-body">
                             {
-                                dms && dms.length > 0
+                                reversedDms && reversedDms.length > 0
                                     ? <ul className="dms-list">
                                         {
-                                            dms.map((message: IDirectMsg) => {
+                                            reversedDms.map((message: IDirectMsg) => {
                                                 const className = message.fromUserName && message.fromUserName.toLowerCase().includes('you')
                                                     ? 'dm-item message-left'
                                                     : 'dm-item message-right';
