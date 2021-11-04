@@ -88,7 +88,13 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
                         onClick={() => goHome()}
                         buttonType="primary"
                     />
-                    therr
+                    <SvgButton
+                        id="therr_text_svg_button"
+                        iconClassName="therr-logo-text"
+                        name="therr-text"
+                        onClick={() => goHome()}
+                        buttonType="primary"
+                    />
                 </div>
                 <AccessControl isAuthorized={isAuthorized} publicOnly>
                     <div className="login-link"><Link to="/login">{this.translate('components.header.buttons.login')}</Link></div>
