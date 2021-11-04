@@ -9,13 +9,12 @@ header {
     top: 0;
     width: 100%;
     box-shadow: $box-shadow-fixed-top;
-    border-bottom: rem-calc(4px) solid $therr-primary-2;
 
     #therr {
         display: flex;
         justify-content: center;
         align-items: center;
-        width: 7.5rem;
+        width: 9.5rem;
         font-size: rem-calc(21px);
         color: $therr-white;
         letter-spacing: .15rem;
@@ -25,13 +24,26 @@ header {
             background: transparent;
             padding: 0;
             width: rem-calc(34px);
-            margin-right: .75rem;
+            margin-right: .15rem;
 
             .therr-icon {
                 path {
                     stroke: transparent !important;
                 }
 
+                g {
+                    fill: $therr-white !important;
+                }
+            }
+        }
+
+        #therr_text_svg_button {
+            background: transparent;
+            padding: 0;
+            width: 4.25rem;
+            margin-right: .75rem;
+
+            .therr-icon {
                 g {
                     fill: $therr-white !important;
                 }

@@ -50,7 +50,7 @@ button.primary {
   color: #dee1e4;
 }
 button.primary:hover:not([disabled]) {
-  background: #075248;
+  background: #b14419;
   cursor: pointer;
 }
 

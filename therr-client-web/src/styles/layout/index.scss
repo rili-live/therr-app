@@ -37,7 +37,8 @@ h4 {
 
 .content-container {
     background: $therr-background-black;
-    border: rem-calc(4px) solid $therr-primary-2;
+    border: rem-calc(2px) solid $therr-primary-2;
+    border-radius: 1.2rem;
     // border-left: rem-calc(4px) double $therr-primary-2;
     // border-right: rem-calc(4px) double $therr-primary-2;
     margin: ($header-height-small + 2.2rem) 1rem;
@@ -56,6 +57,7 @@ h4 {
     .content-container {
         margin: ($header-height + 3rem) 5rem;
         padding: .5rem 1.2rem 1rem 1.2rem;
+        border-radius: 1.6rem;
     }
 }
 hr {
