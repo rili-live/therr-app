@@ -37,7 +37,7 @@ h4 {
 
 .content-container {
     background: $therr-background-black;
-    border: rem-calc(2px) solid $therr-primary-2;
+    border: rem-calc(1px) solid $therr-primary-2;
     border-radius: 1rem;
     // border-left: rem-calc(4px) double $therr-primary-2;
     // border-right: rem-calc(4px) double $therr-primary-2;
@@ -55,7 +55,7 @@ h4 {
 
 @media only screen and (min-width: rem-calc($screen-medium)) {
     .content-container {
-        margin: ($header-height + 3rem) 5rem;
+        margin: ($header-height + 5rem) 5rem;
         padding: .5rem 1.2rem 1rem 1.2rem;
         border-radius: 1.6rem;
     }
