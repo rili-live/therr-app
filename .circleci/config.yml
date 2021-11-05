@@ -87,7 +87,7 @@ jobs:
           name: Build Docker Images
           command: echo "Hello, DEPLOY"
       - run: |
-          gcloud --quiet components update
+          gcloud components install kubectl
           echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
           gcloud --quiet config set project therr-app
           gcloud --quiet config set compute/zone us-central1-a
