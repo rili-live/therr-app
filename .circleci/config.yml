@@ -91,6 +91,7 @@ jobs:
           echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
           gcloud --quiet config set project therr-app
           gcloud --quiet config set compute/zone us-central1-a
+          gcloud container clusters get-credentials cluster-1
       - run: |
           kubectl api-versions
 
