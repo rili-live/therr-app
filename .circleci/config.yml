@@ -46,7 +46,11 @@ jobs:
           name: Run Unit Tests
           command: echo "Hello, Test"
   build_docker_images:
-    machine: true
+    docker:
+      - image: circleci/golang:1.15
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASSWORD
     steps:
       - setup_remote_docker:
           docker_layer_caching: true
