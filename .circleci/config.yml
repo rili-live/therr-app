@@ -42,8 +42,7 @@ jobs:
           name: Run Unit Tests
           command: echo "Hello, Test"
   build_docker_images:
-    docker:
-      - image: cimg/node:15.14
+    machine: true
     steps:
       - attach_workspace:
             at: ~/
@@ -53,6 +52,7 @@ jobs:
       - run: |
           echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
           docker pull therrapp/client-web
+          ls -la
   publish_docker_images:
     docker:
       - image: cimg/node:15.14
