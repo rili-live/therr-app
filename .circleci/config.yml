@@ -25,6 +25,8 @@ jobs:
       - node/install-packages:
           # If you are using yarn, change the line below from "npm" to "yarn"
           pkg-manager: npm
+      - setup_remote_docker:
+          docker_layer_caching: true
       # - run:
       #     name: Install Dependencies
       #     command: npm run install:all
@@ -36,6 +38,8 @@ jobs:
     docker:
       - image: cimg/node:15.14
     steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
       - attach_workspace:
           at: ~/
       - run:
@@ -44,6 +48,8 @@ jobs:
   build_docker_images:
     machine: true
     steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
       - attach_workspace:
             at: ~/
       - run:
@@ -57,6 +63,8 @@ jobs:
     docker:
       - image: cimg/node:15.14
     steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
       - attach_workspace:
           at: ~/
       - run:
@@ -69,10 +77,13 @@ jobs:
           username: $DOCKERHUB_USER
           password: $DOCKERHUB_PASSWORD
     steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run:
           name: Build Docker Images
           command: echo "Hello, DEPLOY"
       - run: |
+          gcloud components update kubectl
           echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
           gcloud --quiet config set project therr-app
           gcloud --quiet config set compute/zone us-central1-a
