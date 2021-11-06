@@ -52,10 +52,10 @@ jobs:
       - run:
           name: Run Unit Tests
           command: echo "Hello, Test"
-      - run:
-          name: Lint
-          command: npm run lint:all
-  build_docker_images:
+      # - run:
+      #     name: Lint
+      #     command: npm run lint:all
+  docker_build_publish_images:
     docker:
       - image: circleci/golang:1.15
         auth:
@@ -74,27 +74,9 @@ jobs:
       - run:
           name: Build Docker Images
           command: ./_bin/cicd/build.sh
-  publish_docker_images:
-    docker:
-      - image: circleci/golang:1.15
-        auth:
-          username: $DOCKERHUB_USER
-          password: $DOCKERHUB_PASSWORD
-    environment:
-      CICD_BRANCH: << pipeline.git.branch >>
-      GIT_SHA: << pipeline.git.revision >>
-    steps:
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - attach_workspace:
-          at: ~/
       - run:
           name: Publish Docker Images
           command: ./_bin/cicd/publish.sh
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project
   deploy:
     docker:
       - image: google/cloud-sdk
@@ -130,7 +112,7 @@ workflows:
       - test:
           requires:
           - install_dependencies
-      - build_docker_images:
+      - docker_build_publish_images:
           requires:
           - install_dependencies
           filters:
@@ -138,17 +120,9 @@ workflows:
               only:
                 - stage
                 - main
-      - publish_docker_images:
-          requires:
-          - build_docker_images
-          filters:
-            branches:
-              only:
-                - stage
-                - main
       - deploy:
           requires:
-          - publish_docker_images
+          - docker_build_publish_images
           filters:
             branches:
               only:
