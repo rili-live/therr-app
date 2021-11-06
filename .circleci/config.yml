@@ -53,7 +53,7 @@ jobs:
           username: $DOCKERHUB_USER
           password: $DOCKERHUB_PASSWORD
     environment:
-      CICD_BRANCH: pipeline.git.branch
+      CICD_BRANCH: << pipeline.git.branch >>
     steps:
       - setup_remote_docker:
           docker_layer_caching: true
@@ -67,6 +67,8 @@ jobs:
   publish_docker_images:
     docker:
       - image: cimg/node:15.14
+    environment:
+      CICD_BRANCH: << pipeline.git.branch >>
     steps:
       - setup_remote_docker:
           docker_layer_caching: true
@@ -81,6 +83,8 @@ jobs:
         auth:
           username: $DOCKERHUB_USER
           password: $DOCKERHUB_PASSWORD
+    environment:
+      CICD_BRANCH: << pipeline.git.branch >>
     steps:
       - setup_remote_docker:
           docker_layer_caching: true
