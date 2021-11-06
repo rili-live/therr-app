@@ -21,11 +21,6 @@ jobs:
     steps:
       # Checkout the code as the first step.
       - checkout
-      # Next, the node orb's install-packages step will install the dependencies from a package.json.
-      # The orb install-packages step will also automatically cache them for faster future runs.
-      - node/install-packages:
-          # If you are using yarn, change the line below from "npm" to "yarn"
-          pkg-manager: npm
       - setup_remote_docker:
           docker_layer_caching: true
       - run:
@@ -36,7 +31,10 @@ jobs:
             echo 'source $NVM_DIR/nvm.sh' >> $BASH_ENV
       - run:
           name: Install Dependencies
-          command: npm run install:all
+          command: npm run install:base:ci
+      - run:
+          name: Build Libraries
+          command: npm run build:base
       - persist_to_workspace:
           root: ~/
           paths:

@@ -1,4 +1,4 @@
-ARG NODE_VERSION=15.14.0
+ARG NODE_VERSION=16.13.0
 FROM node:$NODE_VERSION
 
 # Build in development allow devDependencies/dependencies to be installed correctly
@@ -36,16 +36,16 @@ USER node
 
 # Install (shared) parent app dependencies and set PATH variable
 # Even in production, install devDependencies
-RUN npm ci --no-optional
+# RUN npm ci --no-optional
 ENV PATH $PATH:/usr/src/app/node_modules/.bin:$PATH
 
-# Install and build libraries
-WORKDIR /usr/src/app/therr-public-library/therr-styles
-RUN npm run build
-WORKDIR /usr/src/app/therr-public-library/therr-js-utilities
-RUN npm run build
-WORKDIR /usr/src/app/therr-public-library/therr-react
-RUN npm run build
+# Install and build libraries (commented out bc run by ci/cd at base)
+# WORKDIR /usr/src/app/therr-public-library/therr-styles
+# RUN npm run build
+# WORKDIR /usr/src/app/therr-public-library/therr-js-utilities
+# RUN npm run build
+# WORKDIR /usr/src/app/therr-public-library/therr-react
+# RUN npm run build
 
 # Copy main app files
 WORKDIR /usr/src/app
