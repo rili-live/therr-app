@@ -115,7 +115,7 @@ workflows:
           filters:
             branches:
               only:
-                - stage
+                # - stage
                 - main
       - deploy:
           requires:
