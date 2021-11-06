@@ -59,12 +59,15 @@ jobs:
           docker_layer_caching: true
       - attach_workspace:
             at: ~/
-      - run:
-          name: Build Docker Images
-          command: echo "Hello, Docker Build"
       - run: |
           echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
-          ./_bin/cicd/build.sh
+      - run: |
+          ls -la
+          ls -la ./_bin
+          ls -la ./_bin/cicd
+      - run:
+          name: Build Docker Images
+          command: ./_bin/cicd/build.sh
   publish_docker_images:
     docker:
       - image: cimg/node:15.14
@@ -74,8 +77,8 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: Build Docker Images
-          command: echo "Hello, Docker Publish"
+          name: Publish Docker Images
+          command: ./_bin/cicd/publish.sh
   deploy:
     docker:
       - image: google/cloud-sdk
@@ -93,8 +96,9 @@ jobs:
           gcloud --quiet config set project therr-app
           gcloud --quiet config set compute/zone us-central1-a
           gcloud container clusters get-credentials cluster-1
-      - run: |
-          kubectl api-versions
+      - run:
+          name: Deploy To GKE
+          command: ./_bin/cicd/deploy.sh
 
 workflows:
   # Below is the definition of your workflow.
@@ -113,12 +117,12 @@ workflows:
       - publish_docker_images:
           requires:
           - build_docker_images
-          # filters:
-          #   branches:
-          #     only: main
+          filters:
+            branches:
+              only: main
       - deploy:
           requires:
           - publish_docker_images
-          # filters:
-          #   branches:
-          #     only: main
+          filters:
+            branches:
+              only: main
