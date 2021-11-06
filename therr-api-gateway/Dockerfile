@@ -1,4 +1,4 @@
-ARG NODE_VERSION=15.14.0
+ARG NODE_VERSION=16.13.0
 FROM node:$NODE_VERSION
 
 # Run install in development for devDependencies/dependencies to be installed correctly
@@ -26,6 +26,7 @@ COPY ./package*.json ./
 COPY ./.babelrc ./
 COPY ./global-config.js ./
 COPY ./webpack.parts.js ./
+COPY ./node_modules ./node_modules
 COPY ./therr-public-library ./therr-public-library
 
 # Set libary directory permissions
@@ -35,12 +36,12 @@ USER node
 
 # Install dependencies and set PATH variable
 # Even in production, install devDependencies
-RUN npm ci --no-optional
+# RUN npm ci --no-optional
 ENV PATH $PATH:/usr/src/app/node_modules/.bin:$PATH
 
-# Install and build libraries
-WORKDIR /usr/src/app/therr-public-library/therr-js-utilities
-RUN npm run build
+# Install and build libraries (commented out bc run by ci/cd at base)
+# WORKDIR /usr/src/app/therr-public-library/therr-js-utilities
+# RUN npm run build
 
 # Copy main app files
 WORKDIR /usr/src/app
