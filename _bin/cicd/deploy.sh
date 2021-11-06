@@ -60,41 +60,49 @@ should_deploy_service()
 # Kubectl Apply
 kubectl apply -f k8s
 if should_deploy_web_app; then
+  docker pull therrapp/client-web$SUFFIX:$GIT_SHA
   kubectl set image deployments/client-deployment web=therrapp/client-web:$GIT_SHA
 else
   echo "Skipping client-web deployment (No Changes)"
 fi
 if should_deploy_service "therr-api-gateway"; then
+  docker pull therrapp/api-gateway$SUFFIX:$GIT_SHA
   kubectl set image deployments/api-gateway-service-deployment server-api-gateway=therrapp/api-gateway:$GIT_SHA
 else
   echo "Skipping api-gateway deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/push-notifications-service"; then
+  docker push therrapp/push-notifications-service$SUFFIX:$GIT_SHA
   kubectl set image deployments/push-notifications-service-deployment server-push-notifications=therrapp/push-notifications-service:$GIT_SHA
 else
   echo "Skipping push-notifications-service deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/maps-service"; then
+  docker pull therrapp/maps-service$SUFFIX:$GIT_SHA 
   kubectl set image deployments/maps-service-deployment server-maps=therrapp/maps-service:$GIT_SHA
 else
   echo "Skipping maps-service deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/messages-service"; then
+  docker pull therrapp/messages-service$SUFFIX:$GIT_SHA
   kubectl set image deployments/messages-service-deployment server-messages=therrapp/messages-service:$GIT_SHA
 else
   echo "Skipping messages-service deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/reactions-service"; then
+  docker pull therrapp/reactions-service$SUFFIX:$GIT_SHA
   kubectl set image deployments/reactions-service-deployment server-reactions=therrapp/reactions-service:$GIT_SHA
 else
   echo "Skipping reactions-service deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/users-service"; then
+  docker pull therrapp/users-service$SUFFIX:$GIT_SHA
   kubectl set image deployments/users-service-deployment server-users=therrapp/users-service:$GIT_SHA
 else
   echo "Skipping users-service deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/websocket-service"; then
+  docker pull therrapp/websocket-service$SUFFIX:$GIT_SHA
   kubectl set image deployments/websocket-service-deployment server-websocket=therrapp/websocket-service:$GIT_SHA
 else
   echo "Skipping websocket-service deployment (No Changes)"

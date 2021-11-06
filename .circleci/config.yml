@@ -89,9 +89,6 @@ jobs:
     steps:
       - setup_remote_docker:
           docker_layer_caching: true
-      - run:
-          name: Build Docker Images
-          command: echo "Hello, DEPLOY"
       - run: |
           echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
           gcloud --quiet config set project therr-app
