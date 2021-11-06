@@ -26,6 +26,7 @@ COPY ./package*.json ./
 COPY ./.babelrc ./
 COPY ./global-config.js ./
 COPY ./webpack.parts.js ./
+COPY ./node_modules ./node_modules
 COPY ./therr-public-library ./therr-public-library
 
 # Set libary directory permissions
