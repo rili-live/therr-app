@@ -99,3 +99,5 @@ if should_deploy_service "therr-services/websocket-service"; then
 else
   echo "Skipping websocket-service deployment (No Changes)"
 fi
+
+echo "Kubectl apply complete for all services with changes"
