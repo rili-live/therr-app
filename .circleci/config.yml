@@ -28,9 +28,9 @@ jobs:
           pkg-manager: npm
       - setup_remote_docker:
           docker_layer_caching: true
-      # - run:
-      #     name: Install Dependencies
-      #     command: npm run install:all
+      - run:
+          name: Install Dependencies
+          command: npm run install:all
       - persist_to_workspace:
           root: ~/
           paths:
@@ -46,6 +46,9 @@ jobs:
       - run:
           name: Run Unit Tests
           command: echo "Hello, Test"
+      - run:
+          name: Lint
+          command: npm run lint
   build_docker_images:
     docker:
       - image: circleci/golang:1.15
@@ -66,7 +69,10 @@ jobs:
           command: ./_bin/cicd/build.sh
   publish_docker_images:
     docker:
-      - image: cimg/node:15.14
+      - image: circleci/golang:1.15
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASSWORD
     environment:
       CICD_BRANCH: << pipeline.git.branch >>
     steps:
@@ -114,15 +120,24 @@ workflows:
       - build_docker_images:
           requires:
           - install_dependencies
+          filters:
+            branches:
+              only:
+                - stage
+                - main
       - publish_docker_images:
           requires:
           - build_docker_images
           filters:
             branches:
-              only: main
+              only:
+                - stage
+                - main
       - deploy:
           requires:
           - publish_docker_images
           filters:
             branches:
-              only: main
+              only:
+                - stage
+                - main
