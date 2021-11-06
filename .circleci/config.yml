@@ -7,10 +7,10 @@ orbs:
   # Orbs reduce the amount of configuration required for common tasks.
   # See the orb documentation here: https://circleci.com/developer/orbs/orb/circleci/node
   node: circleci/node@4.7
+  kubernetes: circleci/kubernetes@0.12.0
 
 jobs:
-  # Below is the definition of your job to build and test your app, you can rename and customize it as you want.
-  build:
+  install_dependencies:
     # These next lines define a Docker executor: https://circleci.com/docs/2.0/executor-types/
     # You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # A list of available CircleCI Docker Convenience Images are available here: https://circleci.com/developer/images/image/cimg/node
@@ -26,37 +26,79 @@ jobs:
       - node/install-packages:
           # If you are using yarn, change the line below from "npm" to "yarn"
           pkg-manager: npm
+      - setup_remote_docker:
+          docker_layer_caching: true
       # - run:
       #     name: Install Dependencies
       #     command: npm run install:all
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project
   test:
     docker:
       - image: cimg/node:15.14
     steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - attach_workspace:
+          at: ~/
       - run:
           name: Run Unit Tests
           command: echo "Hello, Test"
   build_docker_images:
     docker:
-      - image: cimg/node:15.14
+      - image: circleci/golang:1.15
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASSWORD
+    environment:
+      CICD_BRANCH: << pipeline.git.branch >>
     steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - attach_workspace:
+            at: ~/
+      - run: |
+          echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
       - run:
           name: Build Docker Images
-          command: echo "Hello, Docker Build"
+          command: ./_bin/cicd/build.sh
   publish_docker_images:
     docker:
       - image: cimg/node:15.14
+    environment:
+      CICD_BRANCH: << pipeline.git.branch >>
     steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - attach_workspace:
+          at: ~/
       - run:
-          name: Build Docker Images
-          command: echo "Hello, Docker Publish"
+          name: Publish Docker Images
+          command: ./_bin/cicd/publish.sh
   deploy:
     docker:
-      - image: cimg/node:15.14
+      - image: google/cloud-sdk
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASSWORD
+    environment:
+      CICD_BRANCH: << pipeline.git.branch >>
     steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run:
           name: Build Docker Images
-          command: echo "Hello, Docker Publish"
+          command: echo "Hello, DEPLOY"
+      - run: |
+          echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
+          gcloud --quiet config set project therr-app
+          gcloud --quiet config set compute/zone us-central1-a
+          gcloud container clusters get-credentials cluster-1
+      - run:
+          name: Deploy To GKE
+          command: ./_bin/cicd/deploy.sh
 
 workflows:
   # Below is the definition of your workflow.
@@ -65,24 +107,22 @@ workflows:
   # For more details on extending your workflow, see the configuration docs: https://circleci.com/docs/2.0/configuration-reference/#workflows
   build_test_publish:
     jobs:
-      - build
+      - install_dependencies
       - test:
           requires:
-          - build
+          - install_dependencies
       - build_docker_images:
           requires:
-          - build
+          - install_dependencies
       - publish_docker_images:
           requires:
           - build_docker_images
           filters:
             branches:
-              only: master
+              only: main
       - deploy:
           requires:
           - publish_docker_images
           filters:
             branches:
-              only: master
-      # For running simple node tests, you could optionally use the node/test job from the orb to replicate and replace the job above in fewer lines.
-      # - node/test
+              only: main
