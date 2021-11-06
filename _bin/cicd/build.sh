@@ -90,3 +90,5 @@ if should_deploy_service "therr-services/websocket-service"; then
   docker build -t therrapp/websocket-service$SUFFIX:latest -t therrapp/websocket-service$SUFFIX:$GIT_SHA -f ./therr-services/websocket-service/Dockerfile \
     --build-arg NODE_VERSION=${NODE_VERSION} .
 fi
+
+echo "Docker build complete for all services with changes"

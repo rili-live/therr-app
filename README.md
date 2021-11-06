@@ -1,5 +1,6 @@
 # Therr App
-main: [![Build Status](https://travis-ci.org/rili-live/therr-app.svg?branch=main)](https://travis-ci.org/rili-live/therr-app) | stage: [![Build Status](https://travis-ci.org/rili-live/therr-app.svg?branch=stage)](https://travis-ci.org/rili-live/therr-app)
+<!-- main: [![Build Status](https://travis-ci.org/rili-live/therr-app.svg?branch=main)](https://travis-ci.org/rili-live/therr-app) | stage: [![Build Status](https://travis-ci.org/rili-live/therr-app.svg?branch=stage)](https://travis-ci.org/rili-live/therr-app) -->
+main: [![CircleCI](https://circleci.com/gh/rili-live/therr-app/tree/main.svg?style=svg)](https://circleci.com/gh/rili-live/therr-app/tree/main) | stage: [![CircleCI](https://circleci.com/gh/rili-live/therr-app/tree/stage.svg?style=svg)](https://circleci.com/gh/rili-live/therr-app/tree/stage)
 #
 ## Mobile Build
 main: [![Build status](https://build.appcenter.ms/v0.1/apps/0f4a527c-5807-47dc-bea5-ff66fbdab26c/branches/main/badge)](https://appcenter.ms)

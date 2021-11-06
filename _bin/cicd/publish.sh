@@ -90,3 +90,5 @@ if should_deploy_service "therr-services/websocket-service"; then
   docker push therrapp/websocket-service$SUFFIX:latest
   docker push therrapp/websocket-service$SUFFIX:$GIT_SHA
 fi
+
+echo "Docker publish complete for all services with changes"
