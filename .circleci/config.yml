@@ -83,6 +83,10 @@ jobs:
       - run:
           name: Publish Docker Images
           command: ./_bin/cicd/publish.sh
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project
   deploy:
     docker:
       - image: google/cloud-sdk
