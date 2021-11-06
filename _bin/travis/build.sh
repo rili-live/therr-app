@@ -2,7 +2,7 @@
 
 set -e
 
-source _bin/travis/git.sh
+source _bin/cicd/git.sh
 
 # TRAVIS_BRANCH represents the destination branch for PR builds
 if [ ! -z "$TRAVIS_PULL_REQUEST_BRANCH" ]; then

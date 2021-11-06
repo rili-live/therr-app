@@ -46,10 +46,6 @@ jobs:
       - run:
           name: Run Unit Tests
           command: echo "Hello, Test"
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project
   build_docker_images:
     docker:
       - image: circleci/golang:1.15
@@ -65,10 +61,6 @@ jobs:
             at: ~/
       - run: |
           echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
-      - run: |
-          ls -la
-          ls -la ./_bin
-          ls -la ./_bin/cicd
       - run:
           name: Build Docker Images
           command: ./_bin/cicd/build.sh
