@@ -52,6 +52,8 @@ jobs:
         auth:
           username: $DOCKERHUB_USER
           password: $DOCKERHUB_PASSWORD
+    environment:
+      CICD_BRANCH: pipeline.git.branch
     steps:
       - setup_remote_docker:
           docker_layer_caching: true
@@ -62,8 +64,7 @@ jobs:
           command: echo "Hello, Docker Build"
       - run: |
           echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
-          docker pull therrapp/client-web
-          ls -la
+          ./_bin/cicd/build.sh
   publish_docker_images:
     docker:
       - image: cimg/node:15.14
