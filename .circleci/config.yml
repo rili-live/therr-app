@@ -54,7 +54,7 @@ jobs:
           command: echo "Hello, Test"
       - run:
           name: Lint
-          command: npm run lint
+          command: npm run lint:all
   build_docker_images:
     docker:
       - image: circleci/golang:1.15
@@ -63,6 +63,7 @@ jobs:
           password: $DOCKERHUB_PASSWORD
     environment:
       CICD_BRANCH: << pipeline.git.branch >>
+      GIT_SHA: << pipeline.git.revision >>
     steps:
       - setup_remote_docker:
           docker_layer_caching: true
@@ -81,6 +82,7 @@ jobs:
           password: $DOCKERHUB_PASSWORD
     environment:
       CICD_BRANCH: << pipeline.git.branch >>
+      GIT_SHA: << pipeline.git.revision >>
     steps:
       - setup_remote_docker:
           docker_layer_caching: true
@@ -101,6 +103,7 @@ jobs:
           password: $DOCKERHUB_PASSWORD
     environment:
       CICD_BRANCH: << pipeline.git.branch >>
+      GIT_SHA: << pipeline.git.revision >>
     steps:
       - setup_remote_docker:
           docker_layer_caching: true
