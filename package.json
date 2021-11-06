@@ -4,10 +4,11 @@
   "description": "The main Therr app root",
   "main": "index.js",
   "engines": {
-    "npm": ">=7.19.1"
+    "npm": ">=8.1.0"
   },
   "scripts": {
     "build:all": "npm run prep && _bin/apply-to-all.sh 'npm run build'",
+    "build:base": "npm run prep && _bin/apply-to-all.sh 'npm run build' rootOnly",
     "build:changed": "npm run prep && _bin/apply-to-changed.sh 'npm run build'",
     "build:all:dev": "npm run prep && _bin/apply-to-all.sh 'npm run build:dev'",
     "clean:all": "rm -rf node_modules && _bin/apply-to-all.sh 'rm -rf node_modules'",
@@ -16,10 +17,11 @@
     "lint:changed": "_bin/apply-to-changed.sh 'npm run lint'",
     "lint:fix:all": "_bin/apply-to-all.sh 'npm run lint:fix'",
     "lint:fix:changed": "_bin/apply-to-changed.sh 'npm run lint:fix'",
-    "install:root": "npm run prep && npm install && _bin/apply-to-all.sh 'npm install' rootOnly",
+    "install:base": "npm run prep && npm install && _bin/apply-to-all.sh 'npm install' rootOnly",
     "install:all": "npm run prep && npm install && _bin/apply-to-all.sh 'npm install'",
     "audit:all": "npm run prep && npm audit fix && _bin/apply-to-all.sh 'npm audit fix'",
-    "install:all:ci": "npm run prep && npm ci && _bin/apply-to-all.sh 'npm ci'",
+    "install:all:ci": "npm run prep && npm ci --no-optional && _bin/apply-to-all.sh 'npm ci --no-optional'",
+    "install:base:ci": "npm run prep && npm ci --no-optional && _bin/apply-to-all.sh 'npm ci --no-optional' rootOnly",
     "k8s:apply": "kubectl apply -f k8s --validate=false",
     "k8s:dev": "skaffold dev",
     "seeds:create": "node --require=./node_modules/dotenv/config ./node_modules/.bin/knex --require @babel/register --knexfile ./therr-services/users-service/src/store/knexfile.js seed:make $1 dotenv_config_path=./.env",
