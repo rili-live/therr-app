@@ -107,6 +107,7 @@ jobs:
       # User the SHA from stage where the images were built and published
       GIT_SHA: << pipeline.git.base_revision >>
     steps:
+      - checkout
       - setup_remote_docker:
           docker_layer_caching: true
       - attach_workspace:
@@ -127,7 +128,11 @@ workflows:
   # For more details on extending your workflow, see the configuration docs: https://circleci.com/docs/2.0/configuration-reference/#workflows
   build_test_publish_deploy:
     jobs:
-      - install_dependencies
+      - install_dependencies:
+          filters:
+            branches:
+              ignore:
+                - main
       - test-units:
           requires:
           - install_dependencies
