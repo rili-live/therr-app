@@ -91,7 +91,8 @@ jobs:
             at: ~/
       - run:
           name: Apply Stage w/ Kubectl
-          # command: kubectl apply -f k8s/stage && kubectl wait -f k8s/stage --for=condition=ContainersReady --timeout=1s
+          # This should pull the latest images (verify and determine if necessary to set image with commit SHA)
+          # command: kubectl apply -f k8s/test && kubectl wait -f k8s/test --for=condition=ContainersReady --timeout=1s
           command: echo "Hello, Apply Kubectl"
       - run:
           name: Run Integration Tests
