@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-service-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: server-api-gateway
+  template:
+    metadata:
+      labels:
+        component: server-api-gateway
+        tier: api-gateway
+        layer: services-external
+    spec:
+      serviceAccountName: therr-k8s-service-account
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - preference:
+              matchExpressions:
+              - key: cloud.google.com/gke-preemptible
+                operator: DoesNotExist
+            weight: 75
+      containers:
+      - name: server-api-gateway
+        image: therrapp/api-gateway:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "75m"
+        ports:
+        - containerPort: 7770
+        env:
+        - name: API_GATEWAY_PORT
+          value: "7770"
+        - name: URI_WHITELIST
+          value: "https://therr.com,https://www.therr.com,https://therr.app,https://www.therr.app"
+        - name: HONEYCOMB_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: honeycomb-writekey
+              key: HONEYCOMB
+        - name: GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: google-maps-places-server-side-api-key
+              key: GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY
+        - name: LOG_LEVEL
+          value: "info"
+        - name: LOGGING_DATASET
+          value: "production"
+        - name: REDIS_GENERIC_HOST
+          value: "redis-cluster-ip-service"
+        - name: REDIS_GENERIC_PORT
+          value: "6379"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: therrjwtsecret
+              key: THERRJWT_SECRET

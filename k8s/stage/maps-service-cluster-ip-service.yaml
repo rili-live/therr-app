@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: maps-service-cluster-ip-service
+  namespace: default
+  annotations:
+    cloud.google.com/neg: '{"ingress": true}'
+spec:
+  type: ClusterIP
+  selector:
+    component: server-maps
+  ports:
+  - port: 7773
+    targetPort: 7773
