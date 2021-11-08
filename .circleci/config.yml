@@ -39,7 +39,7 @@ jobs:
           root: ~/
           paths:
             - project
-  test:
+  test-units:
     docker:
       - image: cimg/node:15.14
     steps:
@@ -75,7 +75,7 @@ jobs:
       - run:
           name: Publish Docker Images
           command: ./_bin/cicd/publish.sh
-  test-integration:
+  test-integrations:
     docker:
       - image: google/cloud-sdk
         auth:
@@ -125,12 +125,17 @@ workflows:
   # Inside the workflow, you provide the jobs you want to run, e.g this workflow runs the build-and-test job above.
   # CircleCI will run this workflow on every commit.
   # For more details on extending your workflow, see the configuration docs: https://circleci.com/docs/2.0/configuration-reference/#workflows
-  build_test_publish:
+  build_test_publish_deploy:
     jobs:
       - install_dependencies
-      - test:
+      - test-units:
           requires:
           - install_dependencies
+          filters:
+            branches:
+              ignore:
+                - stage
+                - main
       - docker_build_publish_images:
           requires:
           - install_dependencies
@@ -138,7 +143,7 @@ workflows:
             branches:
               only:
                 - stage
-      - test-integration:
+      - test-integrations:
           requires:
           - docker_build_publish_images
           filters:
@@ -146,8 +151,6 @@ workflows:
               only:
                 - stage
       - deploy:
-          requires:
-          - docker_build_publish_images
           filters:
             branches:
               only:
