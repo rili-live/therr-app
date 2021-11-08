@@ -22,7 +22,7 @@
     "audit:all": "npm run prep && npm audit fix && _bin/apply-to-all.sh 'npm audit fix'",
     "install:all:ci": "npm run prep && npm ci --no-optional && _bin/apply-to-all.sh 'npm ci --no-optional'",
     "install:base:ci": "npm run prep && npm ci --no-optional && _bin/apply-to-all.sh 'npm ci --no-optional' rootOnly",
-    "k8s:apply": "kubectl apply -f k8s --validate=false",
+    "k8s:apply": "kubectl apply -f k8s/prod --validate=false",
     "k8s:dev": "skaffold dev",
     "seeds:create": "node --require=./node_modules/dotenv/config ./node_modules/.bin/knex --require @babel/register --knexfile ./therr-services/users-service/src/store/knexfile.js seed:make $1 dotenv_config_path=./.env",
     "seeds:run": "node --require=./node_modules/dotenv/config ./node_modules/.bin/babel-node ./node_modules/.bin/knex --knexfile ./therr-services/users-service/src/store/knexfile.js seed:run dotenv_config_path=./.env",

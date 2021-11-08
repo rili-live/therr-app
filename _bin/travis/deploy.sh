@@ -123,7 +123,7 @@ if should_deploy_service "therr-services/websocket-service"; then
   docker push therrapp/websocket-service$SUFFIX:$GIT_SHA
 fi
 
-kubectl apply -f k8s
+kubectl apply -f k8s/prod
 if should_deploy_web_app; then
   kubectl set image deployments/client-deployment web=therrapp/client-web:$GIT_SHA
 else

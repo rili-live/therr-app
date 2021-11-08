@@ -75,7 +75,7 @@ jobs:
       - run:
           name: Publish Docker Images
           command: ./_bin/cicd/publish.sh
-  deploy:
+  test-integration:
     docker:
       - image: google/cloud-sdk
         auth:
@@ -84,6 +84,28 @@ jobs:
     environment:
       CICD_BRANCH: << pipeline.git.branch >>
       GIT_SHA: << pipeline.git.revision >>
+    steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - attach_workspace:
+            at: ~/
+      - run:
+          name: Apply Stage w/ Kubectl
+          # command: kubectl apply -f k8s/stage && kubectl wait -f k8s/stage --for=condition=ContainersReady --timeout=1s
+          command: echo "Hello, Apply Kubectl"
+      - run:
+          name: Run Integration Tests
+          command: echo "Hello, Integration Tests"
+  deploy:
+    docker:
+      - image: google/cloud-sdk
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASSWORD
+    environment:
+      CICD_BRANCH: << pipeline.git.branch >>
+      # User the SHA from stage where the images were built and published
+      GIT_SHA: << pipeline.git.base_revision >>
     steps:
       - setup_remote_docker:
           docker_layer_caching: true
@@ -115,13 +137,18 @@ workflows:
           filters:
             branches:
               only:
-                # - stage
-                - main
-      - deploy:
+                - stage
+      - test-integration:
           requires:
           - docker_build_publish_images
           filters:
             branches:
               only:
                 - stage
+      - deploy:
+          requires:
+          - docker_build_publish_images
+          filters:
+            branches:
+              only:
                 - main

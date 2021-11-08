@@ -1,0 +1,91 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-service
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-next-upstream: "error timeout http_502"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "8"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    # nginx.ingress.kubernetes.io/proxy-read-timeout: “3600”
+    # nginx.ingress.kubernetes.io/proxy-send-timeout: “3600”
+spec:
+  tls:
+  - hosts:
+      - therr.com
+      - www.therr.com
+      - api.therr.com
+      - www.api.therr.com
+      - websocket-service.therr.com
+      - www.websocket-service.therr.com
+    secretName: therr-network-secret
+  rules:
+  - host: therr.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: client-cluster-ip-service
+            port:
+              number: 7070
+        pathType: ImplementationSpecific
+  - host: www.therr.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: client-cluster-ip-service
+            port:
+              number: 7070
+        pathType: ImplementationSpecific
+  - host: api.therr.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: api-gateway-service-loadbalancer-service
+            port:
+              number: 7770
+        pathType: ImplementationSpecific
+  - host: www.api.therr.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: api-gateway-service-loadbalancer-service
+            port:
+              number: 7770
+        pathType: ImplementationSpecific
+  - host: websocket-service.therr.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: websocket-service-cluster-ip-service
+            port:
+              number: 7743
+        pathType: ImplementationSpecific
+  - host: www.websocket-service.therr.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: websocket-service-cluster-ip-service
+            port:
+              number: 7743
+        pathType: ImplementationSpecific
+          

@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: web
+  template:
+    metadata:
+      labels:
+        component: web
+        tier: frontend
+        layer: services-external
+    spec:
+      containers:
+      - name: web
+        image: therrapp/client-web:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        ports:
+        - containerPort: 7070
+        env:
+          - name: USERS_SERVICE_API_PORT
+            value: "7771"
+          - name: CLIENT_PORT
+            value: "7070"
+          - name: HONEYCOMB_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: honeycomb-writekey
+                key: HONEYCOMB
+          - name: LOG_LEVEL
+            value: "info"
+          - name: LOGGING_DATASET
+            value: "production"
+          - name: LOGGING_DATASET
+            value: "production"
+          - name: SOCKET_PORT
+            value: "7743"
