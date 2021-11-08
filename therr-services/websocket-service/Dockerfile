@@ -36,7 +36,7 @@ USER node
 
 # Install dependencies and set PATH variable
 # Even in production, install devDependencies
-RUN npm ci --no-optional
+# RUN npm ci --no-optional
 ENV PATH $PATH:/usr/src/app/node_modules/.bin:$PATH
 
 # Install and build libraries
