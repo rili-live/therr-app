@@ -1,0 +1,18 @@
+# apiVersion: networking.k8s.io/v1beta1
+# kind: Ingress
+# metadata:
+#   name: internal-ingress-service
+#   namespace: default
+#   annotations:
+#     kubernetes.io/ingress.class: "gce-internal"
+# spec:
+#   rules:
+#     - backend:
+#         serviceName: maps-service-cluster-ip-service
+#         servicePort: 7773
+#     - backend:
+#         serviceName: messages-service-cluster-ip-service
+#         servicePort: 7772
+#     - backend:
+#         serviceName: users-service-cluster-ip-service
+#         servicePort: 7771

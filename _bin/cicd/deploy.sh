@@ -58,7 +58,7 @@ should_deploy_service()
 }
 
 # Kubectl Apply
-kubectl apply -f k8s
+kubectl apply -f k8s/prod
 if should_deploy_web_app; then
   docker pull therrapp/client-web$SUFFIX:$GIT_SHA
   kubectl set image deployments/client-deployment web=therrapp/client-web:$GIT_SHA

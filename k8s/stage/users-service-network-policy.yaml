@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: users-service-network-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      component: server-users
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          layer: services-external
+    - podSelector:
+        matchLabels:
+          component: server-maps
+    - podSelector:
+        matchLabels:
+          component: server-push-notifications
+    - podSelector:
+        matchLabels:
+          component: server-reactions
+  egress:
+  - {}
