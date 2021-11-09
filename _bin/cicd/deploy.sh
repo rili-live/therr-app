@@ -57,6 +57,9 @@ should_deploy_service()
   has_prev_diff_changes $SERVICE_DIR || "$HAS_UTILITIES_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
 }
 
+# This should get us the SHA of the merge branch prior to main (ie. stage SHA from previous build)
+GIT_SHA=$(git rev-parse HEAD^1)
+
 # Kubectl Apply
 kubectl apply -f k8s/prod
 if should_deploy_web_app; then
