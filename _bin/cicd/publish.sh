@@ -2,6 +2,8 @@
 
 set -e
 
+GIT_SHA=$(git rev-parse HEAD)
+
 source ./_bin/lib/colorize.sh
 source ./_bin/lib/has_diff_changes.sh
 
@@ -90,5 +92,13 @@ if should_deploy_service "therr-services/websocket-service"; then
   docker push therrapp/websocket-service$SUFFIX:latest
   docker push therrapp/websocket-service$SUFFIX:$GIT_SHA
 fi
+
+cat > VERSIONS.txt <<EOF
+LAST_PUBLISHED_GIT_SHA=${GIT_SHA}
+EOF
+
+git add VERSIONS.txt
+git commit -m "Updated VERSIONS.txt"
+git push origin/stage
 
 echo "Docker publish complete for all services with changes"
