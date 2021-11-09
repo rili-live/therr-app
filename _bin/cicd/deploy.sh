@@ -58,7 +58,7 @@ should_deploy_service()
 }
 
 # This should get us the SHA of the merge branch prior to main (ie. stage SHA from previous build)
-GIT_SHA=$(git merge-base main origin/stage)
+GIT_SHA=$(git rev-parse origin/stage)
 
 # Kubectl Apply
 kubectl apply -f k8s/prod
