@@ -83,7 +83,6 @@ jobs:
           password: $DOCKERHUB_PASSWORD
     environment:
       CICD_BRANCH: << pipeline.git.branch >>
-      GIT_SHA: << pipeline.git.revision >>
     steps:
       - setup_remote_docker:
           docker_layer_caching: true
@@ -105,8 +104,6 @@ jobs:
           password: $DOCKERHUB_PASSWORD
     environment:
       CICD_BRANCH: << pipeline.git.branch >>
-      # User the SHA from stage where the images were built and published
-      GIT_SHA: << pipeline.git.base_revision >>
     steps:
       - checkout
       - setup_remote_docker:
