@@ -101,6 +101,6 @@ git config user.email "rili.main@gmail.com"
 git config user.name "Rili Admin"
 git add VERSIONS.txt
 git commit -m "[skip ci] Updated VERSIONS.txt"
-git push origin/stage
+git push
 
 echo "Docker publish complete for all services with changes"
