@@ -93,14 +93,17 @@ if should_deploy_service "therr-services/websocket-service"; then
   docker push therrapp/websocket-service$SUFFIX:$GIT_SHA
 fi
 
-cat > VERSIONS.txt <<EOF
-LAST_PUBLISHED_GIT_SHA=${GIT_SHA}
-EOF
+if [[ "$CURRENT_BRANCH" == "stage" ]]; then
+  cat > VERSIONS.txt <<EOF
+  LAST_PUBLISHED_GIT_SHA=${GIT_SHA}
+  EOF
 
-git config user.email "rili.main@gmail.com"
-git config user.name "Rili Admin"
-git add VERSIONS.txt
-git commit -m "[skip ci] Updated VERSIONS.txt"
-git push --set-upstream origin stage --no-verify
+  git config user.email "rili.main@gmail.com"
+  git config user.name "Rili Admin"
+  git add VERSIONS.txt
+  git commit -m "[skip ci] Updated VERSIONS.txt"
+  git push --set-upstream origin stage --no-verify
+fi
+
 
 echo "Docker publish complete for all services with changes"

@@ -63,52 +63,101 @@ should_deploy_service()
 }
 
 # Kubectl Apply
+# NOTE: stage and main docker tags are essential the same. The Docker container is interchangable and implements env variables injected by Kubernetes
 kubectl apply -f k8s/prod
 if should_deploy_web_app; then
-  docker pull therrapp/client-web$SUFFIX:$GIT_SHA
-  kubectl set image deployments/client-deployment web=therrapp/client-web:$GIT_SHA
+  docker pull therrapp/client-web-stage:$GIT_SHA
+  if [[ "$CURRENT_BRANCH" == "main"  ]]; then
+    docker tag therrapp/client-web-stage:$GIT_SHA therrapp/client-web:$GIT_SHA
+    docker tag therrapp/client-web-stage:$GIT_SHA therrapp/client-web:latest
+    docker push therrapp/client-web:$GIT_SHA
+    docker push therrapp/client-web:latest
+  fi
+  kubectl set image deployments/client-deployment web=therrapp/client-web$SUFFIX:$GIT_SHA
 else
   echo "Skipping client-web deployment (No Changes)"
 fi
 if should_deploy_service "therr-api-gateway"; then
   docker pull therrapp/api-gateway$SUFFIX:$GIT_SHA
-  kubectl set image deployments/api-gateway-service-deployment server-api-gateway=therrapp/api-gateway:$GIT_SHA
+  if [[ "$CURRENT_BRANCH" == "main"  ]]; then
+    docker tag therrapp/api-gateway-stage:$GIT_SHA therrapp/api-gateway:$GIT_SHA
+    docker tag therrapp/api-gateway-stage:$GIT_SHA therrapp/api-gateway:latest
+    docker push therrapp/api-gateway:$GIT_SHA
+    docker push therrapp/api-gateway:latest
+  fi
+  kubectl set image deployments/api-gateway-service-deployment server-api-gateway=therrapp/api-gateway$SUFFIX:$GIT_SHA
 else
   echo "Skipping api-gateway deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/push-notifications-service"; then
   docker pull therrapp/push-notifications-service$SUFFIX:$GIT_SHA
-  kubectl set image deployments/push-notifications-service-deployment server-push-notifications=therrapp/push-notifications-service:$GIT_SHA
+  if [[ "$CURRENT_BRANCH" == "main"  ]]; then
+    docker tag therrapp/push-notifications-stage:$GIT_SHA therrapp/push-notifications:$GIT_SHA
+    docker tag therrapp/push-notifications-stage:$GIT_SHA therrapp/push-notifications:latest
+    docker push therrapp/push-notifications:$GIT_SHA
+    docker push therrapp/push-notifications:latest
+  fi
+  kubectl set image deployments/push-notifications-service-deployment server-push-notifications=therrapp/push-notifications-service$SUFFIX:$GIT_SHA
 else
   echo "Skipping push-notifications-service deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/maps-service"; then
-  docker pull therrapp/maps-service$SUFFIX:$GIT_SHA 
-  kubectl set image deployments/maps-service-deployment server-maps=therrapp/maps-service:$GIT_SHA
+  docker pull therrapp/maps-service$SUFFIX:$GIT_SHA
+  if [[ "$CURRENT_BRANCH" == "main"  ]]; then
+    docker tag therrapp/maps-service-stage:$GIT_SHA therrapp/maps-service:$GIT_SHA
+    docker tag therrapp/maps-service-stage:$GIT_SHA therrapp/maps-service:latest
+    docker push therrapp/maps-service:$GIT_SHA
+    docker push therrapp/maps-service:latest
+  fi
+  kubectl set image deployments/maps-service-deployment server-maps=therrapp/maps-service$SUFFIX:$GIT_SHA
 else
   echo "Skipping maps-service deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/messages-service"; then
   docker pull therrapp/messages-service$SUFFIX:$GIT_SHA
-  kubectl set image deployments/messages-service-deployment server-messages=therrapp/messages-service:$GIT_SHA
+  if [[ "$CURRENT_BRANCH" == "main"  ]]; then
+    docker tag therrapp/messages-service-stage:$GIT_SHA therrapp/messages-service:$GIT_SHA
+    docker tag therrapp/messages-service-stage:$GIT_SHA therrapp/messages-service:latest
+    docker push therrapp/messages-service:$GIT_SHA
+    docker push therrapp/messages-service:latest
+  fi
+  kubectl set image deployments/messages-service-deployment server-messages=therrapp/messages-service$SUFFIX:$GIT_SHA
 else
   echo "Skipping messages-service deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/reactions-service"; then
   docker pull therrapp/reactions-service$SUFFIX:$GIT_SHA
-  kubectl set image deployments/reactions-service-deployment server-reactions=therrapp/reactions-service:$GIT_SHA
+  if [[ "$CURRENT_BRANCH" == "main"  ]]; then
+    docker tag therrapp/reactions-service-stage:$GIT_SHA therrapp/reactions-service:$GIT_SHA
+    docker tag therrapp/reactions-service-stage:$GIT_SHA therrapp/reactions-service:latest
+    docker push therrapp/reactions-service:$GIT_SHA
+    docker push therrapp/reactions-service:latest
+  fi
+  kubectl set image deployments/reactions-service-deployment server-reactions=therrapp/reactions-service$SUFFIX:$GIT_SHA
 else
   echo "Skipping reactions-service deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/users-service"; then
   docker pull therrapp/users-service$SUFFIX:$GIT_SHA
-  kubectl set image deployments/users-service-deployment server-users=therrapp/users-service:$GIT_SHA
+  if [[ "$CURRENT_BRANCH" == "main"  ]]; then
+    docker tag therrapp/users-service-stage:$GIT_SHA therrapp/users-service:$GIT_SHA
+    docker tag therrapp/users-service-stage:$GIT_SHA therrapp/users-service:latest
+    docker push therrapp/users-service:$GIT_SHA
+    docker push therrapp/users-service:latest
+  fi
+  kubectl set image deployments/users-service-deployment server-users=therrapp/users-service$SUFFIX:$GIT_SHA
 else
   echo "Skipping users-service deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/websocket-service"; then
   docker pull therrapp/websocket-service$SUFFIX:$GIT_SHA
-  kubectl set image deployments/websocket-service-deployment server-websocket=therrapp/websocket-service:$GIT_SHA
+  if [[ "$CURRENT_BRANCH" == "main"  ]]; then
+    docker tag therrapp/websocket-service-stage:$GIT_SHA therrapp/websocket-service:$GIT_SHA
+    docker tag therrapp/websocket-service-stage:$GIT_SHA therrapp/websocket-service:latest
+    docker push therrapp/websocket-service:$GIT_SHA
+    docker push therrapp/websocket-service:latest
+  fi
+  kubectl set image deployments/websocket-service-deployment server-websocket=therrapp/websocket-service$SUFFIX:$GIT_SHA
 else
   echo "Skipping websocket-service deployment (No Changes)"
 fi
