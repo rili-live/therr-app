@@ -98,7 +98,7 @@ LAST_PUBLISHED_GIT_SHA=${GIT_SHA}
 EOF
 
 git add VERSIONS.txt
-git commit -m "Updated VERSIONS.txt"
+git commit -m "[skip ci] Updated VERSIONS.txt"
 git push origin/stage
 
 echo "Docker publish complete for all services with changes"
