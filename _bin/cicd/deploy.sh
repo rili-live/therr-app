@@ -18,6 +18,11 @@ else
   DESTINATION_BRANCH="main"
 fi
 
+# This should get us the SHA of the stage branch prior to main that last build and published docker images
+export $(cat VERSIONS.txt)
+GIT_SHA="${LAST_PUBLISHED_GIT_SHA}"
+echo "LAST_PUBLISHED_GIT_SHA=${GIT_SHA}"
+
 # Only build the docker images when the source branch is stage or main
 if [[ ("$CURRENT_BRANCH" != "stage") && ("$CURRENT_BRANCH" != "main") ]]; then
   echo "Skipping post build stage."
@@ -30,38 +35,32 @@ HAS_GLOBAL_CONFIG_FILE_CHANGES=false
 HAS_ANY_LIBRARY_CHANGES=false
 HAS_UTILITIES_LIBRARY_CHANGES=false
 
-if has_prev_diff_changes "global-config.js"; then
+if has_commit_diff_changes "global-config.js" $GIT_SHA; then
   HAS_GLOBAL_CONFIG_FILE_CHANGES=true
 fi
 
-if has_prev_diff_changes "therr-public-library/therr-styles" || \
-  has_prev_diff_changes "therr-public-library/therr-js-utilities" || \
-  has_prev_diff_changes "therr-public-library/therr-react"; then
+if has_commit_diff_changes "therr-public-library/therr-styles" $GIT_SHA || \
+  has_commit_diff_changes "therr-public-library/therr-js-utilities" $GIT_SHA || \
+  has_commit_diff_changes "therr-public-library/therr-react" $GIT_SHA; then
   HAS_ANY_LIBRARY_CHANGES=true
 fi
 
-if has_prev_diff_changes "therr-public-library/therr-js-utilities"; then
+if has_commit_diff_changes "therr-public-library/therr-js-utilities" $GIT_SHA; then
   HAS_UTILITIES_LIBRARY_CHANGES=true
 fi
 
 # This is reliant on the previous commit being a single merge commit with all prior changes
 should_deploy_web_app()
 {
-  has_prev_diff_changes "therr-client-web" || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
+  has_commit_diff_changes "therr-client-web" $GIT_SHA || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
 }
 
 # This is reliant on the previous commit being a single merge commit with all prior changes
 should_deploy_service()
 {
   SERVICE_DIR=$1
-  has_prev_diff_changes $SERVICE_DIR || "$HAS_UTILITIES_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
+  has_commit_diff_changes $SERVICE_DIR $GIT_SHA || "$HAS_UTILITIES_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
 }
-
-# This should get us the SHA of the merge branch prior to main (ie. stage SHA from previous build)
-
-export $(cat VERSIONS.txt)
-GIT_SHA="${LAST_PUBLISHED_GIT_SHA}"
-echo "LAST_PUBLISHED_GIT_SHA=${GIT_SHA}"
 
 # Kubectl Apply
 kubectl apply -f k8s/prod
