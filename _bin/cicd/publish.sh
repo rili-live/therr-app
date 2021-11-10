@@ -97,6 +97,8 @@ cat > VERSIONS.txt <<EOF
 LAST_PUBLISHED_GIT_SHA=${GIT_SHA}
 EOF
 
+git config user.email "rili.main@gmail.com"
+git config user.name "Rili Admin"
 git add VERSIONS.txt
 git commit -m "[skip ci] Updated VERSIONS.txt"
 git push origin/stage
