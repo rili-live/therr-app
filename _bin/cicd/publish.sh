@@ -2,6 +2,8 @@
 
 set -e
 
+GIT_SHA=$(git rev-parse HEAD)
+
 source ./_bin/lib/colorize.sh
 source ./_bin/lib/has_diff_changes.sh
 
@@ -90,5 +92,15 @@ if should_deploy_service "therr-services/websocket-service"; then
   docker push therrapp/websocket-service$SUFFIX:latest
   docker push therrapp/websocket-service$SUFFIX:$GIT_SHA
 fi
+
+cat > VERSIONS.txt <<EOF
+LAST_PUBLISHED_GIT_SHA=${GIT_SHA}
+EOF
+
+git config user.email "rili.main@gmail.com"
+git config user.name "Rili Admin"
+git add VERSIONS.txt
+git commit -m "[skip ci] Updated VERSIONS.txt"
+git push --set-upstream origin stage --no-verify
 
 echo "Docker publish complete for all services with changes"
