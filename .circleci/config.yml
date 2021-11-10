@@ -63,6 +63,7 @@ jobs:
       CICD_BRANCH: << pipeline.git.branch >>
       GIT_SHA: << pipeline.git.revision >>
     steps:
+      - checkout
       - setup_remote_docker:
           docker_layer_caching: true
       - attach_workspace:
