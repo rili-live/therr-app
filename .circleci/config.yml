@@ -72,6 +72,9 @@ jobs:
       - run:
           name: Build Docker Images
           command: ./_bin/cicd/build.sh
+      - add_ssh_keys:
+          fingerprints:
+            - "7a:7c:76:bd:7b:be:2a:cd:de:90:c4:16:78:e1:eb:f6"
       - run:
           name: Publish Docker Images
           command: ./_bin/cicd/publish.sh
