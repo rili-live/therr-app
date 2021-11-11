@@ -63,47 +63,47 @@ NUMBER_SERVICES_PUBLISHED=0
 
 # Docker Publish
 if should_publish_web_app; then
-  let NUMBER_SERVICES_PUBLISHED++
+  (NUMBER_SERVICES_PUBLISHED=i+1))
   docker push therrapp/client-web$SUFFIX:latest
   docker push therrapp/client-web$SUFFIX:$GIT_SHA
 fi
 if should_publish_service "therr-api-gateway"; then
-  let NUMBER_SERVICES_PUBLISHED++
+  (NUMBER_SERVICES_PUBLISHED=i+1))
   docker push therrapp/api-gateway$SUFFIX:latest
   docker push therrapp/api-gateway$SUFFIX:$GIT_SHA
 fi
 if should_publish_service "therr-services/maps-service"; then
-  let NUMBER_SERVICES_PUBLISHED++
+  (NUMBER_SERVICES_PUBLISHED=i+1))
   docker push therrapp/maps-service$SUFFIX:latest
   docker push therrapp/maps-service$SUFFIX:$GIT_SHA
 fi
 if should_publish_service "therr-services/messages-service"; then
-  let NUMBER_SERVICES_PUBLISHED++
+  (NUMBER_SERVICES_PUBLISHED=i+1))
   docker push therrapp/messages-service$SUFFIX:latest
   docker push therrapp/messages-service$SUFFIX:$GIT_SHA
 fi
 if should_publish_service "therr-services/push-notifications-service"; then
-  let NUMBER_SERVICES_PUBLISHED++
+  (NUMBER_SERVICES_PUBLISHED=i+1))
   docker push therrapp/push-notifications-service$SUFFIX:latest
   docker push therrapp/push-notifications-service$SUFFIX:$GIT_SHA
 fi
 if should_publish_service "therr-services/reactions-service"; then
-  let NUMBER_SERVICES_PUBLISHED++
+  (NUMBER_SERVICES_PUBLISHED=i+1))
   docker push therrapp/reactions-service$SUFFIX:latest
   docker push therrapp/reactions-service$SUFFIX:$GIT_SHA
 fi
 if should_publish_service "therr-services/users-service"; then
-  let NUMBER_SERVICES_PUBLISHED++
+  (NUMBER_SERVICES_PUBLISHED=i+1))
   docker push therrapp/users-service$SUFFIX:latest
   docker push therrapp/users-service$SUFFIX:$GIT_SHA
 fi
 if should_publish_service "therr-services/websocket-service"; then
-  let NUMBER_SERVICES_PUBLISHED++
+  (NUMBER_SERVICES_PUBLISHED=i+1))
   docker push therrapp/websocket-service$SUFFIX:latest
   docker push therrapp/websocket-service$SUFFIX:$GIT_SHA
 fi
 
-if [[ "$CURRENT_BRANCH" == "stage" && $NUMBER_SERVICES_PUBLISHED -gt 0 ]]; then
+if [[ "$CURRENT_BRANCH" == "stage" && ${NUMBER_SERVICES_PUBLISHED} -gt 0 ]]; then
 ## TODO: Output a list of all services that should be deployed for the given commit
 cat > VERSIONS.txt <<EOF
 LAST_PUBLISHED_GIT_SHA=${GIT_SHA}
