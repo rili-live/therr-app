@@ -39,7 +39,8 @@ has_commit_diff_changes()
     DIR=$1
     COMMIT=$2
     
-    NUM_FILES_CHANGED=$(git diff $COMMIT --name-only -- $DIR | wc -l)
+    # NUM_FILES_CHANGED=$(git diff $COMMIT --name-only -- $DIR | wc -l)
+    NUM_FILES_CHANGED=$(git diff HEAD~2 --name-only -- $DIR | wc -l)
 
     if [[ ${NUM_FILES_CHANGED} -gt 0 ]]; then
         printMessageWarning "Found ${NUM_FILES_CHANGED} files changed w/ 'git diff $COMMIT --name-only -- $DIR'"
