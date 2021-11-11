@@ -47,56 +47,66 @@ if has_prev_diff_changes "therr-public-library/therr-js-utilities"; then
 fi
 
 # This is reliant on the previous commit being a single merge commit with all prior changes
-should_deploy_web_app()
+should_publish_web_app()
 {
   has_prev_diff_changes "therr-client-web" || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
 }
 
 # This is reliant on the previous commit being a single merge commit with all prior changes
-should_deploy_service()
+should_publish_service()
 {
   SERVICE_DIR=$1
   has_prev_diff_changes $SERVICE_DIR || "$HAS_UTILITIES_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
 }
 
+NUMBER_SERVICES_PUBLISHED=0
+
 # Docker Publish
-if should_deploy_web_app; then
+if should_publish_web_app; then
+  NUMBER_SERVICES_PUBLISHED++
   docker push therrapp/client-web$SUFFIX:latest
   docker push therrapp/client-web$SUFFIX:$GIT_SHA
 fi
-if should_deploy_service "therr-api-gateway"; then
+if should_publish_service "therr-api-gateway"; then
+  NUMBER_SERVICES_PUBLISHED++
   docker push therrapp/api-gateway$SUFFIX:latest
   docker push therrapp/api-gateway$SUFFIX:$GIT_SHA
 fi
-if should_deploy_service "therr-services/maps-service"; then
+if should_publish_service "therr-services/maps-service"; then
+  NUMBER_SERVICES_PUBLISHED++
   docker push therrapp/maps-service$SUFFIX:latest
   docker push therrapp/maps-service$SUFFIX:$GIT_SHA
 fi
-if should_deploy_service "therr-services/messages-service"; then
+if should_publish_service "therr-services/messages-service"; then
+  NUMBER_SERVICES_PUBLISHED++
   docker push therrapp/messages-service$SUFFIX:latest
   docker push therrapp/messages-service$SUFFIX:$GIT_SHA
 fi
-if should_deploy_service "therr-services/push-notifications-service"; then
+if should_publish_service "therr-services/push-notifications-service"; then
+  NUMBER_SERVICES_PUBLISHED++
   docker push therrapp/push-notifications-service$SUFFIX:latest
   docker push therrapp/push-notifications-service$SUFFIX:$GIT_SHA
 fi
-if should_deploy_service "therr-services/reactions-service"; then
+if should_publish_service "therr-services/reactions-service"; then
+  NUMBER_SERVICES_PUBLISHED++
   docker push therrapp/reactions-service$SUFFIX:latest
   docker push therrapp/reactions-service$SUFFIX:$GIT_SHA
 fi
-if should_deploy_service "therr-services/users-service"; then
+if should_publish_service "therr-services/users-service"; then
+  NUMBER_SERVICES_PUBLISHED++
   docker push therrapp/users-service$SUFFIX:latest
   docker push therrapp/users-service$SUFFIX:$GIT_SHA
 fi
-if should_deploy_service "therr-services/websocket-service"; then
+if should_publish_service "therr-services/websocket-service"; then
+  NUMBER_SERVICES_PUBLISHED++
   docker push therrapp/websocket-service$SUFFIX:latest
   docker push therrapp/websocket-service$SUFFIX:$GIT_SHA
 fi
 
-if [[ "$CURRENT_BRANCH" == "stage" ]]; then
-  cat > VERSIONS.txt <<EOF
-  LAST_PUBLISHED_GIT_SHA=${GIT_SHA}
-  EOF
+if [[ "$CURRENT_BRANCH" == "stage" && $NUMBER_SERVICES_PUBLISHED -gt 0 ]]; then
+cat > VERSIONS.txt <<EOF
+LAST_PUBLISHED_GIT_SHA=${GIT_SHA}
+EOF
 
   git config user.email "rili.main@gmail.com"
   git config user.name "Rili Admin"
