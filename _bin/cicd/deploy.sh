@@ -35,31 +35,31 @@ HAS_GLOBAL_CONFIG_FILE_CHANGES=false
 HAS_ANY_LIBRARY_CHANGES=false
 HAS_UTILITIES_LIBRARY_CHANGES=false
 
-if has_commit_diff_changes "global-config.js" $GIT_SHA; then
+if has_prev_diff_changes "global-config.js"; then
   HAS_GLOBAL_CONFIG_FILE_CHANGES=true
 fi
 
-if has_commit_diff_changes "therr-public-library/therr-styles" $GIT_SHA || \
-  has_commit_diff_changes "therr-public-library/therr-js-utilities" $GIT_SHA || \
-  has_commit_diff_changes "therr-public-library/therr-react" $GIT_SHA; then
+if has_prev_diff_changes "therr-public-library/therr-styles" || \
+  has_prev_diff_changes "therr-public-library/therr-js-utilities" || \
+  has_prev_diff_changes "therr-public-library/therr-react"; then
   HAS_ANY_LIBRARY_CHANGES=true
 fi
 
-if has_commit_diff_changes "therr-public-library/therr-js-utilities" $GIT_SHA; then
+if has_prev_diff_changes "therr-public-library/therr-js-utilities"; then
   HAS_UTILITIES_LIBRARY_CHANGES=true
 fi
 
 # This is reliant on the previous commit being a single merge commit with all prior changes
 should_deploy_web_app()
 {
-  has_commit_diff_changes "therr-client-web" $GIT_SHA || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
+  has_prev_diff_changes "therr-client-web" || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
 }
 
 # This is reliant on the previous commit being a single merge commit with all prior changes
 should_deploy_service()
 {
   SERVICE_DIR=$1
-  has_commit_diff_changes $SERVICE_DIR $GIT_SHA || "$HAS_UTILITIES_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
+  has_prev_diff_changes $SERVICE_DIR $GIT_SHA || "$HAS_UTILITIES_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
 }
 
 # Kubectl Apply
@@ -78,7 +78,7 @@ else
   echo "Skipping client-web deployment (No Changes)"
 fi
 if should_deploy_service "therr-api-gateway"; then
-  docker pull therrapp/api-gateway$SUFFIX:$GIT_SHA
+  docker pull therrapp/api-gateway-stage$GIT_SHA
   if [[ "$CURRENT_BRANCH" == "main"  ]]; then
     docker tag therrapp/api-gateway-stage:$GIT_SHA therrapp/api-gateway:$GIT_SHA
     docker tag therrapp/api-gateway-stage:$GIT_SHA therrapp/api-gateway:latest
@@ -90,7 +90,7 @@ else
   echo "Skipping api-gateway deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/push-notifications-service"; then
-  docker pull therrapp/push-notifications-service$SUFFIX:$GIT_SHA
+  docker pull therrapp/push-notifications-service-stage:$GIT_SHA
   if [[ "$CURRENT_BRANCH" == "main"  ]]; then
     docker tag therrapp/push-notifications-stage:$GIT_SHA therrapp/push-notifications:$GIT_SHA
     docker tag therrapp/push-notifications-stage:$GIT_SHA therrapp/push-notifications:latest
@@ -102,7 +102,7 @@ else
   echo "Skipping push-notifications-service deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/maps-service"; then
-  docker pull therrapp/maps-service$SUFFIX:$GIT_SHA
+  docker pull therrapp/maps-service-stage:$GIT_SHA
   if [[ "$CURRENT_BRANCH" == "main"  ]]; then
     docker tag therrapp/maps-service-stage:$GIT_SHA therrapp/maps-service:$GIT_SHA
     docker tag therrapp/maps-service-stage:$GIT_SHA therrapp/maps-service:latest
@@ -114,7 +114,7 @@ else
   echo "Skipping maps-service deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/messages-service"; then
-  docker pull therrapp/messages-service$SUFFIX:$GIT_SHA
+  docker pull therrapp/messages-service-stage:$GIT_SHA
   if [[ "$CURRENT_BRANCH" == "main"  ]]; then
     docker tag therrapp/messages-service-stage:$GIT_SHA therrapp/messages-service:$GIT_SHA
     docker tag therrapp/messages-service-stage:$GIT_SHA therrapp/messages-service:latest
@@ -126,7 +126,7 @@ else
   echo "Skipping messages-service deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/reactions-service"; then
-  docker pull therrapp/reactions-service$SUFFIX:$GIT_SHA
+  docker pull therrapp/reactions-service-stage:$GIT_SHA
   if [[ "$CURRENT_BRANCH" == "main"  ]]; then
     docker tag therrapp/reactions-service-stage:$GIT_SHA therrapp/reactions-service:$GIT_SHA
     docker tag therrapp/reactions-service-stage:$GIT_SHA therrapp/reactions-service:latest
@@ -138,7 +138,7 @@ else
   echo "Skipping reactions-service deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/users-service"; then
-  docker pull therrapp/users-service$SUFFIX:$GIT_SHA
+  docker pull therrapp/users-service-stage:$GIT_SHA
   if [[ "$CURRENT_BRANCH" == "main"  ]]; then
     docker tag therrapp/users-service-stage:$GIT_SHA therrapp/users-service:$GIT_SHA
     docker tag therrapp/users-service-stage:$GIT_SHA therrapp/users-service:latest
@@ -150,7 +150,7 @@ else
   echo "Skipping users-service deployment (No Changes)"
 fi
 if should_deploy_service "therr-services/websocket-service"; then
-  docker pull therrapp/websocket-service$SUFFIX:$GIT_SHA
+  docker pull therrapp/websocket-service-stage:$GIT_SHA
   if [[ "$CURRENT_BRANCH" == "main"  ]]; then
     docker tag therrapp/websocket-service-stage:$GIT_SHA therrapp/websocket-service:$GIT_SHA
     docker tag therrapp/websocket-service-stage:$GIT_SHA therrapp/websocket-service:latest
