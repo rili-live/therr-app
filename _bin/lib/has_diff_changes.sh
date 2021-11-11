@@ -40,6 +40,7 @@ has_commit_diff_changes()
     COMMIT=$2
     
     # NUM_FILES_CHANGED=$(git diff $COMMIT --name-only -- $DIR | wc -l)
+    # Look back 2 commits, 1 is the VERSIONS.txt file, 2 is the stage to main merge
     NUM_FILES_CHANGED=$(git diff HEAD~2 --name-only -- $DIR | wc -l)
 
     if [[ ${NUM_FILES_CHANGED} -gt 0 ]]; then
