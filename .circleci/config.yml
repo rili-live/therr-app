@@ -112,13 +112,16 @@ jobs:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - attach_workspace:
-            at: ~/
+      - run: |
+          echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
       - run: |
           echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
           gcloud --quiet config set project therr-app
           gcloud --quiet config set compute/zone us-central1-a
           gcloud container clusters get-credentials cluster-1
+      - add_ssh_keys:
+          fingerprints:
+            - "7a:7c:76:bd:7b:be:2a:cd:de:90:c4:16:78:e1:eb:f6"
       - run:
           name: Deploy To GKE
           command: ./_bin/cicd/deploy.sh
