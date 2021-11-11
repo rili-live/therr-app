@@ -92,10 +92,10 @@ fi
 if should_deploy_service "therr-services/push-notifications-service"; then
   docker pull therrapp/push-notifications-service-stage:$GIT_SHA
   if [[ "$CURRENT_BRANCH" == "main"  ]]; then
-    docker tag therrapp/push-notifications-stage:$GIT_SHA therrapp/push-notifications:$GIT_SHA
-    docker tag therrapp/push-notifications-stage:$GIT_SHA therrapp/push-notifications:latest
-    docker push therrapp/push-notifications:$GIT_SHA
-    docker push therrapp/push-notifications:latest
+    docker tag therrapp/push-notifications-service-stage:$GIT_SHA therrapp/push-notifications-service:$GIT_SHA
+    docker tag therrapp/push-notifications-service-stage:$GIT_SHA therrapp/push-notifications-service:latest
+    docker push therrapp/push-notifications-service:$GIT_SHA
+    docker push therrapp/push-notifications-service:latest
   fi
   kubectl set image deployments/push-notifications-service-deployment server-push-notifications=therrapp/push-notifications-service$SUFFIX:$GIT_SHA
 else
