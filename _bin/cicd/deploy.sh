@@ -78,7 +78,7 @@ else
   echo "Skipping client-web deployment (No Changes)"
 fi
 if should_deploy_service "therr-api-gateway"; then
-  docker pull therrapp/api-gateway-stage$GIT_SHA
+  docker pull therrapp/api-gateway-stage:$GIT_SHA
   if [[ "$CURRENT_BRANCH" == "main"  ]]; then
     docker tag therrapp/api-gateway-stage:$GIT_SHA therrapp/api-gateway:$GIT_SHA
     docker tag therrapp/api-gateway-stage:$GIT_SHA therrapp/api-gateway:latest
