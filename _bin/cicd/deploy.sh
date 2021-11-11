@@ -163,3 +163,13 @@ else
 fi
 
 echo "Kubectl apply complete for all services with changes"
+
+echo "Resetting VERSIONS.txt"
+cat > VERSIONS.txt <<EOF
+EOF
+
+git config user.email "rili.main@gmail.com"
+git config user.name "Rili Admin"
+git add VERSIONS.txt
+git commit -m "[skip ci] Updated VERSIONS.txt"
+git push --set-upstream origin main --no-verify
