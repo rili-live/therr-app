@@ -142,7 +142,7 @@
     },
     "headerMenuRight": {
       "menuItems": {
-        "account": "MY ACCOUNT",
+        "account": "ACCOUNT SETTINGS",
         "addConnection": "NEW CONNECTION",
         "connections": "CONNECTIONS",
         "home": "HOME",
@@ -190,6 +190,10 @@
       "errorMessages": {
         "invalidEmail": "Invalid e-mail",
         "invalidPhoneNumber": "Phone number is invalid."
+      },
+      "modal": {
+        "nameConfirm": "Connections requests display your full name in notifications. Would you like to update your name from the default/anonymous values?",
+        "noThanks": "No Thanks"
       },
       "successMessages": {
         "connectionSent": "You connection request is on the way!"
@@ -394,7 +398,9 @@
     },
     "bookmarked": {
       "headerTitle": "Favorited",
-      "noBookmarksFound": "No bookmarks to display. Mark content as favorited by clicking the bookmark icon on a post"
+      "noSocialBookmarksFound": "No bookmarks to display. Mark content as favorited by clicking the bookmark icon on a post.",
+      "noHireBookmarksFound": "No bookmarks to display. Bookmark a freelancer by clicking the bookmark icon on a listing.",
+      "noEventsBookmarksFound": "No bookmarks to display. Bookmark an event by clicking the bookmark icon on an invite."
     },
     "chatForum": {
       "pageTitle": "Forums",
@@ -469,7 +475,9 @@
     "moments": {
       "headerTitle": "Moments",
       "pageTitle": "Moments",
-      "noMomentsFound": "You have not yet activated any moments. Explore the world, and active moments will start to appear in this view..."
+      "noSocialMomentsFound": "You have not yet activated any moments. Explore the world, and active moments will start to appear in this view.",
+      "noHireMomentsFound": "No freelancer postings found in your spaces. Check back soon to find local freelancers in range of your location.",
+      "noEventsMomentsFound": "No current or upcoming events found. Grow your connections to increase visibility and receive invites to exclusive events."
     },
     "notifications": {
       "headerTitle": "Notifications",

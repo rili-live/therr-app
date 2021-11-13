@@ -1,5 +1,5 @@
 import React from 'react';
-import { GestureResponderEvent, View } from 'react-native';
+import { GestureResponderEvent, Platform, View } from 'react-native';
 import { Button }  from 'react-native-elements';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import Alert from '../Alert';
@@ -48,38 +48,43 @@ const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = 
                     />
                 }
             />
-            <SquareInput
-                placeholder={translate(
-                    'forms.settings.labels.firstName'
-                )}
-                value={inputs.firstName}
-                onChangeText={(text) =>
-                    onInputChange('firstName', text)
-                }
-                rightIcon={
-                    <FontAwesomeIcon
-                        name="smile"
-                        size={22}
-                        color={therrTheme.colorVariations.primary3Fade}
+            {
+                Platform.OS !== 'ios' &&
+                <>
+                    <SquareInput
+                        placeholder={translate(
+                            'forms.settings.labels.firstName'
+                        )}
+                        value={inputs.firstName}
+                        onChangeText={(text) =>
+                            onInputChange('firstName', text)
+                        }
+                        rightIcon={
+                            <FontAwesomeIcon
+                                name="smile"
+                                size={22}
+                                color={therrTheme.colorVariations.primary3Fade}
+                            />
+                        }
                     />
-                }
-            />
-            <SquareInput
-                placeholder={translate(
-                    'forms.settings.labels.lastName'
-                )}
-                value={inputs.lastName}
-                onChangeText={(text) =>
-                    onInputChange('lastName', text)
-                }
-                rightIcon={
-                    <FontAwesomeIcon
-                        name="smile-beam"
-                        size={22}
-                        color={therrTheme.colorVariations.primary3Fade}
+                    <SquareInput
+                        placeholder={translate(
+                            'forms.settings.labels.lastName'
+                        )}
+                        value={inputs.lastName}
+                        onChangeText={(text) =>
+                            onInputChange('lastName', text)
+                        }
+                        rightIcon={
+                            <FontAwesomeIcon
+                                name="smile-beam"
+                                size={22}
+                                color={therrTheme.colorVariations.primary3Fade}
+                            />
+                        }
                     />
-                }
-            />
+                </>
+            }
             <View style={settingsFormStyles.submitButtonContainer}>
                 <Button
                     buttonStyle={formStyles.button}
