@@ -68,7 +68,8 @@
     "registerForm": {
       "buttons": {
         "backToLogin": "Back to Login",
-        "register": "Register"
+        "register": "Register",
+        "terms": "Terms & Conditions"
       },
       "labels": {
         "email": "E-mail",
@@ -150,7 +151,18 @@
       "successMessage": "Check your e-mail for a link to reset your password"
     },
     "home": {
-      "pageTitle": "Home"
+      "pageTitle": "Home",
+      "welcome": "Welcome",
+      "apple": "Apple",
+      "android": "Android",
+      "devices": "devices",
+      "eventOrganizers": "Event organizers",
+      "freelancers": "Freelancers",
+      "or": "or",
+      "info": "Welcome to Therr App! For the best experience, click the links below to install the mobile app for",
+      "info2": "Therr is a space to share content at various geographic locations and connect with other users while traveling the globe or even just walking around your local community.",
+      "info3": "can post their professional profile including a range of locations where they are available to travel for work.",
+      "info4": "can share scheduled, exclusive events, granting access exclusively to attendees with their event radius."
     },
     "createForum": {
       "buttons": {
