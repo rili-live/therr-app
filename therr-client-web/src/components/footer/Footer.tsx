@@ -56,6 +56,10 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
         });
     }
 
+    handleInfoClick = () => {
+        window.open('https://www.therr.app/', '_blank');
+    }
+
     render() {
         const {
             goHome,
@@ -80,6 +84,18 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
                             isMsgContainerOpen={isMsgContainerOpen}
                             messagingContext={messagingContext}
                             toggleMessaging={toggleMessaging}
+                        />
+                    </AccessControl>
+                    <AccessControl isAuthorized={UsersService.isAuthorized({
+                        type: AccessCheckType.ALL,
+                        levels: [AccessLevels.EMAIL_VERIFIED],
+                    }, user)} publicOnly>
+                        <SvgButton
+                            id="footer_info"
+                            name="info"
+                            className="info-button"
+                            onClick={this.handleInfoClick}
+                            buttonType="primary"
                         />
                     </AccessControl>
                 </div>

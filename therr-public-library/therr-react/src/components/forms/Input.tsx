@@ -75,6 +75,7 @@ class Input extends React.Component<any, any> {
         onFocus: PropTypes.func,
         onEnter: PropTypes.func,
         onValidate: PropTypes.func,
+        neverValidations: PropTypes.bool,
         placeholder: PropTypes.string,
         translate: PropTypes.func.isRequired,
         type: PropTypes.oneOf(['number', 'password', 'search', 'text', 'url']),
@@ -92,6 +93,7 @@ class Input extends React.Component<any, any> {
         onFocus: null,
         onEnter: null,
         onValidate: null,
+        neverValidations: false,
         placeholder: '',
         type: 'text',
         validations: [],
@@ -151,16 +153,19 @@ class Input extends React.Component<any, any> {
 
     render() {
         const {
-            autoComplete, className, disabled, formClassName, id, name, placeholder, type, validations,
+            autoComplete, className, disabled, formClassName, id, name, neverValidations, placeholder, type, validations,
         } = this.props;
         const {
             inputValue, isDirty, isTouched, validationErrors,
         } = this.state;
+        const shouldShowValidationErrors = validationErrors.length > 0 && (isTouched || isDirty);
         const additionalClasses = classnames({
             'is-dirty': isDirty,
             'is-invalid': validationErrors.length > 0,
             'is-touched': isTouched,
             'is-valid': validationErrors.length === 0 && validations.length > 0,
+            'with-errors': shouldShowValidationErrors,
+            'ignore-errors': neverValidations,
         });
 
         return (
@@ -181,7 +186,7 @@ class Input extends React.Component<any, any> {
                     placeholder={placeholder}
                 />
                 {
-                    validationErrors.length > 0 && (isTouched || isDirty)
+                    shouldShowValidationErrors
                     && <div className="validation-errors">
                         {
                             validationErrors.map((error: any) => (

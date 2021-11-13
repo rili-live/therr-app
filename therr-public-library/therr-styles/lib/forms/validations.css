@@ -6,6 +6,7 @@
   background: #fbfeffbf;
   padding: 0.3rem;
   border-radius: 0.25rem;
+  min-height: rem-cal(26px);
 }
 .validation-errors .message-container {
   position: relative;
