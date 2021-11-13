@@ -60,12 +60,6 @@ const common = merge([
             emitOnErrors: true,
         },
         plugins: [
-            // Not that this will load all css theme files which is not prefered. Our current theme is coincidentally last in alphabetical order
-            // TODO: Only load the current theme
-            new HtmlWebpackPlugin({
-                template: 'src/index.html',
-                inject: true,
-            }),
             new webpack.NoEmitOnErrorsPlugin(),
             new ModuleFederationPlugin({
                 shared: {
@@ -88,6 +82,16 @@ const common = merge([
 ]);
 
 const buildDev = () => merge([
+    {
+        plugins: [
+            // Not that this will load all css theme files which is not prefered. Our current theme is coincidentally last in alphabetical order
+            // TODO: Only load the current theme
+            new HtmlWebpackPlugin({
+                template: 'src/index.html',
+                inject: true,
+            }),
+        ],
+    },
     common,
     {
         mode: 'development',
