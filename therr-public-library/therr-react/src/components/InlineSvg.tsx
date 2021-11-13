@@ -12,6 +12,7 @@ const iconMap: { [index: string]: string } = {
     forum: require('../svg-icons/forum.svg').toString(),
     home: require('../svg-icons/home.svg').toString(),
     location: require('../svg-icons/location.svg').toString(),
+    info: require('../svg-icons/info.svg').toString(),
     messages: require('../svg-icons/messages.svg').toString(),
     'notifications-active': require('../svg-icons/notifications-active.svg').toString(),
     notifications: require('../svg-icons/notifications.svg').toString(),

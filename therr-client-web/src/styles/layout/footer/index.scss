@@ -46,6 +46,13 @@ button {
         background: transparent;
     }
 
+    &#footer_info {
+        display: flex;
+        align-items: center;
+        margin-left: $messaging-side-margin-half;
+        background: transparent;
+    }
+
     &#footer_messaging {
         display: flex;
         align-items: center;

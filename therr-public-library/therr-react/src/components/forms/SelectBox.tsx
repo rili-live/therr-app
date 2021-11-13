@@ -39,6 +39,7 @@ class SelectBox extends React.Component<any, any> {
         id: PropTypes.string.isRequired,
         isTesting: PropTypes.bool,
         onChange: PropTypes.func.isRequired,
+        neverValidations: PropTypes.bool,
         onValidate: PropTypes.func,
         options: PropTypes.arrayOf(PropTypes.shape({
             text: PropTypes.string.isRequired,
@@ -54,6 +55,7 @@ class SelectBox extends React.Component<any, any> {
         className: 'block',
         disabled: false,
         isTesting: false,
+        neverValidations: false,
         onValidate: null,
         placeHolderText: 'Select...',
         required: false,
@@ -183,7 +185,7 @@ class SelectBox extends React.Component<any, any> {
 
     render() {
         const {
-            className, disabled, id, isTesting, options, placeHolderText, required, translate, value,
+            className, disabled, id, isTesting, options, placeHolderText, required, translate, value, neverValidations,
         } = this.props;
         const {
             axIndex, isInvalid, isTouched, optionsAreVisible,
@@ -197,6 +199,7 @@ class SelectBox extends React.Component<any, any> {
             'is-valid': !isInvalid && required,
             'is-touched': isTouched,
             'select-box': true,
+            'ignore-errors': neverValidations,
         });
 
         const buttonClasses = classnames({

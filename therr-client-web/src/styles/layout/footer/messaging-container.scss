@@ -2,6 +2,7 @@ $messaging-container-height: rem-calc(400px);
 $messaging-toggle-width: 4.4rem;
 $messaging-toggle-width-sm: 2rem;
 $messaging-side-margin: 1rem;
+$messaging-side-margin-half: .5rem;
 $messaging-side-padding: .75rem;
 $messaging-top-padding: .5rem;
 $messaging-space-padding: .5rem;
@@ -77,7 +78,8 @@ footer {
 
                 .message-right {
                     margin-left: 40%;
-                    background-color: $therr-primary-4;
+                    background-color: $therr-primary-2;
+                    color: $therr-off-white;
                     align-self: flex-end;
 
                     .dm-message {

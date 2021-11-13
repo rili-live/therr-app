@@ -3,6 +3,7 @@ const path = require('path');
 const webpack = require('webpack'); // eslint-disable-line import/no-extraneous-dependencies
 const { merge } = require('webpack-merge'); // eslint-disable-line import/no-extraneous-dependencies
 const ModuleFederationPlugin = require('webpack/lib/container/ModuleFederationPlugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin'); // eslint-disable-line import/no-extraneous-dependencies
 const parts = require('../webpack.parts');
 
 // For externals
@@ -59,6 +60,12 @@ const common = merge([
             emitOnErrors: true,
         },
         plugins: [
+            // Not that this will load all css theme files which is not prefered. Our current theme is coincidentally last in alphabetical order
+            // TODO: Only load the current theme
+            new HtmlWebpackPlugin({
+                template: 'src/index.html',
+                inject: true,
+            }),
             new webpack.NoEmitOnErrorsPlugin(),
             new ModuleFederationPlugin({
                 shared: {
@@ -72,7 +79,7 @@ const common = merge([
         ],
         externals: Object.keys(pkg.peerDependencies || {}),
     },
-    parts.clean(),
+    parts.clean([PATHS.build]),
     parts.loadSvg(),
     parts.processReact([PATHS.app, PATHS.reactComponents, PATHS.utils], false),
     parts.processTypescript([PATHS.app], false),

@@ -146,10 +146,10 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
 
                 <div className="form-field text-right" style={{ paddingTop: '.5rem' }}>
                     <ButtonPrimary
-                        id="login" text={this.translate('components.loginForm.buttons.login')} onClick={this.onSubmit} disabled={this.isLoginFormDisabled()} />
+                        id="login_button" text={this.translate('components.loginForm.buttons.login')} onClick={this.onSubmit} disabled={this.isLoginFormDisabled()} />
                 </div>
 
-                <div className="text-center" style={{ padding: '.5rem 0 0 1rem' }}>
+                <div className="text-center" style={{ padding: '1.5rem 0 0 1rem' }}>
                     <Link to="/reset-password">{this.translate('components.loginForm.buttons.forgotPassword')}</Link> | <Link to="/register">{this.translate('components.loginForm.buttons.signUp')}</Link>
                 </div>
             </div>
