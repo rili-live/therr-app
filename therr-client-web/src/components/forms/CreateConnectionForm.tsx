@@ -54,7 +54,9 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
 
     onInputChange = (name: string, value: string) => {
         const newInputChanges = {
-            [name]: this.state.inputs.connectionIdentifier === 'acceptingUserEmail' ? value.toLowerCase() : value,
+            [name]: (this.state.inputs.connectionIdentifier === 'acceptingUserEmail')
+                ? value.toLowerCase()
+                : value,
         };
         this.setState({
             inputs: {
@@ -67,12 +69,16 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
     }
 
     onPhoneInputChange = (value: string) => {
+        let safeValue = value;
+        if (typeof value !== 'string') {
+            safeValue = '+';
+        }
         this.setState({
             inputs: {
                 ...this.state.inputs,
-                phoneNumber: value,
+                phoneNumber: safeValue,
             },
-            isPhoneNumberValid: isValidPhoneNumber(value),
+            isPhoneNumberValid: isValidPhoneNumber(safeValue),
             prevRequestError: '',
             prevRequestSuccess: '',
         });
@@ -165,7 +171,7 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
                                 onChange={this.onPhoneInputChange} />
                             {
                                 !isValidPhoneNumber(inputs.phoneNumber)
-                                && <div className="validation-errors">
+                                && <div className="validation-errors phone">
                                     <div className="message-container icon-small attention-alert">
                                         <em className="message">
                                             {this.translate('pages.userProfile.validationErrors.phoneNumber')}

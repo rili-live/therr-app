@@ -1,20 +1,29 @@
 @import '../variables';
 
+$validation-container-height-px: 23px;
+$validation-container-margin-top-px: 2px;
+$validation-container-offset: rem-calc($validation-container-height-px + $validation-container-margin-top-px);
+
 .validation-errors {
     color: $therr-ax-negative;
-    font-size: .875rem;
-    margin: .375rem;
+    font-size: rem-calc(13px);
+    margin: rem-calc($validation-container-margin-top-px);
     margin-bottom: 0;
     background: #fbfeffbf;
-    padding: .3rem;
+    padding: .25rem;
     border-radius: .25rem;
+    // min-height: rem-calc($validation-container-height-px);
+    box-sizing: border-box;
+
+    &.phone {
+        margin-bottom: .5rem;
+    }
 
     .message-container {
         position: relative;
 
         .message {
             display: block;
-            line-height: 1rem;
             margin-left: 1.25rem;
         }
     }

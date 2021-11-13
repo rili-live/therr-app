@@ -136,7 +136,7 @@ exports.loadCSS = (paths, env, dontHash) => {
                 {
                     test: /\.(sa|sc|c)ss$/,
                     use: [
-                        env === 'development' ? 'style-loader' : MiniCssExtractPlugin.loader,
+                        MiniCssExtractPlugin.loader,
                         {
                             loader: 'css-loader',
                             options: { importLoaders: 1 }

@@ -29,7 +29,7 @@ label {
     font-size: rem-calc(15px);
     line-height: 2.5rem;
     margin-bottom: 0;
-    padding-left: 1rem;
+    padding-left: 1.5rem;
 
     &.required {
         &::before {
@@ -41,7 +41,7 @@ label {
 }
 
 .form-field {
-    margin: 0 0 1rem;
+    margin: 0 0 0;
 }
 
 input[type='color'],
@@ -75,6 +75,11 @@ textarea {
     padding: .5rem .75rem;
     transition: border-color .15s linear, background .15s linear;
     width: 100%;
+    margin-bottom: $validation-container-offset;
+
+    &.with-errors, &.ignore-errors {
+        margin-bottom: 0;
+    }
 
     &:focus {
         background-color: $therr-white;
@@ -113,6 +118,10 @@ textarea {
             cursor: not-allowed;
         }
     }
+}
+
+.PhoneInput input {
+    margin-bottom: .5rem;
 }
 
 select,

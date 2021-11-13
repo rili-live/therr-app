@@ -248,6 +248,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
                             type="text"
                             name="message"
                             value={this.state.inputs.message}
+                            neverValidations={true}
                             onChange={this.onInputChange}
                             onEnter={this.onSendMessage}
                             placeholder={this.translate('components.messagingContainer.inputPlaceholder')}

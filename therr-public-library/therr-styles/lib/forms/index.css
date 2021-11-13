@@ -121,6 +121,7 @@
   background: #fbfeffbf;
   padding: 0.3rem;
   border-radius: 0.25rem;
+  min-height: rem-cal(26px);
 }
 .validation-errors .message-container {
   position: relative;
@@ -197,6 +198,26 @@ textarea {
   padding: 0.5rem 0.75rem;
   transition: border-color 0.15s linear, background 0.15s linear;
   width: 100%;
+  margin-bottom: rem-cal(26px);
+}
+input[type=color].with-errors,
+input[type=date].with-errors,
+input[type=datetime-local].with-errors,
+input[type=datetime].with-errors,
+input[type=email].with-errors,
+input[type=month].with-errors,
+input[type=number].with-errors,
+input[type=password].with-errors,
+input[type=search].with-errors,
+input[type=tel].with-errors,
+input[type=text].with-errors,
+input[type=time].with-errors,
+input[type=url].with-errors,
+input[type=week].with-errors,
+select.with-errors,
+.select-box.with-errors,
+textarea.with-errors {
+  margin-bottom: 0;
 }
 input[type=color]:focus,
 input[type=date]:focus,
