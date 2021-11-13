@@ -1,3 +1,11 @@
+// CAROUSEL Constants
+const CAROUSEL_TABS = {
+    SOCIAL: 'social',
+    HIRE: 'hire',
+    EVENTS: 'events',
+};
+
+// MAP Constants
 const INITIAL_LATITUDE_DELTA = 0.48022;
 const INITIAL_LONGITUDE_DELTA = 0.04802;
 const PRIMARY_LATITUDE_DELTA = 0.00522;
@@ -12,8 +20,15 @@ const LOCATION_PROCESSING_THROTTLE_MS = 5 * 1000;
 // RegEx
 const youtubeLinkRegex = /(?:http(?:s?):\/\/)?(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-_]*)(&(amp;)?[\w?‌​=]*)?/mi;
 
+// User Constants
+const DEFAULT_FIRSTNAME = 'Anonymous';
+const DEFAULT_LASTNAME = 'User';
 
 export {
+    // Carousel
+    CAROUSEL_TABS,
+
+    // Map
     INITIAL_LATITUDE_DELTA,
     INITIAL_LONGITUDE_DELTA,
     PRIMARY_LATITUDE_DELTA,
@@ -27,4 +42,8 @@ export {
 
     // RegEx
     youtubeLinkRegex,
+
+    // User
+    DEFAULT_FIRSTNAME,
+    DEFAULT_LASTNAME,
 };

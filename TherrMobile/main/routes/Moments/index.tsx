@@ -19,6 +19,8 @@ import { isMyMoment } from '../../utilities/content';
 import MomentOptionsModal, { ISelectionType } from '../../components/Modals/MomentOptionsModal';
 import { getReactionUpdateArgs } from '../../utilities/reactions';
 import LottieLoader from '../../components/LottieLoader';
+import getActiveCarouselData from '../../utilities/getActiveCarouselData';
+import { CAROUSEL_TABS } from '../../constants';
 
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
@@ -41,6 +43,7 @@ export interface IMomentsProps extends IStoreProps {
 }
 
 interface IMomentsState {
+    activeTab: string;
     isLoading: boolean;
     areMomentOptionsVisible: boolean;
     selectedMoment: any;
@@ -70,6 +73,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         super(props);
 
         this.state = {
+            activeTab: CAROUSEL_TABS.SOCIAL,
             isLoading: true,
             areMomentOptionsVisible: false,
             selectedMoment: {},
@@ -93,6 +97,19 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
                 isLoading: false,
             });
         }
+    }
+
+    getEmptyListMessage = (activeTab) => {
+        if (activeTab === CAROUSEL_TABS.SOCIAL) {
+            return this.translate('pages.moments.noSocialMomentsFound');
+        }
+
+        if (activeTab === CAROUSEL_TABS.HIRE) {
+            return this.translate('pages.moments.noHireMomentsFound');
+        }
+
+        // CAROUSEL_TABS.EVENTS
+        return this.translate('pages.moments.noEventsMomentsFound');
     }
 
     goToMap = () => {
@@ -148,6 +165,12 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         });
     }
 
+    onTabSelect = (tabName: string) => {
+        this.setState({
+            activeTab: tabName,
+        });
+    }
+
     scrollTop = () => {
         this.carouselRef?.scrollToOffset({ animated: true, offset: 0 });
     }
@@ -176,26 +199,35 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
     }
 
     renderCarousel = (content) => {
-        const { createOrUpdateMomentReaction } = this.props;
-        const { isLoading } = this.state;
+        const { createOrUpdateMomentReaction, user } = this.props;
+        const { activeTab, isLoading } = this.state;
 
         if (isLoading) {
             return <LottieLoader id="yellow-car" />;
         }
 
+        const activeData = getActiveCarouselData({
+            activeTab,
+            content,
+            isForBookmarks: false,
+        });
+
         return (
             <MomentCarousel
+                activeData={activeData}
+                activeTab={activeTab}
                 content={content}
                 expandMoment={this.goToMoment}
                 goToViewUser={this.goToViewUser}
                 toggleMomentOptions={this.toggleMomentOptions}
                 translate={this.translate}
-                isForBookmarks={false}
                 containerRef={(component) => this.carouselRef = component}
                 handleRefresh={this.handleRefresh}
                 onEndReached={this.tryLoadMore}
+                onTabSelect={this.onTabSelect}
                 updateMomentReaction={createOrUpdateMomentReaction}
-                emptyListMessage={this.translate('pages.moments.noMomentsFound')}
+                emptyListMessage={this.getEmptyListMessage(activeTab)}
+                user={user}
                 // viewportHeight={viewportHeight}
                 // viewportWidth={viewportWidth}
             />
