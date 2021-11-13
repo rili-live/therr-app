@@ -72,14 +72,14 @@ footer {
 
                 .message-left {
                     margin-right: 40%;
-                    background-color: $therr-light-grey;
+                    background-color: $therr-primary-2;
+                    color: $therr-off-white;
                     align-self: flex-start;
                 }
 
                 .message-right {
                     margin-left: 40%;
-                    background-color: $therr-primary-2;
-                    color: $therr-off-white;
+                    background-color: $therr-light-grey;
                     align-self: flex-end;
 
                     .dm-message {

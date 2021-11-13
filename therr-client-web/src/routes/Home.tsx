@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -67,8 +68,17 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
     public render(): JSX.Element | null {
         return (
-            <div id="page_home" className="flex-box">
-                <LoginForm login={this.login} title={this.translate('pages.home.pageTitle')} />
+            <div id="page_home" className="flex-box space-evenly row wrap-reverse">
+                <div className="login-container">
+                    <h1 className="text-center">
+                        {this.translate('pages.home.welcome')}
+                    </h1>
+                    <p className="text-center info-text">{this.translate('pages.home.info')} <a href="https://apps.apple.com/us/app/therr/id1569988763#?platform=iphone" target="_blank" rel="noreferrer"><em className="bold">{this.translate('pages.home.apple')}</em></a> {this.translate('pages.home.or')} <a href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer"><em className="bold">{this.translate('pages.home.android')}</em></a> {this.translate('pages.home.devices')}.</p>
+                    <p className="text-center info-text">{this.translate('pages.home.info2')}</p>
+                    <p className="text-center info-text"><em className="bold font-size-20">{this.translate('pages.home.freelancers')}</em> {this.translate('pages.home.info3')}</p>
+                    <p className="text-center info-text"><em className="bold font-size-20">{this.translate('pages.home.eventOrganizers')}</em> {this.translate('pages.home.info4')}</p>
+                </div>
+                <LoginForm login={this.login} />
             </div>
         );
     }

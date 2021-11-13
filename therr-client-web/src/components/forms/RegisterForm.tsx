@@ -133,6 +133,12 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                         id="register"
                         text={this.translate('components.registerForm.buttons.register')} onClick={this.onSubmit} disabled={this.isFormDisabled()} />
                 </div>
+
+                <div className="text-center margin-top-lg">
+                    <a href="https://www.therr.app/terms-and-conditions.html" target="_blank" rel="noreferrer">
+                        {this.translate('components.registerForm.buttons.terms')}
+                    </a>
+                </div>
             </div>
         );
     }
