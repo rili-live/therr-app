@@ -18,8 +18,20 @@
     flex-direction: column;
   }
 
+  &.wrap {
+    flex-wrap: wrap;
+  }
+
+  &.wrap-reverse {
+    flex-wrap: wrap-reverse;
+  }
+
   &.space-around {
     justify-content: space-around;
+  }
+
+  &.space-evenly {
+    justify-content: space-evenly;
   }
 }
 

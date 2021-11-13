@@ -49,7 +49,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
         switch (event.target.id) {
             case 'password':
             case 'user_name':
-            case 'login':
+            case 'login_button':
                 if (!this.isLoginFormDisabled()) {
                     this.setState({
                         isSubmitting: true,
@@ -150,7 +150,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                 </div>
 
                 <div className="text-center" style={{ padding: '1.5rem 0 0 1rem' }}>
-                    <Link to="/reset-password">{this.translate('components.loginForm.buttons.forgotPassword')}</Link> | <Link to="/register">{this.translate('components.loginForm.buttons.signUp')}</Link>
+                    <Link to="/register">{this.translate('components.loginForm.buttons.signUp')}</Link> | <Link to="/reset-password">{this.translate('components.loginForm.buttons.forgotPassword')}</Link>
                 </div>
             </div>
         );
