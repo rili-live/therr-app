@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, View, Text } from 'react-native';
+import { SafeAreaView, View, Text, Platform } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -12,6 +12,7 @@ import firstTimeUIStyles from '../styles/first-time-ui';
 import CreateProfileStageA from '../components/0_First_Time_UI/CreateProfileStageA';
 import CreateProfileStageB from '../components/0_First_Time_UI/CreateProfileStageB';
 import BaseStatusBar from '../components/BaseStatusBar';
+import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../constants';
 
 const profileLoader = require('../assets/profile-circling.json');
 const verifyPhoneLoader = require('../assets/verify-phone-shield.json');
@@ -58,8 +59,8 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             errorMsg: '',
             inputs: {
                 email: props.user.details.email,
-                firstName: props.user.details.firstName,
-                lastName: props.user.details.lastName,
+                firstName: Platform.OS === 'ios' ? (props.user.details.firstName || DEFAULT_FIRSTNAME) : props.user.details.firstName,
+                lastName: Platform.OS === 'ios' ? (props.user.details.lastName || DEFAULT_LASTNAME) : props.user.details.lastName,
                 userName: props.user.details.userName,
                 phoneNumber: props.user.details.phoneNumber,
             },

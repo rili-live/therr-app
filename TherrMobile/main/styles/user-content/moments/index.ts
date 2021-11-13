@@ -27,7 +27,15 @@ export default StyleSheet.create({
         backgroundColor: therrTheme.colorVariations.backgroundNeutral,
     },
     momentCarouselHeader: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+        marginTop: dividerHeight,
         marginBottom: dividerHeight / 2,
+    },
+    momentCarouselTab: {
+
     },
     momentCarouselFooter: {
         marginTop: dividerHeight / 2,

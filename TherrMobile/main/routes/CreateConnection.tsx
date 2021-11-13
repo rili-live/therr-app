@@ -7,6 +7,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
+import { FlatList } from 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import isEmail from 'validator/es/lib/isEmail';
 import Alert from '../components/Alert';
@@ -20,7 +21,8 @@ import styles, { addMargins } from '../styles';
 import formStyles from '../styles/forms';
 import BaseStatusBar from '../components/BaseStatusBar';
 import MessagesContactsTabs from '../components/FlatListHeaderTabs/MessagesContactsTabs';
-import { FlatList } from 'react-native-gesture-handler';
+import ConfirmModal from '../components/Modals/ConfirmModal';
+import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../constants';
 
 interface IHomeDispatchProps {
     createUserConnection: Function;
@@ -40,12 +42,14 @@ export interface IHomeProps extends IStoreProps {
 
 interface IHomeState {
     connectionContext: any;
+    didIgnoreNameConfirm: boolean;
     emailErrorMessage: string;
     inputs: any;
     isPhoneNumberValid: boolean;
     prevConnReqSuccess: string;
     prevConnReqError: string;
     isSubmitting: boolean;
+    isNameConfirmModalVisible: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -71,12 +75,14 @@ class Home extends React.Component<IHomeProps, IHomeState> {
 
         this.state = {
             connectionContext: 'phone',
+            didIgnoreNameConfirm: false,
             emailErrorMessage: '',
             inputs: {},
             prevConnReqError: '',
             prevConnReqSuccess: '',
             isPhoneNumberValid: false,
             isSubmitting: false,
+            isNameConfirmModalVisible: false,
         };
 
         this.translate = (key: string, params: any) =>
@@ -186,9 +192,20 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         });
     }
 
+    isUserNameAnonymous = () => {
+        const { user } = this.props;
+
+        return user.details.firstName === DEFAULT_FIRSTNAME && user.details.lastName === DEFAULT_LASTNAME;
+    }
+
     onSubmit = () => {
-        const { connectionContext, inputs, isPhoneNumberValid } = this.state;
+        const { connectionContext, didIgnoreNameConfirm, inputs, isPhoneNumberValid } = this.state;
         const { createUserConnection, user } = this.props;
+
+        if (!didIgnoreNameConfirm && this.isUserNameAnonymous()) {
+            this.toggleNameConfirmModal();
+            return;
+        }
 
         if (connectionContext === 'phone' && !isPhoneNumberValid) {
             this.setState({
@@ -245,11 +262,26 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         console.log('refresh');
     }
 
+    toggleNameConfirmModal = () => {
+        this.setState({
+            didIgnoreNameConfirm: true,
+            isNameConfirmModalVisible: !this.state.isNameConfirmModalVisible,
+        });
+    }
+
+    handleNameConfirm = () => {
+        const { navigation } = this.props;
+
+        this.toggleNameConfirmModal();
+        navigation.navigate('Settings');
+    }
+
     render() {
         const {
             connectionContext,
             emailErrorMessage,
             inputs,
+            isNameConfirmModalVisible,
             prevConnReqError,
             prevConnReqSuccess,
         } = this.state;
@@ -348,6 +380,14 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                         // onContentSizeChange={() => connections.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
                     />
                 </SafeAreaView>
+                <ConfirmModal
+                    isVisible={isNameConfirmModalVisible}
+                    onCancel={this.toggleNameConfirmModal}
+                    onConfirm={this.handleNameConfirm}
+                    text={this.translate('forms.createConnection.modal.nameConfirm')}
+                    textCancel={this.translate('forms.createConnection.modal.noThanks')}
+                    translate={this.translate}
+                />
                 <MainButtonMenuAlt
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}

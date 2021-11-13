@@ -12,6 +12,9 @@ import styles from '../styles';
 import momentStyles from '../styles/user-content/moments';
 import MomentCarousel from './Moments/MomentCarousel';
 import { isMyMoment } from '../utilities/content';
+import getActiveCarouselData from '../utilities/getActiveCarouselData';
+import { CAROUSEL_TABS } from '../constants';
+
 
 interface IBookMarkedDispatchProps {
     searchBookmarkedMoments: Function;
@@ -30,6 +33,7 @@ export interface IBookMarkedProps extends IStoreProps {
 }
 
 interface IBookMarkedState {
+    activeTab: string;
     isLoading: boolean;
     areMomentOptionsVisible: boolean;
     selectedMoment: any;
@@ -58,6 +62,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         super(props);
 
         this.state = {
+            activeTab: CAROUSEL_TABS.SOCIAL,
             isLoading: true,
             areMomentOptionsVisible: false,
             selectedMoment: {},
@@ -106,6 +111,25 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         });
     }
 
+    onTabSelect = (tabName: string) => {
+        this.setState({
+            activeTab: tabName,
+        });
+    }
+
+    getEmptyListMessage = (activeTab) => {
+        if (activeTab === CAROUSEL_TABS.SOCIAL) {
+            return this.translate('pages.bookmarked.noSocialBookmarksFound');
+        }
+
+        if (activeTab === CAROUSEL_TABS.HIRE) {
+            return this.translate('pages.bookmarked.noHireBookmarksFound');
+        }
+
+        // CAROUSEL_TABS.EVENTS
+        return this.translate('pages.bookmarked.noEventsBookmarksFound');
+    }
+
     goToMoment = (moment) => {
         const { navigation, user } = this.props;
 
@@ -141,8 +165,8 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
     }
 
     renderCarousel = (content) => {
-        const { isLoading } = this.state;
-        const { createOrUpdateMomentReaction } = this.props;
+        const { activeTab, isLoading } = this.state;
+        const { createOrUpdateMomentReaction, user } = this.props;
 
         if (isLoading) {
             return (
@@ -150,8 +174,16 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
             );
         }
 
+        const activeData = getActiveCarouselData({
+            activeTab,
+            content,
+            isForBookmarks: true,
+        });
+
         return (
             <MomentCarousel
+                activeData={activeData}
+                activeTab={activeTab}
                 content={content}
                 expandMoment={this.goToMoment}
                 translate={this.translate}
@@ -159,10 +191,11 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
                 goToViewUser={this.goToViewUser}
                 handleRefresh={() => Promise.resolve(this.handleRefresh())}
                 toggleMomentOptions={this.toggleMomentOptions}
-                isForBookmarks
                 onEndReached={this.tryLoadMore}
+                onTabSelect={this.onTabSelect}
                 updateMomentReaction={createOrUpdateMomentReaction}
-                emptyListMessage={this.translate('pages.bookmarked.noBookmarksFound')}
+                emptyListMessage={this.getEmptyListMessage(activeTab)}
+                user={user}
                 // viewportHeight={viewportHeight}
                 // viewportWidth={viewportWidth}
             />

@@ -5,6 +5,7 @@ import styles from '../../styles';
 import momentStyles from '../../styles/user-content/moments';
 import MomentDisplay from '../../components/UserContent/MomentDisplay';
 import formatDate from '../../utilities/formatDate';
+import { CarouselTabsMenu } from './CarouselTabsMenu';
 
 // let flatListRef;
 
@@ -50,17 +51,20 @@ const renderItem = ({ item: moment }, {
 // };
 
 export default ({
+    activeData,
+    activeTab,
     content,
     expandMoment,
     containerRef,
     goToViewUser,
     handleRefresh,
-    isForBookmarks,
     onEndReached,
+    onTabSelect,
     toggleMomentOptions,
     translate,
     updateMomentReaction,
     emptyListMessage,
+    user,
     // viewportHeight,
     // viewportWidth,
 }) => {
@@ -101,7 +105,7 @@ export default ({
     return (
         <>
             <FlatList
-                data={isForBookmarks ? content.bookmarkedMoments : content.activeMoments}
+                data={activeData}
                 keyExtractor={(item) => String(item.id)}
                 renderItem={(itemObj) => renderItem(itemObj, {
                     content,
@@ -113,8 +117,15 @@ export default ({
                     updateMomentReaction,
                 })}
                 ListEmptyComponent={<Text style={momentStyles.noMomentsFoundText}>{emptyListMessage}</Text>}
-                ListHeaderComponent={<View  style={momentStyles.momentCarouselHeader} />}
-                ListFooterComponent={<View  style={momentStyles.momentCarouselFooter} />}
+                ListHeaderComponent={
+                    <CarouselTabsMenu
+                        activeTab={activeTab}
+                        onButtonPress={onTabSelect}
+                        translate={translate}
+                        user={user}
+                    />
+                }
+                ListFooterComponent={<View style={momentStyles.momentCarouselFooter} />}
                 ref={(component) => {
                     containerRef && containerRef(component);
                     return component;
