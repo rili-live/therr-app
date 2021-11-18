@@ -229,24 +229,31 @@ export class LoginFormComponent extends React.Component<
                         iconRight
                     />
                 </View>
-                <View style={styles.submitButtonContainer}>
-                    <GoogleSignInButton
-                        disabled={isSubmitting}
-                        buttonTitle={this.translate('forms.loginForm.sso.googleButtonTitle')}
-                        onLoginError={this.onSSOLoginError}
-                        onLoginSuccess={this.onSSOLoginSuccess}
-                    />
-                </View>
                 {
-                    Platform.OS === 'ios' && appleAuth.isSupported &&
-                    <View style={styles.submitButtonContainer}>
-                        <AppleSignInButton
-                            disabled={isSubmitting}
-                            buttonTitle={this.translate('forms.loginForm.sso.appleButtonTitle')}
-                            onLoginError={this.onSSOLoginError}
-                            onLoginSuccess={this.onSSOLoginSuccess}
-                        />
-                    </View>
+                    // Temporarily disable SSO for Apple compliance until we have made phoneNumber optional
+                    Platform.OS !== 'ios' &&
+                    <>
+                        <View style={styles.submitButtonContainer}>
+                            <GoogleSignInButton
+                                disabled={isSubmitting}
+                                buttonTitle={this.translate('forms.loginForm.sso.googleButtonTitle')}
+                                onLoginError={this.onSSOLoginError}
+                                onLoginSuccess={this.onSSOLoginSuccess}
+                            />
+                        </View>
+                        {
+                            // Platform.OS === 'ios' && appleAuth.isSupported &&
+                            appleAuth.isSupported &&
+                            <View style={styles.submitButtonContainer}>
+                                <AppleSignInButton
+                                    disabled={isSubmitting}
+                                    buttonTitle={this.translate('forms.loginForm.sso.appleButtonTitle')}
+                                    onLoginError={this.onSSOLoginError}
+                                    onLoginSuccess={this.onSSOLoginSuccess}
+                                />
+                            </View>
+                        }
+                    </>
                 }
                 <Alert
                     containerStyles={addMargins({
