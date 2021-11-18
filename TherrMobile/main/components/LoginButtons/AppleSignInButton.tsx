@@ -26,7 +26,6 @@ async function onAppleButtonPress({
         idToken = identityToken;
         appleNonce = nonce;
     } catch (error) {
-        console.log('ZACK_DEBUG_ERROR', error);
         onLoginError(error);
         setDisabled(false);
         return;

@@ -1080,7 +1080,7 @@
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/toolbar-android\"",
 					"$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)",
 				);
-				MARKETING_VERSION = 0.0.20;
+				MARKETING_VERSION = 0.0.21;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
@@ -1276,7 +1276,7 @@
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/toolbar-android\"",
 					"$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)",
 				);
-				MARKETING_VERSION = 0.0.20;
+				MARKETING_VERSION = 0.0.21;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
