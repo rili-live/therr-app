@@ -59,7 +59,7 @@ class RedisSessions {
         return this.redisHelper.getUserBySocketId(socketId);
     }
 
-    public getUserById(userId: number): any {
+    public getUserById(userId: string): any {
         return this.redisHelper.getUserById(userId);
     }
 
