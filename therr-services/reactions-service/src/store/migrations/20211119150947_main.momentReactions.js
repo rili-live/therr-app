@@ -10,5 +10,5 @@ exports.down = (knex) => knex.schema.withSchema('main').alterTable('momentReacti
     table.dropPrimary();
     table.dropColumn('momentUUID');
     table.dropColumn('userUUID');
-    table.dropColumn('userHasReported');
+    table.dropColumn('isArchived');
 });
