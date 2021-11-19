@@ -10,7 +10,7 @@ export const FORUM_MESSAGES_TABLE_NAME = 'main.forumMessages';
 export interface ICreateForumMessageParams {
     forumId: number;
     message: string;
-    fromUserId: number;
+    fromUserId: string;
     fromUserLocale: number;
 }
 

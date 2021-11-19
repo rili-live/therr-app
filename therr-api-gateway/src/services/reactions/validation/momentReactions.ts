@@ -6,7 +6,7 @@ import {
 } from 'express-validator/check'; // eslint-disable-line import/extensions
 
 export const createOrUpdateMomentReactionValidation = [
-    param('momentId').isNumeric().exists(),
+    param('momentId').isString().exists(),
     body('userViewCount').isNumeric().optional(),
     body('userHasActivated').isBoolean().optional(),
     body('userHasLiked').isBoolean().optional(),

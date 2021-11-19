@@ -1,6 +1,6 @@
 exports.up = (knex) => knex.schema.withSchema('main').createTable('userResources', (table) => {
-    table.increments('id');
-    table.integer('userId')
+    table.uuid('id').primary().notNullable().defaultTo(knex.raw('uuid_generate_v4()'));
+    table.uuid('userId')
         .references('id')
         .inTable('main.users')
         .onUpdate('CASCADE')
@@ -12,9 +12,12 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('userResources
     table.integer('ocean').notNullable().defaultTo(0);
     table.integer('hydrogen').notNullable().defaultTo(0);
     table.integer('bioMass').notNullable().defaultTo(0);
+
+    // Audit
     table.timestamp('createdAt', { useTz: true }).notNullable().defaultTo(knex.fn.now());
     table.timestamp('updatedAt', { useTz: true }).notNullable().defaultTo(knex.fn.now());
 
+    // Indexes
     table.index('userId');
 });
 

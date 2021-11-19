@@ -173,7 +173,7 @@ export default class MomentsStore {
                     if (options.withMedia && moment.mediaIds) {
                         const ids = modifiedMoment.mediaIds.split(',');
                         modifiedMoment.media = media.filter((m) => {
-                            if (ids.includes(m.id.toString())) {
+                            if (ids.includes(m.id)) {
                                 const bucket = getBucket(m.type);
                                 if (bucket) {
                                     // TODO: Consider alternatives to cache these urls (per user) and their expire time
@@ -201,7 +201,7 @@ export default class MomentsStore {
 
                     // USER
                     if (options.withUser) {
-                        const matchingUser = users.find((user) => Number(user.id) === Number(modifiedMoment.fromUserId));
+                        const matchingUser = users.find((user) => user.id === modifiedMoment.fromUserId);
                         if (matchingUser) {
                             matchingUsers[matchingUser.id] = matchingUser;
                             modifiedMoment.fromUserName = matchingUser.userName;

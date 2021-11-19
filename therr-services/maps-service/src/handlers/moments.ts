@@ -64,7 +64,7 @@ const getMomentDetails = (req, res) => {
             const moment = moments[0];
             let userHasAccessPromise = () => Promise.resolve(true);
             // Verify that user has activated moment and has access to view it
-            if (Number(moment.fromUserId) !== Number(userId)) {
+            if (moment.fromUserId !== userId) {
                 userHasAccessPromise = () => getReactions(momentId, {
                     'x-userid': userId,
                 });
@@ -172,10 +172,7 @@ const findMoments: RequestHandler = async (req: any, res: any) => {
         withUser: !!withUser,
     })
         .then(({ moments, media }) => res.status(200).send({ moments, media }))
-        .catch((err) => {
-            console.log(err);
-            return handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' });
-        });
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
 
 const getSignedUrl = (req, res, bucket) => {

@@ -4,7 +4,7 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('forumCategori
         .inTable('main.categories')
         .onUpdate('CASCADE')
         .onDelete('CASCADE');
-    table.integer('forumId')
+    table.uuid('forumId')
         .references('id')
         .inTable('main.forums')
         .onUpdate('CASCADE')
@@ -13,7 +13,7 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('forumCategori
     table.timestamp('createdAt', { useTz: true }).notNullable().defaultTo(knex.fn.now());
     table.timestamp('updatedAt', { useTz: true }).notNullable().defaultTo(knex.fn.now());
 
-    table.index(['categoryTag', 'forumId']);
+    table.primary(['categoryTag', 'forumId']);
 });
 
 exports.down = (knex) => knex.schema.withSchema('main').dropTable('forumCategories');

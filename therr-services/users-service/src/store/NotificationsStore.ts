@@ -10,10 +10,10 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 export const NOTIFICATIONS_TABLE_NAME = 'main.notifications';
 
 export interface ICreateNotificationParams {
-    userId: number;
+    userId: string;
     type: any;
     // type: Notifications.Types;
-    associationId?: number;
+    associationId?: string;
     isUnread: boolean;
     messageLocaleKey?: any;
     // messageLocaleKey?: Notifications.MessageKeys;
@@ -21,12 +21,12 @@ export interface ICreateNotificationParams {
 }
 
 export interface IUpdateNotificationConditions {
-    id: number;
+    id: string;
 }
 
 export interface IUpdateNotificationParams {
     type?: string;
-    associationId?: number;
+    associationId?: string;
     isUnread?: boolean;
     messageLocaleKey?: string;
     messageParams?: any;

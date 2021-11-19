@@ -28,7 +28,7 @@ const searchForumMessages: RequestHandler = (req: any, res: any) => {
         pageNumber,
     } = req.query;
     const { forumId } = req.params;
-    const integerColumns = ['forumId', 'fromUserId'];
+    const integerColumns = [];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
     const searchPromise = Store.forumMessages.searchForumMessages(forumId, searchArgs[0], searchArgs[1]);
     const countPromise = Store.forumMessages.countRecords({
