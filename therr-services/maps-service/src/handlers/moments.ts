@@ -218,6 +218,7 @@ const getSignedUrlPublicBucket = (req, res) => getSignedUrl(req, res, process.en
 // DELETE
 const deleteMoments = (req, res) => {
     const userId = req.headers['x-userid'];
+    // TODO: RSERV-52 | Consider archiving only, and delete/archive associated reactions from reactions-service
 
     return Store.moments.deleteMoments({
         ...req.body,
