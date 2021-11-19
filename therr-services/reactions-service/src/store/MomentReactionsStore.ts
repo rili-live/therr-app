@@ -6,8 +6,8 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 export const MOMENT_REACTIONS_TABLE_NAME = 'main.momentReactions';
 
 export interface ICreateMomentReactionParams {
-    momentId: number;
-    userId: number;
+    momentId: string;
+    userId: string;
     userViewCount?: number;
     userHasActivated?: boolean;
     userHasLiked?: boolean;
@@ -19,8 +19,8 @@ export interface ICreateMomentReactionParams {
 }
 
 export interface IUpdateMomentReactionConditions {
-    momentId?: number;
-    userId?: number;
+    momentId?: string;
+    userId?: string;
 }
 
 export interface IUpdateMomentReactionParams {

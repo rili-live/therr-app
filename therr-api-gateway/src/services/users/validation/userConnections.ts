@@ -4,7 +4,7 @@ import {
 } from 'express-validator/check'; // eslint-disable-line import/extensions
 
 export const createUserConnectionValidation = [
-    body('requestingUserId').isNumeric().exists(),
+    body('requestingUserId').isString().exists(),
     body('requestingUserFirstName').isNumeric().exists(),
     body('requestingUserLastName').isNumeric().exists(),
     oneOf([
@@ -21,5 +21,5 @@ export const createUserConnectionValidation = [
 ];
 
 export const updateUserConnectionValidation = [
-    body('otherUserId').isNumeric().exists(),
+    body('otherUserId').isString().exists(),
 ];

@@ -79,10 +79,10 @@ class Notifications extends React.Component<
 
     handleConnectionRequestAction = (e: any, notification, isAccepted) => {
         const { user, updateUserConnection } = this.props;
-        let otherUserId = Number(notification.userConnection.acceptingUserId);
+        let otherUserId = notification.userConnection.acceptingUserId;
 
-        if (otherUserId === Number(user.details.id)) {
-            otherUserId = Number(notification.userConnection.requestingUserId);
+        if (otherUserId === user.details.id) {
+            otherUserId = notification.userConnection.requestingUserId;
         }
 
         const updatedUserConnection = {

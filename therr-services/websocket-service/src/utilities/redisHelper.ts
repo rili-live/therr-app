@@ -95,7 +95,7 @@ export class RedisHelper {
         pipeline.exec();
     };
 
-    public getUserById = async (userId: number): Promise<any> => {
+    public getUserById = async (userId: string): Promise<any> => {
         let userData = await this.client.get(`users:${userId}`);
         let socketId: string | null | undefined;
         userData = userData && JSON.parse(userData);
@@ -149,7 +149,7 @@ export class RedisHelper {
         const userId = await this.client.get(`userSockets:${socketId}`);
 
         if (userId) {
-            return this.getUserById(Number(userId)).then((response) => response && response.user);
+            return this.getUserById(userId).then((response) => response && response.user);
         }
 
         return null;

@@ -294,7 +294,7 @@ const blockUser = (req, res) => Store.users.findUser({ id: req.params.id })
         return Store.users
             .updateUser({
                 // remove duplicates using Set()
-                blockedUsers: [...new Set([...(req.body.blockedUsers || []), Number(req.params.id)])],
+                blockedUsers: [...new Set([...(req.body.blockedUsers || []), req.params.id])],
             }, {
                 id: userId,
             }).then((response) => res.status(200).send({ blockedUsers: response[0].blockedUsers }));
@@ -319,7 +319,7 @@ const reportUser = (req, res) => Store.users.findUser({ id: req.params.id })
         return Store.users
             .updateUser({
                 // remove duplicates using Set()
-                wasReportedBy: [...new Set([...findResults[0].wasReportedBy, Number(userId)])],
+                wasReportedBy: [...new Set([...findResults[0].wasReportedBy, userId])],
             }, {
                 id: req.params.id,
             }).then(() => res.status(200).send());

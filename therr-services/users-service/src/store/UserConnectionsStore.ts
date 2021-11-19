@@ -8,16 +8,16 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 export const USER_CONNECTIONS_TABLE_NAME = 'main.userConnections';
 
 export interface ICreateUserConnectionParams {
-    requestingUserId: number;
-    acceptingUserId: number;
+    requestingUserId: string;
+    acceptingUserId: string;
     interactionCount?: number;
     isConnectionBroken?: boolean;
     requestStatus: 'pending';
 }
 
 export interface IUpdateUserConnectionConditions {
-    requestingUserId: number;
-    acceptingUserId: number;
+    requestingUserId: string;
+    acceptingUserId: string;
 }
 
 export interface IUpdateUserConnectionParams {

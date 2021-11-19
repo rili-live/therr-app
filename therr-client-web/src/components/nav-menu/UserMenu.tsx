@@ -73,10 +73,10 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
     handleConnectionRequestAction = (e, notification, isAccepted) => {
         e.stopPropagation();
         const { user, updateUserConnection } = this.props;
-        let otherUserId = Number(notification.userConnection.acceptingUserId);
+        let otherUserId = notification.userConnection.acceptingUserId;
 
-        if (otherUserId === Number(user.details.id)) {
-            otherUserId = Number(notification.userConnection.requestingUserId);
+        if (otherUserId === user.details.id) {
+            otherUserId = notification.userConnection.requestingUserId;
         }
 
         const updatedUserConnection = {
