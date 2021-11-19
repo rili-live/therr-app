@@ -1,5 +1,6 @@
 exports.up = (knex) => knex.schema.withSchema('main').createTable('integrations', (table) => {
-    table.increments('id');
+    table.uuid('id').primary().notNullable()
+        .defaultTo(knex.raw('uuid_generate_v4()'));
     table.string('name').notNullable();
     table.string('tag').notNullable();
     table.jsonb('config').notNullable().defaultsTo(JSON.stringify({}));
@@ -7,10 +8,9 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('integrations'
     table.string('iconId', 50).notNullable();
     table.string('iconColor', 40).notNullable();
 
+    // Audit
     table.timestamp('createdAt', { useTz: true }).notNullable().defaultTo(knex.fn.now());
     table.timestamp('updatedAt', { useTz: true }).notNullable().defaultTo(knex.fn.now());
-
-    table.index('id');
 });
 
 exports.down = (knex) => knex.schema.withSchema('main').dropTable('integrations');

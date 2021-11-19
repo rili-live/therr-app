@@ -161,7 +161,7 @@ const verifyToken: RequestHandler = (req: any, res: any) => {
     try {
         const decodedToken = jwt.verify(req.body.idToken, process.env.JWT_SECRET || '');
         return res.status(200).send(decodedToken);
-    } catch (err) {
+    } catch (err: any) {
         if (err.name === 'TokenExpiredError') {
             return handleHttpError({
                 res,

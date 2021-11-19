@@ -23,7 +23,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
     const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
     // eslint-disable-next-line eqeqeq
-    const fromUserFullName = Number(acceptingUserId) === Number(userId) ? requestingUserFirstName : requestingUserFirstName;
+    const fromUserFullName = acceptingUserId === userId ? requestingUserFirstName : requestingUserFirstName;
     const locale = req.headers['x-localecode'] || 'en-us';
     let acceptingId = acceptingUserId;
 
@@ -50,7 +50,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                     statusCode: 400,
                 });
             }
-        } catch (err) {
+        } catch (err: any) {
             return handleHttpError({
                 err,
                 res,
@@ -153,7 +153,7 @@ const searchUserConnections: RequestHandler = (req: any, res: any) => {
         pageNumber,
         shouldCheckReverse,
     } = req.query;
-    const integerColumns = ['requestingUserId', 'acceptingUserId', 'interactionCount'];
+    const integerColumns = ['interactionCount'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
     const searchPromise = Store.userConnections.searchUserConnections(searchArgs[0], searchArgs[1], shouldCheckReverse);
     const countPromise = Store.userConnections.countRecords({
@@ -182,9 +182,9 @@ const searchUserConnections: RequestHandler = (req: any, res: any) => {
 const updateUserConnection = (req, res) => {
     const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
-    const acceptingUserId = Number(userId);
+    const acceptingUserId = userId;
     const locale = req.headers['x-localecode'] || 'en-us';
-    const requestingUserId = Number(req.body.otherUserId);
+    const requestingUserId = req.body.otherUserId;
 
     return Store.userConnections.getUserConnections({
         requestingUserId,
@@ -200,7 +200,7 @@ const updateUserConnection = (req, res) => {
             if (!getResults.length) {
                 return handleHttpError({
                     res,
-                    message: `No user connection found with requesting user id, ${req.params.requestingUserId}.`,
+                    message: `No user connection found with requesting user id, ${requestingUserId}.`,
                     statusCode: 404,
                 });
             }

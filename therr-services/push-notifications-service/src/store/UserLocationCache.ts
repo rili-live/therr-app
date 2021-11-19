@@ -134,8 +134,8 @@ export default class UserLocationCache {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             .then((moments) => moments.map(([error, moment]) => ({
                 ...moment,
-                id: Number(moment.id),
-                fromUserId: Number(moment.fromUserId),
+                id: moment.id,
+                fromUserId: moment.fromUserId,
                 isPublic: moment.isPublic === 'true',
                 maxViews: Number(moment.maxViews),
                 latitude: Number(moment.latitude),

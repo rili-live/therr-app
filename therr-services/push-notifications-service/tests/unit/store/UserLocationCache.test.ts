@@ -28,12 +28,12 @@ describe('UserLocationCache', () => {
         const userLocationCache = new UserLocationCache(mockUserId, callback);
     });
 
-    it('getMomentsWithinDistance returns a properlymapped/parsed array of moments', async () => {
+    it('getMomentsWithinDistance returns a properly mapped/parsed array of moments', async () => {
         const mockUserId = 123;
         const mockRedisMoments = [
             {
-                id: '1',
-                fromUserId: '321',
+                id: '6f6589c7-5057-4eea-8053-3d8622f56eb3',
+                fromUserId: '0cbf27f3-b766-4e96-a9a7-0feb880f9366',
                 isPublic: 'false',
                 maxViews: '0',
                 latitude: '-123.45345',
@@ -43,8 +43,8 @@ describe('UserLocationCache', () => {
                 doesRequireProximityToView: 'true',
             },
             {
-                id: '2',
-                fromUserId: '321',
+                id: '4f459cf9-42bb-4ab2-9b0d-ea6c967c77c5',
+                fromUserId: '0cbf27f3-b766-4e96-a9a7-0feb880f9366',
                 maxViews: '0',
                 latitude: '-123.45345',
                 longitude: '123.34234',
@@ -52,8 +52,8 @@ describe('UserLocationCache', () => {
                 maxProximity: '10',
             },
             {
-                id: '5',
-                fromUserId: '321',
+                id: '4476e10e-ebaf-41ed-ab8e-4144405b4f23',
+                fromUserId: '0cbf27f3-b766-4e96-a9a7-0feb880f9366',
                 isPublic: 'yes',
                 maxViews: '0',
                 latitude: '-123.45345',
@@ -85,8 +85,8 @@ describe('UserLocationCache', () => {
         await userLocationCache.getMomentsWithinDistance({}, 100, {})
             .then((response) => {
                 expect(response[0]).to.be.deep.equal({
-                    id: 1,
-                    fromUserId: 321,
+                    id: '6f6589c7-5057-4eea-8053-3d8622f56eb3',
+                    fromUserId: '0cbf27f3-b766-4e96-a9a7-0feb880f9366',
                     isPublic: false,
                     maxViews: 0,
                     latitude: -123.45345,
@@ -96,8 +96,8 @@ describe('UserLocationCache', () => {
                     doesRequireProximityToView: true,
                 });
                 expect(response[1]).to.be.deep.equal({
-                    id: 2,
-                    fromUserId: 321,
+                    id: '4f459cf9-42bb-4ab2-9b0d-ea6c967c77c5',
+                    fromUserId: '0cbf27f3-b766-4e96-a9a7-0feb880f9366',
                     isPublic: false,
                     maxViews: 0,
                     latitude: -123.45345,
@@ -107,8 +107,8 @@ describe('UserLocationCache', () => {
                     doesRequireProximityToView: false,
                 });
                 expect(response[2]).to.be.deep.equal({
-                    id: 5,
-                    fromUserId: 321,
+                    id: '4476e10e-ebaf-41ed-ab8e-4144405b4f23',
+                    fromUserId: '0cbf27f3-b766-4e96-a9a7-0feb880f9366',
                     isPublic: false,
                     maxViews: 0,
                     latitude: -123.45345,

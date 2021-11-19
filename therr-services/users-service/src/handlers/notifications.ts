@@ -69,7 +69,7 @@ const searchNotifications: RequestHandler = (req: any, res: any) => {
         itemsPerPage,
         pageNumber,
     } = req.query;
-    const integerColumns = ['id', 'userId', 'associationId'];
+    const integerColumns = ['id'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
     const searchPromise = Store.notifications.searchNotifications(searchArgs[0]);
     // const countPromise = Store.notifications.countRecords({

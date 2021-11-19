@@ -9,14 +9,14 @@ export const DIRECT_MESSAGES_TABLE_NAME = 'main.directMessages';
 
 export interface ICreateDirectMessageParams {
     message: string;
-    toUserId: number;
-    fromUserId: number;
+    toUserId: string;
+    fromUserId: string;
     isUnread: boolean;
     locale: string;
 }
 
 export interface IUpdateDirectMessageConditions {
-    id: number;
+    id: string;
 }
 
 export interface IUpdateDirectMessageParams {

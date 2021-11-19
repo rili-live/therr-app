@@ -19,14 +19,14 @@ export interface ICreateUserParams {
 }
 
 interface IFindUserArgs {
-    id?: number;
+    id?: string;
     email?: string;
     userName?: string;
     phoneNumber?: string;
 }
 
 interface IFindUsersArgs {
-    ids?: number[];
+    ids?: string[];
 }
 
 export default class UsersStore {

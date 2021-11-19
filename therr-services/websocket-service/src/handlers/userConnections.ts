@@ -15,7 +15,7 @@ interface IUpdateUserConnectionData {
     connection: {
         interactionCount?: number;
         isConnectionBroken?: boolean,
-        otherUserId: number,
+        otherUserId: string,
         requestStatus?: 'complete' | 'pending' | 'denied',
     };
     user: any;

@@ -1,15 +1,17 @@
 exports.up = (knex) => knex.schema.withSchema('main').createTable('notifications', (table) => {
-    table.increments('id');
-    table.integer('userId')
+    table.uuid('id').primary().notNullable().defaultTo(knex.raw('uuid_generate_v4()'));
+    table.uuid('userId')
         .references('id')
         .inTable('main.users')
         .onUpdate('CASCADE')
         .onDelete('CASCADE');
     table.string('type', 100).notNullable();
-    table.integer('associationId');
+    table.uuid('associationId');
     table.bool('isUnread').notNullable().defaultTo(true);
-    table.string('message');
+    table.text('messageLocaleKey').notNullable();
     table.jsonb('messageParams');
+
+    // Audit
     table.timestamp('createdAt', {
         useTz: true,
     }).notNullable().defaultTo(knex.fn.now());
@@ -17,6 +19,7 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('notifications
         useTz: true,
     }).notNullable().defaultTo(knex.fn.now());
 
+    // Indexes
     table.index('userId').index(['userId', 'updatedAt']);
 });
 

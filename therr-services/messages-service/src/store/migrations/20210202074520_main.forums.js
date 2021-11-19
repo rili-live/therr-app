@@ -1,5 +1,6 @@
 exports.up = (knex) => knex.schema.withSchema('main').createTable('forums', (table) => {
-    table.increments('id');
+    table.uuid('id').primary().notNullable()
+        .defaultTo(knex.raw('uuid_generate_v4()'));
     table.integer('authorId');
     table.string('authorLocale').collate('utf8_general_ci').notNullable();
     table.string('title').collate('utf8_general_ci').notNullable();
@@ -12,14 +13,15 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('forums', (tab
     table.string('iconGroup').notNullable();
     table.string('iconId', 50).notNullable();
     table.string('iconColor', 40).notNullable();
-    table.integer('maxCommentsPerMin').notNullable().defaultsTo(50);
-
     table.bool('doesExpire').notNullable().defaultTo(true);
     table.bool('isPublic').notNullable().defaultTo(false);
 
+    // Audit
+    table.integer('maxCommentsPerMin').notNullable().defaultsTo(50);
     table.timestamp('createdAt', { useTz: true }).notNullable().defaultTo(knex.fn.now());
     table.timestamp('updatedAt', { useTz: true }).notNullable().defaultTo(knex.fn.now());
 
+    // Indexes
     table.index('id').index('authorId');
 });
 

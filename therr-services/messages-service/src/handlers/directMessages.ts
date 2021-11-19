@@ -29,7 +29,7 @@ const searchDirectMessages: RequestHandler = (req: any, res: any) => {
         pageNumber,
         shouldCheckReverse,
     } = req.query;
-    const integerColumns = ['toUserId', 'fromUserId'];
+    const integerColumns = [];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
     const searchPromise = Store.directMessages.searchDirectMessages(userId, searchArgs[0], searchArgs[1], shouldCheckReverse);
     // const countPromise = Store.directMessages.countRecords({

@@ -3,7 +3,7 @@ import * as globalConfig from '../../../../global-config';
 
 const baseUsersServiceRoute = globalConfig[process.env.NODE_ENV || 'development'].baseReactionsServiceRoute;
 
-export default (momentId: number, headers) => axios({
+export default (momentId: string, headers) => axios({
     method: 'get',
     url: `${baseUsersServiceRoute}/moment-reactions/${momentId}`,
     headers,
