@@ -58,7 +58,7 @@ export class FlatListHeaderTabs extends React.Component<IFlatListHeaderTabsProps
     };
 
     getCurrentScreen = () => {
-        const navState = this.props.navigation.dangerouslyGetState();
+        const navState = this.props.navigation.getState();
 
         return (
             navState.routes[navState.routes.length - 1] &&

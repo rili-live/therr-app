@@ -43,15 +43,13 @@ export default StyleSheet.create({
         borderWidth: 1,
     },
     headerSearchContainer: {
-        flex: 1,
         justifyContent: 'flex-end',
-        alignSelf: 'center',
         flexDirection: 'column',
         height: HEADER_HEIGHT,
         marginBottom: Platform.OS === 'ios' ? HEADER_PADDING_BOTTOM / 2 : HEADER_PADDING_BOTTOM,
         // width: 500,
-        left: 0,
-        right: 0,
+        marginHorizontal: 0,
+        paddingHorizontal: 0,
     },
     headerSearchInputContainer: {
         height: HEADER_HEIGHT - HEADER_PADDING_BOTTOM,

@@ -155,8 +155,22 @@ class HeaderMenuRight extends React.Component<
         });
     };
 
+    startTour = () => {
+        const { navigation } = this.props;
+        if (this.getCurrentScreen() === 'Map') {
+            this.toggleOverlay();
+            navigation.replace('Map', {
+                isTourEnabled: true,
+            });
+        } else {
+            navigation.navigate('Map', {
+                isTourEnabled: true,
+            });
+        }
+    }
+
     getCurrentScreen = () => {
-        const navState = this.props.navigation.dangerouslyGetState();
+        const navState = this.props.navigation.getState();
 
         return (
             navState.routes[navState.routes.length - 1] &&
@@ -223,7 +237,7 @@ class HeaderMenuRight extends React.Component<
                     >
                         {
                             (hideModal) => (
-                                <>
+                                <View style={headerMenuModal.container}>
                                     <View style={headerMenuModal.header}>
                                         <View style={headerMenuModal.headerTitle}>
                                             <Image
@@ -463,7 +477,20 @@ class HeaderMenuRight extends React.Component<
                                     <View style={headerMenuModal.footer}>
                                         <Button
                                             titleStyle={headerMenuModal.buttonsTitle}
-                                            buttonStyle={headerMenuModal.buttons}
+                                            buttonStyle={[headerMenuModal.buttons, , { justifyContent: 'center', marginBottom: 10 }]}
+                                            title={this.translate('components.headerMenuRight.menuItems.tour')}
+                                            icon={
+                                                <FontAwesomeIcon
+                                                    style={headerMenuModal.iconStyle}
+                                                    name="info"
+                                                    size={18}
+                                                />
+                                            }
+                                            onPress={this.startTour}
+                                        />
+                                        <Button
+                                            titleStyle={headerMenuModal.buttonsTitle}
+                                            buttonStyle={[headerMenuModal.buttons, { justifyContent: 'center' }]}
                                             title={this.translate('components.headerMenuRight.menuItems.logout')}
                                             iconRight
                                             icon={
@@ -476,7 +503,7 @@ class HeaderMenuRight extends React.Component<
                                             onPress={() => this.handleLogout(hideModal)}
                                         />
                                     </View>
-                                </>
+                                </View>
                             )
                         }
                     </Overlay>
