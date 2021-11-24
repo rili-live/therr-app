@@ -8,7 +8,7 @@ import {
 
 export const createMomentValidation = [
     body('expiresAt').optional(),
-    body('fromUserId').isNumeric().exists(),
+    body('fromUserId').isString().exists(),
     body('isPublic').isBoolean().optional(),
     body('message').isString().exists(),
     body('notificationMsg').isString().optional(),
@@ -19,7 +19,7 @@ export const createMomentValidation = [
     body('maxProximity').isDecimal().optional(),
     body('latitude').isDecimal().exists(),
     body('longitude').isDecimal().exists(),
-    body('media').isArray().exists(), // TODO: Add granularity
+    body('media').isArray().optional(), // TODO: Add granularity
     oneOf([
         body('radius').isDecimal().exists(),
         body('polygonCoords').custom((polygonCoords, { req }) => {

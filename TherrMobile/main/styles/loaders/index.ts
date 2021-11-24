@@ -25,7 +25,7 @@ export default StyleSheet.create({
     },
     therrBlackRollingContainer: {
         ...containerStyles,
-        marginHorizontal: '25%',
+        marginHorizontal: '35%',
     },
     yellowCarContainer: {
         ...containerStyles,

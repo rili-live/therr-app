@@ -63,6 +63,7 @@ const colors = {
 
 const colorVariations = {
     primaryFade: new Color(colors.primary).fade(0.35).toString(),
+    primaryFadeMore: new Color(colors.primary).fade(0.65).toString(),
     primary2Fade: new Color(colors.primary2).fade(0.35).toString(),
     primary2Darken: new Color(colors.primary2).darken(0.075).toString(),
     primary3LightFade: new Color(colors.primary3).fade(0.15).toString(),

@@ -113,6 +113,49 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         );
     }
 
+    signImageUrl = (createArgs) => {
+        const {
+            message,
+            notificationMsg,
+            isPublic,
+        } = this.state.inputs;
+        const {
+            route,
+        } = this.props;
+        const {
+        } = route.params;
+        const { imageDetails } = route.params;
+        const { croppedImage } = imageDetails || {};
+
+        const signUrl = isPublic ? MapsService.getSignedUrlPublicBucket : MapsService.getSignedUrlPrivateBucket;
+
+        // TODO: This is too slow
+        // Use public method for public moments
+        return signUrl({
+            action: 'write',
+            filename: `content/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g,'_')}.jpg`,
+        }).then((response) => {
+            const signedUrl = response?.data?.url && response?.data?.url[0];
+            createArgs.media = [{}];
+            createArgs.media[0].type = isPublic ? Content.mediaTypes.USER_IMAGE_PUBLIC : Content.mediaTypes.USER_IMAGE_PRIVATE;
+            createArgs.media[0].path = response?.data?.path;
+
+            const localFilePath = Platform.OS === 'ios' ? imageDetails.uri.replace('file:///', '') : imageDetails.uri;
+            const localFileCroppedPath = Platform.OS === 'ios' ? imageDetails.uri.replace('file:///', '').replace('file:/', '') : croppedImage?.uri;
+
+            // Upload to Google Cloud
+            return RNFB.fetch(
+                'PUT',
+                signedUrl,
+                {
+                    'Content-Type': imageDetails.type,
+                    'Content-Disposition': 'inline',
+                },
+                RNFB.wrap(localFileCroppedPath || localFilePath),
+            ).then(() => createArgs);
+        });
+    }
+
     onSubmit = () => {
         const { hashtags } = this.state;
         const {
@@ -133,7 +176,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             longitude,
         } = route.params;
         const { imageDetails } = route.params;
-        const { croppedImage } = imageDetails;
+        const { croppedImage } = imageDetails || {};
 
         const createArgs: any = {
             fromUserId: user.details.id,
@@ -153,35 +196,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 isSubmitting: true,
             });
 
-            const signUrl = isPublic ? MapsService.getSignedUrlPublicBucket : MapsService.getSignedUrlPrivateBucket;
-
-            // TODO: This is too slow
-            // Use public method for public moments
-            signUrl({
-                action: 'write',
-                filename: `content/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g,'_')}.jpg`,
-            }).then((response) => {
-                const signedUrl = response?.data?.url && response?.data?.url[0];
-                createArgs.media = [{}];
-                createArgs.media[0].type = isPublic ? Content.mediaTypes.USER_IMAGE_PUBLIC : Content.mediaTypes.USER_IMAGE_PRIVATE;
-                createArgs.media[0].path = response?.data?.path;
-
-                const localFilePath = Platform.OS === 'ios' ? imageDetails.uri.replace('file:///', '') : imageDetails.uri;
-                const localFileCroppedPath = Platform.OS === 'ios' ? imageDetails.uri.replace('file:///', '').replace('file:/', '') : croppedImage?.uri;
-
-                // Upload to Google Cloud
-                return RNFB.fetch(
-                    'PUT',
-                    signedUrl,
-                    {
-                        'Content-Type': imageDetails.type,
-                        'Content-Disposition': 'inline',
-                    },
-                    RNFB.wrap(localFileCroppedPath || localFilePath),
-                );
-            }).then(() => {
+            (croppedImage ? this.signImageUrl(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
                 this.props
-                    .createMoment(createArgs)
+                    .createMoment(modifiedCreateArgs)
                     .then(() => {
                         this.setState({
                             successMsg: this.translate('forms.editMoment.backendSuccessMessage'),
@@ -191,7 +208,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         }, 500);
                     })
                     .catch((error: any) => {
-                        // Delete uploaded file on failure to create
+                        // TODO: Delete uploaded file on failure to create
                         if (
                             error.statusCode === 400 ||
                             error.statusCode === 401 ||
@@ -316,7 +333,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         const { errorMsg, successMsg, hashtags, inputs, previewLinkId, previewStyleState } = this.state;
 
         const { imageDetails } = route.params;
-        const { croppedImage } = imageDetails;
+        const { croppedImage } = imageDetails || {};
+        const imageURI = croppedImage?.uri || imageDetails?.uri;
 
         return (
             <>
@@ -330,12 +348,15 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         contentContainerStyle={[styles.bodyScroll, beemoLayoutStyles.bodyEditScroll]}
                     >
                         <Pressable style={beemoLayoutStyles.container} onPress={Keyboard.dismiss}>
-                            <View style={editMomentStyles.mediaContainer}>
-                                <Image
-                                    source={{ uri: croppedImage?.uri || imageDetails.uri }}
-                                    style={editMomentStyles.mediaImage}
-                                />
-                            </View>
+                            {
+                                imageURI &&
+                                <View style={editMomentStyles.mediaContainer}>
+                                    <Image
+                                        source={{ uri: imageURI }}
+                                        style={editMomentStyles.mediaImage}
+                                    />
+                                </View>
+                            }
                             <BeemoInput
                                 maxLength={100}
                                 placeholder={this.translate(
