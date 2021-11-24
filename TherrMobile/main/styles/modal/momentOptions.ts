@@ -7,6 +7,7 @@ export default StyleSheet.create({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'flex-end',
+        // backgroundColor: 'rgba(0,0,0,0.25)',
     },
     container: {
         display: 'flex',
@@ -18,6 +19,8 @@ export default StyleSheet.create({
         backgroundColor: therrTheme.colors.backgroundGray,
         borderTopWidth: 2,
         borderTopColor: therrTheme.colors.primary,
+        // borderTopRightRadius: 15,
+        // borderTopLeftRadius: 15,
         elevation: 5,
     },
 });

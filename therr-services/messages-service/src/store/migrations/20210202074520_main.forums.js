@@ -1,7 +1,7 @@
 exports.up = (knex) => knex.schema.withSchema('main').createTable('forums', (table) => {
     table.uuid('id').primary().notNullable()
         .defaultTo(knex.raw('uuid_generate_v4()'));
-    table.integer('authorId');
+    table.uuid('authorId');
     table.string('authorLocale').collate('utf8_general_ci').notNullable();
     table.string('title').collate('utf8_general_ci').notNullable();
     table.string('subtitle').collate('utf8_general_ci').notNullable();
