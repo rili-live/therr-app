@@ -16,7 +16,7 @@ import AnimatedLoader from 'react-native-animated-loader';
 import { distanceTo, insideCircle } from 'geolocation-utils';
 import * as ImagePicker from 'react-native-image-picker';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
-import MapActionButtonsAlt from './MapActionButtonsAlt';
+import MapActionButtonsAlt, { ICreateMomentAction } from './MapActionButtonsAlt';
 import Alert from '../../components/Alert';
 import MainButtonMenuAlt from '../../components/ButtonMenu/MainButtonMenuAlt';
 import { ILocationState } from '../../types/redux/location';
@@ -59,6 +59,7 @@ const earthLoader = require('../../assets/earth-loader.json');
 const ANIMATE_TO_REGION_DURATION = 750;
 const ANIMATE_TO_REGION_DURATION_SLOW = 1500;
 const ANIMATE_TO_REGION_DURATION_FAST = 500;
+
 
 interface IMapDispatchProps {
     captureClickTarget: Function;
@@ -107,6 +108,7 @@ interface IMapState {
     isMinLoadTimeComplete: boolean;
     isSearchThisLocationBtnVisible: boolean;
     shouldIgnoreSearchThisAreaButton: boolean;
+    shouldShowCreateActions: boolean;
     lastMomentsRefresh?: number,
     lastLocationSendForProcessing?: number,
     lastLocationSendForProcessingCoords?: {
@@ -174,6 +176,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             isMinLoadTimeComplete: false,
             isSearchThisLocationBtnVisible: false,
             shouldIgnoreSearchThisAreaButton: false,
+            shouldShowCreateActions: false,
             layers: {
                 myMoments: true,
                 connectionsMoments: true,
@@ -289,9 +292,9 @@ class Map extends React.Component<IMapProps, IMapState> {
         }
     }
 
-    handleCreateMoment = (isCamera: boolean = true) => {
-        const { location, user } = this.props;
-        const { circleCenter } = this.state;
+    toggleMomentActions = () => {
+        const { user } = this.props;
+        const { shouldShowCreateActions } = this.state;
 
         if (Platform.OS === 'ios' && !user.details.hasAgreedToTerms) {
             this.setState({
@@ -299,6 +302,15 @@ class Map extends React.Component<IMapProps, IMapState> {
             });
             return;
         }
+
+        this.setState({
+            shouldShowCreateActions: !shouldShowCreateActions,
+        });
+    }
+
+    handleCreateMoment = (action: ICreateMomentAction = 'camera') => {
+        const { location, navigation } = this.props;
+        const { circleCenter } = this.state;
 
         if (location?.settings?.isGpsEnabled) {
             // TODO: Store permissions in redux
@@ -309,7 +321,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                     return response[key] !== 'granted';
                 });
                 if (!permissionsDenied) {
-                    if (isCamera) {
+                    if (action === 'camera') {
                         return ImagePicker.launchCamera(
                             {
                                 mediaType: 'photo',
@@ -320,7 +332,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                             },
                             (cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter),
                         );
-                    } else {
+                    } else if (action === 'upload') {
                         return ImagePicker.launchImageLibrary(
                             {
                                 mediaType: 'photo',
@@ -331,6 +343,11 @@ class Map extends React.Component<IMapProps, IMapState> {
                             },
                             (cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter),
                         );
+                    } else {
+                        navigation.navigate('EditMoment', {
+                            ...circleCenter,
+                            imageDetails: {},
+                        });
                     }
                 } else {
                     throw new Error('permissions denied');
@@ -363,6 +380,10 @@ class Map extends React.Component<IMapProps, IMapState> {
             updateLocationDisclosure,
             updateLocationPermissions,
         } = this.props;
+
+        this.setState({
+            shouldShowCreateActions: false,
+        });
 
         navigation.setOptions({
             title: this.translate('pages.map.headerTitle'),
@@ -509,6 +530,10 @@ class Map extends React.Component<IMapProps, IMapState> {
         const { createOrUpdateReaction, location, map, navigation, setSearchDropdownVisibility, user } = this.props;
         const { circleCenter, layers } = this.state;
         let visibleMoments: any[] = [];
+
+        this.setState({
+            shouldShowCreateActions: false,
+        });
 
         setSearchDropdownVisibility(false);
 
@@ -764,7 +789,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         // Update user property to show confirmed
         updateUser(user.details.id, { hasAgreedToTerms: true }).then(() => {
-            this.handleCreateMoment(false);
+            this.handleCreateMoment('upload');
         });
     }
 
@@ -931,6 +956,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     toggleLayers = () => {
         this.setState({
             areLayersVisible: !this.state.areLayersVisible,
+            shouldShowCreateActions: false,
         });
     }
 
@@ -957,6 +983,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             areLayersVisible,
             circleCenter,
             shouldFollowUserLocation,
+            shouldShowCreateActions,
             isConfirmModalVisible,
             isLocationReady,
             isLocationUseDisclosureModalVisible,
@@ -1161,8 +1188,11 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 hasNotifications={hasNotifications}
                                 handleCreateMoment={this.handleCreateMoment}
                                 handleGpsRecenter={this.handleGpsRecenterPress}
+                                toggleMomentActions={this.toggleMomentActions}
+                                shouldShowCreateActions={shouldShowCreateActions}
                                 isAuthorized={this.isAuthorized}
                                 isGpsEnabled={location?.settings?.isGpsEnabled}
+                                translate={this.translate}
                             />
                         }
                         <FiltersButtonGroup

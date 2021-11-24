@@ -354,6 +354,12 @@
         "rotate": "Rotate"
       }
     },
+    "mapActions": {
+      "claimASpace": "Claim a Space",
+      "shareAThought": "Share a Thought",
+      "uploadAMoment": "Upload a Moment",
+      "captureAMoment": "Capture a Moment"
+    },
     "main": {
       "buttons": {
         "account": "Account",
