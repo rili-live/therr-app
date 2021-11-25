@@ -54,7 +54,7 @@ const bodyStyle: any = {
 
 export const headerStyles: any = {
     backgroundColor: bodyStyle.backgroundColor,
-    borderBottomColor: therrTheme.colors.primary3,
+    borderBottomColor: therrTheme.colorVariations.primary3LightFade,
     height: Platform.OS === 'ios'
         ? (IOS_STATUS_HEIGHT + IOS_TOP_GAP + HEADER_HEIGHT)
         : (HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + 20),
@@ -77,12 +77,22 @@ const overlayStyles: any = {
     backgroundColor: 'rgba(0, 0, 0, 0.35)',
 };
 
+const headerTitleStyles: any = {
+    flex: 1,
+    left: 0,
+    right: 0,
+    justifyContent: 'flex-end',
+    flexDirection: 'column',
+    height: HEADER_HEIGHT,
+};
+
 const loaderStyles = StyleSheet.create({
     lottie: {
         width: 100,
         height: 100,
     },
 });
+
 
 export default StyleSheet.create({
     safeAreaView: {
@@ -230,15 +240,17 @@ export default StyleSheet.create({
         fontWeight: 'bold',
     },
     headerTitleLogoText: {
-        flex: 1,
-        justifyContent: 'flex-end',
-        alignSelf: 'center',
-        flexDirection: 'column',
-        height: HEADER_HEIGHT,
-        marginBottom: Platform.OS === 'ios' ? HEADER_PADDING_BOTTOM / 2 : HEADER_PADDING_BOTTOM,
-        // width: 500,
-        left: 0,
-        right: 0,
+        ...headerTitleStyles,
+        marginBottom: Platform.OS === 'ios' ? HEADER_PADDING_BOTTOM / 2 : HEADER_PADDING_BOTTOM / 2,
+    },
+    headerSearchContainer: {
+        ...headerTitleStyles,
+        marginBottom: Platform.OS === 'ios' ? HEADER_PADDING_BOTTOM / 2 : HEADER_PADDING_BOTTOM / 2,
+    },
+    headerSearchInputContainer: {
+        height: HEADER_HEIGHT - HEADER_PADDING_BOTTOM,
+        margin: 0,
+        padding: 0,
     },
     highlight: {
         fontWeight: '700',

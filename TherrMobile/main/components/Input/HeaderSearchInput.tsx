@@ -11,6 +11,7 @@ import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-doten
 import RoundInput from '.';
 import translator from '../../services/translator';
 import * as therrTheme from '../../styles/themes';
+import styles from '../../styles';
 import formStyles from '../../styles/forms';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -156,9 +157,9 @@ export class HeaderSearchInput<IHeaderSearchInputProps> extends RoundInput {
         return (
             <RoundInput
                 errorStyle={{ display: 'none' }}
-                containerStyle={[formStyles.headerSearchContainer, { width: screenWidth - 124  }]}
+                containerStyle={[styles.headerSearchContainer, { width: screenWidth - 124 }]}
                 inputStyle={[Platform.OS !== 'ios' ? formStyles.input : formStyles.inputAlt, { fontSize: Platform.OS !== 'ios' ? 16 : 19 }]}
-                inputContainerStyle={[formStyles.inputContainerRound, formStyles.headerSearchInputContainer]}
+                inputContainerStyle={[formStyles.inputContainerRound, styles.headerSearchInputContainer]}
                 onChangeText={this.onInputChange}
                 onFocus={this.handlePress}
                 placeholder={this.translate('components.header.searchInput.placeholder')}

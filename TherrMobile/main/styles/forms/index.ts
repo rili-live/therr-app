@@ -7,7 +7,6 @@ import phoneInput from './phoneInput';
 import settingsForm from './settingsForm';
 import * as therrTheme from '../themes';
 import { containerStyles, inputStyle, textInputStyle } from './base';
-import { HEADER_HEIGHT, HEADER_PADDING_BOTTOM } from '../';
 
 const inputContainerBaseStyles = {
     borderBottomColor: therrTheme.colors.textDarkGray,
@@ -41,20 +40,6 @@ export default StyleSheet.create({
         color: therrTheme.colors.beemoTextBlack,
         borderColor: therrTheme.colors.beemoTextBlack,
         borderWidth: 1,
-    },
-    headerSearchContainer: {
-        justifyContent: 'flex-end',
-        flexDirection: 'column',
-        height: HEADER_HEIGHT,
-        marginBottom: Platform.OS === 'ios' ? HEADER_PADDING_BOTTOM / 2 : HEADER_PADDING_BOTTOM,
-        // width: 500,
-        marginHorizontal: 0,
-        paddingHorizontal: 0,
-    },
-    headerSearchInputContainer: {
-        height: HEADER_HEIGHT - HEADER_PADDING_BOTTOM,
-        margin: 0,
-        padding: 0,
     },
     textField: {
         padding: inputStyle.padding,

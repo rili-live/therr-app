@@ -328,6 +328,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             headerTitleAlign: 'center',
                             headerStyle: styles.headerStyle,
                             headerTransparent: false,
+                            headerBackVisible: false,
+                            headerBackTitleVisible: false,
                         });
                     }}
                 >
