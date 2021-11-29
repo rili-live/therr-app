@@ -241,11 +241,11 @@ export default StyleSheet.create({
     },
     headerTitleLogoText: {
         ...headerTitleStyles,
-        marginBottom: Platform.OS === 'ios' ? HEADER_PADDING_BOTTOM / 2 : HEADER_PADDING_BOTTOM / 2,
+        marginBottom: (Platform.OS === 'ios' && Platform.isPad) ? HEADER_PADDING_BOTTOM : HEADER_PADDING_BOTTOM / 2,
     },
     headerSearchContainer: {
         ...headerTitleStyles,
-        marginBottom: Platform.OS === 'ios' ? HEADER_PADDING_BOTTOM / 2 : HEADER_PADDING_BOTTOM / 2,
+        marginBottom: (Platform.OS === 'ios' && Platform.isPad) ? HEADER_PADDING_BOTTOM : HEADER_PADDING_BOTTOM / 2,
     },
     headerSearchInputContainer: {
         height: HEADER_HEIGHT - HEADER_PADDING_BOTTOM,
