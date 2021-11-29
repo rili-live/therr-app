@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import {
     Route, Switch, withRouter, RouteComponentProps,
 } from 'react-router-dom';
-import { TransitionGroup as Animation } from 'react-transition-group';
+import { TransitionGroup } from 'react-transition-group';
 import { Location } from 'history';
 // import * as ReactGA from 'react-ga';
 import { IMessagesState, IUserState, AccessCheckType } from 'therr-react/types';
@@ -361,10 +361,10 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                             {this.renderNavMenuContent()}
                         </div>
                     </AccessControl>
-                    <Animation
-                        appear={true}
-                        enter={true}
-                        exit={true}
+                    <TransitionGroup
+                        appear
+                        enter
+                        exit
                         component="div"
                         className="content-container view"
                     >
@@ -388,7 +388,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                             }
                             <RedirectWithStatus from="/redirect" to="/" statusCode="301" />
                         </Switch>
-                    </Animation>
+                    </TransitionGroup>
 
                     {/* <Alerts></Alerts> */}
                     {/* <Loader></Loader> */}

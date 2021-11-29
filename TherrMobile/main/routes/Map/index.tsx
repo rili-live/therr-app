@@ -52,6 +52,7 @@ import LocationUseDisclosureModal from '../../components/Modals/LocationUseDiscl
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import eula from './EULA';
 import UsersActions from '../../redux/actions/UsersActions';
+import TouringModal from '../../components/Modals/TouringModal';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../../assets/earth-loader.json');
@@ -86,6 +87,7 @@ interface IStoreProps extends IMapDispatchProps {
 // Regular component props
 export interface IMapProps extends IStoreProps {
     navigation: any;
+    route: any;
 }
 
 interface IMapState {
@@ -107,6 +109,7 @@ interface IMapState {
     isLocationUseDisclosureModalVisible: boolean;
     isMinLoadTimeComplete: boolean;
     isSearchThisLocationBtnVisible: boolean;
+    isTouring: boolean;
     shouldIgnoreSearchThisAreaButton: boolean;
     shouldShowCreateActions: boolean;
     lastMomentsRefresh?: number,
@@ -170,6 +173,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             shouldFollowUserLocation: false,
             isConfirmModalVisible: false,
             isScrollEnabled: true,
+            isTouring: false,
             isMomentAlertVisible: false,
             isLocationUseDisclosureModalVisible: false,
             isLocationReady: false,
@@ -194,7 +198,18 @@ class Map extends React.Component<IMapProps, IMapState> {
     componentDidMount = async () => {
         const { navigation, setSearchDropdownVisibility } = this.props;
 
-        this.unsubscribeNavigationListener = navigation.addListener('state', () => {
+        this.unsubscribeNavigationListener = navigation.addListener('state', (foo) => {
+            const route = foo.data.state.routes.find(route => route.name === 'Map');
+            console.log('FUCK', route);
+            if (route && route.params?.isTourEnabled) {
+                this.setState({
+                    isTouring: true,
+                });
+            } else {
+                this.setState({
+                    isTouring: false,
+                });
+            }
             setSearchDropdownVisibility(false);
             clearTimeout(this.timeoutId);
             this.setState({
@@ -257,6 +272,10 @@ class Map extends React.Component<IMapProps, IMapState> {
     goToNotifications = () => {
         const { navigation } = this.props;
 
+        this.setState({
+            shouldShowCreateActions: false,
+        });
+
         navigation.navigate('Notifications');
     };
 
@@ -292,7 +311,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         }
     }
 
-    toggleMomentActions = () => {
+    toggleMomentActions = (shouldHide: boolean = false) => {
         const { user } = this.props;
         const { shouldShowCreateActions } = this.state;
 
@@ -304,7 +323,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         }
 
         this.setState({
-            shouldShowCreateActions: !shouldShowCreateActions,
+            shouldShowCreateActions: shouldHide ? false : !shouldShowCreateActions,
         });
     }
 
@@ -315,6 +334,14 @@ class Map extends React.Component<IMapProps, IMapState> {
         if (location?.settings?.isGpsEnabled) {
             // TODO: Store permissions in redux
             const storePermissions = () => {};
+
+            // No need to request camera permissions for text only
+            if (action === 'text-only') {
+                navigation.navigate('EditMoment', {
+                    ...circleCenter,
+                    imageDetails: {},
+                });
+            }
 
             return requestOSCameraPermissions(storePermissions).then((response) => {
                 const permissionsDenied = Object.keys(response).some((key) => {
@@ -352,7 +379,8 @@ class Map extends React.Component<IMapProps, IMapState> {
                 } else {
                     throw new Error('permissions denied');
                 }
-            }).catch(() => {
+            }).catch((e) => {
+                console.log(e);
                 // Handle Permissions denied
             });
 
@@ -764,6 +792,13 @@ class Map extends React.Component<IMapProps, IMapState> {
         }
     }
 
+    handleStopTouring = () => {
+        const { navigation } = this.props;
+        navigation.replace('Map', {
+            isTourEnabled: false,
+        });
+    }
+
     isAuthorized = () => {
         const { user } = this.props;
         return UsersService.isAuthorized(
@@ -991,6 +1026,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             isMomentAlertVisible,
             isScrollEnabled,
             isSearchThisLocationBtnVisible,
+            isTouring,
             layers,
         } = this.state;
         const { captureClickTarget, location, map, navigation, notifications, user } = this.props;
@@ -1219,6 +1255,11 @@ class Map extends React.Component<IMapProps, IMapState> {
                     translate={this.translate}
                     onRequestClose={this.toggleLocationUseDisclosure}
                     onSelect={this.handleLocationDisclosureSelect}
+                />
+                <TouringModal
+                    isVisible={isTouring}
+                    translate={this.translate}
+                    onRequestClose={this.handleStopTouring}
                 />
                 <MainButtonMenuAlt
                     navigation={navigation}

@@ -215,7 +215,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     }
 
     getCurrentScreen = (navigation) => {
-        const navState = navigation.dangerouslyGetState();
+        const navState = navigation.getState();
 
         return (
             navState.routes[navState.routes.length - 1] &&
@@ -325,8 +325,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 textShadowOffset: { width: 0, height: 0 },
                                 textShadowRadius: 0,
                             },
+                            headerTitleAlign: 'center',
                             headerStyle: styles.headerStyle,
                             headerTransparent: false,
+                            headerBackVisible: false,
+                            headerBackTitleVisible: false,
                         });
                     }}
                 >
