@@ -150,7 +150,8 @@
         "logout": "LOGOUT",
         "map": "MAP",
         "moments": "MOMENTS",
-        "notifications": "NOTIFICATIONS"
+        "notifications": "NOTIFICATIONS",
+        "tour": "Take a Tour"
       }
     },
     "imagePicker": {
@@ -585,6 +586,18 @@
         "dislike": "'Dislike' this",
         "report": "Report this content..."
       }
+    },
+    "touringModal": {
+      "exit": "Exit",
+      "back": "Back",
+      "next": "Next",
+      "done": "Done",
+      "header1": "Tour: Create a Moment",
+      "header2": "Tour: Claim Your Spaces",
+      "header3": "Tour: Explore the World",
+      "createAMoment": "Curate content on the go. 'Moments' are only available when a user in your network discovers them. Enable location and press the plus icon. Set the geo-radius for activation and customize each moment to your hearts desire!",
+      "claimYourSpaces": "'Spaces' are the public version of moments. A Space is an exclusive area that you own. Use it to promote, share info, and focus an audience on your offerings. Buy and trade spaces with TherrCoin cryptocurrency. This feature coming soon.",
+      "exploreTheWorld": "Seek out 'moments' that peak your interests. Check the map for Insights and plan your travels accordingly. Find and post 'Gigs', schedule 'Events', and connect with the community. Some of these features are unlocked only after reaching certain milestones."
     }
   },
   "permissions": {

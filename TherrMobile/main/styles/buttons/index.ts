@@ -357,6 +357,7 @@ export default StyleSheet.create({
     btnLarge: {
         ...btnStyles,
         backgroundColor: therrTheme.colors.beemo1,
+        height: 44,
         width: 44,
     },
     btnClear: {

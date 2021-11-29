@@ -128,7 +128,7 @@ export default ({
                                                 />
                                             }
                                             raised={true}
-                                            onPress={() => handleCreateMoment(true)}
+                                            onPress={() => handleCreateMoment('camera')}
                                         />
                                     </View>
                                 </>

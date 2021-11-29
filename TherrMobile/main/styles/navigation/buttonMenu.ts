@@ -83,6 +83,7 @@ export default StyleSheet.create({
         flexDirection: 'row',
         zIndex: 10,
         backgroundColor: 'transparent',
+        bottom: 0,
     },
     containerInner: {
         display: 'flex',

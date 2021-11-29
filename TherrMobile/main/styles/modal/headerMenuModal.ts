@@ -14,6 +14,12 @@ const userProfileButtonContainerStyles: any = {
 };
 
 export default StyleSheet.create({
+    container: {
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        position: 'relative',
+    },
     buttons: {
         backgroundColor: 'transparent',
         height: HEADER_HEIGHT - HEADER_EXTRA_HEIGHT,
@@ -107,17 +113,11 @@ export default StyleSheet.create({
         borderRadius: 15,
     },
     body: {
-        position: 'relative',
-        width: '100%',
         flex: 1,
+        overflow: 'hidden',
     },
     footer: {
-        display: 'flex',
         paddingBottom: 8,
-        position: 'absolute',
-        bottom: 0,
-        alignItems: 'center',
-        width: '100%',
     },
     toggleIcon: {
         height: 30,
