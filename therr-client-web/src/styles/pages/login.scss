@@ -12,6 +12,11 @@
     padding-top: 1rem;
     box-shadow: none;
     box-sizing: border-box;
+
+    &.info-container {
+        border: rem-calc(2px) solid $therr-background;
+        border-radius: rem-calc(2px);
+    }
 }
 
 @media only screen and (min-width: rem-calc(540px)) {

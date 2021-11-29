@@ -69,7 +69,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
     public render(): JSX.Element | null {
         return (
             <div id="page_home" className="flex-box space-evenly row wrap-reverse">
-                <div className="login-container">
+                <div className="login-container info-container">
                     <h1 className="text-center">
                         {this.translate('pages.home.welcome')}
                     </h1>
