@@ -77,48 +77,50 @@ export class ResetPasswordComponent extends React.Component<IResetPasswordProps 
         const { errorReason, isEmailSent } = this.state;
 
         return (
-            <div id="page_reset_password">
-                <h1>{this.translate('pages.resetPassword.pageTitle')}</h1>
+            <div id="page_reset_password" className="flex-box space-evenly row">
+                <div className="centered-container">
+                    <h1 className="text-center">{this.translate('pages.resetPassword.pageTitle')}</h1>
 
-                <div className="form-field">
-                    <p>{this.translate('pages.resetPassword.instructions')}</p>
-                </div>
-
-                <div className="form-field">
-                    {
-                        !errorReason && isEmailSent
-                        && <p className="alert-success">{this.translate('pages.resetPassword.successMessage')}</p>
-                    }
-                    {
-                        errorReason === 'UserNotFound'
-                        && <p className="alert-error">{this.translate('pages.resetPassword.failedMessageUserNotFound')}</p>
-                    }
-                    {
-                        errorReason && errorReason !== 'UserNotFound'
-                        && <p className="alert-error">{this.translate('pages.resetPassword.failedMessage')}</p>
-                    }
-                </div>
-
-                <div className="form-field">
-                    <label htmlFor="email">{this.translate('pages.resetPassword.labels.email')}:</label>
-                    <Input
-                        type="text"
-                        id="email"
-                        name="email"
-                        value={this.state.email}
-                        onChange={this.onInputChange}
-                        onEnter={this.onSubmit}
-                        translate={this.translate}
-                        validations={['isRequired', 'email']}
-                    />
-
-                    <div className="form-field text-right">
-                        <ButtonPrimary
-                            id="email" text={this.translate('pages.resetPassword.buttons.send')} onClick={this.onSubmit} disabled={!this.state.email} />
+                    <div className="form-field">
+                        <p>{this.translate('pages.resetPassword.instructions')}</p>
                     </div>
-                    <div className="form-field text-center">
-                        <div>
-                            <Link to="/login">{this.translate('pages.resetPassword.returnToLogin')}</Link>
+
+                    <div className="form-field">
+                        {
+                            !errorReason && isEmailSent
+                            && <p className="alert-success">{this.translate('pages.resetPassword.successMessage')}</p>
+                        }
+                        {
+                            errorReason === 'UserNotFound'
+                            && <p className="alert-error">{this.translate('pages.resetPassword.failedMessageUserNotFound')}</p>
+                        }
+                        {
+                            errorReason && errorReason !== 'UserNotFound'
+                            && <p className="alert-error">{this.translate('pages.resetPassword.failedMessage')}</p>
+                        }
+                    </div>
+
+                    <div className="form-field">
+                        <label htmlFor="email">{this.translate('pages.resetPassword.labels.email')}:</label>
+                        <Input
+                            type="text"
+                            id="email"
+                            name="email"
+                            value={this.state.email}
+                            onChange={this.onInputChange}
+                            onEnter={this.onSubmit}
+                            translate={this.translate}
+                            validations={['isRequired', 'email']}
+                        />
+
+                        <div className="form-field text-right">
+                            <ButtonPrimary
+                                id="email" text={this.translate('pages.resetPassword.buttons.send')} onClick={this.onSubmit} disabled={!this.state.email} />
+                        </div>
+                        <div className="form-field text-center" style={{ padding: '1.5rem 0px 0px 1rem' }}>
+                            <div>
+                                <Link to="/login">{this.translate('pages.resetPassword.returnToLogin')}</Link>
+                            </div>
                         </div>
                     </div>
                 </div>

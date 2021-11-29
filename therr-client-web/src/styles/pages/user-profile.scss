@@ -6,13 +6,14 @@ $profileImgWidth: rem-calc(100px);
         display: flex;
         position: relative;
         flex-direction: row-reverse;
-        height: 4.2rem;
+        height: auto;
 
         h1 {
-            margin: .2rem .2rem .9rem 2rem;
+            margin: 0 .2rem 0 2rem;
             font-size: 1.5rem;
             padding-top: 1rem;
             word-break: break-all;
+            align-self: center;
         }
 
         .user-profile-icon {
@@ -20,7 +21,7 @@ $profileImgWidth: rem-calc(100px);
             position: relative;
             right: 0;
             display: inline;
-            top: -1.4rem;
+            top: 0;
             left: 1rem;
             box-shadow: $box-shadow-tile;
             height: $profileImgWidth;
@@ -127,6 +128,8 @@ $profileImgWidth: rem-calc(100px);
 @media only screen and (min-width: $screen-xsmall) {
 
     .header-profile-picture {
+        height: 4.2rem;
+
         h1 {
             font-size: 1.5rem;
         }
@@ -136,16 +139,17 @@ $profileImgWidth: rem-calc(100px);
 @media only screen and (min-width: $screen-small) {
     #page_user_profile {
         .header-profile-picture {
+            height: 5rem;
             width: 100%;
             display: flex;
             position: relative;
             flex-direction: row;
 
-
             h1 {
                 font-size: 2rem;
                 padding-top: 0;
-                margin: .9rem .5rem;
+                margin: .5rem .5rem;
+                align-self: flex-end;
             }
     
             .user-profile-icon {
@@ -201,6 +205,12 @@ $profileImgWidth: rem-calc(100px);
 
 @media only screen and (min-width: $screen-medium) {
     #page_user_profile {
+        .header-profile-picture {
+            .user-profile-icon {
+                top: -1.4rem;
+            }
+        }
+
         .account-sections {
             flex-wrap: nowrap;
             justify-content: space-around;
