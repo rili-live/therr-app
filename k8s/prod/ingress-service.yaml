@@ -21,7 +21,7 @@ metadata:
     # nginx.ingress.kubernetes.io/proxy-send-timeout: “3600”
     nginx.ingress.kubernetes.io/server-snippet: |
         gzip on;
-        gzip_types      text/plain text/css text/js application/xml;
+        gzip_types      text/plain text/css text/js application/xml application/javascript;
         gzip_proxied    no-cache no-store private expired auth;
         gzip_min_length 1000;
         gzip_disable "MSIE [1-6]\.";
