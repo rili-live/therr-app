@@ -46,7 +46,7 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import mapCustomStyle from '../../styles/map/googleCustom';
 import SearchTypeAheadResults from '../../components/SearchTypeAheadResults';
 import SearchThisAreaButtonGroup from '../../components/SearchThisAreaButtonGroup';
-import CameraMarkerIcon from './CameraMarkerIcon';
+import MarkerIcon from './MarkerIcon';
 import { isMyMoment } from '../../utilities/content';
 import LocationUseDisclosureModal from '../../components/Modals/LocationUseDisclosureModal';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
@@ -1113,7 +1113,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 stopPropagation={true}
                                             >
                                                 <View>
-                                                    <CameraMarkerIcon />
+                                                    <MarkerIcon moment={moment} />
                                                 </View>
                                             </Marker>
                                         );
@@ -1137,7 +1137,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 stopPropagation={true}
                                             >
                                                 <View style={{ transform: [{ translateY: 0 }] }}>
-                                                    <CameraMarkerIcon />
+                                                    <MarkerIcon moment={moment} />
                                                 </View>
                                             </Marker>
                                         );
