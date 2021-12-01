@@ -28,7 +28,6 @@ metadata:
         gzip_vary on;
         gzip_proxied any;
         gzip_comp_level 5;
-        gzip_min_length 512;
         gzip_buffers 16 128k;
 spec:
   tls:
