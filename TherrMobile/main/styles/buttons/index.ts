@@ -11,6 +11,7 @@ const btnStyles: any = {
     alignItems: 'center',
     justifyContent: 'center',
     display: 'flex',
+    boxSizing: 'border-box',
 };
 
 const btnIconStyle: any = {

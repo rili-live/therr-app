@@ -58,9 +58,9 @@ export default ({
                             <Button
                                 buttonStyle={buttonStyles.btnLarge}
                                 icon={
-                                    <MaterialIcon
-                                        name={ shouldShowCreateActions ? 'remove' : 'add' }
-                                        size={44}
+                                    <OctIcon
+                                        name={ shouldShowCreateActions ? 'dash' : 'plus' }
+                                        size={36}
                                         style={buttonStyles.btnIcon}
                                     />
                                 }
