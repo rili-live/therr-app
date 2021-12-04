@@ -4,10 +4,10 @@ import {
     param,
 } from 'express-validator/check'; // eslint-disable-line import/extensions
 
-export const getMomentDetailsValidation = [
+export const getSpaceDetailsValidation = [
     header('authorization').exists(),
     header('x-userid').exists(),
-    param('momentId').exists(),
+    param('spaceId').exists(),
     body('withMedia').isBoolean().optional(),
     body('withUser').isBoolean().optional(),
 ];

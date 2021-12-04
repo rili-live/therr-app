@@ -5,15 +5,16 @@ import { ISearchQuery } from '../types';
 
 let googleDynamicSessionToken = uuid.v4(); // This gets stored in the local state of this file/module
 
-export interface ISearchMomentsArgs {
+type IAreaType = 'moments' | 'spaces';
+export interface ISearchAreasArgs {
     distanceOverride?: number;
 }
 
-interface IGetMomentDetailsArgs {
+interface IGetAreaDetailsArgs {
     withMedia?: boolean;
     withUser?: boolean;
 }
-interface ICreateMomentBody {
+interface ICreateAreaBody {
     expiresAt?: any;
     fromUserId: number;
     locale: string;
@@ -30,7 +31,7 @@ interface ICreateMomentBody {
     polygonCoords?: string;
 }
 
-interface IDeleteMomentsBody {
+interface IDeleteAreasBody {
     ids: string[];
 }
 
@@ -49,52 +50,79 @@ export interface IPlaceDetailsArgs {
     sessiontoken?: string;
 }
 
+export interface ISignedUrlArgs {
+    action: string;
+    filename: string;
+    areaType?: IAreaType;
+}
+
 class MapsService {
-    createMoment = (data: ICreateMomentBody) => axios({
+    createArea = (areaType: IAreaType, data: ICreateAreaBody) => axios({
         method: 'post',
-        url: '/maps-service/moments',
+        url: `/maps-service/${areaType}`,
         data,
     })
 
-    getMomentDetails = (momentId: number, args: IGetMomentDetailsArgs) => axios({
+    getAreaDetails = (areaType: IAreaType, id: number, args: IGetAreaDetailsArgs) => axios({
         method: 'post',
-        url: `/maps-service/moments/${momentId}/details`,
+        url: `/maps-service/${areaType}/${id}/details`,
         data: args,
     })
 
-    searchMoments = (query: ISearchQuery, data: ISearchMomentsArgs = {}) => {
+    searchAreas = (areaType: IAreaType, query: ISearchQuery, data: ISearchAreasArgs = {}) => {
         const queryString = getSearchQueryString(query);
 
         return axios({
             method: 'post',
-            url: `/maps-service/moments/search${queryString}`,
+            url: `/maps-service/${areaType}/search${queryString}`,
             data,
         });
     }
 
-    getSignedUrlPublicBucket = (args) => {
-        const queryString = `?action=${args.action}&filename=${args.filename}`;
-
-        return axios({
-            method: 'get',
-            url: `/maps-service/moments/signed-url/public${queryString}`,
-        });
-    }
-
-    getSignedUrlPrivateBucket = (args) => {
-        const queryString = `?action=${args.action}&filename=${args.filename}`;
-
-        return axios({
-            method: 'get',
-            url: `/maps-service/moments/signed-url/private${queryString}`,
-        });
-    }
-
-    deleteMoments = (data: IDeleteMomentsBody) => axios({
+    deleteAreas = (areaType: IAreaType, data: IDeleteAreasBody) => axios({
         method: 'delete',
-        url: '/maps-service/moments',
+        url: `/maps-service/${areaType}`,
         data,
     })
+
+    // Moments
+    createMoment = (data: ICreateAreaBody) => this.createArea('moments', data)
+
+    getMomentDetails = (id: number, args: IGetAreaDetailsArgs) => this.getAreaDetails('moments', id, args)
+
+    searchMoments = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('moments', query, data)
+
+    deleteMoments = (data: IDeleteAreasBody) => this.deleteAreas('moments', data)
+
+    // Spaces
+    createSpace = (data: ICreateAreaBody) => this.createArea('spaces', data)
+
+    getSpaceDetails = (id: number, args: IGetAreaDetailsArgs) => this.getAreaDetails('spaces', id, args)
+
+    searchSpaces = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('spaces', query, data)
+
+    deleteSpaces = (data: IDeleteAreasBody) => this.deleteAreas('spaces', data)
+
+    // Media
+    getSignedUrlPublicBucket = (args: ISignedUrlArgs) => {
+        const areaType: IAreaType = args.areaType || 'moments';
+        const queryString = `?action=${args.action}&filename=${args.filename}`;
+
+        return axios({
+            method: 'get',
+            url: `/maps-service/${areaType}/signed-url/public${queryString}`,
+        });
+    }
+
+    getSignedUrlPrivateBucket = (args: ISignedUrlArgs) => {
+        const areaType: IAreaType = args.areaType || 'moments';
+        const queryString = `?action=${args.action}&filename=${args.filename}`;
+
+        return axios({
+            method: 'get',
+            url: `/maps-service/${areaType}/signed-url/private${queryString}`,
+        });
+    }
 
     // Google Maps
     // TODO: Use sessiontoken to prevent being over-billed
