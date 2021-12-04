@@ -52,7 +52,7 @@ export default class SpacesStore {
 
     // Combine with search to avoid getting count out of sync
     countRecords(params, fromUserIds) {
-        let proximityMax = Location.SPACE_PROXIMITY_METERS;
+        let proximityMax = Location.AREA_PROXIMITY_METERS;
         if ((params.filterBy && params.filterBy === 'distance') && params.query) {
             proximityMax = params.query;
         }
@@ -80,7 +80,7 @@ export default class SpacesStore {
     searchSpaces(conditions: any = {}, returning, fromUserIds = [], overrides?: any, includePublicResults = true) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
-        let proximityMax = overrides?.distanceOverride || Location.SPACE_PROXIMITY_METERS;
+        let proximityMax = overrides?.distanceOverride || Location.AREA_PROXIMITY_METERS;
         if ((conditions.filterBy && conditions.filterBy === 'distance') && conditions.query) {
             proximityMax = conditions.query;
         }
@@ -266,7 +266,7 @@ export default class SpacesStore {
                 radius: params.radius,
                 region: region.code,
                 polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
-                geom: knexBuilder.raw(`ST_SetSRID(ST_MakePoint(${params.longitude}, ${params.latitude}), 4326)`),
+                geom: knexBuilder.raw(`ST_SetSRID(ST_Buffer(ST_MakePoint(${params.longitude}, ${params.latitude})), 4326)`),
             };
 
             const queryString = knexBuilder.insert(sanitizedParams)

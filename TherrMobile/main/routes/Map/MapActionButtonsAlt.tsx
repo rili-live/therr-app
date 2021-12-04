@@ -6,7 +6,7 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import buttonStyles from '../../styles/buttons';
 
-export type ICreateMomentAction = 'camera' | 'upload' | 'text-only';
+export type ICreateMomentAction = 'camera' | 'upload' | 'text-only' | 'claim';
 
 interface MapActionButtonsAltProps {
     handleCreateMoment: (action: ICreateMomentAction) => any;
@@ -71,7 +71,7 @@ export default ({
                         {
                             shouldShowCreateActions &&
                                 <>
-                                    {/* <View style={buttonStyles.claimASpace}>
+                                    <View style={buttonStyles.claimASpace}>
                                         <Text style={buttonStyles.labelLeft}>{translate('menus.mapActions.claimASpace')}</Text>
                                         <Button
                                             buttonStyle={buttonStyles.btnMedium}
@@ -83,9 +83,9 @@ export default ({
                                                 />
                                             }
                                             raised={true}
-                                            onPress={() => handleCreateMoment('space')}
+                                            onPress={() => handleCreateMoment('claim')}
                                         />
-                                    </View> */}
+                                    </View>
                                     <View style={buttonStyles.shareAThought}>
                                         <Text style={buttonStyles.labelLeft}>{translate('menus.mapActions.shareAThought')}</Text>
                                         <Button

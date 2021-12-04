@@ -1,5 +1,9 @@
 import * as Immutable from 'seamless-immutable';
 
+type IAreaType = 'moments' | 'spaces';
+
+export { IAreaType };
+
 export interface IMapState extends Immutable.ImmutableObject<any> {
     hasUserLocationLoaded?: boolean;
     longitude?: number;

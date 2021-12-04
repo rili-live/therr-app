@@ -1,20 +1,23 @@
 const createFunctions = async (knex) => {
     await knex.schema.raw(
         `
-            CREATE FUNCTION no_area_overlaps(id int, g gemetry)
+            CREATE FUNCTION main.no_area_overlaps(id uuid, g geometry)
             RETURNS boolean AS $$
             SELECT NOT EXISTS (
                 SELECT 1 from main.spaces
-                WHERE spaces.id != id
-                    AND spaces.geom && g
-                    AND ST_Relate(spaces.geom, g, '2********'));
+                WHERE main.spaces.id != id
+                    AND main.spaces.geom && g
+                    AND ST_Relate(main.spaces.geom, g, '2********'));
             $$ LANGUAGE sql
-            )
         `,
     );
 };
 
-exports.up = (knex) => createFunctions().then(() => knex.schema.withSchema('main').createTable('spaces', async (table) => {
+const dropFunctions = async (knex) => {
+    await knex.schema.raw('DROP FUNCTION IF EXISTS main.no_area_overlaps(id uuid, g geometry)');
+};
+
+exports.up = (knex) => knex.schema.withSchema('main').createTable('spaces', async (table) => {
     table.uuid('id').primary().notNullable().defaultTo(knex.raw('uuid_generate_v4()'));
     table.uuid('fromUserId').notNullable();
     table.string('locale', 8);
@@ -52,10 +55,10 @@ exports.up = (knex) => createFunctions().then(() => knex.schema.withSchema('main
 
     // Postgis
     await knex.schema.raw(`SELECT AddGeometryColumn('main', 'spaces', 'geom', 4326, 'POINT', 2);`); // eslint-disable-line quotes
-    // eslint-disable-next-line max-len
-    await knex.schema.raw(`UPDATE main.spaces SET geom = ST_SetSRID(ST_Buffer(ST_MakePoint(longitude, latitude), radius), 4326);`); // eslint-disable-line quotes
-    await knex.schema.raw('ALTER TABLE main.spaces ADD CONSTRAINT no_overlaps CHECK (no_area_overlaps(id, geom))');
+    // await knex.schema.raw(`UPDATE main.spaces SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326);`); // eslint-disable-line quotes
     await knex.schema.raw(`CREATE INDEX idx_spaces_geom ON main.spaces USING gist(geom);`); // eslint-disable-line quotes
-}));
+}).then(() => createFunctions(knex)).then(async () => {
+    await knex.schema.raw('ALTER TABLE main.spaces ADD CONSTRAINT no_overlaps CHECK (main.no_area_overlaps(id, geom))');
+});
 
-exports.down = (knex) => knex.schema.withSchema('main').dropTable('spaces');
+exports.down = (knex) => knex.schema.withSchema('main').dropTable('spaces').then(() => dropFunctions(knex));

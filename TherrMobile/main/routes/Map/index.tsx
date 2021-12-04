@@ -8,7 +8,7 @@ import AnimatedOverlay from 'react-native-modal-overlay';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { MapsService, UsersService, PushNotificationsService } from 'therr-react/services';
-import { AccessCheckType, IMapState as IMapReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
+import { IAreaType, AccessCheckType, IMapState as IMapReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
 import { MapActions, ReactionActions, UserInterfaceActions } from 'therr-react/redux/actions';
 import { AccessLevels, Location } from 'therr-js-utilities/constants';
 import Geolocation from '@react-native-community/geolocation';
@@ -296,16 +296,13 @@ class Map extends React.Component<IMapProps, IMapState> {
         return resolve(details);
     });
 
-    handleImageSelect = (imageResponse, userCoords) => {
+    handleImageSelect = (imageResponse, userCoords, areaType: IAreaType = 'moments') => {
         const { navigation } = this.props;
 
         if (!imageResponse.didCancel && !imageResponse.errorCode) {
-            // return navigation.navigate('EditMoment', {
-            //     ...userCoords,
-            //     imageDetails: imageResponse,
-            // });
             return navigation.navigate('CropImage', {
                 ...userCoords,
+                areaType,
                 imageDetails: imageResponse,
             });
         }
@@ -369,6 +366,17 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 // selectionLimit: 1,
                             },
                             (cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter),
+                        );
+                    } else if (action === 'claim') {
+                        return ImagePicker.launchImageLibrary(
+                            {
+                                mediaType: 'photo',
+                                includeBase64: false,
+                                maxHeight: 4 * viewportWidth,
+                                maxWidth: 4 * viewportWidth,
+                                // selectionLimit: 1,
+                            },
+                            (cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter, 'spaces'),
                         );
                     } else {
                         navigation.navigate('EditMoment', {
@@ -694,7 +702,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             lon: locationEdge.longitude,
             lat: locationEdge.latitude,
         });
-        searchRadiusMeters = Math.max(searchRadiusMeters, Location.MOMENT_PROXIMITY_METERS);
+        searchRadiusMeters = Math.max(searchRadiusMeters, Location.AREA_PROXIMITY_METERS);
         searchRadiusMeters = searchRadiusMeters + (searchRadiusMeters * 0.10); // add 10% padding
         return searchRadiusMeters;
     }

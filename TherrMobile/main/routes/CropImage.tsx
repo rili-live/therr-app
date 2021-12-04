@@ -87,10 +87,10 @@ export class CropImage extends React.Component<ICropImageProps, ICropImageState>
             latitude,
             longitude,
         } = route.params;
-        const { imageDetails } = route.params;
+        const { areaType, imageDetails } = route.params;
+        const routeName = areaType === 'spaces' ? 'EditSpace' : 'EditMoment';
 
-        // TODO: Pass in cropped image
-        return navigation.navigate('EditMoment', {
+        return navigation.navigate(routeName, {
             latitude,
             longitude,
             imageDetails: {
@@ -102,7 +102,6 @@ export class CropImage extends React.Component<ICropImageProps, ICropImageState>
 
     render() {
         const { navigation, route, user } = this.props;
-
         const { imageDetails } = route.params;
         const localFilePath = Platform.OS === 'ios' ? imageDetails.uri?.replace('file:///', '') : imageDetails.uri;
 
