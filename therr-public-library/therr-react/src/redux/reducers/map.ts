@@ -5,6 +5,8 @@ import { IMapState, MapActionTypes } from '../../types/redux/maps';
 const initialState: IMapState = Immutable.from({
     moments: Immutable.from([]),
     myMoments: Immutable.from([]),
+    spaces: Immutable.from([]),
+    mySpaces: Immutable.from([]),
     searchPredictions: Immutable.from({}),
 });
 
@@ -16,9 +18,10 @@ const map = (state: IMapState = initialState, action: any) => {
 
     const modifiedMoment = [...state.moments];
     let modifiedMyMoment = [...state.myMoments];
+    const modifiedSpace = [...state.spaces];
+    let modifiedMySpace = [...state.mySpaces];
 
     switch (action.type) {
-        // TODO: Rethink this
         case MapActionTypes.GET_MOMENTS:
             return state.setIn(['moments'], action.data.results);
         case MapActionTypes.GET_MOMENT_DETAILS:
@@ -60,12 +63,55 @@ const map = (state: IMapState = initialState, action: any) => {
                 return !action.data.ids.includes(moment.id);
             });
             return state.setIn(['myMoments'], modifiedMyMoment);
+        // // // // // // // // // // // //
+        case MapActionTypes.GET_SPACES:
+            return state.setIn(['spaces'], action.data.results);
+        case MapActionTypes.GET_SPACE_DETAILS:
+            modifiedSpace.some((space, index) => { // eslint-disable-line no-case-declarations
+                if (space.id === action.data.space?.id) {
+                    modifiedSpace[index] = {
+                        ...space,
+                        ...action.data.space,
+                    };
+                    return true;
+                }
+
+                return false;
+            });
+            return state.setIn(['spaces'], modifiedSpace);
+        case MapActionTypes.GET_MY_SPACES:
+            return state.setIn(['mySpaces'], action.data.results);
+        case MapActionTypes.SPACE_CREATED:
+            modifiedMySpace.unshift(action.data);
+            return state.setIn(['mySpaces'], modifiedMySpace);
+        case MapActionTypes.SPACE_UPDATED:
+            modifiedMySpace.some((space, index) => {
+                if (space.id === action.data.id) {
+                    modifiedMySpace[index] = {
+                        ...space,
+                        ...action.data,
+                    };
+                    return true;
+                }
+
+                return false;
+            });
+            return state.setIn(['mySpaces'], modifiedMySpace);
+        case MapActionTypes.SPACE_DELETED:
+            modifiedMySpace = state.mySpaces.filter((space) => { // eslint-disable-line no-case-declarations
+                if (!action.data || !action.data.ids) {
+                    return true;
+                }
+                return !action.data.ids.includes(space.id);
+            });
+            return state.setIn(['mySpaces'], modifiedMySpace);
         case MapActionTypes.UPDATE_COORDS:
             return state
                 .setIn(['longitude'], action.data.longitude)
                 .setIn(['latitude'], action.data.latitude)
                 .setIn(['prevLongitude'], state.longitude)
                 .setIn(['prevLatitude'], state.latitude);
+        // // // // // // // // // // // //
         case MapActionTypes.USER_LOCATION_DETERMINED:
             return state.setIn(['hasUserLocationLoaded'], true);
         case MapActionTypes.AUTOCOMPLETE_UPDATE:

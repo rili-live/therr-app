@@ -3,18 +3,25 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 import * as globalConfig from '../../../../global-config';
 import handleServiceRequest from '../../middleware/handleServiceRequest';
 import { validate } from '../../validation';
+import { getSignedUrlValidation } from './validation';
 import {
-    createMomentValidation,
+    createAreaValidation,
+    searchAreasValidation,
+    deleteAreasValidation,
+} from './validation/areas';
+import {
     getMomentDetailsValidation,
-    searchMomentsValidation,
-    getSignedUrlValidation,
-    deleteMomentsValidation,
+
 } from './validation/moments';
+import {
+    getSpaceDetailsValidation,
+
+} from './validation/spaces';
 
 const mapsServiceRouter = express.Router();
 
-// Maps
-mapsServiceRouter.post('/moments', createMomentValidation, validate, handleServiceRequest({
+// Moments
+mapsServiceRouter.post('/moments', createAreaValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));
@@ -24,7 +31,7 @@ mapsServiceRouter.post('/moments/:momentId/details', getMomentDetailsValidation,
     method: 'post',
 }));
 
-mapsServiceRouter.post('/moments/search', searchMomentsValidation, validate, handleServiceRequest({
+mapsServiceRouter.post('/moments/search', searchAreasValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));
@@ -39,12 +46,44 @@ mapsServiceRouter.get('/moments/signed-url/private', getSignedUrlValidation, val
     method: 'get',
 }));
 
-mapsServiceRouter.delete('/moments', deleteMomentsValidation, validate, handleServiceRequest({
+mapsServiceRouter.delete('/moments', deleteAreasValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'delete',
+}));
+
+// Spaces
+mapsServiceRouter.post('/spaces', createAreaValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
+
+mapsServiceRouter.post('/spaces/:spaceId/details', getSpaceDetailsValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
+
+mapsServiceRouter.post('/spaces/search', searchAreasValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
+
+mapsServiceRouter.get('/spaces/signed-url/public', getSignedUrlValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'get',
+}));
+
+mapsServiceRouter.get('/spaces/signed-url/private', getSignedUrlValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'get',
+}));
+
+mapsServiceRouter.delete('/spaces', deleteAreasValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'delete',
 }));
 
 // TODO: Add rate limiter?
+// External APIs
 mapsServiceRouter.use('/place', createProxyMiddleware({
     target: 'https://maps.googleapis.com',
     // pathRewrite: { '^/v1/maps-service/place': '/maps/api/place' },

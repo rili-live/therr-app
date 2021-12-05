@@ -15,7 +15,7 @@ import translator from '../../services/translator';
 import MomentCarousel from './MomentCarousel';
 import MainButtonMenuAlt from '../../components/ButtonMenu/MainButtonMenuAlt';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import { isMyMoment } from '../../utilities/content';
+import { isMyArea } from '../../utilities/content';
 import MomentOptionsModal, { ISelectionType } from '../../components/Modals/MomentOptionsModal';
 import { getReactionUpdateArgs } from '../../utilities/reactions';
 import LottieLoader from '../../components/LottieLoader';
@@ -122,7 +122,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
 
         // navigation.navigate('Home');
         navigation.navigate('ViewMoment', {
-            isMyMoment: isMyMoment(moment, user),
+            isMyArea: isMyArea(moment, user),
             previousView: 'Moments',
             moment,
             momentDetails: {},

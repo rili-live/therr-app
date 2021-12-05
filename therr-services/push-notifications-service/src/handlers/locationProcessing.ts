@@ -42,7 +42,7 @@ const processUserLocationChange: RequestHandler = (req, res) => {
                 lat: origin.latitude,
             });
 
-            isCacheInvalid = distanceFromOriginMeters > Location.MOMENT_PROXIMITY_EXPANDED_METERS - 1;
+            isCacheInvalid = distanceFromOriginMeters > Location.AREA_PROXIMITY_EXPANDED_METERS - 1;
         }
 
         // Fetches x nearest moments within y meters of the user's current location (from the users's connections)
@@ -58,7 +58,7 @@ const processUserLocationChange: RequestHandler = (req, res) => {
                 const momentIdsToActivate: number[] = [];
                 const momentsToActivate: any[] = [];
                 // NOTE: only activate 'x' moments max to limit high density locations
-                for (let i = 0; i <= Location.MAX_MOMENT_ACTIVATE_COUNT && i <= filteredMoments.length - 1; i += 1) {
+                for (let i = 0; i <= Location.MAX_AREA_ACTIVATE_COUNT && i <= filteredMoments.length - 1; i += 1) {
                     momentIdsToActivate.push(filteredMoments[i].id);
                     momentsToActivate.push(filteredMoments[i]);
                 }

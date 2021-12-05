@@ -4,6 +4,7 @@ import {
     ContentActionTypes,
 
     // Maps
+    IAreaType,
     IMapState,
     MapActionTypes,
 
@@ -86,6 +87,7 @@ export {
     ForumActionTypes,
 
     // Maps
+    IAreaType,
     IMapState,
     MapActionTypes,
 

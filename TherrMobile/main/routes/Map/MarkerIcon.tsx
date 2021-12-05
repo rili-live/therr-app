@@ -1,27 +1,42 @@
 import React from 'react';
 import * as therrTheme from '../../styles/themes';
 import MarkerIconCamera from './MarkerIconCamera';
+import MarkerIconStorefront from './MarkerIconStorefront';
 import MarkerIconThinking from './MarkerIconThinking';
 
 const markerConfigs = {
     thought: {
         fill: therrTheme.colors.brandingMapYellow,
     },
-    moment: {
+    area: {
         fill: therrTheme.colors.beemoBlue,
         fillAlt: therrTheme.colorVariations.primary2Darken,
     },
 };
 
 export default function MarkerIcon({
-    moment,
+    areaType,
+    area,
 }) {
-    if (!moment.mediaIds) {
+    if (!area.mediaIds) {
+        if (areaType === 'moments') {
+            return (
+                <MarkerIconThinking {...markerConfigs.thought} />
+            );
+        }
+
         return (
-            <MarkerIconThinking {...markerConfigs.thought} />
+            <MarkerIconStorefront {...markerConfigs.thought} />
         );
     }
+
+    if (areaType === 'moments') {
+        return (
+            <MarkerIconCamera {...markerConfigs.area} />
+        );
+    }
+
     return (
-        <MarkerIconCamera {...markerConfigs.moment} />
+        <MarkerIconStorefront {...markerConfigs.area} />
     );
 }

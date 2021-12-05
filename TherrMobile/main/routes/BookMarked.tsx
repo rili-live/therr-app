@@ -11,7 +11,7 @@ import translator from '../services/translator';
 import styles from '../styles';
 import momentStyles from '../styles/user-content/moments';
 import MomentCarousel from './Moments/MomentCarousel';
-import { isMyMoment } from '../utilities/content';
+import { isMyArea } from '../utilities/content';
 import getActiveCarouselData from '../utilities/getActiveCarouselData';
 import { CAROUSEL_TABS } from '../constants';
 
@@ -135,7 +135,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
 
         // navigation.navigate('Home');
         navigation.navigate('ViewMoment', {
-            isMyMoment: isMyMoment(moment, user),
+            isMyArea: isMyArea(moment, user),
             previousView: 'Moments',
             moment,
             momentDetails: {},
