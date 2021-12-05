@@ -47,7 +47,7 @@ import mapCustomStyle from '../../styles/map/googleCustom';
 import SearchTypeAheadResults from '../../components/SearchTypeAheadResults';
 import SearchThisAreaButtonGroup from '../../components/SearchThisAreaButtonGroup';
 import MarkerIcon from './MarkerIcon';
-import { isMyMoment } from '../../utilities/content';
+import { isMyArea } from '../../utilities/content';
 import LocationUseDisclosureModal from '../../components/Modals/LocationUseDisclosureModal';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import eula from './EULA';
@@ -64,9 +64,11 @@ const ANIMATE_TO_REGION_DURATION_FAST = 500;
 
 interface IMapDispatchProps {
     captureClickTarget: Function;
-    createOrUpdateReaction: Function;
+    createOrUpdateMomentReaction: Function;
+    createOrUpdateSpaceReaction: Function;
     updateCoordinates: Function;
     searchMoments: Function;
+    searchSpaces: Function;
     setInitialUserLocation: Function;
     setSearchDropdownVisibility: Function;
     deleteMoment: Function;
@@ -93,6 +95,8 @@ export interface IMapProps extends IStoreProps {
 interface IMapState {
     activeMoment: any;
     activeMomentDetails: any;
+    activeSpace: any;
+    activeSpaceDetails: any;
     areButtonsVisible: boolean;
     areLayersVisible: boolean;
     region: {
@@ -103,7 +107,7 @@ interface IMapState {
     };
     shouldFollowUserLocation: boolean;
     isConfirmModalVisible: boolean;
-    isMomentAlertVisible: boolean;
+    isAreaAlertVisible: boolean;
     isScrollEnabled: boolean;
     isLocationReady: boolean;
     isLocationUseDisclosureModalVisible: boolean;
@@ -136,10 +140,12 @@ const mapDispatchToProps = (dispatch: any) =>
             captureClickTarget: UserInterfaceActions.captureClickEvent,
             updateCoordinates: MapActions.updateCoordinates,
             searchMoments: MapActions.searchMoments,
+            searchSpaces: MapActions.searchSpaces,
             setInitialUserLocation: MapActions.setInitialUserLocation,
             setSearchDropdownVisibility: MapActions.setSearchDropdownVisibility,
             deleteMoment: MapActions.deleteMoment,
-            createOrUpdateReaction: ReactionActions.createOrUpdateMomentReaction,
+            createOrUpdateMomentReaction: ReactionActions.createOrUpdateMomentReaction,
+            createOrUpdateSpaceReaction: ReactionActions.createOrUpdateSpaceReaction,
             updateGpsStatus: LocationActions.updateGpsStatus,
             updateLocationDisclosure: LocationActions.updateLocationDisclosure,
             updateLocationPermissions: LocationActions.updateLocationPermissions,
@@ -167,6 +173,8 @@ class Map extends React.Component<IMapProps, IMapState> {
         this.state = {
             activeMoment: {},
             activeMomentDetails: {},
+            activeSpace: {},
+            activeSpaceDetails: {},
             areButtonsVisible: true,
             areLayersVisible: false,
             region: {},
@@ -174,7 +182,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             isConfirmModalVisible: false,
             isScrollEnabled: true,
             isTouring: false,
-            isMomentAlertVisible: false,
+            isAreaAlertVisible: false,
             isLocationUseDisclosureModalVisible: false,
             isLocationReady: false,
             isMinLoadTimeComplete: false,
@@ -183,7 +191,9 @@ class Map extends React.Component<IMapProps, IMapState> {
             shouldShowCreateActions: false,
             layers: {
                 myMoments: true,
+                mySpaces: true,
                 connectionsMoments: true,
+                connectionsSpaces: true,
             },
             circleCenter: {
                 longitude: -96.4683143,
@@ -279,17 +289,17 @@ class Map extends React.Component<IMapProps, IMapState> {
         navigation.navigate('Notifications');
     };
 
-    cancelMomentAlert = () => {
+    cancelAreaAlert = () => {
         this.setState({
-            isMomentAlertVisible: false,
+            isAreaAlertVisible: false,
         });
     }
 
-    getMomentDetails = (moment) => new Promise((resolve) => {
+    getAreaDetails = (area) => new Promise((resolve) => {
         const { user } = this.props;
         const details: any = {};
 
-        if (isMyMoment(moment, user)) {
+        if (isMyArea(area, user)) {
             details.userDetails = user.details;
         }
 
@@ -563,9 +573,10 @@ class Map extends React.Component<IMapProps, IMapState> {
     };
 
     handleMapPress = ({ nativeEvent }) => {
-        const { createOrUpdateReaction, location, map, navigation, setSearchDropdownVisibility, user } = this.props;
+        const { createOrUpdateMomentReaction, createOrUpdateSpaceReaction, location, map, navigation, setSearchDropdownVisibility, user } = this.props;
         const { circleCenter, layers } = this.state;
         let visibleMoments: any[] = [];
+        let visibleSpaces: any[] = [];
 
         this.setState({
             shouldShowCreateActions: false,
@@ -580,8 +591,10 @@ class Map extends React.Component<IMapProps, IMapState> {
         if (layers.connectionsMoments) {
             visibleMoments = visibleMoments.concat(map.moments);
         }
+        // TODO: Utilize mySpaces layer
         if (layers.myMoments) {
             visibleMoments = visibleMoments.concat(map.myMoments);
+            visibleSpaces = visibleSpaces.concat(map.mySpaces);
         }
         const pressedMoments = visibleMoments.filter((moment) => {
             return insideCircle(nativeEvent.coordinate, {
@@ -591,6 +604,11 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
 
         if (pressedMoments.length) {
+            this.setState({
+                activeSpace: {},
+                activeSpaceDetails: {},
+            });
+
             const selectedMoment = pressedMoments[0];
             const distToCenter = distanceTo({
                 lon: circleCenter.longitude,
@@ -601,17 +619,17 @@ class Map extends React.Component<IMapProps, IMapState> {
             });
             const isProximitySatisfied = distToCenter - selectedMoment.radius <= selectedMoment.maxProximity;
             if (!isProximitySatisfied
-                && !isMyMoment(selectedMoment, user)
+                && !isMyArea(selectedMoment, user)
                 && !(selectedMoment.userHasActivated && !selectedMoment.doesRequireProximityToView)) {
                 // Deny activation
-                this.showMomentAlert();
+                this.showAreaAlert();
             } else {
                 // Activate moment
-                createOrUpdateReaction(selectedMoment.id, {
+                createOrUpdateMomentReaction(selectedMoment.id, {
                     userViewCount: 1,
                     userHasActivated: true,
                 });
-                this.getMomentDetails(selectedMoment)
+                this.getAreaDetails(selectedMoment)
                     .then((details) => {
                         this.setState({
                             activeMoment: selectedMoment,
@@ -619,7 +637,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                         }, () => {
                             if (location?.settings?.isGpsEnabled) {
                                 navigation.navigate('ViewMoment', {
-                                    isMyMoment: isMyMoment(selectedMoment, user),
+                                    isMyArea: isMyArea(selectedMoment, user),
                                     moment: selectedMoment,
                                     momentDetails: details,
                                 });
@@ -638,6 +656,63 @@ class Map extends React.Component<IMapProps, IMapState> {
                 activeMoment: {},
                 activeMomentDetails: {},
             });
+
+            const pressedSpaces = visibleSpaces.filter((space) => {
+                return insideCircle(nativeEvent.coordinate, {
+                    lon: space.longitude,
+                    lat: space.latitude,
+                }, space.radius);
+            });
+
+            if (pressedSpaces.length) {
+                const selectedSpace = pressedSpaces[0];
+                const distToCenter = distanceTo({
+                    lon: circleCenter.longitude,
+                    lat: circleCenter.latitude,
+                }, {
+                    lon: selectedSpace.longitude,
+                    lat: selectedSpace.latitude,
+                });
+                const isProximitySatisfied = distToCenter - selectedSpace.radius <= selectedSpace.maxProximity;
+                if (!isProximitySatisfied
+                    && !isMyArea(selectedSpace, user)
+                    && !(selectedSpace.userHasActivated && !selectedSpace.doesRequireProximityToView)) {
+                    // Deny activation
+                    this.showAreaAlert();
+                } else {
+                    // Activate space
+                    createOrUpdateSpaceReaction(selectedSpace.id, {
+                        userViewCount: 1,
+                        userHasActivated: true,
+                    });
+                    this.getAreaDetails(selectedSpace)
+                        .then((details) => {
+                            this.setState({
+                                activeSpace: selectedSpace,
+                                activeSpaceDetails: details,
+                            }, () => {
+                                if (location?.settings?.isGpsEnabled) {
+                                    navigation.navigate('ViewSpace', {
+                                        isMyArea: isMyArea(selectedSpace, user),
+                                        space: selectedSpace,
+                                        spaceDetails: details,
+                                    });
+                                } else {
+                                    // TODO: Alert that GPS is required to create a space
+                                }
+                            });
+                        })
+                        .catch(() => {
+                            // TODO: Add error handling
+                            console.log('Failed to get space details!');
+                        });
+                }
+            } else {
+                this.setState({
+                    activeSpace: {},
+                    activeSpaceDetails: {},
+                });
+            }
         }
     };
 
@@ -662,7 +737,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             (Date.now() - this.state.lastMomentsRefresh <= MOMENTS_REFRESH_THROTTLE_MS)) {
             return;
         }
-        const { map, searchMoments } = this.props;
+        const { map, searchMoments, searchSpaces } = this.props;
         const userCoords = coords || {
             longitude: map.longitude,
             latitude: map.latitude,
@@ -680,6 +755,26 @@ class Map extends React.Component<IMapProps, IMapState> {
         }
         if (shouldSearchAll || layers.connectionsMoments) {
             searchMoments({
+                query: 'connections',
+                itemsPerPage: 500,
+                pageNumber: 1,
+                order: 'desc',
+                filterBy: 'fromUserIds',
+                ...userCoords,
+            });
+        }
+        if (shouldSearchAll || layers.mySpaces) {
+            searchSpaces({
+                query: 'me',
+                itemsPerPage: 50,
+                pageNumber: 1,
+                order: 'desc',
+                filterBy: 'fromUserIds',
+                ...userCoords,
+            });
+        }
+        if (shouldSearchAll || layers.connectionsSpaces) {
+            searchSpaces({
                 query: 'connections',
                 itemsPerPage: 500,
                 pageNumber: 1,
@@ -752,7 +847,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     handleSearchThisLocation = (searchRadius?, latitude?, longitude?) => {
-        const { searchMoments } = this.props;
+        const { searchMoments, searchSpaces } = this.props;
         const { region } = this.state;
         this.setState({
             isSearchThisLocationBtnVisible: false,
@@ -787,6 +882,28 @@ class Map extends React.Component<IMapProps, IMapState> {
                 distanceOverride: radius,
             });
             searchMoments({
+                query: 'me',
+                itemsPerPage: 20,
+                pageNumber: 1,
+                order: 'desc',
+                filterBy: 'fromUserIds',
+                latitude: lat,
+                longitude: long,
+            }, {
+                distanceOverride: radius,
+            });
+            searchSpaces({
+                query: 'connections',
+                itemsPerPage: 50,
+                pageNumber: 1,
+                order: 'desc',
+                filterBy: 'fromUserIds',
+                latitude: lat,
+                longitude: long,
+            }, {
+                distanceOverride: radius,
+            });
+            searchSpaces({
                 query: 'me',
                 itemsPerPage: 20,
                 pageNumber: 1,
@@ -838,7 +955,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
     onDeleteMoment = (moment) => {
         const { deleteMoment, user } = this.props;
-        if (isMyMoment(moment, user)) {
+        if (isMyArea(moment, user)) {
             deleteMoment({ ids: [moment.id] })
                 .then(() => {
                     console.log('Moment successfully deleted');
@@ -960,14 +1077,14 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     }
 
-    showMomentAlert = () => {
+    showAreaAlert = () => {
         this.setState({
-            isMomentAlertVisible: true,
+            isAreaAlertVisible: true,
         });
 
         this.timeoutIdShowMoment = setTimeout(() => {
             this.setState({
-                isMomentAlertVisible: false,
+                isAreaAlertVisible: false,
             });
         }, 2000);
     };
@@ -1022,6 +1139,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     render() {
         const {
             activeMoment,
+            activeSpace,
             areButtonsVisible,
             areLayersVisible,
             circleCenter,
@@ -1031,7 +1149,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             isLocationReady,
             isLocationUseDisclosureModalVisible,
             isMinLoadTimeComplete,
-            isMomentAlertVisible,
+            isAreaAlertVisible,
             isScrollEnabled,
             isSearchThisLocationBtnVisible,
             isTouring,
@@ -1121,7 +1239,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 stopPropagation={true}
                                             >
                                                 <View>
-                                                    <MarkerIcon moment={moment} />
+                                                    <MarkerIcon area={moment} areaType="moments" />
                                                 </View>
                                             </Marker>
                                         );
@@ -1145,7 +1263,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 stopPropagation={true}
                                             >
                                                 <View style={{ transform: [{ translateY: 0 }] }}>
-                                                    <MarkerIcon moment={moment} />
+                                                    <MarkerIcon area={moment} areaType="moments" />
                                                 </View>
                                             </Marker>
                                         );
@@ -1193,21 +1311,111 @@ class Map extends React.Component<IMapProps, IMapState> {
                                         );
                                     })
                                 }
+                                {
+                                    layers.connectionsSpaces &&
+                                    map.spaces.map((space) => {
+                                        return (
+                                            <Marker
+                                                anchor={{
+                                                    x: 0.5,
+                                                    y: 0.5,
+                                                }}
+                                                key={space.id}
+                                                coordinate={{
+                                                    longitude: space.longitude,
+                                                    latitude: space.latitude,
+                                                }}
+                                                onPress={this.handleMapPress}
+                                                stopPropagation={true}
+                                            >
+                                                <View>
+                                                    <MarkerIcon area={space} areaType="spaces" />
+                                                </View>
+                                            </Marker>
+                                        );
+                                    })
+                                }
+                                {
+                                    layers.mySpaces &&
+                                    map.mySpaces.map((space) => {
+                                        return (
+                                            <Marker
+                                                anchor={{
+                                                    x: 0.5,
+                                                    y: 0.5,
+                                                }}
+                                                key={space.id}
+                                                coordinate={{
+                                                    longitude: space.longitude,
+                                                    latitude: space.latitude,
+                                                }}
+                                                onPress={this.handleMapPress}
+                                                stopPropagation={true}
+                                            >
+                                                <View style={{ transform: [{ translateY: 0 }] }}>
+                                                    <MarkerIcon area={space} areaType="spaces" />
+                                                </View>
+                                            </Marker>
+                                        );
+                                    })
+                                }
+                                {
+                                    layers.connectionsSpaces &&
+                                    map.spaces.map((space) => {
+                                        return (
+                                            <Circle
+                                                key={space.id}
+                                                center={{
+                                                    longitude: space.longitude,
+                                                    latitude: space.latitude,
+                                                }}
+                                                radius={space.radius} /* meters */
+                                                strokeWidth={0}
+                                                strokeColor={therrTheme.colors.secondary}
+                                                fillColor={space.id === activeSpace.id ?
+                                                    therrTheme.colors.map.spacesCircleFillActive :
+                                                    therrTheme.colors.map.spacesCircleFill}
+                                                zIndex={1}
+                                            />
+                                        );
+                                    })
+                                }
+                                {
+                                    layers.mySpaces &&
+                                    map.mySpaces.map((space) => {
+                                        return (
+                                            <Circle
+                                                key={space.id}
+                                                center={{
+                                                    longitude: space.longitude,
+                                                    latitude: space.latitude,
+                                                }}
+                                                radius={space.radius} /* meters */
+                                                strokeWidth={0}
+                                                strokeColor={therrTheme.colors.secondary}
+                                                fillColor={space.id === activeSpace.id ?
+                                                    therrTheme.colors.map.mySpacesCircleFillActive :
+                                                    therrTheme.colors.map.mySpacesCircleFill}
+                                                zIndex={1}
+                                            />
+                                        );
+                                    })
+                                }
                             </MapView>
                             <AnimatedOverlay
                                 animationType="swing"
                                 animationDuration={500}
                                 easing="linear"
-                                visible={isMomentAlertVisible}
-                                onClose={this.cancelMomentAlert}
+                                visible={isAreaAlertVisible}
+                                onClose={this.cancelAreaAlert}
                                 closeOnTouchOutside
                                 containerStyle={styles.overlay}
                                 childrenWrapperStyle={mapStyles.momentAlertOverlayContainer}
                             >
                                 <Alert
                                     containerStyles={{}}
-                                    isVisible={isMomentAlertVisible}
-                                    message={this.translate('pages.map.momentAlerts.walkCloser')}
+                                    isVisible={isAreaAlertVisible}
+                                    message={this.translate('pages.map.areaAlerts.walkCloser')}
                                     type="error"
                                 />
                             </AnimatedOverlay>

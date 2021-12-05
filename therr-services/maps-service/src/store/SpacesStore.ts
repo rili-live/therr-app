@@ -266,7 +266,7 @@ export default class SpacesStore {
                 radius: params.radius,
                 region: region.code,
                 polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
-                geom: knexBuilder.raw(`ST_SetSRID(ST_Buffer(ST_MakePoint(${params.longitude}, ${params.latitude})), 4326)`),
+                geom: knexBuilder.raw(`ST_SetSRID(ST_Buffer(ST_MakePoint(${params.longitude}, ${params.latitude}), ${params.radius}), 4326)`),
             };
 
             const queryString = knexBuilder.insert(sanitizedParams)

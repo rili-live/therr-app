@@ -54,7 +54,7 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('spaces', asyn
     table.index('fromUserId');
 
     // Postgis
-    await knex.schema.raw(`SELECT AddGeometryColumn('main', 'spaces', 'geom', 4326, 'POINT', 2);`); // eslint-disable-line quotes
+    await knex.schema.raw(`SELECT AddGeometryColumn('main', 'spaces', 'geom', 4326, 'POLYGON', 2);`); // eslint-disable-line quotes
     // await knex.schema.raw(`UPDATE main.spaces SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326);`); // eslint-disable-line quotes
     await knex.schema.raw(`CREATE INDEX idx_spaces_geom ON main.spaces USING gist(geom);`); // eslint-disable-line quotes
 }).then(() => createFunctions(knex)).then(async () => {
