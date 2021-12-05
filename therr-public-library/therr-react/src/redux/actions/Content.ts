@@ -1,5 +1,5 @@
 import { ContentActionTypes } from '../../types/redux/content';
-import ReactionsService, { ISearchActiveMomentsParams, ICreateOrUpdateMomentReactionBody } from '../../services/ReactionsService';
+import ReactionsService, { ISearchActiveAreasParams, ICreateOrUpdateAreaReactionBody } from '../../services/ReactionsService';
 
 interface IActiveMomentsFilters {
     order: 'ASC' | 'DESC';
@@ -12,7 +12,7 @@ const Content = {
             data: newActiveMoments,
         });
     },
-    searchActiveMoments: (options: ISearchActiveMomentsParams, limit = 21) => (dispatch: any) => ReactionsService
+    searchActiveMoments: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
         .searchActiveMoments(options, limit)
         .then((response: any) => {
             dispatch({
@@ -24,7 +24,7 @@ const Content = {
         type: ContentActionTypes.SET_ACTIVE_MOMENTS_FILTERS,
         data: filters,
     }),
-    updateActiveMoments: (options: ISearchActiveMomentsParams, limit = 21) => (dispatch: any) => ReactionsService
+    updateActiveMoments: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
         .searchActiveMoments(options, limit)
         .then((response: any) => {
             dispatch({
@@ -32,7 +32,7 @@ const Content = {
                 data: response?.data,
             });
         }),
-    createOrUpdateMomentReaction: (momentId: number, params: ICreateOrUpdateMomentReactionBody) => (dispatch: any) => ReactionsService
+    createOrUpdateMomentReaction: (momentId: number, params: ICreateOrUpdateAreaReactionBody) => (dispatch: any) => ReactionsService
         .createOrUpdateMomentReaction(momentId, params)
         .then((response: any) => {
             dispatch({
@@ -48,7 +48,7 @@ const Content = {
                 });
             }
         }),
-    searchBookmarkedMoments: (options: ISearchActiveMomentsParams) => (dispatch: any) => ReactionsService
+    searchBookmarkedMoments: (options: ISearchActiveAreasParams) => (dispatch: any) => ReactionsService
         .searchBookmarkedMoments(options, 100)
         .then((response: any) => {
             dispatch({
