@@ -16,7 +16,7 @@ import MomentCarousel from './MomentCarousel';
 import MainButtonMenuAlt from '../../components/ButtonMenu/MainButtonMenuAlt';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { isMyArea } from '../../utilities/content';
-import MomentOptionsModal, { ISelectionType } from '../../components/Modals/MomentOptionsModal';
+import AreaOptionsModal, { ISelectionType } from '../../components/Modals/AreaOptionsModal';
 import { getReactionUpdateArgs } from '../../utilities/reactions';
 import LottieLoader from '../../components/LottieLoader';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
@@ -246,7 +246,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
                         this.renderCarousel(content)
                     }
                 </SafeAreaView>
-                <MomentOptionsModal
+                <AreaOptionsModal
                     isVisible={areMomentOptionsVisible}
                     onRequestClose={() => this.toggleMomentOptions(selectedMoment)}
                     translate={this.translate}

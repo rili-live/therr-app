@@ -6,6 +6,7 @@ interface IActiveMomentsFilters {
 }
 
 const Content = {
+    // Moments
     insertActiveMoments: (newActiveMoments: any) => (dispatch: any) => {
         dispatch({
             type: ContentActionTypes.INSERT_ACTIVE_MOMENTS,
@@ -56,6 +57,32 @@ const Content = {
                 data: response?.data,
             });
         }),
+
+    // Spaces
+    createOrUpdateSpaceReaction: (momentId: number, params: ICreateOrUpdateAreaReactionBody) => (dispatch: any) => ReactionsService
+        .createOrUpdateSpaceReaction(momentId, params)
+        .then((response: any) => {
+            // TODO: Add reducer handlers
+            dispatch({
+                type: ContentActionTypes.UPDATE_ACTIVE_SPACE_REACTION,
+                data: response?.data,
+            });
+            if (params?.userHasReported) {
+                dispatch({
+                    type: ContentActionTypes.REMOVE_ACTIVE_SPACES,
+                    data: {
+                        momentId,
+                    },
+                });
+            }
+        }),
+    insertActiveSpaces: (newActiveSpaces: any) => (dispatch: any) => {
+        // TODO: Add reducer handlers
+        dispatch({
+            type: ContentActionTypes.INSERT_ACTIVE_SPACES,
+            data: newActiveSpaces,
+        });
+    },
 };
 
 export default Content;

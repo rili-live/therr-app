@@ -602,7 +602,7 @@
         "eula": "End-User License Agreement (EULA)"
       }
     },
-    "momentOptions": {
+    "areaOptions": {
       "buttons": {
         "like": "'Like' this",
         "dislike": "'Dislike' this",

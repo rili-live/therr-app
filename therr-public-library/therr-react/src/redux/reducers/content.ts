@@ -71,6 +71,7 @@ const content = (state: IContentState = initialState, action: any) => {
             return state.setIn(['bookmarkedMoments'], action.data.moments)
                 .setIn(['media'], { ...state.media, ...action.data.media });
         case MapActionTypes.GET_MOMENT_DETAILS:
+        case MapActionTypes.GET_SPACE_DETAILS:
             // Reset moments from scratch
             return state.setIn(['media'], { ...state.media, ...action.data.media });
         case SocketClientActionTypes.LOGOUT:

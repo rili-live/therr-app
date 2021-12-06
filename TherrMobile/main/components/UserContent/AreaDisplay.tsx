@@ -15,7 +15,7 @@ import UserMedia from './UserMedia';
 import HashtagsContainer from './HashtagsContainer';
 import styles from '../../styles';
 import * as therrTheme from '../../styles/themes';
-import { getViewingMomentStyles } from '../../styles/user-content/moments';
+import { getViewingMomentStyles as getViewingAreaStyles } from '../../styles/user-content/moments';
 import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 
 const { width: viewportWidth } = Dimensions.get('window');
@@ -24,88 +24,88 @@ interface IUserDetails {
     userName: string;
 }
 
-interface IMomentDisplayProps {
+interface IAreaDisplayProps {
     translate: Function;
     date: string;
-    toggleMomentOptions: Function;
+    toggleAreaOptions: Function;
     hashtags: any[];
     isDarkMode: boolean;
     isExpanded?: boolean;
-    moment: any;
-    momentMedia: string;
+    area: any;
+    areaMedia: string;
     goToViewUser: Function;
-    updateMomentReaction: Function;
+    updateAreaReaction: Function;
     userDetails: IUserDetails;
 }
 
-interface IMomentDisplayState {
+interface IAreaDisplayState {
 }
 
-export default class MomentDisplay extends React.Component<IMomentDisplayProps, IMomentDisplayState> {
-    private viewMomentStyles;
+export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAreaDisplayState> {
+    private viewAreaStyles;
 
-    constructor(props: IMomentDisplayProps) {
+    constructor(props: IAreaDisplayProps) {
         super(props);
 
         this.state = {
         };
 
-        this.viewMomentStyles = getViewingMomentStyles({
+        this.viewAreaStyles = getViewingAreaStyles({
             isDarkMode: props.isDarkMode,
         });
     }
 
-    onBookmarkPress = (moment) => {
-        const { updateMomentReaction } = this.props;
+    onBookmarkPress = (area) => {
+        const { updateAreaReaction } = this.props;
 
-        updateMomentReaction(moment.id, {
-            userBookmarkCategory: !!moment.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+        updateAreaReaction(area.id, {
+            userBookmarkCategory: !!area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
         });
     }
 
     render() {
         const {
             date,
-            toggleMomentOptions,
+            toggleAreaOptions,
             hashtags,
             isDarkMode,
             isExpanded,
-            moment,
-            momentMedia,
+            area,
+            areaMedia,
             goToViewUser,
             userDetails,
         } = this.props;
 
-        const isBookmarked = moment.reaction?.userBookmarkCategory;
+        const isBookmarked = area.reaction?.userBookmarkCategory;
 
         return (
             <>
-                <View style={this.viewMomentStyles.momentAuthorContainer}>
+                <View style={this.viewAreaStyles.areaAuthorContainer}>
                     <Pressable
-                        onPress={() => goToViewUser(moment.fromUserId)}
+                        onPress={() => goToViewUser(area.fromUserId)}
                     >
                         <Image
-                            source={{ uri: `https://robohash.org/${moment.fromUserId}?size=52x52` }}
-                            style={this.viewMomentStyles.momentUserAvatarImg}
-                            containerStyle={this.viewMomentStyles.momentUserAvatarImgContainer}
+                            source={{ uri: `https://robohash.org/${area.fromUserId}?size=52x52` }}
+                            style={this.viewAreaStyles.areaUserAvatarImg}
+                            containerStyle={this.viewAreaStyles.areaUserAvatarImgContainer}
                             PlaceholderContent={<ActivityIndicator size="large" color={therrTheme.colors.primary}/>}
                             transition={false}
                         />
                     </Pressable>
-                    <View style={this.viewMomentStyles.momentAuthorTextContainer}>
+                    <View style={this.viewAreaStyles.areaAuthorTextContainer}>
                         {
                             userDetails &&
-                                <Text style={this.viewMomentStyles.momentUserName}>
+                                <Text style={this.viewAreaStyles.areaUserName}>
                                     {`${userDetails.userName}`}
                                 </Text>
                         }
-                        <Text style={this.viewMomentStyles.dateTime}>
+                        <Text style={this.viewAreaStyles.dateTime}>
                             {date}
                         </Text>
                     </View>
                     <Button
-                        containerStyle={this.viewMomentStyles.moreButtonContainer}
-                        buttonStyle={this.viewMomentStyles.moreButton}
+                        containerStyle={this.viewAreaStyles.moreButtonContainer}
+                        buttonStyle={this.viewAreaStyles.moreButton}
                         icon={
                             <Icon
                                 name="more-horiz"
@@ -113,26 +113,26 @@ export default class MomentDisplay extends React.Component<IMomentDisplayProps, 
                                 color={isDarkMode ? therrTheme.colors.textWhite : therrTheme.colors.tertiary}
                             />
                         }
-                        onPress={() => toggleMomentOptions(moment)}
+                        onPress={() => toggleAreaOptions(area)}
                         type="clear"
                         TouchableComponent={TouchableWithoutFeedbackComponent}
                     />
                 </View>
                 <UserMedia
                     viewportWidth={viewportWidth}
-                    media={momentMedia}
-                    isVisible={momentMedia}
+                    media={areaMedia}
+                    isVisible={areaMedia}
                 />
-                <View style={this.viewMomentStyles.momentContentTitleContainer}>
+                <View style={this.viewAreaStyles.areaContentTitleContainer}>
                     <Text
-                        style={this.viewMomentStyles.momentContentTitle}
+                        style={this.viewAreaStyles.areaContentTitle}
                         numberOfLines={2}
                     >
-                        {sanitizeNotificationMsg(moment.notificationMsg)}
+                        {sanitizeNotificationMsg(area.notificationMsg)}
                     </Text>
                     <Button
-                        containerStyle={this.viewMomentStyles.bookmarkButtonContainer}
-                        buttonStyle={this.viewMomentStyles.bookmarkButton}
+                        containerStyle={this.viewAreaStyles.bookmarkButtonContainer}
+                        buttonStyle={this.viewAreaStyles.bookmarkButton}
                         icon={
                             <Icon
                                 name={ isBookmarked ? 'bookmark' : 'bookmark-border' }
@@ -140,14 +140,14 @@ export default class MomentDisplay extends React.Component<IMomentDisplayProps, 
                                 color={isDarkMode ? therrTheme.colors.textWhite : therrTheme.colors.tertiary}
                             />
                         }
-                        onPress={() => this.onBookmarkPress(moment)}
+                        onPress={() => this.onBookmarkPress(area)}
                         type="clear"
                         TouchableComponent={TouchableWithoutFeedbackComponent}
                     />
                 </View>
-                <Text style={this.viewMomentStyles.momentMessage} numberOfLines={3}>
+                <Text style={this.viewAreaStyles.areaMessage} numberOfLines={3}>
                     <Autolink
-                        text={moment.message}
+                        text={area.message}
                         linkStyle={styles.link}
                         phone="sms"
                     />

@@ -1,15 +1,15 @@
 const createFunctions = async (knex) => {
     await knex.schema.raw(
-        `
-            CREATE FUNCTION main.no_area_overlaps(id uuid, g geometry)
-            RETURNS boolean AS $$
-            SELECT NOT EXISTS (
-                SELECT 1 from main.spaces
-                WHERE main.spaces.id != id
-                    AND main.spaces.geom && g
-                    AND ST_Relate(main.spaces.geom, g, '2********'));
-            $$ LANGUAGE sql
-        `,
+        `CREATE FUNCTION main.no_area_overlaps(spaceId uuid, g geometry)
+        RETURNS boolean AS $$
+        SELECT NOT EXISTS (
+            SELECT 1
+            FROM main.spaces
+            WHERE id != spaceId
+                AND geom && g
+                AND ST_Relate(geom, g, '2********')
+        );
+        $$ LANGUAGE sql;`,
     );
 };
 
@@ -55,10 +55,10 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('spaces', asyn
 
     // Postgis
     await knex.schema.raw(`SELECT AddGeometryColumn('main', 'spaces', 'geom', 4326, 'POLYGON', 2);`); // eslint-disable-line quotes
-    // await knex.schema.raw(`UPDATE main.spaces SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326);`); // eslint-disable-line quotes
+    await knex.schema.raw(`UPDATE main.spaces SET geom = ST_SetSRID(ST_Buffer(ST_MakePoint(longitude, latitude), radius), 4326);`); // eslint-disable-line quotes, max-len
     await knex.schema.raw(`CREATE INDEX idx_spaces_geom ON main.spaces USING gist(geom);`); // eslint-disable-line quotes
 }).then(() => createFunctions(knex)).then(async () => {
-    await knex.schema.raw('ALTER TABLE main.spaces ADD CONSTRAINT no_overlaps CHECK (main.no_area_overlaps(id, geom))');
+    await knex.schema.raw('ALTER TABLE main.spaces ADD CONSTRAINT no_overlaps CHECK (main.no_area_overlaps(id, geom));');
 });
 
 exports.down = (knex) => knex.schema.withSchema('main').dropTable('spaces').then(() => dropFunctions(knex));
