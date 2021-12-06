@@ -2,12 +2,12 @@ import React from 'react';
 import { Modal, Pressable } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import momentOptionsStyles from '../../styles/modal/momentOptions';
+import areaOptionsStyles from '../../styles/modal/momentOptions';
 import buttonStyles from '../../styles/buttons';
 
 export type ISelectionType = 'like' | 'dislike' | 'report';
 
-interface IMomentOptionsModal {
+interface IAreaOptionsModal {
     isVisible: boolean;
     onRequestClose: any;
     translate: Function;
@@ -38,7 +38,7 @@ export default ({
     onRequestClose,
     translate,
     onSelect,
-}: IMomentOptionsModal) => {
+}: IAreaOptionsModal) => {
     return (
         <Modal
             animationType="slide"
@@ -48,21 +48,21 @@ export default ({
         >
             <Pressable
                 onPress={onRequestClose}
-                style={momentOptionsStyles.overlay}>
-                <Pressable style={momentOptionsStyles.container}>
+                style={areaOptionsStyles.overlay}>
+                <Pressable style={areaOptionsStyles.container}>
                     <ModalButton
                         iconName="thumb-up"
-                        title={translate('modals.momentOptions.buttons.like')}
+                        title={translate('modals.areaOptions.buttons.like')}
                         onPress={() => onSelect('like')}
                     />
                     <ModalButton
                         iconName="thumb-down"
-                        title={translate('modals.momentOptions.buttons.dislike')}
+                        title={translate('modals.areaOptions.buttons.dislike')}
                         onPress={() => onSelect('dislike')}
                     />
                     <ModalButton
                         iconName="report-problem"
-                        title={translate('modals.momentOptions.buttons.report')}
+                        title={translate('modals.areaOptions.buttons.report')}
                         onPress={() => onSelect('report')}
                     />
                 </Pressable>

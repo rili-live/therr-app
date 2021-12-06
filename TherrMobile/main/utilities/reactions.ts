@@ -1,4 +1,4 @@
-import { ISelectionType } from '../components/Modals/MomentOptionsModal';
+import { ISelectionType } from '../components/Modals/AreaOptionsModal';
 
 const getReactionUpdateArgs = (type: ISelectionType) => {
     const requestArgs: any = {};

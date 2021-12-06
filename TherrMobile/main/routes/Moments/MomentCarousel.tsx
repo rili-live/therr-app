@@ -3,7 +3,7 @@ import { RefreshControl, View, Text, /* Platform, */ FlatList, Pressable } from 
 // import Carousel from 'react-native-snap-carousel';
 import styles from '../../styles';
 import momentStyles from '../../styles/user-content/moments';
-import MomentDisplay from '../../components/UserContent/MomentDisplay';
+import AreaDisplay from '../../components/UserContent/AreaDisplay';
 import formatDate from '../../utilities/formatDate';
 import { CarouselTabsMenu } from './CarouselTabsMenu';
 
@@ -25,19 +25,19 @@ const renderItem = ({ item: moment }, {
             style={momentStyles.momentContainer}
             onPress={() => expandMoment(moment)}
         >
-            <MomentDisplay
+            <AreaDisplay
                 translate={translate}
                 date={formattedDate}
                 goToViewUser={goToViewUser}
-                toggleMomentOptions={toggleMomentOptions}
+                toggleAreaOptions={toggleMomentOptions}
                 hashtags={moment.hashTags ? moment.hashTags.split(",") : []}
-                moment={moment}
+                area={moment}
                 // TODO: Get username from response
                 userDetails={{
                     userName: moment.fromUserName || moment.fromUserId,
                 }}
-                updateMomentReaction={updateMomentReaction}
-                momentMedia={momentMedia}
+                updateAreaReaction={updateMomentReaction}
+                areaMedia={momentMedia}
                 isDarkMode={false}
             />
         </Pressable>

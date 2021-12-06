@@ -79,6 +79,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
             successMsg: '',
             hashtags: [],
             inputs: {
+                isPublic: true,
                 radius: DEFAULT_RADIUS,
             },
             isSubmitting: false,
