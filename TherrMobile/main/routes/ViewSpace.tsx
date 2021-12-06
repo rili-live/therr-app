@@ -20,12 +20,12 @@ import styles from '../styles';
 import formStyles, { beemoEditForm as beemoFormStyles } from '../styles/forms';
 import beemoLayoutStyles from '../styles/layouts/beemo';
 import userContentStyles from '../styles/user-content';
-import { viewing as viewMomentStyles } from '../styles/user-content/moments';
+import { viewing as viewSpaceStyles } from '../styles/user-content/moments';
 import { youtubeLinkRegex } from '../constants';
 import AreaDisplay from '../components/UserContent/AreaDisplay';
 import formatDate from '../utilities/formatDate';
 import BaseStatusBar from '../components/BaseStatusBar';
-import { isMyArea as checkIsMyMoment } from '../utilities/content';
+import { isMyArea as checkIsMySpace } from '../utilities/content';
 import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptionsModal';
 import { getReactionUpdateArgs } from '../utilities/reactions';
 // import * as therrTheme from '../styles/themes';
@@ -34,28 +34,28 @@ import { getReactionUpdateArgs } from '../utilities/reactions';
 
 export const DEFAULT_RADIUS = 10;
 
-interface IMomentDetails {
+interface ISpaceDetails {
     userDetails?: any;
 }
 
-interface IViewMomentDispatchProps {
-    getMomentDetails: Function;
-    deleteMoment: Function;
-    createOrUpdateMomentReaction: Function;
+interface IViewSpaceDispatchProps {
+    getSpaceDetails: Function;
+    deleteSpace: Function;
+    createOrUpdateSpaceReaction: Function;
 }
 
-interface IStoreProps extends IViewMomentDispatchProps {
+interface IStoreProps extends IViewSpaceDispatchProps {
     content: IContentState;
     user: IUserState;
 }
 
 // Regular component props
-export interface IViewMomentProps extends IStoreProps {
+export interface IViewSpaceProps extends IStoreProps {
     navigation: any;
     route: any;
 }
 
-interface IViewMomentState {
+interface IViewSpaceState {
     areAreaOptionsVisible: boolean;
     errorMsg: string;
     successMsg: string;
@@ -63,7 +63,7 @@ interface IViewMomentState {
     isVerifyingDelete: boolean;
     previewLinkId?: string;
     previewStyleState: any;
-    selectedMoment: any;
+    selectedSpace: any;
 }
 
 const mapStateToProps = (state) => ({
@@ -72,12 +72,12 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    getMomentDetails: MapActions.getMomentDetails,
-    deleteMoment: MapActions.deleteMoment,
-    createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
+    getSpaceDetails: MapActions.getSpaceDetails,
+    deleteSpace: MapActions.deleteSpace,
+    createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
 }, dispatch);
 
-export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentState> {
+export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState> {
     private date;
     private notificationMsg;
     private hashtags;
@@ -89,9 +89,9 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         super(props);
 
         const { route } = props;
-        const { moment } = route.params;
+        const { space } = route.params;
 
-        const youtubeMatches = (moment.message || '').match(youtubeLinkRegex);
+        const youtubeMatches = (space.message || '').match(youtubeLinkRegex);
 
         this.state = {
             areAreaOptionsVisible: false,
@@ -101,31 +101,31 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
             isVerifyingDelete: false,
             previewStyleState: {},
             previewLinkId: youtubeMatches && youtubeMatches[1],
-            selectedMoment: {},
+            selectedSpace: {},
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
 
-        this.notificationMsg = (moment.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
-        this.hashtags = moment.hashTags ? moment.hashTags.split(',') : [];
+        this.notificationMsg = (space.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
+        this.hashtags = space.hashTags ? space.hashTags.split(',') : [];
 
-        this.date = formatDate(moment.updatedAt);
+        this.date = formatDate(space.updatedAt);
 
         // changeNavigationBarColor(therrTheme.colors.beemo1, false, true);
     }
 
     componentDidMount() {
-        const { content, getMomentDetails, navigation, route, user } = this.props;
-        const { isMyArea, moment } = route.params;
+        const { content, getSpaceDetails, navigation, route, user } = this.props;
+        const { isMyArea, space } = route.params;
 
-        const momentUserName = isMyArea ? user.details.userName : moment.fromUserName;
-        const mediaId = (moment.media && moment.media[0]?.id) || (moment.mediaIds?.length && moment.mediaIds?.split(',')[0]);
-        const momentMedia = content?.media[mediaId];
+        const spaceUserName = isMyArea ? user.details.userName : space.fromUserName;
+        const mediaId = (space.media && space.media[0]?.id) || (space.mediaIds?.length && space.mediaIds?.split(',')[0]);
+        const spaceMedia = content?.media[mediaId];
 
-        // Move moment details out of route params and into redux
-        getMomentDetails(moment.id, {
-            withMedia: !momentMedia,
-            withUser: !momentUserName,
+        // Move space details out of route params and into redux
+        getSpaceDetails(space.id, {
+            withMedia: !spaceMedia,
+            withUser: !spaceUserName,
         });
 
         navigation.setOptions({
@@ -180,19 +180,19 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     }
 
     onDeleteConfirm = () => {
-        const { deleteMoment, navigation, route, user } = this.props;
-        const { moment } = route.params;
+        const { deleteSpace, navigation, route, user } = this.props;
+        const { space } = route.params;
 
         this.setState({
             isDeleting: true,
         });
-        if (checkIsMyMoment(moment, user)) {
-            deleteMoment({ ids: [moment.id] })
+        if (checkIsMySpace(space, user)) {
+            deleteSpace({ ids: [space.id] })
                 .then(() => {
                     navigation.navigate('Map');
                 })
                 .catch((err) => {
-                    console.log('Error deleting moment', err);
+                    console.log('Error deleting space', err);
                     this.setState({
                         isDeleting: true,
                         isVerifyingDelete: false,
@@ -201,20 +201,20 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         }
     }
 
-    onMomentOptionSelect = (type: ISelectionType) => {
-        const { selectedMoment } = this.state;
-        const { createOrUpdateMomentReaction } = this.props;
+    onSpaceOptionSelect = (type: ISelectionType) => {
+        const { selectedSpace } = this.state;
+        const { createOrUpdateSpaceReaction } = this.props;
         const requestArgs: any = getReactionUpdateArgs(type);
 
-        createOrUpdateMomentReaction(selectedMoment.id, requestArgs).finally(() => {
-            this.toggleAreaOptions(selectedMoment);
+        createOrUpdateSpaceReaction(selectedSpace.id, requestArgs).finally(() => {
+            this.toggleAreaOptions(selectedSpace);
         });
     }
 
     goBack = () => {
         const { navigation, route } = this.props;
         const { previousView } = route.params;
-        if (previousView && previousView === 'Moments') {
+        if (previousView && previousView === 'Spaces') {
             navigation.goBack();
         } else {
             navigation.navigate('Map');
@@ -231,19 +231,19 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         });
     }
 
-    onUpdateMomentReaction = (momentId, data) => {
-        const { createOrUpdateMomentReaction, navigation, route } = this.props;
-        const { moment } = route.params;
+    onUpdateSpaceReaction = (spaceId, data) => {
+        const { createOrUpdateSpaceReaction, navigation, route } = this.props;
+        const { space } = route.params;
         navigation.setParams({
-            moment: {
-                ...moment,
+            space: {
+                ...space,
                 reaction: {
-                    ...moment.reaction,
-                    userBookmarkCategory: !!moment.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+                    ...space.reaction,
+                    userBookmarkCategory: !!space.reaction?.userBookmarkCategory ? null : 'Uncategorized',
                 },
             },
         });
-        return createOrUpdateMomentReaction(momentId, data);
+        return createOrUpdateSpaceReaction(spaceId, data);
     }
 
     toggleAreaOptions = (area) => {
@@ -251,18 +251,18 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
 
         this.setState({
             areAreaOptionsVisible: !areAreaOptionsVisible,
-            selectedMoment: areAreaOptionsVisible ? {} : area,
+            selectedSpace: areAreaOptionsVisible ? {} : area,
         });
     }
 
     render() {
-        const { areAreaOptionsVisible, isDeleting, isVerifyingDelete, previewLinkId, previewStyleState, selectedMoment } = this.state;
+        const { areAreaOptionsVisible, isDeleting, isVerifyingDelete, previewLinkId, previewStyleState, selectedSpace } = this.state;
         const { content, route, user } = this.props;
-        const { moment, isMyArea } = route.params;
-        // TODO: Fetch moment media
-        const mediaId = (moment.media && moment.media[0]?.id) || (moment.mediaIds?.length && moment.mediaIds?.split(',')[0]);
-        const momentMedia = content?.media[mediaId];
-        const momentUserName = isMyArea ? user.details.userName : moment.fromUserName;
+        const { space, isMyArea } = route.params;
+        // TODO: Fetch space media
+        const mediaId = (space.media && space.media[0]?.id) || (space.mediaIds?.length && space.mediaIds?.split(',')[0]);
+        const spaceMedia = content?.media[mediaId];
+        const spaceUserName = isMyArea ? user.details.userName : space.fromUserName;
 
         return (
             <>
@@ -274,22 +274,22 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                         style={[styles.bodyFlex, beemoLayoutStyles.bodyView]}
                         contentContainerStyle={[styles.bodyScroll, beemoLayoutStyles.bodyViewScroll]}
                     >
-                        <View style={[beemoLayoutStyles.container, viewMomentStyles.momentContainer]}>
+                        <View style={[beemoLayoutStyles.container, viewSpaceStyles.momentContainer]}>
                             <AreaDisplay
                                 translate={this.translate}
                                 date={this.date}
-                                toggleAreaOptions={() => this.toggleAreaOptions(moment)}
+                                toggleAreaOptions={() => this.toggleAreaOptions(space)}
                                 hashtags={this.hashtags}
                                 isDarkMode={true}
                                 isExpanded={true}
-                                area={moment}
+                                area={space}
                                 goToViewUser={this.goToViewUser}
-                                updateAreaReaction={(momentId, data) => this.onUpdateMomentReaction(momentId, data)}
+                                updateAreaReaction={(spaceId, data) => this.onUpdateSpaceReaction(spaceId, data)}
                                 // TODO: User Username from response
                                 userDetails={{
-                                    userName: momentUserName || moment.fromUserId,
+                                    userName: spaceUserName || space.fromUserId,
                                 }}
-                                areaMedia={momentMedia}
+                                areaMedia={spaceMedia}
                             />
                         </View>
                         {
@@ -305,7 +305,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                         }
                     </KeyboardAwareScrollView>
                     {
-                        <View style={[beemoLayoutStyles.footer, viewMomentStyles.footer]}>
+                        <View style={[beemoLayoutStyles.footer, viewSpaceStyles.footer]}>
                             <Button
                                 containerStyle={beemoFormStyles.backButtonContainer}
                                 buttonStyle={beemoFormStyles.backButton}
@@ -331,7 +331,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                                 titleStyle={beemoFormStyles.submitButtonTitle}
                                                 containerStyle={beemoFormStyles.submitButtonContainer}
                                                 title={this.translate(
-                                                    'forms.editMoment.buttons.delete'
+                                                    'forms.editSpace.buttons.delete'
                                                 )}
                                                 icon={
                                                     <FontAwesome5Icon
@@ -355,7 +355,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                                 titleStyle={beemoFormStyles.submitButtonTitle}
                                                 containerStyle={beemoFormStyles.submitCancelButtonContainer}
                                                 title={this.translate(
-                                                    'forms.editMoment.buttons.cancel'
+                                                    'forms.editSpace.buttons.cancel'
                                                 )}
                                                 onPress={this.onDeleteCancel}
                                                 disabled={isDeleting}
@@ -368,7 +368,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                                 titleStyle={beemoFormStyles.submitButtonTitleLight}
                                                 containerStyle={beemoFormStyles.submitButtonContainer}
                                                 title={this.translate(
-                                                    'forms.editMoment.buttons.confirm'
+                                                    'forms.editSpace.buttons.confirm'
                                                 )}
                                                 onPress={this.onDeleteConfirm}
                                                 disabled={isDeleting}
@@ -383,13 +383,13 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                 </SafeAreaView>
                 <AreaOptionsModal
                     isVisible={areAreaOptionsVisible}
-                    onRequestClose={() => this.toggleAreaOptions(selectedMoment)}
+                    onRequestClose={() => this.toggleAreaOptions(selectedSpace)}
                     translate={this.translate}
-                    onSelect={this.onMomentOptionSelect}
+                    onSelect={this.onSpaceOptionSelect}
                 />
             </>
         );
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(ViewMoment);
+export default connect(mapStateToProps, mapDispatchToProps)(ViewSpace);

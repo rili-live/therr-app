@@ -10,11 +10,11 @@ import findUsers from '../utilities/findUsers';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
-export const MOMENTS_TABLE_NAME = 'main.moments';
+export const SPACES_TABLE_NAME = 'main.spaces';
 
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
 const maxNotificationMsgLength = 100;
-export interface ICreateMomentParams {
+export interface ICreateSpaceParams {
     expiresAt?: any;
     fromUserId: number;
     locale: string;
@@ -33,14 +33,14 @@ export interface ICreateMomentParams {
     polygonCoords?: string;
 }
 
-interface IDeleteMomentsParams {
+interface IDeleteSpacesParams {
     fromUserId: string;
     ids: string[];
 }
 
 const sanitizeNotificationMsg = (message = '') => message.replace(/\r?\n+|\r+/gm, ' ');
 
-export default class MomentsStore {
+export default class SpacesStore {
     db: IConnection;
 
     mediaStore: MediaStore;
@@ -57,7 +57,7 @@ export default class MomentsStore {
             proximityMax = params.query;
         }
         let queryString = knexBuilder
-            .from(MOMENTS_TABLE_NAME)
+            .from(SPACES_TABLE_NAME)
             .count('*')
             // NOTE: Cast to a geography type to search distance within n meters
             .where(knexBuilder.raw(`ST_DWithin(geom, ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${proximityMax})`));
@@ -77,7 +77,7 @@ export default class MomentsStore {
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
-    searchMoments(conditions: any = {}, returning, fromUserIds = [], overrides?: any, includePublicResults = true) {
+    searchSpaces(conditions: any = {}, returning, fromUserIds = [], overrides?: any, includePublicResults = true) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
         let proximityMax = overrides?.distanceOverride || Location.AREA_PROXIMITY_METERS;
@@ -86,9 +86,9 @@ export default class MomentsStore {
         }
         let queryString: any = knexBuilder
             .select((returning && returning.length) ? returning : '*')
-            .from(MOMENTS_TABLE_NAME)
-            // TODO: Determine a better way to select moments that are most relevant to the user
-            // .orderBy(`${MOMENTS_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
+            .from(SPACES_TABLE_NAME)
+            // TODO: Determine a better way to select spaces that are most relevant to the user
+            // .orderBy(`${SPACES_TABLE_NAME}.updatedAt`) // Sorting by updatedAt is very expensive/slow
             // NOTE: Cast to a geography type to search distance within n meters
             .where(knexBuilder.raw(`ST_DWithin(geom, ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${proximityMax})`)) // eslint-disable-line quotes, max-len
             .andWhere({
@@ -128,51 +128,51 @@ export default class MomentsStore {
         });
     }
 
-    findMoments(momentIds, filters, options: any = {}) {
+    findSpaces(spaceIds, filters, options: any = {}) {
         // hard limit to prevent overloading client
         const restrictedLimit = (filters.limit) > 1000 ? 1000 : filters.limit;
-        const orderBy = filters.orderBy || `${MOMENTS_TABLE_NAME}.updatedAt`;
+        const orderBy = filters.orderBy || `${SPACES_TABLE_NAME}.updatedAt`;
         const order = filters.order || 'DESC';
 
         const query = knexBuilder
-            .from(MOMENTS_TABLE_NAME)
+            .from(SPACES_TABLE_NAME)
             .orderBy(orderBy, order)
-            .whereIn('id', momentIds || [])
+            .whereIn('id', spaceIds || [])
             .limit(restrictedLimit);
 
-        return this.db.read.query(query.toString()).then(async ({ rows: moments }) => {
+        return this.db.read.query(query.toString()).then(async ({ rows: spaces }) => {
             if (options.withMedia || options.withUser) {
                 const mediaIds: string[] = [];
                 const userIds: number[] = [];
                 const signingPromises: any = [];
                 const imageExpireTime = Date.now() + 60 * 60 * 1000; // 60 minutes
-                const momentDetailsPromises: Promise<any>[] = [];
+                const spaceDetailsPromises: Promise<any>[] = [];
                 const matchingUsers: any = {};
 
-                moments.forEach((moment) => {
-                    if (options.withMedia && moment.mediaIds) {
-                        mediaIds.push(...moment.mediaIds.split(','));
+                spaces.forEach((space) => {
+                    if (options.withMedia && space.mediaIds) {
+                        mediaIds.push(...space.mediaIds.split(','));
                     }
                     if (options.withUser) {
-                        userIds.push(moment.fromUserId);
+                        userIds.push(space.fromUserId);
                     }
                 });
                 // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
-                momentDetailsPromises.push(options.withMedia ? this.mediaStore.get(mediaIds) : Promise.resolve(null));
-                momentDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
+                spaceDetailsPromises.push(options.withMedia ? this.mediaStore.get(mediaIds) : Promise.resolve(null));
+                spaceDetailsPromises.push(options.withUser ? findUsers({ ids: userIds }) : Promise.resolve(null));
 
-                const [media, users] = await Promise.all(momentDetailsPromises);
+                const [media, users] = await Promise.all(spaceDetailsPromises);
 
                 // TODO: Optimize
-                const mappedMoments = moments.map((moment) => {
-                    const modifiedMoment = moment;
-                    modifiedMoment.media = [];
-                    modifiedMoment.user = {};
+                const mappedSpaces = spaces.map((space) => {
+                    const modifiedSpace = space;
+                    modifiedSpace.media = [];
+                    modifiedSpace.user = {};
 
                     // MEDIA
-                    if (options.withMedia && moment.mediaIds) {
-                        const ids = modifiedMoment.mediaIds.split(',');
-                        modifiedMoment.media = media.filter((m) => {
+                    if (options.withMedia && space.mediaIds) {
+                        const ids = modifiedSpace.mediaIds.split(',');
+                        modifiedSpace.media = media.filter((m) => {
                             if (ids.includes(m.id)) {
                                 const bucket = getBucket(m.type);
                                 if (bucket) {
@@ -201,34 +201,34 @@ export default class MomentsStore {
 
                     // USER
                     if (options.withUser) {
-                        const matchingUser = users.find((user) => user.id === modifiedMoment.fromUserId);
+                        const matchingUser = users.find((user) => user.id === modifiedSpace.fromUserId);
                         if (matchingUser) {
                             matchingUsers[matchingUser.id] = matchingUser;
-                            modifiedMoment.fromUserName = matchingUser.userName;
-                            modifiedMoment.fromUserFirstName = matchingUser.firstName;
-                            modifiedMoment.fromUserLastName = matchingUser.lastName;
+                            modifiedSpace.fromUserName = matchingUser.userName;
+                            modifiedSpace.fromUserFirstName = matchingUser.firstName;
+                            modifiedSpace.fromUserLastName = matchingUser.lastName;
                         }
                     }
 
-                    return modifiedMoment;
+                    return modifiedSpace;
                 });
 
                 return Promise.all(signingPromises).then((signedUrlResponses) => ({
-                    moments: mappedMoments,
+                    spaces: mappedSpaces,
                     media: signedUrlResponses.reduce((prev: any, curr: any) => ({ ...curr, ...prev }), {}),
                     users: matchingUsers,
                 }));
             }
 
             return {
-                moments,
+                spaces,
                 media: {},
                 users: {},
             };
         });
     }
 
-    createMoment(params: ICreateMomentParams) {
+    createSpace(params: ICreateSpaceParams) {
         const region = countryReverseGeo.get_country(params.latitude, params.longitude);
         const notificationMsg = params.notificationMsg
             ? `${sanitizeNotificationMsg(params.notificationMsg).substring(0, maxNotificationMsgLength)}`
@@ -266,11 +266,12 @@ export default class MomentsStore {
                 radius: params.radius,
                 region: region.code,
                 polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
-                geom: knexBuilder.raw(`ST_SetSRID(ST_MakePoint(${params.longitude}, ${params.latitude}), 4326)`),
+                // eslint-disable-next-line max-len
+                geom: knexBuilder.raw(`ST_SetSRID(ST_Buffer(ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${params.radius})::geometry, 4326)`),
             };
 
             const queryString = knexBuilder.insert(sanitizedParams)
-                .into(MOMENTS_TABLE_NAME)
+                .into(SPACES_TABLE_NAME)
                 .returning('*')
                 .toString();
 
@@ -278,10 +279,10 @@ export default class MomentsStore {
         });
     }
 
-    deleteMoments(params: IDeleteMomentsParams) {
+    deleteSpaces(params: IDeleteSpacesParams) {
         // TODO: RSERV-52 | Consider archiving only, and delete associated reactions from reactions-service
         const queryString = knexBuilder.delete()
-            .from(MOMENTS_TABLE_NAME)
+            .from(SPACES_TABLE_NAME)
             .where('fromUserId', params.fromUserId)
             .whereIn('id', params.ids)
             .toString();

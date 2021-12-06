@@ -123,7 +123,7 @@ export default class UserLocationCache {
             .then((momentIds) => {
                 const pipeline = redisClient.pipeline();
 
-                for (let i = 0; i < Location.MAX_MOMENT_ACTIVATE_COUNT && i <= momentIds.length - 1; i += 1) {
+                for (let i = 0; i < Location.MAX_AREA_ACTIVATE_COUNT && i <= momentIds.length - 1; i += 1) {
                     if (momentIds[i]) {
                         pipeline.hgetall(`${this.geoKeyPrefix}:${this.geoKeys.unactivated}:${momentIds[i]}`);
                     }

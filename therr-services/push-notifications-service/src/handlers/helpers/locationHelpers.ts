@@ -76,7 +76,7 @@ const filterNearbyMoments = (moments, userLocationCache: UserLocationCache, head
             // TODO: RDATA-3 - Determine smart rules around sending push notifications
             let shouldSkipNotification = hasSentNotificationRecently(lastNotificationDate);
             const cacheableMoments: any[] = [];
-            let maxActivationDistance = Location.MOMENT_PROXIMITY_METERS;
+            let maxActivationDistance = Location.AREA_PROXIMITY_METERS;
             let filteredMomentsCount = 0;
 
             // Only interested in reactions that have not been activated
@@ -137,7 +137,7 @@ const filterNearbyMoments = (moments, userLocationCache: UserLocationCache, head
                 }
 
                 // Only cache moments that have not already been viewed and do not require manual activation
-                if (!userIsCloseEnough || filteredMomentsCount >= Location.MAX_MOMENT_ACTIVATE_COUNT) {
+                if (!userIsCloseEnough || filteredMomentsCount >= Location.MAX_AREA_ACTIVATE_COUNT) {
                     cacheableMoments.push(moment);
                 }
 
@@ -192,7 +192,7 @@ const fetchNearbyMoments = (userLocationCache: UserLocationCache, {
             'x-userid': headers.userId,
         },
         data: {
-            distanceOverride: Location.MOMENT_PROXIMITY_EXPANDED_METERS,
+            distanceOverride: Location.AREA_PROXIMITY_EXPANDED_METERS,
         },
     })
         .then((momentsResponse) => (momentsResponse?.data?.results || [])) // relevant moments within x meters

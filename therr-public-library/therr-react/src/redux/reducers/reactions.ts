@@ -2,7 +2,8 @@ import * as Immutable from 'seamless-immutable';
 import { IReactionsState, ReactionActionTypes } from '../../types/redux/reactions';
 
 const initialState: IReactionsState = Immutable.from({
-    myReactions: Immutable.from([]),
+    myMomentReactions: Immutable.from([]),
+    mySpaceReactions: Immutable.from([]),
 });
 
 const reactions = (state: IReactionsState = initialState, action: any) => {
@@ -11,17 +12,21 @@ const reactions = (state: IReactionsState = initialState, action: any) => {
         state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
     }
 
-    let modifiedReactions = [...state.myReactions];
-    let reactionExists = false;
+    let modifiedMomentReactions = [...state.myMomentReactions];
+    let momentReactionExists = false;
+
+    let modifiedSpaceReactions = [...state.mySpaceReactions];
+    let spaceReactionExists = false;
 
     switch (action.type) {
-        // TODO: Rethink this
+        // TODO: Rethink this for possible optimizations
+        // Moments
         case ReactionActionTypes.GET_MOMENT_REACTIONS:
-            return state.setIn(['myReactions'], action.data);
+            return state.setIn(['myMomentReactions'], action.data);
         case ReactionActionTypes.MOMENT_REACTION_CREATED_OR_UPDATED:
-            modifiedReactions = modifiedReactions.map((reaction) => { // eslint-disable-line no-case-declarations
+            modifiedMomentReactions = modifiedMomentReactions.map((reaction) => { // eslint-disable-line no-case-declarations
                 if (reaction.momentId === action.data.momentId) {
-                    reactionExists = true;
+                    momentReactionExists = true;
                     return {
                         ...reaction,
                         ...action.data,
@@ -31,11 +36,32 @@ const reactions = (state: IReactionsState = initialState, action: any) => {
                 return reaction;
             });
 
-            if (!reactionExists) {
-                modifiedReactions.unshift(action.data);
+            if (!momentReactionExists) {
+                modifiedMomentReactions.unshift(action.data);
             }
 
-            return state.setIn(['myReactions'], modifiedReactions);
+            return state.setIn(['myMomentReactions'], modifiedMomentReactions);
+        // Spaces
+        case ReactionActionTypes.GET_SPACE_REACTIONS:
+            return state.setIn(['mySpaceReactions'], action.data);
+        case ReactionActionTypes.SPACE_REACTION_CREATED_OR_UPDATED:
+            modifiedSpaceReactions = modifiedSpaceReactions.map((reaction) => { // eslint-disable-line no-case-declarations
+                if (reaction.spaceId === action.data.spaceId) {
+                    spaceReactionExists = true;
+                    return {
+                        ...reaction,
+                        ...action.data,
+                    };
+                }
+
+                return reaction;
+            });
+
+            if (!spaceReactionExists) {
+                modifiedSpaceReactions.unshift(action.data);
+            }
+
+            return state.setIn(['mySpaceReactions'], modifiedSpaceReactions);
         default:
             return state;
     }

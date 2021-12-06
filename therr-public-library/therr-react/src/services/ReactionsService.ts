@@ -1,7 +1,7 @@
 import axios from 'axios';
+import { IAreaType } from '../types';
 
-export interface ICreateMomentReactionBody {
-    momentId: number;
+export interface ICreateAreaReactionBody {
     userId: number;
     userViewCount?: number;
     userHasActivated?: boolean;
@@ -10,13 +10,8 @@ export interface ICreateMomentReactionBody {
     userHasDisliked?: boolean;
     userHasSuperDisliked?: boolean;
 }
-export interface IGetMomentReactionParams {
-    limit?: number;
-    momentId?: number;
-    momentIds?: number[];
-}
 
-export interface ICreateOrUpdateMomentReactionBody {
+export interface ICreateOrUpdateAreaReactionBody {
     userViewCount?: number;
     userHasActivated?: boolean;
     userHasLiked?: boolean;
@@ -25,7 +20,7 @@ export interface ICreateOrUpdateMomentReactionBody {
     userHasDisliked?: boolean;
     userHasSuperDisliked?: boolean;
 }
-export interface ISearchActiveMomentsParams {
+export interface ISearchActiveAreasParams {
     offset: number;
     order?: string;
     blockedUsers: number[];
@@ -35,14 +30,69 @@ export interface ISearchActiveMomentsParams {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface ISearchBookmarkedMomentsParams extends ISearchActiveMomentsParams {}
+export interface ISearchBookmarkedAreasParams extends ISearchActiveAreasParams {}
+
+export interface ICreateMomentReactionBody extends ICreateAreaReactionBody {
+    momentId: number;
+}
+export interface IGetMomentReactionParams {
+    limit?: number;
+    momentId?: number;
+    momentIds?: number[];
+}
+export interface ICreateSpaceReactionBody extends ICreateAreaReactionBody {
+    spaceId: number;
+}
+export interface IGetSpaceReactionParams {
+    limit?: number;
+    spaceId?: number;
+    spaceIds?: number[];
+}
 
 class ReactionsService {
-    createOrUpdateMomentReaction = (momentId: number, data: ICreateOrUpdateMomentReactionBody) => axios({
+    createOrUpdateAreaReaction = (areaType: IAreaType, id: number, data: ICreateOrUpdateAreaReactionBody) => {
+        const typeSingular = areaType === 'moments' ? 'moment' : 'reaction';
+
+        return axios({
+            method: 'post',
+            url: `/reactions-service/${typeSingular}-reactions/${id}`,
+            data,
+        });
+    }
+
+    searchActiveAreas = (areaType: IAreaType, options: ISearchActiveAreasParams, limit = 21) => axios({
         method: 'post',
-        url: `/reactions-service/moment-reactions/${momentId}`,
-        data,
+        url: `/reactions-service/${areaType}/active/search`,
+        data: {
+            offset: options.offset,
+            limit,
+            order: options.order,
+            blockedUsers: options.blockedUsers,
+            shouldHideMatureContent: options.shouldHideMatureContent,
+            withMedia: options.withMedia,
+            withUser: options.withUser,
+        },
     })
+
+    searchBookmarkedAreas = (areaType: IAreaType, options: ISearchBookmarkedAreasParams, limit = 21) => axios({
+        method: 'post',
+        url: `/reactions-service/${areaType}/bookmarked/search`,
+        data: {
+            offset: options.offset,
+            limit,
+            withMedia: options.withMedia,
+            withUser: options.withUser,
+            blockedUsers: options.blockedUsers,
+            shouldHideMatureContent: options.shouldHideMatureContent,
+        },
+    })
+
+    // Moments
+    createOrUpdateMomentReaction = (id: number, data: ICreateOrUpdateAreaReactionBody) => this.createOrUpdateAreaReaction(
+        'moments',
+        id,
+        data,
+    );
 
     getMomentReactions = (queryParams: IGetMomentReactionParams) => {
         let queryString = `?limit=${queryParams.limit || 100}`;
@@ -61,41 +111,63 @@ class ReactionsService {
         });
     }
 
-    getReactionsByMomentId = (momentId: number, limit: number) => {
+    getReactionsByMomentId = (id: number, limit: number) => {
         const queryString = `?limit=${limit || 100}`;
 
         return axios({
             method: 'get',
-            url: `/reactions-service/moment-reactions/${momentId}${queryString}`,
+            url: `/reactions-service/moment-reactions/${id}${queryString}`,
         });
     }
 
-    searchActiveMoments = (options: ISearchActiveMomentsParams, limit = 21) => axios({
-        method: 'post',
-        url: '/reactions-service/moments/active/search',
-        data: {
-            offset: options.offset,
-            limit,
-            order: options.order,
-            blockedUsers: options.blockedUsers,
-            shouldHideMatureContent: options.shouldHideMatureContent,
-            withMedia: options.withMedia,
-            withUser: options.withUser,
-        },
-    });
+    searchActiveMoments = (options: ISearchActiveAreasParams, limit = 21) => this.searchActiveAreas('moments', options, limit);
 
-    searchBookmarkedMoments = (options: ISearchBookmarkedMomentsParams, limit = 21) => axios({
-        method: 'post',
-        url: '/reactions-service/moments/bookmarked/search',
-        data: {
-            offset: options.offset,
-            limit,
-            withMedia: options.withMedia,
-            withUser: options.withUser,
-            blockedUsers: options.blockedUsers,
-            shouldHideMatureContent: options.shouldHideMatureContent,
-        },
-    });
+    searchBookmarkedMoments = (options: ISearchBookmarkedAreasParams, limit = 21) => this.searchBookmarkedAreas(
+        'moments',
+        options,
+        limit,
+    );
+
+    // Spaces
+    createOrUpdateSpaceReaction = (id: number, data: ICreateOrUpdateAreaReactionBody) => this.createOrUpdateAreaReaction(
+        'moments',
+        id,
+        data,
+    );
+
+    getSpaceReactions = (queryParams: IGetSpaceReactionParams) => {
+        let queryString = `?limit=${queryParams.limit || 100}`;
+
+        if (queryParams.spaceId) {
+            queryString = `${queryString}&spaceId=${queryParams.spaceId}`;
+        }
+
+        if (queryParams.spaceIds) {
+            queryString = `${queryString}&spaceIds=${queryParams.spaceIds.join(',')}`;
+        }
+
+        return axios({
+            method: 'get',
+            url: `/reactions-service/space-reactions${queryString}`,
+        });
+    }
+
+    getReactionsBySpaceId = (id: number, limit: number) => {
+        const queryString = `?limit=${limit || 100}`;
+
+        return axios({
+            method: 'get',
+            url: `/reactions-service/space-reactions/${id}${queryString}`,
+        });
+    }
+
+    searchActiveSpaces = (options: ISearchActiveAreasParams, limit = 21) => this.searchActiveAreas('spaces', options, limit);
+
+    searchBookmarkedSpaces = (options: ISearchBookmarkedAreasParams, limit = 21) => this.searchBookmarkedAreas(
+        'spaces',
+        options,
+        limit,
+    );
 }
 
 export default new ReactionsService();

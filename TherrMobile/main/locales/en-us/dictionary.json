@@ -286,6 +286,24 @@
       "backendSuccessMessage": "Your moment was successfully saved!",
       "backendErrorMessage": "Connection error. Please try again later."
     },
+    "editSpace": {
+      "buttons": {
+        "submit": "Send",
+        "delete": "Delete?",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      },
+      "labels": {
+        "message": "Share something unique...",
+        "notificationMsg": "Tagline or Title",
+        "hashTags": "Hashtags (ie. my_tag, myTag)",
+        "maxViews": "Max views (per person)",
+        "expiresAt": "Countdown",
+        "radius": "Radius: {meters} meters"
+      },
+      "backendSuccessMessage": "You have successfully claimed this space!",
+      "backendErrorMessage": "Connection error. Please try again later."
+    },
     "forgotPassword": {
       "buttons": {
         "submit": "Send E-mail"
@@ -444,6 +462,10 @@
       "headerTitle": "Create a Moment",
       "previewHeader": "Preview:"
     },
+    "editSpace": {
+      "headerTitle": "Claim a Space",
+      "previewHeader": "Preview:"
+    },
     "emailVerification": {
       "buttons": {
         "send": "Send E-mail"
@@ -499,8 +521,8 @@
     },
     "map": {
       "headerTitle": " ",
-      "momentAlerts": {
-        "walkCloser": "Walk closer to activate this moment"
+      "areaAlerts": {
+        "walkCloser": "Walk closer to activate this moment/space"
       }
     },
     "pageNotFound": {
@@ -580,7 +602,7 @@
         "eula": "End-User License Agreement (EULA)"
       }
     },
-    "momentOptions": {
+    "areaOptions": {
       "buttons": {
         "like": "'Like' this",
         "dislike": "'Dislike' this",

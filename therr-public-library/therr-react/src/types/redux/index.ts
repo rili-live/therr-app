@@ -9,6 +9,7 @@ import {
     ForumActionTypes,
 } from './forums';
 import {
+    IAreaType,
     IMapState,
     MapActionTypes,
 } from './maps';
@@ -56,6 +57,7 @@ export {
     ForumActionTypes,
 
     // Maps
+    IAreaType,
     IMapState,
     MapActionTypes,
 

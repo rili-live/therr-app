@@ -24,6 +24,8 @@ import Register from './Register';
 import Settings from './Settings';
 import ViewMoment from './ViewMoment';
 import EditMoment from './EditMoment';
+import ViewSpace from './ViewSpace';
+import EditSpace from './EditSpace';
 import EditChat from './HostedChat/EditChat';
 import ViewChat from './HostedChat/ViewChat';
 import ViewUser from './ViewUser/index.tsx';
@@ -281,26 +283,6 @@ const routes: RouteConfig<
         }),
     },
     {
-        name: 'ViewMoment',
-        component: ViewMoment,
-        options: () => ({
-            title: 'ViewMoment',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-            headerStyle: styles.headerStyleBeemo,
-            headerTitleStyle: {
-                ...styles.headerTitleStyle,
-                alignSelf: 'flex-start',
-                textShadowOffset: { width: 0, height: 0 },
-                textShadowRadius: 0,
-                letterSpacing: 2,
-            },
-            headerLeft: () => null,
-        }),
-    },
-    {
         name: 'EditChat',
         component: EditChat,
         options: () => ({
@@ -345,10 +327,72 @@ const routes: RouteConfig<
         }),
     },
     {
+        name: 'ViewMoment',
+        component: ViewMoment,
+        options: () => ({
+            title: 'ViewMoment',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+            headerStyle: styles.headerStyleBeemo,
+            headerTitleStyle: {
+                ...styles.headerTitleStyle,
+                alignSelf: 'flex-start',
+                textShadowOffset: { width: 0, height: 0 },
+                textShadowRadius: 0,
+                letterSpacing: 2,
+            },
+            headerLeft: () => null,
+        }),
+    },
+    {
         name: 'EditMoment',
         component: EditMoment,
         options: () => ({
             title: 'EditMoment',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+            headerStyle: styles.headerStyleBeemo,
+            headerTitleStyle: {
+                ...styles.headerTitleStyle,
+                alignSelf: 'flex-start',
+                textShadowOffset: { width: 0, height: 0 },
+                textShadowRadius: 0,
+                letterSpacing: 2,
+            },
+            headerLeft: () => null,
+            cardStyleInterpolator: undefined,
+            transitionSpec: momentTransitionSpec,
+        }),
+    },
+    {
+        name: 'ViewSpace',
+        component: ViewSpace,
+        options: () => ({
+            title: 'ViewSpace',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+            headerStyle: styles.headerStyleBeemo,
+            headerTitleStyle: {
+                ...styles.headerTitleStyle,
+                alignSelf: 'flex-start',
+                textShadowOffset: { width: 0, height: 0 },
+                textShadowRadius: 0,
+                letterSpacing: 2,
+            },
+            headerLeft: () => null,
+        }),
+    },
+    {
+        name: 'EditSpace',
+        component: EditSpace,
+        options: () => ({
+            title: 'EditSpace',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
