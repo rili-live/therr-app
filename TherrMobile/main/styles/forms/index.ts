@@ -105,6 +105,11 @@ export default StyleSheet.create({
         width: '100%',
         color: therrTheme.colors.textWhite,
     },
+    pickerFlex: {
+        flex: 1,
+        height: 50,
+        color: therrTheme.colors.textWhite,
+    },
     pickerItem: {
         height: 50,
         color: therrTheme.colors.textWhite,

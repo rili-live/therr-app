@@ -8,6 +8,9 @@ const markerConfigs = {
     thought: {
         fill: therrTheme.colors.brandingMapYellow,
     },
+    music: {
+        fill: therrTheme.colors.tertiary,
+    },
     area: {
         fill: therrTheme.colors.beemoBlue,
         fillAlt: therrTheme.colorVariations.primary2Darken,
@@ -18,19 +21,26 @@ export default function MarkerIcon({
     areaType,
     area,
 }) {
-    if (!area.mediaIds) {
-        if (areaType === 'moments') {
+    // TODO: Add all categories
+    if (area.category === 'music') {
+        return (
+            <MarkerIconThinking {...markerConfigs.music} />
+        );
+    }
+    if (area.category === 'idea') {
+        return (
+            <MarkerIconThinking {...markerConfigs.thought} />
+        );
+    }
+
+    // No category
+    if (areaType === 'moments') {
+        if (!area.mediaIds) {
             return (
                 <MarkerIconThinking {...markerConfigs.thought} />
             );
         }
 
-        return (
-            <MarkerIconStorefront {...markerConfigs.thought} />
-        );
-    }
-
-    if (areaType === 'moments') {
         return (
             <MarkerIconCamera {...markerConfigs.area} />
         );

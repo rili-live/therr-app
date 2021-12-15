@@ -1,9 +1,9 @@
 import { StyleSheet } from 'react-native';
 import * as therrTheme from '../../themes';
 
-const momentUserAvatarImgPadding = 2;
-const momentUserAvatarImgWidth = 52 - (2 * momentUserAvatarImgPadding);
-const momentUserAvatarImgRadius = momentUserAvatarImgWidth / 2;
+const areaUserAvatarImgPadding = 2;
+const areaUserAvatarImgWidth = 52 - (2 * areaUserAvatarImgPadding);
+const areaUserAvatarImgRadius = areaUserAvatarImgWidth / 2;
 const contentTitleContainerHeight = 38;
 
 const buttonContainerStyles: any = {
@@ -17,7 +17,7 @@ const buttonStyle: any = {
     height: '100%',
 };
 
-const getViewingMomentStyles = ({
+const getViewingAreaStyles = ({
     isDarkMode,
 }) => StyleSheet.create({
     buttons: {
@@ -45,7 +45,7 @@ const getViewingMomentStyles = ({
         // position: 'absolute',
         // left: 20
     },
-    momentContainer: {
+    areaContainer: {
         justifyContent: 'center',
         alignItems: 'center',
         padding: 0,
@@ -53,20 +53,20 @@ const getViewingMomentStyles = ({
         marginTop: 0,
         marginBottom: 32,
     },
-    momentUserAvatarImgContainer: {
+    areaUserAvatarImgContainer: {
         height: '100%',
-        borderRadius: momentUserAvatarImgRadius,
+        borderRadius: areaUserAvatarImgRadius,
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
         padding: 0,
     },
-    momentUserAvatarImg: {
-        height: momentUserAvatarImgWidth,
-        width: momentUserAvatarImgWidth,
-        padding: momentUserAvatarImgPadding,
+    areaUserAvatarImg: {
+        height: areaUserAvatarImgWidth,
+        width: areaUserAvatarImgWidth,
+        padding: areaUserAvatarImgPadding,
     },
-    momentAuthorContainer: {
+    areaAuthorContainer: {
         display: 'flex',
         flex: 1,
         flexDirection: 'row',
@@ -75,11 +75,11 @@ const getViewingMomentStyles = ({
         width: '100%',
         paddingBottom: 5,
         paddingHorizontal: 2,
-        height: momentUserAvatarImgWidth,
-        maxHeight: momentUserAvatarImgWidth,
+        height: areaUserAvatarImgWidth,
+        maxHeight: areaUserAvatarImgWidth,
         position: 'relative',
     },
-    momentAuthorTextContainer: {
+    areaAuthorTextContainer: {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -90,7 +90,7 @@ const getViewingMomentStyles = ({
         paddingBottom: 2,
         paddingLeft: 4,
     },
-    momentUserName: {
+    areaUserName: {
         fontSize: 15,
         paddingBottom: 1,
         color: isDarkMode ? therrTheme.colors.beemoTextWhite : therrTheme.colors.tertiary,
@@ -111,7 +111,7 @@ const getViewingMomentStyles = ({
     bookmarkButton: {
         ...buttonStyle,
     },
-    momentContentTitleContainer: {
+    areaContentTitleContainer: {
         display: 'flex',
         flex: 1,
         flexDirection: 'row',
@@ -123,7 +123,7 @@ const getViewingMomentStyles = ({
         position: 'relative',
         maxHeight: contentTitleContainerHeight,
     },
-    momentContentTitle: {
+    areaContentTitle: {
         flex: 1,
         color: isDarkMode ? therrTheme.colors.beemoTextWhite : therrTheme.colors.tertiary,
         // position: 'absolute',
@@ -134,7 +134,7 @@ const getViewingMomentStyles = ({
         height: '100%',
         fontWeight: 'bold',
     },
-    momentMessage: {
+    areaMessage: {
         fontSize: 15,
         color: isDarkMode ? therrTheme.colors.beemoTextWhite : therrTheme.colors.tertiary,
         overflow: 'scroll',
@@ -151,9 +151,9 @@ const getViewingMomentStyles = ({
 });
 
 export {
-    getViewingMomentStyles,
+    getViewingAreaStyles,
 };
 
-export default getViewingMomentStyles({
+export default getViewingAreaStyles({
     isDarkMode: false,
 });

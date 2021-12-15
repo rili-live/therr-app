@@ -210,7 +210,6 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         this.unsubscribeNavigationListener = navigation.addListener('state', (foo) => {
             const route = foo.data.state.routes.find(route => route.name === 'Map');
-            console.log('FUCK', route);
             if (route && route.params?.isTourEnabled) {
                 this.setState({
                     isTouring: true,
@@ -596,121 +595,122 @@ class Map extends React.Component<IMapProps, IMapState> {
             visibleMoments = visibleMoments.concat(map.myMoments);
             visibleSpaces = visibleSpaces.concat(map.mySpaces);
         }
-        const pressedMoments = visibleMoments.filter((moment) => {
+
+        const pressedSpaces = visibleSpaces.filter((space) => {
             return insideCircle(nativeEvent.coordinate, {
-                lon: moment.longitude,
-                lat: moment.latitude,
-            }, moment.radius);
+                lon: space.longitude,
+                lat: space.latitude,
+            }, space.radius);
         });
 
-        if (pressedMoments.length) {
-            this.setState({
-                activeSpace: {},
-                activeSpaceDetails: {},
-            });
-
-            const selectedMoment = pressedMoments[0];
-            const distToCenter = distanceTo({
-                lon: circleCenter.longitude,
-                lat: circleCenter.latitude,
-            }, {
-                lon: selectedMoment.longitude,
-                lat: selectedMoment.latitude,
-            });
-            const isProximitySatisfied = distToCenter - selectedMoment.radius <= selectedMoment.maxProximity;
-            if (!isProximitySatisfied
-                && !isMyArea(selectedMoment, user)
-                && !(selectedMoment.userHasActivated && !selectedMoment.doesRequireProximityToView)) {
-                // Deny activation
-                this.showAreaAlert();
-            } else {
-                // Activate moment
-                createOrUpdateMomentReaction(selectedMoment.id, {
-                    userViewCount: 1,
-                    userHasActivated: true,
-                });
-                this.getAreaDetails(selectedMoment)
-                    .then((details) => {
-                        this.setState({
-                            activeMoment: selectedMoment,
-                            activeMomentDetails: details,
-                        }, () => {
-                            if (location?.settings?.isGpsEnabled) {
-                                navigation.navigate('ViewMoment', {
-                                    isMyArea: isMyArea(selectedMoment, user),
-                                    moment: selectedMoment,
-                                    momentDetails: details,
-                                });
-                            } else {
-                                // TODO: Alert that GPS is required to create a moment
-                            }
-                        });
-                    })
-                    .catch(() => {
-                        // TODO: Add error handling
-                        console.log('Failed to get moment details!');
-                    });
-            }
-        } else {
+        if (pressedSpaces.length) {
             this.setState({
                 activeMoment: {},
                 activeMomentDetails: {},
             });
 
-            const pressedSpaces = visibleSpaces.filter((space) => {
-                return insideCircle(nativeEvent.coordinate, {
-                    lon: space.longitude,
-                    lat: space.latitude,
-                }, space.radius);
+            const selectedSpace = pressedSpaces[0];
+            const distToCenter = distanceTo({
+                lon: circleCenter.longitude,
+                lat: circleCenter.latitude,
+            }, {
+                lon: selectedSpace.longitude,
+                lat: selectedSpace.latitude,
+            });
+            const isProximitySatisfied = distToCenter - selectedSpace.radius <= selectedSpace.maxProximity;
+            if (!isProximitySatisfied
+                && !isMyArea(selectedSpace, user)
+                && !(selectedSpace.userHasActivated && !selectedSpace.doesRequireProximityToView)) {
+                // Deny activation
+                this.showAreaAlert();
+            } else {
+                // Activate space
+                createOrUpdateSpaceReaction(selectedSpace.id, {
+                    userViewCount: 1,
+                    userHasActivated: true,
+                });
+                this.getAreaDetails(selectedSpace)
+                    .then((details) => {
+                        this.setState({
+                            activeSpace: selectedSpace,
+                            activeSpaceDetails: details,
+                        }, () => {
+                            if (location?.settings?.isGpsEnabled) {
+                                navigation.navigate('ViewSpace', {
+                                    isMyArea: isMyArea(selectedSpace, user),
+                                    space: selectedSpace,
+                                    spaceDetails: details,
+                                });
+                            } else {
+                                // TODO: Alert that GPS is required to create a space
+                            }
+                        });
+                    })
+                    .catch(() => {
+                        // TODO: Add error handling
+                        console.log('Failed to get space details!');
+                    });
+            }
+        } else {
+            this.setState({
+                activeSpace: {},
+                activeSpaceDetails: {},
             });
 
-            if (pressedSpaces.length) {
-                const selectedSpace = pressedSpaces[0];
+            const pressedMoments = visibleMoments.filter((moment) => {
+                return insideCircle(nativeEvent.coordinate, {
+                    lon: moment.longitude,
+                    lat: moment.latitude,
+                }, moment.radius);
+            });
+
+            if (pressedMoments.length) {
+                const selectedMoment = pressedMoments[0];
                 const distToCenter = distanceTo({
                     lon: circleCenter.longitude,
                     lat: circleCenter.latitude,
                 }, {
-                    lon: selectedSpace.longitude,
-                    lat: selectedSpace.latitude,
+                    lon: selectedMoment.longitude,
+                    lat: selectedMoment.latitude,
                 });
-                const isProximitySatisfied = distToCenter - selectedSpace.radius <= selectedSpace.maxProximity;
+                const isProximitySatisfied = distToCenter - selectedMoment.radius <= selectedMoment.maxProximity;
                 if (!isProximitySatisfied
-                    && !isMyArea(selectedSpace, user)
-                    && !(selectedSpace.userHasActivated && !selectedSpace.doesRequireProximityToView)) {
+                    && !isMyArea(selectedMoment, user)
+                    && !(selectedMoment.userHasActivated && !selectedMoment.doesRequireProximityToView)) {
                     // Deny activation
                     this.showAreaAlert();
                 } else {
-                    // Activate space
-                    createOrUpdateSpaceReaction(selectedSpace.id, {
+                    // Activate moment
+                    createOrUpdateMomentReaction(selectedMoment.id, {
                         userViewCount: 1,
                         userHasActivated: true,
                     });
-                    this.getAreaDetails(selectedSpace)
+                    this.getAreaDetails(selectedMoment)
                         .then((details) => {
                             this.setState({
-                                activeSpace: selectedSpace,
-                                activeSpaceDetails: details,
+                                activeMoment: selectedMoment,
+                                activeMomentDetails: details,
                             }, () => {
                                 if (location?.settings?.isGpsEnabled) {
-                                    navigation.navigate('ViewSpace', {
-                                        isMyArea: isMyArea(selectedSpace, user),
-                                        space: selectedSpace,
-                                        spaceDetails: details,
+                                    navigation.navigate('ViewMoment', {
+                                        isMyArea: isMyArea(selectedMoment, user),
+                                        moment: selectedMoment,
+                                        momentDetails: details,
                                     });
                                 } else {
-                                    // TODO: Alert that GPS is required to create a space
+                                    // TODO: Alert that GPS is required to create a moment
                                 }
                             });
                         })
                         .catch(() => {
                             // TODO: Add error handling
-                            console.log('Failed to get space details!');
+                            console.log('Failed to get moment details!');
                         });
                 }
             } else {
                 this.setState({
-                    activeSpace: {},
-                    activeSpaceDetails: {},
+                    activeMoment: {},
+                    activeMomentDetails: {},
                 });
             }
         }
@@ -1123,6 +1123,14 @@ class Map extends React.Component<IMapProps, IMapState> {
     toggleLayer = (layerName) => {
         const { layers } = this.state;
         layers[layerName] = !layers[layerName];
+
+        if (layerName === 'myMoments') {
+            layers.mySpaces = !layers.mySpaces;
+        }
+
+        if (layerName === 'connectionsMoments') {
+            layers.connectionsSpaces = !layers.connectionsSpaces;
+        }
 
         this.setState({
             layers,

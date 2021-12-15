@@ -15,7 +15,7 @@ import UserMedia from './UserMedia';
 import HashtagsContainer from './HashtagsContainer';
 import styles from '../../styles';
 import * as therrTheme from '../../styles/themes';
-import { getViewingMomentStyles as getViewingAreaStyles } from '../../styles/user-content/moments';
+import { getViewingAreaStyles } from '../../styles/user-content/moments';
 import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 
 const { width: viewportWidth } = Dimensions.get('window');

@@ -274,7 +274,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                         style={[styles.bodyFlex, beemoLayoutStyles.bodyView]}
                         contentContainerStyle={[styles.bodyScroll, beemoLayoutStyles.bodyViewScroll]}
                     >
-                        <View style={[beemoLayoutStyles.container, viewSpaceStyles.momentContainer]}>
+                        <View style={[beemoLayoutStyles.container, viewSpaceStyles.areaContainer]}>
                             <AreaDisplay
                                 translate={this.translate}
                                 date={this.date}

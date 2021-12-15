@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { Button, Image, Text } from 'react-native-elements';
 import Overlay from 'react-native-modal-overlay';
 import { CommonActions, StackActions } from '@react-navigation/native';
@@ -475,19 +475,22 @@ class HeaderMenuRight extends React.Component<
                                         />
                                     </View>
                                     <View style={headerMenuModal.footer}>
-                                        <Button
-                                            titleStyle={headerMenuModal.buttonsTitle}
-                                            buttonStyle={[headerMenuModal.buttons, , { justifyContent: 'center', marginBottom: 10 }]}
-                                            title={this.translate('components.headerMenuRight.menuItems.tour')}
-                                            icon={
-                                                <FontAwesomeIcon
-                                                    style={headerMenuModal.iconStyle}
-                                                    name="info"
-                                                    size={18}
-                                                />
-                                            }
-                                            onPress={this.startTour}
-                                        />
+                                        {
+                                            Platform.OS !== 'ios' &&
+                                            <Button
+                                                titleStyle={headerMenuModal.buttonsTitle}
+                                                buttonStyle={[headerMenuModal.buttons, , { justifyContent: 'center', marginBottom: 10 }]}
+                                                title={this.translate('components.headerMenuRight.menuItems.tour')}
+                                                icon={
+                                                    <FontAwesomeIcon
+                                                        style={headerMenuModal.iconStyle}
+                                                        name="info"
+                                                        size={18}
+                                                    />
+                                                }
+                                                onPress={this.startTour}
+                                            />
+                                        }
                                         <Button
                                             titleStyle={headerMenuModal.buttonsTitle}
                                             buttonStyle={[headerMenuModal.buttons, { justifyContent: 'center' }]}
