@@ -52,7 +52,7 @@ export default ({
                 onPress={onRequestClose}
                 style={styles.overlay}>
                 {
-                    (tab === 0) &&
+                    (tab !== 1 && tab !== 2) &&
                     <Pressable style={styles.container}>
                         <Text style={styles.header}>{translate('modals.touringModal.header1')}</Text>
                         <Text style={styles.text}>{translate('modals.touringModal.createAMoment')}</Text>
