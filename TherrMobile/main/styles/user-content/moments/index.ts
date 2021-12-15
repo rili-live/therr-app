@@ -1,7 +1,7 @@
 import { Platform, StyleSheet } from 'react-native';
 import * as therrTheme from '../../themes';
 import editing from './editing';
-import viewing, { getViewingMomentStyles } from './viewing';
+import viewing, { getViewingAreaStyles } from './viewing';
 
 const dividerHeight = 10;
 
@@ -94,5 +94,5 @@ export default StyleSheet.create({
 export {
     editing,
     viewing,
-    getViewingMomentStyles,
+    getViewingAreaStyles,
 };

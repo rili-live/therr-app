@@ -275,6 +275,14 @@
         "confirm": "Delete",
         "cancel": "Cancel"
       },
+      "categories": {
+        "uncategorized": "Select a Category",
+        "music": "Music",
+        "deals": "Deals/Coupons",
+        "storefront": "Storefront Promotion",
+        "idea": "Idea/Observation",
+        "food": "Food Truck"
+      },
       "labels": {
         "message": "Share something unique...",
         "notificationMsg": "Tagline or Title",

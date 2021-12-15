@@ -29,26 +29,31 @@ const validatePassword = async ({
     inputPassword,
     res,
 }: IValidatePasswordArgs) => {
-    let isOtPasswordValid = false;
+    try {
+        let isOtPasswordValid = false;
 
-    // First check oneTimePassword if exists
-    if (oneTimePassword) {
-        const split = oneTimePassword.split(':');
-        const otHashedPassword = split[0];
-        const msExpiresAt = Number(split[1]);
-        isOtPasswordValid = await bcrypt.compare(inputPassword, otHashedPassword);
-        if (isOtPasswordValid && msExpiresAt <= Date.now()) {
-            return handleHttpError({
-                res,
-                message: translate(locale, 'errorMessages.auth.oneTimeExpired'),
-                statusCode: 403,
-            });
+        // First check oneTimePassword if exists
+        // TODO: Possible buggggg
+        if (oneTimePassword) {
+            const split = oneTimePassword.split(':');
+            const otHashedPassword = split[0];
+            const msExpiresAt = Number(split[1]);
+            isOtPasswordValid = await bcrypt.compare(inputPassword, otHashedPassword);
+            if (isOtPasswordValid && msExpiresAt <= Date.now()) {
+                return handleHttpError({
+                    res,
+                    message: translate(locale, 'errorMessages.auth.oneTimeExpired'),
+                    statusCode: 403,
+                });
+            }
         }
-    }
 
-    return Promise.resolve()
-        // Only compare user password if one-time password is null or incorrect
-        .then(() => isOtPasswordValid || (!!hashedPassword && bcrypt.compare(inputPassword, hashedPassword)));
+        return Promise.resolve()
+            // Only compare user password if one-time password is null or incorrect
+            .then(() => isOtPasswordValid || (!!hashedPassword && bcrypt.compare(inputPassword, hashedPassword)));
+    } catch (err: any) {
+        return handleHttpError({ err, res, message: 'SQL:AUTH_ROUTES:ERROR' });
+    }
 };
 
 const updatePassword = ({

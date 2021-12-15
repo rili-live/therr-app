@@ -274,7 +274,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                         style={[styles.bodyFlex, beemoLayoutStyles.bodyView]}
                         contentContainerStyle={[styles.bodyScroll, beemoLayoutStyles.bodyViewScroll]}
                     >
-                        <View style={[beemoLayoutStyles.container, viewMomentStyles.momentContainer]}>
+                        <View style={[beemoLayoutStyles.container, viewMomentStyles.areaContainer]}>
                             <AreaDisplay
                                 translate={this.translate}
                                 date={this.date}

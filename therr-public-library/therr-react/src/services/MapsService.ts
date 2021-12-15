@@ -14,6 +14,7 @@ interface IGetAreaDetailsArgs {
     withUser?: boolean;
 }
 interface ICreateAreaBody {
+    category?: string;
     expiresAt?: any;
     fromUserId: number;
     locale: string;
