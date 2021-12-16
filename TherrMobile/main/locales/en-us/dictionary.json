@@ -244,7 +244,7 @@
         "userName": "Username"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
-      "invalidUsernamePassword": "Invalid username/password combination",
+      "invalidUsernamePassword": "Invalid username/password combination.",
       "sso": {
         "appleButtonTitle": "Sign in with Apple",
         "googleButtonTitle": "Sign in with Google"
@@ -277,11 +277,12 @@
       },
       "categories": {
         "uncategorized": "Select a Category",
+        "geocache": "Geocache",
         "music": "Music",
-        "deals": "Deals/Coupons",
+        "deals": "Deals / Coupons",
         "storefront": "Storefront Promotion",
-        "idea": "Idea/Observation",
-        "food": "Food Truck"
+        "idea": "Idea / Observation",
+        "food": "Food Truck / Restaraunt"
       },
       "labels": {
         "message": "Share something unique...",

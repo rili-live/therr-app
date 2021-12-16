@@ -101,23 +101,18 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             },
             {
                 id: 3,
-                label: this.translate('forms.editMoment.categories.deals'),
-                value: 'deals',
+                label: this.translate('forms.editMoment.categories.food'),
+                value: 'food',
             },
             {
                 id: 4,
-                label: this.translate('forms.editMoment.categories.storefront'),
-                value: 'storefront',
+                label: this.translate('forms.editMoment.categories.geocache'),
+                value: 'geocache',
             },
             {
                 id: 5,
                 label: this.translate('forms.editMoment.categories.idea'),
                 value: 'idea',
-            },
-            {
-                id: 6,
-                label: this.translate('forms.editMoment.categories.food'),
-                value: 'food',
             },
         ];
         // changeNavigationBarColor(therrTheme.colors.beemo1, false, true);
@@ -371,6 +366,11 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         const { imageDetails } = route.params;
         const { croppedImage } = imageDetails || {};
         const imageURI = croppedImage?.uri || imageDetails?.uri;
+        console.log('ZACK_DEBUG', imageDetails, croppedImage);
+        let fullImagePath = imageURI.replace('file:///', '').replace('file:/', '');
+        if (Platform.OS !== 'ios') {
+            fullImagePath = `file:///${fullImagePath}`;
+        }
 
         return (
             <>
@@ -388,7 +388,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 imageURI &&
                                 <View style={editMomentStyles.mediaContainer}>
                                     <Image
-                                        source={{ uri: imageURI }}
+                                        source={{ uri: fullImagePath }}
                                         style={editMomentStyles.mediaImage}
                                     />
                                 </View>

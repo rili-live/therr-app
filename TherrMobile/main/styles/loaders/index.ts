@@ -27,6 +27,9 @@ export default StyleSheet.create({
         ...containerStyles,
         marginHorizontal: '35%',
     },
+    karaokeContainer: {
+        ...containerStyles,
+    },
     yellowCarContainer: {
         ...containerStyles,
     },
@@ -38,6 +41,9 @@ export default StyleSheet.create({
     therrBlackRollingText: {
         ...textStyles,
         color: therrTheme.colorVariations.textWhiteFade,
+    },
+    karaokeText: {
+        ...textStyles,
     },
     yellowCarText: {
         ...textStyles,

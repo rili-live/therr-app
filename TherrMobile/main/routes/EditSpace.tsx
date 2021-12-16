@@ -12,6 +12,7 @@ import { MapsService } from 'therr-react/services';
 import { Content } from 'therr-js-utilities/constants';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import YoutubePlayer from 'react-native-youtube-iframe';
+import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
 import styles, { addMargins } from '../styles';
@@ -67,6 +68,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState> {
+    private categoryOptions: any[];
     private scrollViewRef;
     private translate: Function;
     private unsubscribeNavListener;
@@ -87,6 +89,38 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
+        this.categoryOptions = [
+            {
+                id: 1,
+                label: this.translate('forms.editMoment.categories.uncategorized'),
+                value: 'uncategorized',
+            },
+            {
+                id: 2,
+                label: this.translate('forms.editMoment.categories.music'),
+                value: 'music',
+            },
+            {
+                id: 3,
+                label: this.translate('forms.editMoment.categories.deals'),
+                value: 'deals',
+            },
+            {
+                id: 4,
+                label: this.translate('forms.editMoment.categories.storefront'),
+                value: 'storefront',
+            },
+            {
+                id: 5,
+                label: this.translate('forms.editMoment.categories.idea'),
+                value: 'idea',
+            },
+            {
+                id: 6,
+                label: this.translate('forms.editMoment.categories.food'),
+                value: 'food',
+            },
+        ];
         // changeNavigationBarColor(therrTheme.colors.beemo1, false, true);
     }
 
@@ -160,6 +194,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
     onSubmit = () => {
         const { hashtags } = this.state;
         const {
+            category,
             message,
             notificationMsg,
             maxViews,
@@ -180,6 +215,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
         const { croppedImage } = imageDetails || {};
 
         const createArgs: any = {
+            category,
             fromUserId: user.details.id,
             isPublic,
             message,
@@ -376,8 +412,16 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                 onChangeText={(text) =>
                                     this.onInputChange('message', text)
                                 }
-                                numberOfLines={3}
+                                numberOfLines={5}
                             />
+                            <View style={[formStyles.input, { display: 'flex', flexDirection: 'row', alignItems: 'center' }]}>
+                                <DropDown
+                                    onChange={(newValue) =>
+                                        this.onInputChange('category', newValue || 'uncategorized')
+                                    }
+                                    options={this.categoryOptions}
+                                />
+                            </View>
                             <BeemoInput
                                 autoCorrect={false}
                                 errorStyle={styles.displayNone}

@@ -1,15 +1,32 @@
 import React from 'react';
 import * as therrTheme from '../../styles/themes';
+import MarkerIconGeocache from './MarkerIconCamera';
 import MarkerIconCamera from './MarkerIconCamera';
+import MarkerIconDiscount from './MarkerIconDiscount';
+import MarkerIconFood from './MarkerIconFood';
+import MarkerIconMusic from './MarkerIconMusic';
 import MarkerIconStorefront from './MarkerIconStorefront';
 import MarkerIconThinking from './MarkerIconThinking';
 
 const markerConfigs = {
+    deals: {
+        fill: therrTheme.colors.textBlack,
+    },
+    geocache: {
+        fill: therrTheme.colors.beemoRed,
+    },
     thought: {
         fill: therrTheme.colors.brandingMapYellow,
     },
+    food: {
+        fill: therrTheme.colors.textBlack,
+    },
     music: {
-        fill: therrTheme.colors.tertiary,
+        fill: therrTheme.colors.beemoTextBlack,
+    },
+    storefront: {
+        fill: therrTheme.colors.beemoBlue,
+        fillAlt: therrTheme.colorVariations.primary2Darken,
     },
     area: {
         fill: therrTheme.colors.beemoBlue,
@@ -22,14 +39,34 @@ export default function MarkerIcon({
     area,
 }) {
     // TODO: Add all categories
+    if (area.category === 'deals') {
+        return (
+            <MarkerIconDiscount {...markerConfigs.deals} />
+        );
+    }
+    if (area.category === 'food') {
+        return (
+            <MarkerIconFood {...markerConfigs.food} />
+        );
+    }
     if (area.category === 'music') {
         return (
-            <MarkerIconThinking {...markerConfigs.music} />
+            <MarkerIconMusic {...markerConfigs.music} />
+        );
+    }
+    if (area.category === 'storefront') {
+        return (
+            <MarkerIconStorefront {...markerConfigs.storefront} />
         );
     }
     if (area.category === 'idea') {
         return (
             <MarkerIconThinking {...markerConfigs.thought} />
+        );
+    }
+    if (area.category === 'geocache') {
+        return (
+            <MarkerIconGeocache {...markerConfigs.geocache} />
         );
     }
 

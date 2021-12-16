@@ -1,7 +1,7 @@
 import React from 'react';
 import Svg, { Circle, Path, G } from 'react-native-svg';
 
-export default function MarkerIconCamera(props) {
+export default function MarkerIconGeocache(props) {
     return (
         <Svg width={30} height={30} x="0" y="0" viewBox="0 0 307.308 307.308">
             <G id="_x31_1-DSLR_Camera">
