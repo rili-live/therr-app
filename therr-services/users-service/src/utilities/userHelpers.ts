@@ -25,7 +25,7 @@ export const createUserToken = (user: any, rememberMe?: boolean) => {
         (process.env.JWT_SECRET || ''),
         {
             algorithm: 'HS256',
-            expiresIn: rememberMe ? '30d' : '4h',
+            expiresIn: rememberMe ? '30d' : '6h',
         },
     );
 };
