@@ -11,6 +11,7 @@ import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
 import sendSSONewUserEmail from '../api/email/sendSSONewUserEmail';
+import sendNewUserAdminNotificationEmail from '../api/email/sendNewUserAdminNotificationEmail';
 
 // TODO: Write unit tests for this function
 export const isUserProfileIncomplete = (updateArgs, existingUser?) => {
@@ -41,6 +42,7 @@ export const createUserHelper = (userDetails, isSSO) => {
 
     if (isSSO) { // SSO first time login
         password = generateOneTimePassword(8); // Create a different/random permanent password as a placeholder
+        console.log(password);
     }
 
     return Store.verificationCodes.createCode(verificationCode)
@@ -89,15 +91,33 @@ export const createUserHelper = (userDetails, isSSO) => {
                         email: userDetails.email,
                     }))
                     // SSO USER AUTO-REGISTRATION ON FIRST LOGIN
-                    .then(() => sendSSONewUserEmail({
-                        subject: '[Account Created] Therr One-Time Password',
-                        toAddresses: [userDetails.email],
-                    }, {
-                        name: userDetails.email,
-                        oneTimePassword: otPassword,
-                    }))
+                    .then(() => {
+                        // Fire and forget
+                        sendNewUserAdminNotificationEmail({
+                            subject: '[New User] New User Registration',
+                            toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                        }, {
+                            name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
+                        });
+
+                        return sendSSONewUserEmail({
+                            subject: '[Account Created] Therr One-Time Password',
+                            toAddresses: [userDetails.email],
+                        }, {
+                            name: userDetails.email,
+                            oneTimePassword: otPassword,
+                        });
+                    })
                     .then(() => user);
             }
+
+            // Fire and forget
+            sendNewUserAdminNotificationEmail({
+                subject: '[New User] New User Registration',
+                toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+            }, {
+                name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
+            });
 
             // STANDARD USER REGISTRATION
             return sendVerificationEmail({
@@ -400,7 +420,7 @@ const createOneTimePassword = (req, res) => {
                 });
             }
 
-            const msExpiresAt = Date.now() + (1000 * 60 * 60 * 6); // 6 hours
+            const msExpiresAt = Date.now() + (1000 * 60 * 60 * 48); // 48 hours
             const otPassword = generateOneTimePassword(8);
 
             return hashPassword(otPassword)
@@ -431,7 +451,7 @@ const verifyUserAccount = (req, res) => {
     try {
         decodedToken = token && Buffer.from(token, 'base64').toString('ascii');
         decodedToken = JSON.parse(decodedToken);
-    } catch (e) {
+    } catch (e: any) {
         return handleHttpError({ err: e, res, message: 'SQL:USER_ROUTES:ERROR' });
     }
 

@@ -18,11 +18,17 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import { isMyArea } from '../../utilities/content';
 import AreaOptionsModal, { ISelectionType } from '../../components/Modals/AreaOptionsModal';
 import { getReactionUpdateArgs } from '../../utilities/reactions';
-import LottieLoader from '../../components/LottieLoader';
+import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
 import { CAROUSEL_TABS } from '../../constants';
 
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
+
+function getRandomLoaderId(): ILottieId {
+    const options: ILottieId[] = ['donut', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'therr-black-rolling'];
+    const selected = Math.floor(Math.random() * options.length);
+    return options[selected] as ILottieId;
+}
 
 interface IMomentsDispatchProps {
     searchActiveMoments: Function;
@@ -68,6 +74,8 @@ const mapDispatchToProps = (dispatch: any) =>
 class Moments extends React.Component<IMomentsProps, IMomentsState> {
     private carouselRef;
     private translate: Function;
+    private loaderId: ILottieId;
+    private loadTimeoutId: any;
 
     constructor(props) {
         super(props);
@@ -81,6 +89,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
 
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
+        this.loaderId = getRandomLoaderId();
     }
 
     componentDidMount() {
@@ -97,6 +106,10 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
                 isLoading: false,
             });
         }
+    }
+
+    componentWillUnmount() {
+        clearTimeout(this.loadTimeoutId);
     }
 
     getEmptyListMessage = (activeTab) => {
@@ -151,7 +164,9 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
             blockedUsers: user.details.blockedUsers,
             shouldHideMatureContent: user.details.shouldHideMatureContent,
         }).finally(() => {
-            this.setState({ isLoading: false });
+            this.loadTimeoutId = setTimeout(() => {
+                this.setState({ isLoading: false });
+            }, 400);
         });
     }
 
@@ -203,7 +218,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         const { activeTab, isLoading } = this.state;
 
         if (isLoading) {
-            return <LottieLoader id="yellow-car" />;
+            return <LottieLoader id={this.loaderId} />;
         }
 
         const activeData = getActiveCarouselData({

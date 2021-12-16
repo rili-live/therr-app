@@ -29,31 +29,32 @@ const validatePassword = async ({
     inputPassword,
     res,
 }: IValidatePasswordArgs) => {
-    try {
-        let isOtPasswordValid = false;
+    let isOtPasswordValid = false;
 
-        // First check oneTimePassword if exists
-        // TODO: Possible buggggg
-        if (oneTimePassword) {
-            const split = oneTimePassword.split(':');
-            const otHashedPassword = split[0];
-            const msExpiresAt = Number(split[1]);
+    // First check oneTimePassword if exists
+    // TODO: Possible buggggg
+    if (oneTimePassword) {
+        const split = oneTimePassword.split(':');
+        const expiresAtStr = split[split.length - 1];
+        const otHashedPassword = oneTimePassword.substr(0, oneTimePassword.length - expiresAtStr.length - 1);
+        const msExpiresAt = Number(expiresAtStr);
+        try {
             isOtPasswordValid = await bcrypt.compare(inputPassword, otHashedPassword);
-            if (isOtPasswordValid && msExpiresAt <= Date.now()) {
-                return handleHttpError({
-                    res,
-                    message: translate(locale, 'errorMessages.auth.oneTimeExpired'),
-                    statusCode: 403,
-                });
-            }
+        } catch (e) {
+            isOtPasswordValid = false;
         }
-
-        return Promise.resolve()
-            // Only compare user password if one-time password is null or incorrect
-            .then(() => isOtPasswordValid || (!!hashedPassword && bcrypt.compare(inputPassword, hashedPassword)));
-    } catch (err: any) {
-        return handleHttpError({ err, res, message: 'SQL:AUTH_ROUTES:ERROR' });
+        if (isOtPasswordValid && msExpiresAt <= Date.now()) {
+            return handleHttpError({
+                res,
+                message: translate(locale, 'errorMessages.auth.oneTimeExpired'),
+                statusCode: 403,
+            });
+        }
     }
+
+    return Promise.resolve()
+        // Only compare user password if one-time password is null or incorrect
+        .then(() => isOtPasswordValid || (!!hashedPassword && bcrypt.compare(inputPassword, hashedPassword)));
 };
 
 const updatePassword = ({
