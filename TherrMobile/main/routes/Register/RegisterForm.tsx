@@ -25,6 +25,7 @@ interface IRegisterFormState {
     passwordErrorMessage: string;
     prevRegisterError: string;
     isSubmitting: boolean;
+    isPasswordEntryDirty: boolean;
 }
 
 /**
@@ -44,6 +45,7 @@ export class RegisterFormComponent extends React.Component<
             passwordErrorMessage: '',
             prevRegisterError: '',
             isSubmitting: false,
+            isPasswordEntryDirty: false,
         };
 
         this.translate = (key: string, params: any) =>
@@ -126,6 +128,12 @@ export class RegisterFormComponent extends React.Component<
             }
         }
 
+        if (name === 'password') {
+            this.setState({
+                isPasswordEntryDirty: true,
+            });
+        }
+
         if (name === 'password' && inputs.repeatPassword) {
             if (inputs.repeatPassword !== newInputChanges.password) {
                 passwordErrorMessage = this.translate('forms.registerForm.errorMessages.repeatPassword');
@@ -144,6 +152,7 @@ export class RegisterFormComponent extends React.Component<
 
     public render(): JSX.Element | null {
         const {
+            isPasswordEntryDirty,
             passwordErrorMessage,
             prevRegisterError,
         } = this.state;
@@ -169,7 +178,9 @@ export class RegisterFormComponent extends React.Component<
                         />
                     }
                 />
-                <PasswordRequirements translate={this.translate} password={this.state.inputs.password} />
+                {
+                    isPasswordEntryDirty && <PasswordRequirements translate={this.translate} password={this.state.inputs.password} />
+                }
                 {/* TODO: RMOBILE-26: Centralize password requirements */}
                 <SquareInput
                     autoCapitalize="none"

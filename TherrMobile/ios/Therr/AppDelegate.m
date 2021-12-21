@@ -7,7 +7,7 @@
 #import <GoogleMaps/GoogleMaps.h>
 #import "ReactNativeConfig.h"
 #import <Firebase.h>
-#import "RNSplashScreen.h"
+#import "RNBootSplash.h"
 #import <React/RCTLinkingManager.h>
 #import <TSBackgroundFetch/TSBackgroundFetch.h>
 
@@ -75,7 +75,7 @@ static void InitializeFlipper(UIApplication *application) {
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
   
-  [RNSplashScreen show];
+  [RNBootSplash initWithStoryboard:@"BootSplash" rootView:rootView];
 
   // [REQUIRED] Register BackgroundFetch
   [[TSBackgroundFetch sharedInstance] didFinishLaunching];

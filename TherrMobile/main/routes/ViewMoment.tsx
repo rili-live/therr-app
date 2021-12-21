@@ -32,8 +32,6 @@ import { getReactionUpdateArgs } from '../utilities/reactions';
 // import formStyles, { settingsForm as settingsFormStyles } from '../styles/forms';
 // import BeemoInput from '../components/Input/Beemo';
 
-export const DEFAULT_RADIUS = 10;
-
 interface IMomentDetails {
     userDetails?: any;
 }
