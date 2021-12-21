@@ -9,7 +9,7 @@
 
     <style name="Theme.CustomSplashScreenTheme" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/therr_blue</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/bootsplash_logo</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
         <item name="windowSplashScreenAnimationDuration">300</item>
         <item name="postSplashScreenTheme">@style/AppTheme</item>
     </style>

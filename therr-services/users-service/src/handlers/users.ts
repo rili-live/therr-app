@@ -11,7 +11,23 @@ import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
 import sendSSONewUserEmail from '../api/email/sendSSONewUserEmail';
+import sendNewUserInviteEmail from '../api/email/sendNewUserInviteEmail';
 import sendNewUserAdminNotificationEmail from '../api/email/sendNewUserAdminNotificationEmail';
+
+interface IRequiredUserDetails {
+    email: string;
+    password?: string;
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
+    userName?: string;
+}
+
+interface IUserByInviteDetails {
+    fromName: string;
+    fromEmail: string;
+    toEmail: string;
+}
 
 // TODO: Write unit tests for this function
 export const isUserProfileIncomplete = (updateArgs, existingUser?) => {
@@ -33,17 +49,13 @@ export const isUserProfileIncomplete = (updateArgs, existingUser?) => {
     return requestDoesNotCompleteProfile;
 };
 
-export const createUserHelper = (userDetails, isSSO) => {
+export const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, userByInviteDetails?: IUserByInviteDetails) => {
     // TODO: Supply user agent to determine if web or mobile
     const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
     const verificationCode = { type: codeDetails.type, code: codeDetails.code };
-    let password = userDetails.password;
+    // Create a different/random permanent password as a placeholder
+    const password = (isSSO || !!userByInviteDetails) ? generateOneTimePassword(8) : (userDetails.password || '');
     let user;
-
-    if (isSSO) { // SSO first time login
-        password = generateOneTimePassword(8); // Create a different/random permanent password as a placeholder
-        console.log(password);
-    }
 
     return Store.verificationCodes.createCode(verificationCode)
         .then(() => hashPassword(password))
@@ -79,7 +91,7 @@ export const createUserHelper = (userDetails, isSSO) => {
             user = results[0];
             delete user.password;
 
-            if (isSSO) {
+            if (isSSO || !!userByInviteDetails) {
                 // TODO: RMOBILE-26: Centralize password requirements
                 const msExpiresAt = Date.now() + (1000 * 60 * 60 * 6); // 6 hours
                 const otPassword = generateOneTimePassword(8);
@@ -94,17 +106,32 @@ export const createUserHelper = (userDetails, isSSO) => {
                     .then(() => {
                         // Fire and forget
                         sendNewUserAdminNotificationEmail({
-                            subject: '[New User] New User Registration',
+                            subject: userByInviteDetails ? '[New User] New User Registration by Invite' : '[New User] New User Registration',
                             toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                         }, {
                             name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
                         });
 
-                        return sendSSONewUserEmail({
-                            subject: '[Account Created] Therr One-Time Password',
-                            toAddresses: [userDetails.email],
+                        if (isSSO) {
+                            return sendSSONewUserEmail({
+                                subject: '[Account Created] Therr One-Time Password',
+                                toAddresses: [userDetails.email],
+                            }, {
+                                name: userDetails.email,
+                                oneTimePassword: otPassword,
+                            });
+                        }
+
+                        console.log(userByInviteDetails);
+
+                        return sendNewUserInviteEmail({
+                            subject: `${userByInviteDetails?.fromName} Invited You to Therr app`,
+                            toAddresses: [userByInviteDetails?.toEmail || ''],
                         }, {
-                            name: userDetails.email,
+                            fromName: userByInviteDetails?.fromName || '',
+                            fromEmail: userByInviteDetails?.fromEmail || '',
+                            toEmail: userByInviteDetails?.toEmail || '',
+                            verificationCodeToken: codeDetails.token,
                             oneTimePassword: otPassword,
                         });
                     })
@@ -129,6 +156,7 @@ export const createUserHelper = (userDetails, isSSO) => {
             }).then(() => user);
         })
         .catch((error) => {
+            console.log(error);
             // Delete user to allow re-registration
             if (user && user.id) {
                 Store.users.deleteUsers({ id: user.id });

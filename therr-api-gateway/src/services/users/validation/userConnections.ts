@@ -7,6 +7,7 @@ export const createUserConnectionValidation = [
     body('requestingUserId').isString().exists(),
     body('requestingUserFirstName').isString().exists(),
     body('requestingUserLastName').isString().exists(),
+    body('requestingUserEmail').isString().exists(),
     oneOf([
         body('acceptingUserPhoneNumber')
             .exists()
