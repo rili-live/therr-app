@@ -122,8 +122,6 @@ export const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = fals
                             });
                         }
 
-                        console.log(userByInviteDetails);
-
                         return sendNewUserInviteEmail({
                             subject: `${userByInviteDetails?.fromName} Invited You to Therr app`,
                             toAddresses: [userByInviteDetails?.toEmail || ''],
