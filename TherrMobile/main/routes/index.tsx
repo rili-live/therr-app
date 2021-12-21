@@ -214,7 +214,7 @@ const routes: RouteConfig<
     {
         name: 'ForgotPassword',
         component: ForgotPassword,
-        options: () => ({
+        options: (params) => ({
             title: 'Password Reset',
             access: {
                 type: AccessCheckType.NONE,
@@ -222,6 +222,7 @@ const routes: RouteConfig<
                 isPublic: true,
             },
             headerStyle: styles.headerStyleNoShadow,
+            headerTitle: () => <HeaderTherrLogo navigation={params?.navigation} />,
         }),
     },
     // {
@@ -261,7 +262,7 @@ const routes: RouteConfig<
     {
         name: 'Register',
         component: Register,
-        options: () => ({
+        options: (params) => ({
             title: 'Create Account',
             access: {
                 type: AccessCheckType.NONE,
@@ -269,6 +270,7 @@ const routes: RouteConfig<
                 isPublic: true,
             },
             headerStyle: styles.headerStyleNoShadow,
+            headerTitle: () => <HeaderTherrLogo navigation={params?.navigation} />,
         }),
     },
     {

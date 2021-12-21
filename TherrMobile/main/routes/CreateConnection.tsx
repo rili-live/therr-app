@@ -218,6 +218,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
             requestingUserId: user.details.id,
             requestingUserFirstName: user.details.firstName,
             requestingUserLastName: user.details.lastName,
+            requestingUserEmail: user.details.email,
         };
 
         if (connectionContext === 'email') {
@@ -328,6 +329,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                                 onBlur={this.onBlurValidate}
                                                 onSubmitEditing={() => this.onSubmit()}
                                                 errorMessage={emailErrorMessage}
+                                                autoCorrect={false}
                                                 rightIcon={
                                                     <FontAwesomeIcon
                                                         name="envelope"

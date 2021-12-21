@@ -21,19 +21,19 @@ import * as therrTheme from '../styles/themes';
 import formStyles, { beemoEditForm as editSpaceFormStyles } from '../styles/forms';
 import editSpaceStyles from '../styles/user-content/moments/editing';
 import userContentStyles from '../styles/user-content';
-import { youtubeLinkRegex } from '../constants';
+import {
+    youtubeLinkRegex,
+    DEFAULT_RADIUS,
+    MIN_RADIUS_PUBLIC,
+    MAX_RADIUS_PUBLIC,
+} from '../constants';
 import Alert from '../components/Alert';
 import formatHashtags from '../utilities/formatHashtags';
 import BeemoInput from '../components/Input/Beemo';
 import BeemoTextInput from '../components/TextInput/Beemo';
 import HashtagsContainer from '../components/UserContent/HashtagsContainer';
 import BaseStatusBar from '../components/BaseStatusBar';
-
-export const DEFAULT_RADIUS = 10;
-export const MIN_RADIUS_PRIVATE = 3;
-export const MAX_RADIUS_PRIVATE = 50;
-export const MIN_RADIUS_PUBLIC = 3;
-export const MAX_RADIUS_PUBLIC = 200;
+import { getImagePreviewPath } from '../utilities/areaUtils';
 
 interface IEditSpaceDispatchProps {
     createSpace: Function;
@@ -57,6 +57,7 @@ interface IEditSpaceState {
     isSubmitting: boolean;
     previewLinkId?: string;
     previewStyleState: any;
+    imagePreviewPath: string;
 }
 
 const mapStateToProps = (state) => ({
@@ -76,6 +77,11 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
     constructor(props) {
         super(props);
 
+        const { route } = props;
+        const { imageDetails } = route.params;
+        const { croppedImage } = imageDetails || {};
+        const imageURI = croppedImage?.uri || imageDetails?.uri;
+
         this.state = {
             errorMsg: '',
             successMsg: '',
@@ -86,6 +92,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
             },
             isSubmitting: false,
             previewStyleState: {},
+            imagePreviewPath: getImagePreviewPath(imageURI),
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -126,6 +133,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
 
     componentDidMount() {
         const { navigation } = this.props;
+
         navigation.setOptions({
             title: this.translate('pages.editSpace.headerTitle'),
         });
@@ -366,12 +374,8 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
     }
 
     render() {
-        const { navigation, route } = this.props;
-        const { errorMsg, successMsg, hashtags, inputs, previewLinkId, previewStyleState } = this.state;
-
-        const { imageDetails } = route.params;
-        const { croppedImage } = imageDetails || {};
-        const imageURI = croppedImage?.uri || imageDetails?.uri;
+        const { navigation } = this.props;
+        const { errorMsg, successMsg, hashtags, inputs, previewLinkId, previewStyleState, imagePreviewPath } = this.state;
 
         return (
             <>
@@ -386,10 +390,10 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                     >
                         <Pressable style={beemoLayoutStyles.container} onPress={Keyboard.dismiss}>
                             {
-                                imageURI &&
+                                !!imagePreviewPath &&
                                 <View style={editSpaceStyles.mediaContainer}>
                                     <Image
-                                        source={{ uri: imageURI }}
+                                        source={{ uri: imagePreviewPath }}
                                         style={editSpaceStyles.mediaImage}
                                     />
                                 </View>
@@ -442,8 +446,8 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                 <Slider
                                     value={inputs.radius}
                                     onValueChange={(value) => this.onSliderChange('radius', value)}
-                                    maximumValue={MAX_RADIUS_PRIVATE}
-                                    minimumValue={MIN_RADIUS_PRIVATE}
+                                    maximumValue={MAX_RADIUS_PUBLIC}
+                                    minimumValue={MIN_RADIUS_PUBLIC}
                                     step={1}
                                     thumbStyle={{ backgroundColor: therrTheme.colors.beemoBlue }}
                                     thumbTouchSize={{ width: 100, height: 100 }}
