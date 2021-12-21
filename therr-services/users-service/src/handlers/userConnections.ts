@@ -2,12 +2,13 @@ import { RequestHandler } from 'express';
 import { Notifications } from 'therr-js-utilities/constants';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
 import sendPushNotification from '../utilities/sendPushNotification';
-// import normalizeEmail from 'normalize-email';
 import beeline from '../beeline';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import { translateNotification } from './notifications';
+import sendNewUserInviteEmail from '../api/email/sendNewUserInviteEmail';
+import { createUserHelper } from './users';
 
 // CREATE
 // TODO:RSERV-24: Security, get requestingUserId from user header token
@@ -16,6 +17,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
         requestingUserId,
         requestingUserFirstName,
         requestingUserLastName,
+        requestingUserEmail,
         acceptingUserId,
         acceptingUserPhoneNumber,
         acceptingUserEmail,
@@ -23,7 +25,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
     const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
     // eslint-disable-next-line eqeqeq
-    const fromUserFullName = acceptingUserId === userId ? requestingUserFirstName : requestingUserFirstName;
+    const fromUserFullName = `${requestingUserFirstName} ${requestingUserLastName}`;
     const locale = req.headers['x-localecode'] || 'en-us';
     let acceptingId = acceptingUserId;
 
@@ -35,6 +37,22 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
             });
 
             if (!userResults.length) {
+                if (acceptingUserEmail) {
+                    // TODO: Ratelimit this to prevent spamming new user email
+                    // fire and forget
+                    createUserHelper({
+                        email: acceptingUserEmail,
+                    }, false, {
+                        fromName: fromUserFullName,
+                        fromEmail: requestingUserEmail,
+                        toEmail: acceptingUserEmail,
+                    });
+
+                    return res.status(201).send({
+                        requestRecipientEmail: acceptingUserEmail,
+                    });
+                }
+
                 return handleHttpError({
                     res,
                     message: translate(locale, 'errorMessages.userConnections.noUserFound'),

@@ -4,6 +4,9 @@ import { ISearchQuery } from '../types';
 
 interface ICreateConnectionBody {
     requestingUserId: number;
+    requestingUserEmail?: string;
+    requestingUserFirstName?: string;
+    requestingUserLastName?: string;
     acceptingUserEmail?: string;
     acceptingUserPhoneNumber?: string;
 }

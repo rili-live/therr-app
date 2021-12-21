@@ -9,8 +9,7 @@ import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
-
-import org.devio.rn.splashscreen.SplashScreen;
+import com.zoontek.rnbootsplash.RNBootSplash;
 
 public class MainActivity extends ReactActivity {
   /**
@@ -25,11 +24,23 @@ public class MainActivity extends ReactActivity {
   // Store the URL we're receiving from the share system
   public static String importUrl;
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    SplashScreen.show(this);  // here
+//  @Override
+//  protected void onCreate(Bundle savedInstanceState) {
+//      RNBootSplash.show(this);  // here
+//
+//    super.onCreate(savedInstanceState);
+//  }
 
-    super.onCreate(savedInstanceState);
+  @Override
+  protected ReactActivityDelegate createReactActivityDelegate() {
+    return new ReactActivityDelegate(this, getMainComponentName()) {
+
+        @Override
+        protected void loadApp(String appKey) {
+            RNBootSplash.init(MainActivity.this); // <- initialize the splash screen
+            super.loadApp(appKey);
+        }
+    };
   }
 
   @Override

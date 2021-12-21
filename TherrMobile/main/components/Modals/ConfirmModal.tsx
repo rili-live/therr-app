@@ -72,7 +72,9 @@ export default ({
                                     <Text style={styles.headerText}>{headerText}</Text>
                                 </View>
                                 <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
-                                    <Text style={styles.bodyText}>{text}</Text>
+                                    <View onStartShouldSetResponder={() => true}>
+                                        <Text style={styles.bodyText}>{text}</Text>
+                                    </View>
                                 </ScrollView>
                             </> :
                             <Text style={styles.bodyTextBold}>{text}</Text>

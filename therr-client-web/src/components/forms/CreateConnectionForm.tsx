@@ -99,6 +99,7 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
                 requestingUserId: user.details.id,
                 requestingUserFirstName: user.details.firstName,
                 requestingUserLastName: user.details.lastName,
+                requestingUserEmail: user.details.email,
             };
             if (this.state.inputs.connectionIdentifier === 'acceptingUserEmail') {
                 reqBody.acceptingUserEmail = inputs.email;
