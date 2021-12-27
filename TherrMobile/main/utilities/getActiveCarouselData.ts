@@ -1,11 +1,38 @@
 import { CAROUSEL_TABS } from '../constants';
 
+/**
+ * Merges multiple lists of areas together and orders them by createdAt time
+ * @param moments a pre-ordered list of moments (by createdAt)
+ * @param spaces a pre-ordered list of spaces (by createdAt)
+ * @returns a merged list of moments and spaces
+ */
 const mergeAreas = (moments: any[], spaces: any[]) => {
     // TODO: Maintain date order
+    let mergedAreas: any[] = [];
+    let mIndex = 0;
+    let sIndex = 0;
 
-    const merged = moments.concat(spaces);
+    while (mIndex < moments.length - 1 || sIndex < spaces.length - 1) {
+        if (mIndex >= moments.length - 1) {
+            mergedAreas.push(spaces[sIndex]);
+            sIndex++;
+        } else if (sIndex >= spaces.length - 1) {
+            mergedAreas.push(moments[mIndex]);
+            mIndex++;
+        } else {
+            const mDate = new Date(moments[mIndex].createdAt).getTime();
+            const sDate = new Date(spaces[sIndex].createdAt).getTime();
+            if (mDate > sDate) {
+                mergedAreas.push(moments[mIndex]);
+                mIndex++;
+            } else {
+                mergedAreas.push(spaces[sIndex]);
+                sIndex++;
+            }
+        }
+    }
 
-    return merged;
+    return mergedAreas;
 };
 
 export default ({
