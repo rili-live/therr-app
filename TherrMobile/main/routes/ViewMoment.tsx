@@ -212,7 +212,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     goBack = () => {
         const { navigation, route } = this.props;
         const { previousView } = route.params;
-        if (previousView && previousView === 'Moments') {
+        if (previousView && previousView === 'Areas') {
             navigation.goBack();
         } else {
             navigation.navigate('Map');

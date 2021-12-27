@@ -5,6 +5,7 @@ import {
 } from 'express-validator/check'; // eslint-disable-line import/extensions
 
 export const createAreaValidation = [
+    body('areaType').optional(),
     body('category').optional(),
     body('expiresAt').optional(),
     body('fromUserId').isString().exists(),

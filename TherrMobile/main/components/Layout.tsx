@@ -188,6 +188,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             if (remoteMessage?.data?.momentsActivated) {
                                 parsedMomentsData = JSON.parse(remoteMessage.data.momentsActivated);
                                 // TODO: Fetch associated media files
+                                // TODO: Do the same for spaces
                                 insertActiveMoments(parsedMomentsData);
                             }
                             if (remoteMessage?.data?.notificationData) {
