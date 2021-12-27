@@ -1,5 +1,13 @@
 import { CAROUSEL_TABS } from '../constants';
 
+const mergeAreas = (moments: any[], spaces: any[]) => {
+    // TODO: Maintain date order
+
+    const merged = moments.concat(spaces);
+
+    return merged;
+};
+
 export default ({
     activeTab,
     content,
@@ -13,5 +21,9 @@ export default ({
         return [];
     }
 
-    return isForBookmarks ? content.bookmarkedMoments : content.activeMoments;
+    if (isForBookmarks) {
+        return mergeAreas(content.bookmarkedMoments, content.bookmarkedSpaces);
+    }
+
+    return mergeAreas(content.activeMoments, content.activeSpaces);
 };

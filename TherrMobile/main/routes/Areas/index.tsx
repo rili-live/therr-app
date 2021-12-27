@@ -12,7 +12,7 @@ import styles from '../../styles';
 import * as therrTheme from '../../styles/themes';
 // import { buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
-import MomentCarousel from './MomentCarousel';
+import AreaCarousel from './AreaCarousel';
 import MainButtonMenuAlt from '../../components/ButtonMenu/MainButtonMenuAlt';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { isMyArea } from '../../utilities/content';
@@ -30,29 +30,34 @@ function getRandomLoaderId(): ILottieId {
     return options[selected] as ILottieId;
 }
 
-interface IMomentsDispatchProps {
+interface IAreasDispatchProps {
     searchActiveMoments: Function;
     updateActiveMoments: Function;
     createOrUpdateMomentReaction: Function;
+
+    searchActiveSpaces: Function;
+    updateActiveSpaces: Function;
+    createOrUpdateSpaceReaction: Function;
+
     logout: Function;
 }
 
-interface IStoreProps extends IMomentsDispatchProps {
+interface IStoreProps extends IAreasDispatchProps {
     content: IContentState;
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
 
 // Regular component props
-export interface IMomentsProps extends IStoreProps {
+export interface IAreasProps extends IStoreProps {
     navigation: any;
 }
 
-interface IMomentsState {
+interface IAreasState {
     activeTab: string;
     isLoading: boolean;
-    areMomentOptionsVisible: boolean;
-    selectedMoment: any;
+    areAreaOptionsVisible: boolean;
+    selectedArea: any;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -67,11 +72,15 @@ const mapDispatchToProps = (dispatch: any) =>
             searchActiveMoments: ContentActions.searchActiveMoments,
             updateActiveMoments: ContentActions.updateActiveMoments,
             createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
+
+            searchActiveSpaces: ContentActions.searchActiveSpaces,
+            updateActiveSpaces: ContentActions.updateActiveSpaces,
+            createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
         },
         dispatch
     );
 
-class Moments extends React.Component<IMomentsProps, IMomentsState> {
+class Areas extends React.Component<IAreasProps, IAreasState> {
     private carouselRef;
     private translate: Function;
     private loaderId: ILottieId;
@@ -83,8 +92,8 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         this.state = {
             activeTab: CAROUSEL_TABS.SOCIAL,
             isLoading: true,
-            areMomentOptionsVisible: false,
-            selectedMoment: {},
+            areAreaOptionsVisible: false,
+            selectedArea: {},
         };
 
         this.translate = (key: string, params: any) =>
@@ -96,7 +105,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         const { content, navigation } = this.props;
 
         navigation.setOptions({
-            title: this.translate('pages.moments.headerTitle'),
+            title: this.translate('pages.areas.headerTitle'),
         });
 
         if (!content?.activeMoments?.length || content.activeMoments.length < 21) {
@@ -114,15 +123,15 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
 
     getEmptyListMessage = (activeTab) => {
         if (activeTab === CAROUSEL_TABS.SOCIAL) {
-            return this.translate('pages.moments.noSocialMomentsFound');
+            return this.translate('pages.areas.noSocialAreasFound');
         }
 
         if (activeTab === CAROUSEL_TABS.HIRE) {
-            return this.translate('pages.moments.noHireMomentsFound');
+            return this.translate('pages.areas.noHireAreasFound');
         }
 
         // CAROUSEL_TABS.EVENTS
-        return this.translate('pages.moments.noEventsMomentsFound');
+        return this.translate('pages.areas.noEventsAreasFound');
     }
 
     goToMap = () => {
@@ -130,16 +139,24 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         navigation.navigate('Map');
     }
 
-    goToMoment = (moment) => {
+    goToArea = (area) => {
         const { navigation, user } = this.props;
 
-        // navigation.navigate('Home');
-        navigation.navigate('ViewMoment', {
-            isMyArea: isMyArea(moment, user),
-            previousView: 'Moments',
-            moment,
-            momentDetails: {},
-        });
+        if (area.areaType === 'spaces') {
+            navigation.navigate('ViewSpace', {
+                isMyArea: isMyArea(area, user),
+                previousView: 'Spaces',
+                space: area,
+                spaceDetails: {},
+            });
+        } else {
+            navigation.navigate('ViewMoment', {
+                isMyArea: isMyArea(area, user),
+                previousView: 'Moments',
+                moment: area,
+                momentDetails: {},
+            });
+        }
     };
 
     goToViewUser = (userId) => {
@@ -153,31 +170,74 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
     }
 
     handleRefresh = () => {
-        const { content, updateActiveMoments, user } = this.props;
+        const { content, updateActiveMoments, updateActiveSpaces, user } = this.props;
         this.setState({ isLoading: true });
 
-        return updateActiveMoments({
+        const activeMomentsPromise = updateActiveMoments({
             withMedia: true,
             withUser: true,
             offset: 0,
-            ...content.activeMomentsFilters,
+            ...content.activeAreasFilters,
             blockedUsers: user.details.blockedUsers,
             shouldHideMatureContent: user.details.shouldHideMatureContent,
-        }).finally(() => {
+        });
+
+        const activeSpacesPromise = updateActiveSpaces({
+            withMedia: true,
+            withUser: true,
+            offset: 0,
+            ...content.activeAreasFilters,
+            blockedUsers: user.details.blockedUsers,
+            shouldHideMatureContent: user.details.shouldHideMatureContent,
+        });
+
+        return Promise.all([activeMomentsPromise, activeSpacesPromise]).finally(() => {
             this.loadTimeoutId = setTimeout(() => {
                 this.setState({ isLoading: false });
             }, 400);
         });
     }
 
-    onMomentOptionSelect = (type: ISelectionType) => {
-        const { selectedMoment } = this.state;
-        const { createOrUpdateMomentReaction } = this.props;
+    tryLoadMore = () => {
+        const { content, searchActiveMoments, searchActiveSpaces, user } = this.props;
+
+        if (!content.activeMomentsPagination.isLastPage) {
+            return searchActiveMoments({
+                withMedia: true,
+                withUser: true,
+                offset: content.activeMomentsPagination.offset + content.activeMomentsPagination.itemsPerPage,
+                ...content.activeAreasFilters,
+                blockedUsers: user.details.blockedUsers,
+                shouldHideMatureContent: user.details.shouldHideMatureContent,
+            });
+        }
+
+        if (!content.activeSpacesPagination.isLastPage) {
+            return searchActiveSpaces({
+                withMedia: true,
+                withUser: true,
+                offset: content.activeSpacesPagination.offset + content.activeSpacesPagination.itemsPerPage,
+                ...content.activeAreasFilters,
+                blockedUsers: user.details.blockedUsers,
+                shouldHideMatureContent: user.details.shouldHideMatureContent,
+            });
+        }
+    }
+
+    onAreaOptionSelect = (type: ISelectionType) => {
+        const { selectedArea } = this.state;
+        const { createOrUpdateSpaceReaction, createOrUpdateMomentReaction } = this.props;
         const requestArgs: any = getReactionUpdateArgs(type);
 
-        createOrUpdateMomentReaction(selectedMoment.id, requestArgs).finally(() => {
-            this.toggleMomentOptions(selectedMoment);
-        });
+        if (selectedArea.areaType === 'spaces') {
+            createOrUpdateSpaceReaction(selectedArea.id, requestArgs).finally(() => {
+                this.toggleAreaOptions(selectedArea);
+            });
+        } else {
+            createOrUpdateMomentReaction(selectedArea.id, requestArgs).finally(() => {
+                this.toggleAreaOptions(selectedArea);
+            });
+        }
     }
 
     onTabSelect = (tabName: string) => {
@@ -190,31 +250,16 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         this.carouselRef?.scrollToOffset({ animated: true, offset: 0 });
     }
 
-    tryLoadMore = () => {
-        const { content, searchActiveMoments, user } = this.props;
-
-        if (!content.activeMomentsPagination.isLastPage) {
-            return searchActiveMoments({
-                withMedia: true,
-                withUser: true,
-                offset: content.activeMomentsPagination.offset + content.activeMomentsPagination.itemsPerPage,
-                ...content.activeMomentsFilters,
-                blockedUsers: user.details.blockedUsers,
-                shouldHideMatureContent: user.details.shouldHideMatureContent,
-            });
-        }
-    }
-
-    toggleMomentOptions = (moment) => {
-        const { areMomentOptionsVisible } = this.state;
+    toggleAreaOptions = (area) => {
+        const { areAreaOptionsVisible } = this.state;
         this.setState({
-            areMomentOptionsVisible: !areMomentOptionsVisible,
-            selectedMoment: areMomentOptionsVisible ? {} : moment,
+            areAreaOptionsVisible: !areAreaOptionsVisible,
+            selectedArea: areAreaOptionsVisible ? {} : area,
         });
     }
 
     renderCarousel = (content) => {
-        const { createOrUpdateMomentReaction, user } = this.props;
+        const { createOrUpdateMomentReaction, createOrUpdateSpaceReaction, user } = this.props;
         const { activeTab, isLoading } = this.state;
 
         if (isLoading) {
@@ -228,19 +273,20 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
         });
 
         return (
-            <MomentCarousel
+            <AreaCarousel
                 activeData={activeData}
                 activeTab={activeTab}
                 content={content}
-                expandMoment={this.goToMoment}
+                inspectArea={this.goToArea}
                 goToViewUser={this.goToViewUser}
-                toggleMomentOptions={this.toggleMomentOptions}
+                toggleAreaOptions={this.toggleAreaOptions}
                 translate={this.translate}
                 containerRef={(component) => this.carouselRef = component}
                 handleRefresh={this.handleRefresh}
                 onEndReached={this.tryLoadMore}
                 onTabSelect={this.onTabSelect}
                 updateMomentReaction={createOrUpdateMomentReaction}
+                updateSpaceReaction={createOrUpdateSpaceReaction}
                 emptyListMessage={this.getEmptyListMessage(activeTab)}
                 user={user}
                 // viewportHeight={viewportHeight}
@@ -250,7 +296,7 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
     }
 
     render() {
-        const { areMomentOptionsVisible, selectedMoment } = this.state;
+        const { areAreaOptionsVisible, selectedArea } = this.state;
         const { content, navigation, user } = this.props;
 
         return (
@@ -262,10 +308,10 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
                     }
                 </SafeAreaView>
                 <AreaOptionsModal
-                    isVisible={areMomentOptionsVisible}
-                    onRequestClose={() => this.toggleMomentOptions(selectedMoment)}
+                    isVisible={areAreaOptionsVisible}
+                    onRequestClose={() => this.toggleAreaOptions(selectedArea)}
                     translate={this.translate}
-                    onSelect={this.onMomentOptionSelect}
+                    onSelect={this.onAreaOptionSelect}
                 />
                 {/* <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} /> */}
                 <MainButtonMenuAlt
@@ -279,4 +325,4 @@ class Moments extends React.Component<IMomentsProps, IMomentsState> {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Moments);
+export default connect(mapStateToProps, mapDispatchToProps)(Areas);

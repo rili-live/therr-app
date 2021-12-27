@@ -9,35 +9,35 @@ import { CarouselTabsMenu } from './CarouselTabsMenu';
 
 // let flatListRef;
 
-const renderItem = ({ item: moment }, {
+const renderItem = ({ item: area }, {
     content,
-    expandMoment,
-    toggleMomentOptions,
+    inspectArea,
+    toggleAreaOptions,
     formattedDate,
     goToViewUser,
     translate,
-    updateMomentReaction,
+    updateAreaReaction,
 }) => {
-    const momentMedia = content?.media[moment.media && moment.media[0]?.id];
+    const areaMedia = content?.media[area.media && area.media[0]?.id];
 
     return (
         <Pressable
-            style={momentStyles.momentContainer}
-            onPress={() => expandMoment(moment)}
+            style={momentStyles.areaContainer}
+            onPress={() => inspectArea(area)}
         >
             <AreaDisplay
                 translate={translate}
                 date={formattedDate}
                 goToViewUser={goToViewUser}
-                toggleAreaOptions={toggleMomentOptions}
-                hashtags={moment.hashTags ? moment.hashTags.split(",") : []}
-                area={moment}
+                toggleAreaOptions={toggleAreaOptions}
+                hashtags={area.hashTags ? area.hashTags.split(",") : []}
+                area={area}
                 // TODO: Get username from response
                 userDetails={{
-                    userName: moment.fromUserName || moment.fromUserId,
+                    userName: area.fromUserName || area.fromUserId,
                 }}
-                updateAreaReaction={updateMomentReaction}
-                areaMedia={momentMedia}
+                updateAreaReaction={updateAreaReaction}
+                areaMedia={areaMedia}
                 isDarkMode={false}
             />
         </Pressable>
@@ -54,15 +54,16 @@ export default ({
     activeData,
     activeTab,
     content,
-    expandMoment,
+    inspectArea,
     containerRef,
     goToViewUser,
     handleRefresh,
     onEndReached,
     onTabSelect,
-    toggleMomentOptions,
+    toggleAreaOptions,
     translate,
     updateMomentReaction,
+    updateSpaceReaction,
     emptyListMessage,
     user,
     // viewportHeight,
@@ -80,12 +81,12 @@ export default ({
     //         <>
     //             <Carousel
     //                 contentInsetAdjustmentBehavior="automatic"
-    //                 style={[styles.scrollViewFull, momentStyles.momentCarousel]}
+    //                 style={[styles.scrollViewFull, momentStyles.areaCarousel]}
     //                 vertical={true}
     //                 data={content.activeMoments}
     //                 renderItem={(itemObj) => renderItem(itemObj, {
     //                     content,
-    //                     expandMoment,
+    //                     inspectArea,
     //                     formattedDate: formatDate(itemObj.item.createdAt),
     //                     translate,
     //                 })}
@@ -109,14 +110,14 @@ export default ({
                 keyExtractor={(item) => String(item.id)}
                 renderItem={(itemObj) => renderItem(itemObj, {
                     content,
-                    expandMoment,
+                    inspectArea,
                     formattedDate: formatDate(itemObj.item.createdAt),
                     goToViewUser,
-                    toggleMomentOptions,
+                    toggleAreaOptions,
                     translate,
-                    updateMomentReaction,
+                    updateAreaReaction: itemObj.item.areaType === 'spaces' ? updateSpaceReaction : updateMomentReaction,
                 })}
-                ListEmptyComponent={<Text style={momentStyles.noMomentsFoundText}>{emptyListMessage}</Text>}
+                ListEmptyComponent={<Text style={momentStyles.noAreasFoundText}>{emptyListMessage}</Text>}
                 ListHeaderComponent={
                     <CarouselTabsMenu
                         activeTab={activeTab}
@@ -125,7 +126,7 @@ export default ({
                         user={user}
                     />
                 }
-                ListFooterComponent={<View style={momentStyles.momentCarouselFooter} />}
+                ListFooterComponent={<View style={momentStyles.areaCarouselFooter} />}
                 ref={(component) => {
                     containerRef && containerRef(component);
                     return component;
@@ -134,7 +135,7 @@ export default ({
                     refreshing={refreshing}
                     onRefresh={onRefresh}
                 />}
-                style={[styles.stretch, momentStyles.momentCarousel]}
+                style={[styles.stretch, momentStyles.areaCarousel]}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={0.5}
                 // onContentSizeChange={() => content.activeMoments?.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}

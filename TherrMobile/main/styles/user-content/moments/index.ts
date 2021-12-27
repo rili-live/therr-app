@@ -23,10 +23,10 @@ export default StyleSheet.create({
         height: dividerHeight * 2,
         width: '100%',
     },
-    momentCarousel: {
+    areaCarousel: {
         backgroundColor: therrTheme.colorVariations.backgroundNeutral,
     },
-    momentCarouselHeader: {
+    areaCarouselHeader: {
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
@@ -34,13 +34,13 @@ export default StyleSheet.create({
         marginTop: dividerHeight,
         marginBottom: dividerHeight / 2,
     },
-    momentCarouselTab: {
+    areaCarouselTab: {
 
     },
-    momentCarouselFooter: {
+    areaCarouselFooter: {
         marginTop: dividerHeight / 2,
     },
-    momentContainer: {
+    areaContainer: {
         flex: 1,
         overflow: 'hidden',
         paddingBottom: 10,
@@ -60,20 +60,20 @@ export default StyleSheet.create({
         elevation: 1,
         shadowOpacity: 0.5,
     },
-    momentTitle: {
+    areaTitle: {
         ...momentTextStyles,
         fontSize: 30,
     },
-    momentMessageText: {
+    areaMessageText: {
         ...momentTextStyles,
         fontSize: 20,
         overflow: 'hidden',
     },
-    momentDetailsText: {
+    areaDetailsText: {
         ...momentTextStyles,
         fontSize: 14,
     },
-    noMomentsFoundText: {
+    noAreasFoundText: {
         ...momentTextStyles,
         marginVertical: 50,
         paddingHorizontal: 10,

@@ -56,11 +56,11 @@ export class CarouselTabsMenu extends React.Component<ICarouselTabsMenuProps, IC
 
     render() {
         const { onButtonPress } = this.props;
-        const momentCarouselTab = {
-            ...momentStyles.momentCarouselTab,
+        const areaCarouselTab = {
+            ...momentStyles.areaCarouselTab,
             width: '30%',
         };
-        const momentCarouselTabButton = {
+        const areaCarouselTabButton = {
             backgroundColor: therrTheme.colors.primary,
             paddingTop: 2,
             paddingBottom: 3,
@@ -68,22 +68,22 @@ export class CarouselTabsMenu extends React.Component<ICarouselTabsMenuProps, IC
         };
 
         return (
-            <View style={momentStyles.momentCarouselHeader}>
+            <View style={momentStyles.areaCarouselHeader}>
                 <Button
-                    buttonStyle={[momentCarouselTabButton, this.getButtonStyles(CAROUSEL_TABS.SOCIAL)]}
-                    containerStyle={momentCarouselTab}
+                    buttonStyle={[areaCarouselTabButton, this.getButtonStyles(CAROUSEL_TABS.SOCIAL)]}
+                    containerStyle={areaCarouselTab}
                     title="Social"
                     onPress={() => onButtonPress(CAROUSEL_TABS.SOCIAL)}
                 />
                 <Button
-                    buttonStyle={[momentCarouselTabButton, this.getButtonStyles(CAROUSEL_TABS.HIRE)]}
-                    containerStyle={momentCarouselTab}
+                    buttonStyle={[areaCarouselTabButton, this.getButtonStyles(CAROUSEL_TABS.HIRE)]}
+                    containerStyle={areaCarouselTab}
                     title="Hire"
                     onPress={() => onButtonPress(CAROUSEL_TABS.HIRE)}
                 />
                 <Button
-                    buttonStyle={[momentCarouselTabButton, this.getButtonStyles(CAROUSEL_TABS.EVENTS)]}
-                    containerStyle={momentCarouselTab}
+                    buttonStyle={[areaCarouselTabButton, this.getButtonStyles(CAROUSEL_TABS.EVENTS)]}
+                    containerStyle={areaCarouselTab}
                     title="Events"
                     onPress={() => onButtonPress(CAROUSEL_TABS.EVENTS)}
                 />

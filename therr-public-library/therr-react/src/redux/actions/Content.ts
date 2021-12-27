@@ -22,7 +22,7 @@ const Content = {
             });
         }),
     setActiveMomentsFilters: (filters: IActiveMomentsFilters) => (dispatch: any) => dispatch({
-        type: ContentActionTypes.SET_ACTIVE_MOMENTS_FILTERS,
+        type: ContentActionTypes.SET_ACTIVE_AREAS_FILTERS,
         data: filters,
     }),
     updateActiveMoments: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
@@ -59,10 +59,31 @@ const Content = {
         }),
 
     // Spaces
+    insertActiveSpaces: (newActiveSpaces: any) => (dispatch: any) => {
+        dispatch({
+            type: ContentActionTypes.INSERT_ACTIVE_SPACES,
+            data: newActiveSpaces,
+        });
+    },
+    searchActiveSpaces: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
+        .searchActiveSpaces(options, limit)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.SEARCH_ACTIVE_SPACES,
+                data: response?.data,
+            });
+        }),
+    updateActiveSpaces: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
+        .searchActiveSpaces(options, limit)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.UPDATE_ACTIVE_SPACES,
+                data: response?.data,
+            });
+        }),
     createOrUpdateSpaceReaction: (momentId: number, params: ICreateOrUpdateAreaReactionBody) => (dispatch: any) => ReactionsService
         .createOrUpdateSpaceReaction(momentId, params)
         .then((response: any) => {
-            // TODO: Add reducer handlers
             dispatch({
                 type: ContentActionTypes.UPDATE_ACTIVE_SPACE_REACTION,
                 data: response?.data,
@@ -76,13 +97,14 @@ const Content = {
                 });
             }
         }),
-    insertActiveSpaces: (newActiveSpaces: any) => (dispatch: any) => {
-        // TODO: Add reducer handlers
-        dispatch({
-            type: ContentActionTypes.INSERT_ACTIVE_SPACES,
-            data: newActiveSpaces,
-        });
-    },
+    searchBookmarkedSpaces: (options: ISearchActiveAreasParams) => (dispatch: any) => ReactionsService
+        .searchBookmarkedSpaces(options, 100)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.SEARCH_BOOKMARKED_SPACES,
+                data: response?.data,
+            });
+        }),
 };
 
 export default Content;
