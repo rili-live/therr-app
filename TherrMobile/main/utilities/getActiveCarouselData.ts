@@ -12,11 +12,11 @@ const mergeAreas = (moments: any[], spaces: any[]) => {
     let mIndex = 0;
     let sIndex = 0;
 
-    while (mIndex < moments.length - 1 || sIndex < spaces.length - 1) {
-        if (mIndex >= moments.length - 1) {
+    while (moments[mIndex] || spaces[sIndex]) {
+        if (!moments[mIndex]) {
             mergedAreas.push(spaces[sIndex]);
             sIndex++;
-        } else if (sIndex >= spaces.length - 1) {
+        } else if (!spaces[sIndex]) {
             mergedAreas.push(moments[mIndex]);
             mIndex++;
         } else {
