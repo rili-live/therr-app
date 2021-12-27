@@ -1,4 +1,4 @@
-exports.up = (knex) => knex.schema.withSchema('main').atlerTable('moments', async (table) => {
+exports.up = (knex) => knex.schema.withSchema('main').alterTable('moments', async (table) => {
     table.string('areaType', 25).notNullable().defaultsTo('moments');
 });
 

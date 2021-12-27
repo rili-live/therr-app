@@ -51,7 +51,7 @@ export interface IGetSpaceReactionParams {
 
 class ReactionsService {
     createOrUpdateAreaReaction = (areaType: IAreaType, id: number, data: ICreateOrUpdateAreaReactionBody) => {
-        const typeSingular = areaType === 'moments' ? 'moment' : 'reaction';
+        const typeSingular = areaType === 'moments' ? 'moment' : 'space';
 
         return axios({
             method: 'post',
@@ -130,7 +130,7 @@ class ReactionsService {
 
     // Spaces
     createOrUpdateSpaceReaction = (id: number, data: ICreateOrUpdateAreaReactionBody) => this.createOrUpdateAreaReaction(
-        'moments',
+        'spaces',
         id,
         data,
     );
