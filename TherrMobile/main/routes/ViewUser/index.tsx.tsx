@@ -177,7 +177,7 @@ class ViewUser extends React.Component<
             // TODO: Add success toast
             // TODO: RMOBILE-35: ...
             blockUser(fetchedUserInView.id, user.details.blockedUsers);
-            navigation.navigate('Moments');
+            navigation.navigate('Areas');
         } else if (activeConfirmModal === 'send-connection-request') {
             navigation.navigate('CreateConnection');
         } else if (activeConfirmModal === 'remove-connection-request') {
@@ -189,7 +189,7 @@ class ViewUser extends React.Component<
                 },
                 user: user.details,
             });
-            navigation.navigate('Moments');
+            navigation.navigate('Areas');
         }
 
         this.setState({

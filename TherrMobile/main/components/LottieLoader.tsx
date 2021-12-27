@@ -8,9 +8,10 @@ import shoppingLoader from '../assets/shopping.json';
 import donutLoader from '../assets/donut.json';
 import tacoLoader from '../assets/taco.json';
 import carLoader from '../assets/sports-car.json';
+import zeppelinLoader from '../assets/zeppelin.json';
 import therrBlackRolling from '../assets/therr-logo-black-rolling.json';
 
-export type ILottieId = 'donut' | 'taco' | 'shopping' | 'happy-swing' | 'karaoke' | 'yellow-car' | 'therr-black-rolling';
+export type ILottieId = 'donut' | 'taco' | 'shopping' | 'happy-swing' | 'karaoke' | 'yellow-car' | 'zeppelin' | 'therr-black-rolling';
 export interface ILottieLoaderProps {
     id: ILottieId;
 }
@@ -47,6 +48,11 @@ export default ({
             containerStyles = loaderStyles.karaokeContainer;
             textStyles = loaderStyles.karaokeText;
             source = karaokeLoader;
+            break;
+        case 'zeppelin':
+            containerStyles = loaderStyles.defaultContainer;
+            textStyles = loaderStyles.defaultText;
+            source = zeppelinLoader;
             break;
         case 'therr-black-rolling':
             containerStyles = loaderStyles.therrBlackRollingContainer;

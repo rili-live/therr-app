@@ -158,7 +158,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         // navigation.navigate('Home');
         navigation.navigate('ViewMoment', {
             isMyArea: isMyArea(moment, user),
-            previousView: 'Moments',
+            previousView: 'Areas',
             moment,
             momentDetails: {},
         });

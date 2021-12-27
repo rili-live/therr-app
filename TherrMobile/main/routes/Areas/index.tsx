@@ -25,7 +25,7 @@ import { CAROUSEL_TABS } from '../../constants';
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
 function getRandomLoaderId(): ILottieId {
-    const options: ILottieId[] = ['donut', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'therr-black-rolling'];
+    const options: ILottieId[] = ['donut', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
     const selected = Math.floor(Math.random() * options.length);
     return options[selected] as ILottieId;
 }
@@ -152,7 +152,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         } else {
             navigation.navigate('ViewMoment', {
                 isMyArea: isMyArea(area, user),
-                previousView: 'Moments',
+                previousView: 'Areas',
                 moment: area,
                 momentDetails: {},
             });
