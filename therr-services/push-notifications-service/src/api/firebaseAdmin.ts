@@ -52,8 +52,16 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
                     notification: {
                         icon: 'ic_notification_icon',
                         color: '#0f7b82',
+                        // clickAction: '',
                     },
                 },
+                // apns: {
+                //     payload: {
+                //         aps: {
+                //             category: '', // apple apn category for click_action
+                //         },
+                //     },
+                // },
                 token: config.deviceToken,
             };
         case PushNotificationTypes.newConnectionRequest:
@@ -69,8 +77,16 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
                     notification: {
                         icon: 'ic_notification_icon',
                         color: '#0f7b82',
+                        // clickAction: '',
                     },
                 },
+                // apns: {
+                //     payload: {
+                //         aps: {
+                //             category: '', // apple apn category for click_action
+                //         },
+                //     },
+                // },
                 token: config.deviceToken,
             };
         case PushNotificationTypes.newDirectMessage:
@@ -86,8 +102,16 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
                     notification: {
                         icon: 'ic_notification_icon',
                         color: '#0f7b82',
+                        // clickAction: '',
                     },
                 },
+                // apns: {
+                //     payload: {
+                //         aps: {
+                //             category: '', // apple apn category for click_action
+                //         },
+                //     },
+                // },
                 token: config.deviceToken,
             };
         case PushNotificationTypes.newMomentsActivated:
@@ -103,8 +127,16 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
                     notification: {
                         icon: 'ic_notification_icon',
                         color: '#0f7b82',
+                        // clickAction: '',
                     },
                 },
+                // apns: {
+                //     payload: {
+                //         aps: {
+                //             category: '', // apple apn category for click_action
+                //         },
+                //     },
+                // },
                 token: config.deviceToken,
             };
         case PushNotificationTypes.proximityRequiredMoment:
@@ -118,8 +150,16 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
                     notification: {
                         icon: 'ic_notification_icon',
                         color: '#0f7b82',
+                        // clickAction: '',
                     },
                 },
+                // apns: {
+                //     payload: {
+                //         aps: {
+                //             category: '', // apple apn category for click_action
+                //         },
+                //     },
+                // },
                 token: config.deviceToken,
             };
         default:

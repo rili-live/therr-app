@@ -48,7 +48,7 @@ class MainButtonMenuAlt extends ButtonMenu {
             return 'ellipsis-h';
         }
 
-        if (currentScreen === 'Moments' || currentScreen === 'Notifications') {
+        if (currentScreen === 'Areas' || currentScreen === 'Notifications') {
             return 'arrow-up';
         }
 
@@ -68,7 +68,7 @@ class MainButtonMenuAlt extends ButtonMenu {
             return translate('menus.main.buttons.toggle');
         }
 
-        if (currentScreen === 'Moments' || currentScreen === 'Notifications') {
+        if (currentScreen === 'Areas' || currentScreen === 'Notifications') {
             return translate('menus.main.buttons.goToTop');
         }
 
@@ -85,13 +85,13 @@ class MainButtonMenuAlt extends ButtonMenu {
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.list') : null}
                     buttonStyle={
-                        currentScreen === 'Moments'
+                        currentScreen === 'Areas'
                             ? buttonMenu.buttonsActive
                             : buttonMenu.buttons
                     }
                     containerStyle={buttonMenu.buttonContainer}
                     titleStyle={
-                        currentScreen === 'Moments'
+                        currentScreen === 'Areas'
                             ? buttonMenu.buttonsTitleActive
                             : buttonMenu.buttonsTitle
                     }
@@ -100,13 +100,13 @@ class MainButtonMenuAlt extends ButtonMenu {
                             name="list"
                             size={20}
                             style={
-                                currentScreen === 'Moments'
+                                currentScreen === 'Areas'
                                     ? buttonMenu.buttonIconActive
                                     : buttonMenu.buttonIcon
                             }
                         />
                     }
-                    onPress={() => this.navTo('Moments')}
+                    onPress={() => this.navTo('Areas')}
                 />
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.map') : null}

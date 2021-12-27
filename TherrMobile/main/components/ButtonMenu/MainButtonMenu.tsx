@@ -87,13 +87,13 @@ class MainButtonMenu extends ButtonMenu {
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.moments') : null}
                     buttonStyle={
-                        currentScreen === 'Moments'
+                        currentScreen === 'Areas'
                             ? buttonMenu.buttonsActive
                             : buttonMenu.buttons
                     }
                     containerStyle={buttonMenu.buttonContainer}
                     titleStyle={
-                        currentScreen === 'Moments'
+                        currentScreen === 'Areas'
                             ? buttonMenu.buttonsTitleActive
                             : buttonMenu.buttonsTitle
                     }
@@ -102,13 +102,13 @@ class MainButtonMenu extends ButtonMenu {
                             name="watch"
                             size={26}
                             style={
-                                currentScreen === 'Moments'
+                                currentScreen === 'Areas'
                                     ? buttonMenu.buttonIconActive
                                     : buttonMenu.buttonIcon
                             }
                         />
                     }
-                    onPress={() => this.navTo('Moments')}
+                    onPress={() => this.navTo('Areas')}
                 />
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.map') : null}

@@ -5,11 +5,15 @@ import { MapActionTypes } from '../../types';
 
 const initialState: IContentState = Immutable.from({
     activeMoments: Immutable.from([]),
-    activeMomentsFilters: Immutable.from({
-        order: 'DESC',
-    }),
     activeMomentsPagination: Immutable.from({}),
     bookmarkedMoments: Immutable.from([]),
+    activeSpaces: Immutable.from([]),
+    activeSpacesPagination: Immutable.from({}),
+    bookmarkedSpaces: Immutable.from([]),
+
+    activeAreasFilters: Immutable.from({
+        order: 'DESC',
+    }),
     media: Immutable.from({}),
 });
 
@@ -20,10 +24,13 @@ const content = (state: IContentState = initialState, action: any) => {
     }
 
     let modifiedActiveMoments = [];
+    let modifiedActiveSpaces = [];
     let modifiedBookmarkedMoments = [];
+    let modifiedBookmarkedSpaces = [];
     let moddedActiveIndex = -1;
     let moddedBookmarkedIndex = -1;
 
+    // Moments
     if (state.activeMoments) {
         modifiedActiveMoments = JSON.parse(JSON.stringify(state.activeMoments));
         modifiedBookmarkedMoments = JSON.parse(JSON.stringify(state.bookmarkedMoments));
@@ -43,8 +50,29 @@ const content = (state: IContentState = initialState, action: any) => {
         }
     }
 
+    // Spaces
+    if (state.activeSpaces) {
+        modifiedActiveSpaces = JSON.parse(JSON.stringify(state.activeSpaces));
+        modifiedBookmarkedSpaces = JSON.parse(JSON.stringify(state.bookmarkedSpaces));
+        moddedActiveIndex = modifiedActiveSpaces.findIndex((space) => space.id === action.data?.spaceId);
+        moddedBookmarkedIndex = modifiedBookmarkedSpaces.findIndex((space) => space.id === action.data?.spaceId);
+
+        if (moddedActiveIndex !== -1) {
+            if (action.type === ContentActionTypes.UPDATE_ACTIVE_SPACE_REACTION) {
+                modifiedActiveSpaces[moddedActiveIndex].reaction = { ...action.data };
+            } else if (action.type === ContentActionTypes.REMOVE_ACTIVE_SPACES) {
+                modifiedActiveSpaces.splice(moddedActiveIndex, 1);
+            }
+        }
+
+        if (moddedBookmarkedIndex !== -1 && action.type === ContentActionTypes.UPDATE_ACTIVE_SPACE_REACTION) {
+            modifiedBookmarkedSpaces[moddedBookmarkedIndex].reaction = { ...action.data };
+        }
+    }
+
     // TODO: consider storing as Set to prevent duplicates
     switch (action.type) {
+        // Moments
         case ContentActionTypes.INSERT_ACTIVE_MOMENTS:
             // Add latest moments to start
             return state.setIn(['activeMoments'], [...action.data, ...state.activeMoments]);
@@ -59,8 +87,6 @@ const content = (state: IContentState = initialState, action: any) => {
             return state.setIn(['activeMoments'], [...state.activeMoments, ...action.data.moments])
                 .setIn(['media'], { ...state.media, ...action.data.media })
                 .setIn(['activeMomentsPagination'], { ...action.data.pagination });
-        case ContentActionTypes.SET_ACTIVE_MOMENTS_FILTERS:
-            return state.setIn(['activeMomentsFilters'], { ...action.data });
         case ContentActionTypes.UPDATE_ACTIVE_MOMENTS:
             // Reset moments from scratch
             return state.setIn(['activeMoments'], action.data.moments)
@@ -70,12 +96,41 @@ const content = (state: IContentState = initialState, action: any) => {
             // Add next offset of moments to end
             return state.setIn(['bookmarkedMoments'], action.data.moments)
                 .setIn(['media'], { ...state.media, ...action.data.media });
+
+        // Spaces
+        case ContentActionTypes.INSERT_ACTIVE_SPACES:
+            // Add latest spaces to start
+            return state.setIn(['activeSpaces'], [...action.data, ...state.activeSpaces]);
+        case ContentActionTypes.REMOVE_ACTIVE_SPACES:
+            // Remove (reported) spaces
+            return state.setIn(['activeSpaces'], modifiedActiveSpaces);
+        case ContentActionTypes.UPDATE_ACTIVE_SPACE_REACTION:
+            return state.setIn(['activeSpaces'], modifiedActiveSpaces)
+                .setIn(['bookmarkedSpaces'], modifiedBookmarkedSpaces);
+        case ContentActionTypes.SEARCH_ACTIVE_SPACES:
+            // Add next offset of spaces to end
+            return state.setIn(['activeSpaces'], [...state.activeSpaces, ...action.data.spaces])
+                .setIn(['media'], { ...state.media, ...action.data.media })
+                .setIn(['activeSpacesPagination'], { ...action.data.pagination });
+        case ContentActionTypes.UPDATE_ACTIVE_SPACES:
+            // Reset spaces from scratch
+            return state.setIn(['activeSpaces'], action.data.spaces)
+                .setIn(['media'], action.data.media)
+                .setIn(['activeSpacesPagination'], { ...action.data.pagination });
+        case ContentActionTypes.SEARCH_BOOKMARKED_SPACES:
+            // Add next offset of spaces to end
+            return state.setIn(['bookmarkedSpaces'], action.data.spaces)
+                .setIn(['media'], { ...state.media, ...action.data.media });
+
+        // Other
+        case ContentActionTypes.SET_ACTIVE_AREAS_FILTERS:
+            return state.setIn(['activeAreasFilters'], { ...action.data });
         case MapActionTypes.GET_MOMENT_DETAILS:
         case MapActionTypes.GET_SPACE_DETAILS:
             // Reset moments from scratch
             return state.setIn(['media'], { ...state.media, ...action.data.media });
         case SocketClientActionTypes.LOGOUT:
-            return state.setIn(['activeMoments'], Immutable.from([]));
+            return state.setIn(['activeMoments'], Immutable.from([])).setIn(['activeSpaces'], Immutable.from([]));
         default:
             return state;
     }

@@ -316,12 +316,12 @@ class HeaderMenuRight extends React.Component<
                                         />
                                         <Button
                                             buttonStyle={
-                                                currentScreen === 'Moments'
+                                                currentScreen === 'Areas'
                                                     ? headerMenuModal.buttonsActive
                                                     : headerMenuModal.buttons
                                             }
                                             titleStyle={
-                                                currentScreen === 'Moments'
+                                                currentScreen === 'Areas'
                                                     ? headerMenuModal.buttonsTitleActive
                                                     : headerMenuModal.buttonsTitle
                                             }
@@ -329,7 +329,7 @@ class HeaderMenuRight extends React.Component<
                                             icon={
                                                 <MaterialIcon
                                                     style={
-                                                        currentScreen === 'Moments'
+                                                        currentScreen === 'Areas'
                                                             ? headerMenuModal.iconStyleActive
                                                             : headerMenuModal.iconStyle
                                                     }
@@ -337,7 +337,7 @@ class HeaderMenuRight extends React.Component<
                                                     size={18}
                                                 />
                                             }
-                                            onPress={() => this.navTo('Moments')}
+                                            onPress={() => this.navTo('Areas')}
                                         /> */}
                                         <View style={headerMenuModal.notificationsItemContainer}>
                                             <Button

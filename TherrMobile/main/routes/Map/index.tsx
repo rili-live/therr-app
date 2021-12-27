@@ -267,14 +267,14 @@ class Map extends React.Component<IMapProps, IMapState> {
     goToMoments = () => {
         const { navigation } = this.props;
 
-        navigation.navigate('Moments');
+        navigation.navigate('Areas');
     };
 
     goToHome = () => {
         const { navigation } = this.props;
 
         navigation.dispatch(
-            StackActions.replace('Moments', {})
+            StackActions.replace('Areas', {})
         );
     };
 

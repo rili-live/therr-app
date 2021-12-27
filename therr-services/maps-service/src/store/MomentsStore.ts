@@ -15,6 +15,7 @@ export const MOMENTS_TABLE_NAME = 'main.moments';
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
 const maxNotificationMsgLength = 100;
 export interface ICreateMomentParams {
+    areaType?: string;
     category?: any;
     expiresAt?: any;
     fromUserId: number;
@@ -251,6 +252,7 @@ export default class MomentsStore {
 
         return mediaPromise.then((mediaIds: string | undefined) => {
             const sanitizedParams = {
+                areaType: params.category || 'moments',
                 category: params.category || 'uncategorized',
                 expiresAt: params.expiresAt,
                 fromUserId: params.fromUserId,

@@ -93,7 +93,7 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
                 withMedia: true,
                 withUser: true,
                 offset: 0,
-                ...this.props.content.activeMomentsFilters,
+                ...this.props.content.activeAreasFilters,
             });
         });
     }
@@ -135,7 +135,7 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
                             </Text>
                             <View style={styles.sectionForm}>
                                 <ReactPicker
-                                    selectedValue={content.activeMomentsFilters.order}
+                                    selectedValue={content.activeAreasFilters.order}
                                     style={formStyles.picker}
                                     itemStyle={formStyles.pickerItem}
                                     onValueChange={this.onSearchOrderSelect}>

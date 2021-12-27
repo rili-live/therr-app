@@ -10,7 +10,7 @@ import BaseStatusBar from '../components/BaseStatusBar';
 import translator from '../services/translator';
 import styles from '../styles';
 import momentStyles from '../styles/user-content/moments';
-import MomentCarousel from './Moments/MomentCarousel';
+import AreaCarousel from './Areas/AreaCarousel';
 import { isMyArea } from '../utilities/content';
 import getActiveCarouselData from '../utilities/getActiveCarouselData';
 import { CAROUSEL_TABS } from '../constants';
@@ -18,7 +18,9 @@ import { CAROUSEL_TABS } from '../constants';
 
 interface IBookMarkedDispatchProps {
     searchBookmarkedMoments: Function;
+    searchBookmarkedSpaces: Function;
     createOrUpdateMomentReaction: Function;
+    createOrUpdateSpaceReaction: Function;
 }
 
 interface IStoreProps extends IBookMarkedDispatchProps {
@@ -35,8 +37,8 @@ export interface IBookMarkedProps extends IStoreProps {
 interface IBookMarkedState {
     activeTab: string;
     isLoading: boolean;
-    areMomentOptionsVisible: boolean;
-    selectedMoment: any;
+    areAreaOptionsVisible: boolean;
+    selectedArea: any;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -50,6 +52,8 @@ const mapDispatchToProps = (dispatch: any) =>
         {
             searchBookmarkedMoments: ContentActions.searchBookmarkedMoments,
             createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
+            searchBookmarkedSpaces: ContentActions.searchBookmarkedSpaces,
+            createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
         },
         dispatch
     );
@@ -64,8 +68,8 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         this.state = {
             activeTab: CAROUSEL_TABS.SOCIAL,
             isLoading: true,
-            areMomentOptionsVisible: false,
-            selectedMoment: {},
+            areAreaOptionsVisible: false,
+            selectedArea: {},
         };
 
         this.translate = (key: string, params: any) =>
@@ -73,25 +77,35 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
     }
 
     componentDidMount() {
-        const { navigation, searchBookmarkedMoments, user } = this.props;
+        const { navigation, searchBookmarkedMoments, searchBookmarkedSpaces, user } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.bookmarked.headerTitle'),
         });
 
         this.setState({
-            areMomentOptionsVisible: false,
+            areAreaOptionsVisible: false,
             isLoading: false,
-            selectedMoment: {},
+            selectedArea: {},
         });
 
-        searchBookmarkedMoments({
+        const bookmarkedMomentsPromise = searchBookmarkedMoments({
             withMedia: true,
             withUser: true,
             offset: 0,
             blockedUsers: user.details.blockedUsers,
             shouldHideMatureContent: user.details.shouldHideMatureContent,
-        }).finally(() => {
+        });
+
+        const bookmarkedSpacesPromise = searchBookmarkedSpaces({
+            withMedia: true,
+            withUser: true,
+            offset: 0,
+            blockedUsers: user.details.blockedUsers,
+            shouldHideMatureContent: user.details.shouldHideMatureContent,
+        });
+
+        Promise.all([bookmarkedMomentsPromise, bookmarkedSpacesPromise]).finally(() => {
             this.setState({
                 isLoading: false,
             });
@@ -100,9 +114,17 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
 
 
     handleRefresh = () => {
-        const { searchBookmarkedMoments, user } = this.props;
+        const { searchBookmarkedMoments, searchBookmarkedSpaces, user } = this.props;
 
         searchBookmarkedMoments({
+            withMedia: true,
+            withUser: true,
+            offset: 0,
+            blockedUsers: user.details.blockedUsers,
+            shouldHideMatureContent: user.details.shouldHideMatureContent,
+        });
+
+        searchBookmarkedSpaces({
             withMedia: true,
             withUser: true,
             offset: 0,
@@ -136,7 +158,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         // navigation.navigate('Home');
         navigation.navigate('ViewMoment', {
             isMyArea: isMyArea(moment, user),
-            previousView: 'Moments',
+            previousView: 'Areas',
             moment,
             momentDetails: {},
         });
@@ -152,11 +174,11 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         });
     }
 
-    toggleMomentOptions = (moment) => {
-        const { areMomentOptionsVisible } = this.state;
+    toggleAreaOptions = (area) => {
+        const { areAreaOptionsVisible } = this.state;
         this.setState({
-            areMomentOptionsVisible: !areMomentOptionsVisible,
-            selectedMoment: areMomentOptionsVisible ? {} : moment,
+            areAreaOptionsVisible: !areAreaOptionsVisible,
+            selectedArea: areAreaOptionsVisible ? {} : area,
         });
     }
 
@@ -166,11 +188,11 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
 
     renderCarousel = (content) => {
         const { activeTab, isLoading } = this.state;
-        const { createOrUpdateMomentReaction, user } = this.props;
+        const { createOrUpdateMomentReaction, createOrUpdateSpaceReaction, user } = this.props;
 
         if (isLoading) {
             return (
-                <Text style={momentStyles.noMomentsFoundText}>Loading...</Text>
+                <Text style={momentStyles.noAreasFoundText}>Loading...</Text>
             );
         }
 
@@ -181,19 +203,20 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         });
 
         return (
-            <MomentCarousel
+            <AreaCarousel
                 activeData={activeData}
                 activeTab={activeTab}
                 content={content}
-                expandMoment={this.goToMoment}
+                inspectArea={this.goToMoment}
                 translate={this.translate}
                 containerRef={(component) => this.carouselRef = component}
                 goToViewUser={this.goToViewUser}
                 handleRefresh={() => Promise.resolve(this.handleRefresh())}
-                toggleMomentOptions={this.toggleMomentOptions}
+                toggleAreaOptions={this.toggleAreaOptions}
                 onEndReached={this.tryLoadMore}
                 onTabSelect={this.onTabSelect}
                 updateMomentReaction={createOrUpdateMomentReaction}
+                updateSpaceReaction={createOrUpdateSpaceReaction}
                 emptyListMessage={this.getEmptyListMessage(activeTab)}
                 user={user}
                 // viewportHeight={viewportHeight}

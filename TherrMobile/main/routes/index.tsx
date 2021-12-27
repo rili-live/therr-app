@@ -10,7 +10,7 @@ import Home from './Home';
 import DirectMessage from './DirectMessage';
 import Login from './Login';
 import Map from './Map';
-import Moments from './Moments';
+import Areas from './Areas';
 import ActiveConnections from './ActiveConnections';
 import Contacts from './Contacts';
 import CreateConnection from './CreateConnection';
@@ -107,10 +107,10 @@ const routes: RouteConfig<
         }),
     },
     {
-        name: 'Moments',
-        component: Moments,
+        name: 'Areas',
+        component: Areas,
         options: (params) => ({
-            title: 'Moments',
+            title: 'Areas',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
