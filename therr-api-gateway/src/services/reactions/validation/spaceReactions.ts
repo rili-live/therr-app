@@ -5,8 +5,8 @@ import {
     query,
 } from 'express-validator/check'; // eslint-disable-line import/extensions
 
-export const createOrUpdateMomentReactionValidation = [
-    param('momentId').isString().exists(),
+export const createOrUpdateSpaceReactionValidation = [
+    param('spaceId').isString().exists(),
     body('userViewCount').isNumeric().optional(),
     body('userHasActivated').isBoolean().optional(),
     body('userHasLiked').isBoolean().optional(),
@@ -18,15 +18,15 @@ export const createOrUpdateMomentReactionValidation = [
     body('userBookmarkPriority').isNumeric().optional(),
 ];
 
-export const getMomentReactionsValidation = [
+export const getSpaceReactionsValidation = [
     header('x-userid').exists(),
-    query('momentId').optional(),
-    query('momentIds').optional(),
+    query('spaceId').optional(),
+    query('spaceIds').optional(),
     query('limit').optional(),
 ];
 
-export const getMomentReactionsByMomentIdValidation = [
+export const getSpaceReactionsBySpaceIdValidation = [
     header('x-userid').exists(),
-    param('momentId').exists(),
+    param('spaceId').exists(),
     query('limit').optional(),
 ];
