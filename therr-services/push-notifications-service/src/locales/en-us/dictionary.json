@@ -8,6 +8,10 @@
       "title": "You found a unique moment!",
       "body": "Check the map to activate a moment with special attributes"
     },
+    "discoveredUniqueSpace": {
+      "title": "You found a unique space!",
+      "body": "Check the map to activate a space with special attributes"
+    },
     "newConnectionRequest": {
       "title": "New Connection Request",
       "body": "You have a new connection request from {userName}"
@@ -16,9 +20,9 @@
       "title": "New Unread Messages",
       "body": "You have unread messages from {userName}"
     },
-    "newMomentsActivated": {
-      "title": "New moments activated",
-      "body": "You recently activated {totalMomentsActivated} new moments"
+    "newAreasActivated": {
+      "title": "New areas activated",
+      "body": "You recently activated {totalAreasActivated} new areas(s)"
     }
   },
   "validation": "The required parameters were not provided."

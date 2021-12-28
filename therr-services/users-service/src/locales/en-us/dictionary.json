@@ -16,8 +16,9 @@
         "connectionRequestAccepted": "{firstName} {lastName} accepted your connnectionn request",
         "connectionRequestReceived": "You have received a new connection request from {firstName} {lastName}",
         "newDmReceived": "New direct message from {userName} while you were away",
-        "newMomentsActivated": "You recently activated {totalMomentsActivated} new moment(s)",
-        "discoveredUniqueMoment": "Check the map to activate a moment with special attributes"
+        "newAreasActivated": "You recently activated {totalAreasActivated} new areas(s)",
+        "discoveredUniqueMoment": "Check the map to activate a moment with special attributes",
+        "discoveredUniqueSpace": "Check the map to activate a space with special attributes"
     },
     "validation": "The required parameters were not provided."
 }
