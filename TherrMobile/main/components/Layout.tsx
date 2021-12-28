@@ -91,7 +91,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private translate;
 
     private unsubscribePushNotifications;
-    private navigationRef: NavigationContainerRef | undefined;
+    private navigationRef: NavigationContainerRef<{}> | undefined;
     private routeNameRef: any = {};
 
     constructor(props) {
@@ -183,16 +183,20 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         }
                         this.unsubscribePushNotifications = messaging().onMessage(async remoteMessage => {
                             console.log('Message handled in the foreground!', remoteMessage);
-                            let parsedMomentsData;
-                            let parsedNotificationData;
-                            if (remoteMessage?.data?.momentsActivated) {
-                                parsedMomentsData = JSON.parse(remoteMessage.data.momentsActivated);
+                            if (remoteMessage?.data?.areasActivated) {
+                                const parsedAreasData = JSON.parse(remoteMessage.data.areasActivated);
+                                const momentsData = parsedAreasData.filter(area => area.areaType === 'moments');
+                                const spacesData = parsedAreasData.filter(area => area.areaType === 'spaces');
                                 // TODO: Fetch associated media files
-                                // TODO: Do the same for spaces
+                                insertActiveMoments(momentsData);
+                                insertActiveMoments(spacesData);
+                            } else if (remoteMessage?.data?.momentsActivated) {
+                                // TODO: Remove this condition (kept for backwards compatibility)
+                                const parsedMomentsData = JSON.parse(remoteMessage.data.momentsActivated);
                                 insertActiveMoments(parsedMomentsData);
                             }
                             if (remoteMessage?.data?.notificationData) {
-                                parsedNotificationData = JSON.parse(remoteMessage.data.notificationData);
+                                const parsedNotificationData = JSON.parse(remoteMessage.data.notificationData);
                                 addNotification(parsedNotificationData);
                             }
                         });
@@ -267,7 +271,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         return (
             <NavigationContainer
                 theme={theme}
-                ref={(ref: NavigationContainerRef) => this.navigationRef = ref}
+                ref={(ref: NavigationContainerRef<{}>) => {
+                    this.navigationRef = ref;
+                }}
                 onReady={() => {
                     this.routeNameRef.current = this.navigationRef?.getCurrentRoute()?.name;
                 }}

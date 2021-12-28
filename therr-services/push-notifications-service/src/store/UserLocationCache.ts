@@ -1,3 +1,4 @@
+/* eslint-disable lines-between-class-members */
 import { Location } from 'therr-js-utilities/constants';
 import redisClient from './redisClient';
 import beeline from '../beeline';
@@ -9,23 +10,24 @@ interface IOrigin {
     latitude: number;
 }
 
+type IAreaType = 'moments' | 'spaces';
+
 export default class UserLocationCache {
-    private keyPrefix;
-
-    private geoKeyPrefix;
-
-    private userId;
-
+    private momentsKeyPrefix;
+    private momentsGeoKeyPrefix;
+    private spacesKeyPrefix;
+    private spacesGeoKeyPrefix;
     public client = redisClient;
-
     private geoKeys: any = {};
-
     private keys: any = {};
+    private userId;
 
     constructor(userId, callback?) {
         this.userId = userId;
-        this.keyPrefix = `user:${this.userId}:nearby-moments`;
-        this.geoKeyPrefix = `user:${this.userId}:nearby-moments-geo`;
+        this.momentsKeyPrefix = `user:${this.userId}:nearby-moments`;
+        this.momentsGeoKeyPrefix = `user:${this.userId}:nearby-moments-geo`;
+        this.spacesKeyPrefix = `user:${this.userId}:nearby-spaces`;
+        this.spacesGeoKeyPrefix = `user:${this.userId}:nearby-spaces-geo`;
 
         // Create Keys
         this.geoKeys.unactivated = 'unactivated';
@@ -34,56 +36,72 @@ export default class UserLocationCache {
         this.keys.maxActivationDistance = 'maxActivationDistance';
 
         const pipeline = redisClient.pipeline();
-        pipeline.hset(this.keyPrefix, 'exists', 'true'); // arbitrary placeholder, allows us to expire all keys together
-        pipeline.expire(this.keyPrefix, USER_CACHE_TTL_SEC);
+        pipeline.hset(this.momentsKeyPrefix, 'exists', 'true'); // arbitrary placeholder, allows us to expire all keys together
+        pipeline.expire(this.momentsKeyPrefix, USER_CACHE_TTL_SEC);
+        pipeline.hset(this.spacesKeyPrefix, 'exists', 'true'); // arbitrary placeholder, allows us to expire all keys together
+        pipeline.expire(this.spacesKeyPrefix, USER_CACHE_TTL_SEC);
         pipeline.exec().then(() => callback && callback());
     }
 
-    clearCache = () => {
+    clearCache = (): Promise<[Error | null, any][]> => {
         const pipeline = redisClient.pipeline();
 
-        pipeline.expire(this.keyPrefix, 0);
-        pipeline.expire(this.geoKeyPrefix, 0);
+        pipeline.expire(this.momentsKeyPrefix, 0);
+        pipeline.expire(this.momentsGeoKeyPrefix, 0);
+        pipeline.expire(this.spacesKeyPrefix, 0);
+        pipeline.expire(this.spacesGeoKeyPrefix, 0);
 
         return pipeline.exec();
     };
 
-    getOrigin = () => redisClient.hget(this.keyPrefix, this.keys.origin).then((response) => response && JSON.parse(response));
+    // Stored on moments hset, although could just as well be stored on spaces hset
+    getOrigin = () => redisClient.hget(this.momentsKeyPrefix, this.keys.origin).then((response) => response && JSON.parse(response));
 
-    setOrigin = (origin: IOrigin) => redisClient.hset(this.keyPrefix, this.keys.origin, JSON.stringify(origin));
+    // Stored on moments hset, although could just as well be stored on spaces hset
+    setOrigin = (origin: IOrigin) => redisClient.hset(this.momentsKeyPrefix, this.keys.origin, JSON.stringify(origin));
 
-    getLastNotificationDate = () => redisClient.hget(this.keyPrefix, this.keys.lastNotificationDateMs)
+    invalidateCache = () => {
+        const pipeline = redisClient.pipeline();
+
+        pipeline.del(this.momentsKeyPrefix);
+        pipeline.del(this.spacesKeyPrefix);
+
+        return pipeline.exec();
+    };
+
+    getLastAreaNotificationDate = (areaType: IAreaType, keyPrefix: string) => redisClient.hget(keyPrefix, this.keys.lastNotificationDateMs)
         .then((response) => response && Number(response))
         .catch((error) => {
+            const areaTypeSingular = areaType === 'moments' ? 'moment' : 'space';
             beeline.addContext({
                 errorMessage: error?.stack,
                 context: 'redis',
-                significance: 'high error rate will cause excessive push notifications for location moment activations',
+                significance: `high error rate will cause excessive push notifications for location ${areaTypeSingular} activations`,
             });
         });
 
-    setLastNotificationDate = () => redisClient.hset(this.keyPrefix, this.keys.lastNotificationDateMs, Date.now());
+    setLastAreaNotificationDate = (keyPrefix: string) => redisClient.hset(keyPrefix, this.keys.lastNotificationDateMs, Date.now());
 
-    getMaxActivationDistance = () => redisClient.get(`${this.keyPrefix}${this.keys.maxActivationDistance}`);
+    getMaxAreaActivationDistance = (keyPrefix: string) => redisClient.get(`${keyPrefix}${this.keys.maxActivationDistance}`);
 
-    setMaxActivationDistance = (value) => redisClient.set(`${this.keyPrefix}${this.keys.maxActivationDistance}`, value);
+    setMaxAreaActivationDistance = (keyPrefix: string, value) => redisClient.set(`${keyPrefix}${this.keys.maxActivationDistance}`, value);
 
-    addMoments = (moments: any[], loggingDetails) => {
+    addAreas = (areaType: IAreaType, geoKeyPrefix: string, areas: any[], loggingDetails) => {
         const pipeline: any = redisClient.pipeline();
 
-        moments.forEach((moment) => {
-            pipeline.geoadd(this.geoKeyPrefix, moment.longitude, moment.latitude, moment.id);
-            pipeline.hset(`${this.geoKeyPrefix}:${this.geoKeys.unactivated}:${moment.id}`, moment);
+        areas.forEach((area) => {
+            pipeline.geoadd(geoKeyPrefix, area.longitude, area.latitude, area.id);
+            pipeline.hset(`${geoKeyPrefix}:${this.geoKeys.unactivated}:${area.id}`, area);
         });
 
-        pipeline.expire(this.geoKeyPrefix, USER_CACHE_TTL_SEC);
+        pipeline.expire(geoKeyPrefix, USER_CACHE_TTL_SEC);
 
         return pipeline.exec()
             .then(() => {
                 beeline.addContext({
-                    message: 'cached nearby moments',
+                    message: `cached nearby ${areaType}`,
                     context: 'redis',
-                    significance: 'moments are cached on user\'s first login and after they travel the minimum distance',
+                    significance: `${areaType} are cached on user's first login and after they travel the minimum distance`,
                     ...loggingDetails,
                 });
             })
@@ -92,18 +110,18 @@ export default class UserLocationCache {
                 beeline.addContext({
                     errorMessage: error?.stack,
                     context: 'redis',
-                    significance: 'failing to cache moments will cause excessive database pulls and poor performance',
+                    significance: `failing to cache ${areaType} will cause excessive database pulls and poor performance`,
                     ...loggingDetails,
                 });
             });
     }
 
-    removeMoments = (momentIds: number[], loggingDetails) => {
+    removeAreas = (areaType: IAreaType, geoKeyPrefix: string, areaIds: number[], loggingDetails) => {
         const pipeline = redisClient.pipeline();
 
-        momentIds.forEach((id) => {
-            pipeline.zrem(this.geoKeyPrefix, id);
-            pipeline.del(`${this.geoKeyPrefix}:${this.geoKeys.unactivated}:${id}`);
+        areaIds.forEach((id) => {
+            pipeline.zrem(geoKeyPrefix, id);
+            pipeline.del(`${geoKeyPrefix}:${this.geoKeys.unactivated}:${id}`);
         });
 
         return pipeline.exec()
@@ -111,48 +129,78 @@ export default class UserLocationCache {
                 beeline.addContext({
                     errorMessage: error?.stack,
                     context: 'redis',
-                    significance: 'failing to remove moments from the unactivated moments cache will prevent new moments from being activated',
+                    significance: `failing to remove ${areaType} from the unactivated ${areaType} cache will prevent new ${areaType} from being activated`,
                     ...loggingDetails,
                 });
             });
     }
 
-    getMomentsWithinDistance = (userLocation, radius: number, loggingDetails) => {
+    getAreasWithinDistance = (areaType: IAreaType, geoKeyPrefix: string, userLocation, radius: number, loggingDetails) => {
         const redis: any = redisClient;
-        return redis.georadius(this.geoKeyPrefix, userLocation.longitude, userLocation.latitude, radius, 'm')
-            .then((momentIds) => {
+        return redis.georadius(geoKeyPrefix, userLocation.longitude, userLocation.latitude, radius, 'm')
+            .then((areaIds) => {
                 const pipeline = redisClient.pipeline();
 
-                for (let i = 0; i < Location.MAX_AREA_ACTIVATE_COUNT && i <= momentIds.length - 1; i += 1) {
-                    if (momentIds[i]) {
-                        pipeline.hgetall(`${this.geoKeyPrefix}:${this.geoKeys.unactivated}:${momentIds[i]}`);
+                for (let i = 0; i < Location.MAX_AREA_ACTIVATE_COUNT && i <= areaIds.length - 1; i += 1) {
+                    if (areaIds[i]) {
+                        pipeline.hgetall(`${geoKeyPrefix}:${this.geoKeys.unactivated}:${areaIds[i]}`);
                     }
                 }
 
                 return pipeline.exec();
             })
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            .then((moments) => moments.map(([error, moment]) => ({
-                ...moment,
-                id: moment.id,
-                fromUserId: moment.fromUserId,
-                isPublic: moment.isPublic === 'true',
-                maxViews: Number(moment.maxViews),
-                latitude: Number(moment.latitude),
-                longitude: Number(moment.longitude),
-                radius: Number(moment.radius),
-                maxProximity: Number(moment.maxProximity),
-                doesRequireProximityToView: moment.doesRequireProximityToView === 'true',
+            .then((areas) => areas.map(([error, area]) => ({
+                ...area,
+                id: area.id,
+                fromUserId: area.fromUserId,
+                isPublic: area.isPublic === 'true',
+                maxViews: Number(area.maxViews),
+                latitude: Number(area.latitude),
+                longitude: Number(area.longitude),
+                radius: Number(area.radius),
+                maxProximity: Number(area.maxProximity),
+                doesRequireProximityToView: area.doesRequireProximityToView === 'true',
             }))) // TODO: Verify parsing correctly parses numbers
             .catch((error) => {
                 beeline.addContext({
                     errorMessage: error?.stack,
                     context: 'redis',
-                    significance: 'failing to fetch moments from the cache',
+                    significance: `failing to fetch ${areaType} from the cache`,
                     ...loggingDetails,
                 });
             });
     }
 
-    invalidateCache = () => redisClient.del(this.keyPrefix);
+    // Moments
+    getLastMomentNotificationDate = () => this.getLastAreaNotificationDate('moments', this.momentsKeyPrefix);
+
+    setLastMomentNotificationDate = () => this.setLastAreaNotificationDate(this.keys.momentsKeyPrefix);
+
+    getMaxMomentActivationDistance = () => this.getMaxAreaActivationDistance(this.momentsKeyPrefix);
+
+    setMaxMomentActivationDistance = (value) => this.setMaxAreaActivationDistance(this.momentsKeyPrefix, value);
+
+    addMoments = (areas: any[], loggingDetails) => this.addAreas('moments', this.momentsGeoKeyPrefix, areas, loggingDetails);
+
+    removeMoments = (momentIds: number[], loggingDetails) => this.removeAreas('moments', this.momentsGeoKeyPrefix, momentIds, loggingDetails);
+
+    getMomentsWithinDistance = (userLocation, radius: number, loggingDetails) => this
+        .getAreasWithinDistance('moments', this.momentsGeoKeyPrefix, userLocation, radius, loggingDetails);
+
+    // Spaces
+    getLastSpaceNotificationDate = () => this.getLastAreaNotificationDate('spaces', this.spacesKeyPrefix);
+
+    setLastSpaceNotificationDate = () => this.setLastAreaNotificationDate(this.keys.spacesKeyPrefix);
+
+    getMaxSpaceActivationDistance = () => this.getMaxAreaActivationDistance(this.spacesKeyPrefix);
+
+    setMaxSpaceActivationDistance = (value) => this.setMaxAreaActivationDistance(this.spacesKeyPrefix, value);
+
+    addSpaces = (areas: any[], loggingDetails) => this.addAreas('spaces', this.spacesGeoKeyPrefix, areas, loggingDetails);
+
+    removeSpaces = (momentIds: number[], loggingDetails) => this.removeAreas('spaces', this.spacesGeoKeyPrefix, momentIds, loggingDetails);
+
+    getSpacesWithinDistance = (userLocation, radius: number, loggingDetails) => this
+        .getAreasWithinDistance('spaces', this.spacesGeoKeyPrefix, userLocation, radius, loggingDetails);
 }

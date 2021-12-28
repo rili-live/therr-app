@@ -2,5 +2,8 @@
   "validation": "The required parameters were not provided.",
   "momentReactions": {
     "momentNotActivated": "This user is not permitted to access content without first activating the moment"
+  },
+  "spaceReactions": {
+    "spaceNotActivated": "This user is not permitted to access content without first activating the space"
   }
 }

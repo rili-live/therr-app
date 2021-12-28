@@ -919,7 +919,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
     handleStopTouring = () => {
         const { navigation } = this.props;
-        navigation.replace('Map', {
+        navigation.navigate('Map', {
             isTourEnabled: false,
         });
     }

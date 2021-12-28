@@ -130,7 +130,10 @@ const content = (state: IContentState = initialState, action: any) => {
             // Reset moments from scratch
             return state.setIn(['media'], { ...state.media, ...action.data.media });
         case SocketClientActionTypes.LOGOUT:
-            return state.setIn(['activeMoments'], Immutable.from([])).setIn(['activeSpaces'], Immutable.from([]));
+            return state.setIn(['activeMoments'], Immutable.from([]))
+                .setIn(['bookmarkedMoments'], Immutable.from([]))
+                .setIn(['activeSpaces'], Immutable.from([]))
+                .setIn(['bookmarkedSpaces'], Immutable.from([]));
         default:
             return state;
     }
