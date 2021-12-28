@@ -140,7 +140,6 @@ const predictAndSendNotification = (
     metrics?: INotificationMetrics,
 ) => {
     const message = createMessage(type, data, config);
-    console.log('firebase', message);
 
     return Promise.resolve()
         .then(() => {

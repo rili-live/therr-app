@@ -44,7 +44,6 @@ const searchActiveSpaces = async (req: any, res: any) => {
         .then((reactionsResponse) => {
             reactions = reactionsResponse;
             const spaceIds = reactions?.map((reaction) => reaction.spaceId) || [];
-            console.log(spaceIds);
 
             return axios({
                 method: 'post',
@@ -63,7 +62,6 @@ const searchActiveSpaces = async (req: any, res: any) => {
             });
         })
         .then((response) => {
-            console.log(response?.data);
             let spaces = response?.data?.spaces;
             spaces = spaces.map((space) => ({
                 ...space,
