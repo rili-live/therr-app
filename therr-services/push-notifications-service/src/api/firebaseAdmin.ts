@@ -11,8 +11,9 @@ enum PushNotificationTypes {
     connectionRequestAccepted = 'connection-request-accepted',
     newConnectionRequest = 'new-connection-request',
     newDirectMessage = 'new-direct-message',
-    newMomentsActivated = 'new-moments-activated',
+    newAreasActivated = 'new-moments-activated',
     proximityRequiredMoment = 'proximity-required-moment',
+    proximityRequiredSpace = 'proximity-required-space',
 }
 
 admin.initializeApp({
@@ -21,7 +22,7 @@ admin.initializeApp({
 });
 
 interface ICreateMessageConfig {
-    totalMomentsActivated?: number;
+    totalAreasActivated?: number;
     deviceToken: any;
     fromUserName?: string;
     userId: string | string[];
@@ -29,8 +30,44 @@ interface ICreateMessageConfig {
 }
 
 interface INotificationMetrics {
-    lastNotificationDate: number | null;
+    lastMomentNotificationDate?: number | null;
+    lastSpaceNotificationDate?: number | null;
 }
+
+interface ICreateBaseMessage {
+    data: any;
+    deviceToken: any;
+    notificationTitle: string;
+    notificationBody: string;
+}
+
+const createBaseMessage = ({
+    data,
+    deviceToken,
+    notificationTitle,
+    notificationBody,
+}: ICreateBaseMessage): admin.messaging.Message | false => ({
+    data,
+    notification: {
+        title: notificationTitle,
+        body: notificationBody,
+    },
+    android: {
+        notification: {
+            icon: 'ic_notification_icon',
+            color: '#0f7b82',
+            // clickAction: '',
+        },
+    },
+    // apns: {
+    //     payload: {
+    //         aps: {
+    //             category: '', // apple apn category for click_action
+    //         },
+    //     },
+    // },
+    token: deviceToken,
+});
 
 const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMessageConfig): admin.messaging.Message | false => {
     const modifiedData = {
@@ -40,128 +77,55 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
 
     switch (type) {
         case PushNotificationTypes.connectionRequestAccepted:
-            return {
+            return createBaseMessage({
                 data: modifiedData,
-                notification: {
-                    title: translate(config.userLocale, 'notifications.connectionRequestAccepted.title'),
-                    body: translate(config.userLocale, 'notifications.connectionRequestAccepted.body', {
-                        userName: config.fromUserName,
-                    }),
-                },
-                android: {
-                    notification: {
-                        icon: 'ic_notification_icon',
-                        color: '#0f7b82',
-                        // clickAction: '',
-                    },
-                },
-                // apns: {
-                //     payload: {
-                //         aps: {
-                //             category: '', // apple apn category for click_action
-                //         },
-                //     },
-                // },
-                token: config.deviceToken,
-            };
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.connectionRequestAccepted.title'),
+                notificationBody: translate(config.userLocale, 'notifications.connectionRequestAccepted.body', {
+                    userName: config.fromUserName,
+                }),
+            });
         case PushNotificationTypes.newConnectionRequest:
-            return {
+            return createBaseMessage({
                 data: modifiedData,
-                notification: {
-                    title: translate(config.userLocale, 'notifications.newConnectionRequest.title'),
-                    body: translate(config.userLocale, 'notifications.newConnectionRequest.body', {
-                        userName: config.fromUserName,
-                    }),
-                },
-                android: {
-                    notification: {
-                        icon: 'ic_notification_icon',
-                        color: '#0f7b82',
-                        // clickAction: '',
-                    },
-                },
-                // apns: {
-                //     payload: {
-                //         aps: {
-                //             category: '', // apple apn category for click_action
-                //         },
-                //     },
-                // },
-                token: config.deviceToken,
-            };
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.newConnectionRequest.title'),
+                notificationBody: translate(config.userLocale, 'notifications.newConnectionRequest.body', {
+                    userName: config.fromUserName,
+                }),
+            });
         case PushNotificationTypes.newDirectMessage:
-            return {
+            return createBaseMessage({
                 data: modifiedData,
-                notification: {
-                    title: translate(config.userLocale, 'notifications.newDirectMessage.title'),
-                    body: translate(config.userLocale, 'notifications.newDirectMessage.body', {
-                        userName: config.fromUserName,
-                    }),
-                },
-                android: {
-                    notification: {
-                        icon: 'ic_notification_icon',
-                        color: '#0f7b82',
-                        // clickAction: '',
-                    },
-                },
-                // apns: {
-                //     payload: {
-                //         aps: {
-                //             category: '', // apple apn category for click_action
-                //         },
-                //     },
-                // },
-                token: config.deviceToken,
-            };
-        case PushNotificationTypes.newMomentsActivated:
-            return {
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.newDirectMessage.title'),
+                notificationBody: translate(config.userLocale, 'notifications.newDirectMessage.body', {
+                    userName: config.fromUserName,
+                }),
+            });
+        case PushNotificationTypes.newAreasActivated:
+            return createBaseMessage({
                 data: modifiedData,
-                notification: {
-                    title: translate(config.userLocale, 'notifications.newMomentsActivated.title'),
-                    body: translate(config.userLocale, 'notifications.newMomentsActivated.body', {
-                        totalMomentsActivated: config.totalMomentsActivated,
-                    }),
-                },
-                android: {
-                    notification: {
-                        icon: 'ic_notification_icon',
-                        color: '#0f7b82',
-                        // clickAction: '',
-                    },
-                },
-                // apns: {
-                //     payload: {
-                //         aps: {
-                //             category: '', // apple apn category for click_action
-                //         },
-                //     },
-                // },
-                token: config.deviceToken,
-            };
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.newAreasActivated.title'),
+                notificationBody: translate(config.userLocale, 'notifications.newAreasActivated.body', {
+                    totalAreasActivated: config.totalAreasActivated,
+                }),
+            });
         case PushNotificationTypes.proximityRequiredMoment:
-            return {
+            return createBaseMessage({
                 data: modifiedData,
-                notification: {
-                    title: translate(config.userLocale, 'notifications.discoveredUniqueMoment.title'),
-                    body: translate(config.userLocale, 'notifications.discoveredUniqueMoment.body'),
-                },
-                android: {
-                    notification: {
-                        icon: 'ic_notification_icon',
-                        color: '#0f7b82',
-                        // clickAction: '',
-                    },
-                },
-                // apns: {
-                //     payload: {
-                //         aps: {
-                //             category: '', // apple apn category for click_action
-                //         },
-                //     },
-                // },
-                token: config.deviceToken,
-            };
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.discoveredUniqueMoment.title'),
+                notificationBody: translate(config.userLocale, 'notifications.discoveredUniqueMoment.body'),
+            });
+        case PushNotificationTypes.proximityRequiredSpace:
+            return createBaseMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.discoveredUniqueSpace.title'),
+                notificationBody: translate(config.userLocale, 'notifications.discoveredUniqueSpace.body'),
+            });
         default:
             return false;
     }
@@ -195,11 +159,15 @@ const predictAndSendNotification = (
                 return admin.messaging().send(message);
             }
 
-            if (type === PushNotificationTypes.newMomentsActivated) {
+            if (type === PushNotificationTypes.newAreasActivated) {
                 return admin.messaging().send(message);
             }
 
             if (type === PushNotificationTypes.proximityRequiredMoment) {
+                return admin.messaging().send(message);
+            }
+
+            if (type === PushNotificationTypes.proximityRequiredSpace) {
                 return admin.messaging().send(message);
             }
 

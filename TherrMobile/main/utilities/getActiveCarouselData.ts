@@ -7,7 +7,6 @@ import { CAROUSEL_TABS } from '../constants';
  * @returns a merged list of moments and spaces
  */
 const mergeAreas = (moments: any[], spaces: any[]) => {
-    // TODO: Maintain date order
     let mergedAreas: any[] = [];
     let mIndex = 0;
     let sIndex = 0;

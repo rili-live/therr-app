@@ -1,11 +1,10 @@
 import { Location } from 'therr-js-utilities/constants';
 import { RequestHandler } from 'express';
 import { distanceTo } from 'geolocation-utils';
-
 import handleHttpError from '../utilities/handleHttpError';
 import UserLocationCache from '../store/UserLocationCache';
-import { activateMoments, getNearbyMoments } from './helpers/locationHelpers';
 import beeline from '../beeline';
+import { activateAreasAndNotify, getAllNearbyAreas } from './helpers/areaLocationHelpers';
 // import translate from '../utilities/translator';
 
 // CREATE/UPDATE
@@ -45,8 +44,8 @@ const processUserLocationChange: RequestHandler = (req, res) => {
             isCacheInvalid = distanceFromOriginMeters > Location.AREA_PROXIMITY_EXPANDED_METERS - 1;
         }
 
-        // Fetches x nearest moments within y meters of the user's current location (from the users's connections)
-        return getNearbyMoments(userLocationCache, isCacheInvalid, {
+        // Fetches x nearest areas within y meters of the user's current location (from the users's connections)
+        return getAllNearbyAreas(userLocationCache, isCacheInvalid, {
             headers,
             userLocation: {
                 longitude,
@@ -54,24 +53,54 @@ const processUserLocationChange: RequestHandler = (req, res) => {
             },
             limit: 100,
         })
-            .then((filteredMoments) => {
+            .then(([filteredMoments, filteredSpaces]) => {
+                console.log('DEBUG', [filteredMoments, filteredSpaces]);
                 const momentIdsToActivate: number[] = [];
                 const momentsToActivate: any[] = [];
-                // NOTE: only activate 'x' moments max to limit high density locations
-                for (let i = 0; i <= Location.MAX_AREA_ACTIVATE_COUNT && i <= filteredMoments.length - 1; i += 1) {
+                const spaceIdsToActivate: number[] = [];
+                const spacesToActivate: any[] = [];
+                // NOTE: only activate 'x' spaces max to limit high density locations
+                for (let i = 0; i <= Location.MAX_AREA_ACTIVATE_COUNT && i <= filteredSpaces.length - 1; i += 1) {
+                    spaceIdsToActivate.push(filteredMoments[i].id);
+                    spacesToActivate.push(filteredMoments[i]);
+                }
+                for (let i = 0; (i <= (Location.MAX_AREA_ACTIVATE_COUNT - spaceIdsToActivate.length) && i <= filteredMoments.length - 1); i += 1) {
                     momentIdsToActivate.push(filteredMoments[i].id);
                     momentsToActivate.push(filteredMoments[i]);
                 }
 
-                // Fire and forget (create or update)
                 if (momentIdsToActivate.length) {
                     beeline.addContext({
                         userId,
                         momentIdsToActivate: JSON.stringify(momentIdsToActivate),
                     });
-                    activateMoments(headers, momentsToActivate, momentIdsToActivate, userLocationCache);
+                }
+                if (spaceIdsToActivate.length) {
+                    beeline.addContext({
+                        userId,
+                        spaceIdsToActivate: JSON.stringify(spaceIdsToActivate),
+                    });
+                }
+
+                // Fire and forget (create or update reactions)
+                if (spaceIdsToActivate.length || momentIdsToActivate.length) {
+                    activateAreasAndNotify(
+                        headers, {
+                            moments: momentsToActivate,
+                            spaces: spacesToActivate,
+                            activatedMomentIds: momentIdsToActivate,
+                            activatedSpaceIds: spaceIdsToActivate,
+                        },
+                        userLocationCache,
+                    );
 
                     userLocationCache.removeMoments(momentIdsToActivate, {
+                        locale,
+                        userId,
+                        userDeviceToken,
+                    });
+
+                    userLocationCache.removeMoments(spaceIdsToActivate, {
                         locale,
                         userId,
                         userDeviceToken,

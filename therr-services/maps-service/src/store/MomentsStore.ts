@@ -252,7 +252,7 @@ export default class MomentsStore {
 
         return mediaPromise.then((mediaIds: string | undefined) => {
             const sanitizedParams = {
-                areaType: params.category || 'moments',
+                areaType: params.areaType || 'moments',
                 category: params.category || 'uncategorized',
                 expiresAt: params.expiresAt,
                 fromUserId: params.fromUserId,

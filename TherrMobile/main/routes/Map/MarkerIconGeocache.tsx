@@ -3,7 +3,7 @@ import Svg, { Path } from 'react-native-svg';
 
 export default function MarkerIconCamera(props) {
     return (
-        <Svg width={30} height={30} x="0" y="0" viewBox="0 0 307.308 307.308" {...props}>
+        <Svg width={30} height={30} x="0" y="0" viewBox="0 0 24 24" {...props}>
             <Path d="M0 0h24v24H0V0z" fill="none" />
             <Path
                 // eslint-disable-next-line max-len

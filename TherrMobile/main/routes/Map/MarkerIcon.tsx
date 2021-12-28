@@ -1,6 +1,6 @@
 import React from 'react';
 import * as therrTheme from '../../styles/themes';
-import MarkerIconGeocache from './MarkerIconCamera';
+import MarkerIconGeocache from './MarkerIconGeocache';
 import MarkerIconCamera from './MarkerIconCamera';
 import MarkerIconDiscount from './MarkerIconDiscount';
 import MarkerIconFood from './MarkerIconFood';
