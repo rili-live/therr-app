@@ -54,15 +54,14 @@ const processUserLocationChange: RequestHandler = (req, res) => {
             limit: 100,
         })
             .then(([filteredMoments, filteredSpaces]) => {
-                console.log('DEBUG', [filteredMoments, filteredSpaces]);
                 const momentIdsToActivate: number[] = [];
                 const momentsToActivate: any[] = [];
                 const spaceIdsToActivate: number[] = [];
                 const spacesToActivate: any[] = [];
                 // NOTE: only activate 'x' spaces max to limit high density locations
                 for (let i = 0; i <= Location.MAX_AREA_ACTIVATE_COUNT && i <= filteredSpaces.length - 1; i += 1) {
-                    spaceIdsToActivate.push(filteredMoments[i].id);
-                    spacesToActivate.push(filteredMoments[i]);
+                    spaceIdsToActivate.push(filteredSpaces[i].id);
+                    spacesToActivate.push(filteredSpaces[i]);
                 }
                 for (let i = 0; (i <= (Location.MAX_AREA_ACTIVATE_COUNT - spaceIdsToActivate.length) && i <= filteredMoments.length - 1); i += 1) {
                     momentIdsToActivate.push(filteredMoments[i].id);
@@ -107,10 +106,10 @@ const processUserLocationChange: RequestHandler = (req, res) => {
                     });
                 }
 
-                return filteredMoments;
+                return [momentsToActivate, filteredSpaces];
             })
-            .then((filteredMoments) => res.status(200).send({
-                activatedMoments: filteredMoments,
+            .then(([filteredMoments, spacesToActivate]) => res.status(200).send({
+                activatedAreas: [spacesToActivate, ...filteredMoments],
             }))
             .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_PUSH_NOTIFICATIONS_ROUTES:ERROR' }));
     });

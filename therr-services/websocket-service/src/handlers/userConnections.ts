@@ -31,7 +31,6 @@ const createConnection = (socket: socketio.Socket, data: ICreateUserConnectionDa
             socketId: socket.id,
         },
     });
-    console.log(data);
     redisSessions.getUserById(data.connection.acceptingUserId).then((response) => {
         const socketId = response?.socketId;
         if (socketId) {

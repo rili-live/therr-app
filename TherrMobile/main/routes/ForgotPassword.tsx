@@ -151,6 +151,7 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
                             <RoundInput
                                 autoCapitalize="none"
                                 autoCompleteType="email"
+                                autoCorrect={false}
                                 placeholder={this.translate(
                                     'forms.forgotPassword.labels.email'
                                 )}
