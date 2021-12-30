@@ -5,5 +5,8 @@
   },
   "spaceReactions": {
     "spaceNotActivated": "This user is not permitted to access content without first activating the space"
+  },
+  "spaces": {
+    "noOverlap": "A new space must not overlap existing spaces. Spaces are exclusive by design. Move to a new location and try again."
   }
 }

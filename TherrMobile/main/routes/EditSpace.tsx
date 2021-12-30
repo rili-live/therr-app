@@ -23,7 +23,7 @@ import editSpaceStyles from '../styles/user-content/moments/editing';
 import userContentStyles from '../styles/user-content';
 import {
     youtubeLinkRegex,
-    DEFAULT_RADIUS,
+    DEFAULT_RADIUS_PRIVATE,
     MIN_RADIUS_PUBLIC,
     MAX_RADIUS_PUBLIC,
 } from '../constants';
@@ -88,7 +88,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
             hashtags: [],
             inputs: {
                 isPublic: true,
-                radius: DEFAULT_RADIUS,
+                radius: DEFAULT_RADIUS_PRIVATE,
             },
             isSubmitting: false,
             previewStyleState: {},
