@@ -36,7 +36,18 @@ const createSpace = (req, res) => {
             ...space,
             reaction,
         })))
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' }));
+        .catch((err) => {
+            if (err?.constraint === 'no_overlaps') {
+                return handleHttpError({
+                    res,
+                    message: translate(locale, 'spaces.noOverlap'),
+                    statusCode: 400,
+                    errorCode: ErrorCodes.NO_SPACE_OVERLAP,
+                });
+            }
+
+            return handleHttpError({ err, res, message: 'SQL:SPACES_ROUTES:ERROR' });
+        });
 };
 
 // READ
