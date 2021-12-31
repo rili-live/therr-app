@@ -208,8 +208,9 @@ class Map extends React.Component<IMapProps, IMapState> {
     componentDidMount = async () => {
         const { navigation, setSearchDropdownVisibility } = this.props;
 
-        this.unsubscribeNavigationListener = navigation.addListener('state', (foo) => {
-            const route = foo.data.state.routes.find(route => route.name === 'Map');
+        this.unsubscribeNavigationListener = navigation.addListener('state', (event) => {
+            const route = event.data.state.routes.find(route => route.name === 'Map');
+            setSearchDropdownVisibility(false);
             if (route && route.params?.isTourEnabled) {
                 this.setState({
                     isTouring: true,
@@ -219,7 +220,6 @@ class Map extends React.Component<IMapProps, IMapState> {
                     isTouring: false,
                 });
             }
-            setSearchDropdownVisibility(false);
             clearTimeout(this.timeoutId);
             this.setState({
                 isMinLoadTimeComplete: true,
@@ -684,7 +684,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                     createOrUpdateMomentReaction(selectedMoment.id, {
                         userViewCount: 1,
                         userHasActivated: true,
-                    });
+                    }, selectedMoment.fromUserId, user.details.userName);
                     this.getAreaDetails(selectedMoment)
                         .then((details) => {
                             this.setState({

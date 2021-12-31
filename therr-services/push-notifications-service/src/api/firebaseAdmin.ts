@@ -1,20 +1,11 @@
+/* eslint-disable no-case-declarations */
 import * as admin from 'firebase-admin';
+import { PushNotifications } from 'therr-js-utilities/constants';
 import beeline from '../beeline';
 import translate from '../utilities/translator';
 import Logger from './Logger';
 
 const serviceAccount = JSON.parse(Buffer.from(process.env.PUSH_NOTIFICATIONS_GOOGLE_CREDENTIALS_BASE64 || '', 'base64').toString());
-
-// TODO: Move these to therr-utilities and share with other services
-// eslint-disable-next-line no-shadow
-enum PushNotificationTypes {
-    connectionRequestAccepted = 'connection-request-accepted',
-    newConnectionRequest = 'new-connection-request',
-    newDirectMessage = 'new-direct-message',
-    newAreasActivated = 'new-moments-activated',
-    proximityRequiredMoment = 'proximity-required-moment',
-    proximityRequiredSpace = 'proximity-required-space',
-}
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -56,7 +47,7 @@ const createBaseMessage = ({
         notification: {
             icon: 'ic_notification_icon',
             color: '#0f7b82',
-            // clickAction: '',
+            // clickAction: 'app.therrmobile.VIEW_MOMENT',
         },
     },
     // apns: {
@@ -69,15 +60,16 @@ const createBaseMessage = ({
     token: deviceToken,
 });
 
-const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMessageConfig): admin.messaging.Message | false => {
+const createMessage = (type: PushNotifications.Types, data: any, config: ICreateMessageConfig): admin.messaging.Message | false => {
+    let baseMessage: any = {};
     const modifiedData = {
         type,
     };
     Object.keys(data).forEach((key) => { modifiedData[key] = JSON.stringify(data[key]); });
 
     switch (type) {
-        case PushNotificationTypes.connectionRequestAccepted:
-            return createBaseMessage({
+        case PushNotifications.Types.connectionRequestAccepted:
+            baseMessage = createBaseMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.connectionRequestAccepted.title'),
@@ -85,8 +77,10 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
                     userName: config.fromUserName,
                 }),
             });
-        case PushNotificationTypes.newConnectionRequest:
-            return createBaseMessage({
+            baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_CONNECTION';
+            return baseMessage;
+        case PushNotifications.Types.newConnectionRequest:
+            baseMessage = createBaseMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.newConnectionRequest.title'),
@@ -94,8 +88,10 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
                     userName: config.fromUserName,
                 }),
             });
-        case PushNotificationTypes.newDirectMessage:
-            return createBaseMessage({
+            baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_CONNECTION_REQUEST';
+            return baseMessage;
+        case PushNotifications.Types.newDirectMessage:
+            baseMessage = createBaseMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.newDirectMessage.title'),
@@ -103,8 +99,21 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
                     userName: config.fromUserName,
                 }),
             });
-        case PushNotificationTypes.newAreasActivated:
-            return createBaseMessage({
+            baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_DIRECT_MESSAGE';
+            return baseMessage;
+        case PushNotifications.Types.newLikeReceived:
+            baseMessage = createBaseMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.newLikeReceived.title'),
+                notificationBody: translate(config.userLocale, 'notifications.newLikeReceived.body', {
+                    userName: config.fromUserName,
+                }),
+            });
+            baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_LIKE_RECEIVED';
+            return baseMessage;
+        case PushNotifications.Types.newAreasActivated:
+            baseMessage = createBaseMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.newAreasActivated.title'),
@@ -112,14 +121,16 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
                     totalAreasActivated: config.totalAreasActivated,
                 }),
             });
-        case PushNotificationTypes.proximityRequiredMoment:
+            baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_AREAS_ACTIVATED';
+            return baseMessage;
+        case PushNotifications.Types.proximityRequiredMoment:
             return createBaseMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.discoveredUniqueMoment.title'),
                 notificationBody: translate(config.userLocale, 'notifications.discoveredUniqueMoment.body'),
             });
-        case PushNotificationTypes.proximityRequiredSpace:
+        case PushNotifications.Types.proximityRequiredSpace:
             return createBaseMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
@@ -133,7 +144,7 @@ const createMessage = (type: PushNotificationTypes, data: any, config: ICreateMe
 
 // TODO: RDATA-3 - Add machine learning to predict whether to send push notification
 const predictAndSendNotification = (
-    type: PushNotificationTypes,
+    type: PushNotifications.Types,
     data,
     config: ICreateMessageConfig,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -147,27 +158,31 @@ const predictAndSendNotification = (
                 return;
             }
 
-            if (type === PushNotificationTypes.connectionRequestAccepted) {
+            if (type === PushNotifications.Types.connectionRequestAccepted) {
                 return admin.messaging().send(message);
             }
 
-            if (type === PushNotificationTypes.newConnectionRequest) {
+            if (type === PushNotifications.Types.newConnectionRequest) {
                 return admin.messaging().send(message);
             }
 
-            if (type === PushNotificationTypes.newDirectMessage) {
+            if (type === PushNotifications.Types.newDirectMessage) {
                 return admin.messaging().send(message);
             }
 
-            if (type === PushNotificationTypes.newAreasActivated) {
+            if (type === PushNotifications.Types.newLikeReceived) {
                 return admin.messaging().send(message);
             }
 
-            if (type === PushNotificationTypes.proximityRequiredMoment) {
+            if (type === PushNotifications.Types.newAreasActivated) {
                 return admin.messaging().send(message);
             }
 
-            if (type === PushNotificationTypes.proximityRequiredSpace) {
+            if (type === PushNotifications.Types.proximityRequiredMoment) {
+                return admin.messaging().send(message);
+            }
+
+            if (type === PushNotifications.Types.proximityRequiredSpace) {
                 return admin.messaging().send(message);
             }
 
@@ -201,5 +216,4 @@ export default admin;
 export {
     createMessage,
     predictAndSendNotification,
-    PushNotificationTypes,
 };

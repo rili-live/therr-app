@@ -1,10 +1,10 @@
 import axios from 'axios';
 import { distanceTo } from 'geolocation-utils';
-import { Location, Notifications } from 'therr-js-utilities/constants';
+import { Location, Notifications, PushNotifications } from 'therr-js-utilities/constants';
 import { getSearchQueryString } from 'therr-js-utilities/http';
 import beeline from '../../beeline';
 import UserLocationCache from '../../store/UserLocationCache';
-import { predictAndSendNotification, PushNotificationTypes } from '../../api/firebaseAdmin';
+import { predictAndSendNotification } from '../../api/firebaseAdmin';
 import * as globalConfig from '../../../../../global-config';
 
 export interface IUserlocation {
@@ -179,7 +179,7 @@ const filterNearbyAreas = (areaType: IAreaType, areas, userLocationCache: UserLo
                                     lastSpaceNotificationDate: lastNotificationDate,
                                 };
                             return predictAndSendNotification(
-                                (areaType === 'moments' ? PushNotificationTypes.proximityRequiredMoment : PushNotificationTypes.proximityRequiredSpace),
+                                (areaType === 'moments' ? PushNotifications.Types.proximityRequiredMoment : PushNotifications.Types.proximityRequiredSpace),
                                 {
                                     area,
                                     notificationData,
@@ -393,7 +393,7 @@ const activateAreasAndNotify = (
                     console.log(error);
                 }).finally(() => {
                     predictAndSendNotification(
-                        PushNotificationTypes.newAreasActivated,
+                        PushNotifications.Types.newAreasActivated,
                         {
                             areasActivated: spaces.slice(0, activatedSpaceIds.length).concat(moments.slice(0, activatedMomentIds.length)),
                             notificationData,

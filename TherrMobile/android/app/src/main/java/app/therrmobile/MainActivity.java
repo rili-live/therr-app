@@ -47,6 +47,13 @@ public class MainActivity extends ReactActivity {
   public void onNewIntent(Intent intent) {
       Uri uri = intent.getData();
 
+      WritableMap testEvent = Arguments.createMap();
+      String intentAction = intent.getAction();
+      testEvent.putString("action", intentAction);
+      getReactInstanceManager().getCurrentReactContext()
+          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+          .emit("new-intent-action", testEvent);
+
       if (uri != null) {
           String deepLinkURL = uri.toString();
 

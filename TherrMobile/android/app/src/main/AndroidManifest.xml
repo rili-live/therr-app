@@ -40,6 +40,26 @@
                 android:host="therr.com"  />
           <!-- note that the leading "/" is required for pathPrefix-->
         </intent-filter>
+        <intent-filter>
+            <action android:name="app.therrmobile.NEW_AREAS_ACTIVATED" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+            <action android:name="app.therrmobile.NEW_CONNECTION" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+            <action android:name="app.therrmobile.NEW_CONNECTION_REQUEST" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+            <action android:name="app.therrmobile.NEW_DIRECT_MESSAGE" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+            <action android:name="app.therrmobile.NEW_LIKE_RECEIVED" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
       </activity>
 
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
@@ -47,6 +67,16 @@
         android:name="com.google.android.geo.API_KEY"
         android:value="${GOOGLE_APIS_ANDROID_KEY}"
       />
+      <!-- <service android:name="io.invertase.firebase.messaging.RNFirebaseMessagingService" android:exported="true">
+        <intent-filter>
+          <action android:name="com.google.firebase.MESSAGING_EVENT" />
+        </intent-filter>
+      </service>
+      <service android:name="io.invertase.firebase.messaging.RNFirebaseInstanceIdService" android:exported="true">
+        <intent-filter>
+          <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+        </intent-filter>
+      </service> -->
       <meta-data
         android:name="com.google.firebase.messaging.default_notification_icon"
         android:resource="@drawable/ic_notification_icon"

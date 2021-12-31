@@ -3,6 +3,7 @@ import { login, logout } from './auth';
 import updateSession from './sessions';
 import { sendDirectMessage, sendForumMessage } from './messages';
 import updateNotification from './notifications';
+import { sendReactionPushNotification } from './reactions';
 import { createConnection, updateConnection, loadActiveConnections } from './userConnections';
 
 export {
@@ -23,6 +24,9 @@ export {
 
     // Notifications
     updateNotification,
+
+    // Reactions
+    sendReactionPushNotification,
 
     // Connections
     createConnection,
