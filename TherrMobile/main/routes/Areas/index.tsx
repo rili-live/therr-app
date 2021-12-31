@@ -85,6 +85,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     private translate: Function;
     private loaderId: ILottieId;
     private loadTimeoutId: any;
+    private unsubscribeNavigationListener;
 
     constructor(props) {
         super(props);
@@ -102,22 +103,31 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     }
 
     componentDidMount() {
+        const { activeTab } = this.state;
         const { content, navigation } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.areas.headerTitle'),
         });
 
-        if (!content?.activeMoments?.length || content.activeMoments.length < 21) {
-            this.handleRefresh();
-        } else {
-            this.setState({
-                isLoading: false,
+        this.unsubscribeNavigationListener = navigation.addListener('focus', () => {
+            const activeData = getActiveCarouselData({
+                activeTab,
+                content,
+                isForBookmarks: false,
             });
-        }
+            if (!activeData?.length || activeData.length < 21) {
+                this.handleRefresh();
+            } else {
+                this.setState({
+                    isLoading: false,
+                });
+            }
+        });
     }
 
     componentWillUnmount() {
+        this.unsubscribeNavigationListener();
         clearTimeout(this.loadTimeoutId);
     }
 
@@ -226,7 +236,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
 
     onAreaOptionSelect = (type: ISelectionType) => {
         const { selectedArea } = this.state;
-        const { createOrUpdateSpaceReaction, createOrUpdateMomentReaction } = this.props;
+        const { createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
         const requestArgs: any = getReactionUpdateArgs(type);
 
         if (selectedArea.areaType === 'spaces') {
@@ -234,7 +244,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                 this.toggleAreaOptions(selectedArea);
             });
         } else {
-            createOrUpdateMomentReaction(selectedArea.id, requestArgs).finally(() => {
+            createOrUpdateMomentReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName).finally(() => {
                 this.toggleAreaOptions(selectedArea);
             });
         }
@@ -289,6 +299,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                 updateSpaceReaction={createOrUpdateSpaceReaction}
                 emptyListMessage={this.getEmptyListMessage(activeTab)}
                 user={user}
+                shouldShowTabs={true}
                 // viewportHeight={viewportHeight}
                 // viewportWidth={viewportWidth}
             />

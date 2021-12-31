@@ -250,13 +250,14 @@ const routes: RouteConfig<
     {
         name: 'EmailVerification',
         component: EmailVerification,
-        options: () => ({
+        options: (params) => ({
             title: 'EmailVerification',
             access: {
                 type: AccessCheckType.NONE,
                 levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
                 isPublic: true,
             },
+            headerTitle: () => <HeaderTherrLogo navigation={params?.navigation} />,
         }),
     },
     {

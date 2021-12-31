@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
+import { Notifications, PushNotifications } from 'therr-js-utilities/constants';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
@@ -14,7 +15,7 @@ export const translateNotification = (notification, locale = 'en-us') => ({
 // CREATE
 const createNotification = (req, res) => Store.notifications.createNotification({
     userId: req.body.userId,
-    type: req.body.type,
+    type: req.body.type, // DB Notification type
     associationId: req.body.associationId,
     isUnread: req.body.isUnread,
     messageLocaleKey: req.body.messageLocaleKey,
@@ -25,6 +26,11 @@ const createNotification = (req, res) => Store.notifications.createNotification(
         const locale = req.headers['x-localecode'] || 'en-us';
         const fromUserId = req.headers['x-userid'];
         const { shouldSendPushNotification, userId: toUserId, fromUserName } = req.body;
+        const notificationType = req.body.type;
+        let pushNotificationType = PushNotifications.Types.newDirectMessage;
+        if (notificationType === Notifications.Types.NEW_LIKE_RECEIVED) {
+            pushNotificationType = PushNotifications.Types.newLikeReceived;
+        }
 
         // TODO: Handle additional notification types (currently only handles DM notification)
         if (shouldSendPushNotification) {
@@ -35,7 +41,7 @@ const createNotification = (req, res) => Store.notifications.createNotification(
                 fromUserId,
                 locale,
                 toUserId,
-                type: 'new-direct-message',
+                type: pushNotificationType,
             });
         }
 

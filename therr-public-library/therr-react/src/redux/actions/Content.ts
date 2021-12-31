@@ -1,3 +1,4 @@
+import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { ContentActionTypes } from '../../types/redux/content';
 import ReactionsService, { ISearchActiveAreasParams, ICreateOrUpdateAreaReactionBody } from '../../services/ReactionsService';
 
@@ -33,12 +34,25 @@ const Content = {
                 data: response?.data,
             });
         }),
-    createOrUpdateMomentReaction: (momentId: number, params: ICreateOrUpdateAreaReactionBody) => (dispatch: any) => ReactionsService
+    createOrUpdateMomentReaction: (
+        momentId: number,
+        params: ICreateOrUpdateAreaReactionBody,
+        momentUserId: string,
+        reactorUserName: string,
+    ) => (dispatch: any) => ReactionsService
         .createOrUpdateMomentReaction(momentId, params)
         .then((response: any) => {
             dispatch({
                 type: ContentActionTypes.UPDATE_ACTIVE_MOMENT_REACTION,
                 data: response?.data,
+            });
+            dispatch({
+                type: SocketClientActionTypes.CREATE_OR_UPDATE_REACTION,
+                data: {
+                    areaUserId: momentUserId,
+                    momentReaction: response?.data,
+                    reactorUserName,
+                },
             });
             if (params?.userHasReported) {
                 dispatch({
@@ -81,18 +95,31 @@ const Content = {
                 data: response?.data,
             });
         }),
-    createOrUpdateSpaceReaction: (momentId: number, params: ICreateOrUpdateAreaReactionBody) => (dispatch: any) => ReactionsService
-        .createOrUpdateSpaceReaction(momentId, params)
+    createOrUpdateSpaceReaction: (
+        spaceId: number,
+        params: ICreateOrUpdateAreaReactionBody,
+        spaceUserId: string,
+        reactorUserName: string,
+    ) => (dispatch: any) => ReactionsService
+        .createOrUpdateSpaceReaction(spaceId, params)
         .then((response: any) => {
             dispatch({
                 type: ContentActionTypes.UPDATE_ACTIVE_SPACE_REACTION,
                 data: response?.data,
             });
+            dispatch({
+                type: SocketClientActionTypes.CREATE_OR_UPDATE_REACTION,
+                data: {
+                    areaUserId: spaceUserId,
+                    reactorUserName,
+                    spaceReaction: response?.data,
+                },
+            });
             if (params?.userHasReported) {
                 dispatch({
                     type: ContentActionTypes.REMOVE_ACTIVE_SPACES,
                     data: {
-                        momentId,
+                        spaceId,
                     },
                 });
             }

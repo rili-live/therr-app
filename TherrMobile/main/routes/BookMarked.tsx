@@ -218,6 +218,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
                 updateMomentReaction={createOrUpdateMomentReaction}
                 updateSpaceReaction={createOrUpdateSpaceReaction}
                 emptyListMessage={this.getEmptyListMessage(activeTab)}
+                shouldShowTabs={false}
                 user={user}
                 // viewportHeight={viewportHeight}
                 // viewportWidth={viewportWidth}

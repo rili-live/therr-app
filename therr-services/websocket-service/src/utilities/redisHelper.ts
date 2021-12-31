@@ -155,13 +155,22 @@ export class RedisHelper {
         return null;
     };
 
-    public throttleDmNotifications = async (toUserId, fromUser): Promise<any> => {
+    public throttleDmNotifications = async (toUserId, fromUser): Promise<boolean> => {
         const key = `dmNotificationThrottles:${toUserId}:${fromUser}`;
+        return this.shouldCreateNotification(key);
+    };
+
+    public throttleReactionNotifications = async (toUserId, fromUser): Promise<boolean> => {
+        const key = `reactionNotificationThrottles:${toUserId}:${fromUser}`;
+        return this.shouldCreateNotification(key, 60);
+    };
+
+    public shouldCreateNotification = async (key: string, minWaitSeconds: number = 60 * 20): Promise<boolean> => {
         const doesLockExist = await this.client.get(key);
         if (doesLockExist) {
             return false;
         }
-        this.client.setex(key, 60 * 20, 1); // 20 minute expire
+        this.client.setex(key, minWaitSeconds, 1); // 20 minute expire
         return true;
     };
 }

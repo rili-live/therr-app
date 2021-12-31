@@ -10,6 +10,7 @@ import {
 // Enums
 import AccessLevels from './enums/AccessLevels';
 import * as Notifications from './enums/Notifications';
+import * as PushNotifications from './enums/PushNotifications';
 import SocketClientActionTypes from './enums/SocketClientActionTypes';
 import SocketServerActionTypes from './enums/SocketServerActionTypes';
 
@@ -29,6 +30,7 @@ export {
     ILogLevel,
     LogLevelMap,
     Notifications,
+    PushNotifications,
     PasswordRegex,
     DefaultUserResources,
     ResourceExchangeRates,

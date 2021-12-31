@@ -1,12 +1,10 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Linking, Platform, SafeAreaView, View } from 'react-native';
+import { SafeAreaView, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Image from '../../components/BaseImage';
 import 'react-native-gesture-handler';
-import { AccessLevels } from 'therr-js-utilities/constants';
-import { AccessCheckType, IUserState } from 'therr-react/types';
-import { UsersService } from 'therr-react/services';
+import { IUserState } from 'therr-react/types';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import styles from '../../styles';
 import mixins from '../../styles/mixins';
@@ -57,7 +55,6 @@ const mapDispatchToProps = (dispatch: any) =>
 class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     private translate;
     private cachedUserId;
-    private urlEventListener;
 
     constructor(props) {
         super(props);
@@ -76,45 +73,6 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
             navigation.setOptions({
                 title: this.translate('pages.login.headerTitle'),
             });
-
-            if (Platform.OS === 'android') {
-                Linking.getInitialURL().then(this.handleAppUniversalLinkURL);
-            }
-
-            // Do this for both Android and IOS
-            this.urlEventListener = Linking.addEventListener('url', this.handleUrlEvent);
-        }
-    }
-
-    componentWillUnmount() {
-        this.urlEventListener?.remove();
-    }
-
-    handleUrlEvent = (event) => {
-        this.handleAppUniversalLinkURL(event.url);
-    }
-
-    handleAppUniversalLinkURL = (url) => {
-        const { navigation, user } = this.props;
-        const urlSplit = url?.split('?') || [];
-
-        if (url?.includes('verify-account')) {
-            if (urlSplit[1] && urlSplit[1].includes('token=')) {
-                const verificationToken = urlSplit[1]?.split('token=')[1];
-                const isAuthorized = UsersService.isAuthorized(
-                    {
-                        type: AccessCheckType.NONE,
-                        levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
-                        isPublic: true,
-                    },
-                    user
-                );
-                if (isAuthorized) {
-                    navigation.navigate('EmailVerification', {
-                        verificationToken,
-                    });
-                }
-            }
         }
     }
 
