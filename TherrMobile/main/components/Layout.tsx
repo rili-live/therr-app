@@ -2,6 +2,7 @@ import React from 'react';
 import axios from 'axios';
 import {
     DeviceEventEmitter,
+    Linking,
     PermissionsAndroid,
     Platform,
     View,
@@ -15,7 +16,6 @@ import { UsersService } from 'therr-react/services';
 import { AccessCheckType, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions } from 'therr-react/redux/actions';
 import { AccessLevels } from 'therr-js-utilities/constants';
-import { NavigationContainerRef } from '@react-navigation/core';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
@@ -31,6 +31,8 @@ import HeaderMenuLeft from './HeaderMenuLeft';
 import translator from '../services/translator';
 import styles from '../styles';
 import * as therrTheme from '../styles/themes';
+import { navigationRef, RootNavigation } from './RootNavigation';
+import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 
 const Stack = createStackNavigator();
 
@@ -63,6 +65,7 @@ export interface ILayoutProps extends IStoreProps {}
 
 interface ILayoutState {
     isAuthenticated: boolean;
+    targetRouteView: string;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -88,10 +91,10 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class Layout extends React.Component<ILayoutProps, ILayoutState> {
+    private nativeEventListener;
     private translate;
-
     private unsubscribePushNotifications;
-    private navigationRef: NavigationContainerRef<{}> | undefined;
+    private urlEventListener;
     private routeNameRef: any = {};
 
     constructor(props) {
@@ -99,17 +102,28 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         this.state = {
             isAuthenticated: false,
+            targetRouteView: '',
         };
 
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
+    }
 
-        DeviceEventEmitter.addListener('locationProviderStatusChange', function(status) { // only trigger when "providerListener" is enabled
-            props.updateGpsStatus(status);
+    componentDidMount() {
+        if (Platform.OS === 'android') {
+            Linking.getInitialURL().then(this.handleAppUniversalLinkURL);
+        }
+
+        DeviceEventEmitter.addListener('locationProviderStatusChange', (status) => { // only trigger when "providerListener" is enabled
+            this.props.updateGpsStatus(status);
         });
+
+        this.nativeEventListener = PlatformNativeEventEmitter?.addListener('new-intent-action', this.handleNotificationEvent);
+        this.urlEventListener = Linking.addEventListener('url', this.handleUrlEvent);
     }
 
     componentDidUpdate() {
+        const { targetRouteView } = this.state;
         const {
             forums,
             addNotification,
@@ -126,6 +140,17 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 if (user.details?.id) {
                     crashlytics().setUserId(user.details?.id?.toString());
                 }
+
+                if (targetRouteView) {
+                    RootNavigation.reset({
+                        index: 0,
+                        routes: [
+                            { name: 'Areas' },
+                            { name: targetRouteView },
+                        ],
+                    });
+                }
+
                 searchNotifications({
                     filterBy: 'userId',
                     query: user.details.id,
@@ -212,11 +237,84 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     }
 
     componentWillUnmount() {
+        this.nativeEventListener?.remove();
+        this.urlEventListener?.remove();
+
         if (Platform.OS !== 'ios') {
             LocationServicesDialogBox.stopListener();
         }
 
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
+    }
+
+    handleNotificationEvent = (event) => {
+        const { user } = this.props;
+        const isNotAuthorized = UsersService.isAuthorized(
+            {
+                type: AccessCheckType.NONE,
+                levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+                isPublic: true,
+            },
+            user
+        );
+
+        let targetRouteView = '';
+        if (event.action === 'app.therrmobile.NEW_AREAS_ACTIVATED') {
+            targetRouteView = 'Notifications';
+        } else if (event.action === 'app.therrmobile.NEW_CONNECTION') {
+            targetRouteView = 'Contacts';
+        } else if (event.action === 'app.therrmobile.NEW_CONNECTION_REQUEST') {
+            targetRouteView = 'Notifications';
+        } else if (event.action === 'app.therrmobile.NEW_DIRECT_MESSAGE') {
+            targetRouteView = 'Contacts';
+        } else if (event.action === 'app.therrmobile.NEW_LIKE_RECEIVED') {
+            targetRouteView = 'Notifications';
+        }
+
+        if (isNotAuthorized) {
+            this.setState({
+                targetRouteView,
+            });
+            RootNavigation.navigate('Login');
+        } else {
+            // TODO: Find a way to get data from the push notification that was selected
+            // Otherwise the best alternative is to link to a generic, associated view
+            RootNavigation.navigate(targetRouteView);
+        }
+    }
+
+    handleUrlEvent = (event) => {
+        this.handleAppUniversalLinkURL(event.url);
+    }
+
+    handleAppUniversalLinkURL = (url) => {
+        const { user } = this.props;
+        const urlSplit = url?.split('?') || [];
+        const viewMomentRegex = RegExp('moments/[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/view', 'i');
+        const viewSpaceRegex = RegExp('spaces/[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/view', 'i');
+
+        if (url?.includes('verify-account')) {
+            if (urlSplit[1] && urlSplit[1].includes('token=')) {
+                const verificationToken = urlSplit[1]?.split('token=')[1];
+                const isNotAuthorized = UsersService.isAuthorized(
+                    {
+                        type: AccessCheckType.NONE,
+                        levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+                        isPublic: true,
+                    },
+                    user
+                );
+                if (isNotAuthorized) {
+                    RootNavigation.navigate('EmailVerification', {
+                        verificationToken,
+                    });
+                }
+            }
+        } else if (url?.match(viewMomentRegex)) {
+            // TODO: Link to view moment
+        } else if (url?.match(viewSpaceRegex)) {
+            // TODO: Link to view space
+        }
     }
 
     getCurrentScreen = (navigation) => {
@@ -271,15 +369,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         return (
             <NavigationContainer
                 theme={theme}
-                ref={(ref: NavigationContainerRef<{}>) => {
-                    this.navigationRef = ref;
-                }}
+                ref={navigationRef}
                 onReady={() => {
-                    this.routeNameRef.current = this.navigationRef?.getCurrentRoute()?.name;
+                    this.routeNameRef.current = navigationRef?.getCurrentRoute()?.name;
                 }}
                 onStateChange={async () => {
                     const previousRouteName = this.routeNameRef.current;
-                    const currentRouteName = this.navigationRef?.getCurrentRoute()?.name;
+                    const currentRouteName = navigationRef?.getCurrentRoute()?.name;
 
                     if (previousRouteName !== currentRouteName) {
                         await analytics().logScreenView({

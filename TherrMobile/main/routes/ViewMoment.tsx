@@ -201,10 +201,10 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
 
     onMomentOptionSelect = (type: ISelectionType) => {
         const { selectedMoment } = this.state;
-        const { createOrUpdateMomentReaction } = this.props;
+        const { createOrUpdateMomentReaction, user } = this.props;
         const requestArgs: any = getReactionUpdateArgs(type);
 
-        createOrUpdateMomentReaction(selectedMoment.id, requestArgs).finally(() => {
+        createOrUpdateMomentReaction(selectedMoment.id, requestArgs, selectedMoment.fromUserId, user.details.userName).finally(() => {
             this.toggleAreaOptions(selectedMoment);
         });
     }
@@ -230,7 +230,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     }
 
     onUpdateMomentReaction = (momentId, data) => {
-        const { createOrUpdateMomentReaction, navigation, route } = this.props;
+        const { createOrUpdateMomentReaction, navigation, route, user } = this.props;
         const { moment } = route.params;
         navigation.setParams({
             moment: {
@@ -241,7 +241,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                 },
             },
         });
-        return createOrUpdateMomentReaction(momentId, data);
+        return createOrUpdateMomentReaction(momentId, data, moment.fromUserId, user.details.userName);
     }
 
     toggleAreaOptions = (area) => {

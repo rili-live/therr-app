@@ -60,6 +60,7 @@ export default ({
     handleRefresh,
     onEndReached,
     onTabSelect,
+    shouldShowTabs,
     toggleAreaOptions,
     translate,
     updateMomentReaction,
@@ -119,12 +120,12 @@ export default ({
                 })}
                 ListEmptyComponent={<Text style={momentStyles.noAreasFoundText}>{emptyListMessage}</Text>}
                 ListHeaderComponent={
-                    <CarouselTabsMenu
+                    shouldShowTabs ? <CarouselTabsMenu
                         activeTab={activeTab}
                         onButtonPress={onTabSelect}
                         translate={translate}
                         user={user}
-                    />
+                    /> : null
                 }
                 ListFooterComponent={<View style={momentStyles.areaCarouselFooter} />}
                 ref={(component) => {

@@ -215,6 +215,11 @@ const startExpressSocketIOServer = () => {
                         socketHandlers.updateConnection(socket, action.data, decodedAuthenticationToken);
                     }
                     break;
+                case SocketClientActionTypes.CREATE_OR_UPDATE_REACTION:
+                    if (decodedAuthenticationToken) {
+                        socketHandlers.sendReactionPushNotification(socket, action.data, decodedAuthenticationToken);
+                    }
+                    break;
                 default:
                     break;
             }

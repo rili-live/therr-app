@@ -20,6 +20,10 @@
       "title": "New Unread Messages",
       "body": "You have unread messages from {userName}"
     },
+    "newLikeReceived": {
+      "title": "New Reaction",
+      "body": "{userName} liked your post"
+    },
     "newAreasActivated": {
       "title": "New areas activated",
       "body": "You recently activated {totalAreasActivated} new areas(s)"
