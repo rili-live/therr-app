@@ -10,7 +10,7 @@ import styles from '../../styles';
 import formStyles from '../../styles/forms';
 import * as therrTheme from '../../styles/themes';
 import translator from '../../services/translator';
-import MainButtonMenuAlt from '../../components/ButtonMenu/MainButtonMenuAlt';
+import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
 
 
@@ -151,7 +151,7 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
                     </View>
                 </SafeAreaView>
                 {/* <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} /> */}
-                <MainButtonMenuAlt
+                <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.onRefresh}
                     translate={this.translate}

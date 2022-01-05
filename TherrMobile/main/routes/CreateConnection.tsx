@@ -11,7 +11,7 @@ import { FlatList } from 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import isEmail from 'validator/es/lib/isEmail';
 import Alert from '../components/Alert';
-import MainButtonMenuAlt from '../components/ButtonMenu/MainButtonMenuAlt';
+import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
 import SquareInput from '../components/Input/Square';
@@ -390,7 +390,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                     textCancel={this.translate('forms.createConnection.modal.noThanks')}
                     translate={this.translate}
                 />
-                <MainButtonMenuAlt
+                <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}
                     translate={this.translate}

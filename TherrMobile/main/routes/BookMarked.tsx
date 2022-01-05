@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
-import MainButtonMenuAlt from '../components/ButtonMenu/MainButtonMenuAlt';
+import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../components/BaseStatusBar';
 import translator from '../services/translator';
 import styles from '../styles';
@@ -237,7 +237,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
                         this.renderCarousel(content)
                     }
                 </SafeAreaView>
-                <MainButtonMenuAlt
+                <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}
                     translate={this.translate}

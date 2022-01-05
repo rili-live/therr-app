@@ -1,134 +1,146 @@
 import * as React from 'react';
-import { View } from 'react-native';
+import { Text, View } from 'react-native';
 import { Button } from 'react-native-elements';
-import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import buttonStyles from '../../styles/buttons';
 
+export type ICreateMomentAction = 'camera' | 'upload' | 'text-only' | 'claim';
+
+interface MapActionButtonsProps {
+    handleCreateMoment: (action: ICreateMomentAction) => any;
+    handleGpsRecenter: any;
+    hasNotifications: boolean;
+    toggleMomentActions: Function;
+    isAuthorized: any;
+    isGpsEnabled: any;
+    translate: Function;
+    goToMap?: any;
+    goToMoments?: any;
+    goToNotifications: any;
+    shouldShowCreateActions: boolean;
+}
+
 export default ({
-    areLayersVisible,
-    layers,
-    handleRefreshMoments,
     handleCreateMoment,
-    handleCompassRealign,
     handleGpsRecenter,
-    shouldFollowUserLocation,
-    toggleLayer,
-    toggleLayers,
-    toggleMapFollow,
-}) => {
+    toggleMomentActions,
+    hasNotifications,
+    isAuthorized,
+    isGpsEnabled,
+    translate,
+    goToNotifications,
+    shouldShowCreateActions,
+}: MapActionButtonsProps) => {
+    const shouldShowCreateButton = isAuthorized() && isGpsEnabled;
+
     return (
         <>
-            <View style={buttonStyles.toggleFollow}>
+            <View style={buttonStyles.notifications}>
                 <Button
                     buttonStyle={buttonStyles.btn}
                     icon={
                         <MaterialIcon
-                            name={shouldFollowUserLocation ? 'near-me' : 'navigation'}
+                            name={ hasNotifications ? 'notifications-active' : 'notifications' }
                             size={28}
-                            style={buttonStyles.btnIcon}
+                            style={hasNotifications ? buttonStyles.btnIconBright : buttonStyles.btnIcon}
                         />
                     }
                     raised={true}
-                    onPress={() => toggleMapFollow()}
-                />
-            </View>
-            <View style={buttonStyles.momentLayers}>
-                <Button
-                    buttonStyle={buttonStyles.btn}
-                    icon={
-                        <MaterialIcon
-                            name="layers"
-                            size={44}
-                            style={buttonStyles.btnIcon}
-                        />
-                    }
-                    raised={true}
-                    onPress={() => toggleLayers()}
+                    onPress={() => goToNotifications()}
                 />
             </View>
             {
-                areLayersVisible &&
-                <>
-                    <View style={buttonStyles.momentLayerOption1}>
-                        <Button
-                            buttonStyle={buttonStyles.btn}
-                            icon={
-                                <FontAwesomeIcon
-                                    name="globe"
-                                    size={28}
-                                    style={layers.connectionsMoments ? buttonStyles.btnIcon : buttonStyles.btnIconInactive}
-                                />
-                            }
-                            raised={true}
-                            onPress={() => toggleLayer('connectionsMoments')}
-                        />
-                    </View>
-                    <View style={buttonStyles.momentLayerOption2}>
-                        <Button
-                            buttonStyle={buttonStyles.btn}
-                            icon={
-                                <FontAwesomeIcon
-                                    name="child"
-                                    size={28}
-                                    style={layers.myMoments ? buttonStyles.btnIcon : buttonStyles.btnIconInactive}
-                                />
-                            }
-                            raised={true}
-                            onPress={() => toggleLayer('myMoments')}
-                        />
-                    </View>
-                </>
+                shouldShowCreateButton &&
+                    <>
+                        <View style={buttonStyles.addAMoment}>
+                            <Button
+                                buttonStyle={buttonStyles.btnLarge}
+                                icon={
+                                    <OctIcon
+                                        name={ shouldShowCreateActions ? 'dash' : 'plus' }
+                                        size={36}
+                                        style={buttonStyles.btnIcon}
+                                    />
+                                }
+                                raised={true}
+                                onPress={() => toggleMomentActions()}
+                            />
+                        </View>
+                        {
+                            shouldShowCreateActions &&
+                                <>
+                                    <View style={buttonStyles.claimASpace}>
+                                        <Text style={buttonStyles.labelLeft}>{translate('menus.mapActions.claimASpace')}</Text>
+                                        <Button
+                                            buttonStyle={buttonStyles.btnMedium}
+                                            icon={
+                                                <FontAwesome5Icon
+                                                    name="map-marked"
+                                                    size={24}
+                                                    style={buttonStyles.btnIcon}
+                                                />
+                                            }
+                                            raised={true}
+                                            onPress={() => handleCreateMoment('claim')}
+                                        />
+                                    </View>
+                                    <View style={buttonStyles.shareAThought}>
+                                        <Text style={buttonStyles.labelLeft}>{translate('menus.mapActions.shareAThought')}</Text>
+                                        <Button
+                                            buttonStyle={buttonStyles.btnMedium}
+                                            icon={
+                                                <OctIcon
+                                                    name="megaphone"
+                                                    size={24}
+                                                    style={buttonStyles.btnIcon}
+                                                />
+                                            }
+                                            raised={true}
+                                            onPress={() => handleCreateMoment('text-only')}
+                                        />
+                                    </View>
+                                    <View style={buttonStyles.uploadMoment}>
+                                        <Text style={buttonStyles.labelLeft}>{translate('menus.mapActions.uploadAMoment')}</Text>
+                                        <Button
+                                            buttonStyle={buttonStyles.btnMedium}
+                                            icon={
+                                                <FontAwesome5Icon
+                                                    name="gem"
+                                                    size={24}
+                                                    style={buttonStyles.btnIcon}
+                                                />
+                                            }
+                                            raised={true}
+                                            onPress={() => handleCreateMoment('upload')}
+                                        />
+                                    </View>
+                                    <View style={buttonStyles.captureMoment}>
+                                        <Text style={buttonStyles.labelLeft}>{translate('menus.mapActions.captureAMoment')}</Text>
+                                        <Button
+                                            buttonStyle={buttonStyles.btnMedium}
+                                            icon={
+                                                <OctIcon
+                                                    name="device-camera"
+                                                    size={24}
+                                                    style={buttonStyles.btnIcon}
+                                                />
+                                            }
+                                            raised={true}
+                                            onPress={() => handleCreateMoment('camera')}
+                                        />
+                                    </View>
+                                </>
+                        }
+                    </>
             }
-            <View style={buttonStyles.refreshMoments}>
-                <Button
-                    buttonStyle={buttonStyles.btn}
-                    icon={
-                        <FontAwesomeIcon
-                            name="sync"
-                            size={44}
-                            style={buttonStyles.btnIcon}
-                        />
-                    }
-                    raised={true}
-                    onPress={() => handleRefreshMoments(false)}
-                />
-            </View>
-            <View style={buttonStyles.addMoment}>
-                <Button
-                    buttonStyle={buttonStyles.btn}
-                    icon={
-                        <OctIcon
-                            name="device-camera"
-                            size={44}
-                            style={buttonStyles.btnIcon}
-                        />
-                    }
-                    raised={true}
-                    onPress={handleCreateMoment}
-                />
-            </View>
-            <View style={buttonStyles.compass}>
-                <Button
-                    buttonStyle={buttonStyles.btn}
-                    icon={
-                        <FontAwesomeIcon
-                            name="compass"
-                            size={28}
-                            style={buttonStyles.btnIcon}
-                        />
-                    }
-                    raised={true}
-                    onPress={handleCompassRealign}
-                />
-            </View>
-            <View style={buttonStyles.recenter}>
+            <View style={buttonStyles.locationEnable}>
                 <Button
                     buttonStyle={buttonStyles.btn}
                     icon={
                         <MaterialIcon
-                            name="gps-fixed"
+                            name={ isGpsEnabled ? 'gps-fixed' : 'gps-off' }
                             size={28}
                             style={buttonStyles.btnIcon}
                         />

@@ -30,7 +30,7 @@ function getRandomLoaderId(): ILottieId {
     return options[selected] as ILottieId;
 }
 
-interface IAreasDispatchProps {
+interface INearbyDispatchProps {
     searchActiveMoments: Function;
     updateActiveMoments: Function;
     createOrUpdateMomentReaction: Function;
@@ -42,18 +42,18 @@ interface IAreasDispatchProps {
     logout: Function;
 }
 
-interface IStoreProps extends IAreasDispatchProps {
+interface IStoreProps extends INearbyDispatchProps {
     content: IContentState;
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
 
 // Regular component props
-export interface IAreasProps extends IStoreProps {
+export interface INearbyProps extends IStoreProps {
     navigation: any;
 }
 
-interface IAreasState {
+interface INearbyState {
     activeTab: string;
     isLoading: boolean;
     areAreaOptionsVisible: boolean;
@@ -80,11 +80,12 @@ const mapDispatchToProps = (dispatch: any) =>
         dispatch
     );
 
-class Areas extends React.Component<IAreasProps, IAreasState> {
+class Nearby extends React.Component<INearbyProps, INearbyState> {
     private carouselRef;
     private translate: Function;
     private loaderId: ILottieId;
     private loadTimeoutId: any;
+    private unsubscribeNavigationListener;
 
     constructor(props) {
         super(props);
@@ -109,21 +110,24 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             title: this.translate('pages.areas.headerTitle'),
         });
 
-        const activeData = getActiveCarouselData({
-            activeTab,
-            content,
-            isForBookmarks: false,
-        });
-        if (!activeData?.length || activeData.length < 21) {
-            this.handleRefresh();
-        } else {
-            this.setState({
-                isLoading: false,
+        this.unsubscribeNavigationListener = navigation.addListener('focus', () => {
+            const activeData = getActiveCarouselData({
+                activeTab,
+                content,
+                isForBookmarks: false,
             });
-        }
+            if (!activeData?.length || activeData.length < 21) {
+                this.handleRefresh();
+            } else {
+                this.setState({
+                    isLoading: false,
+                });
+            }
+        });
     }
 
     componentWillUnmount() {
+        this.unsubscribeNavigationListener();
         clearTimeout(this.loadTimeoutId);
     }
 
@@ -295,7 +299,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                 updateSpaceReaction={createOrUpdateSpaceReaction}
                 emptyListMessage={this.getEmptyListMessage(activeTab)}
                 user={user}
-                shouldShowTabs={true}
+                shouldShowTabs={false}
                 // viewportHeight={viewportHeight}
                 // viewportWidth={viewportWidth}
             />
@@ -332,4 +336,4 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Areas);
+export default connect(mapStateToProps, mapDispatchToProps)(Nearby);

@@ -19,6 +19,7 @@ import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
 import ForgotPassword from './ForgotPassword';
 // import HostedChat from './HostedChat';
+import Nearby from './Areas/Nearby';
 import Notifications from './Notifications';
 import Register from './Register';
 import Settings from './Settings';
@@ -236,6 +237,18 @@ const routes: RouteConfig<
     //         },
     //     }),
     // },
+    {
+        name: 'Nearby',
+        component: Nearby,
+        options: (params) => ({
+            title: 'Nearby',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+            headerTitle: () => <HeaderTherrLogo navigation={params?.navigation} />,
+        }),
+    },
     {
         name: 'Notifications',
         component: Notifications,
