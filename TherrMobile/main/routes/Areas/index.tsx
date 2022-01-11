@@ -15,12 +15,13 @@ import translator from '../../services/translator';
 import AreaCarousel from './AreaCarousel';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import { isMyArea } from '../../utilities/content';
 import AreaOptionsModal, { ISelectionType } from '../../components/Modals/AreaOptionsModal';
 import { getReactionUpdateArgs } from '../../utilities/reactions';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
 import { CAROUSEL_TABS } from '../../constants';
+import { handleAreaReaction, loadMoreAreas, navToViewArea } from './areaViewHelpers';
+import CarouselTabsMenu from './CarouselTabsMenu';
 
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
@@ -148,21 +149,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     goToArea = (area) => {
         const { navigation, user } = this.props;
 
-        if (area.areaType === 'spaces') {
-            navigation.navigate('ViewSpace', {
-                isMyArea: isMyArea(area, user),
-                previousView: 'Spaces',
-                space: area,
-                spaceDetails: {},
-            });
-        } else {
-            navigation.navigate('ViewMoment', {
-                isMyArea: isMyArea(area, user),
-                previousView: 'Areas',
-                moment: area,
-                momentDetails: {},
-            });
-        }
+        navToViewArea(area, user, navigation.navigate);
     };
 
     goToViewUser = (userId) => {
@@ -207,43 +194,25 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     tryLoadMore = () => {
         const { content, searchActiveMoments, searchActiveSpaces, user } = this.props;
 
-        if (!content.activeMomentsPagination.isLastPage) {
-            return searchActiveMoments({
-                withMedia: true,
-                withUser: true,
-                offset: content.activeMomentsPagination.offset + content.activeMomentsPagination.itemsPerPage,
-                ...content.activeAreasFilters,
-                blockedUsers: user.details.blockedUsers,
-                shouldHideMatureContent: user.details.shouldHideMatureContent,
-            });
-        }
-
-        if (!content.activeSpacesPagination.isLastPage) {
-            return searchActiveSpaces({
-                withMedia: true,
-                withUser: true,
-                offset: content.activeSpacesPagination.offset + content.activeSpacesPagination.itemsPerPage,
-                ...content.activeAreasFilters,
-                blockedUsers: user.details.blockedUsers,
-                shouldHideMatureContent: user.details.shouldHideMatureContent,
-            });
-        }
+        loadMoreAreas({
+            content,
+            user,
+            searchActiveMoments,
+            searchActiveSpaces,
+        });
     }
 
     onAreaOptionSelect = (type: ISelectionType) => {
         const { selectedArea } = this.state;
         const { createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
-        const requestArgs: any = getReactionUpdateArgs(type);
 
-        if (selectedArea.areaType === 'spaces') {
-            createOrUpdateSpaceReaction(selectedArea.id, requestArgs).finally(() => {
-                this.toggleAreaOptions(selectedArea);
-            });
-        } else {
-            createOrUpdateMomentReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName).finally(() => {
-                this.toggleAreaOptions(selectedArea);
-            });
-        }
+        handleAreaReaction(selectedArea, type, {
+            user,
+            getReactionUpdateArgs,
+            createOrUpdateMomentReaction,
+            createOrUpdateSpaceReaction,
+            toggleAreaOptions: this.toggleAreaOptions,
+        });
     }
 
     onTabSelect = (tabName: string) => {
@@ -281,7 +250,6 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         return (
             <AreaCarousel
                 activeData={activeData}
-                activeTab={activeTab}
                 content={content}
                 inspectArea={this.goToArea}
                 goToViewUser={this.goToViewUser}
@@ -290,12 +258,17 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                 containerRef={(component) => this.carouselRef = component}
                 handleRefresh={this.handleRefresh}
                 onEndReached={this.tryLoadMore}
-                onTabSelect={this.onTabSelect}
                 updateMomentReaction={createOrUpdateMomentReaction}
                 updateSpaceReaction={createOrUpdateSpaceReaction}
                 emptyListMessage={this.getEmptyListMessage(activeTab)}
-                user={user}
-                shouldShowTabs={true}
+                renderHeader={() => (
+                    <CarouselTabsMenu
+                        activeTab={activeTab}
+                        onButtonPress={this.onTabSelect}
+                        translate={this.translate}
+                        user={user}
+                    />
+                )}
                 // viewportHeight={viewportHeight}
                 // viewportWidth={viewportWidth}
             />

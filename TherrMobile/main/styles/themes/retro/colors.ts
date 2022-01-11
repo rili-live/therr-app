@@ -77,6 +77,8 @@ const colorVariations = {
     textWhiteFade: new Color(colors.textWhite).fade(0.75).toString(),
     textGrayDarken: new Color(colors.textGray).darken(0.15).toString(),
     beemo1Fade: new Color(colors.beemo1).fade(0.2).toString(),
+    beemo1LightFade: new Color(colors.beemo1).fade(0.2).toString(),
+    beemo1HeavyFade: new Color(colors.beemo1).fade(0.7).toString(),
     beemoBlueLightFade: new Color(colors.beemoBlue).fade(0.2).toString(),
     beemoBlueHeavyFade: new Color(colors.beemoBlue).fade(0.7).toString(),
     beemoTextBlack: new Color(colors.beemoTextBlack).lighten(0.25).toString(),

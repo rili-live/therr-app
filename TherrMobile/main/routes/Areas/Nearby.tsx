@@ -1,6 +1,6 @@
 import React from 'react';
-import { SafeAreaView } from 'react-native';
-// import { Button } from 'react-native-elements';
+import { Keyboard, SafeAreaView, Text, View } from 'react-native';
+import { Slider } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -10,17 +10,19 @@ import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/ty
 // import * as therrTheme from '../styles/themes';
 import styles from '../../styles';
 import * as therrTheme from '../../styles/themes';
+import formStyles from '../../styles/forms';
+import momentStyles from '../../styles/user-content/moments';
 // import { buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
 import AreaCarousel from './AreaCarousel';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import { isMyArea } from '../../utilities/content';
 import AreaOptionsModal, { ISelectionType } from '../../components/Modals/AreaOptionsModal';
 import { getReactionUpdateArgs } from '../../utilities/reactions';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
-import { CAROUSEL_TABS } from '../../constants';
+import { CAROUSEL_TABS, MIN_RADIUS_OF_INFLUENCE, MAX_RADIUS_OF_INFLUENCE, MIN_RADIUS_OF_AWARENESS, MAX_RADIUS_OF_AWARENESS } from '../../constants';
+import { handleAreaReaction, loadMoreAreas, navToViewArea } from './areaViewHelpers';
 
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
@@ -57,6 +59,8 @@ interface INearbyState {
     activeTab: string;
     isLoading: boolean;
     areAreaOptionsVisible: boolean;
+    radiusOfAwareness: number;
+    radiusOfInfluence: number;
     selectedArea: any;
 }
 
@@ -94,6 +98,8 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
             activeTab: CAROUSEL_TABS.SOCIAL,
             isLoading: true,
             areAreaOptionsVisible: false,
+            radiusOfAwareness: (MAX_RADIUS_OF_AWARENESS - MIN_RADIUS_OF_AWARENESS) / 2,
+            radiusOfInfluence: (MAX_RADIUS_OF_INFLUENCE - MIN_RADIUS_OF_INFLUENCE) / 2,
             selectedArea: {},
         };
 
@@ -152,21 +158,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
     goToArea = (area) => {
         const { navigation, user } = this.props;
 
-        if (area.areaType === 'spaces') {
-            navigation.navigate('ViewSpace', {
-                isMyArea: isMyArea(area, user),
-                previousView: 'Spaces',
-                space: area,
-                spaceDetails: {},
-            });
-        } else {
-            navigation.navigate('ViewMoment', {
-                isMyArea: isMyArea(area, user),
-                previousView: 'Areas',
-                moment: area,
-                momentDetails: {},
-            });
-        }
+        navToViewArea(area, user, navigation.navigate);
     };
 
     goToViewUser = (userId) => {
@@ -211,43 +203,25 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
     tryLoadMore = () => {
         const { content, searchActiveMoments, searchActiveSpaces, user } = this.props;
 
-        if (!content.activeMomentsPagination.isLastPage) {
-            return searchActiveMoments({
-                withMedia: true,
-                withUser: true,
-                offset: content.activeMomentsPagination.offset + content.activeMomentsPagination.itemsPerPage,
-                ...content.activeAreasFilters,
-                blockedUsers: user.details.blockedUsers,
-                shouldHideMatureContent: user.details.shouldHideMatureContent,
-            });
-        }
-
-        if (!content.activeSpacesPagination.isLastPage) {
-            return searchActiveSpaces({
-                withMedia: true,
-                withUser: true,
-                offset: content.activeSpacesPagination.offset + content.activeSpacesPagination.itemsPerPage,
-                ...content.activeAreasFilters,
-                blockedUsers: user.details.blockedUsers,
-                shouldHideMatureContent: user.details.shouldHideMatureContent,
-            });
-        }
+        loadMoreAreas({
+            content,
+            user,
+            searchActiveMoments,
+            searchActiveSpaces,
+        });
     }
 
     onAreaOptionSelect = (type: ISelectionType) => {
         const { selectedArea } = this.state;
         const { createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
-        const requestArgs: any = getReactionUpdateArgs(type);
 
-        if (selectedArea.areaType === 'spaces') {
-            createOrUpdateSpaceReaction(selectedArea.id, requestArgs).finally(() => {
-                this.toggleAreaOptions(selectedArea);
-            });
-        } else {
-            createOrUpdateMomentReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName).finally(() => {
-                this.toggleAreaOptions(selectedArea);
-            });
-        }
+        handleAreaReaction(selectedArea, type, {
+            user,
+            getReactionUpdateArgs,
+            createOrUpdateMomentReaction,
+            createOrUpdateSpaceReaction,
+            toggleAreaOptions: this.toggleAreaOptions,
+        });
     }
 
     onTabSelect = (tabName: string) => {
@@ -268,8 +242,63 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
         });
     }
 
+    onSliderAwarenessChange = (value) => {
+        this.setState({
+            radiusOfAwareness: value,
+        });
+    }
+
+    onSliderInfluenceChange = (value) => {
+        this.setState({
+            radiusOfInfluence: value,
+        });
+    }
+
+    renderHeader = () => {
+        const { radiusOfAwareness, radiusOfInfluence } = this.state;
+
+        return (
+            <View style={momentStyles.areaCarouselHeaderSliders}>
+                <View style={formStyles.inputSliderContainerTight}>
+                    <Text style={formStyles.inputLabelDark}>
+                        {`${this.translate('forms.nearbyForm.labels.radiusOfAwareness', { meters: radiusOfAwareness })}`}
+                    </Text>
+                    <Slider
+                        value={radiusOfAwareness}
+                        onValueChange={(value) => this.onSliderAwarenessChange(value)}
+                        maximumValue={MAX_RADIUS_OF_INFLUENCE}
+                        minimumValue={MIN_RADIUS_OF_INFLUENCE}
+                        step={1}
+                        thumbStyle={{ backgroundColor: therrTheme.colors.beemoBlue }}
+                        thumbTouchSize={{ width: 100, height: 100 }}
+                        minimumTrackTintColor={therrTheme.colorVariations.beemoBlueLightFade}
+                        maximumTrackTintColor={therrTheme.colorVariations.beemoBlueHeavyFade}
+                        onSlidingStart={Keyboard.dismiss}
+                    />
+                </View>
+                <View style={formStyles.inputSliderContainerTight}>
+                    <Text style={formStyles.inputLabelDark}>
+                        {`${this.translate('forms.nearbyForm.labels.radiusOfInfluence', { meters: radiusOfInfluence })}`}
+                    </Text>
+                    <Slider
+                        value={radiusOfInfluence}
+                        onValueChange={(value) => this.onSliderInfluenceChange(value)}
+                        maximumValue={MAX_RADIUS_OF_INFLUENCE}
+                        minimumValue={MIN_RADIUS_OF_INFLUENCE}
+                        step={1}
+                        thumbStyle={{ backgroundColor: therrTheme.colors.beemo1 }}
+                        thumbTouchSize={{ width: 100, height: 100 }}
+                        minimumTrackTintColor={therrTheme.colorVariations.beemo1LightFade}
+                        maximumTrackTintColor={therrTheme.colorVariations.beemo1HeavyFade}
+                        onSlidingStart={Keyboard.dismiss}
+                    />
+                </View>
+            </View>
+        );
+    }
+
     renderCarousel = (content) => {
-        const { createOrUpdateMomentReaction, createOrUpdateSpaceReaction, user } = this.props;
+        const { createOrUpdateMomentReaction, createOrUpdateSpaceReaction } = this.props;
         const { activeTab, isLoading } = this.state;
 
         if (isLoading) {
@@ -285,7 +314,6 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
         return (
             <AreaCarousel
                 activeData={activeData}
-                activeTab={activeTab}
                 content={content}
                 inspectArea={this.goToArea}
                 goToViewUser={this.goToViewUser}
@@ -294,12 +322,10 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                 containerRef={(component) => this.carouselRef = component}
                 handleRefresh={this.handleRefresh}
                 onEndReached={this.tryLoadMore}
-                onTabSelect={this.onTabSelect}
                 updateMomentReaction={createOrUpdateMomentReaction}
                 updateSpaceReaction={createOrUpdateSpaceReaction}
                 emptyListMessage={this.getEmptyListMessage(activeTab)}
-                user={user}
-                shouldShowTabs={false}
+                renderHeader={this.renderHeader}
                 // viewportHeight={viewportHeight}
                 // viewportWidth={viewportWidth}
             />

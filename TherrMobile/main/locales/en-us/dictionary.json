@@ -251,6 +251,12 @@
         "googleButtonTitle": "Sign in with Google"
       }
     },
+    "nearbyForm": {
+      "labels": {
+        "radiusOfAwareness": "Awareness Radius: {meters} meters",
+        "radiusOfInfluence": "Influence Radius: {meters} meters"
+      }
+    },
     "editHostedChat": {
       "buttons": {
         "submit": "Send",

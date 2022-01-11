@@ -49,7 +49,7 @@ class MainButtonMenuAlt extends ButtonMenu {
             return 'ellipsis-h';
         }
 
-        if (currentScreen === 'Areas' || currentScreen === 'Notifications') {
+        if (currentScreen === 'Areas' || currentScreen === 'Nearby' || currentScreen === 'Notifications') {
             return 'arrow-up';
         }
 

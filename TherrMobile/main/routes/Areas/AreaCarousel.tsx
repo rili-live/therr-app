@@ -5,7 +5,6 @@ import styles from '../../styles';
 import momentStyles from '../../styles/user-content/moments';
 import AreaDisplay from '../../components/UserContent/AreaDisplay';
 import formatDate from '../../utilities/formatDate';
-import { CarouselTabsMenu } from './CarouselTabsMenu';
 
 // let flatListRef;
 
@@ -52,21 +51,18 @@ const renderItem = ({ item: area }, {
 
 export default ({
     activeData,
-    activeTab,
     content,
     inspectArea,
     containerRef,
     goToViewUser,
     handleRefresh,
     onEndReached,
-    onTabSelect,
-    shouldShowTabs,
     toggleAreaOptions,
     translate,
     updateMomentReaction,
     updateSpaceReaction,
     emptyListMessage,
-    user,
+    renderHeader,
     // viewportHeight,
     // viewportWidth,
 }) => {
@@ -119,14 +115,7 @@ export default ({
                     updateAreaReaction: itemObj.item.areaType === 'spaces' ? updateSpaceReaction : updateMomentReaction,
                 })}
                 ListEmptyComponent={<Text style={momentStyles.noAreasFoundText}>{emptyListMessage}</Text>}
-                ListHeaderComponent={
-                    shouldShowTabs ? <CarouselTabsMenu
-                        activeTab={activeTab}
-                        onButtonPress={onTabSelect}
-                        translate={translate}
-                        user={user}
-                    /> : null
-                }
+                ListHeaderComponent={renderHeader()}
                 ListFooterComponent={<View style={momentStyles.areaCarouselFooter} />}
                 ref={(component) => {
                     containerRef && containerRef(component);

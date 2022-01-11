@@ -5,7 +5,7 @@ import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/
 import { AccessLevels } from 'therr-js-utilities/constants';
 import { IAccess, AccessCheckType } from 'therr-react/types';
 import AdvancedSearch from './AdvancedSearch';
-import BookMarked from './BookMarked';
+import BookMarked from './Areas/BookMarked';
 import Home from './Home';
 import DirectMessage from './DirectMessage';
 import Login from './Login';

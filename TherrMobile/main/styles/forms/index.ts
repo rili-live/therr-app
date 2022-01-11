@@ -6,7 +6,7 @@ import loginForm from './loginForm';
 import phoneInput from './phoneInput';
 import settingsForm from './settingsForm';
 import * as therrTheme from '../themes';
-import { containerStyles, inputStyle, textInputStyle } from './base';
+import { containerStyles, containerTightStyles, inputStyle, textInputStyle } from './base';
 
 const inputContainerBaseStyles = {
     borderBottomColor: therrTheme.colors.textDarkGray,
@@ -96,6 +96,10 @@ export default StyleSheet.create({
     },
     inputSliderContainer: {
         ...containerStyles,
+    },
+    inputSliderContainerTight: {
+        ...containerStyles,
+        ...containerTightStyles,
     },
     icon: {
         marginHorizontal: 5,

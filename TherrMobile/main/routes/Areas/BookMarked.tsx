@@ -5,15 +5,17 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
-import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
-import BaseStatusBar from '../components/BaseStatusBar';
-import translator from '../services/translator';
-import styles from '../styles';
-import momentStyles from '../styles/user-content/moments';
-import AreaCarousel from './Areas/AreaCarousel';
-import { isMyArea } from '../utilities/content';
-import getActiveCarouselData from '../utilities/getActiveCarouselData';
-import { CAROUSEL_TABS } from '../constants';
+import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
+import BaseStatusBar from '../../components/BaseStatusBar';
+import translator from '../../services/translator';
+import styles from '../../styles';
+import momentStyles from '../../styles/user-content/moments';
+import AreaCarousel from './AreaCarousel';
+import getActiveCarouselData from '../../utilities/getActiveCarouselData';
+import { getReactionUpdateArgs } from '../../utilities/reactions';
+import { CAROUSEL_TABS } from '../../constants';
+import { handleAreaReaction, navToViewArea } from './areaViewHelpers';
+import AreaOptionsModal, { ISelectionType } from '../../components/Modals/AreaOptionsModal';
 
 
 interface IBookMarkedDispatchProps {
@@ -152,16 +154,10 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         return this.translate('pages.bookmarked.noEventsBookmarksFound');
     }
 
-    goToMoment = (moment) => {
+    goToArea = (area) => {
         const { navigation, user } = this.props;
 
-        // navigation.navigate('Home');
-        navigation.navigate('ViewMoment', {
-            isMyArea: isMyArea(moment, user),
-            previousView: 'Areas',
-            moment,
-            momentDetails: {},
-        });
+        navToViewArea(area, user, navigation.navigate);
     };
 
     goToViewUser = (userId) => {
@@ -186,9 +182,22 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         console.log('try load more');
     }
 
+    onAreaOptionSelect = (type: ISelectionType) => {
+        const { selectedArea } = this.state;
+        const { createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
+
+        handleAreaReaction(selectedArea, type, {
+            user,
+            getReactionUpdateArgs,
+            createOrUpdateMomentReaction,
+            createOrUpdateSpaceReaction,
+            toggleAreaOptions: this.toggleAreaOptions,
+        });
+    }
+
     renderCarousel = (content) => {
         const { activeTab, isLoading } = this.state;
-        const { createOrUpdateMomentReaction, createOrUpdateSpaceReaction, user } = this.props;
+        const { createOrUpdateMomentReaction, createOrUpdateSpaceReaction } = this.props;
 
         if (isLoading) {
             return (
@@ -205,21 +214,18 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         return (
             <AreaCarousel
                 activeData={activeData}
-                activeTab={activeTab}
                 content={content}
-                inspectArea={this.goToMoment}
+                inspectArea={this.goToArea}
                 translate={this.translate}
                 containerRef={(component) => this.carouselRef = component}
                 goToViewUser={this.goToViewUser}
                 handleRefresh={() => Promise.resolve(this.handleRefresh())}
                 toggleAreaOptions={this.toggleAreaOptions}
                 onEndReached={this.tryLoadMore}
-                onTabSelect={this.onTabSelect}
                 updateMomentReaction={createOrUpdateMomentReaction}
                 updateSpaceReaction={createOrUpdateSpaceReaction}
                 emptyListMessage={this.getEmptyListMessage(activeTab)}
-                shouldShowTabs={false}
-                user={user}
+                renderHeader={() => null}
                 // viewportHeight={viewportHeight}
                 // viewportWidth={viewportWidth}
             />
@@ -227,6 +233,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
     }
 
     render() {
+        const { areAreaOptionsVisible, selectedArea } = this.state;
         const { content, navigation, user } = this.props;
 
         return (
@@ -237,6 +244,12 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
                         this.renderCarousel(content)
                     }
                 </SafeAreaView>
+                <AreaOptionsModal
+                    isVisible={areAreaOptionsVisible}
+                    onRequestClose={() => this.toggleAreaOptions(selectedArea)}
+                    translate={this.translate}
+                    onSelect={this.onAreaOptionSelect}
+                />
                 <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}
