@@ -23,7 +23,9 @@ const replaceInFile = (fileToUpdate, replacementString) => {
 };
 
 fs.mkdir(path.join(__dirname, 'build/static/assets'), () => {
-    fs.copy(path.join(__dirname, 'src/_static'), path.join(__dirname, 'build/static'), (err) => {
+    fs.copy(path.join(__dirname, 'src/_static'), path.join(__dirname, 'build/static'), {
+        overwrite: true,
+    }, (err) => {
         if (err) {
             return console.log('Failed to copy static assets directory', err);
         }
