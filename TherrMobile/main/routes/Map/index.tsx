@@ -16,9 +16,9 @@ import AnimatedLoader from 'react-native-animated-loader';
 import { distanceTo, insideCircle } from 'geolocation-utils';
 import * as ImagePicker from 'react-native-image-picker';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
-import MapActionButtonsAlt, { ICreateMomentAction } from './MapActionButtonsAlt';
+import MapActionButtons, { ICreateMomentAction } from './MapActionButtons';
 import Alert from '../../components/Alert';
-import MainButtonMenuAlt from '../../components/ButtonMenu/MainButtonMenuAlt';
+import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import { ILocationState } from '../../types/redux/location';
 import LocationActions from '../../redux/actions/LocationActions';
 import translator from '../../services/translator';
@@ -1442,7 +1442,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                     <>
                         {
                             !areLayersVisible &&
-                            <MapActionButtonsAlt
+                            <MapActionButtons
                                 goToMoments={this.goToMoments}
                                 goToNotifications={this.goToNotifications}
                                 hasNotifications={hasNotifications}
@@ -1485,7 +1485,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                     translate={this.translate}
                     onRequestClose={this.handleStopTouring}
                 />
-                <MainButtonMenuAlt
+                <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.toggleMomentBtns}
                     translate={this.translate}

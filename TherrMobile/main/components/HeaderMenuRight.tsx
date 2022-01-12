@@ -373,6 +373,32 @@ class HeaderMenuRight extends React.Component<
                                         </View>
                                         <Button
                                             buttonStyle={
+                                                currentScreen === 'ActiveConnections'
+                                                    ? headerMenuModal.buttonsActive
+                                                    : headerMenuModal.buttons
+                                            }
+                                            titleStyle={
+                                                currentScreen === 'ActiveConnections'
+                                                    ? headerMenuModal.buttonsTitleActive
+                                                    : headerMenuModal.buttonsTitle
+                                            }
+                                            title={this.translate('components.headerMenuRight.menuItems.chat')}
+                                            icon={
+                                                <FontAwesomeIcon
+                                                    style={
+                                                        currentScreen === 'ActiveConnections'
+                                                            ? headerMenuModal.iconStyleActive
+                                                            : headerMenuModal.iconStyle
+                                                    }
+                                                    name="comments"
+                                                    size={18}
+                                                />
+                                            }
+                                            iconRight
+                                            onPress={() => this.navTo('ActiveConnections')}
+                                        />
+                                        <Button
+                                            buttonStyle={
                                                 currentScreen === 'CreateConnection'
                                                     ? headerMenuModal.buttonsActive
                                                     : headerMenuModal.buttons

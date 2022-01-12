@@ -5,7 +5,7 @@ import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/
 import { AccessLevels } from 'therr-js-utilities/constants';
 import { IAccess, AccessCheckType } from 'therr-react/types';
 import AdvancedSearch from './AdvancedSearch';
-import BookMarked from './BookMarked';
+import BookMarked from './Areas/BookMarked';
 import Home from './Home';
 import DirectMessage from './DirectMessage';
 import Login from './Login';
@@ -19,6 +19,7 @@ import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
 import ForgotPassword from './ForgotPassword';
 // import HostedChat from './HostedChat';
+import Nearby from './Areas/Nearby';
 import Notifications from './Notifications';
 import Register from './Register';
 import Settings from './Settings';
@@ -236,6 +237,18 @@ const routes: RouteConfig<
     //         },
     //     }),
     // },
+    {
+        name: 'Nearby',
+        component: Nearby,
+        options: (params) => ({
+            title: 'Nearby',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+            headerTitle: () => <HeaderTherrLogo navigation={params?.navigation} />,
+        }),
+    },
     {
         name: 'Notifications',
         component: Notifications,

@@ -9,7 +9,7 @@ import styles from '../../styles';
 import translator from '../../services/translator';
 // import CreateConnectionButton from '../../components/CreateConnectionButton';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import MainButtonMenuAlt from '../../components/ButtonMenu/MainButtonMenuAlt';
+import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import MessagesContactsTabs from '../../components/FlatListHeaderTabs/MessagesContactsTabs';
 import ConnectionItem from '../ActiveConnections/ConnectionItem';
 import CreateConnectionButton from '../../components/CreateConnectionButton';
@@ -155,7 +155,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                     />
                 </SafeAreaView>
                 <CreateConnectionButton navigation={navigation} />
-                <MainButtonMenuAlt
+                <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}
                     translate={this.translate}

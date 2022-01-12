@@ -12,11 +12,12 @@ import {
     IUserConnectionsState,
     INotificationsState as IStoreNotificationsState,
 } from 'therr-react/types';
+import { Notifications as NotificationsEmuns } from 'therr-js-utilities/constants';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import styles from '../../styles';
 import { notifications as notificationStyles } from '../../styles/notifications';
 import translator from '../../services/translator';
-import MainButtonMenuAlt from '../../components/ButtonMenu/MainButtonMenuAlt';
+import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import Notification from './Notification';
 
 interface INotificationsDispatchProps {
@@ -103,6 +104,7 @@ class Notifications extends React.Component<
     }
 
     markNotificationAsRead = (event, notification, userConnection?: any) => {
+        const { navigation } = this.props;
         if (notification.isUnread || userConnection) {
             const { updateNotification, user } = this.props;
 
@@ -118,6 +120,13 @@ class Notifications extends React.Component<
                 message.notification.userConnection = userConnection;
             }
             updateNotification(message);
+        }
+
+        if (notification.type === NotificationsEmuns.Types.NEW_AREAS_ACTIVATED
+            || notification.type === NotificationsEmuns.Types.NEW_LIKE_RECEIVED) {
+            navigation.navigate('Nearby');
+        } else if (notification.type === NotificationsEmuns.Types.NEW_DM_RECEIVED) {
+            navigation.navigate('ActiveConnections');
         }
     }
 
@@ -183,7 +192,7 @@ class Notifications extends React.Component<
                             </View>
                     }
                 </SafeAreaView>
-                <MainButtonMenuAlt
+                <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.scrollTop}
                     translate={this.translate}

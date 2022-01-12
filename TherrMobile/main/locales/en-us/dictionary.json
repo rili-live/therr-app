@@ -144,6 +144,7 @@
       "menuItems": {
         "account": "ACCOUNT SETTINGS",
         "addConnection": "NEW CONNECTION",
+        "chat": "MESSAGES",
         "connections": "CONNECTIONS",
         "home": "HOME",
         "hostedChat": "HOSTED CHAT",
@@ -248,6 +249,12 @@
       "sso": {
         "appleButtonTitle": "Sign in with Apple",
         "googleButtonTitle": "Sign in with Google"
+      }
+    },
+    "nearbyForm": {
+      "labels": {
+        "radiusOfAwareness": "Awareness Radius: {meters} meters",
+        "radiusOfInfluence": "Influence Radius: {meters} meters"
       }
     },
     "editHostedChat": {
@@ -394,9 +401,10 @@
         "connections": "People",
         "bookmarked": "Saved",
         "goToTop": "Go To Top",
-        "list": "List",
+        "list": "Discovered",
         "map": "Map",
         "messages": "Messages",
+        "nearby": "Nearby",
         "moments": "Moments",
         "refresh": "Refresh",
         "settings": "Settings",

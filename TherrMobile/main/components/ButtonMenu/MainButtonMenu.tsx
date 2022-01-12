@@ -1,23 +1,14 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { View } from 'react-native';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-// import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
-// import therrIconConfig from '../../assets/therr-font-config.json';
-import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';
+import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ButtonMenu, mapStateToProps, mapDispatchToProps } from '.';
 import { buttonMenu } from '../../styles/navigation';
-import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
+// import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 
-// const TherrIcon = createIconSetFromIcoMoon(
-//     therrIconConfig,
-//     'TherrFont',
-//     'TherrFont.ttf'
-// );
-
-class MainButtonMenu extends ButtonMenu {
+class MainButtonMenuAlt extends ButtonMenu {
     constructor(props) {
         super(props);
 
@@ -25,82 +16,90 @@ class MainButtonMenu extends ButtonMenu {
     }
 
     navTo = (routeName) => {
-        const { location, navigation, translate, updateGpsStatus } = this.props;
+        // const { location, navigation, translate, updateGpsStatus } = this.props;
+        const { navigation } = this.props;
 
-        if (routeName === 'Map') {
-            requestLocationServiceActivation({
-                isGpsEnabled: location.settings.isGpsEnabled,
-                translate,
-                shouldIgnoreRequirement: true,
-            }).then((response: any) => {
-                if (response?.status) {
-                    return updateGpsStatus(response.status); // wait for redux state to update
-                }
+        // if (routeName === 'Map') {
+        //     requestLocationServiceActivation({
+        //         isGpsEnabled: location.settings.isGpsEnabled,
+        //         translate,
+        //         shouldIgnoreRequirement: true,
+        //     }).then((response: any) => {
+        //         if (response?.status) {
+        //             return updateGpsStatus(response.status); // wait for redux state to update
+        //         }
 
-                return Promise.resolve();
-            }).then(() => {
-                navigation.navigate(routeName);
-            }).catch((error) => {
-                // TODO: Allow viewing map when gps is disable
-                // but disallow GPS required actions like viewing/deleting moments
-                console.log(error);
-            });
-        } else {
-            navigation.navigate(routeName);
-        }
+        //         return Promise.resolve();
+        //     }).then(() => {
+        //         navigation.navigate(routeName);
+        //     }).catch((error) => {
+        //         // TODO: Allow viewing map when gps is disable
+        //         // but disallow GPS required actions like viewing/deleting moments
+        //         console.log(error);
+        //     });
+        // } else {
+        //     navigation.navigate(routeName);
+        // }
+
+        navigation.navigate(routeName);
     };
 
-    render() {
-        const { onActionButtonPress, isCompact, notifications, translate } = this.props;
-        const currentScreen = this.getCurrentScreen();
-        const hasNotifications = notifications?.messages.some(m => m.isUnread);
+    getActionButtonIcon = (currentScreen) => {
+        if (currentScreen === 'Map') {
+            return 'ellipsis-h';
+        }
 
+        if (currentScreen === 'Areas' || currentScreen === 'Nearby' || currentScreen === 'Notifications') {
+            return 'arrow-up';
+        }
+
+        return 'sync';
+    }
+
+    getActionButtonTitle = ({
+        isCompact,
+        currentScreen,
+        translate,
+    }) => {
+        if (isCompact) {
+            return '';
+        }
+
+        if (currentScreen === 'Map') {
+            return translate('menus.main.buttons.toggle');
+        }
+
+        if (currentScreen === 'Areas' || currentScreen === 'Notifications') {
+            return translate('menus.main.buttons.goToTop');
+        }
+
+        return translate('menus.main.buttons.refresh');
+    }
+
+    render() {
+        const { onActionButtonPress, isCompact, translate } = this.props;
+        const currentScreen = this.getCurrentScreen();
+        // const isMessageViewActive = currentScreen === 'Contacts' || currentScreen === 'ActiveConnections' || currentScreen === 'CreateConnection';
 
         return (
             <ButtonMenu {...this.props}>
                 <Button
-                    title={!isCompact ? translate('menus.main.buttons.connections') : null}
+                    title={!isCompact ? translate('menus.main.buttons.list') : null}
                     buttonStyle={
-                        currentScreen === 'Contacts' || currentScreen === 'ActiveConnections'
+                        currentScreen === 'Areas'
                             ? buttonMenu.buttonsActive
                             : buttonMenu.buttons
                     }
                     containerStyle={buttonMenu.buttonContainer}
                     titleStyle={
-                        currentScreen === 'Contacts' || currentScreen === 'ActiveConnections'
+                        currentScreen === 'Areas'
                             ? buttonMenu.buttonsTitleActive
                             : buttonMenu.buttonsTitle
                     }
                     icon={
                         <FontAwesomeIcon
-                            name="users"
-                            size={26}
-                            style={
-                                currentScreen === 'Contacts' || currentScreen === 'ActiveConnections'
-                                    ? buttonMenu.buttonIconActive
-                                    : buttonMenu.buttonIcon
-                            }
-                        />
-                    }
-                    onPress={() => this.navTo('ActiveConnections')}
-                />
-                <Button
-                    title={!isCompact ? translate('menus.main.buttons.moments') : null}
-                    buttonStyle={
-                        currentScreen === 'Areas'
-                            ? buttonMenu.buttonsActive
-                            : buttonMenu.buttons
-                    }
-                    containerStyle={buttonMenu.buttonContainer}
-                    titleStyle={
-                        currentScreen === 'Areas'
-                            ? buttonMenu.buttonsTitleActive
-                            : buttonMenu.buttonsTitle
-                    }
-                    icon={
-                        <MaterialIcon
-                            name="watch"
-                            size={26}
+                            name="list"
+                            size={20}
                             style={
                                 currentScreen === 'Areas'
                                     ? buttonMenu.buttonIconActive
@@ -126,7 +125,7 @@ class MainButtonMenu extends ButtonMenu {
                     icon={
                         <FontAwesomeIcon
                             name="globe-americas"
-                            size={26}
+                            size={20}
                             style={
                                 currentScreen === 'Map'
                                     ? buttonMenu.buttonIconActive
@@ -136,47 +135,95 @@ class MainButtonMenu extends ButtonMenu {
                     }
                     onPress={() => this.navTo('Map')}
                 />
-                <View style={buttonMenu.notificationContainer}>
-                    <Button
-                        title={!isCompact ? translate('menus.main.buttons.notifications') : null}
-                        buttonStyle={
-                            currentScreen === 'Notifications'
-                                ? buttonMenu.buttonsActive
-                                : buttonMenu.buttons
-                        }
-                        containerStyle={buttonMenu.buttonContainer}
-                        titleStyle={
-                            currentScreen === 'Notifications'
-                                ? buttonMenu.buttonsTitleActive
-                                : buttonMenu.buttonsTitle
-                        }
-                        icon={
-                            <FontAwesomeIcon
-                                name={hasNotifications ? 'bell' : 'bell-slash'}
-                                size={26}
-                                style={
-                                    currentScreen === 'Notifications'
-                                        ? buttonMenu.buttonIconActive
-                                        : buttonMenu.buttonIcon
-                                }
-                            />
-                        }
-                        onPress={() => this.navTo('Notifications')}
-                    />
-                    {
-                        hasNotifications && <View style={onActionButtonPress ? buttonMenu.notificationCircleAlt : buttonMenu.notificationCircle} />
+                <Button
+                    title={!isCompact ? translate('menus.main.buttons.bookmarked') : null}
+                    buttonStyle={
+                        currentScreen === 'BookMarked'
+                            ? buttonMenu.buttonsActive
+                            : buttonMenu.buttons
                     }
-                </View>
+                    containerStyle={buttonMenu.buttonContainer}
+                    titleStyle={
+                        currentScreen === 'BookMarked'
+                            ? buttonMenu.buttonsTitleActive
+                            : buttonMenu.buttonsTitle
+                    }
+                    icon={
+                        <FontAwesomeIcon
+                            name="bookmark"
+                            size={20}
+                            style={
+                                currentScreen === 'BookMarked'
+                                    ? buttonMenu.buttonIconActive
+                                    : buttonMenu.buttonIcon
+                            }
+                        />
+                    }
+                    onPress={() => this.navTo('BookMarked')}
+                />
+                <Button
+                    title={!isCompact ? translate('menus.main.buttons.nearby') : null}
+                    buttonStyle={
+                        currentScreen === 'Nearby'
+                            ? buttonMenu.buttonsActive
+                            : buttonMenu.buttons
+                    }
+                    containerStyle={buttonMenu.buttonContainer}
+                    titleStyle={
+                        currentScreen === 'Nearby'
+                            ? buttonMenu.buttonsTitleActive
+                            : buttonMenu.buttonsTitle
+                    }
+                    icon={
+                        <MaterialIcon
+                            name="radar"
+                            size={24}
+                            style={
+                                currentScreen === 'Nearby'
+                                    ? buttonMenu.buttonIconActive
+                                    : buttonMenu.buttonIcon
+                            }
+                        />
+                    }
+                    onPress={() => this.navTo('Nearby')}
+                />
+                {/* <Button
+                    title={!isCompact ? translate('menus.main.buttons.account') : null}
+                    buttonStyle={
+                        currentScreen === 'Settings'
+                            ? buttonMenu.buttonsActive
+                            : buttonMenu.buttons
+                    }
+                    containerStyle={buttonMenu.buttonContainer}
+                    titleStyle={
+                        currentScreen === 'Settings'
+                            ? buttonMenu.buttonsTitleActive
+                            : buttonMenu.buttonsTitle
+                    }
+                    icon={
+                        <FontAwesomeIcon
+                            name="user-cog"
+                            size={20}
+                            style={
+                                currentScreen === 'Settings'
+                                    ? buttonMenu.buttonIconActive
+                                    : buttonMenu.buttonIcon
+                            }
+                        />
+                    }
+                    onPress={() => this.navTo('Settings')}
+                /> */}
                 {
                     onActionButtonPress &&
                     <Button
                         buttonStyle={buttonMenu.buttons}
                         containerStyle={buttonMenu.buttonContainer}
                         titleStyle={buttonMenu.buttonsTitle}
+                        title={this.getActionButtonTitle({ currentScreen, isCompact, translate })}
                         icon={
                             <FontAwesomeIcon
-                                name={currentScreen === 'Map' ? 'ellipsis-h' : 'arrow-up'}
-                                size={26}
+                                name={this.getActionButtonIcon(currentScreen)}
+                                size={20}
                                 style={buttonMenu.buttonIcon}
                             />
                         }
@@ -188,4 +235,4 @@ class MainButtonMenu extends ButtonMenu {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(MainButtonMenu);
+export default connect(mapStateToProps, mapDispatchToProps)(MainButtonMenuAlt);

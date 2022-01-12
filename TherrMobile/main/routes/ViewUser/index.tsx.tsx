@@ -17,7 +17,7 @@ import UsersActions from '../../redux/actions/UsersActions';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import styles from '../../styles';
 import translator from '../../services/translator';
-import MainButtonMenuAlt from '../../components/ButtonMenu/MainButtonMenuAlt';
+import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import LottieLoader from '../../components/LottieLoader';
 import UserDisplay from './UserDisplay';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
@@ -228,7 +228,7 @@ class ViewUser extends React.Component<
                     translate={this.translate}
                     width={activeConfirmModal === 'remove-connection-request' ? '70%' : '60%'}
                 />
-                <MainButtonMenuAlt
+                <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}
                     translate={this.translate}
