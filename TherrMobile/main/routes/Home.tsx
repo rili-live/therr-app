@@ -7,7 +7,7 @@ import { Button } from 'react-native-elements';
 import { IUserState } from 'therr-react/types';
 import Alert from '../components/Alert';
 import BeemoTextInput from '../components/TextInput/Beemo';
-import MainButtonMenuAlt from '../components/ButtonMenu/MainButtonMenuAlt';
+import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
 import { UsersService } from 'therr-react/services';
 import translator from '../services/translator';
@@ -195,7 +195,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                         </View>
                     </ScrollView>
                 </SafeAreaView>
-                <MainButtonMenuAlt
+                <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}
                     translate={this.translate}

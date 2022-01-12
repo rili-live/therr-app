@@ -34,6 +34,9 @@ export default StyleSheet.create({
         marginTop: dividerHeight,
         marginBottom: dividerHeight / 2,
     },
+    areaCarouselHeaderSliders: {
+        marginTop: 10,
+    },
     areaCarouselTab: {
 
     },

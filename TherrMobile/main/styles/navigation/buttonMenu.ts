@@ -14,18 +14,17 @@ const buttonStyle: any = {
 };
 
 const iconStyle: any = {
-    color: therrTheme.colors.textWhite,
-    textShadowOffset: {
-        width: 1,
-        height: 1,
-    },
-    textShadowColor: '#rgba(27, 74, 105, .75)',
-    textShadowRadius: 3,
+    color: therrTheme.colorVariations.backgroundCreamLighten,
+    // textShadowOffset: {
+    //     width: 1,
+    //     height: 1,
+    // },
+    // textShadowColor: '#rgba(27, 74, 105, .75)',
+    // textShadowRadius: 1,
 };
 
 const buttonsTitleStyle: any = {
     backgroundColor: 'transparent',
-    color: therrTheme.colors.textWhite,
     fontSize: 10,
     marginTop: 5,
     paddingBottom: Platform.OS === 'ios' ? 10 : 0,
@@ -93,6 +92,7 @@ export default StyleSheet.create({
         flexDirection: 'row',
         marginTop: 100,
         backgroundColor: therrTheme.colors.primary,
+        // backgroundColor: therrTheme.colorVariations.backgroundCreamLighten,
 
         // Shadow
         // shadowColor: therrTheme.colors.textBlack,

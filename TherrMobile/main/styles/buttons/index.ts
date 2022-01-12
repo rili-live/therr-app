@@ -320,8 +320,8 @@ export default StyleSheet.create({
         shadowRadius: 4,
         borderRadius: 100,
         padding: 0,
-        height: 36,
-        width: 36,
+        height: 34,
+        width: 34,
         alignItems: 'center',
         justifyContent: 'center',
         display: 'flex',
@@ -335,8 +335,8 @@ export default StyleSheet.create({
         shadowRadius: 4,
         borderRadius: 100,
         padding: 0,
-        height: 32,
-        width: 32,
+        height: 34,
+        width: 34,
     },
     notifications: {
         ...bottomLeftBtnViewStyles,
@@ -364,6 +364,9 @@ export default StyleSheet.create({
     btnClear: {
         ...btnStyles,
         backgroundColor: 'transparent',
+    },
+    btnTextWhite: {
+        color: therrTheme.colorVariations.backgroundCreamLighten,
     },
     btnIcon: {
         ...btnIconStyle,

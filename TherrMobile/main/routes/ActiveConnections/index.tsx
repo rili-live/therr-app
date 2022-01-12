@@ -9,7 +9,7 @@ import styles from '../../styles';
 import translator from '../../services/translator';
 import CreateConnectionButton from '../../components/CreateConnectionButton';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import MainButtonMenuAlt from '../../components/ButtonMenu/MainButtonMenuAlt';
+import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import ConnectionItem from './ConnectionItem';
 import MessagesContactsTabs from '../../components/FlatListHeaderTabs/MessagesContactsTabs';
 
@@ -157,7 +157,7 @@ class ActiveConnectionsComponent extends React.Component<
                     />
                 </SafeAreaView>
                 <CreateConnectionButton navigation={navigation} />
-                <MainButtonMenuAlt
+                <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}
                     translate={this.translate}

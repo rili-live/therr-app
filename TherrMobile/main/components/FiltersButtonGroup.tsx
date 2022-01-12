@@ -36,10 +36,11 @@ export default ({
                     <View style={buttonStyles.momentLayerOption3}>
                         <Button
                             buttonStyle={buttonStyles.btnMedium}
+                            titleStyle={buttonStyles.btnTextWhite}
                             icon={
                                 <FontAwesomeIcon
                                     name="globe"
-                                    size={30}
+                                    size={buttonStyles.btnMedium.height}
                                     style={layers.connectionsMoments ? buttonStyles.btnIcon : buttonStyles.btnIconInactive}
                                 />
                             }
@@ -53,7 +54,7 @@ export default ({
                             icon={
                                 <FontAwesomeIcon
                                     name="child"
-                                    size={30}
+                                    size={buttonStyles.btnMedium.height}
                                     style={layers.myMoments ? buttonStyles.btnIcon : buttonStyles.btnIconInactive}
                                 />
                             }

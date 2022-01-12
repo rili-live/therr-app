@@ -9,7 +9,7 @@ import { IUserState } from 'therr-react/types';
 import { PasswordRegex } from 'therr-js-utilities/constants';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import MainButtonMenuAlt from '../components/ButtonMenu/MainButtonMenuAlt';
+import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
 import Alert from '../components/Alert';
 import translator from '../services/translator';
@@ -413,7 +413,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                         </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>
-                <MainButtonMenuAlt
+                <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}
                     translate={this.translate}

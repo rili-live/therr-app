@@ -6,6 +6,11 @@ const containerStyles: any = {
     marginHorizontal: 10,
 };
 
+const containerTightStyles: any = {
+    marginTop: 5,
+    marginBottom: 5,
+};
+
 const textInputStyle: any = {
     marginLeft: 10,
     marginRight: 10,
@@ -24,6 +29,7 @@ const inputStyle: any = {
 
 export {
     containerStyles,
+    containerTightStyles,
     textInputStyle,
     inputStyle,
 };
