@@ -1,5 +1,17 @@
 import axios from 'axios';
+import { PushNotifications } from 'therr-js-utilities/constants';
+import sendPendingInviteEmail from '../api/email/retention/sendPendingInviteEmail';
 import * as globalConfig from '../../../../global-config';
+
+interface ISendPushNotification {
+    authorization: any;
+    fromUserName: any;
+    fromUserId: any;
+    locale: any;
+    toUserId: any;
+    type: any;
+    retentionEmailType?: PushNotifications.Types;
+}
 
 export default (findUser, {
     authorization,
@@ -8,8 +20,18 @@ export default (findUser, {
     locale,
     toUserId,
     type,
-}) => {
-    findUser({ id: toUserId }, ['deviceMobileFirebaseToken']).then(([destinationUser]) => axios({
+    retentionEmailType,
+}: ISendPushNotification) => findUser({ id: toUserId }, ['deviceMobileFirebaseToken', 'email']).then(([destinationUser]) => {
+    if (retentionEmailType === PushNotifications.Types.newConnectionRequest) {
+        sendPendingInviteEmail({
+            subject: `[New Connection Request] ${fromUserName} sent you a request on Therr App`,
+            toAddresses: [destinationUser.email],
+        }, {
+            fromName: fromUserName,
+        });
+    }
+
+    return axios({
         method: 'post',
         url: `${globalConfig[process.env.NODE_ENV].basePushNotificationsServiceRoute}/notifications/send`,
         headers: {
@@ -22,7 +44,7 @@ export default (findUser, {
             toUserDeviceToken: destinationUser.deviceMobileFirebaseToken,
             type,
         },
-    })).catch((error) => {
-        console.log(error);
     });
-};
+}).catch((error) => {
+    console.log(error);
+});

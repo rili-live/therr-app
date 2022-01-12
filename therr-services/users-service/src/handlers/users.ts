@@ -12,7 +12,7 @@ import { updatePassword } from '../utilities/passwordUtils';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
 import sendSSONewUserEmail from '../api/email/sendSSONewUserEmail';
 import sendNewUserInviteEmail from '../api/email/sendNewUserInviteEmail';
-import sendNewUserAdminNotificationEmail from '../api/email/sendNewUserAdminNotificationEmail';
+import sendNewUserAdminNotificationEmail from '../api/email/admin/sendNewUserAdminNotificationEmail';
 
 interface IRequiredUserDetails {
     email: string;

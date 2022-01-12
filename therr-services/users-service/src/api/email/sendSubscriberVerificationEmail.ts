@@ -12,6 +12,7 @@ export interface ISendSubscriberVerificationEmailConfig {
 
 // export interface ITemplateParams {}
 
+// TODO: Localize email
 export default (emailParams: ISendSubscriberVerificationEmailConfig, templateParams: any) => {
     const template = Handlebars.compile(templateString);
     const htmlConfig = {

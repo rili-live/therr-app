@@ -4,7 +4,7 @@ import printLogs from 'therr-js-utilities/print-logs';
 import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
-import sendUserFeedbackEmail from '../api/email/sendUserFeedbackEmail';
+import sendUserFeedbackEmail from '../api/email/admin/sendUserFeedbackEmail';
 import sendSubscriberVerificationEmail from '../api/email/sendSubscriberVerificationEmail';
 
 // CREATE
