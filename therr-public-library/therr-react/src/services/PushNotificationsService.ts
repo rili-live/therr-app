@@ -4,6 +4,8 @@ interface ILocationChangeDetails {
     latitude: number;
     longitude: number;
     lastLocationSendForProcessing: number;
+    radiusOfAwareness: number;
+    radiusOfInfluence: number;
 }
 class PushNotificationsService {
     postLocationChange = (data: ILocationChangeDetails) => axios({

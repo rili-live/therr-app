@@ -60,7 +60,7 @@ RUN if [ "$BUILD_MODE" = "development" ]; then \
       && npm run build:dev; \
     else \
       echo "Building in $BUILD_MODE mode" \
-      && npm run build;\
+      && npm run build; \
     fi
 
 # check every 30s to ensure this service returns HTTP 200

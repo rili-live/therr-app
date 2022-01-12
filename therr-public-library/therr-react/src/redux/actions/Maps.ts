@@ -93,6 +93,15 @@ const Maps = {
             data: {},
         });
     },
+    updateUserRadius: (data: {
+        radiusOfAwareness: number,
+        radiusOfInfluence: number,
+    }) => (dispatch: any) => {
+        dispatch({
+            type: MapActionTypes.UPDATE_USER_RADIUS,
+            data,
+        });
+    },
 
     // Google API
     getPlacesSearchAutoComplete: (args: IPlacesAutoCompleteArgs) => (dispatch: any) => MapsService.getPlacesSearchAutoComplete(args)
