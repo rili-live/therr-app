@@ -22,6 +22,8 @@ const processUserLocationChange: RequestHandler = (req, res) => {
     };
 
     const {
+        // radiusOfAwareness,
+        // radiusOfInfluence,
         latitude,
         longitude,
         // lastLocationSendForProcessing,

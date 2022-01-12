@@ -1008,6 +1008,8 @@ class Map extends React.Component<IMapProps, IMapState> {
             return;
         }
 
+        console.log('ZACK_DEBUG', lastLocationSendForProcessing);
+
         if (lastLocationSendForProcessing) {
             if (Date.now() - lastLocationSendForProcessing <= LOCATION_PROCESSING_THROTTLE_MS) {
                 return;
@@ -1034,11 +1036,15 @@ class Map extends React.Component<IMapProps, IMapState> {
             }
         }
 
+        console.log('ZACK_DEBUG_2');
+
         // Send location to backend for processing
         PushNotificationsService.postLocationChange({
             longitude: coords.longitude,
             latitude: coords.latitude,
             lastLocationSendForProcessing,
+            radiusOfAwareness: map.radiusOfAwareness,
+            radiusOfInfluence: map.radiusOfInfluence,
         });
 
         this.setState({

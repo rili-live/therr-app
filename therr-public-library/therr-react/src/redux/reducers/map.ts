@@ -1,5 +1,5 @@
 import * as Immutable from 'seamless-immutable';
-import { SocketClientActionTypes } from 'therr-js-utilities/constants';
+import { Location, SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { IMapState, MapActionTypes } from '../../types/redux/maps';
 
 const initialState: IMapState = Immutable.from({
@@ -8,6 +8,8 @@ const initialState: IMapState = Immutable.from({
     spaces: Immutable.from([]),
     mySpaces: Immutable.from([]),
     searchPredictions: Immutable.from({}),
+    radiusOfAwareness: (Location.MAX_RADIUS_OF_AWARENESS - Location.MIN_RADIUS_OF_AWARENESS) / 2,
+    radiusOfInfluence: (Location.MAX_RADIUS_OF_INFLUENCE - Location.MIN_RADIUS_OF_INFLUENCE) / 2,
 });
 
 const map = (state: IMapState = initialState, action: any) => {
@@ -105,13 +107,17 @@ const map = (state: IMapState = initialState, action: any) => {
                 return !action.data.ids.includes(space.id);
             });
             return state.setIn(['mySpaces'], modifiedMySpace);
+        // // // // // // // // // // // //
         case MapActionTypes.UPDATE_COORDS:
             return state
                 .setIn(['longitude'], action.data.longitude)
                 .setIn(['latitude'], action.data.latitude)
                 .setIn(['prevLongitude'], state.longitude)
                 .setIn(['prevLatitude'], state.latitude);
-        // // // // // // // // // // // //
+        case MapActionTypes.UPDATE_USER_RADIUS:
+            return state
+                .setIn(['radiusOfAwareness'], action.data.radiusOfAwareness)
+                .setIn(['radiusOfInfluence'], action.data.radiusOfInfluence);
         case MapActionTypes.USER_LOCATION_DETERMINED:
             return state.setIn(['hasUserLocationLoaded'], true);
         case MapActionTypes.AUTOCOMPLETE_UPDATE:
