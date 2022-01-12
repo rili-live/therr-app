@@ -162,7 +162,6 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         };
 
         if (name === 'email') {
-            newInputChanges[name] = value.toLowerCase();
             if (!this.isEmailValid()) {
                 emailErrorMessage = this.translate('forms.createConnection.errorMessages.invalidEmail');
             }
@@ -218,11 +217,11 @@ class Home extends React.Component<IHomeProps, IHomeState> {
             requestingUserId: user.details.id,
             requestingUserFirstName: user.details.firstName,
             requestingUserLastName: user.details.lastName,
-            requestingUserEmail: user.details.email,
+            requestingUserEmail: user.details.email.toLowerCase(),
         };
 
         if (connectionContext === 'email') {
-            reqBody.acceptingUserEmail = inputs.email;
+            reqBody.acceptingUserEmail = inputs.email.toLowerCase();
         }
         if (connectionContext === 'phone') {
             reqBody.acceptingUserPhoneNumber = inputs.phoneNumber;

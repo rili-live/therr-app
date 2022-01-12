@@ -15,6 +15,7 @@ export interface ITemplateParams {
     verificationCodeToken: string;
 }
 
+// TODO: Localize email
 export default (emailParams: ISendVerificationEmailConfig, templateParams: ITemplateParams) => {
     const template = Handlebars.compile(templateString);
     const htmlConfig = {

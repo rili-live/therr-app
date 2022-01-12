@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 import * as globalConfig from '../../../../../global-config';
 
+// TODO: Localize email template
 const template = `
   <!-- <span class="preheader" style="color: transparent; display: none; height: 0; max-height: 0; max-width: 0; opacity: 0; overflow: hidden; mso-hide: all; visibility: hidden; width: 0;">This is preheader text. Some clients will show this text as a preview.</span> -->
   <table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background-color: #1C7F8A;">
@@ -68,7 +69,7 @@ const template = `
           </table>
 
           <!-- START FOOTER -->
-          <div class="footer" style="clear: both; Margin-top: 10px; text-align: center; width: 100%;">
+          <div class="footer" style="clear: both; margin-top: 10px; text-align: center; width: 100%;">
             <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
               <tr>
                 <td class="content-block" style="font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; font-size: 12px; color: #999999; text-align: center;">
