@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { Notifications } from 'therr-js-utilities/constants';
+import { Notifications, PushNotifications } from 'therr-js-utilities/constants';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
 import sendPushNotification from '../utilities/sendPushNotification';
 import beeline from '../beeline';
@@ -7,7 +7,6 @@ import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import { translateNotification } from './notifications';
-import sendNewUserInviteEmail from '../api/email/sendNewUserInviteEmail';
 import { createUserHelper } from './users';
 
 // CREATE
@@ -29,6 +28,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
     const locale = req.headers['x-localecode'] || 'en-us';
     let acceptingId = acceptingUserId;
 
+    // 1. Lookup User in DB and send e-mail invite if not found
     if (!acceptingUserId) {
         try {
             const userResults = await Store.users.findUser({
@@ -78,6 +78,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
     }
 
     // TODO: Make this one DB request
+    // 2. If user is found, create the connection and send notifications
     return Store.userConnections.getUserConnections({
         requestingUserId,
         acceptingUserId: acceptingId,
@@ -119,6 +120,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 locale,
                 toUserId: toUserIdForNotification,
                 type: 'new-connection-request',
+                retentionEmailType: PushNotifications.Types.newConnectionRequest,
             });
 
             return connectionPromise.then(([userConnection]) => Store.notifications.createNotification({

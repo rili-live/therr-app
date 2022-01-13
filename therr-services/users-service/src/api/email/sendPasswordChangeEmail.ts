@@ -15,6 +15,7 @@ export interface ITemplateParams {
     userName: string;
 }
 
+// TODO: Localize email
 export default (emailParams: ISendPasswordChangeEmailConfig, templateParams: ITemplateParams) => {
     const template = Handlebars.compile(templateString);
     const html = template({

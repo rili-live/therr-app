@@ -15,6 +15,7 @@ export interface ITemplateParams {
     oneTimePassword: string;
 }
 
+// TODO: Localize email
 export default (emailParams: ISendOneTimePasswordConfig, templateParams: ITemplateParams) => {
     const template = Handlebars.compile(templateString);
     const html = template({
