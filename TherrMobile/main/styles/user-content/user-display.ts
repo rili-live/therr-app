@@ -29,7 +29,7 @@ export default StyleSheet.create({
         marginHorizontal: 4,
     },
     actionMenuItemText: {
-        color: therrTheme.colorVariations.beemoTextWhiteFade,
+        color: therrTheme.colorVariations.accentTextWhiteFade,
         fontSize: 16,
         flex: 1,
         paddingRight: 10,
@@ -38,7 +38,7 @@ export default StyleSheet.create({
         width: '94%',
         marginHorizontal: '3%',
         height: 2,
-        backgroundColor: therrTheme.colorVariations.beemo1Fade,
+        backgroundColor: therrTheme.colorVariations.accent1Fade,
     },
 
     // Profile Picture

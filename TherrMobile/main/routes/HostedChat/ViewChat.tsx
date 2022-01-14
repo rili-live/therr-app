@@ -21,13 +21,13 @@ import randomColor from 'randomcolor';
 import translator from '../../services/translator';
 // import RoundInput from '../../components/Input/Round';
 import * as therrTheme from '../../styles/themes';
-import beemoLayoutStyles from '../../styles/layouts/beemo';
+import accentLayoutStyles from '../../styles/layouts/accent';
 import styles from '../../styles';
 import viewChatStyles from '../../styles/user-content/hosted-chat/view-chat';
-import { beemoEditForm as beemoFormStyles } from '../../styles/forms';
+import { accentEditForm as accentFormStyles } from '../../styles/forms';
 import messageStyles from '../../styles/user-content/messages';
 import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
-import BeemoInput from '../../components/Input/Beemo';
+import AccentInput from '../../components/Input/Accent';
 import BaseStatusBar from '../../components/BaseStatusBar';
 
 const userColors: any = {}; // local state
@@ -36,7 +36,7 @@ const renderMessage = ({ item }) => {
     const senderTitle = !item.isAnnouncement ? item.fromUserName : '';
     const timeSplit = item.time.split(', ');
     const isYou = item.fromUserName?.toLowerCase().includes('you');
-    const yourColor = therrTheme.colors.beemo3;
+    const yourColor = therrTheme.colors.accent3;
 
     if (!userColors[item.fromUserName]) {
         userColors[item.fromUserName] = isYou ? yourColor : randomColor({
@@ -46,7 +46,7 @@ const renderMessage = ({ item }) => {
 
     const messageColor = isYou
         ? (userColors[item.fromUserName] || yourColor)
-        : (userColors[item.fromUserName] || therrTheme.colors.beemoBlue);
+        : (userColors[item.fromUserName] || therrTheme.colors.accentBlue);
 
     return (
         <View style={[viewChatStyles.messageContainer, {
@@ -182,9 +182,9 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                 <BaseStatusBar />
                 <SafeAreaView style={styles.safeAreaView}>
                     <View
-                        style={[styles.bodyFlex, beemoLayoutStyles.bodyEdit]}
+                        style={[styles.bodyFlex, accentLayoutStyles.bodyEdit]}
                     >
-                        <View style={beemoLayoutStyles.containerHeader}>
+                        <View style={accentLayoutStyles.containerHeader}>
                             <Text>{subtitle}</Text>
                             <Text>{description}</Text>
                             <HashtagsContainer
@@ -193,7 +193,7 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                                 onHashtagPress={() => {}}
                             />
                         </View>
-                        <View style={[beemoLayoutStyles.container, viewChatStyles.container]}>
+                        <View style={[accentLayoutStyles.container, viewChatStyles.container]}>
                             <FlatList
                                 data={mgs}
                                 keyExtractor={(item) => String(item.key)}
@@ -204,10 +204,10 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                             />
                         </View>
                     </View>
-                    <View style={[beemoLayoutStyles.footer, viewChatStyles.footer]}>
+                    <View style={[accentLayoutStyles.footer, viewChatStyles.footer]}>
                         <Button
-                            containerStyle={beemoFormStyles.backButtonContainerFixed}
-                            buttonStyle={beemoFormStyles.backButton}
+                            containerStyle={accentFormStyles.backButtonContainerFixed}
+                            buttonStyle={accentFormStyles.backButton}
                             onPress={() => navigation.navigate('HostedChat')}
                             icon={
                                 <FontAwesome5Icon
@@ -218,7 +218,7 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                             }
                             type="clear"
                         />
-                        <BeemoInput
+                        <AccentInput
                             value={msgInputVal}
                             onChangeText={this.handleInputChange}
                             placeholder={this.translate(

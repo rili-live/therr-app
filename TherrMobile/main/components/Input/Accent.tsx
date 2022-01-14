@@ -4,7 +4,7 @@ import BaseInput from '.';
 import formStyles from '../../styles/forms';
 import * as therrTheme from '../../styles/themes';
 
-export class BeemoInput extends BaseInput {
+export class AccentInput extends BaseInput {
     constructor(props) {
         super(props);
     }
@@ -12,12 +12,12 @@ export class BeemoInput extends BaseInput {
     render() {
         return (
             <BaseInput
-                inputStyle={formStyles.inputBeemo}
-                selectionColor={therrTheme.colors.beemoYellow}
+                inputStyle={formStyles.inputAccent}
+                selectionColor={therrTheme.colors.accentYellow}
                 {...this.props}
             />
         );
     }
 }
 
-export default BeemoInput;
+export default AccentInput;

@@ -13,7 +13,7 @@ export default StyleSheet.create({
         display: 'flex',
         flexDirection: 'row',
         marginVertical: 3,
-        backgroundColor: therrTheme.colorVariations.beemoTextWhiteFade,
+        backgroundColor: therrTheme.colorVariations.accentTextWhiteFade,
         paddingHorizontal: 4,
         paddingVertical: 10,
         borderRadius: 4,
@@ -31,7 +31,7 @@ export default StyleSheet.create({
         paddingBottom: 3,
     },
     senderTitleText: {
-        color: therrTheme.colors.beemoTextBlack,
+        color: therrTheme.colors.accentTextBlack,
         fontSize: 15,
         fontWeight: 'bold',
         paddingRight: 4,
@@ -40,7 +40,7 @@ export default StyleSheet.create({
         fontSize: 12,
     },
     messageText: {
-        color: therrTheme.colors.beemoTextBlack,
+        color: therrTheme.colors.accentTextBlack,
         fontSize: 15,
         flex: 1,
     },

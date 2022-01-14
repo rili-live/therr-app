@@ -17,8 +17,8 @@ import YoutubePlayer from 'react-native-youtube-iframe';
 import translator from '../services/translator';
 import styles from '../styles';
 // import * as therrTheme from '../styles/themes';
-import formStyles, { beemoEditForm as beemoFormStyles } from '../styles/forms';
-import beemoLayoutStyles from '../styles/layouts/beemo';
+import formStyles, { accentEditForm as accentFormStyles } from '../styles/forms';
+import accentLayoutStyles from '../styles/layouts/accent';
 import userContentStyles from '../styles/user-content';
 import { viewing as viewMomentStyles } from '../styles/user-content/moments';
 import { youtubeLinkRegex } from '../constants';
@@ -30,7 +30,7 @@ import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptio
 import { getReactionUpdateArgs } from '../utilities/reactions';
 // import * as therrTheme from '../styles/themes';
 // import formStyles, { settingsForm as settingsFormStyles } from '../styles/forms';
-// import BeemoInput from '../components/Input/Beemo';
+// import AccentInput from '../components/Input/Accent';
 
 interface IMomentDetails {
     userDetails?: any;
@@ -109,7 +109,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
 
         this.date = formatDate(moment.updatedAt);
 
-        // changeNavigationBarColor(therrTheme.colors.beemo1, false, true);
+        // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
     }
 
     componentDidMount() {
@@ -269,10 +269,10 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={[styles.bodyFlex, beemoLayoutStyles.bodyView]}
-                        contentContainerStyle={[styles.bodyScroll, beemoLayoutStyles.bodyViewScroll]}
+                        style={[styles.bodyFlex, accentLayoutStyles.bodyView]}
+                        contentContainerStyle={[styles.bodyScroll, accentLayoutStyles.bodyViewScroll]}
                     >
-                        <View style={[beemoLayoutStyles.container, viewMomentStyles.areaContainer]}>
+                        <View style={[accentLayoutStyles.container, viewMomentStyles.areaContainer]}>
                             <AreaDisplay
                                 translate={this.translate}
                                 date={this.date}
@@ -303,10 +303,10 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                         }
                     </KeyboardAwareScrollView>
                     {
-                        <View style={[beemoLayoutStyles.footer, viewMomentStyles.footer]}>
+                        <View style={[accentLayoutStyles.footer, viewMomentStyles.footer]}>
                             <Button
-                                containerStyle={beemoFormStyles.backButtonContainer}
-                                buttonStyle={beemoFormStyles.backButton}
+                                containerStyle={accentFormStyles.backButtonContainer}
+                                buttonStyle={accentFormStyles.backButton}
                                 onPress={() => this.goBack()}
                                 icon={
                                     <FontAwesome5Icon
@@ -323,11 +323,11 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                     {
                                         !isVerifyingDelete &&
                                             <Button
-                                                buttonStyle={beemoFormStyles.submitDeleteButton}
-                                                disabledStyle={beemoFormStyles.submitButtonDisabled}
-                                                disabledTitleStyle={beemoFormStyles.submitDisabledButtonTitle}
-                                                titleStyle={beemoFormStyles.submitButtonTitle}
-                                                containerStyle={beemoFormStyles.submitButtonContainer}
+                                                buttonStyle={accentFormStyles.submitDeleteButton}
+                                                disabledStyle={accentFormStyles.submitButtonDisabled}
+                                                disabledTitleStyle={accentFormStyles.submitDisabledButtonTitle}
+                                                titleStyle={accentFormStyles.submitButtonTitle}
+                                                containerStyle={accentFormStyles.submitButtonContainer}
                                                 title={this.translate(
                                                     'forms.editMoment.buttons.delete'
                                                 )}
@@ -336,7 +336,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                                         name="trash-alt"
                                                         size={25}
                                                         color={'black'}
-                                                        style={beemoFormStyles.submitButtonIcon}
+                                                        style={accentFormStyles.submitButtonIcon}
                                                     />
                                                 }
                                                 onPress={this.onDelete}
@@ -345,13 +345,13 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                     }
                                     {
                                         isVerifyingDelete &&
-                                        <View style={beemoFormStyles.submitConfirmContainer}>
+                                        <View style={accentFormStyles.submitConfirmContainer}>
                                             <Button
-                                                buttonStyle={beemoFormStyles.submitCancelButton}
-                                                disabledStyle={beemoFormStyles.submitButtonDisabled}
-                                                disabledTitleStyle={beemoFormStyles.submitDisabledButtonTitle}
-                                                titleStyle={beemoFormStyles.submitButtonTitle}
-                                                containerStyle={beemoFormStyles.submitCancelButtonContainer}
+                                                buttonStyle={accentFormStyles.submitCancelButton}
+                                                disabledStyle={accentFormStyles.submitButtonDisabled}
+                                                disabledTitleStyle={accentFormStyles.submitDisabledButtonTitle}
+                                                titleStyle={accentFormStyles.submitButtonTitle}
+                                                containerStyle={accentFormStyles.submitCancelButtonContainer}
                                                 title={this.translate(
                                                     'forms.editMoment.buttons.cancel'
                                                 )}
@@ -360,11 +360,11 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                                 raised={true}
                                             />
                                             <Button
-                                                buttonStyle={beemoFormStyles.submitConfirmButton}
-                                                disabledStyle={beemoFormStyles.submitButtonDisabled}
-                                                disabledTitleStyle={beemoFormStyles.submitDisabledButtonTitle}
-                                                titleStyle={beemoFormStyles.submitButtonTitleLight}
-                                                containerStyle={beemoFormStyles.submitButtonContainer}
+                                                buttonStyle={accentFormStyles.submitConfirmButton}
+                                                disabledStyle={accentFormStyles.submitButtonDisabled}
+                                                disabledTitleStyle={accentFormStyles.submitDisabledButtonTitle}
+                                                titleStyle={accentFormStyles.submitButtonTitleLight}
+                                                containerStyle={accentFormStyles.submitButtonContainer}
                                                 title={this.translate(
                                                     'forms.editMoment.buttons.confirm'
                                                 )}

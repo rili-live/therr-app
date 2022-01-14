@@ -307,7 +307,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleBeemo,
+            headerStyle: styles.headerStyleAccent,
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',
@@ -329,7 +329,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleBeemo,
+            headerStyle: styles.headerStyleAccent,
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',
@@ -351,7 +351,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleBeemo,
+            headerStyle: styles.headerStyleAccent,
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',
@@ -371,7 +371,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleBeemo,
+            headerStyle: styles.headerStyleAccent,
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',
@@ -393,7 +393,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleBeemo,
+            headerStyle: styles.headerStyleAccent,
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',
@@ -413,7 +413,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleBeemo,
+            headerStyle: styles.headerStyleAccent,
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',

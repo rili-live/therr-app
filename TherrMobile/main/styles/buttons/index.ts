@@ -22,7 +22,7 @@ const btnIconStyle: any = {
 const btnGroupBtnStyles: any = {
     padding: 4,
     borderWidth: 0,
-    backgroundColor: therrTheme.colors.beemo1,
+    backgroundColor: therrTheme.colors.accent1,
     borderRadius: 0,
     height: 32,
     display: 'flex',
@@ -123,16 +123,16 @@ export default StyleSheet.create({
     searchThisAreaButton: {
         ...btnGroupBtnStyles,
         paddingHorizontal: 15,
-        backgroundColor: therrTheme.colors.beemo1,
+        backgroundColor: therrTheme.colors.accent1,
     },
     searchFiltersTitle: {
-        color: therrTheme.colors.beemoTextWhite,
+        color: therrTheme.colors.accentTextWhite,
         paddingLeft: 5,
         fontSize: 14,
         lineHeight: 18,
     },
     searchThisAreaTitle: {
-        color: therrTheme.colors.beemoTextWhite,
+        color: therrTheme.colors.accentTextWhite,
         fontSize: 12,
         lineHeight: 13,
     },
@@ -347,17 +347,17 @@ export default StyleSheet.create({
     },
     btn: {
         ...btnStyles,
-        backgroundColor: therrTheme.colors.beemo1,
+        backgroundColor: therrTheme.colors.accent1,
     },
     btnMedium: {
         ...btnStyles,
-        backgroundColor: therrTheme.colors.beemo1,
+        backgroundColor: therrTheme.colors.accent1,
         height: 34,
         width: 34,
     },
     btnLarge: {
         ...btnStyles,
-        backgroundColor: therrTheme.colors.beemo1,
+        backgroundColor: therrTheme.colors.accent1,
         height: 44,
         width: 44,
     },
@@ -376,11 +376,11 @@ export default StyleSheet.create({
         color: therrTheme.colors.brandingMapYellow,
     },
     btnIconWhite: {
-        color: therrTheme.colors.beemoTextWhite,
+        color: therrTheme.colors.accentTextWhite,
         padding: 0,
     },
     btnIconBlack: {
-        color: therrTheme.colors.beemoTextBlack,
+        color: therrTheme.colors.accentTextBlack,
         padding: 0,
     },
     btnIconInactive: {
@@ -388,7 +388,7 @@ export default StyleSheet.create({
         padding: 0,
     },
     btnTitleBlack: {
-        color: therrTheme.colors.beemoTextBlack,
+        color: therrTheme.colors.accentTextBlack,
     },
     labelLeft: {
         marginRight: 8,

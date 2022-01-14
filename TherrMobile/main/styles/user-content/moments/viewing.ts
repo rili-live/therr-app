@@ -93,11 +93,11 @@ const getViewingAreaStyles = ({
     areaUserName: {
         fontSize: 15,
         paddingBottom: 1,
-        color: isDarkMode ? therrTheme.colors.beemoTextWhite : therrTheme.colors.tertiary,
+        color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
     },
     dateTime: {
         fontSize: 11,
-        color: isDarkMode ? therrTheme.colors.beemoTextWhite : therrTheme.colors.tertiary,
+        color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
     },
     moreButtonContainer: {
         ...buttonContainerStyles,
@@ -125,7 +125,7 @@ const getViewingAreaStyles = ({
     },
     areaContentTitle: {
         flex: 1,
-        color: isDarkMode ? therrTheme.colors.beemoTextWhite : therrTheme.colors.tertiary,
+        color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
         // position: 'absolute',
         fontSize: 18,
         // top: 10,
@@ -136,7 +136,7 @@ const getViewingAreaStyles = ({
     },
     areaMessage: {
         fontSize: 15,
-        color: isDarkMode ? therrTheme.colors.beemoTextWhite : therrTheme.colors.tertiary,
+        color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
         overflow: 'scroll',
         width: '100%',
         paddingHorizontal: 14,

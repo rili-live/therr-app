@@ -19,7 +19,7 @@ interface IStoreProps extends IHeaderMenuLeftDispatchProps {}
 export interface IHeaderMenuLeftProps extends IStoreProps {
     isAuthenticated: boolean;
     isEmailVerifed: boolean;
-    styleName: 'light' | 'dark' | 'beemo';
+    styleName: 'light' | 'dark' | 'accent';
     navigation: any;
 }
 
@@ -55,7 +55,7 @@ class HeaderMenuLeft extends React.Component<
         if (styleName === 'dark') {
             logoStyle = styles.logoIconDark;
         }
-        if (styleName === 'beemo') {
+        if (styleName === 'accent') {
             logoStyle = styles.logoIconBlack;
         }
 

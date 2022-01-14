@@ -6,7 +6,7 @@ import { bindActionCreators } from 'redux';
 import { Button } from 'react-native-elements';
 import { IUserState } from 'therr-react/types';
 import Alert from '../components/Alert';
-import BeemoTextInput from '../components/TextInput/Beemo';
+import AccentTextInput from '../components/Input/TextInput/Accent';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
 import { UsersService } from 'therr-react/services';
@@ -146,7 +146,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                 <Text style={styles.sectionTitleCenter}>
                                     {this.translate('pages.userProfile.h2.shareFeedback')}
                                 </Text>
-                                <BeemoTextInput
+                                <AccentTextInput
                                     placeholder={this.translate(
                                         'pages.userProfile.labels.feedbackPlaceholder'
                                     )}

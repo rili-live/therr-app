@@ -61,7 +61,7 @@ export class CarouselTabsMenu extends React.Component<ICarouselTabsMenuProps, IC
             width: '30%',
         };
         const areaCarouselTabButton = {
-            backgroundColor: therrTheme.colors.beemo1,
+            backgroundColor: therrTheme.colors.accent1,
             paddingTop: 2,
             paddingBottom: 3,
             borderRadius: 9,

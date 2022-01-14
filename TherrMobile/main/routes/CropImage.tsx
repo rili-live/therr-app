@@ -55,7 +55,7 @@ export class CropImage extends React.Component<ICropImageProps, ICropImageState>
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
-        // changeNavigationBarColor(therrTheme.colors.beemo1, false, true);
+        // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
     }
 
     componentDidMount() {

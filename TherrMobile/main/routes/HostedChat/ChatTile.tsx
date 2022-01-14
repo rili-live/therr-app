@@ -47,7 +47,7 @@ export default (onChatTilePress) => {
         return (
             <Pressable
                 android_ripple={{
-                    color: therrTheme.colors.beemo1,
+                    color: therrTheme.colors.accent1,
                     radius: 20,
                     borderless: true,
                 }}

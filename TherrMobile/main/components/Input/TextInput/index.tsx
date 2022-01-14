@@ -1,7 +1,7 @@
 import React from 'react';
 import { TextInput, TextInputProps } from 'react-native';
 import 'react-native-gesture-handler';
-import * as therrTheme from '../../styles/themes';
+import * as therrTheme from '../../../styles/themes';
 
 export class BaseInput extends React.Component<TextInputProps> {
     constructor(props) {

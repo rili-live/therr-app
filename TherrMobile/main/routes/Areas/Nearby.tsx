@@ -278,10 +278,10 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                         maximumValue={Location.MAX_RADIUS_OF_AWARENESS}
                         minimumValue={Location.MIN_RADIUS_OF_AWARENESS}
                         step={1}
-                        thumbStyle={{ backgroundColor: therrTheme.colors.beemoBlue }}
+                        thumbStyle={{ backgroundColor: therrTheme.colors.accentBlue }}
                         thumbTouchSize={{ width: 100, height: 100 }}
-                        minimumTrackTintColor={therrTheme.colorVariations.beemoBlueLightFade}
-                        maximumTrackTintColor={therrTheme.colorVariations.beemoBlueHeavyFade}
+                        minimumTrackTintColor={therrTheme.colorVariations.accentBlueLightFade}
+                        maximumTrackTintColor={therrTheme.colorVariations.accentBlueHeavyFade}
                         onSlidingStart={Keyboard.dismiss}
                     />
                 </View>
@@ -295,10 +295,10 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                         maximumValue={Location.MAX_RADIUS_OF_INFLUENCE}
                         minimumValue={Location.MIN_RADIUS_OF_INFLUENCE}
                         step={1}
-                        thumbStyle={{ backgroundColor: therrTheme.colors.beemo1 }}
+                        thumbStyle={{ backgroundColor: therrTheme.colors.accent1 }}
                         thumbTouchSize={{ width: 100, height: 100 }}
-                        minimumTrackTintColor={therrTheme.colorVariations.beemo1LightFade}
-                        maximumTrackTintColor={therrTheme.colorVariations.beemo1HeavyFade}
+                        minimumTrackTintColor={therrTheme.colorVariations.accent1LightFade}
+                        maximumTrackTintColor={therrTheme.colorVariations.accent1HeavyFade}
                         onSlidingStart={Keyboard.dismiss}
                     />
                 </View>

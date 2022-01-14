@@ -29,7 +29,7 @@ export default StyleSheet.create({
     },
     containerHeader: {
         width: '100%',
-        borderBottomColor: therrTheme.colors.beemoDivider,
+        borderBottomColor: therrTheme.colors.accentDivider,
         borderBottomWidth: 1,
         marginBottom: 20,
         paddingHorizontal: 20,
@@ -48,7 +48,7 @@ export default StyleSheet.create({
         marginBottom: -10,
     },
     bodyEdit: {
-        backgroundColor: therrTheme.colors.beemo1,
+        backgroundColor: therrTheme.colors.accent1,
         padding: 0,
         flex: 1,
         marginTop: -30, // Helps cover theme background color
@@ -59,11 +59,11 @@ export default StyleSheet.create({
     bodyEditScroll: {
         color: therrTheme.colors.textWhite,
         justifyContent: 'center',
-        backgroundColor: therrTheme.colors.beemo1,
+        backgroundColor: therrTheme.colors.accent1,
         paddingBottom: 100,
     },
     bodyView: {
-        backgroundColor: therrTheme.colors.beemo1,
+        backgroundColor: therrTheme.colors.accent1,
         padding: 0,
         height: '100%',
         marginTop: -30, // Helps cover theme background color
@@ -72,7 +72,7 @@ export default StyleSheet.create({
         paddingBottom: 30, // Helps cover theme background color
     },
     bodyViewScroll: {
-        backgroundColor: therrTheme.colors.beemo1,
+        backgroundColor: therrTheme.colors.accent1,
         paddingBottom: 100,
     },
     footer: {

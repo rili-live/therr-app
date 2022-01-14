@@ -12,7 +12,7 @@ const containerStyles: any = {
 };
 
 const messageStyles = {
-    color: therrTheme.colors.beemoTextBlack,
+    color: therrTheme.colors.accentTextBlack,
     fontSize: 16,
 };
 
@@ -39,7 +39,7 @@ export default StyleSheet.create({
     messageContainerRight: {
         ...containerStyles,
         marginLeft: '10%',
-        backgroundColor: therrTheme.colors.beemo2,
+        backgroundColor: therrTheme.colors.accent2,
         alignSelf: 'flex-end',
     },
     messageTextLeft: {

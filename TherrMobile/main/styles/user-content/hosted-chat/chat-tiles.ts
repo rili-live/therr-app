@@ -12,7 +12,7 @@ export default StyleSheet.create({
         marginBottom: 12,
         elevation: 1,
         borderWidth: 1,
-        borderColor: therrTheme.colors.beemo1,
+        borderColor: therrTheme.colors.accent1,
     },
     avatarContainer: {
         display: 'flex',
@@ -41,7 +41,7 @@ export default StyleSheet.create({
         flex: 1,
         fontWeight: '800',
         fontSize: 16,
-        color: therrTheme.colors.beemoTextBlack,
+        color: therrTheme.colors.accentTextBlack,
         overflow: 'hidden',
     },
     body: {
@@ -52,7 +52,7 @@ export default StyleSheet.create({
     bodyText: {
         maxHeight: 30,
         fontSize: 12,
-        color: therrTheme.colors.beemoTextBlack,
+        color: therrTheme.colors.accentTextBlack,
         overflow: 'hidden',
     },
     footer: {

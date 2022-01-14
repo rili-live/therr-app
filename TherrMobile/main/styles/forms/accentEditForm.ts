@@ -29,7 +29,7 @@ export default StyleSheet.create({
     },
     backButton: {
         // borderRadius: 50,
-        backgroundColor: therrTheme.colors.beemo1,
+        backgroundColor: therrTheme.colors.accent1,
         height: backButtonDimension,
         width: backButtonDimension,
     },
@@ -51,30 +51,30 @@ export default StyleSheet.create({
     },
     submitButton: {
         ...submitButtonStyles,
-        backgroundColor: therrTheme.colors.beemoTeal,
+        backgroundColor: therrTheme.colors.accentTeal,
     },
     submitDeleteButton: {
         ...submitButtonStyles,
-        backgroundColor: therrTheme.colors.beemoRed,
+        backgroundColor: therrTheme.colors.accentRed,
     },
     submitConfirmButton: {
         ...submitButtonStyles,
-        backgroundColor: therrTheme.colors.beemoPurple,
-        color: therrTheme.colors.beemoTextWhite,
+        backgroundColor: therrTheme.colors.accentPurple,
+        color: therrTheme.colors.accentTextWhite,
     },
     submitCancelButton: {
         ...submitButtonStyles,
-        backgroundColor: therrTheme.colors.beemoYellow,
+        backgroundColor: therrTheme.colors.accentYellow,
     },
     submitCancelButtonContainer: {
         ...buttonContainerStyles,
         marginRight: 20,
     },
     submitButtonTitle: {
-        color: therrTheme.colors.beemoTextBlack,
+        color: therrTheme.colors.accentTextBlack,
     },
     submitButtonTitleLight: {
-        color: therrTheme.colors.beemoTextWhite,
+        color: therrTheme.colors.accentTextWhite,
     },
     submitDisabledButtonTitle: {
     },

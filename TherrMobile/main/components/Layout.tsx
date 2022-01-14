@@ -394,8 +394,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         let headerStyleName: any = 'light';
                         let headerTitleColor = therrTheme.colors.textWhite;
                         if (isMoment) {
-                            headerStyleName = 'beemo';
-                            headerTitleColor = therrTheme.colors.beemoTextBlack;
+                            headerStyleName = 'accent';
+                            headerTitleColor = therrTheme.colors.accentTextBlack;
                         }
 
                         return ({

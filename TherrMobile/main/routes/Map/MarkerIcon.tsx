@@ -13,7 +13,7 @@ const markerConfigs = {
         fill: therrTheme.colors.textBlack,
     },
     geocache: {
-        fill: therrTheme.colors.beemoRed,
+        fill: therrTheme.colors.accentRed,
     },
     thought: {
         fill: therrTheme.colors.brandingMapYellow,
@@ -22,14 +22,14 @@ const markerConfigs = {
         fill: therrTheme.colors.textBlack,
     },
     music: {
-        fill: therrTheme.colors.beemoTextBlack,
+        fill: therrTheme.colors.accentTextBlack,
     },
     storefront: {
-        fill: therrTheme.colors.beemoBlue,
+        fill: therrTheme.colors.accentBlue,
         fillAlt: therrTheme.colorVariations.primary2Darken,
     },
     area: {
-        fill: therrTheme.colors.beemoBlue,
+        fill: therrTheme.colors.accentBlue,
         fillAlt: therrTheme.colorVariations.primary2Darken,
     },
 };

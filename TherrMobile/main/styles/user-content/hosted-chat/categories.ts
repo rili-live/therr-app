@@ -88,7 +88,7 @@ export default StyleSheet.create({
     },
     categoryButtonActive: {
         ...categoryButtonStyle,
-        backgroundColor: therrTheme.colors.beemoBlue,
+        backgroundColor: therrTheme.colors.accentBlue,
     },
     categoryIcon: {
         ...categoryIconStyle,

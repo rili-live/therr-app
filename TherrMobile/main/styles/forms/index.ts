@@ -1,5 +1,5 @@
 import { Platform, StyleSheet } from 'react-native';
-import beemoEditForm from './beemoEditForm';
+import accentEditForm from './accentEditForm';
 import forgotPasswordForm from './forgotPasswordForm';
 import verifyEmailForm from './verifyEmailForm';
 import loginForm from './loginForm';
@@ -34,11 +34,11 @@ export default StyleSheet.create({
         // color: therrTheme.colors.textBlack,
         color: therrTheme.colors.textWhite,
     },
-    inputBeemo: {
+    inputAccent: {
         ...inputStyle,
-        backgroundColor: therrTheme.colors.beemo2,
-        color: therrTheme.colors.beemoTextBlack,
-        borderColor: therrTheme.colors.beemoTextBlack,
+        backgroundColor: therrTheme.colors.accent2,
+        color: therrTheme.colors.accentTextBlack,
+        borderColor: therrTheme.colors.accentTextBlack,
         borderWidth: 1,
     },
     textField: {
@@ -55,11 +55,11 @@ export default StyleSheet.create({
         color: therrTheme.colors.textWhite,
         letterSpacing: 0.5,
     },
-    textInputBeemo: {
+    textInputAccent: {
         ...textInputStyle,
-        backgroundColor: therrTheme.colors.beemo2,
-        color: therrTheme.colors.beemoTextBlack,
-        borderColor: therrTheme.colors.beemoTextBlack,
+        backgroundColor: therrTheme.colors.accent2,
+        color: therrTheme.colors.accentTextBlack,
+        borderColor: therrTheme.colors.accentTextBlack,
         borderWidth: 1,
         borderRadius: 0,
         minHeight: 80,
@@ -87,12 +87,12 @@ export default StyleSheet.create({
     inputLabelLight: {
         paddingHorizontal: 2,
         fontSize: 14,
-        color: therrTheme.colors.beemoTextWhite,
+        color: therrTheme.colors.accentTextWhite,
     },
     inputLabelDark: {
         paddingHorizontal: 2,
         fontSize: 14,
-        color: therrTheme.colors.beemoTextBlack,
+        color: therrTheme.colors.accentTextBlack,
     },
     inputSliderContainer: {
         ...containerStyles,
@@ -160,7 +160,7 @@ export default StyleSheet.create({
         paddingHorizontal: 10,
         borderRadius: 20,
         height: 26,
-        backgroundColor: therrTheme.colors.beemoTeal,
+        backgroundColor: therrTheme.colors.accentTeal,
     },
     buttonPillIcon: {
         marginLeft: 8,
@@ -176,12 +176,12 @@ export default StyleSheet.create({
     buttonPillTitle: {
         lineHeight: 26,
         paddingTop: 0,
-        color: therrTheme.colors.beemoTextBlack,
+        color: therrTheme.colors.accentTextBlack,
     },
 });
 
 export {
-    beemoEditForm,
+    accentEditForm,
     forgotPasswordForm,
     loginForm,
     phoneInput,

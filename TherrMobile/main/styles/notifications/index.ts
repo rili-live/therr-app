@@ -28,7 +28,7 @@ const rootStyle: any = {
     paddingTop: 12,
     borderRadius: 0,
     borderBottomWidth: 1,
-    borderColor: therrTheme.colors.beemoAlt,
+    borderColor: therrTheme.colors.accentAlt,
 };
 
 export const notifications = StyleSheet.create({
@@ -84,6 +84,6 @@ export const notification = StyleSheet.create({
     },
     iconRead: {
         ...iconStyle,
-        color: therrTheme.colors.beemo1Fade,
+        color: therrTheme.colors.accent1Fade,
     },
 });

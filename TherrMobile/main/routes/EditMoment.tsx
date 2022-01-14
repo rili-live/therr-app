@@ -16,9 +16,9 @@ import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
 import styles, { addMargins } from '../styles';
-import beemoLayoutStyles from '../styles/layouts/beemo';
+import accentLayoutStyles from '../styles/layouts/accent';
 import * as therrTheme from '../styles/themes';
-import formStyles, { beemoEditForm as editMomentFormStyles } from '../styles/forms';
+import formStyles, { accentEditForm as editMomentFormStyles } from '../styles/forms';
 import editMomentStyles from '../styles/user-content/moments/editing';
 import userContentStyles from '../styles/user-content';
 import {
@@ -29,8 +29,8 @@ import {
 } from '../constants';
 import Alert from '../components/Alert';
 import formatHashtags from '../utilities/formatHashtags';
-import BeemoInput from '../components/Input/Beemo';
-import BeemoTextInput from '../components/TextInput/Beemo';
+import AccentInput from '../components/Input/Accent';
+import AccentTextInput from '../components/Input/TextInput/Accent';
 import HashtagsContainer from '../components/UserContent/HashtagsContainer';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { getImagePreviewPath } from '../utilities/areaUtils';
@@ -122,7 +122,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 value: 'idea',
             },
         ];
-        // changeNavigationBarColor(therrTheme.colors.beemo1, false, true);
+        // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
     }
 
     componentDidMount() {
@@ -379,10 +379,10 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={[styles.bodyFlex, beemoLayoutStyles.bodyEdit]}
-                        contentContainerStyle={[styles.bodyScroll, beemoLayoutStyles.bodyEditScroll]}
+                        style={[styles.bodyFlex, accentLayoutStyles.bodyEdit]}
+                        contentContainerStyle={[styles.bodyScroll, accentLayoutStyles.bodyEditScroll]}
                     >
-                        <Pressable style={beemoLayoutStyles.container} onPress={Keyboard.dismiss}>
+                        <Pressable style={accentLayoutStyles.container} onPress={Keyboard.dismiss}>
                             {
                                 !!imagePreviewPath &&
                                 <View style={editMomentStyles.mediaContainer}>
@@ -392,7 +392,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     />
                                 </View>
                             }
-                            <BeemoInput
+                            <AccentInput
                                 maxLength={100}
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.notificationMsg'
@@ -402,7 +402,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     this.onInputChange('notificationMsg', text)
                                 }
                             />
-                            <BeemoTextInput
+                            <AccentTextInput
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.message'
                                 )}
@@ -420,7 +420,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     options={this.categoryOptions}
                                 />
                             </View>
-                            <BeemoInput
+                            <AccentInput
                                 autoCorrect={false}
                                 errorStyle={styles.displayNone}
                                 placeholder={this.translate(
@@ -443,10 +443,10 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     maximumValue={MAX_RADIUS_PRIVATE}
                                     minimumValue={MIN_RADIUS_PRIVATE}
                                     step={1}
-                                    thumbStyle={{ backgroundColor: therrTheme.colors.beemoBlue }}
+                                    thumbStyle={{ backgroundColor: therrTheme.colors.accentBlue }}
                                     thumbTouchSize={{ width: 100, height: 100 }}
-                                    minimumTrackTintColor={therrTheme.colorVariations.beemoBlueLightFade}
-                                    maximumTrackTintColor={therrTheme.colorVariations.beemoBlueHeavyFade}
+                                    minimumTrackTintColor={therrTheme.colorVariations.accentBlueLightFade}
+                                    maximumTrackTintColor={therrTheme.colorVariations.accentBlueHeavyFade}
                                     onSlidingStart={Keyboard.dismiss}
                                 />
                                 <Text style={formStyles.inputLabelDark}>
@@ -461,7 +461,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 message={successMsg || errorMsg}
                                 type={errorMsg ? 'error' : 'success'}
                             />
-                            {/* <BeemoInput
+                            {/* <AccentInput
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.maxProximity'
                                 )}
@@ -470,7 +470,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     this.onInputChange('maxProximity', text)
                                 }
                             />
-                            {/* <BeemoInput
+                            {/* <AccentInput
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.maxViews'
                                 )}
@@ -479,7 +479,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     this.onInputChange('maxViews', text)
                                 }
                             />
-                            <BeemoInput
+                            <AccentInput
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.expiresAt'
                                 )}
@@ -504,7 +504,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             </View>
                         }
                     </KeyboardAwareScrollView>
-                    <View style={beemoLayoutStyles.footer}>
+                    <View style={accentLayoutStyles.footer}>
                         <Button
                             containerStyle={editMomentFormStyles.backButtonContainer}
                             buttonStyle={editMomentFormStyles.backButton}

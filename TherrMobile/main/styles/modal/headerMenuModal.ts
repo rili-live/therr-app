@@ -34,7 +34,7 @@ export default StyleSheet.create({
     },
     buttonsTitle: {
         backgroundColor: 'transparent',
-        color: therrTheme.colors.beemoAlt,
+        color: therrTheme.colors.accentAlt,
         paddingRight: 10,
         paddingLeft: 10,
     },
@@ -45,7 +45,7 @@ export default StyleSheet.create({
         paddingLeft: 10,
     },
     iconStyle: {
-        color: therrTheme.colors.beemoAlt,
+        color: therrTheme.colors.accentAlt,
         // position: 'absolute',
         // left: 20
         paddingRight: 10,
@@ -88,9 +88,9 @@ export default StyleSheet.create({
         paddingBottom: 4,
         display: 'flex',
         flexDirection: 'row',
-        color: therrTheme.colors.beemo3,
+        color: therrTheme.colors.accent3,
         borderBottomWidth: 2,
-        borderBottomColor: therrTheme.colors.beemoDivider,
+        borderBottomColor: therrTheme.colors.accentDivider,
         height: HEADER_HEIGHT - HEADER_EXTRA_HEIGHT,
     },
     headerTitle: {
@@ -106,7 +106,7 @@ export default StyleSheet.create({
         letterSpacing: 3,
     },
     headerTitleIcon: {
-        // color: therrTheme.colors.beemoAlt,
+        // color: therrTheme.colors.accentAlt,
         marginRight: 10,
         height: 30,
         width: 30,

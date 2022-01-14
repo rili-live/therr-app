@@ -37,7 +37,7 @@ export interface IHeaderMenuRightProps extends IStoreProps {
     logout: Function;
     navigation: any;
     notifications: INotificationsState;
-    styleName: 'light' | 'dark' | 'beemo';
+    styleName: 'light' | 'dark' | 'accent';
     updateGpsStatus: Function;
     user: any;
 }
@@ -192,7 +192,7 @@ class HeaderMenuRight extends React.Component<
         if (styleName === 'dark') {
             imageStyle = headerMenuModal.toggleIconDark;
         }
-        if (styleName === 'beemo') {
+        if (styleName === 'accent') {
             imageStyle = headerMenuModal.toggleIconDark;
         }
 

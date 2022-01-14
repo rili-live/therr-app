@@ -20,11 +20,11 @@ export const theme = {
     },
 };
 
-export const themeBeemo = {
+export const themeAccent = {
     dark: true,
     colors: {
         primary: therrTheme.colors.primary,
-        background: therrTheme.colors.beemo1,
+        background: therrTheme.colors.accent1,
         card: therrTheme.colors.primary,
         text: therrTheme.colors.textWhite,
         border: therrTheme.colors.primary3,
@@ -156,7 +156,7 @@ export default StyleSheet.create({
         width: 32,
     },
     logoIconBlack: {
-        color: therrTheme.colors.beemoTextBlack,
+        color: therrTheme.colors.accentTextBlack,
         marginLeft: 2,
         elevation: 1,
         textShadowOffset: { width: 1, height: 1 },
@@ -221,11 +221,11 @@ export default StyleSheet.create({
         ...headerStyles,
         // shadowColor: 'transparent',
     },
-    headerStyleBeemo: {
+    headerStyleAccent: {
         ...headerStyles,
-        backgroundColor: therrTheme.colors.beemo1,
+        backgroundColor: therrTheme.colors.accent1,
         // borderBottomWidth: 2,
-        borderBottomColor: therrTheme.colors.beemoDivider,
+        borderBottomColor: therrTheme.colors.accentDivider,
     },
     headerTitleStyle: {
         fontSize: 18,
