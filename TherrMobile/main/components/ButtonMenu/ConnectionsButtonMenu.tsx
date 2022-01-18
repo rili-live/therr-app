@@ -4,7 +4,6 @@ import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { ButtonMenu, mapStateToProps, mapDispatchToProps } from '../ButtonMenu';
-import { buttonMenu } from '../../styles/navigation';
 
 class ConnectionsButtonMenu extends ButtonMenu {
     constructor(props) {
@@ -20,7 +19,7 @@ class ConnectionsButtonMenu extends ButtonMenu {
     };
 
     render() {
-        const { translate } = this.props;
+        const { translate, themeMenu } = this.props;
         const currentScreen = this.getCurrentScreen();
 
         return (
@@ -29,14 +28,14 @@ class ConnectionsButtonMenu extends ButtonMenu {
                     title={translate('menus.connections.buttons.activeConnections')}
                     buttonStyle={
                         currentScreen === 'ActiveConnections'
-                            ? buttonMenu.buttonsActive
-                            : buttonMenu.buttons
+                            ? themeMenu.styles.buttonsActive
+                            : themeMenu.styles.buttons
                     }
-                    containerStyle={buttonMenu.buttonContainer}
+                    containerStyle={themeMenu.styles.buttonContainer}
                     titleStyle={
                         currentScreen === 'ActiveConnections'
-                            ? buttonMenu.buttonsTitleActive
-                            : buttonMenu.buttonsTitle
+                            ? themeMenu.styles.buttonsTitleActive
+                            : themeMenu.styles.buttonsTitle
                     }
                     icon={
                         <FontAwesomeIcon
@@ -44,8 +43,8 @@ class ConnectionsButtonMenu extends ButtonMenu {
                             size={26}
                             style={
                                 currentScreen === 'ActiveConnections'
-                                    ? buttonMenu.buttonIconActive
-                                    : buttonMenu.buttonIcon
+                                    ? themeMenu.styles.buttonIconActive
+                                    : themeMenu.styles.buttonIcon
                             }
                         />
                     }
@@ -55,14 +54,14 @@ class ConnectionsButtonMenu extends ButtonMenu {
                     title={translate('menus.connections.buttons.searchContacts')}
                     buttonStyle={
                         currentScreen === 'Contacts'
-                            ? buttonMenu.buttonsActive
-                            : buttonMenu.buttons
+                            ? themeMenu.styles.buttonsActive
+                            : themeMenu.styles.buttons
                     }
-                    containerStyle={buttonMenu.buttonContainer}
+                    containerStyle={themeMenu.styles.buttonContainer}
                     titleStyle={
                         currentScreen === 'Contacts'
-                            ? buttonMenu.buttonsTitleActive
-                            : buttonMenu.buttonsTitle
+                            ? themeMenu.styles.buttonsTitleActive
+                            : themeMenu.styles.buttonsTitle
                     }
                     icon={
                         <FontAwesomeIcon
@@ -70,8 +69,8 @@ class ConnectionsButtonMenu extends ButtonMenu {
                             size={26}
                             style={
                                 currentScreen === 'Contacts'
-                                    ? buttonMenu.buttonIconActive
-                                    : buttonMenu.buttonIcon
+                                    ? themeMenu.styles.buttonIconActive
+                                    : themeMenu.styles.buttonIcon
                             }
                         />
                     }
@@ -81,14 +80,14 @@ class ConnectionsButtonMenu extends ButtonMenu {
                     title={translate('menus.connections.buttons.createConnection')}
                     buttonStyle={
                         currentScreen === 'CreateConnection'
-                            ? buttonMenu.buttonsActive
-                            : buttonMenu.buttons
+                            ? themeMenu.styles.buttonsActive
+                            : themeMenu.styles.buttons
                     }
-                    containerStyle={buttonMenu.buttonContainer}
+                    containerStyle={themeMenu.styles.buttonContainer}
                     titleStyle={
                         currentScreen === 'CreateConnection'
-                            ? buttonMenu.buttonsTitleActive
-                            : buttonMenu.buttonsTitle
+                            ? themeMenu.styles.buttonsTitleActive
+                            : themeMenu.styles.buttonsTitle
                     }
                     icon={
                         <FontAwesomeIcon
@@ -96,8 +95,8 @@ class ConnectionsButtonMenu extends ButtonMenu {
                             size={26}
                             style={
                                 currentScreen === 'CreateConnection'
-                                    ? buttonMenu.buttonIconActive
-                                    : buttonMenu.buttonIcon
+                                    ? themeMenu.styles.buttonIconActive
+                                    : themeMenu.styles.buttonIcon
                             }
                         />
                     }

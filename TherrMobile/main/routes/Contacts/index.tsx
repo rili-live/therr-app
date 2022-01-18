@@ -5,7 +5,8 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
-import styles from '../../styles';
+import { buildStyles } from '../../styles';
+import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
 // import CreateConnectionButton from '../../components/CreateConnectionButton';
 import BaseStatusBar from '../../components/BaseStatusBar';
@@ -46,12 +47,16 @@ const mapDispatchToProps = (dispatch: any) =>
 
 class Contacts extends React.Component<IContactsProps, IContactsState> {
     private translate: Function;
+    private theme = buildStyles();
+    private themeMenu = buildMenuStyles();
 
     constructor(props) {
         super(props);
 
         this.state = {};
 
+        this.theme = buildStyles(props.user.settings.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -122,7 +127,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={styles.safeAreaView}>
+                <SafeAreaView style={this.theme.styles.safeAreaView}>
                     <FlatList
                         data={connections}
                         keyExtractor={(item) => String(item.id)}
@@ -135,8 +140,8 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             />
                         )}
                         ListEmptyComponent={() => (
-                            <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionDescription}>
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionDescription}>
                                     {this.translate(
                                         'components.contactsSearch.noContactsFound'
                                     )}
@@ -148,6 +153,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                                 tabName="Contacts"
                                 navigation={navigation}
                                 translate={this.translate}
+                                containerStyles={this.themeMenu.styles.tabsContainer}
                             />
                         )}
                         stickyHeaderIndices={[0]}
@@ -160,6 +166,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                     onActionButtonPress={this.handleRefresh}
                     translate={this.translate}
                     user={user}
+                    themeMenu={this.themeMenu}
                 />
             </>
         );

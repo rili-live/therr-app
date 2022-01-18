@@ -3,8 +3,7 @@ import { ActivityIndicator, Text, View, Pressable } from 'react-native';
 import { Image } from 'react-native-elements';
 import { FlatList } from 'react-native-gesture-handler';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import * as therrTheme from '../../styles/themes';
-import styles from '../../styles/user-content/user-display';
+import { buildStyles } from '../../styles/user-content/user-display';
 
 interface IActionItem {
     id: string;
@@ -87,6 +86,7 @@ const ListItem = ({
     onMessageUser,
     onReportUser,
     translate,
+    theme,
     userInView,
 }) => {
     let contextOnPress;
@@ -110,15 +110,15 @@ const ListItem = ({
     }
 
     return (
-        <Pressable onPress={() => contextOnPress(item, userInView)} style={styles.actionMenuItemContainer}>
-            <View style={styles.actionMenuItemIcon}>
+        <Pressable onPress={() => contextOnPress(item, userInView)} style={theme.styles.actionMenuItemContainer}>
+            <View style={theme.styles.actionMenuItemIcon}>
                 <MaterialIcon
                     name={item.icon}
                     size={30}
-                    color={therrTheme.colorVariations.primary3LightFade}
+                    color={theme.colorVariations.primary3LightFade}
                 />
             </View>
-            <Text numberOfLines={1} style={styles.actionMenuItemText}>{translate(item.title)}</Text>
+            <Text numberOfLines={1} style={theme.styles.actionMenuItemText}>{translate(item.title)}</Text>
         </Pressable>
     );
 };
@@ -136,22 +136,23 @@ export default ({
     // eslint-disable-next-line eqeqeq
     const isMe = user.details?.id == userInView.id;
     let actionsList = getActionableOptions(isMe, userInView);
+    const theme = buildStyles(user.settings.mobileThemeName);
 
     return (
-        <View style={styles.container}>
+        <View style={theme.styles.container}>
             <Pressable
                 onPress={() => onProfilePicturePress(userInView, isMe)}
             >
                 <Image
                     source={{ uri: `https://robohash.org/${userInView.id}?size=400x400` }}
-                    style={styles.profileImage}
+                    style={theme.styles.profileImage}
                     containerStyle={{}}
-                    PlaceholderContent={<ActivityIndicator size="large" color={therrTheme.colors.primary}/>}
+                    PlaceholderContent={<ActivityIndicator size="large" color={theme.colors.primary}/>}
                     transition={false}
                 />
             </Pressable>
             <FlatList
-                style={styles.actionMenuContainer}
+                style={theme.styles.actionMenuContainer}
                 data={actionsList}
                 keyExtractor={(item) => String(item.id)}
                 renderItem={({ item }) => <ListItem
@@ -161,9 +162,10 @@ export default ({
                     onMessageUser={onMessageUser}
                     onReportUser={onReportUser}
                     translate={translate}
+                    theme={theme}
                     userInView={userInView}
                 />}
-                ItemSeparatorComponent={() => <View style={styles.separator} />}
+                ItemSeparatorComponent={() => <View style={theme.styles.separator} />}
                 keyboardShouldPersistTaps="always"
                 // ref={(component) => (this.flatListRef = component)}
                 // style={styles.stretch}

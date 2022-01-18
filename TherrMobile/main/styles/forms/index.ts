@@ -1,4 +1,5 @@
 import { Platform, StyleSheet } from 'react-native';
+import { IMobileThemeName } from 'therr-react/types';
 import accentEditForm from './accentEditForm';
 import forgotPasswordForm from './forgotPasswordForm';
 import verifyEmailForm from './verifyEmailForm';

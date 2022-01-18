@@ -11,11 +11,11 @@ import {
 import { Button, Image } from 'react-native-elements';
 import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { IUserState } from 'therr-react/types';
 import UserMedia from './UserMedia';
 import HashtagsContainer from './HashtagsContainer';
-import styles from '../../styles';
-import * as therrTheme from '../../styles/themes';
-import { getViewingAreaStyles } from '../../styles/user-content/moments';
+import { ITherrThemeColors } from '../../styles/themes';
+import { buildStyles } from '../../styles/user-content/moments/viewing';
 import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 
 const { width: viewportWidth } = Dimensions.get('window');
@@ -35,7 +35,12 @@ interface IAreaDisplayProps {
     areaMedia: string;
     goToViewUser: Function;
     updateAreaReaction: Function;
+    user: IUserState;
     userDetails: IUserDetails;
+    theme: {
+        styles: any;
+        colors: ITherrThemeColors;
+    };
 }
 
 interface IAreaDisplayState {
@@ -50,9 +55,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         this.state = {
         };
 
-        this.viewAreaStyles = getViewingAreaStyles({
-            isDarkMode: props.isDarkMode,
-        });
+        this.viewAreaStyles = buildStyles(props.user.settings.mobileThemeName, props.isDarkMode);
     }
 
     onBookmarkPress = (area) => {
@@ -74,6 +77,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             areaMedia,
             goToViewUser,
             userDetails,
+            theme,
         } = this.props;
 
         const isBookmarked = area.reaction?.userBookmarkCategory;
@@ -88,7 +92,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                             source={{ uri: `https://robohash.org/${area.fromUserId}?size=52x52` }}
                             style={this.viewAreaStyles.areaUserAvatarImg}
                             containerStyle={this.viewAreaStyles.areaUserAvatarImgContainer}
-                            PlaceholderContent={<ActivityIndicator size="large" color={therrTheme.colors.primary}/>}
+                            PlaceholderContent={<ActivityIndicator size="large" color={theme.colors.primary}/>}
                             transition={false}
                         />
                     </Pressable>
@@ -110,7 +114,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                             <Icon
                                 name="more-horiz"
                                 size={24}
-                                color={isDarkMode ? therrTheme.colors.textWhite : therrTheme.colors.tertiary}
+                                color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
                             />
                         }
                         onPress={() => toggleAreaOptions(area)}
@@ -137,7 +141,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                             <Icon
                                 name={ isBookmarked ? 'bookmark' : 'bookmark-border' }
                                 size={24}
-                                color={isDarkMode ? therrTheme.colors.textWhite : therrTheme.colors.tertiary}
+                                color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
                             />
                         }
                         onPress={() => this.onBookmarkPress(area)}
@@ -148,7 +152,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                 <Text style={this.viewAreaStyles.areaMessage} numberOfLines={3}>
                     <Autolink
                         text={area.message}
-                        linkStyle={styles.link}
+                        linkStyle={theme.styles.link}
                         phone="sms"
                     />
                 </Text>

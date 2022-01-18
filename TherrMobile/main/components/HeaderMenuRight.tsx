@@ -9,12 +9,10 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 // import therrIconConfig from '../assets/therr-font-config.json';
 // import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import { INotificationsState } from 'therr-react/types';
-import styles from '../styles';
-import { headerMenuModal } from '../styles/modal';
-import * as therrTheme from '../styles/themes';
 import translator from '../services/translator';
 import { ILocationState } from '../types/redux/location';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
+import { ITherrThemeColors } from '../styles/themes';
 
 const ANIMATION_DURATION = 180;
 
@@ -40,6 +38,13 @@ export interface IHeaderMenuRightProps extends IStoreProps {
     styleName: 'light' | 'dark' | 'accent';
     updateGpsStatus: Function;
     user: any;
+    theme: {
+        colors: ITherrThemeColors;
+        styles: any;
+    };
+    themeMenu: {
+        styles: any;
+    };
 }
 
 interface IHeaderMenuRightState {
@@ -179,21 +184,29 @@ class HeaderMenuRight extends React.Component<
     };
 
     render() {
-        const { isVisible, isEmailVerifed, notifications, styleName, user } = this.props;
+        const {
+            isVisible,
+            isEmailVerifed,
+            notifications,
+            styleName,
+            theme,
+            themeMenu,
+            user,
+        } = this.props;
 
         const { isModalVisible } = this.state;
         const currentScreen = this.getCurrentScreen();
         const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
-        let imageStyle = headerMenuModal.toggleIcon;
+        let imageStyle = themeMenu.styles.toggleIcon;
 
         if (styleName === 'light') {
-            imageStyle = headerMenuModal.toggleIcon;
+            imageStyle = themeMenu.styles.toggleIcon;
         }
         if (styleName === 'dark') {
-            imageStyle = headerMenuModal.toggleIconDark;
+            imageStyle = themeMenu.styles.toggleIconDark;
         }
         if (styleName === 'accent') {
-            imageStyle = headerMenuModal.toggleIconDark;
+            imageStyle = themeMenu.styles.toggleIconDark;
         }
 
         if (isVisible) {
@@ -206,23 +219,23 @@ class HeaderMenuRight extends React.Component<
                                     <Image
                                         source={{ uri: `https://robohash.org/${user.details?.id}?size=50x50` }}
                                         style={imageStyle}
-                                        PlaceholderContent={<ActivityIndicator size="small" color={therrTheme.colors.primary} />}
+                                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
                                     />}
                                 onPress={() => this.toggleOverlay()}
                                 type="clear"
-                                containerStyle={headerMenuModal.userProfileButtonContainerVerified}
+                                containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
                             /> :
                             <Button
                                 icon={
                                     <FontAwesomeIcon
-                                        style={headerMenuModal.logoutIcon}
+                                        style={themeMenu.styles.logoutIcon}
                                         name="sign-out-alt"
                                         size={18}
                                     />
                                 }
                                 onPress={() => this.handleLogout()}
                                 type="clear"
-                                containerStyle={headerMenuModal.userProfileButtonContainer}
+                                containerStyle={themeMenu.styles.userProfileButtonContainer}
                             />
                     }
                     <Overlay
@@ -232,20 +245,20 @@ class HeaderMenuRight extends React.Component<
                         visible={isModalVisible}
                         onClose={() => this.toggleOverlay(true)}
                         closeOnTouchOutside
-                        containerStyle={styles.overlay}
-                        childrenWrapperStyle={headerMenuModal.overlayContainer}
+                        containerStyle={theme.styles.overlay}
+                        childrenWrapperStyle={themeMenu.styles.overlayContainer}
                     >
                         {
                             (hideModal) => (
-                                <View style={headerMenuModal.container}>
-                                    <View style={headerMenuModal.header}>
-                                        <View style={headerMenuModal.headerTitle}>
+                                <View style={themeMenu.styles.container}>
+                                    <View style={themeMenu.styles.header}>
+                                        <View style={themeMenu.styles.headerTitle}>
                                             <Image
                                                 source={{ uri: `https://robohash.org/${user.details?.id}?size=50x50` }}
-                                                style={headerMenuModal.headerTitleIcon}
+                                                style={themeMenu.styles.headerTitleIcon}
                                                 transition={false}
                                             />
-                                            <Text numberOfLines={1} style={headerMenuModal.headerTitleText}>
+                                            <Text numberOfLines={1} style={themeMenu.styles.headerTitleText}>
                                                 {user.details?.userName}
                                             </Text>
                                         </View>
@@ -254,7 +267,7 @@ class HeaderMenuRight extends React.Component<
                                                 <Icon
                                                     name="close"
                                                     size={30}
-                                                    color={therrTheme.colors.primary3}
+                                                    color={theme.colors.primary3}
                                                 />
                                             }
                                             iconRight
@@ -262,25 +275,25 @@ class HeaderMenuRight extends React.Component<
                                             type="clear"
                                         />
                                     </View>
-                                    <View style={headerMenuModal.body}>
+                                    <View style={themeMenu.styles.body}>
                                         <Button
                                             buttonStyle={
                                                 currentScreen === 'Home'
-                                                    ? headerMenuModal.buttonsActive
-                                                    : headerMenuModal.buttons
+                                                    ? themeMenu.styles.buttonsActive
+                                                    : themeMenu.styles.buttons
                                             }
                                             titleStyle={
                                                 currentScreen === 'Home'
-                                                    ? headerMenuModal.buttonsTitleActive
-                                                    : headerMenuModal.buttonsTitle
+                                                    ? themeMenu.styles.buttonsTitleActive
+                                                    : themeMenu.styles.buttonsTitle
                                             }
                                             title={this.translate('components.headerMenuRight.menuItems.home')}
                                             icon={
                                                 <FontAwesomeIcon
                                                     style={
                                                         currentScreen === 'Home'
-                                                            ? headerMenuModal.iconStyleActive
-                                                            : headerMenuModal.iconStyle
+                                                            ? themeMenu.styles.iconStyleActive
+                                                            : themeMenu.styles.iconStyle
                                                     }
                                                     name="home"
                                                     size={18}
@@ -292,21 +305,21 @@ class HeaderMenuRight extends React.Component<
                                         {/* <Button
                                             buttonStyle={
                                                 currentScreen === 'Map'
-                                                    ? headerMenuModal.buttonsActive
-                                                    : headerMenuModal.buttons
+                                                    ? themeMenu.styles.buttonsActive
+                                                    : themeMenu.styles.buttons
                                             }
                                             titleStyle={
                                                 currentScreen === 'Map'
-                                                    ? headerMenuModal.buttonsTitleActive
-                                                    : headerMenuModal.buttonsTitle
+                                                    ? themeMenu.styles.buttonsTitleActive
+                                                    : themeMenu.styles.buttonsTitle
                                             }
                                             title={this.translate('components.headerMenuRight.menuItems.map')}
                                             icon={
                                                 <FontAwesomeIcon
                                                     style={
                                                         currentScreen === 'Map'
-                                                            ? headerMenuModal.iconStyleActive
-                                                            : headerMenuModal.iconStyle
+                                                            ? themeMenu.styles.iconStyleActive
+                                                            : themeMenu.styles.iconStyle
                                                     }
                                                     name="globe-americas"
                                                     size={18}
@@ -317,21 +330,21 @@ class HeaderMenuRight extends React.Component<
                                         <Button
                                             buttonStyle={
                                                 currentScreen === 'Areas'
-                                                    ? headerMenuModal.buttonsActive
-                                                    : headerMenuModal.buttons
+                                                    ? themeMenu.styles.buttonsActive
+                                                    : themeMenu.styles.buttons
                                             }
                                             titleStyle={
                                                 currentScreen === 'Areas'
-                                                    ? headerMenuModal.buttonsTitleActive
-                                                    : headerMenuModal.buttonsTitle
+                                                    ? themeMenu.styles.buttonsTitleActive
+                                                    : themeMenu.styles.buttonsTitle
                                             }
                                             title={this.translate('components.headerMenuRight.menuItems.moments')}
                                             icon={
                                                 <MaterialIcon
                                                     style={
                                                         currentScreen === 'Areas'
-                                                            ? headerMenuModal.iconStyleActive
-                                                            : headerMenuModal.iconStyle
+                                                            ? themeMenu.styles.iconStyleActive
+                                                            : themeMenu.styles.iconStyle
                                                     }
                                                     name="watch"
                                                     size={18}
@@ -339,26 +352,26 @@ class HeaderMenuRight extends React.Component<
                                             }
                                             onPress={() => this.navTo('Areas')}
                                         /> */}
-                                        <View style={headerMenuModal.notificationsItemContainer}>
+                                        <View style={themeMenu.styles.notificationsItemContainer}>
                                             <Button
                                                 buttonStyle={
                                                     currentScreen === 'Notifications'
-                                                        ? headerMenuModal.buttonsActive
-                                                        : headerMenuModal.buttons
+                                                        ? themeMenu.styles.buttonsActive
+                                                        : themeMenu.styles.buttons
                                                 }
                                                 containerStyle={{ width: '100%' }}
                                                 titleStyle={
                                                     currentScreen === 'Notifications'
-                                                        ? headerMenuModal.buttonsTitleActive
-                                                        : headerMenuModal.buttonsTitle
+                                                        ? themeMenu.styles.buttonsTitleActive
+                                                        : themeMenu.styles.buttonsTitle
                                                 }
                                                 title={this.translate('components.headerMenuRight.menuItems.notifications')}
                                                 icon={
                                                     <FontAwesomeIcon
                                                         style={
                                                             currentScreen === 'Notifications'
-                                                                ? headerMenuModal.iconStyleActive
-                                                                : headerMenuModal.iconStyle
+                                                                ? themeMenu.styles.iconStyleActive
+                                                                : themeMenu.styles.iconStyle
                                                         }
                                                         name={hasNotifications ? 'bell' : 'bell-slash'}
                                                         size={18}
@@ -368,27 +381,27 @@ class HeaderMenuRight extends React.Component<
                                                 onPress={() => this.navTo('Notifications')}
                                             />
                                             {
-                                                hasNotifications && <View style={headerMenuModal.notificationCircle} />
+                                                hasNotifications && <View style={themeMenu.styles.notificationCircle} />
                                             }
                                         </View>
                                         <Button
                                             buttonStyle={
                                                 currentScreen === 'ActiveConnections'
-                                                    ? headerMenuModal.buttonsActive
-                                                    : headerMenuModal.buttons
+                                                    ? themeMenu.styles.buttonsActive
+                                                    : themeMenu.styles.buttons
                                             }
                                             titleStyle={
                                                 currentScreen === 'ActiveConnections'
-                                                    ? headerMenuModal.buttonsTitleActive
-                                                    : headerMenuModal.buttonsTitle
+                                                    ? themeMenu.styles.buttonsTitleActive
+                                                    : themeMenu.styles.buttonsTitle
                                             }
                                             title={this.translate('components.headerMenuRight.menuItems.chat')}
                                             icon={
                                                 <FontAwesomeIcon
                                                     style={
                                                         currentScreen === 'ActiveConnections'
-                                                            ? headerMenuModal.iconStyleActive
-                                                            : headerMenuModal.iconStyle
+                                                            ? themeMenu.styles.iconStyleActive
+                                                            : themeMenu.styles.iconStyle
                                                     }
                                                     name="comments"
                                                     size={18}
@@ -400,21 +413,21 @@ class HeaderMenuRight extends React.Component<
                                         <Button
                                             buttonStyle={
                                                 currentScreen === 'CreateConnection'
-                                                    ? headerMenuModal.buttonsActive
-                                                    : headerMenuModal.buttons
+                                                    ? themeMenu.styles.buttonsActive
+                                                    : themeMenu.styles.buttons
                                             }
                                             titleStyle={
                                                 currentScreen === 'CreateConnection'
-                                                    ? headerMenuModal.buttonsTitleActive
-                                                    : headerMenuModal.buttonsTitle
+                                                    ? themeMenu.styles.buttonsTitleActive
+                                                    : themeMenu.styles.buttonsTitle
                                             }
                                             title={this.translate('components.headerMenuRight.menuItems.addConnection')}
                                             icon={
                                                 <FontAwesomeIcon
                                                     style={
                                                         currentScreen === 'CreateConnection'
-                                                            ? headerMenuModal.iconStyleActive
-                                                            : headerMenuModal.iconStyle
+                                                            ? themeMenu.styles.iconStyleActive
+                                                            : themeMenu.styles.iconStyle
                                                     }
                                                     name="user-plus"
                                                     size={18}
@@ -426,21 +439,21 @@ class HeaderMenuRight extends React.Component<
                                         {/* <Button
                                             buttonStyle={
                                                 currentScreen === 'HostedChat'
-                                                    ? headerMenuModal.buttonsActive
-                                                    : headerMenuModal.buttons
+                                                    ? themeMenu.styles.buttonsActive
+                                                    : themeMenu.styles.buttons
                                             }
                                             titleStyle={
                                                 currentScreen === 'HostedChat'
-                                                    ? headerMenuModal.buttonsTitleActive
-                                                    : headerMenuModal.buttonsTitle
+                                                    ? themeMenu.styles.buttonsTitleActive
+                                                    : themeMenu.styles.buttonsTitle
                                             }
                                             title={this.translate('components.headerMenuRight.menuItems.hostedChat')}
                                             icon={
                                                 <Icon
                                                     style={
                                                         currentScreen === 'HostedChat'
-                                                            ? headerMenuModal.iconStyleActive
-                                                            : headerMenuModal.iconStyle
+                                                            ? themeMenu.styles.iconStyleActive
+                                                            : themeMenu.styles.iconStyle
                                                     }
                                                     name="chat"
                                                     size={18}
@@ -451,21 +464,21 @@ class HeaderMenuRight extends React.Component<
                                         {/* <Button
                                             buttonStyle={
                                                 currentScreen === 'ActiveConnections'
-                                                    ? headerMenuModal.buttonsActive
-                                                    : headerMenuModal.buttons
+                                                    ? themeMenu.styles.buttonsActive
+                                                    : themeMenu.styles.buttons
                                             }
                                             titleStyle={
                                                 currentScreen === 'ActiveConnections'
-                                                    ? headerMenuModal.buttonsTitleActive
-                                                    : headerMenuModal.buttonsTitle
+                                                    ? themeMenu.styles.buttonsTitleActive
+                                                    : themeMenu.styles.buttonsTitle
                                             }
                                             title={this.translate('components.headerMenuRight.menuItems.connections')}
                                             icon={
                                                 <FontAwesomeIcon
                                                     style={
                                                         currentScreen === 'ActiveConnections'
-                                                            ? headerMenuModal.iconStyleActive
-                                                            : headerMenuModal.iconStyle
+                                                            ? themeMenu.styles.iconStyleActive
+                                                            : themeMenu.styles.iconStyle
                                                     }
                                                     name="users"
                                                     size={18}
@@ -476,21 +489,21 @@ class HeaderMenuRight extends React.Component<
                                         <Button
                                             buttonStyle={
                                                 currentScreen === 'Settings'
-                                                    ? headerMenuModal.buttonsActive
-                                                    : headerMenuModal.buttons
+                                                    ? themeMenu.styles.buttonsActive
+                                                    : themeMenu.styles.buttons
                                             }
                                             titleStyle={
                                                 currentScreen === 'Settings'
-                                                    ? headerMenuModal.buttonsTitleActive
-                                                    : headerMenuModal.buttonsTitle
+                                                    ? themeMenu.styles.buttonsTitleActive
+                                                    : themeMenu.styles.buttonsTitle
                                             }
                                             title={this.translate('components.headerMenuRight.menuItems.account')}
                                             icon={
                                                 <FontAwesomeIcon
                                                     style={
                                                         currentScreen === 'Settings'
-                                                            ? headerMenuModal.iconStyleActive
-                                                            : headerMenuModal.iconStyle
+                                                            ? themeMenu.styles.iconStyleActive
+                                                            : themeMenu.styles.iconStyle
                                                     }
                                                     name="user-cog"
                                                     size={18}
@@ -500,16 +513,16 @@ class HeaderMenuRight extends React.Component<
                                             onPress={() => this.navTo('Settings')}
                                         />
                                     </View>
-                                    <View style={headerMenuModal.footer}>
+                                    <View style={themeMenu.styles.footer}>
                                         {
                                             Platform.OS !== 'ios' &&
                                             <Button
-                                                titleStyle={headerMenuModal.buttonsTitle}
-                                                buttonStyle={[headerMenuModal.buttons, , { justifyContent: 'center', marginBottom: 10 }]}
+                                                titleStyle={themeMenu.styles.buttonsTitle}
+                                                buttonStyle={[themeMenu.styles.buttons, , { justifyContent: 'center', marginBottom: 10 }]}
                                                 title={this.translate('components.headerMenuRight.menuItems.tour')}
                                                 icon={
                                                     <FontAwesomeIcon
-                                                        style={headerMenuModal.iconStyle}
+                                                        style={themeMenu.styles.iconStyle}
                                                         name="info"
                                                         size={18}
                                                     />
@@ -518,13 +531,13 @@ class HeaderMenuRight extends React.Component<
                                             />
                                         }
                                         <Button
-                                            titleStyle={headerMenuModal.buttonsTitle}
-                                            buttonStyle={[headerMenuModal.buttons, { justifyContent: 'center' }]}
+                                            titleStyle={themeMenu.styles.buttonsTitle}
+                                            buttonStyle={[themeMenu.styles.buttons, { justifyContent: 'center' }]}
                                             title={this.translate('components.headerMenuRight.menuItems.logout')}
                                             iconRight
                                             icon={
                                                 <FontAwesomeIcon
-                                                    style={headerMenuModal.iconStyle}
+                                                    style={themeMenu.styles.iconStyle}
                                                     name="sign-out-alt"
                                                     size={18}
                                                 />

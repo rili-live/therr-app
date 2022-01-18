@@ -1,4 +1,5 @@
 import { Platform, StyleSheet } from 'react-native';
+import { IMobileThemeName } from 'therr-react/types';
 import * as therrTheme from '../themes';
 
 const titleStyles: any = {

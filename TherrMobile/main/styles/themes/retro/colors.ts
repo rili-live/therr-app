@@ -1,6 +1,7 @@
 import Color from 'color';
+import { ITherrThemeColors, ITherrThemeColorVariations } from '../';
 
-const colors = {
+const colors: ITherrThemeColors = {
     // Main
     primary: '#1C7F8A',
     primary2: '#20919E',
@@ -65,7 +66,7 @@ const colors = {
     },
 };
 
-const colorVariations = {
+const colorVariations: ITherrThemeColorVariations = {
     primaryFade: new Color(colors.primary).fade(0.35).toString(),
     primaryFadeMore: new Color(colors.primary).fade(0.65).toString(),
     primary2Fade: new Color(colors.primary2).fade(0.35).toString(),
@@ -89,8 +90,7 @@ const colorVariations = {
     backgroundNeutralLighter: new Color(colors.backgroundNeutral).lighten(0.05).toString(),
 };
 
-export default colors;
-
 export {
+    colors,
     colorVariations,
 };

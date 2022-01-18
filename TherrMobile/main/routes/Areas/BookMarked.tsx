@@ -8,8 +8,10 @@ import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/ty
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import translator from '../../services/translator';
-import styles from '../../styles';
-import momentStyles from '../../styles/user-content/moments';
+import { buildStyles } from '../../styles';
+import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
+import { buildStyles as buildMomentStyles } from '../../styles/user-content/moments';
+import { buildStyles as buildReactionsModalStyles } from '../../styles/modal/areaReactionsModal';
 import AreaCarousel from './AreaCarousel';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
 import { getReactionUpdateArgs } from '../../utilities/reactions';
@@ -63,6 +65,10 @@ const mapDispatchToProps = (dispatch: any) =>
 class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
     private carouselRef;
     private translate: Function;
+    private theme = buildStyles();
+    private themeMenu = buildMenuStyles();
+    private themeMoments = buildMomentStyles();
+    private themeReactionsModal = buildReactionsModalStyles();
 
     constructor(props) {
         super(props);
@@ -74,6 +80,10 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
             selectedArea: {},
         };
 
+        this.theme = buildStyles(props.user.settings.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings.mobileThemeName);
+        this.themeMoments = buildMomentStyles(props.user.settings.mobileThemeName);
+        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -195,13 +205,13 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         });
     }
 
-    renderCarousel = (content) => {
+    renderCarousel = (content, user) => {
         const { activeTab, isLoading } = this.state;
         const { createOrUpdateMomentReaction, createOrUpdateSpaceReaction } = this.props;
 
         if (isLoading) {
             return (
-                <Text style={momentStyles.noAreasFoundText}>Loading...</Text>
+                <Text style={this.themeMoments.styles.noAreasFoundText}>Loading...</Text>
             );
         }
 
@@ -226,6 +236,8 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
                 updateSpaceReaction={createOrUpdateSpaceReaction}
                 emptyListMessage={this.getEmptyListMessage(activeTab)}
                 renderHeader={() => null}
+                user={user}
+                rootStyles={this.theme.styles}
                 // viewportHeight={viewportHeight}
                 // viewportWidth={viewportWidth}
             />
@@ -239,9 +251,9 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={styles.safeAreaView}>
+                <SafeAreaView style={this.theme.styles.safeAreaView}>
                     {
-                        this.renderCarousel(content)
+                        this.renderCarousel(content, user)
                     }
                 </SafeAreaView>
                 <AreaOptionsModal
@@ -249,12 +261,14 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
                     onRequestClose={() => this.toggleAreaOptions(selectedArea)}
                     translate={this.translate}
                     onSelect={this.onAreaOptionSelect}
+                    themeReactionsModal={this.themeReactionsModal}
                 />
                 <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}
                     translate={this.translate}
                     user={user}
+                    themeMenu={this.themeMenu}
                 />
             </>
         );

@@ -6,8 +6,8 @@ import 'react-native-gesture-handler';
 import { INotificationsState } from 'therr-react/types';
 import LocationActions from '../../redux/actions/LocationActions';
 import { ILocationState } from '../../types/redux/location';
-import { buttonMenu } from '../../styles/navigation';
 import { buttonMenuHeight, buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
+import { ITherrThemeColors } from 'main/styles/themes';
 
 interface IButtonMenuDispatchProps {
     updateGpsStatus: Function;
@@ -27,6 +27,10 @@ export interface IButtonMenuProps extends IStoreProps {
     onButtonPress?: Function;
     translate: Function;
     user: any;
+    themeMenu: {
+        colors: ITherrThemeColors;
+        styles: any;
+    }
 }
 
 interface IButtonMenuState {}
@@ -67,7 +71,7 @@ export class ButtonMenu extends React.Component<IButtonMenuProps, IButtonMenuSta
     };
 
     render() {
-        const { isAbsolute, isCompact } = this.props;
+        const { isAbsolute, isCompact, themeMenu } = this.props;
         const overrideStyles: any = {};
         if (!isAbsolute) {
             overrideStyles.position = 'relative';
@@ -75,8 +79,8 @@ export class ButtonMenu extends React.Component<IButtonMenuProps, IButtonMenuSta
         const containerHeight = isCompact ? buttonMenuHeightCompact : buttonMenuHeight;
 
         return (
-            <View style={[buttonMenu.container, overrideStyles, { height: containerHeight }]}>
-                <View style={buttonMenu.containerInner}>
+            <View style={[themeMenu.styles.container, overrideStyles, { height: containerHeight }]}>
+                <View style={themeMenu.styles.containerInner}>
                     {this.props.children}
                 </View>
             </View>

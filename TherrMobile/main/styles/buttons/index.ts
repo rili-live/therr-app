@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { IMobileThemeName } from 'therr-react/types';
 import { buttonMenuHeight } from '../navigation/buttonMenu';
 import * as therrTheme from '../themes';
 

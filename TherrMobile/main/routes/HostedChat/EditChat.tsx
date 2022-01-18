@@ -9,8 +9,8 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { ForumActions } from 'therr-react/redux/actions';
 import { IUserState } from 'therr-react/types';
 import translator from '../../services/translator';
-import styles from '../../styles';
-import * as therrTheme from '../../styles/themes';
+import { buildStyles } from '../../styles';
+import { buildStyles as buildCategoryStyles } from '../../styles/user-content/hosted-chat/categories';
 import accentLayoutStyles from '../../styles/layouts/accent';
 import { accentEditForm as accentFormStyles } from '../../styles/forms';
 import formatHashtags from '../../utilities/formatHashtags';
@@ -60,6 +60,8 @@ const mapDispatchToProps = (dispatch: any) =>
 class EditChat extends React.Component<IEditChatProps, IEditChatState> {
     private scrollViewRef;
     private translate: Function;
+    private theme = buildStyles();
+    private themeCategory = buildCategoryStyles();
 
     constructor(props) {
         super(props);
@@ -77,6 +79,8 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
             isSubmitting: false,
         };
 
+        this.theme = buildStyles(props.user.settings.mobileThemeName);
+        this.themeCategory = buildCategoryStyles(props.user.settings.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -246,21 +250,23 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={styles.safeAreaView}>
+                <SafeAreaView style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={[styles.bodyFlex, accentLayoutStyles.bodyEdit]}
-                        contentContainerStyle={[styles.bodyScroll, accentLayoutStyles.bodyEditScroll]}
+                        style={[this.theme.styles.bodyFlex, accentLayoutStyles.bodyEdit]}
+                        contentContainerStyle={[this.theme.styles.bodyScroll, accentLayoutStyles.bodyEditScroll]}
                     >
                         <ChatCategories
                             style={accentLayoutStyles.categoriesContainer}
-                            backgroundColor={therrTheme.colors.accent1}
+                            backgroundColor={this.theme.colors.accent1}
                             categories={categories}
                             onCategoryPress={this.handleCategoryPress}
                             translate={this.translate}
                             onCategoryTogglePress={this.handleCategoryTogglePress}
                             toggleChevronName={toggleChevronName}
+                            theme={this.theme}
+                            themeCategory={this.themeCategory}
                         />
                         <View style={accentLayoutStyles.container}>
                             <AccentInput
@@ -283,7 +289,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                             />
                             <AccentInput
                                 autoCorrect={false}
-                                errorStyle={styles.displayNone}
+                                errorStyle={this.theme.styles.displayNone}
                                 placeholder={this.translate(
                                     'forms.editHostedChat.placeholders.hashTags'
                                 )}

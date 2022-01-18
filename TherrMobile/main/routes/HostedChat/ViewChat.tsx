@@ -20,23 +20,22 @@ import randomColor from 'randomcolor';
 // import ViewChatButtonMenu from '../../components/ButtonMenu/ViewChatButtonMenu';
 import translator from '../../services/translator';
 // import RoundInput from '../../components/Input/Round';
-import * as therrTheme from '../../styles/themes';
 import accentLayoutStyles from '../../styles/layouts/accent';
-import styles from '../../styles';
-import viewChatStyles from '../../styles/user-content/hosted-chat/view-chat';
+import { buildStyles } from '../../styles';
+import { buildStyles as buildChatStyles } from '../../styles/user-content/hosted-chat/view-chat';
+import { buildStyles as buildMessageStyles } from '../../styles/user-content/messages';
 import { accentEditForm as accentFormStyles } from '../../styles/forms';
-import messageStyles from '../../styles/user-content/messages';
 import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
 import AccentInput from '../../components/Input/Accent';
 import BaseStatusBar from '../../components/BaseStatusBar';
 
 const userColors: any = {}; // local state
 
-const renderMessage = ({ item }) => {
+const renderMessage = (item, theme, themeChat, themeMessage) => {
     const senderTitle = !item.isAnnouncement ? item.fromUserName : '';
     const timeSplit = item.time.split(', ');
     const isYou = item.fromUserName?.toLowerCase().includes('you');
-    const yourColor = therrTheme.colors.accent3;
+    const yourColor = theme.colors.accent3;
 
     if (!userColors[item.fromUserName]) {
         userColors[item.fromUserName] = isYou ? yourColor : randomColor({
@@ -46,26 +45,26 @@ const renderMessage = ({ item }) => {
 
     const messageColor = isYou
         ? (userColors[item.fromUserName] || yourColor)
-        : (userColors[item.fromUserName] || therrTheme.colors.accentBlue);
+        : (userColors[item.fromUserName] || theme.colors.accentBlue);
 
     return (
-        <View style={[viewChatStyles.messageContainer, {
+        <View style={[themeChat.styles.messageContainer, {
             borderLeftColor: messageColor,
             paddingLeft: item.isAnnouncement ? 18 : 10,
         }]}>
             <Image
                 source={{ uri: `${item.fromUserImgSrc}?size=50x50` }}
-                style={messageStyles.userImage}
+                style={themeMessage.styles.userImage}
                 PlaceholderContent={<ActivityIndicator />}
             />
-            <View style={viewChatStyles.messageContentContainer}>
-                <View style={viewChatStyles.messageHeader}>
+            <View style={themeChat.styles.messageContentContainer}>
+                <View style={themeChat.styles.messageHeader}>
                     {
-                        !!senderTitle && <Text style={viewChatStyles.senderTitleText}>{senderTitle}</Text>
+                        !!senderTitle && <Text style={themeChat.styles.senderTitleText}>{senderTitle}</Text>
                     }
-                    <Text style={viewChatStyles.messageTime}>{timeSplit[1]}</Text>
+                    <Text style={themeChat.styles.messageTime}>{timeSplit[1]}</Text>
                 </View>
-                <Text style={viewChatStyles.messageText}>{item.text}</Text>
+                <Text style={themeChat.styles.messageText}>{item.text}</Text>
             </View>
         </View>
     );
@@ -115,6 +114,9 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
     private flatListRef;
     private scrollViewRef;
     private translate: Function;
+    private theme = buildStyles();
+    private themeChat = buildChatStyles();
+    private themeMessage = buildMessageStyles();
 
     constructor(props) {
         super(props);
@@ -126,6 +128,9 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
             msgInputVal: '',
         };
 
+        this.theme = buildStyles(props.user.settings.mobileThemeName);
+        this.themeChat = buildChatStyles(props.user.settings.mobileThemeName);
+        this.themeMessage = buildMessageStyles(props.user.settings.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -180,9 +185,9 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={styles.safeAreaView}>
+                <SafeAreaView style={this.theme.styles.safeAreaView}>
                     <View
-                        style={[styles.bodyFlex, accentLayoutStyles.bodyEdit]}
+                        style={[this.theme.styles.bodyFlex, accentLayoutStyles.bodyEdit]}
                     >
                         <View style={accentLayoutStyles.containerHeader}>
                             <Text>{subtitle}</Text>
@@ -193,18 +198,18 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                                 onHashtagPress={() => {}}
                             />
                         </View>
-                        <View style={[accentLayoutStyles.container, viewChatStyles.container]}>
+                        <View style={[accentLayoutStyles.container, this.themeChat.styles.container]}>
                             <FlatList
                                 data={mgs}
                                 keyExtractor={(item) => String(item.key)}
-                                renderItem={renderMessage}
+                                renderItem={({ item }) => renderMessage(item, this.theme, this.themeChat, this.themeMessage)}
                                 ref={(component) => (this.flatListRef = component)}
-                                style={styles.stretch}
+                                style={this.theme.styles.stretch}
                                 onContentSizeChange={() => mgs.length && this.flatListRef.scrollToEnd({ animated: true })}
                             />
                         </View>
                     </View>
-                    <View style={[accentLayoutStyles.footer, viewChatStyles.footer]}>
+                    <View style={[accentLayoutStyles.footer, this.themeChat.styles.footer]}>
                         <Button
                             containerStyle={accentFormStyles.backButtonContainerFixed}
                             buttonStyle={accentFormStyles.backButton}
@@ -225,13 +230,13 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                                 'pages.directMessage.inputPlaceholder'
                             )}
                             onSubmitEditing={() => this.handleSend()}
-                            containerStyle={messageStyles.inputContainer}
-                            errorStyle={styles.displayNone}
+                            containerStyle={this.themeMessage.styles.inputContainer}
+                            errorStyle={this.theme.styles.displayNone}
                         />
                         <Button
-                            icon={<MaterialIcon name="send" size={26} style={messageStyles.icon} />}
-                            buttonStyle={messageStyles.sendBtn}
-                            containerStyle={[messageStyles.sendBtnContainer, viewChatStyles.sendBtnContainer]}
+                            icon={<MaterialIcon name="send" size={26} style={this.themeMessage.styles.icon} />}
+                            buttonStyle={this.themeMessage.styles.sendBtn}
+                            containerStyle={[this.themeMessage.styles.sendBtnContainer, this.themeChat.styles.sendBtnContainer]}
                             onPress={this.handleSend}
                         />
                     </View>

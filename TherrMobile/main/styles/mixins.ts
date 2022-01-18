@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-// import * as therrTheme from './themes';
 
 const SMALL = 10;
 const MEDIUM = 30;

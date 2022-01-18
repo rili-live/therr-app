@@ -15,7 +15,7 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import YoutubePlayer from 'react-native-youtube-iframe';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
-import styles from '../styles';
+import { buildStyles } from '../styles';
 // import * as therrTheme from '../styles/themes';
 import formStyles, { accentEditForm as accentFormStyles } from '../styles/forms';
 import accentLayoutStyles from '../styles/layouts/accent';
@@ -82,6 +82,8 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
     private scrollViewRef;
     private translate: Function;
     private unsubscribeNavListener;
+    private theme = buildStyles();
+    private themeReactionsModal = buildReactionsModalStyles();
 
     constructor(props) {
         super(props);
@@ -102,6 +104,8 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
             selectedSpace: {},
         };
 
+        this.theme = buildStyles(props.user.settings.mobileThemeName);
+        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
 
         this.notificationMsg = (space.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
@@ -265,12 +269,12 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView  style={styles.safeAreaView}>
+                <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={[styles.bodyFlex, accentLayoutStyles.bodyView]}
-                        contentContainerStyle={[styles.bodyScroll, accentLayoutStyles.bodyViewScroll]}
+                        style={[this.theme.styles.bodyFlex, accentLayoutStyles.bodyView]}
+                        contentContainerStyle={[this.theme.styles.bodyScroll, accentLayoutStyles.bodyViewScroll]}
                     >
                         <View style={[accentLayoutStyles.container, viewSpaceStyles.areaContainer]}>
                             <AreaDisplay
@@ -284,10 +288,12 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                 goToViewUser={this.goToViewUser}
                                 updateAreaReaction={(spaceId, data) => this.onUpdateSpaceReaction(spaceId, data)}
                                 // TODO: User Username from response
+                                user={user}
                                 userDetails={{
                                     userName: spaceUserName || space.fromUserId,
                                 }}
                                 areaMedia={spaceMedia}
+                                theme={this.theme}
                             />
                         </View>
                         {
@@ -384,6 +390,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                     onRequestClose={() => this.toggleAreaOptions(selectedSpace)}
                     translate={this.translate}
                     onSelect={this.onSpaceOptionSelect}
+                    themeReactionsModal={this.themeReactionsModal}
                 />
             </>
         );

@@ -16,8 +16,8 @@ import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
 import SquareInput from '../components/Input/Square';
 import PhoneNumberInput from '../components/Input/PhoneNumberInput';
-import * as therrTheme from '../styles/themes';
-import styles, { addMargins } from '../styles';
+import { buildStyles, addMargins } from '../styles';
+import { buildStyles as buildMenuStyles } from '../styles/navigation/buttonMenu';
 import formStyles from '../styles/forms';
 import BaseStatusBar from '../components/BaseStatusBar';
 import MessagesContactsTabs from '../components/FlatListHeaderTabs/MessagesContactsTabs';
@@ -69,6 +69,8 @@ const mapDispatchToProps = (dispatch: any) =>
 
 class Home extends React.Component<IHomeProps, IHomeState> {
     private translate: Function;
+    private theme = buildStyles();
+    private themeMenu = buildMenuStyles();
 
     constructor(props) {
         super(props);
@@ -85,6 +87,8 @@ class Home extends React.Component<IHomeProps, IHomeState> {
             isNameConfirmModalVisible: false,
         };
 
+        this.theme = buildStyles(props.user.settings.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -290,17 +294,17 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={styles.safeAreaView}>
+                <SafeAreaView style={this.theme.styles.safeAreaView}>
                     <FlatList
                         data={[{}]}
                         keyExtractor={(item) => String(item.id)}
                         renderItem={() => (
-                            <View style={styles.body}>
-                                <View style={styles.sectionContainer}>
-                                    <Text style={styles.sectionTitle}>
+                            <View style={this.theme.styles.body}>
+                                <View style={this.theme.styles.sectionContainer}>
+                                    <Text style={this.theme.styles.sectionTitle}>
                                         {this.translate('pages.userProfile.h2.createConnection')}
                                     </Text>
-                                    <View style={styles.sectionForm}>
+                                    <View style={this.theme.styles.sectionForm}>
                                         <ReactPicker
                                             selectedValue={connectionContext}
                                             style={formStyles.picker}
@@ -333,7 +337,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                                     <FontAwesomeIcon
                                                         name="envelope"
                                                         size={22}
-                                                        color={therrTheme.colorVariations.primary3Fade}
+                                                        color={this.theme.colorVariations.primary3Fade}
                                                     />
                                                 }
                                             />
@@ -375,6 +379,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                 tabName="CreateConnection"
                                 navigation={navigation}
                                 translate={this.translate}
+                                containerStyles={this.themeMenu.styles.tabsContainer}
                             />
                         )}
                         stickyHeaderIndices={[0]}
@@ -388,12 +393,14 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                     text={this.translate('forms.createConnection.modal.nameConfirm')}
                     textCancel={this.translate('forms.createConnection.modal.noThanks')}
                     translate={this.translate}
+                    theme={this.theme}
                 />
                 <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}
                     translate={this.translate}
                     user={user}
+                    themeMenu={this.themeMenu}
                 />
             </>
         );

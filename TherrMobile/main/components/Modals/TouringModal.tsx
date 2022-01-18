@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import { Text, Modal, Pressable, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import styles from '../../styles/modal/tourModal';
 import buttonStyles from '../../styles/buttons';
 
 interface ITouringModal {
     isVisible: boolean;
     onRequestClose: any;
     translate: Function;
+    themeTour: {
+        styles: any;
+    }
 }
 
 const ModalButton = ({ title, iconName, onPress, iconRight }) => {
@@ -37,6 +39,7 @@ const ModalButton = ({ title, iconName, onPress, iconRight }) => {
 export default ({
     isVisible,
     onRequestClose,
+    themeTour,
     translate,
 }: ITouringModal) => {
     const [tab, setTab] = useState(0);
@@ -50,12 +53,12 @@ export default ({
         >
             <Pressable
                 onPress={onRequestClose}
-                style={styles.overlay}>
+                style={themeTour.styles.overlay}>
                 {
                     (tab !== 1 && tab !== 2) &&
-                    <Pressable style={styles.container}>
-                        <Text style={styles.header}>{translate('modals.touringModal.header1')}</Text>
-                        <Text style={styles.text}>{translate('modals.touringModal.createAMoment')}</Text>
+                    <Pressable style={themeTour.styles.container}>
+                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header1')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.createAMoment')}</Text>
                         <View style={{ width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                             <ModalButton
                                 iconName="close"
@@ -74,9 +77,9 @@ export default ({
                 }
                 {
                     (tab === 1) &&
-                    <Pressable style={styles.container}>
-                        <Text style={styles.header}>{translate('modals.touringModal.header2')}</Text>
-                        <Text style={styles.text}>{translate('modals.touringModal.claimYourSpaces')}</Text>
+                    <Pressable style={themeTour.styles.container}>
+                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header2')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.claimYourSpaces')}</Text>
                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                             <ModalButton
                                 iconName="arrow-back"
@@ -95,9 +98,9 @@ export default ({
                 }
                 {
                     (tab === 2) &&
-                    <Pressable style={styles.container}>
-                        <Text style={styles.header}>{translate('modals.touringModal.header2')}</Text>
-                        <Text style={styles.text}>{translate('modals.touringModal.exploreTheWorld')}</Text>
+                    <Pressable style={themeTour.styles.container}>
+                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header2')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.exploreTheWorld')}</Text>
                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                             <ModalButton
                                 iconName="arrow-back"

@@ -9,10 +9,11 @@ import { IContentState, IMapState, IUserState, IUserConnectionsState } from 'the
 import { Location } from 'therr-js-utilities/constants';
 // import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 // import * as therrTheme from '../styles/themes';
-import styles from '../../styles';
-import * as therrTheme from '../../styles/themes';
+import { buildStyles } from '../../styles';
+import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
+import { buildStyles as buildMomentStyles } from '../../styles/user-content/moments';
+import { buildStyles as buildReactionsModalStyles } from '../../styles/modal/areaReactionsModal';
 import formStyles from '../../styles/forms';
-import momentStyles from '../../styles/user-content/moments';
 // import { buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
 import AreaCarousel from './AreaCarousel';
@@ -95,6 +96,10 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
     private loaderId: ILottieId;
     private loadTimeoutId: any;
     private unsubscribeNavigationListener;
+    private theme = buildStyles();
+    private themeMenu = buildMenuStyles();
+    private themeMoments = buildMomentStyles();
+    private themeReactionsModal = buildReactionsModalStyles();
 
     constructor(props) {
         super(props);
@@ -106,6 +111,10 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
             selectedArea: {},
         };
 
+        this.theme = buildStyles(props.user.settings.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings.mobileThemeName);
+        this.themeMoments = buildMomentStyles(props.user.settings.mobileThemeName);
+        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
         this.loaderId = getRandomLoaderId();
@@ -267,7 +276,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
         const { radiusOfAwareness, radiusOfInfluence } = this.props.map;
 
         return (
-            <View style={momentStyles.areaCarouselHeaderSliders}>
+            <View style={this.themeMoments.styles.areaCarouselHeaderSliders}>
                 <View style={formStyles.inputSliderContainerTight}>
                     <Text style={formStyles.inputLabelDark}>
                         {`${this.translate('forms.nearbyForm.labels.radiusOfAwareness', { meters: radiusOfAwareness })}`}
@@ -278,10 +287,10 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                         maximumValue={Location.MAX_RADIUS_OF_AWARENESS}
                         minimumValue={Location.MIN_RADIUS_OF_AWARENESS}
                         step={1}
-                        thumbStyle={{ backgroundColor: therrTheme.colors.accentBlue }}
+                        thumbStyle={{ backgroundColor: this.theme.colors.accentBlue }}
                         thumbTouchSize={{ width: 100, height: 100 }}
-                        minimumTrackTintColor={therrTheme.colorVariations.accentBlueLightFade}
-                        maximumTrackTintColor={therrTheme.colorVariations.accentBlueHeavyFade}
+                        minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
+                        maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
                         onSlidingStart={Keyboard.dismiss}
                     />
                 </View>
@@ -295,10 +304,10 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                         maximumValue={Location.MAX_RADIUS_OF_INFLUENCE}
                         minimumValue={Location.MIN_RADIUS_OF_INFLUENCE}
                         step={1}
-                        thumbStyle={{ backgroundColor: therrTheme.colors.accent1 }}
+                        thumbStyle={{ backgroundColor: this.theme.colors.accent1 }}
                         thumbTouchSize={{ width: 100, height: 100 }}
-                        minimumTrackTintColor={therrTheme.colorVariations.accent1LightFade}
-                        maximumTrackTintColor={therrTheme.colorVariations.accent1HeavyFade}
+                        minimumTrackTintColor={this.theme.colorVariations.accent1LightFade}
+                        maximumTrackTintColor={this.theme.colorVariations.accent1HeavyFade}
                         onSlidingStart={Keyboard.dismiss}
                     />
                 </View>
@@ -306,7 +315,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
         );
     }
 
-    renderCarousel = (content) => {
+    renderCarousel = (content, user) => {
         const { createOrUpdateMomentReaction, createOrUpdateSpaceReaction } = this.props;
         const { activeTab, isLoading } = this.state;
 
@@ -335,6 +344,8 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                 updateSpaceReaction={createOrUpdateSpaceReaction}
                 emptyListMessage={this.getEmptyListMessage(activeTab)}
                 renderHeader={this.renderHeader}
+                user={user}
+                rootStyles={this.theme.styles}
                 // viewportHeight={viewportHeight}
                 // viewportWidth={viewportWidth}
             />
@@ -348,9 +359,9 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={[styles.safeAreaView, { backgroundColor: therrTheme.colorVariations.backgroundNeutral }]}>
+                <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
                     {
-                        this.renderCarousel(content)
+                        this.renderCarousel(content, user)
                     }
                 </SafeAreaView>
                 <AreaOptionsModal
@@ -358,6 +369,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                     onRequestClose={() => this.toggleAreaOptions(selectedArea)}
                     translate={this.translate}
                     onSelect={this.onAreaOptionSelect}
+                    themeReactionsModal={this.themeReactionsModal}
                 />
                 {/* <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} /> */}
                 <MainButtonMenu
@@ -365,6 +377,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                     onActionButtonPress={this.scrollTop}
                     translate={this.translate}
                     user={user}
+                    themeMenu={this.themeMenu}
                 />
             </>
         );

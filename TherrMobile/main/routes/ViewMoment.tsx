@@ -15,8 +15,8 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import YoutubePlayer from 'react-native-youtube-iframe';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
-import styles from '../styles';
-// import * as therrTheme from '../styles/themes';
+import { buildStyles } from '../styles';
+import { buildStyles as buildReactionsModalStyles } from '../styles/modal/areaReactionsModal';
 import formStyles, { accentEditForm as accentFormStyles } from '../styles/forms';
 import accentLayoutStyles from '../styles/layouts/accent';
 import userContentStyles from '../styles/user-content';
@@ -82,6 +82,8 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     private scrollViewRef;
     private translate: Function;
     private unsubscribeNavListener;
+    private theme = buildStyles();
+    private themeReactionsModal = buildReactionsModalStyles();
 
     constructor(props) {
         super(props);
@@ -102,6 +104,8 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
             selectedMoment: {},
         };
 
+        this.theme = buildStyles(props.user.settings.mobileThemeName);
+        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
 
         this.notificationMsg = (moment.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
@@ -265,12 +269,12 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView  style={styles.safeAreaView}>
+                <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={[styles.bodyFlex, accentLayoutStyles.bodyView]}
-                        contentContainerStyle={[styles.bodyScroll, accentLayoutStyles.bodyViewScroll]}
+                        style={[this.theme.styles.bodyFlex, accentLayoutStyles.bodyView]}
+                        contentContainerStyle={[this.theme.styles.bodyScroll, accentLayoutStyles.bodyViewScroll]}
                     >
                         <View style={[accentLayoutStyles.container, viewMomentStyles.areaContainer]}>
                             <AreaDisplay
@@ -284,10 +288,12 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 goToViewUser={this.goToViewUser}
                                 updateAreaReaction={(momentId, data) => this.onUpdateMomentReaction(momentId, data)}
                                 // TODO: User Username from response
+                                user={user}
                                 userDetails={{
                                     userName: momentUserName || moment.fromUserId,
                                 }}
                                 areaMedia={momentMedia}
+                                theme={this.theme}
                             />
                         </View>
                         {
@@ -384,6 +390,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                     onRequestClose={() => this.toggleAreaOptions(selectedMoment)}
                     translate={this.translate}
                     onSelect={this.onMomentOptionSelect}
+                    themeReactionsModal={this.themeReactionsModal}
                 />
             </>
         );

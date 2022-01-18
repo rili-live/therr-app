@@ -7,8 +7,8 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { MessageActions, SocketActions } from 'therr-react/redux/actions';
 import { IUserState, IMessagesState } from 'therr-react/types';
-import styles from '../styles';
-import messageStyles from '../styles/user-content/messages';
+import { buildStyles } from '../styles';
+import { buildStyles as buildMessageStyles } from '../styles/user-content/messages';
 import translator from '../services/translator';
 import TextMessage from '../components/TextMessage';
 import RoundInput from '../components/Input/Round';
@@ -58,6 +58,8 @@ class DirectMessage extends React.Component<
 > {
     private flatListRef: any;
     private translate: Function;
+    private theme = buildStyles();
+    private themeMessage = buildMessageStyles();
 
     constructor(props) {
         super(props);
@@ -68,6 +70,8 @@ class DirectMessage extends React.Component<
             pageNumber: 1,
         };
 
+        this.theme = buildStyles(props.user.settings.mobileThemeName);
+        this.themeMessage = buildMessageStyles(props.user.settings.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -174,8 +178,8 @@ class DirectMessage extends React.Component<
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={[styles.safeAreaView]}>
-                    <View style={messageStyles.container}>
+                <SafeAreaView style={[this.theme.safeAreaView]}>
+                    <View style={this.themeMessage.container}>
                         <FlatList
                             data={dms}
                             inverted
@@ -188,15 +192,17 @@ class DirectMessage extends React.Component<
                                     message={item}
                                     isLeft={!item.fromUserName?.toLowerCase().includes('you')}
                                     isFirstOfMessage={this.isFirstOfMessage(dms, index)}
+                                    theme={this.theme}
+                                    themeMessage={this.themeMessage}
                                 />
                             )}
                             ref={(component) => (this.flatListRef = component)}
-                            style={styles.stretch}
+                            style={this.theme.stretch}
                             // onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}
                             onEndReached={this.tryLoadMore}
                             onEndReachedThreshold={0.5}
                         />
-                        <View style={messageStyles.sendInputsContainer}>
+                        <View style={this.themeMessage.sendInputsContainer}>
                             <RoundInput
                                 value={msgInputVal}
                                 onChangeText={this.handleInputChange}
@@ -204,13 +210,13 @@ class DirectMessage extends React.Component<
                                     'pages.directMessage.inputPlaceholder'
                                 )}
                                 onSubmitEditing={() => this.handleSend()}
-                                containerStyle={messageStyles.inputContainer}
-                                errorStyle={styles.displayNone}
+                                containerStyle={this.themeMessage.inputContainer}
+                                errorStyle={this.theme.displayNone}
                             />
                             <Button
-                                icon={<Icon name="send" size={26} style={messageStyles.icon} />}
-                                buttonStyle={messageStyles.sendBtn}
-                                containerStyle={messageStyles.sendBtnContainer}
+                                icon={<Icon name="send" size={26} style={this.themeMessage.icon} />}
+                                buttonStyle={this.themeMessage.sendBtn}
+                                containerStyle={this.themeMessage.sendBtnContainer}
                                 onPress={this.handleSend}
                             />
                         </View>

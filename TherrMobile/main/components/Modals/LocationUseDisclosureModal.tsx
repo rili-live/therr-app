@@ -2,7 +2,6 @@ import React from 'react';
 import { Text, Modal, Pressable } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import disclosureStyles from '../../styles/modal/locationDisclosure';
 import buttonStyles from '../../styles/buttons';
 
 export type IAcknowledgementType = 'accept' | 'deny' | 'close';
@@ -11,7 +10,10 @@ interface ILocationUseDisclosureModal {
     isVisible: boolean;
     onRequestClose: any;
     translate: Function;
-    onSelect: (type: IAcknowledgementType) => any
+    onSelect: (type: IAcknowledgementType) => any;
+    themeDisclosure: {
+        styles: any;
+    }
 }
 
 const ModalButton = ({ title, iconName, onPress }) => (
@@ -38,6 +40,7 @@ export default ({
     onRequestClose,
     translate,
     onSelect,
+    themeDisclosure,
 }: ILocationUseDisclosureModal) => {
     return (
         <Modal
@@ -48,11 +51,11 @@ export default ({
         >
             <Pressable
                 onPress={onRequestClose}
-                style={disclosureStyles.overlay}>
-                <Pressable style={disclosureStyles.container}>
-                    <Text style={disclosureStyles.header}>{translate('permissions.locationGps.header')}</Text>
-                    <Text style={disclosureStyles.text}>{translate('permissions.locationGps.description1')}</Text>
-                    <Text style={disclosureStyles.text}>{translate('permissions.locationGps.description2')}</Text>
+                style={themeDisclosure.styles.overlay}>
+                <Pressable style={themeDisclosure.styles.container}>
+                    <Text style={themeDisclosure.styles.header}>{translate('permissions.locationGps.header')}</Text>
+                    <Text style={themeDisclosure.styles.text}>{translate('permissions.locationGps.description1')}</Text>
+                    <Text style={themeDisclosure.styles.text}>{translate('permissions.locationGps.description2')}</Text>
                     {/* <ModalButton
                         iconName="check"
                         title={translate('permissions.locationGps.yes')}

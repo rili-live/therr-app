@@ -15,7 +15,8 @@ import {
 } from 'therr-react/types';
 import UsersActions from '../../redux/actions/UsersActions';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import styles from '../../styles';
+import { buildStyles } from '../../styles';
+import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import LottieLoader from '../../components/LottieLoader';
@@ -61,6 +62,8 @@ class ViewUser extends React.Component<
 > {
     private flatListRef: any;
     private translate: Function;
+    private theme = buildStyles();
+    private themeMenu = buildMenuStyles();
 
     constructor(props) {
         super(props);
@@ -72,6 +75,8 @@ class ViewUser extends React.Component<
             fetchedUserInView: {},
         };
 
+        this.theme = buildStyles(props.user.settings.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings.mobileThemeName);
         this.translate = (key: string, params: any): string =>
             translator('en-us', key, params);
     }
@@ -204,7 +209,7 @@ class ViewUser extends React.Component<
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView  style={styles.safeAreaView}>
+                <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     {
                         isLoading ?
                             <LottieLoader id="therr-black-rolling" /> :
@@ -227,12 +232,14 @@ class ViewUser extends React.Component<
                     text={confirmModalText}
                     translate={this.translate}
                     width={activeConfirmModal === 'remove-connection-request' ? '70%' : '60%'}
+                    theme={this.theme}
                 />
                 <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}
                     translate={this.translate}
                     user={user}
+                    themeMenu={this.themeMenu}
                 />
             </>
         );

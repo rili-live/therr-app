@@ -6,7 +6,6 @@ import 'react-native-gesture-handler';
 import { INotificationsState } from 'therr-react/types';
 import LocationActions from '../../redux/actions/LocationActions';
 import { ILocationState } from '../../types/redux/location';
-import buttonStyles from '../../styles/navigation/buttonMenu';
 
 interface IFlatListHeaderTabsDispatchProps {
     updateGpsStatus: Function;
@@ -19,6 +18,7 @@ interface IStoreProps extends IFlatListHeaderTabsDispatchProps {
 
 // Regular component props
 export interface IFlatListHeaderTabsProps extends IStoreProps {
+    containerStyles: any;
     navigation: any;
     onButtonPress?: Function;
     tabName: string;
@@ -69,7 +69,7 @@ export class FlatListHeaderTabs extends React.Component<IFlatListHeaderTabsProps
     render() {
         return (
             <View
-                style={buttonStyles.tabsContainer}
+                style={this.props.containerStyles}
             >
                 {this.props.children}
             </View>

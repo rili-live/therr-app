@@ -1,8 +1,8 @@
+import { ITherrThemeColors } from 'main/styles/themes';
 import React from 'react';
 import { Modal, Pressable } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import areaOptionsStyles from '../../styles/modal/momentOptions';
 import buttonStyles from '../../styles/buttons';
 
 export type ISelectionType = 'like' | 'dislike' | 'report';
@@ -11,6 +11,10 @@ interface IAreaOptionsModal {
     isVisible: boolean;
     onRequestClose: any;
     translate: Function;
+    themeReactionsModal: {
+        colors: ITherrThemeColors;
+        styles: any;
+    };
     onSelect: (type: ISelectionType) => any
 }
 

@@ -15,11 +15,10 @@ import YoutubePlayer from 'react-native-youtube-iframe';
 import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
-import styles, { addMargins } from '../styles';
+import { buildStyles, addMargins } from '../styles';
 import accentLayoutStyles from '../styles/layouts/accent';
-import * as therrTheme from '../styles/themes';
 import formStyles, { accentEditForm as editSpaceFormStyles } from '../styles/forms';
-import editSpaceStyles from '../styles/user-content/moments/editing';
+import { buildStyles as buildMomentStyles } from '../styles/user-content/moments/editing';
 import userContentStyles from '../styles/user-content';
 import {
     youtubeLinkRegex,
@@ -73,6 +72,8 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
     private scrollViewRef;
     private translate: Function;
     private unsubscribeNavListener;
+    private theme;
+    private themeMoments;
 
     constructor(props) {
         super(props);
@@ -95,6 +96,8 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
             imagePreviewPath: getImagePreviewPath(imageURI),
         };
 
+        this.theme = buildStyles(props.user.settings.mobileThemeName);
+        this.themeMoments = buildMomentStyles(props.user.settings.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
         this.categoryOptions = [
             {
@@ -380,21 +383,21 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={styles.safeAreaView}>
+                <SafeAreaView style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={[styles.bodyFlex, accentLayoutStyles.bodyEdit]}
-                        contentContainerStyle={[styles.bodyScroll, accentLayoutStyles.bodyEditScroll]}
+                        style={[this.theme.styles.bodyFlex, accentLayoutStyles.bodyEdit]}
+                        contentContainerStyle={[this.theme.styles.bodyScroll, accentLayoutStyles.bodyEditScroll]}
                     >
                         <Pressable style={accentLayoutStyles.container} onPress={Keyboard.dismiss}>
                             {
                                 !!imagePreviewPath &&
-                                <View style={editSpaceStyles.mediaContainer}>
+                                <View style={this.themeMoments.mediaContainer}>
                                     <Image
                                         source={{ uri: imagePreviewPath }}
-                                        style={editSpaceStyles.mediaImage}
+                                        style={this.themeMoments.mediaImage}
                                     />
                                 </View>
                             }
@@ -428,7 +431,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                             </View>
                             <AccentInput
                                 autoCorrect={false}
-                                errorStyle={styles.displayNone}
+                                errorStyle={this.theme.styles.displayNone}
                                 placeholder={this.translate(
                                     'forms.editSpace.labels.hashTags'
                                 )}
@@ -449,10 +452,10 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                     maximumValue={MAX_RADIUS_PUBLIC}
                                     minimumValue={MIN_RADIUS_PUBLIC}
                                     step={1}
-                                    thumbStyle={{ backgroundColor: therrTheme.colors.accentBlue }}
+                                    thumbStyle={{ backgroundColor: this.theme.colors.accentBlue }}
                                     thumbTouchSize={{ width: 100, height: 100 }}
-                                    minimumTrackTintColor={therrTheme.colorVariations.accentBlueLightFade}
-                                    maximumTrackTintColor={therrTheme.colorVariations.accentBlueHeavyFade}
+                                    minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
+                                    maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
                                     onSlidingStart={Keyboard.dismiss}
                                 />
                                 <Text style={formStyles.inputLabelDark}>

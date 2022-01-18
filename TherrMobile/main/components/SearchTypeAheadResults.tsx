@@ -1,12 +1,15 @@
+import { ITherrThemeColors } from 'main/styles/themes';
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
-import { getTypeAheadStyles } from '../styles/modal';
 
 interface ISearchTypeAheadProps {
     handleSelect: Function;
     searchPredictionResults: any[];
-    viewPortHeight: number;
+    themeSearch: {
+        colors: ITherrThemeColors;
+        styles: any;
+    };
 }
 
 const renderListItem = (item, { handleSelect, styles }) => {
@@ -24,20 +27,19 @@ const renderListItem = (item, { handleSelect, styles }) => {
 export default ({
     handleSelect,
     searchPredictionResults,
-    viewPortHeight,
+    themeSearch,
 }: ISearchTypeAheadProps) => {
-    const styles = getTypeAheadStyles({ viewPortHeight });
 
     return (
         <View
-            style={styles.container}
+            style={themeSearch.styles.container}
             // childrenWrapperStyle={mapStyles.momentAlertOverlayContainer}
         >
             <FlatList
                 data={searchPredictionResults}
                 keyExtractor={(item) => String(item.place_id)}
-                renderItem={({ item }) => renderListItem(item, { handleSelect, styles })}
-                ItemSeparatorComponent={() => <View style={styles.separator} />}
+                renderItem={({ item }) => renderListItem(item, { handleSelect, styles: themeSearch.styles })}
+                ItemSeparatorComponent={() => <View style={themeSearch.styles.separator} />}
                 keyboardShouldPersistTaps="always"
                 // ref={(component) => (this.flatListRef = component)}
                 // style={styles.stretch}

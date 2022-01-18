@@ -4,7 +4,7 @@ import { Text, View, SafeAreaView } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';
-import styles from '../../styles';
+import { buildStyles } from '../../styles';
 import RegisterForm from './RegisterForm';
 import { bindActionCreators } from 'redux';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -45,6 +45,7 @@ const mapDispatchToProps = (dispatch: any) =>
 
 class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> {
     private translate;
+    private theme = buildStyles();
 
     constructor(props) {
         super(props);
@@ -53,6 +54,7 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
             isEULAVisible: false,
         };
 
+        this.theme = buildStyles(props.user.settings.mobileThemeName);
         this.translate = (key: string, params: any): string =>
             translator('en-us', key, params);
     }
@@ -83,9 +85,9 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView  style={styles.safeAreaView}>
-                    <KeyboardAwareScrollView style={styles.bodyFlex} contentContainerStyle={styles.bodyScroll} enableOnAndroid>
-                        <View style={styles.sectionContainer}>
+                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                    <KeyboardAwareScrollView style={this.theme.styles.bodyFlex} contentContainerStyle={this.theme.styles.bodyScroll} enableOnAndroid>
+                        <View style={this.theme.styles.sectionContainer}>
                             <Text style={firstTimeUIStyles.titleWithSpacing}>
                                 {pageTitle}
                             </Text>
@@ -101,6 +103,7 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
                     text={eula}
                     textConfirm={this.translate('modals.confirmModal.agree')}
                     translate={this.translate}
+                    theme={this.theme}
                 />
             </>
         );

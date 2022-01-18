@@ -1,6 +1,9 @@
-import colors, { colorVariations } from './colors';
+import { colors, colorVariations } from './colors';
+import { ITherrTheme } from '../';
 
-export {
+const theme: ITherrTheme = {
     colors,
     colorVariations,
 };
+
+export default theme;

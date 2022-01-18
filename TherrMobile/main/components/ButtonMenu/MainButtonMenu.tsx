@@ -5,7 +5,6 @@ import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { ButtonMenu, mapStateToProps, mapDispatchToProps } from '.';
-import { buttonMenu } from '../../styles/navigation';
 // import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 
 class MainButtonMenuAlt extends ButtonMenu {
@@ -77,7 +76,7 @@ class MainButtonMenuAlt extends ButtonMenu {
     }
 
     render() {
-        const { onActionButtonPress, isCompact, translate } = this.props;
+        const { onActionButtonPress, isCompact, translate, themeMenu } = this.props;
         const currentScreen = this.getCurrentScreen();
         // const isMessageViewActive = currentScreen === 'Contacts' || currentScreen === 'ActiveConnections' || currentScreen === 'CreateConnection';
 
@@ -87,14 +86,14 @@ class MainButtonMenuAlt extends ButtonMenu {
                     title={!isCompact ? translate('menus.main.buttons.list') : null}
                     buttonStyle={
                         currentScreen === 'Areas'
-                            ? buttonMenu.buttonsActive
-                            : buttonMenu.buttons
+                            ? themeMenu.styles.buttonsActive
+                            : themeMenu.styles.buttons
                     }
-                    containerStyle={buttonMenu.buttonContainer}
+                    containerStyle={themeMenu.styles.buttonContainer}
                     titleStyle={
                         currentScreen === 'Areas'
-                            ? buttonMenu.buttonsTitleActive
-                            : buttonMenu.buttonsTitle
+                            ? themeMenu.styles.buttonsTitleActive
+                            : themeMenu.styles.buttonsTitle
                     }
                     icon={
                         <FontAwesomeIcon
@@ -102,8 +101,8 @@ class MainButtonMenuAlt extends ButtonMenu {
                             size={20}
                             style={
                                 currentScreen === 'Areas'
-                                    ? buttonMenu.buttonIconActive
-                                    : buttonMenu.buttonIcon
+                                    ? themeMenu.styles.buttonIconActive
+                                    : themeMenu.styles.buttonIcon
                             }
                         />
                     }
@@ -113,14 +112,14 @@ class MainButtonMenuAlt extends ButtonMenu {
                     title={!isCompact ? translate('menus.main.buttons.map') : null}
                     buttonStyle={
                         currentScreen === 'Map'
-                            ? buttonMenu.buttonsActive
-                            : buttonMenu.buttons
+                            ? themeMenu.styles.buttonsActive
+                            : themeMenu.styles.buttons
                     }
-                    containerStyle={buttonMenu.buttonContainer}
+                    containerStyle={themeMenu.styles.buttonContainer}
                     titleStyle={
                         currentScreen === 'Map'
-                            ? buttonMenu.buttonsTitleActive
-                            : buttonMenu.buttonsTitle
+                            ? themeMenu.styles.buttonsTitleActive
+                            : themeMenu.styles.buttonsTitle
                     }
                     icon={
                         <FontAwesomeIcon
@@ -128,8 +127,8 @@ class MainButtonMenuAlt extends ButtonMenu {
                             size={20}
                             style={
                                 currentScreen === 'Map'
-                                    ? buttonMenu.buttonIconActive
-                                    : buttonMenu.buttonIcon
+                                    ? themeMenu.styles.buttonIconActive
+                                    : themeMenu.styles.buttonIcon
                             }
                         />
                     }
@@ -139,14 +138,14 @@ class MainButtonMenuAlt extends ButtonMenu {
                     title={!isCompact ? translate('menus.main.buttons.bookmarked') : null}
                     buttonStyle={
                         currentScreen === 'BookMarked'
-                            ? buttonMenu.buttonsActive
-                            : buttonMenu.buttons
+                            ? themeMenu.styles.buttonsActive
+                            : themeMenu.styles.buttons
                     }
-                    containerStyle={buttonMenu.buttonContainer}
+                    containerStyle={themeMenu.styles.buttonContainer}
                     titleStyle={
                         currentScreen === 'BookMarked'
-                            ? buttonMenu.buttonsTitleActive
-                            : buttonMenu.buttonsTitle
+                            ? themeMenu.styles.buttonsTitleActive
+                            : themeMenu.styles.buttonsTitle
                     }
                     icon={
                         <FontAwesomeIcon
@@ -154,8 +153,8 @@ class MainButtonMenuAlt extends ButtonMenu {
                             size={20}
                             style={
                                 currentScreen === 'BookMarked'
-                                    ? buttonMenu.buttonIconActive
-                                    : buttonMenu.buttonIcon
+                                    ? themeMenu.styles.buttonIconActive
+                                    : themeMenu.styles.buttonIcon
                             }
                         />
                     }
@@ -165,14 +164,14 @@ class MainButtonMenuAlt extends ButtonMenu {
                     title={!isCompact ? translate('menus.main.buttons.nearby') : null}
                     buttonStyle={
                         currentScreen === 'Nearby'
-                            ? buttonMenu.buttonsActive
-                            : buttonMenu.buttons
+                            ? themeMenu.styles.buttonsActive
+                            : themeMenu.styles.buttons
                     }
-                    containerStyle={buttonMenu.buttonContainer}
+                    containerStyle={themeMenu.styles.buttonContainer}
                     titleStyle={
                         currentScreen === 'Nearby'
-                            ? buttonMenu.buttonsTitleActive
-                            : buttonMenu.buttonsTitle
+                            ? themeMenu.styles.buttonsTitleActive
+                            : themeMenu.styles.buttonsTitle
                     }
                     icon={
                         <MaterialIcon
@@ -180,8 +179,8 @@ class MainButtonMenuAlt extends ButtonMenu {
                             size={24}
                             style={
                                 currentScreen === 'Nearby'
-                                    ? buttonMenu.buttonIconActive
-                                    : buttonMenu.buttonIcon
+                                    ? themeMenu.styles.buttonIconActive
+                                    : themeMenu.styles.buttonIcon
                             }
                         />
                     }
@@ -191,14 +190,14 @@ class MainButtonMenuAlt extends ButtonMenu {
                     title={!isCompact ? translate('menus.main.buttons.account') : null}
                     buttonStyle={
                         currentScreen === 'Settings'
-                            ? buttonMenu.buttonsActive
-                            : buttonMenu.buttons
+                            ? themeMenu.styles.buttonsActive
+                            : themeMenu.styles.buttons
                     }
-                    containerStyle={buttonMenu.buttonContainer}
+                    containerStyle={themeMenu.styles.buttonContainer}
                     titleStyle={
                         currentScreen === 'Settings'
-                            ? buttonMenu.buttonsTitleActive
-                            : buttonMenu.buttonsTitle
+                            ? themeMenu.styles.buttonsTitleActive
+                            : themeMenu.styles.buttonsTitle
                     }
                     icon={
                         <FontAwesomeIcon
@@ -206,8 +205,8 @@ class MainButtonMenuAlt extends ButtonMenu {
                             size={20}
                             style={
                                 currentScreen === 'Settings'
-                                    ? buttonMenu.buttonIconActive
-                                    : buttonMenu.buttonIcon
+                                    ? themeMenu.styles.buttonIconActive
+                                    : themeMenu.styles.buttonIcon
                             }
                         />
                     }
@@ -216,15 +215,15 @@ class MainButtonMenuAlt extends ButtonMenu {
                 {
                     onActionButtonPress &&
                     <Button
-                        buttonStyle={buttonMenu.buttons}
-                        containerStyle={buttonMenu.buttonContainer}
-                        titleStyle={buttonMenu.buttonsTitle}
+                        buttonStyle={themeMenu.styles.buttons}
+                        containerStyle={themeMenu.styles.buttonContainer}
+                        titleStyle={themeMenu.styles.buttonsTitle}
                         title={this.getActionButtonTitle({ currentScreen, isCompact, translate })}
                         icon={
                             <FontAwesomeIcon
                                 name={this.getActionButtonIcon(currentScreen)}
                                 size={20}
-                                style={buttonMenu.buttonIcon}
+                                style={themeMenu.styles.buttonIcon}
                             />
                         }
                         onPress={onActionButtonPress as any}

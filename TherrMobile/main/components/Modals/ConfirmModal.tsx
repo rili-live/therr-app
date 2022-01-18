@@ -2,9 +2,9 @@ import React from 'react';
 import { Text, Modal, Pressable, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import styles from '../../styles/modal/confirmModal';
 import buttonStyles from '../../styles/buttons';
 import { ScrollView } from 'react-native-gesture-handler';
+import { ITherrThemeColors } from 'main/styles/themes';
 
 interface IConfirmModal {
     headerText?: string;
@@ -16,14 +16,18 @@ interface IConfirmModal {
     textCancel?: string;
     translate: Function;
     width?: string;
+    theme: {
+        colors: ITherrThemeColors;
+        styles: any;
+    }
 }
 
-const ModalButton = ({ title, hasBorderRight, iconName, onPress }) => {
+const ModalButton = ({ title, hasBorderRight, iconName, onPress, theme }) => {
     const extraStyles = hasBorderRight ? { borderRightWidth: 1 } : {};
 
     return (
         <Button
-            containerStyle={[styles.buttonContainer, extraStyles]}
+            containerStyle={[theme.styles.buttonContainer, extraStyles]}
             buttonStyle={[buttonStyles.btnClear, { padding: 10 }]}
             titleStyle={buttonStyles.btnTitleBlack}
             icon={
@@ -49,6 +53,7 @@ export default ({
     text,
     textConfirm,
     textCancel,
+    theme,
     translate,
     width,
 }: IConfirmModal) => {
@@ -63,34 +68,36 @@ export default ({
         >
             <Pressable
                 onPress={onCancel}
-                style={styles.overlay}>
-                <Pressable style={[styles.container, extraStyles]}>
+                style={theme.styles.overlay}>
+                <Pressable style={[theme.styles.container, extraStyles]}>
                     {
                         headerText ?
                             <>
-                                <View style={styles.header}>
-                                    <Text style={styles.headerText}>{headerText}</Text>
+                                <View style={theme.styles.header}>
+                                    <Text style={theme.styles.headerText}>{headerText}</Text>
                                 </View>
-                                <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
+                                <ScrollView style={theme.styles.body} contentContainerStyle={theme.styles.bodyContent}>
                                     <View onStartShouldSetResponder={() => true}>
-                                        <Text style={styles.bodyText}>{text}</Text>
+                                        <Text style={theme.styles.bodyText}>{text}</Text>
                                     </View>
                                 </ScrollView>
                             </> :
-                            <Text style={styles.bodyTextBold}>{text}</Text>
+                            <Text style={theme.styles.bodyTextBold}>{text}</Text>
                     }
-                    <View style={styles.buttonsContainer}>
+                    <View style={theme.styles.buttonsContainer}>
                         <ModalButton
                             iconName="close"
                             title={textCancel || translate('modals.confirmModal.cancel')}
                             onPress={() => onCancel()}
                             hasBorderRight={true}
+                            theme={theme}
                         />
                         <ModalButton
                             iconName="check"
                             title={textConfirm || translate('modals.confirmModal.confirm')}
                             onPress={() => onConfirm()}
                             hasBorderRight={false}
+                            theme={theme}
                         />
                     </View>
                 </Pressable>
