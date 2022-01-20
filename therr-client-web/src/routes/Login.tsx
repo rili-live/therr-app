@@ -2,6 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
+import LogRocket from 'logrocket';
 import { IUserState } from 'therr-react/types';
 import translator from '../services/translator';
 import LoginForm from '../components/forms/LoginForm';
@@ -50,6 +51,11 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     static getDerivedStateFromProps(nextProps: ILoginProps) {
         // TODO: Choose route based on accessLevels
         if (!shouldRenderLoginForm(nextProps)) {
+            LogRocket.identify(nextProps.user.details.id, {
+                name: `${nextProps.user.details.firstName} ${nextProps.user.details.lastName}`,
+                email: nextProps.user.details.email,
+                // Add your own custom user variables below:
+            });
             nextProps.history.push('/user/profile');
             return null;
         }

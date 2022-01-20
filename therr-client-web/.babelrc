@@ -1,0 +1,15 @@
+{
+    "presets": [
+        "@babel/preset-env",
+        "@babel/preset-react"
+    ],
+    "plugins": ["add-react-displayname"],
+    "env": {
+        "start": {
+            "presets": [
+                "react-hmre"
+            ]
+        }
+    }
+}
+  
