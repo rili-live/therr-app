@@ -6,7 +6,7 @@ export type IMobileThemeName = 'retro';
 
 export interface IUser extends Immutable.ImmutableObject<any>{
   accessLevels: IAccessLevel;
-  id: number;
+  id: string;
   idToken: string;
   email: string;
   firstName: string;
