@@ -1,3 +1,4 @@
+import LogRocket from 'logrocket';
 import thunkMiddleware from 'redux-thunk';
 import { createLogger } from 'redux-logger';
 import { applyMiddleware, compose, createStore } from 'redux';
@@ -57,6 +58,7 @@ const store: any = process.env.NODE_ENV !== 'development'
         applyMiddleware(
             socketIOMiddleWare,
             thunkMiddleware,
+            LogRocket.reduxMiddleware(),
         ),
     )
     : createStore( // Create Store - Redux Development (Chrome Only)
@@ -67,6 +69,7 @@ const store: any = process.env.NODE_ENV !== 'development'
                 loggerMiddleware, // middleware that logs actions (development only)
                 socketIOMiddleWare,
                 thunkMiddleware, // let's us dispatch functions
+                LogRocket.reduxMiddleware(),
             ),
         ),
     );
