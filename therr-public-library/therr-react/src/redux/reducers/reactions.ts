@@ -1,4 +1,5 @@
 import * as Immutable from 'seamless-immutable';
+import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { IReactionsState, ReactionActionTypes } from '../../types/redux/reactions';
 
 const initialState: IReactionsState = Immutable.from({
@@ -62,6 +63,8 @@ const reactions = (state: IReactionsState = initialState, action: any) => {
             }
 
             return state.setIn(['mySpaceReactions'], modifiedSpaceReactions);
+        case SocketClientActionTypes.LOGOUT:
+            return state.setIn(['myMomentReactions'], Immutable.from([])).setIn(['mySpaceReactions'], Immutable.from([]));
         default:
             return state;
     }

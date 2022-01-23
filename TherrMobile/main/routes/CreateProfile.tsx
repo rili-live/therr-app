@@ -271,6 +271,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                     onInputChange={this.onPhoneInputChange}
                                     onSubmit={() => this.onSubmit(stage)}
                                     translate={this.translate}
+                                    theme={this.theme}
                                     themeAlerts={this.themeAlerts}
                                     themeForms={this.themeForms}
                                     themeSettingsForm={this.themeSettingsForm}

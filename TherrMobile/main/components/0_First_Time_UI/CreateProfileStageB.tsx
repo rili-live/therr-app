@@ -3,7 +3,7 @@ import { GestureResponderEvent, View } from 'react-native';
 import { Button }  from 'react-native-elements';
 import Alert from '../Alert';
 import PhoneNumberInput from '../Input/PhoneNumberInput';
-import { ITherrThemeColorVariations } from '../../styles/themes';
+import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 
 interface ICreateProfileStageBProps {
     errorMsg: string;
@@ -11,11 +11,16 @@ interface ICreateProfileStageBProps {
     onInputChange: Function;
     onSubmit: ((event: GestureResponderEvent) => void) | undefined;
     translate: Function;
+    theme: {
+        colors: ITherrThemeColors;
+        styles: any;
+    };
     themeAlerts: {
         colorVariations: ITherrThemeColorVariations;
         styles: any;
     };
     themeForms: {
+        colors: ITherrThemeColors;
         styles: any;
     };
     themeSettingsForm: {
@@ -44,6 +49,7 @@ class CreateProfileStageB extends React.Component<ICreateProfileStageBProps, ICr
             isFormDisabled,
             onSubmit,
             translate,
+            theme,
             themeAlerts,
             themeForms,
             themeSettingsForm,
@@ -63,6 +69,8 @@ class CreateProfileStageB extends React.Component<ICreateProfileStageBProps, ICr
                     onSubmit={onSubmit}
                     placeholder={translate('forms.settings.labels.phoneNumber')}
                     translate={translate}
+                    theme={theme}
+                    themeForms={themeForms}
                 />
                 <View style={themeSettingsForm.styles.submitButtonContainer}>
                     <Button

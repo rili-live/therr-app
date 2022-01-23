@@ -1274,7 +1274,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 stopPropagation={true}
                                             >
                                                 <View>
-                                                    <MarkerIcon area={moment} areaType="moments" themeColors={this.theme.colors} />
+                                                    <MarkerIcon area={moment} areaType="moments" theme={this.theme} />
                                                 </View>
                                             </Marker>
                                         );
@@ -1298,7 +1298,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 stopPropagation={true}
                                             >
                                                 <View style={{ transform: [{ translateY: 0 }] }}>
-                                                    <MarkerIcon area={moment} areaType="moments" themeColors={this.theme.colors} />
+                                                    <MarkerIcon area={moment} areaType="moments" theme={this.theme} />
                                                 </View>
                                             </Marker>
                                         );
@@ -1364,7 +1364,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 stopPropagation={true}
                                             >
                                                 <View>
-                                                    <MarkerIcon area={space} areaType="spaces" themeColors={this.theme.colors} />
+                                                    <MarkerIcon area={space} areaType="spaces" theme={this.theme} />
                                                 </View>
                                             </Marker>
                                         );
@@ -1388,7 +1388,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 stopPropagation={true}
                                             >
                                                 <View style={{ transform: [{ translateY: 0 }] }}>
-                                                    <MarkerIcon area={space} areaType="spaces" themeColors={this.theme.colors} />
+                                                    <MarkerIcon area={space} areaType="spaces" theme={this.theme} />
                                                 </View>
                                             </Marker>
                                         );

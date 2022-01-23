@@ -37,37 +37,37 @@ const getMarkerConfigs = (theme: ITherrTheme) => ({
 export default function MarkerIcon({
     areaType,
     area,
-    themeColors,
+    theme,
 }) {
     // TODO: Add all categories
     if (area.category === 'deals') {
         return (
-            <MarkerIconDiscount {...getMarkerConfigs(themeColors).deals} />
+            <MarkerIconDiscount {...getMarkerConfigs(theme).deals} />
         );
     }
     if (area.category === 'food') {
         return (
-            <MarkerIconFood {...getMarkerConfigs(themeColors).food} />
+            <MarkerIconFood {...getMarkerConfigs(theme).food} />
         );
     }
     if (area.category === 'music') {
         return (
-            <MarkerIconMusic {...getMarkerConfigs(themeColors).music} />
+            <MarkerIconMusic {...getMarkerConfigs(theme).music} />
         );
     }
     if (area.category === 'storefront') {
         return (
-            <MarkerIconStorefront {...getMarkerConfigs(themeColors).storefront} />
+            <MarkerIconStorefront {...getMarkerConfigs(theme).storefront} />
         );
     }
     if (area.category === 'idea') {
         return (
-            <MarkerIconThinking {...getMarkerConfigs(themeColors).thought} />
+            <MarkerIconThinking {...getMarkerConfigs(theme).thought} />
         );
     }
     if (area.category === 'geocache') {
         return (
-            <MarkerIconGeocache {...getMarkerConfigs(themeColors).geocache} />
+            <MarkerIconGeocache {...getMarkerConfigs(theme).geocache} />
         );
     }
 
@@ -75,16 +75,16 @@ export default function MarkerIcon({
     if (areaType === 'moments') {
         if (!area.mediaIds) {
             return (
-                <MarkerIconThinking {...getMarkerConfigs(themeColors).thought} />
+                <MarkerIconThinking {...getMarkerConfigs(theme).thought} />
             );
         }
 
         return (
-            <MarkerIconCamera {...getMarkerConfigs(themeColors).area} />
+            <MarkerIconCamera {...getMarkerConfigs(theme).area} />
         );
     }
 
     return (
-        <MarkerIconStorefront {...getMarkerConfigs(themeColors).area} />
+        <MarkerIconStorefront {...getMarkerConfigs(theme).area} />
     );
 }
