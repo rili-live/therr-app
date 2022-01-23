@@ -1,7 +1,9 @@
 import React from 'react';
 import { RefreshControl, View, Text, /* Platform, */ FlatList, Pressable } from 'react-native';
 // import Carousel from 'react-native-snap-carousel';
-import { buildStyles } from '../../styles/user-content/moments';
+import { buildStyles } from '../../styles/user-content/areas';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
+import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas/viewing';
 import AreaDisplay from '../../components/UserContent/AreaDisplay';
 import formatDate from '../../utilities/formatDate';
 
@@ -15,7 +17,10 @@ const renderItem = ({ item: area }, {
     goToViewUser,
     translate,
     theme,
+    themeArea,
+    themeForms,
     updateAreaReaction,
+    user,
 }) => {
     const areaMedia = content?.media[area.media && area.media[0]?.id];
 
@@ -40,6 +45,8 @@ const renderItem = ({ item: area }, {
                 areaMedia={areaMedia}
                 isDarkMode={false}
                 theme={theme}
+                themeForms={themeForms}
+                themeViewArea={themeArea}
             />
         </Pressable>
     );
@@ -72,6 +79,8 @@ export default ({
 }) => {
     const [refreshing, setRefreshing] = React.useState(false);
     const theme = buildStyles(user.details.mobileThemeName);
+    const themeArea = buildAreaStyles(user.details.mobileThemeName, false);
+    const themeForms = buildFormStyles(user.details.mobileThemeName);
 
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
@@ -118,7 +127,10 @@ export default ({
                     toggleAreaOptions,
                     translate,
                     theme,
+                    themeArea,
+                    themeForms,
                     updateAreaReaction: itemObj.item.areaType === 'spaces' ? updateSpaceReaction : updateMomentReaction,
+                    user,
                 })}
                 ListEmptyComponent={<Text style={theme.styles.noAreasFoundText}>{emptyListMessage}</Text>}
                 ListHeaderComponent={renderHeader()}

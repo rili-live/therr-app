@@ -5,8 +5,9 @@ import { PasswordRegex } from 'therr-js-utilities/constants';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import translator from '../../services/translator';
 import { addMargins } from '../../styles';
-import { loginForm as loginFormStyles } from '../../styles/forms';
-import * as therrTheme from '../../styles/themes';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
+import { buildStyles as buildAuthFormStyles } from '../../styles/forms/authenticationForms';
+import { buildStyles as buildAlertStyles } from '../../styles/alerts';
 import Alert from '../../components/Alert';
 import SquareInput from '../../components/Input/Square';
 import PasswordRequirements from '../../components/Input/PasswordRequirements';
@@ -18,6 +19,7 @@ interface IRegisterFormProps {
     register: Function;
     title?: string;
     toggleEULA: Function;
+    userSettings: any;
 }
 
 interface IRegisterFormState {
@@ -36,6 +38,9 @@ export class RegisterFormComponent extends React.Component<
     IRegisterFormState
 > {
     private translate: Function;
+    private themeAlerts = buildAlertStyles();
+    private themeForms = buildFormStyles();
+    private themeAuthForm = buildAuthFormStyles();
 
     constructor(props: IRegisterFormProps) {
         super(props);
@@ -48,6 +53,9 @@ export class RegisterFormComponent extends React.Component<
             isPasswordEntryDirty: false,
         };
 
+        this.themeAlerts = buildAlertStyles(props.userSettings.mobileThemeName);
+        this.themeForms = buildFormStyles(props.userSettings.mobileThemeName);
+        this.themeAuthForm = buildAuthFormStyles(props.userSettings.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -174,12 +182,14 @@ export class RegisterFormComponent extends React.Component<
                         <MaterialIcon
                             name="email"
                             size={24}
-                            color={therrTheme.colorVariations.primary3Fade}
+                            color={this.themeAlerts.colorVariations.primary3Fade}
                         />
                     }
+                    themeForms={this.themeForms}
                 />
                 {
-                    isPasswordEntryDirty && <PasswordRequirements translate={this.translate} password={this.state.inputs.password} />
+                    isPasswordEntryDirty &&
+                        <PasswordRequirements translate={this.translate} password={this.state.inputs.password} themeForms={this.themeForms} />
                 }
                 {/* TODO: RMOBILE-26: Centralize password requirements */}
                 <SquareInput
@@ -197,9 +207,10 @@ export class RegisterFormComponent extends React.Component<
                         <MaterialIcon
                             name="vpn-key"
                             size={26}
-                            color={therrTheme.colorVariations.primary3Fade}
+                            color={this.themeAlerts.colorVariations.primary3Fade}
                         />
                     }
+                    themeForms={this.themeForms}
                 />
                 <SquareInput
                     autoCapitalize="none"
@@ -219,9 +230,10 @@ export class RegisterFormComponent extends React.Component<
                         <MaterialIcon
                             name="lock"
                             size={26}
-                            color={therrTheme.colorVariations.primary3Fade}
+                            color={this.themeAlerts.colorVariations.primary3Fade}
                         />
                     }
+                    themeForms={this.themeForms}
                 />
                 <Alert
                     containerStyles={addMargins({
@@ -230,10 +242,11 @@ export class RegisterFormComponent extends React.Component<
                     isVisible={!!prevRegisterError}
                     message={prevRegisterError}
                     type={'error'}
+                    themeAlerts={this.themeAlerts}
                 />
-                <View style={loginFormStyles.registerButtonContainer}>
+                <View style={this.themeAuthForm.styles.registerButtonContainer}>
                     <Button
-                        buttonStyle={loginFormStyles.button}
+                        buttonStyle={this.themeAuthForm.styles.button}
                         title={this.translate(
                             'forms.registerForm.buttons.register'
                         )}
@@ -241,10 +254,10 @@ export class RegisterFormComponent extends React.Component<
                         disabled={this.isRegisterFormDisabled()}
                     />
                 </View>
-                <View style={loginFormStyles.moreLinksContainer}>
+                <View style={this.themeAuthForm.styles.moreLinksContainer}>
                     <Button
                         type="clear"
-                        titleStyle={loginFormStyles.buttonLink}
+                        titleStyle={this.themeAuthForm.styles.buttonLink}
                         title={this.translate(
                             'forms.registerForm.buttons.eula'
                         )}

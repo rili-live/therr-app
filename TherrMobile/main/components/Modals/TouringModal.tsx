@@ -2,29 +2,31 @@ import React, { useState } from 'react';
 import { Text, Modal, Pressable, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import buttonStyles from '../../styles/buttons';
 
 interface ITouringModal {
     isVisible: boolean;
     onRequestClose: any;
     translate: Function;
+    themeButtons: {
+        styles: any;
+    };
     themeTour: {
         styles: any;
-    }
+    };
 }
 
-const ModalButton = ({ title, iconName, onPress, iconRight }) => {
+const ModalButton = ({ title, iconName, onPress, iconRight, themeButtons }) => {
     const iconStyle = iconRight ? { paddingLeft: 7 } : { paddingRight: 7 };
     return (
         <Button
             containerStyle={{ flex: 1 }}
-            buttonStyle={[buttonStyles.btnClear, { padding: 10 }]}
-            titleStyle={buttonStyles.btnTitleBlack}
+            buttonStyle={[themeButtons.styles.btnClear, { padding: 10 }]}
+            titleStyle={themeButtons.styles.btnTitleBlack}
             icon={
                 <MaterialIcon
                     name={iconName}
                     size={20}
-                    style={[buttonStyles.btnIconBlack, iconStyle]}
+                    style={[themeButtons.styles.btnIconBlack, iconStyle]}
                 />
             }
             iconRight={iconRight}
@@ -39,6 +41,7 @@ const ModalButton = ({ title, iconName, onPress, iconRight }) => {
 export default ({
     isVisible,
     onRequestClose,
+    themeButtons,
     themeTour,
     translate,
 }: ITouringModal) => {
@@ -65,12 +68,14 @@ export default ({
                                 title={translate('modals.touringModal.exit')}
                                 onPress={onRequestClose}
                                 iconRight={false}
+                                themeButtons={themeButtons}
                             />
                             <ModalButton
                                 iconName="arrow-forward"
                                 title={translate('modals.touringModal.next')}
                                 onPress={() => setTab(1)}
                                 iconRight
+                                themeButtons={themeButtons}
                             />
                         </View>
                     </Pressable>
@@ -86,12 +91,14 @@ export default ({
                                 title={translate('modals.touringModal.back')}
                                 onPress={() => setTab(0)}
                                 iconRight={false}
+                                themeButtons={themeButtons}
                             />
                             <ModalButton
                                 iconName="arrow-forward"
                                 title={translate('modals.touringModal.next')}
                                 onPress={() => setTab(2)}
                                 iconRight
+                                themeButtons={themeButtons}
                             />
                         </View>
                     </Pressable>
@@ -107,12 +114,14 @@ export default ({
                                 title={translate('modals.touringModal.back')}
                                 onPress={() => setTab(1)}
                                 iconRight={false}
+                                themeButtons={themeButtons}
                             />
                             <ModalButton
                                 iconName="check"
                                 title={translate('modals.touringModal.done')}
                                 onPress={onRequestClose}
                                 iconRight
+                                themeButtons={themeButtons}
                             />
                         </View>
                     </Pressable>

@@ -34,6 +34,9 @@ import {
     LOCATION_PROCESSING_THROTTLE_MS,
 } from '../../constants';
 import { buildStyles, loaderStyles } from '../../styles';
+import { buildStyles as buildAlertStyles } from '../../styles/alerts';
+import { buildStyles as buildButtonStyles } from '../../styles/buttons';
+import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildDisclosureStyles } from '../../styles/modal/locationDisclosure';
 import { buildStyles as buildTourStyles } from '../../styles/modal/tourModal';
@@ -161,10 +164,13 @@ class Map extends React.Component<IMapProps, IMapState> {
     private localeShort = 'en-US'; // TODO: Derive from user locale
     private mapRef: any;
     private mapWatchId;
-    private theme = buildStyles({ viewPortHeight });
-    private themeMenu = buildMenuStyles({ viewPortHeight });
-    private themeDisclosure = buildDisclosureStyles({ viewPortHeight });
-    private themeTour = buildTourStyles({ viewPortHeight });
+    private theme = buildStyles();
+    private themeAlerts = buildAlertStyles();
+    private themeConfirmModal = buildConfirmModalStyles();
+    private themeButtons = buildButtonStyles();
+    private themeMenu = buildMenuStyles();
+    private themeDisclosure = buildDisclosureStyles();
+    private themeTour = buildTourStyles();
     private themeSearch = buildSearchStyles({ viewPortHeight });
     private timeoutId;
     private timeoutIdGPSStart;
@@ -209,11 +215,13 @@ class Map extends React.Component<IMapProps, IMapState> {
             },
         };
 
-        this.theme = buildStyles(props.user.settings.mobileThemeName);
-        this.themeMenu = buildMenuStyles(props.user.settings.mobileThemeName);
-        this.themeDisclosure = buildDisclosureStyles(props.user.settings.mobileThemeName);
-        this.themeTour = buildTourStyles(props.user.settings.mobileThemeName);
-        this.themeSearch = buildSearchStyles({ viewPortHeight }, props.user.settings.mobileThemeName);
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
+        this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
+        this.themeDisclosure = buildDisclosureStyles(props.user.settings?.mobileThemeName);
+        this.themeTour = buildTourStyles(props.user.settings?.mobileThemeName);
+        this.themeSearch = buildSearchStyles({ viewPortHeight }, props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -1266,7 +1274,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 stopPropagation={true}
                                             >
                                                 <View>
-                                                    <MarkerIcon area={moment} areaType="moments" />
+                                                    <MarkerIcon area={moment} areaType="moments" themeColors={this.theme.colors} />
                                                 </View>
                                             </Marker>
                                         );
@@ -1290,7 +1298,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 stopPropagation={true}
                                             >
                                                 <View style={{ transform: [{ translateY: 0 }] }}>
-                                                    <MarkerIcon area={moment} areaType="moments" />
+                                                    <MarkerIcon area={moment} areaType="moments" themeColors={this.theme.colors} />
                                                 </View>
                                             </Marker>
                                         );
@@ -1356,7 +1364,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 stopPropagation={true}
                                             >
                                                 <View>
-                                                    <MarkerIcon area={space} areaType="spaces" />
+                                                    <MarkerIcon area={space} areaType="spaces" themeColors={this.theme.colors} />
                                                 </View>
                                             </Marker>
                                         );
@@ -1380,7 +1388,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 stopPropagation={true}
                                             >
                                                 <View style={{ transform: [{ translateY: 0 }] }}>
-                                                    <MarkerIcon area={space} areaType="spaces" />
+                                                    <MarkerIcon area={space} areaType="spaces" themeColors={this.theme.colors} />
                                                 </View>
                                             </Marker>
                                         );
@@ -1444,6 +1452,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                     isVisible={isAreaAlertVisible}
                                     message={this.translate('pages.map.areaAlerts.walkCloser')}
                                     type="error"
+                                    themeAlerts={this.themeAlerts}
                                 />
                             </AnimatedOverlay>
                         </>
@@ -1453,6 +1462,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                         <SearchThisAreaButtonGroup
                             handleSearchLocation={this.handleSearchThisLocation}
                             translate={this.translate}
+                            themeButtons={this.themeButtons}
                         />
                     }
                 </SafeAreaView>
@@ -1472,6 +1482,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 isAuthorized={this.isAuthorized}
                                 isGpsEnabled={location?.settings?.isGpsEnabled}
                                 translate={this.translate}
+                                themeButtons={this.themeButtons}
                             />
                         }
                         <FiltersButtonGroup
@@ -1481,6 +1492,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                             toggleLayers={this.toggleLayers}
                             goToMoments={this.goToMoments}
                             translate={this.translate}
+                            themeButtons={this.themeButtons}
                         />
                     </>
                 }
@@ -1493,18 +1505,22 @@ class Map extends React.Component<IMapProps, IMapState> {
                     textConfirm={this.translate('modals.confirmModal.agree')}
                     translate={this.translate}
                     theme={this.theme}
+                    themeButtons={this.themeButtons}
+                    themeModal={this.themeConfirmModal}
                 />
                 <LocationUseDisclosureModal
                     isVisible={isLocationUseDisclosureModalVisible}
                     translate={this.translate}
                     onRequestClose={this.toggleLocationUseDisclosure}
                     onSelect={this.handleLocationDisclosureSelect}
+                    themeButtons={this.themeButtons}
                     themeDisclosure={this.themeDisclosure}
                 />
                 <TouringModal
                     isVisible={isTouring}
                     translate={this.translate}
                     onRequestClose={this.handleStopTouring}
+                    themeButtons={this.themeButtons}
                     themeTour={this.themeTour}
                 />
                 <MainButtonMenu

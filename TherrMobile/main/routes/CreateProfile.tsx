@@ -7,8 +7,11 @@ import { IUserState } from 'therr-react/types';
 import LottieView from 'lottie-react-native';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
-import styles from '../styles';
-import firstTimeUIStyles from '../styles/first-time-ui';
+import { buildStyles } from '../styles';
+import { buildStyles as buildAlertStyles } from '../styles/alerts';
+import { buildStyles as buildFTUIStyles } from '../styles/first-time-ui';
+import { buildStyles as buildFormStyles } from '../styles/forms';
+import { buildStyles as buildSettingsFormStyles } from '../styles/forms/settingsForm';
 import CreateProfileStageA from '../components/0_First_Time_UI/CreateProfileStageA';
 import CreateProfileStageB from '../components/0_First_Time_UI/CreateProfileStageB';
 import BaseStatusBar from '../components/BaseStatusBar';
@@ -51,6 +54,11 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 export class CreateProfile extends React.Component<ICreateProfileProps, ICreateProfileState> {
     private scrollViewRef;
     private translate: Function;
+    private theme = buildStyles();
+    private themeAlerts = buildAlertStyles();
+    private themeFTUI = buildFTUIStyles();
+    private themeForms = buildFormStyles();
+    private themeSettingsForm = buildSettingsFormStyles();
 
     constructor(props) {
         super(props);
@@ -69,6 +77,10 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             stage: 'A',
         };
 
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeFTUI = buildFTUIStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
+        this.themeSettingsForm = buildSettingsFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -115,7 +127,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             phoneNumber: user.details.phoneNumber || phoneNumber,
             firstName,
             lastName,
-            userName: userName.toLowerCase(),
+            userName: userName?.toLowerCase(),
         };
 
         if (stage === 'B' && !isPhoneNumberValid) {
@@ -195,32 +207,32 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView  style={styles.safeAreaView}>
+                <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={styles.scrollViewFull}
+                        style={this.theme.styles.scrollViewFull}
                     >
-                        <View style={styles.body}>
-                            <View style={styles.sectionContainer}>
+                        <View style={this.theme.styles.body}>
+                            <View style={this.theme.styles.sectionContainer}>
                                 {
                                     stage === 'A' &&
-                                    <Text style={firstTimeUIStyles.title}>
+                                    <Text style={this.themeFTUI.styles.title}>
                                         {pageHeaderA}
                                     </Text>
                                 }
                                 {
                                     stage === 'B' &&
-                                    <Text style={firstTimeUIStyles.title}>
+                                    <Text style={this.themeFTUI.styles.title}>
                                         {pageHeaderB}
                                     </Text>
                                 }
                             </View>
-                            <View style={[styles.sectionContainer, { height: 100, marginBottom: 20 }]}>
+                            <View style={[this.theme.styles.sectionContainer, { height: 100, marginBottom: 20 }]}>
                                 { stage === 'A' &&
                                     <LottieView
                                         source={profileLoader}
-                                        style={firstTimeUIStyles.formAGraphic}
+                                        style={this.themeFTUI.styles.formAGraphic}
                                         resizeMode="cover"
                                         speed={1.75}
                                         autoPlay
@@ -230,7 +242,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                 { stage === 'B' &&
                                     <LottieView
                                         source={verifyPhoneLoader}
-                                        style={firstTimeUIStyles.formBGraphic}
+                                        style={this.themeFTUI.styles.formBGraphic}
                                         resizeMode="contain"
                                         autoPlay
                                         loop
@@ -246,6 +258,9 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                     onInputChange={this.onInputChange}
                                     onSubmit={() => this.onSubmit(stage)}
                                     translate={this.translate}
+                                    themeAlerts={this.themeAlerts}
+                                    themeForms={this.themeForms}
+                                    themeSettingsForm={this.themeSettingsForm}
                                 />
                             }
                             {
@@ -256,6 +271,9 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                     onInputChange={this.onPhoneInputChange}
                                     onSubmit={() => this.onSubmit(stage)}
                                     translate={this.translate}
+                                    themeAlerts={this.themeAlerts}
+                                    themeForms={this.themeForms}
+                                    themeSettingsForm={this.themeSettingsForm}
                                 />
                             }
                         </View>

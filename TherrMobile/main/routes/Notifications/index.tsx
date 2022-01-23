@@ -15,6 +15,7 @@ import {
 import { Notifications as NotificationsEmuns } from 'therr-js-utilities/constants';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { buildStyles } from '../../styles';
+import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { notifications as notificationStyles, buildStyles as buildNotificationStyles } from '../../styles/notifications';
 import translator from '../../services/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
@@ -61,6 +62,7 @@ class Notifications extends React.Component<
     private flatListRef: any;
     private translate: Function;
     private theme = buildStyles();
+    private themeMenu = buildMenuStyles();
     private themeNotification = buildNotificationStyles();
 
     constructor(props) {
@@ -70,8 +72,9 @@ class Notifications extends React.Component<
             isRefreshing: false,
         };
 
-        this.theme = buildStyles(props.user.settings.mobileThemeName);
-        this.themeNotification = buildNotificationStyles(props.user.settings.mobileThemeName);
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
+        this.themeNotification = buildNotificationStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
             translator('en-us', key, params);
     }
@@ -202,6 +205,7 @@ class Notifications extends React.Component<
                     onActionButtonPress={this.scrollTop}
                     translate={this.translate}
                     user={user}
+                    themeMenu={this.themeMenu}
                 />
             </>
         );

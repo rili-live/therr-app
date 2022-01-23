@@ -6,9 +6,11 @@ import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import styles, { addMargins } from '../styles';
-import * as therrTheme from '../styles/themes';
-import formStyles, { verifyEmailForm as verifyEmailFormStyles } from '../styles/forms';
+import { IUserState } from 'therr-react/types';
+import { buildStyles, addMargins } from '../styles';
+import { buildStyles as buildAlertStyles } from '../styles/alerts';
+import { buildStyles as buildFormStyles } from '../styles/forms';
+import { buildStyles as buildAuthFormStyles } from '../styles/forms/authenticationForms';
 import translator from '../services/translator';
 import UsersActions from '../redux/actions/UsersActions';
 import Alert from '../components/Alert';
@@ -27,6 +29,7 @@ interface IStoreProps extends IEmailVerificationDispatchProps {}
 export interface IEmailVerificationProps extends IStoreProps {
     navigation: any;
     route: any;
+    user: IUserState;
 }
 
 interface IEmailVerificationState {
@@ -36,7 +39,9 @@ interface IEmailVerificationState {
     verificationStatus: string;
 }
 
-const mapStateToProps = () => ({});
+const mapStateToProps = (state: any) => ({
+    user: state.user,
+});
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     updateUser: UsersActions.update,
@@ -44,6 +49,10 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 
 class EmailVerification extends React.Component<IEmailVerificationProps, IEmailVerificationState> {
     private translate: Function;
+    private theme = buildStyles();
+    private themeAlerts = buildAlertStyles();
+    private themeForms = buildFormStyles();
+    private themeAuthForms = buildAuthFormStyles();
 
     constructor(props) {
         super(props);
@@ -55,6 +64,10 @@ class EmailVerification extends React.Component<IEmailVerificationProps, IEmailV
             verificationStatus: 'pending',
         };
 
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
+        this.themeAuthForms = buildAuthFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -212,14 +225,14 @@ class EmailVerification extends React.Component<IEmailVerificationProps, IEmailV
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView  style={styles.safeAreaView}>
-                    <ScrollView style={styles.bodyFlex} contentContainerStyle={styles.bodyScrollSmall}>
-                        <View style={styles.sectionContainerAlt}>
-                            <Text style={styles.sectionTitle}>
+                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                    <ScrollView style={this.theme.styles.bodyFlex} contentContainerStyle={this.theme.styles.bodyScrollSmall}>
+                        <View style={this.theme.styles.sectionContainerAlt}>
+                            <Text style={this.theme.styles.sectionTitle}>
                                 {pageHeader}
                             </Text>
                         </View>
-                        <View style={verifyEmailFormStyles.inputsContainer}>
+                        <View style={this.themeAuthForms.styles.inputsContainer}>
                             <RoundInput
                                 autoCapitalize="none"
                                 autoCompleteType="email"
@@ -235,9 +248,10 @@ class EmailVerification extends React.Component<IEmailVerificationProps, IEmailV
                                     <FontAwesomeIcon
                                         name="envelope"
                                         size={22}
-                                        color={therrTheme.colors.primary3}
+                                        color={this.theme.colors.primary3}
                                     />
                                 }
+                                themeForms={this.themeForms}
                             />
                             <Alert
                                 containerStyles={addMargins({
@@ -246,11 +260,12 @@ class EmailVerification extends React.Component<IEmailVerificationProps, IEmailV
                                 isVisible={!!this.getErrorMessage()}
                                 message={this.getErrorMessage()}
                                 type={'error'}
+                                themeAlerts={this.themeAlerts}
                             />
                         </View>
-                        <View style={verifyEmailFormStyles.submitButtonContainer}>
+                        <View style={this.themeAuthForms.styles.submitButtonContainer}>
                             <Button
-                                buttonStyle={formStyles.button}
+                                buttonStyle={this.themeForms.styles.button}
                                 title={this.translate(
                                     'forms.emailVerification.buttons.send'
                                 )}

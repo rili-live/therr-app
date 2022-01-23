@@ -103,7 +103,7 @@ export interface ITherrThemeColorVariations {
 
 export interface ITherrTheme {
     colors: ITherrThemeColors;
-    colorVariations: any;
+    colorVariations: ITherrThemeColorVariations;
 }
 
 export default defaultTheme;

@@ -8,12 +8,13 @@ import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import { Location } from 'therr-js-utilities/constants';
 // import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-// import * as therrTheme from '../styles/themes';
 import { buildStyles } from '../../styles';
+import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
+import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
-import { buildStyles as buildMomentStyles } from '../../styles/user-content/moments';
+import { buildStyles as buildMomentStyles } from '../../styles/user-content/areas';
 import { buildStyles as buildReactionsModalStyles } from '../../styles/modal/areaReactionsModal';
-import formStyles from '../../styles/forms';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
 // import { buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
 import AreaCarousel from './AreaCarousel';
@@ -97,9 +98,12 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
     private loadTimeoutId: any;
     private unsubscribeNavigationListener;
     private theme = buildStyles();
+    private themeButtons = buildButtonsStyles();
+    private themeLoader = buildLoaderStyles();
     private themeMenu = buildMenuStyles();
     private themeMoments = buildMomentStyles();
     private themeReactionsModal = buildReactionsModalStyles();
+    private themeForms = buildFormStyles();
 
     constructor(props) {
         super(props);
@@ -111,10 +115,13 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
             selectedArea: {},
         };
 
-        this.theme = buildStyles(props.user.settings.mobileThemeName);
-        this.themeMenu = buildMenuStyles(props.user.settings.mobileThemeName);
-        this.themeMoments = buildMomentStyles(props.user.settings.mobileThemeName);
-        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings.mobileThemeName);
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
+        this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
+        this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
+        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
         this.loaderId = getRandomLoaderId();
@@ -277,8 +284,8 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
 
         return (
             <View style={this.themeMoments.styles.areaCarouselHeaderSliders}>
-                <View style={formStyles.inputSliderContainerTight}>
-                    <Text style={formStyles.inputLabelDark}>
+                <View style={this.themeForms.styles.inputSliderContainerTight}>
+                    <Text style={this.themeForms.styles.inputLabelDark}>
                         {`${this.translate('forms.nearbyForm.labels.radiusOfAwareness', { meters: radiusOfAwareness })}`}
                     </Text>
                     <Slider
@@ -294,8 +301,8 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                         onSlidingStart={Keyboard.dismiss}
                     />
                 </View>
-                <View style={formStyles.inputSliderContainerTight}>
-                    <Text style={formStyles.inputLabelDark}>
+                <View style={this.themeForms.styles.inputSliderContainerTight}>
+                    <Text style={this.themeForms.styles.inputLabelDark}>
                         {`${this.translate('forms.nearbyForm.labels.radiusOfInfluence', { meters: radiusOfInfluence })}`}
                     </Text>
                     <Slider
@@ -320,7 +327,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
         const { activeTab, isLoading } = this.state;
 
         if (isLoading) {
-            return <LottieLoader id={this.loaderId} />;
+            return <LottieLoader id={this.loaderId} theme={this.themeLoader} />;
         }
 
         const activeData = getActiveCarouselData({
@@ -369,6 +376,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                     onRequestClose={() => this.toggleAreaOptions(selectedArea)}
                     translate={this.translate}
                     onSelect={this.onAreaOptionSelect}
+                    themeButtons={this.themeButtons}
                     themeReactionsModal={this.themeReactionsModal}
                 />
                 {/* <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} /> */}

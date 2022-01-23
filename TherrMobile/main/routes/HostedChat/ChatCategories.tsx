@@ -5,7 +5,6 @@ import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import therrIconConfig from '../../assets/therr-font-config.json';
-import formStyles from '../../styles/forms';
 
 const TherrIcon = createIconSetFromIcoMoon(
     therrIconConfig,
@@ -36,7 +35,7 @@ const renderCategoryIcon = (category, theme, themeCategory) => {
     return (<MaterialIcon {...props} />);
 };
 
-const renderCategoryButton = (onCategoryPress, theme, themeCategory) => {
+const renderCategoryButton = (onCategoryPress, theme, themeCategory, themeForms) => {
     return ({
         item: category,
     }) => {
@@ -49,9 +48,9 @@ const renderCategoryButton = (onCategoryPress, theme, themeCategory) => {
                 title={category.name}
                 icon={renderCategoryIcon(category, theme, themeCategory)}
                 onPress={() => onCategoryPress(category)}
-                buttonStyle={[formStyles.buttonPill, buttonStyle]}
-                containerStyle={[formStyles.buttonPillContainer, containerStyle]}
-                titleStyle={[formStyles.buttonPillTitle, titleStyle]}
+                buttonStyle={[themeForms.styles.buttonPill, buttonStyle]}
+                containerStyle={[themeForms.styles.buttonPillContainer, containerStyle]}
+                titleStyle={[themeForms.styles.buttonPillTitle, titleStyle]}
             />
         );
     };
@@ -67,6 +66,7 @@ export default ({
     translate,
     theme,
     themeCategory,
+    themeForms,
 }) => {
     return (
         <View style={[themeCategory.styles.outerContainer, style]}>
@@ -76,7 +76,7 @@ export default ({
                     horizontal={true}
                     keyExtractor={keyExtractor}
                     data={categories}
-                    renderItem={renderCategoryButton(onCategoryPress, theme, themeCategory)}
+                    renderItem={renderCategoryButton(onCategoryPress, theme, themeCategory, themeForms)}
                     contentContainerStyle={themeCategory.styles.listContainer}
                 />
             </View>

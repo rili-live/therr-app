@@ -1,8 +1,6 @@
 import React from 'react';
 import 'react-native-gesture-handler';
 import BaseTextInput from '.';
-import formStyles from '../../../styles/forms';
-import * as therrTheme from '../../../styles/themes';
 
 export class AccentTextInput extends BaseTextInput {
     constructor(props) {
@@ -10,11 +8,13 @@ export class AccentTextInput extends BaseTextInput {
     }
 
     render() {
+        const { themeForms } = this.props;
+
         return (
             <BaseTextInput
-                style={formStyles.textInputAccent}
-                placeholderTextColor={therrTheme.colors.placeholderTextColor}
-                selectionColor={therrTheme.colors.accentYellow}
+                style={themeForms.styles.textInputAccent}
+                placeholderTextColor={themeForms.colors.placeholderTextColor}
+                selectionColor={themeForms.colors.accentYellow}
                 multiline={true}
                 {...this.props}
             />

@@ -9,8 +9,9 @@ import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import translator from '../../services/translator';
 import { buildStyles } from '../../styles';
+import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
-import { buildStyles as buildMomentStyles } from '../../styles/user-content/moments';
+import { buildStyles as buildMomentStyles } from '../../styles/user-content/areas';
 import { buildStyles as buildReactionsModalStyles } from '../../styles/modal/areaReactionsModal';
 import AreaCarousel from './AreaCarousel';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
@@ -66,6 +67,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
     private carouselRef;
     private translate: Function;
     private theme = buildStyles();
+    private themeButtons = buildButtonsStyles();
     private themeMenu = buildMenuStyles();
     private themeMoments = buildMomentStyles();
     private themeReactionsModal = buildReactionsModalStyles();
@@ -80,10 +82,11 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
             selectedArea: {},
         };
 
-        this.theme = buildStyles(props.user.settings.mobileThemeName);
-        this.themeMenu = buildMenuStyles(props.user.settings.mobileThemeName);
-        this.themeMoments = buildMomentStyles(props.user.settings.mobileThemeName);
-        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings.mobileThemeName);
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
+        this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
+        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -261,6 +264,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
                     onRequestClose={() => this.toggleAreaOptions(selectedArea)}
                     translate={this.translate}
                     onSelect={this.onAreaOptionSelect}
+                    themeButtons={this.themeButtons}
                     themeReactionsModal={this.themeReactionsModal}
                 />
                 <MainButtonMenu

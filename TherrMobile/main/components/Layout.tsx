@@ -30,6 +30,7 @@ import { ILocationState } from '../types/redux/location';
 import HeaderMenuLeft from './HeaderMenuLeft';
 import translator from '../services/translator';
 import { buildStyles } from '../styles';
+import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildMenuStyles } from '../styles/modal/headerMenuModal';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
@@ -97,6 +98,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private urlEventListener;
     private routeNameRef: any = {};
     private theme = buildStyles();
+    private themeForms = buildFormStyles();
     private themeMenu = buildMenuStyles();
 
     constructor(props) {
@@ -107,10 +109,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             targetRouteView: '',
         };
 
-        this.theme = buildStyles(props.user.settings.mobileThemeName);
-        this.themeMenu = buildMenuStyles(props.user.settings.mobileThemeName);
+        this.theme = buildStyles(props?.user?.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props?.user?.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props?.user?.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
-            translator(props.user.settings.locale, key, params);
+            translator(props?.user?.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {
@@ -395,6 +398,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         const currentScreen = this.getCurrentScreen(navigation);
                         const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
                         // const isMap = currentScreen === 'Map';
+                        let headerTitle;
                         let headerStyleName: any = 'light';
                         let headerTitleColor = this.theme.colors.textWhite;
                         if (isMoment) {
@@ -411,6 +415,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     navigation={navigation}
                                     isAuthenticated={user.isAuthenticated}
                                     isEmailVerifed={this.isUserEmailVerified()}
+                                    theme={this.theme}
                                 />
                             ),
                             headerRight: this.shouldShowTopRightMenu() ? () => (
@@ -439,6 +444,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             headerTransparent: false,
                             headerBackVisible: false,
                             headerBackTitleVisible: false,
+                            headerTitle,
                         });
                     }}
                 >

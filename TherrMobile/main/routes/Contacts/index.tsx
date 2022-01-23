@@ -6,6 +6,7 @@ import { bindActionCreators } from 'redux';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { buildStyles } from '../../styles';
+import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
 // import CreateConnectionButton from '../../components/CreateConnectionButton';
@@ -48,6 +49,7 @@ const mapDispatchToProps = (dispatch: any) =>
 class Contacts extends React.Component<IContactsProps, IContactsState> {
     private translate: Function;
     private theme = buildStyles();
+    private themeButtons = buildButtonsStyles();
     private themeMenu = buildMenuStyles();
 
     constructor(props) {
@@ -55,8 +57,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
 
         this.state = {};
 
-        this.theme = buildStyles(props.user.settings.mobileThemeName);
-        this.themeMenu = buildMenuStyles(props.user.settings.mobileThemeName);
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -137,6 +140,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                                 connectionDetails={this.getConnectionDetails(connection)}
                                 getConnectionSubtitle={this.getConnectionSubtitle}
                                 onConnectionPress={this.onConnectionPress}
+                                theme={this.theme}
                             />
                         )}
                         ListEmptyComponent={() => (
@@ -154,13 +158,14 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                                 navigation={navigation}
                                 translate={this.translate}
                                 containerStyles={this.themeMenu.styles.tabsContainer}
+                                themeMenu={this.themeMenu}
                             />
                         )}
                         stickyHeaderIndices={[0]}
                         // onContentSizeChange={() => connections.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
                     />
                 </SafeAreaView>
-                <CreateConnectionButton navigation={navigation} />
+                <CreateConnectionButton navigation={navigation} themeButtons={this.themeButtons} />
                 <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}

@@ -16,6 +16,7 @@ import {
 import UsersActions from '../../redux/actions/UsersActions';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { buildStyles } from '../../styles';
+import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
@@ -63,6 +64,8 @@ class ViewUser extends React.Component<
     private flatListRef: any;
     private translate: Function;
     private theme = buildStyles();
+    private themeConfirmModal = buildConfirmModalStyles();
+    private themeButtons = buildMenuStyles();
     private themeMenu = buildMenuStyles();
 
     constructor(props) {
@@ -75,8 +78,9 @@ class ViewUser extends React.Component<
             fetchedUserInView: {},
         };
 
-        this.theme = buildStyles(props.user.settings.mobileThemeName);
-        this.themeMenu = buildMenuStyles(props.user.settings.mobileThemeName);
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
             translator('en-us', key, params);
     }
@@ -212,7 +216,7 @@ class ViewUser extends React.Component<
                 <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     {
                         isLoading ?
-                            <LottieLoader id="therr-black-rolling" /> :
+                            <LottieLoader id="therr-black-rolling" theme={this.theme} /> :
                             <UserDisplay
                                 onProfilePicturePress={this.onProfilePicturePress}
                                 onBlockUser={this.onBlockUser}
@@ -233,6 +237,8 @@ class ViewUser extends React.Component<
                     translate={this.translate}
                     width={activeConfirmModal === 'remove-connection-request' ? '70%' : '60%'}
                     theme={this.theme}
+                    themeButtons={this.themeButtons}
+                    themeModal={this.themeConfirmModal}
                 />
                 <MainButtonMenu
                     navigation={navigation}

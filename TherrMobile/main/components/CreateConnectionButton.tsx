@@ -1,11 +1,11 @@
 import React from 'react';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import buttonStyles from '../styles/buttons';
 import { buttonMenuHeight } from '../styles/navigation/buttonMenu';
 
 export default ({
     navigation,
+    themeButtons,
 }) => {
     const goToAddConnection = () => {
         navigation.navigate('CreateConnection');
@@ -18,12 +18,12 @@ export default ({
                 right: 20,
                 bottom: buttonMenuHeight + 20,
             }}
-            buttonStyle={buttonStyles.btn}
+            buttonStyle={themeButtons.styles.btn}
             icon={
                 <MaterialIcon
                     name="add"
                     size={40}
-                    style={buttonStyles.btnIcon}
+                    style={themeButtons.styles.btnIcon}
                 />
             }
             raised={true}

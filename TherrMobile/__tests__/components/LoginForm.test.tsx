@@ -23,7 +23,7 @@ describe('LoginForm', () => {
             navigate: jest.fn(),
         };
         const mockLogin = jest.fn();
-        const component = renderer.create(<LoginForm navigation={mockNavigation} login={mockLogin} />);
+        const component = renderer.create(<LoginForm navigation={mockNavigation} login={mockLogin} userSettings={{ mobileThemeName: 'retro' }} />);
         expect(component.getInstance().isLoginFormDisabled()).toEqual(true);
     });
 });

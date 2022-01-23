@@ -2,18 +2,18 @@ import React from 'react';
 import { Platform } from 'react-native';
 import 'react-native-gesture-handler';
 import BaseInput from './';
-import formStyles from '../../styles/forms';
 
 export class RoundInput extends BaseInput {
     constructor(props) {
         super(props);
     }
-
     render() {
+        const { themeForms } = this.props;
+
         return (
             <BaseInput
-                inputStyle={Platform.OS !== 'ios' ? formStyles.input : formStyles.inputAlt}
-                inputContainerStyle={formStyles.inputContainerRound}
+                inputStyle={Platform.OS !== 'ios' ? themeForms.styles.input : themeForms.styles.inputAlt}
+                inputContainerStyle={themeForms.styles.inputContainerRound}
                 {...this.props}
             />
         );

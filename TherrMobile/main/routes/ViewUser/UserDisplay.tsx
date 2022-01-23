@@ -136,7 +136,7 @@ export default ({
     // eslint-disable-next-line eqeqeq
     const isMe = user.details?.id == userInView.id;
     let actionsList = getActionableOptions(isMe, userInView);
-    const theme = buildStyles(user.settings.mobileThemeName);
+    const theme = buildStyles(user.settings?.mobileThemeName);
 
     return (
         <View style={theme.styles.container}>

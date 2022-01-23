@@ -16,9 +16,11 @@ import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
 import { buildStyles, addMargins } from '../styles';
-import accentLayoutStyles from '../styles/layouts/accent';
-import formStyles, { accentEditForm as editSpaceFormStyles } from '../styles/forms';
-import { buildStyles as buildMomentStyles } from '../styles/user-content/moments/editing';
+import { buildStyles as buildAlertStyles } from '../styles/alerts';
+import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
+import { buildStyles as buildFormStyles } from '../styles/forms';
+import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
+import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/editing';
 import userContentStyles from '../styles/user-content';
 import {
     youtubeLinkRegex,
@@ -73,7 +75,11 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
     private translate: Function;
     private unsubscribeNavListener;
     private theme;
-    private themeMoments;
+    private themeAlerts = buildAlertStyles();
+    private themeAccentLayout = buildAccentStyles();
+    private themeMoments = buildMomentStyles();
+    private themeForms = buildFormStyles();
+    private themeAccentForms = buildAccentFormStyles();
 
     constructor(props) {
         super(props);
@@ -96,8 +102,12 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
             imagePreviewPath: getImagePreviewPath(imageURI),
         };
 
-        this.theme = buildStyles(props.user.settings.mobileThemeName);
-        this.themeMoments = buildMomentStyles(props.user.settings.mobileThemeName);
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
+        this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
+        this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
+        this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
         this.categoryOptions = [
             {
@@ -388,16 +398,16 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={[this.theme.styles.bodyFlex, accentLayoutStyles.bodyEdit]}
-                        contentContainerStyle={[this.theme.styles.bodyScroll, accentLayoutStyles.bodyEditScroll]}
+                        style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit]}
+                        contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyEditScroll]}
                     >
-                        <Pressable style={accentLayoutStyles.container} onPress={Keyboard.dismiss}>
+                        <Pressable style={this.themeAccentLayout.styles.container} onPress={Keyboard.dismiss}>
                             {
                                 !!imagePreviewPath &&
-                                <View style={this.themeMoments.mediaContainer}>
+                                <View style={this.themeMoments.styles.mediaContainer}>
                                     <Image
                                         source={{ uri: imagePreviewPath }}
-                                        style={this.themeMoments.mediaImage}
+                                        style={this.themeMoments.styles.mediaImage}
                                     />
                                 </View>
                             }
@@ -410,6 +420,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                 onChangeText={(text) =>
                                     this.onInputChange('notificationMsg', text)
                                 }
+                                themeForms={this.themeForms}
                             />
                             <AccentTextInput
                                 placeholder={this.translate(
@@ -420,13 +431,15 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                     this.onInputChange('message', text)
                                 }
                                 numberOfLines={5}
+                                themeForms={this.themeForms}
                             />
-                            <View style={[formStyles.input, { display: 'flex', flexDirection: 'row', alignItems: 'center' }]}>
+                            <View style={[this.themeForms.styles.input, { display: 'flex', flexDirection: 'row', alignItems: 'center' }]}>
                                 <DropDown
                                     onChange={(newValue) =>
                                         this.onInputChange('category', newValue || 'uncategorized')
                                     }
                                     options={this.categoryOptions}
+                                    formStyles={this.themeForms.styles}
                                 />
                             </View>
                             <AccentInput
@@ -440,12 +453,14 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                     this.onInputChange('hashTags', text)
                                 }
                                 onBlur={this.handleHashTagsBlur}
+                                themeForms={this.themeForms}
                             />
                             <HashtagsContainer
                                 hashtags={hashtags}
                                 onHashtagPress={this.handleHashtagPress}
+                                styles={this.themeForms.styles}
                             />
-                            <View style={formStyles.inputSliderContainer}>
+                            <View style={this.themeForms.styles.inputSliderContainer}>
                                 <Slider
                                     value={inputs.radius}
                                     onValueChange={(value) => this.onSliderChange('radius', value)}
@@ -458,7 +473,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                     maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
                                     onSlidingStart={Keyboard.dismiss}
                                 />
-                                <Text style={formStyles.inputLabelDark}>
+                                <Text style={this.themeForms.styles.inputLabelDark}>
                                     {`${this.translate('forms.editSpace.labels.radius', { meters: inputs.radius })}`}
                                 </Text>
                             </View>
@@ -469,6 +484,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                 isVisible={!!(errorMsg || successMsg)}
                                 message={successMsg || errorMsg}
                                 type={errorMsg ? 'error' : 'success'}
+                                themeAlerts={this.themeAlerts}
                             />
                             {/* <AccentInput
                                 placeholder={this.translate(
@@ -500,9 +516,9 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                         </Pressable>
                         {
                             !!previewLinkId
-                            && <View style={[userContentStyles.preview, editSpaceFormStyles.previewContainer, previewStyleState]}>
-                                <Text style={editSpaceFormStyles.previewHeader}>{this.translate('pages.editSpace.previewHeader')}</Text>
-                                <View style={editSpaceFormStyles.preview}>
+                            && <View style={[userContentStyles.preview, this.themeAccentForms.styles.previewContainer, previewStyleState]}>
+                                <Text style={this.themeAccentForms.styles.previewHeader}>{this.translate('pages.editSpace.previewHeader')}</Text>
+                                <View style={this.themeAccentForms.styles.preview}>
                                     <YoutubePlayer
                                         height={300}
                                         play={false}
@@ -513,10 +529,10 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                             </View>
                         }
                     </KeyboardAwareScrollView>
-                    <View style={accentLayoutStyles.footer}>
+                    <View style={this.themeAccentLayout.styles.footer}>
                         <Button
-                            containerStyle={editSpaceFormStyles.backButtonContainer}
-                            buttonStyle={editSpaceFormStyles.backButton}
+                            containerStyle={this.themeAccentForms.styles.backButtonContainer}
+                            buttonStyle={this.themeAccentForms.styles.backButton}
                             onPress={() => navigation.navigate('Map')}
                             icon={
                                 <FontAwesome5Icon
@@ -528,11 +544,11 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                             type="clear"
                         />
                         <Button
-                            buttonStyle={editSpaceFormStyles.submitButton}
-                            disabledStyle={editSpaceFormStyles.submitButtonDisabled}
-                            disabledTitleStyle={editSpaceFormStyles.submitDisabledButtonTitle}
-                            titleStyle={editSpaceFormStyles.submitButtonTitle}
-                            containerStyle={editSpaceFormStyles.submitButtonContainer}
+                            buttonStyle={this.themeAccentForms.styles.submitButton}
+                            disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
+                            disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
+                            titleStyle={this.themeAccentForms.styles.submitButtonTitle}
+                            containerStyle={this.themeAccentForms.styles.submitButtonContainer}
                             title={this.translate(
                                 'forms.editSpace.buttons.submit'
                             )}
@@ -541,7 +557,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                     name="paper-plane"
                                     size={25}
                                     color={this.isFormDisabled() ? 'grey' : 'black'}
-                                    style={editSpaceFormStyles.submitButtonIcon}
+                                    style={this.themeAccentForms.styles.submitButtonIcon}
                                 />
                             }
                             onPress={this.onSubmit}

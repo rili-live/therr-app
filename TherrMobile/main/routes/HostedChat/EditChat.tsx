@@ -11,8 +11,9 @@ import { IUserState } from 'therr-react/types';
 import translator from '../../services/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildCategoryStyles } from '../../styles/user-content/hosted-chat/categories';
-import accentLayoutStyles from '../../styles/layouts/accent';
-import { accentEditForm as accentFormStyles } from '../../styles/forms';
+import { buildStyles as buildAccentStyles } from '../../styles/layouts/accent';
+import { buildStyles as buildAccentFormStyles } from '../../styles/forms/accentEditForm';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
 import formatHashtags from '../../utilities/formatHashtags';
 import AccentInput from '../../components/Input/Accent';
 import AccentTextInput from '../../components/Input/TextInput/Accent';
@@ -61,7 +62,10 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
     private scrollViewRef;
     private translate: Function;
     private theme = buildStyles();
+    private themeAccentLayout = buildAccentStyles();
+    private themeAccentForms = buildAccentFormStyles();
     private themeCategory = buildCategoryStyles();
+    private themeForms = buildFormStyles();
 
     constructor(props) {
         super(props);
@@ -79,8 +83,11 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
             isSubmitting: false,
         };
 
-        this.theme = buildStyles(props.user.settings.mobileThemeName);
-        this.themeCategory = buildCategoryStyles(props.user.settings.mobileThemeName);
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
+        this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
+        this.themeCategory = buildCategoryStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -254,11 +261,11 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={[this.theme.styles.bodyFlex, accentLayoutStyles.bodyEdit]}
-                        contentContainerStyle={[this.theme.styles.bodyScroll, accentLayoutStyles.bodyEditScroll]}
+                        style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit]}
+                        contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyEditScroll]}
                     >
                         <ChatCategories
-                            style={accentLayoutStyles.categoriesContainer}
+                            style={this.themeAccentLayout.styles.categoriesContainer}
                             backgroundColor={this.theme.colors.accent1}
                             categories={categories}
                             onCategoryPress={this.handleCategoryPress}
@@ -267,8 +274,9 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                             toggleChevronName={toggleChevronName}
                             theme={this.theme}
                             themeCategory={this.themeCategory}
+                            themeForms={this.themeForms}
                         />
-                        <View style={accentLayoutStyles.container}>
+                        <View style={this.themeAccentLayout.styles.container}>
                             <AccentInput
                                 placeholder={this.translate(
                                     'forms.editHostedChat.placeholders.title'
@@ -277,6 +285,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                 onChangeText={(text) =>
                                     this.onInputChange('title', text)
                                 }
+                                themeForms={this.themeForms}
                             />
                             <AccentInput
                                 placeholder={this.translate(
@@ -286,6 +295,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                 onChangeText={(text) =>
                                     this.onInputChange('subtitle', text)
                                 }
+                                themeForms={this.themeForms}
                             />
                             <AccentInput
                                 autoCorrect={false}
@@ -297,11 +307,12 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                 onChangeText={(text) =>
                                     this.onInputChange('hashTags', text)
                                 }
-
+                                themeForms={this.themeForms}
                             />
                             <HashtagsContainer
                                 hashtags={hashtags}
                                 onHashtagPress={this.handleHashtagPress}
+                                styles={this.themeForms.styles}
                             />
                             <AccentTextInput
                                 placeholder={this.translate(
@@ -312,13 +323,14 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                     this.onInputChange('description', text)
                                 }
                                 numberOfLines={3}
+                                themeForms={this.themeForms}
                             />
                         </View>
                     </KeyboardAwareScrollView>
-                    <View style={accentLayoutStyles.footer}>
+                    <View style={this.themeAccentLayout.styles.footer}>
                         <Button
-                            containerStyle={accentFormStyles.backButtonContainer}
-                            buttonStyle={accentFormStyles.backButton}
+                            containerStyle={this.themeAccentForms.styles.backButtonContainer}
+                            buttonStyle={this.themeAccentForms.styles.backButton}
                             onPress={() => navigation.navigate('HostedChat')}
                             icon={
                                 <FontAwesome5Icon
@@ -330,11 +342,11 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                             type="clear"
                         />
                         <Button
-                            buttonStyle={accentFormStyles.submitButton}
-                            disabledStyle={accentFormStyles.submitButtonDisabled}
-                            disabledTitleStyle={accentFormStyles.submitDisabledButtonTitle}
-                            titleStyle={accentFormStyles.submitButtonTitle}
-                            containerStyle={accentFormStyles.submitButtonContainer}
+                            buttonStyle={this.themeAccentForms.styles.submitButton}
+                            disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
+                            disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
+                            titleStyle={this.themeAccentForms.styles.submitButtonTitle}
+                            containerStyle={this.themeAccentForms.styles.submitButtonContainer}
                             title={this.translate(
                                 'forms.editMoment.buttons.submit'
                             )}
@@ -343,7 +355,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                     name="paper-plane"
                                     size={25}
                                     color={this.isFormDisabled() ? 'grey' : 'black'}
-                                    style={accentFormStyles.submitButtonIcon}
+                                    style={this.themeAccentForms.styles.submitButtonIcon}
                                 />
                             }
                             onPress={this.onSubmit}

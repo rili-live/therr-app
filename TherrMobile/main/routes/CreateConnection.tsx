@@ -17,8 +17,11 @@ import translator from '../services/translator';
 import SquareInput from '../components/Input/Square';
 import PhoneNumberInput from '../components/Input/PhoneNumberInput';
 import { buildStyles, addMargins } from '../styles';
+import { buildStyles as buildAlertStyles } from '../styles/alerts';
+import { buildStyles as buildButtonStyles } from '../styles/buttons';
+import { buildStyles as buildConfirmModalStyles } from '../styles/modal/confirmModal';
 import { buildStyles as buildMenuStyles } from '../styles/navigation/buttonMenu';
-import formStyles from '../styles/forms';
+import { buildStyles as buildFormStyles } from '../styles/forms';
 import BaseStatusBar from '../components/BaseStatusBar';
 import MessagesContactsTabs from '../components/FlatListHeaderTabs/MessagesContactsTabs';
 import ConfirmModal from '../components/Modals/ConfirmModal';
@@ -70,7 +73,11 @@ const mapDispatchToProps = (dispatch: any) =>
 class Home extends React.Component<IHomeProps, IHomeState> {
     private translate: Function;
     private theme = buildStyles();
+    private themeAlerts = buildAlertStyles();
+    private themeConfirmModal = buildConfirmModalStyles();
+    private themeButtons = buildButtonStyles();
     private themeMenu = buildMenuStyles();
+    private themeForms = buildFormStyles();
 
     constructor(props) {
         super(props);
@@ -87,8 +94,12 @@ class Home extends React.Component<IHomeProps, IHomeState> {
             isNameConfirmModalVisible: false,
         };
 
-        this.theme = buildStyles(props.user.settings.mobileThemeName);
-        this.themeMenu = buildMenuStyles(props.user.settings.mobileThemeName);
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
+        this.themeButtons = buildButtonStyles(props.user.settings?.mobileThemeName);
+        this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -221,11 +232,11 @@ class Home extends React.Component<IHomeProps, IHomeState> {
             requestingUserId: user.details.id,
             requestingUserFirstName: user.details.firstName,
             requestingUserLastName: user.details.lastName,
-            requestingUserEmail: user.details.email.toLowerCase(),
+            requestingUserEmail: user.details.email?.toLowerCase(),
         };
 
         if (connectionContext === 'email') {
-            reqBody.acceptingUserEmail = inputs.email.toLowerCase();
+            reqBody.acceptingUserEmail = inputs.email?.toLowerCase();
         }
         if (connectionContext === 'phone') {
             reqBody.acceptingUserPhoneNumber = inputs.phoneNumber;
@@ -307,8 +318,8 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                     <View style={this.theme.styles.sectionForm}>
                                         <ReactPicker
                                             selectedValue={connectionContext}
-                                            style={formStyles.picker}
-                                            itemStyle={formStyles.pickerItem}
+                                            style={this.themeForms.styles.picker}
+                                            itemStyle={this.themeForms.styles.pickerItem}
                                             onValueChange={(itemValue) =>
                                                 this.setState({ connectionContext: itemValue })
                                             }>
@@ -340,6 +351,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                                         color={this.theme.colorVariations.primary3Fade}
                                                     />
                                                 }
+                                                themeForms={this.themeForms}
                                             />
                                         }
                                         {
@@ -349,6 +361,8 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                                 onSubmit={this.onSubmit}
                                                 placeholder={this.translate('forms.settings.labels.phoneNumber')}
                                                 translate={this.translate}
+                                                theme={this.theme}
+                                                themeForms={this.themeForms}
                                             />
                                         }
                                         <Alert
@@ -358,11 +372,12 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                             isVisible={!!prevConnReqSuccess || !!prevConnReqError}
                                             message={!!prevConnReqSuccess ? prevConnReqSuccess : prevConnReqError}
                                             type={!!prevConnReqSuccess ? 'success' : 'error'}
+                                            themeAlerts={this.themeAlerts}
                                         />
                                         <Button
-                                            buttonStyle={formStyles.button}
-                                            // disabledTitleStyle={formStyles.buttonTitleDisabled}
-                                            disabledStyle={formStyles.buttonDisabled}
+                                            buttonStyle={this.themeForms.styles.button}
+                                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                            disabledStyle={this.themeForms.styles.buttonDisabled}
                                             title={this.translate(
                                                 'forms.createConnection.buttons.submit'
                                             )}
@@ -380,6 +395,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                 navigation={navigation}
                                 translate={this.translate}
                                 containerStyles={this.themeMenu.styles.tabsContainer}
+                                themeMenu={this.themeMenu}
                             />
                         )}
                         stickyHeaderIndices={[0]}
@@ -394,6 +410,8 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                     textCancel={this.translate('forms.createConnection.modal.noThanks')}
                     translate={this.translate}
                     theme={this.theme}
+                    themeModal={this.themeConfirmModal}
+                    themeButtons={this.themeButtons}
                 />
                 <MainButtonMenu
                     navigation={navigation}

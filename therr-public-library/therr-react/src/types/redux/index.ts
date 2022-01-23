@@ -31,6 +31,7 @@ import {
     ReactionActionTypes,
 } from './reactions';
 import {
+    IMobileThemeName,
     IUser,
     ISocketDetails,
     IUserState,
@@ -79,6 +80,7 @@ export {
     ReactionActionTypes,
 
     // User
+    IMobileThemeName,
     IUser,
     ISocketDetails,
     IUserState,

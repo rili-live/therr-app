@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { View } from 'react-native';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
-import { buildStyles } from '../../styles/user-content/moments';
+import { buildStyles } from '../../styles/user-content/areas';
 import { CAROUSEL_TABS } from '../../constants';
 
 interface ICarouselTabsMenuDispatchProps {
@@ -42,7 +42,7 @@ export class CarouselTabsMenu extends React.Component<ICarouselTabsMenuProps, IC
 
         this.state = {};
 
-        this.theme = buildStyles(props.user.settings.mobileThemeName);
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
     }
 
     getButtonStyles = (name) => {

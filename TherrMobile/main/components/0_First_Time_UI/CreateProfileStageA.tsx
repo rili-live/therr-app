@@ -3,9 +3,8 @@ import { GestureResponderEvent, Platform, View } from 'react-native';
 import { Button }  from 'react-native-elements';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import Alert from '../Alert';
-import * as therrTheme from '../../styles/themes';
-import formStyles, { settingsForm as settingsFormStyles } from '../../styles/forms';
 import SquareInput from '../Input/Square';
+import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 
 interface ICreateProfileStageAProps {
     errorMsg: string;
@@ -14,6 +13,17 @@ interface ICreateProfileStageAProps {
     onInputChange: Function;
     onSubmit: ((event: GestureResponderEvent) => void) | undefined;
     translate: Function;
+    themeAlerts: {
+        colorVariations: ITherrThemeColorVariations;
+        styles: any;
+    };
+    themeForms: {
+        colors: ITherrThemeColors;
+        styles: any;
+    };
+    themeSettingsForm: {
+        styles: any;
+    };
 }
 
 const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = ({
@@ -23,14 +33,18 @@ const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = 
     onInputChange,
     onSubmit,
     translate,
+    themeAlerts,
+    themeForms,
+    themeSettingsForm,
 }) => {
     return (
-        <View style={settingsFormStyles.userContainer}>
+        <View style={themeSettingsForm.styles.userContainer}>
             <Alert
-                containerStyles={settingsFormStyles.alert}
+                containerStyles={themeSettingsForm.styles.alert}
                 isVisible={errorMsg}
                 message={errorMsg}
                 type="error"
+                themeAlerts={themeAlerts}
             />
             <SquareInput
                 placeholder={translate(
@@ -44,9 +58,10 @@ const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = 
                     <FontAwesomeIcon
                         name="user"
                         size={22}
-                        color={therrTheme.colorVariations.primary3Fade}
+                        color={themeAlerts.colorVariations.primary3Fade}
                     />
                 }
+                themeForms={themeForms}
             />
             {
                 Platform.OS !== 'ios' &&
@@ -63,9 +78,10 @@ const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = 
                             <FontAwesomeIcon
                                 name="smile"
                                 size={22}
-                                color={therrTheme.colorVariations.primary3Fade}
+                                color={themeAlerts.colorVariations.primary3Fade}
                             />
                         }
+                        themeForms={themeForms}
                     />
                     <SquareInput
                         placeholder={translate(
@@ -79,15 +95,16 @@ const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = 
                             <FontAwesomeIcon
                                 name="smile-beam"
                                 size={22}
-                                color={therrTheme.colorVariations.primary3Fade}
+                                color={themeAlerts.colorVariations.primary3Fade}
                             />
                         }
+                        themeForms={themeForms}
                     />
                 </>
             }
-            <View style={settingsFormStyles.submitButtonContainer}>
+            <View style={themeSettingsForm.styles.submitButtonContainer}>
                 <Button
-                    buttonStyle={formStyles.button}
+                    buttonStyle={themeForms.styles.button}
                     title={translate(
                         'forms.createProfile.buttons.submit'
                     )}

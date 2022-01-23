@@ -1,24 +1,27 @@
 import React from 'react';
 import { Avatar, ListItem } from 'react-native-elements';
 import 'react-native-gesture-handler';
-import styles from '../../styles';
 
 interface IConnectionItemProps {
     connectionDetails: any;
     getConnectionSubtitle: any;
     onConnectionPress: any;
+    theme: {
+        styles: any;
+    }
 }
 
 const ConnectionItem: React.FunctionComponent<IConnectionItemProps> = ({
     connectionDetails,
     getConnectionSubtitle,
     onConnectionPress,
+    theme,
 }) => {
     return (
         <ListItem
             onPress={() => onConnectionPress(connectionDetails)}
             bottomDivider
-            containerStyle={styles.listItemCard}
+            containerStyle={theme.styles.listItemCard}
         >
             <Avatar
                 title={`${connectionDetails.firstName.substring(0, 1)}${connectionDetails.lastName.substring(0, 1)}`}

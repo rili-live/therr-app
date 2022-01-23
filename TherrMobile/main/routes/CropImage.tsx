@@ -8,8 +8,10 @@ import { IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
 import CropButtonMenu from '../components/ButtonMenu/CropButtonMenu';
 import translator from '../services/translator';
-import styles from '../styles';
+import { buildStyles } from '../styles';
+import { buildStyles as buildMenuStyles } from '../styles/navigation/buttonMenu';
 import BaseStatusBar from '../components/BaseStatusBar';
+
 
 interface ICropImageDispatchProps {
     createMoment: Function;
@@ -44,6 +46,8 @@ export class CropImage extends React.Component<ICropImageProps, ICropImageState>
     private scrollViewRef;
     private translate: Function;
     private unsubscribeNavListener;
+    private theme = buildStyles();
+    private themeMenu = buildMenuStyles();
 
     constructor(props) {
         super(props);
@@ -54,6 +58,8 @@ export class CropImage extends React.Component<ICropImageProps, ICropImageState>
             isSubmitting: false,
         };
 
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
         // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
     }
@@ -108,8 +114,10 @@ export class CropImage extends React.Component<ICropImageProps, ICropImageState>
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={styles.safeAreaView}>
-                    <ScrollView style={[styles.bodyFlex, { padding: 0 }]} contentContainerStyle={[styles.bodyScroll, { minHeight: '100%' }]}>
+                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                    <ScrollView
+                        style={[this.theme.styles.bodyFlex, { padding: 0 }]} contentContainerStyle={[this.theme.styles.bodyScroll, { minHeight: '100%' }]}
+                    >
                         <CropView
                             sourceUrl={localFilePath}
                             style={{
@@ -129,6 +137,7 @@ export class CropImage extends React.Component<ICropImageProps, ICropImageState>
                     translate={this.translate}
                     onActionButtonPress={this.onActionButtonPress}
                     user={user}
+                    themeMenu={this.themeMenu}
                 />
             </>
         );

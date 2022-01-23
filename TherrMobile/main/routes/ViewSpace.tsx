@@ -16,11 +16,13 @@ import YoutubePlayer from 'react-native-youtube-iframe';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
 import { buildStyles } from '../styles';
-// import * as therrTheme from '../styles/themes';
-import formStyles, { accentEditForm as accentFormStyles } from '../styles/forms';
-import accentLayoutStyles from '../styles/layouts/accent';
+import { buildStyles as buildFormStyles } from '../styles/forms';
+import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
+import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
+import { buildStyles as buildButtonsStyles } from '../styles/buttons';
+import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/viewing';
+import { buildStyles as buildReactionsModalStyles } from '../styles/modal/areaReactionsModal';
 import userContentStyles from '../styles/user-content';
-import { viewing as viewSpaceStyles } from '../styles/user-content/moments';
 import { youtubeLinkRegex } from '../constants';
 import AreaDisplay from '../components/UserContent/AreaDisplay';
 import formatDate from '../utilities/formatDate';
@@ -28,8 +30,6 @@ import BaseStatusBar from '../components/BaseStatusBar';
 import { isMyArea as checkIsMySpace } from '../utilities/content';
 import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptionsModal';
 import { getReactionUpdateArgs } from '../utilities/reactions';
-// import * as therrTheme from '../styles/themes';
-// import formStyles, { settingsForm as settingsFormStyles } from '../styles/forms';
 // import AccentInput from '../components/Input/Accent';
 
 interface ISpaceDetails {
@@ -83,7 +83,12 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
     private translate: Function;
     private unsubscribeNavListener;
     private theme = buildStyles();
+    private themeAccentLayout = buildAccentStyles();
+    private themeButtons = buildButtonsStyles();
+    private themeArea = buildMomentStyles();
     private themeReactionsModal = buildReactionsModalStyles();
+    private themeForms = buildFormStyles();
+    private themeAccentForms = buildAccentFormStyles();
 
     constructor(props) {
         super(props);
@@ -104,8 +109,13 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
             selectedSpace: {},
         };
 
-        this.theme = buildStyles(props.user.settings.mobileThemeName);
-        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings.mobileThemeName);
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
+        this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
+        this.themeArea = buildMomentStyles(props.user.settings?.mobileThemeName, true);
+        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
+        this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
 
         this.notificationMsg = (space.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
@@ -147,9 +157,9 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         return (
             <Button
                 key={key}
-                buttonStyle={formStyles.buttonPill}
-                containerStyle={formStyles.buttonPillContainer}
-                titleStyle={formStyles.buttonPillTitle}
+                buttonStyle={this.themeForms.styles.buttonPill}
+                containerStyle={this.themeForms.styles.buttonPillContainer}
+                titleStyle={this.themeForms.styles.buttonPillTitle}
                 title={`#${tag}`}
             />
         );
@@ -273,10 +283,10 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={[this.theme.styles.bodyFlex, accentLayoutStyles.bodyView]}
-                        contentContainerStyle={[this.theme.styles.bodyScroll, accentLayoutStyles.bodyViewScroll]}
+                        style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyView]}
+                        contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyViewScroll]}
                     >
-                        <View style={[accentLayoutStyles.container, viewSpaceStyles.areaContainer]}>
+                        <View style={[this.themeAccentLayout.styles.container, this.themeArea.styles.areaContainer]}>
                             <AreaDisplay
                                 translate={this.translate}
                                 date={this.date}
@@ -294,6 +304,8 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                 }}
                                 areaMedia={spaceMedia}
                                 theme={this.theme}
+                                themeForms={this.themeForms}
+                                themeViewArea={this.themeArea}
                             />
                         </View>
                         {
@@ -309,10 +321,10 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                         }
                     </KeyboardAwareScrollView>
                     {
-                        <View style={[accentLayoutStyles.footer, viewSpaceStyles.footer]}>
+                        <View style={[this.themeAccentLayout.styles.footer, this.themeArea.styles.footer]}>
                             <Button
-                                containerStyle={accentFormStyles.backButtonContainer}
-                                buttonStyle={accentFormStyles.backButton}
+                                containerStyle={this.themeAccentForms.styles.backButtonContainer}
+                                buttonStyle={this.themeAccentForms.styles.backButton}
                                 onPress={() => this.goBack()}
                                 icon={
                                     <FontAwesome5Icon
@@ -329,11 +341,11 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                     {
                                         !isVerifyingDelete &&
                                             <Button
-                                                buttonStyle={accentFormStyles.submitDeleteButton}
-                                                disabledStyle={accentFormStyles.submitButtonDisabled}
-                                                disabledTitleStyle={accentFormStyles.submitDisabledButtonTitle}
-                                                titleStyle={accentFormStyles.submitButtonTitle}
-                                                containerStyle={accentFormStyles.submitButtonContainer}
+                                                buttonStyle={this.themeAccentForms.styles.submitDeleteButton}
+                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
+                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
+                                                titleStyle={this.themeAccentForms.styles.submitButtonTitle}
+                                                containerStyle={this.themeAccentForms.styles.submitButtonContainer}
                                                 title={this.translate(
                                                     'forms.editSpace.buttons.delete'
                                                 )}
@@ -342,7 +354,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                                         name="trash-alt"
                                                         size={25}
                                                         color={'black'}
-                                                        style={accentFormStyles.submitButtonIcon}
+                                                        style={this.themeAccentForms.styles.submitButtonIcon}
                                                     />
                                                 }
                                                 onPress={this.onDelete}
@@ -351,13 +363,13 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                     }
                                     {
                                         isVerifyingDelete &&
-                                        <View style={accentFormStyles.submitConfirmContainer}>
+                                        <View style={this.themeAccentForms.styles.submitConfirmContainer}>
                                             <Button
-                                                buttonStyle={accentFormStyles.submitCancelButton}
-                                                disabledStyle={accentFormStyles.submitButtonDisabled}
-                                                disabledTitleStyle={accentFormStyles.submitDisabledButtonTitle}
-                                                titleStyle={accentFormStyles.submitButtonTitle}
-                                                containerStyle={accentFormStyles.submitCancelButtonContainer}
+                                                buttonStyle={this.themeAccentForms.styles.submitCancelButton}
+                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
+                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
+                                                titleStyle={this.themeAccentForms.styles.submitButtonTitle}
+                                                containerStyle={this.themeAccentForms.styles.submitCancelButtonContainer}
                                                 title={this.translate(
                                                     'forms.editSpace.buttons.cancel'
                                                 )}
@@ -366,11 +378,11 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                                 raised={true}
                                             />
                                             <Button
-                                                buttonStyle={accentFormStyles.submitConfirmButton}
-                                                disabledStyle={accentFormStyles.submitButtonDisabled}
-                                                disabledTitleStyle={accentFormStyles.submitDisabledButtonTitle}
-                                                titleStyle={accentFormStyles.submitButtonTitleLight}
-                                                containerStyle={accentFormStyles.submitButtonContainer}
+                                                buttonStyle={this.themeAccentForms.styles.submitConfirmButton}
+                                                disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
+                                                disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
+                                                titleStyle={this.themeAccentForms.styles.submitButtonTitleLight}
+                                                containerStyle={this.themeAccentForms.styles.submitButtonContainer}
                                                 title={this.translate(
                                                     'forms.editSpace.buttons.confirm'
                                                 )}
@@ -390,6 +402,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                     onRequestClose={() => this.toggleAreaOptions(selectedSpace)}
                     translate={this.translate}
                     onSelect={this.onSpaceOptionSelect}
+                    themeButtons={this.themeButtons}
                     themeReactionsModal={this.themeReactionsModal}
                 />
             </>

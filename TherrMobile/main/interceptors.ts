@@ -26,11 +26,12 @@ const initInterceptors = (
             storedUser && storedUser.details && storedUser.details.idToken;
         const userId =
             storedUser && storedUser.details && storedUser.details.id;
+        const userSettings = storedUser?.settings || {};
 
         if (token) {
             modifiedConfig.headers.authorization = `Bearer ${token}`;
             modifiedConfig.headers['x-userid'] = userId;
-            // TODO: Also set user locale
+            modifiedConfig.headers['x-localecode'] = userSettings.locale || 'en-us';
         }
 
         numLoadings += 1;

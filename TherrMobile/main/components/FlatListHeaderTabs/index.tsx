@@ -23,6 +23,9 @@ export interface IFlatListHeaderTabsProps extends IStoreProps {
     onButtonPress?: Function;
     tabName: string;
     translate: Function;
+    themeMenu: {
+        styles: any;
+    };
 }
 
 interface IFlatListHeaderTabsState {
