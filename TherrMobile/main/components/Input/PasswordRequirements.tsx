@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { Text, View } from 'react-native';
-import formStyles from '../../styles/forms';
 
 export default ({
     password,
     translate,
+    themeForms,
 }) => {
     const passwordRequirements1 = translate('pages.register.passwordRequirements1');
     const passwordRequirements2 = translate('pages.register.passwordRequirements2');
@@ -16,20 +16,20 @@ export default ({
     const p4Bullet = password?.length >= 8 ? '✓' : '*';
 
     return (
-        <View style={formStyles.textField}>
-            <Text style={formStyles.textFieldInfoTextHeader}>
+        <View style={themeForms.styles.textField}>
+            <Text style={themeForms.styles.textFieldInfoTextHeader}>
                 Password Requirements
             </Text>
-            <Text style={formStyles.textFieldInfoText}>
+            <Text style={themeForms.styles.textFieldInfoText}>
                 {`${p1Bullet} ${passwordRequirements1}`}
             </Text>
-            <Text style={formStyles.textFieldInfoText}>
+            <Text style={themeForms.styles.textFieldInfoText}>
                 {`${p2Bullet} ${passwordRequirements2}`}
             </Text>
-            <Text style={formStyles.textFieldInfoText}>
+            <Text style={themeForms.styles.textFieldInfoText}>
                 {`${p3Bullet} ${passwordRequirements3}`}
             </Text>
-            <Text style={formStyles.textFieldInfoText}>
+            <Text style={themeForms.styles.textFieldInfoText}>
                 {`${p4Bullet} ${passwordRequirements4}`}
             </Text>
         </View>

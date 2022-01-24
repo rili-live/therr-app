@@ -9,13 +9,14 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { ForumActions } from 'therr-react/redux/actions';
 import { IUserState } from 'therr-react/types';
 import translator from '../../services/translator';
-import styles from '../../styles';
-import * as therrTheme from '../../styles/themes';
-import beemoLayoutStyles from '../../styles/layouts/beemo';
-import { beemoEditForm as beemoFormStyles } from '../../styles/forms';
+import { buildStyles } from '../../styles';
+import { buildStyles as buildCategoryStyles } from '../../styles/user-content/hosted-chat/categories';
+import { buildStyles as buildAccentStyles } from '../../styles/layouts/accent';
+import { buildStyles as buildAccentFormStyles } from '../../styles/forms/accentEditForm';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
 import formatHashtags from '../../utilities/formatHashtags';
-import BeemoInput from '../../components/Input/Beemo';
-import BeemoTextInput from '../../components/TextInput/Beemo';
+import AccentInput from '../../components/Input/Accent';
+import AccentTextInput from '../../components/Input/TextInput/Accent';
 import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
 import ChatCategories from './ChatCategories';
 import BaseStatusBar from '../../components/BaseStatusBar';
@@ -60,6 +61,11 @@ const mapDispatchToProps = (dispatch: any) =>
 class EditChat extends React.Component<IEditChatProps, IEditChatState> {
     private scrollViewRef;
     private translate: Function;
+    private theme = buildStyles();
+    private themeAccentLayout = buildAccentStyles();
+    private themeAccentForms = buildAccentFormStyles();
+    private themeCategory = buildCategoryStyles();
+    private themeForms = buildFormStyles();
 
     constructor(props) {
         super(props);
@@ -77,6 +83,11 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
             isSubmitting: false,
         };
 
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
+        this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
+        this.themeCategory = buildCategoryStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -246,24 +257,27 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={styles.safeAreaView}>
+                <SafeAreaView style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={[styles.bodyFlex, beemoLayoutStyles.bodyEdit]}
-                        contentContainerStyle={[styles.bodyScroll, beemoLayoutStyles.bodyEditScroll]}
+                        style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit]}
+                        contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyEditScroll]}
                     >
                         <ChatCategories
-                            style={beemoLayoutStyles.categoriesContainer}
-                            backgroundColor={therrTheme.colors.beemo1}
+                            style={this.themeAccentLayout.styles.categoriesContainer}
+                            backgroundColor={this.theme.colors.accent1}
                             categories={categories}
                             onCategoryPress={this.handleCategoryPress}
                             translate={this.translate}
                             onCategoryTogglePress={this.handleCategoryTogglePress}
                             toggleChevronName={toggleChevronName}
+                            theme={this.theme}
+                            themeCategory={this.themeCategory}
+                            themeForms={this.themeForms}
                         />
-                        <View style={beemoLayoutStyles.container}>
-                            <BeemoInput
+                        <View style={this.themeAccentLayout.styles.container}>
+                            <AccentInput
                                 placeholder={this.translate(
                                     'forms.editHostedChat.placeholders.title'
                                 )}
@@ -271,8 +285,9 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                 onChangeText={(text) =>
                                     this.onInputChange('title', text)
                                 }
+                                themeForms={this.themeForms}
                             />
-                            <BeemoInput
+                            <AccentInput
                                 placeholder={this.translate(
                                     'forms.editHostedChat.placeholders.subtitle'
                                 )}
@@ -280,10 +295,11 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                 onChangeText={(text) =>
                                     this.onInputChange('subtitle', text)
                                 }
+                                themeForms={this.themeForms}
                             />
-                            <BeemoInput
+                            <AccentInput
                                 autoCorrect={false}
-                                errorStyle={styles.displayNone}
+                                errorStyle={this.theme.styles.displayNone}
                                 placeholder={this.translate(
                                     'forms.editHostedChat.placeholders.hashTags'
                                 )}
@@ -291,13 +307,14 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                 onChangeText={(text) =>
                                     this.onInputChange('hashTags', text)
                                 }
-
+                                themeForms={this.themeForms}
                             />
                             <HashtagsContainer
                                 hashtags={hashtags}
                                 onHashtagPress={this.handleHashtagPress}
+                                styles={this.themeForms.styles}
                             />
-                            <BeemoTextInput
+                            <AccentTextInput
                                 placeholder={this.translate(
                                     'forms.editHostedChat.placeholders.description'
                                 )}
@@ -306,13 +323,14 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                     this.onInputChange('description', text)
                                 }
                                 numberOfLines={3}
+                                themeForms={this.themeForms}
                             />
                         </View>
                     </KeyboardAwareScrollView>
-                    <View style={beemoLayoutStyles.footer}>
+                    <View style={this.themeAccentLayout.styles.footer}>
                         <Button
-                            containerStyle={beemoFormStyles.backButtonContainer}
-                            buttonStyle={beemoFormStyles.backButton}
+                            containerStyle={this.themeAccentForms.styles.backButtonContainer}
+                            buttonStyle={this.themeAccentForms.styles.backButton}
                             onPress={() => navigation.navigate('HostedChat')}
                             icon={
                                 <FontAwesome5Icon
@@ -324,11 +342,11 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                             type="clear"
                         />
                         <Button
-                            buttonStyle={beemoFormStyles.submitButton}
-                            disabledStyle={beemoFormStyles.submitButtonDisabled}
-                            disabledTitleStyle={beemoFormStyles.submitDisabledButtonTitle}
-                            titleStyle={beemoFormStyles.submitButtonTitle}
-                            containerStyle={beemoFormStyles.submitButtonContainer}
+                            buttonStyle={this.themeAccentForms.styles.submitButton}
+                            disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
+                            disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
+                            titleStyle={this.themeAccentForms.styles.submitButtonTitle}
+                            containerStyle={this.themeAccentForms.styles.submitButtonContainer}
                             title={this.translate(
                                 'forms.editMoment.buttons.submit'
                             )}
@@ -337,7 +355,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                                     name="paper-plane"
                                     size={25}
                                     color={this.isFormDisabled() ? 'grey' : 'black'}
-                                    style={beemoFormStyles.submitButtonIcon}
+                                    style={this.themeAccentForms.styles.submitButtonIcon}
                                 />
                             }
                             onPress={this.onSubmit}

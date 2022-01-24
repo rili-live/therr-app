@@ -3,7 +3,6 @@ import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import therrIconConfig from '../assets/therr-font-config.json';
-import styles from '../styles';
 
 const LogoIcon = createIconSetFromIcoMoon(
     therrIconConfig,
@@ -19,8 +18,11 @@ interface IStoreProps extends IHeaderMenuLeftDispatchProps {}
 export interface IHeaderMenuLeftProps extends IStoreProps {
     isAuthenticated: boolean;
     isEmailVerifed: boolean;
-    styleName: 'light' | 'dark' | 'beemo';
+    styleName: 'light' | 'dark' | 'accent';
     navigation: any;
+    theme: {
+        styles: any;
+    }
 }
 
 interface IHeaderMenuLeftState {}
@@ -47,16 +49,17 @@ class HeaderMenuLeft extends React.Component<
     };
 
     render() {
-        const { styleName } = this.props;
-        let logoStyle = styles.logoIcon;
+        const { styleName, theme } = this.props;
+        let logoStyle = theme.styles.logoIcon;
+
         if (styleName === 'light') {
-            logoStyle = styles.logoIcon;
+            logoStyle = theme.styles.logoIcon;
         }
         if (styleName === 'dark') {
-            logoStyle = styles.logoIconDark;
+            logoStyle = theme.styles.logoIconDark;
         }
-        if (styleName === 'beemo') {
-            logoStyle = styles.logoIconBlack;
+        if (styleName === 'accent') {
+            logoStyle = theme.styles.logoIconBlack;
         }
 
         return (

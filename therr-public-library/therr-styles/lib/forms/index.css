@@ -115,20 +115,22 @@
 
 .validation-errors {
   color: #c23e37;
-  font-size: 0.875rem;
-  margin: 0.375rem;
+  font-size: rem-calc(13px);
+  margin: rem-calc(2px);
   margin-bottom: 0;
   background: #fbfeffbf;
-  padding: 0.3rem;
+  padding: 0.25rem;
   border-radius: 0.25rem;
-  min-height: rem-cal(26px);
+  box-sizing: border-box;
+}
+.validation-errors.phone {
+  margin-bottom: 0.5rem;
 }
 .validation-errors .message-container {
   position: relative;
 }
 .validation-errors .message-container .message {
   display: block;
-  line-height: 1rem;
   margin-left: 1.25rem;
 }
 
@@ -155,7 +157,7 @@ label {
   font-size: rem-calc(15px);
   line-height: 2.5rem;
   margin-bottom: 0;
-  padding-left: 1rem;
+  padding-left: 1.5rem;
 }
 label.required::before {
   color: #c23e37;
@@ -164,7 +166,7 @@ label.required::before {
 }
 
 .form-field {
-  margin: 0 0 1rem;
+  margin: 0 0 0;
 }
 
 input[type=color],
@@ -198,25 +200,41 @@ textarea {
   padding: 0.5rem 0.75rem;
   transition: border-color 0.15s linear, background 0.15s linear;
   width: 100%;
-  margin-bottom: rem-cal(26px);
+  margin-bottom: rem-calc(25px);
 }
-input[type=color].with-errors,
+input[type=color].with-errors, input[type=color].ignore-errors,
 input[type=date].with-errors,
+input[type=date].ignore-errors,
 input[type=datetime-local].with-errors,
+input[type=datetime-local].ignore-errors,
 input[type=datetime].with-errors,
+input[type=datetime].ignore-errors,
 input[type=email].with-errors,
+input[type=email].ignore-errors,
 input[type=month].with-errors,
+input[type=month].ignore-errors,
 input[type=number].with-errors,
+input[type=number].ignore-errors,
 input[type=password].with-errors,
+input[type=password].ignore-errors,
 input[type=search].with-errors,
+input[type=search].ignore-errors,
 input[type=tel].with-errors,
+input[type=tel].ignore-errors,
 input[type=text].with-errors,
+input[type=text].ignore-errors,
 input[type=time].with-errors,
+input[type=time].ignore-errors,
 input[type=url].with-errors,
+input[type=url].ignore-errors,
 input[type=week].with-errors,
+input[type=week].ignore-errors,
 select.with-errors,
+select.ignore-errors,
 .select-box.with-errors,
-textarea.with-errors {
+.select-box.ignore-errors,
+textarea.with-errors,
+textarea.ignore-errors {
   margin-bottom: 0;
 }
 input[type=color]:focus,
@@ -419,6 +437,10 @@ textarea.disabled button {
   background: #f0f0f0;
   color: #666;
   cursor: not-allowed;
+}
+
+.PhoneInput input {
+  margin-bottom: 0.5rem;
 }
 
 select,

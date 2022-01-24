@@ -83,61 +83,63 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
 
         return (
             <div className="register-container">
-                <h1 className="text-center">{this.props.title}</h1>
+                <div className="flex fill max-wide-20">
+                    <h1 className="text-center">{this.props.title}</h1>
 
-                <label className="required" htmlFor="e_mail">{this.translate('components.registerForm.labels.email')}:</label>
-                <Input
-                    type="text"
-                    id="e_mail"
-                    name="email"
-                    value={this.state.inputs.email}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    validations={['isRequired', 'email']}
-                />
+                    <label className="required" htmlFor="e_mail">{this.translate('components.registerForm.labels.email')}:</label>
+                    <Input
+                        type="text"
+                        id="e_mail"
+                        name="email"
+                        value={this.state.inputs.email}
+                        onChange={this.onInputChange}
+                        onEnter={this.onSubmit}
+                        translate={this.translate}
+                        validations={['isRequired', 'email']}
+                    />
 
-                {/* TODO: RMOBILE-26: Centralize password requirements */}
-                <label className="required" htmlFor="password">{this.translate('components.registerForm.labels.password')}:</label>
-                <Input
-                    type="password"
-                    id="password"
-                    name="password"
-                    value={this.state.inputs.password}
-                    minLength="8"
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    validations={['isRequired', 'password']}
-                />
+                    {/* TODO: RMOBILE-26: Centralize password requirements */}
+                    <label className="required" htmlFor="password">{this.translate('components.registerForm.labels.password')}:</label>
+                    <Input
+                        type="password"
+                        id="password"
+                        name="password"
+                        value={this.state.inputs.password}
+                        minLength="8"
+                        onChange={this.onInputChange}
+                        onEnter={this.onSubmit}
+                        translate={this.translate}
+                        validations={['isRequired', 'password']}
+                    />
 
-                <label className="required" htmlFor="repeat_password">{this.translate('components.registerForm.labels.repeatPassword')}:</label>
-                <Input
-                    type="password"
-                    id="repeat_password"
-                    name="repeatPassword"
-                    value={this.state.inputs.repeatPassword}
-                    minLength="8"
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    validations={['isRequired']}
-                />
+                    <label className="required" htmlFor="repeat_password">{this.translate('components.registerForm.labels.repeatPassword')}:</label>
+                    <Input
+                        type="password"
+                        id="repeat_password"
+                        name="repeatPassword"
+                        value={this.state.inputs.repeatPassword}
+                        minLength="8"
+                        onChange={this.onInputChange}
+                        onEnter={this.onSubmit}
+                        translate={this.translate}
+                        validations={['isRequired']}
+                    />
 
-                <div className="text-left">
-                    <Link to="/login">{this.translate('components.registerForm.buttons.backToLogin')}</Link>
-                </div>
+                    <div className="text-left">
+                        <Link to="/login">{this.translate('components.registerForm.buttons.backToLogin')}</Link>
+                    </div>
 
-                <div className="form-field text-right">
-                    <ButtonPrimary
-                        id="register"
-                        text={this.translate('components.registerForm.buttons.register')} onClick={this.onSubmit} disabled={this.isFormDisabled()} />
-                </div>
+                    <div className="form-field text-right">
+                        <ButtonPrimary
+                            id="register"
+                            text={this.translate('components.registerForm.buttons.register')} onClick={this.onSubmit} disabled={this.isFormDisabled()} />
+                    </div>
 
-                <div className="text-center margin-top-lg">
-                    <a href="https://www.therr.app/terms-and-conditions.html" target="_blank" rel="noreferrer">
-                        {this.translate('components.registerForm.buttons.terms')}
-                    </a>
+                    <div className="text-center margin-top-lg">
+                        <a href="https://www.therr.app/terms-and-conditions.html" target="_blank" rel="noreferrer">
+                            {this.translate('components.registerForm.buttons.terms')}
+                        </a>
+                    </div>
                 </div>
             </div>
         );

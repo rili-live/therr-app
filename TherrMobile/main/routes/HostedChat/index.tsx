@@ -11,10 +11,11 @@ import { IForumsState, IUserState, IUserConnectionsState } from 'therr-react/typ
 // import HostedChatButtonMenu from '../../components/ButtonMenu/HostedChatButtonMenu';
 import translator from '../../services/translator';
 import RoundInput from '../../components/Input/Round';
-import * as therrTheme from '../../styles/themes';
-import styles from '../../styles';
-import buttonStyles from '../../styles/buttons';
-import hostedChatStyles from '../../styles/user-content/hosted-chat';
+import { buildStyles } from '../../styles';
+import { buildStyles as buildButtonStyles } from '../../styles/buttons';
+import { buildStyles as buildCategoryStyles } from '../../styles/user-content/hosted-chat/categories';
+import { buildStyles as buildChatStyles } from '../../styles/user-content/hosted-chat';
+import { buildStyles as buildTileStyles } from '../../styles/user-content/hosted-chat/chat-tiles';
 import ChatCategories from './ChatCategories';
 import renderChatTile from './ChatTile';
 import BaseStatusBar from '../../components/BaseStatusBar';
@@ -65,6 +66,11 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
     private flatListRef: any;
     private translate: Function;
     private searchTimerId: any;
+    private theme = buildStyles();
+    private themeButtons = buildButtonStyles();
+    private themeCategory = buildCategoryStyles();
+    private themeChat = buildChatStyles();
+    private themeTile = buildTileStyles();
 
     static getDerivedStateFromProps(nextProps: IHostedChatProps, nextState: IHostedChatState) {
         if (!nextState.categories || !nextState.categories.length) {
@@ -90,6 +96,11 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
             toggleChevronName: 'chevron-down',
         };
 
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeButtons = buildButtonStyles(props.user.settings?.mobileThemeName);
+        this.themeCategory = buildCategoryStyles(props.user.settings?.mobileThemeName);
+        this.themeChat = buildChatStyles(props.user.settings?.mobileThemeName);
+        this.themeTile = buildTileStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -195,11 +206,11 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={styles.safeAreaView}>
-                    <View style={hostedChatStyles.searchContainer}>
+                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                    <View style={this.themeChat.styles.searchContainer}>
                         <RoundInput
                             autoCapitalize="none"
-                            containerStyle={hostedChatStyles.searchInputContainer}
+                            containerStyle={this.themeChat.styles.searchInputContainer}
                             placeholder={this.translate(
                                 'forms.hostedChat.searchPlaceholder'
                             )}
@@ -208,34 +219,36 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
                             rightIcon={
                                 <FontAwesomeIcon
                                     name="search"
-                                    color={therrTheme.colors.primary3}
-                                    style={hostedChatStyles.searchIcon}
+                                    color={this.theme.colors.primary3}
+                                    style={this.themeChat.styles.searchIcon}
                                     size={22}
                                 />
                             }
-                            errorStyle={hostedChatStyles.searchInputError}
+                            errorStyle={this.themeChat.styles.searchInputError}
                         />
                     </View>
                     <ChatCategories
                         style={{}}
-                        backgroundColor={therrTheme.colors.primary}
+                        backgroundColor={this.theme.colors.primary}
                         categories={categories}
                         onCategoryPress={this.handleCategoryPress}
                         translate={this.translate}
                         onCategoryTogglePress={this.handleCategoryTogglePress}
                         toggleChevronName={toggleChevronName}
+                        theme={this.theme}
+                        themeCategory={this.themeCategory}
                     />
 
                     {
                         !forumSearchResults.length
-                            ? <Text style={hostedChatStyles.noResultsText}>{this.translate('forms.hostedChat.noResultsFound')}</Text>
+                            ? <Text style={this.themeChat.styles.noResultsText}>{this.translate('forms.hostedChat.noResultsFound')}</Text>
                             : <FlatList
                                 horizontal={false}
                                 keyExtractor={chatKeyExtractor}
                                 data={forumSearchResults}
-                                renderItem={renderChatTile(this.handleChatTilePress)}
-                                style={styles.scrollViewFull}
-                                contentContainerStyle={hostedChatStyles.scrollContentContainer}
+                                renderItem={renderChatTile(this.handleChatTilePress, this.theme, this.themeTile)}
+                                style={this.theme.styles.scrollViewFull}
+                                contentContainerStyle={this.themeChat.styles.scrollContentContainer}
                                 ref={(component) => (this.flatListRef = component)}
                                 initialScrollIndex={0}
                                 onContentSizeChange={forumSearchResults.length ? () => this.flatListRef.scrollToIndex({
@@ -244,14 +257,14 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
                                 }) : undefined}
                             />
                     }
-                    <View style={hostedChatStyles.createChatBtnContainer}>
+                    <View style={this.themeChat.styles.createChatBtnContainer}>
                         <Button
-                            buttonStyle={buttonStyles.btn}
+                            buttonStyle={this.themeButtons.styles.btn}
                             icon={
                                 <FontAwesomeIcon
                                     name="marker"
                                     size={44}
-                                    style={buttonStyles.btnIcon}
+                                    style={this.themeButtons.styles.btnIcon}
                                 />
                             }
                             raised={true}

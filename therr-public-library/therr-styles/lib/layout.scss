@@ -32,6 +32,10 @@
 
   &.space-evenly {
     justify-content: space-evenly;
+
+    &.center {
+      align-items: center;
+    }
   }
 }
 

@@ -244,7 +244,7 @@ const updateUser = (req, res) => {
     const locale = req.headers['x-localecode'] || 'en-us';
     const userId = req.headers['x-userid'];
 
-    return Store.users.findUser({ id: userId, ...req.body })
+    return Store.users.getUserById(userId)
         .then((userSearchResults) => {
             const {
                 email,
@@ -297,10 +297,12 @@ const updateUser = (req, res) => {
                 userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
                 updateArgs.accessLevels = JSON.stringify(userAccessLevels);
             }
+            console.log(userSearchResults[0]);
             if (!isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
                 const userAccessLevels = userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
                 userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
                 updateArgs.accessLevels = JSON.stringify(userAccessLevels);
+                console.log(updateArgs);
             }
 
             passwordPromise

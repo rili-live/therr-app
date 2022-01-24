@@ -2,8 +2,7 @@ import React from 'react';
 import { GestureResponderEvent, Pressable, Text, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import { notification as notificationStyles } from '../../styles/notifications';
-import * as therrTheme from '../../styles/themes';
+import { ITherrThemeColors } from '../../styles/themes';
 
 interface INotificationProps {
     acknowledgeRequest: any;
@@ -12,6 +11,10 @@ interface INotificationProps {
     isUnread: boolean;
     notification: any;
     translate: any;
+    themeNotification: {
+        colors: ITherrThemeColors
+        styles: any;
+    }
 }
 
 export default ({
@@ -21,17 +24,18 @@ export default ({
     isUnread,
     notification,
     translate,
+    themeNotification,
 }: INotificationProps) => {
     // Styles
-    let rootStyle = isUnread ? notificationStyles.rootUnread : notificationStyles.rootRead;
-    let messageContainerStyle = isUnread ? notificationStyles.messageContainerUnread : notificationStyles.messageContainerRead;
-    let messageStyle = isUnread ? notificationStyles.unread : notificationStyles.read;
-    let iconStyle = isUnread ? notificationStyles.iconUnread : notificationStyles.iconRead;
+    let rootStyle = isUnread ? themeNotification.styles.rootUnread : themeNotification.styles.rootRead;
+    let messageContainerStyle = isUnread ? themeNotification.styles.messageContainerUnread : themeNotification.styles.messageContainerRead;
+    let messageStyle = isUnread ? themeNotification.styles.unread : themeNotification.styles.read;
+    let iconStyle = isUnread ? themeNotification.styles.iconUnread : themeNotification.styles.iconRead;
 
     return (
         <Pressable
             android_ripple={{
-                color: therrTheme.colors.primary,
+                color: themeNotification.colors.primary,
             }}
             onPress={handlePress}
             style={{
@@ -61,12 +65,12 @@ export default ({
             </View>
             {
                 notification.userConnection?.requestStatus === 'pending' &&
-                <View style={notificationStyles.actionsContainer}>
+                <View style={themeNotification.styles.actionsContainer}>
                     <Button
                         title={translate('components.notification.buttons.accept')}
                         type="clear"
-                        buttonStyle={notificationStyles.actionButton}
-                        titleStyle={notificationStyles.actionButtonText}
+                        buttonStyle={themeNotification.styles.actionButton}
+                        titleStyle={themeNotification.styles.actionButtonText}
                         icon={
                             <FontAwesomeIcon
                                 name="check"
@@ -78,8 +82,8 @@ export default ({
                     <Button
                         title={translate('components.notification.buttons.reject')}
                         type="clear"
-                        buttonStyle={notificationStyles.actionButton}
-                        titleStyle={notificationStyles.actionButtonText}
+                        buttonStyle={themeNotification.styles.actionButton}
+                        titleStyle={themeNotification.styles.actionButtonText}
                         icon={
                             <FontAwesomeIcon
                                 name="minus"

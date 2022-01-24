@@ -1,5 +1,5 @@
 import React from 'react';
-import * as therrTheme from '../../styles/themes';
+import { ITherrTheme } from '../../styles/themes';
 import MarkerIconGeocache from './MarkerIconGeocache';
 import MarkerIconCamera from './MarkerIconCamera';
 import MarkerIconDiscount from './MarkerIconDiscount';
@@ -8,65 +8,66 @@ import MarkerIconMusic from './MarkerIconMusic';
 import MarkerIconStorefront from './MarkerIconStorefront';
 import MarkerIconThinking from './MarkerIconThinking';
 
-const markerConfigs = {
+const getMarkerConfigs = (theme: ITherrTheme) => ({
     deals: {
-        fill: therrTheme.colors.textBlack,
+        fill: theme.colors.textBlack,
     },
     geocache: {
-        fill: therrTheme.colors.beemoRed,
+        fill: theme.colors.accentRed,
     },
     thought: {
-        fill: therrTheme.colors.brandingMapYellow,
+        fill: theme.colors.brandingMapYellow,
     },
     food: {
-        fill: therrTheme.colors.textBlack,
+        fill: theme.colors.textBlack,
     },
     music: {
-        fill: therrTheme.colors.beemoTextBlack,
+        fill: theme.colors.accentTextBlack,
     },
     storefront: {
-        fill: therrTheme.colors.beemoBlue,
-        fillAlt: therrTheme.colorVariations.primary2Darken,
+        fill: theme.colors.accentBlue,
+        fillAlt: theme.colorVariations.primary2Darken,
     },
     area: {
-        fill: therrTheme.colors.beemoBlue,
-        fillAlt: therrTheme.colorVariations.primary2Darken,
+        fill: theme.colors.accentBlue,
+        fillAlt: theme.colorVariations.primary2Darken,
     },
-};
+});
 
 export default function MarkerIcon({
     areaType,
     area,
+    theme,
 }) {
     // TODO: Add all categories
     if (area.category === 'deals') {
         return (
-            <MarkerIconDiscount {...markerConfigs.deals} />
+            <MarkerIconDiscount {...getMarkerConfigs(theme).deals} />
         );
     }
     if (area.category === 'food') {
         return (
-            <MarkerIconFood {...markerConfigs.food} />
+            <MarkerIconFood {...getMarkerConfigs(theme).food} />
         );
     }
     if (area.category === 'music') {
         return (
-            <MarkerIconMusic {...markerConfigs.music} />
+            <MarkerIconMusic {...getMarkerConfigs(theme).music} />
         );
     }
     if (area.category === 'storefront') {
         return (
-            <MarkerIconStorefront {...markerConfigs.storefront} />
+            <MarkerIconStorefront {...getMarkerConfigs(theme).storefront} />
         );
     }
     if (area.category === 'idea') {
         return (
-            <MarkerIconThinking {...markerConfigs.thought} />
+            <MarkerIconThinking {...getMarkerConfigs(theme).thought} />
         );
     }
     if (area.category === 'geocache') {
         return (
-            <MarkerIconGeocache {...markerConfigs.geocache} />
+            <MarkerIconGeocache {...getMarkerConfigs(theme).geocache} />
         );
     }
 
@@ -74,16 +75,16 @@ export default function MarkerIcon({
     if (areaType === 'moments') {
         if (!area.mediaIds) {
             return (
-                <MarkerIconThinking {...markerConfigs.thought} />
+                <MarkerIconThinking {...getMarkerConfigs(theme).thought} />
             );
         }
 
         return (
-            <MarkerIconCamera {...markerConfigs.area} />
+            <MarkerIconCamera {...getMarkerConfigs(theme).area} />
         );
     }
 
     return (
-        <MarkerIconStorefront {...markerConfigs.area} />
+        <MarkerIconStorefront {...getMarkerConfigs(theme).area} />
     );
 }

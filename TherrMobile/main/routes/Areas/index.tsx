@@ -7,9 +7,11 @@ import { bindActionCreators } from 'redux';
 import { ContentActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
 // import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-// import * as therrTheme from '../styles/themes';
-import styles from '../../styles';
-import * as therrTheme from '../../styles/themes';
+import { buildStyles } from '../../styles';
+import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
+import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
+import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
+import { buildStyles as buildReactionsModalStyles } from '../../styles/modal/areaReactionsModal';
 // import { buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
 import AreaCarousel from './AreaCarousel';
@@ -86,6 +88,11 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     private translate: Function;
     private loaderId: ILottieId;
     private loadTimeoutId: any;
+    private theme = buildStyles();
+    private themeButtons = buildButtonsStyles();
+    private themeLoader = buildLoaderStyles();
+    private themeMenu = buildMenuStyles();
+    private themeReactionsModal = buildReactionsModalStyles();
 
     constructor(props) {
         super(props);
@@ -97,6 +104,11 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             selectedArea: {},
         };
 
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
+        this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
+        this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
         this.loaderId = getRandomLoaderId();
@@ -238,7 +250,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         const { activeTab, isLoading } = this.state;
 
         if (isLoading) {
-            return <LottieLoader id={this.loaderId} />;
+            return <LottieLoader id={this.loaderId} theme={this.themeLoader} />;
         }
 
         const activeData = getActiveCarouselData({
@@ -269,6 +281,8 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                         user={user}
                     />
                 )}
+                user={user}
+                rootStyles={this.theme.styles}
                 // viewportHeight={viewportHeight}
                 // viewportWidth={viewportWidth}
             />
@@ -282,7 +296,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={[styles.safeAreaView, { backgroundColor: therrTheme.colorVariations.backgroundNeutral }]}>
+                <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
                     {
                         this.renderCarousel(content)
                     }
@@ -292,6 +306,8 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                     onRequestClose={() => this.toggleAreaOptions(selectedArea)}
                     translate={this.translate}
                     onSelect={this.onAreaOptionSelect}
+                    themeButtons={this.themeButtons}
+                    themeReactionsModal={this.themeReactionsModal}
                 />
                 {/* <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} /> */}
                 <MainButtonMenu
@@ -299,6 +315,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                     onActionButtonPress={this.scrollTop}
                     translate={this.translate}
                     user={user}
+                    themeMenu={this.themeMenu}
                 />
             </>
         );

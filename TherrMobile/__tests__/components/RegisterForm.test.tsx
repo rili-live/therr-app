@@ -23,8 +23,11 @@ describe('RegisterForm', () => {
 
     it('renders correctly', () => {
         const mockRegister = jest.fn();
+        const mockToggleEULA = jest.fn();
         const onSuccessMock = jest.fn();
-        const component = renderer.create(<RegisterForm register={mockRegister} onSuccess={onSuccessMock} />);
+        const component = renderer.create(
+            <RegisterForm register={mockRegister} onSuccess={onSuccessMock} toggleEULA={mockToggleEULA} userSettings={{ mobileThemeName: 'retro' }} />
+        );
         const instance = component.getInstance();
         expect(instance.isRegisterFormDisabled()).toEqual(true);
         instance.onInputChange('password', 'mockPassword');

@@ -1,6 +1,7 @@
 import Color from 'color';
+import { ITherrThemeColors, ITherrThemeColorVariations } from '../';
 
-const colors = {
+const colors: ITherrThemeColors = {
     // Main
     primary: '#1C7F8A',
     primary2: '#20919E',
@@ -36,21 +37,21 @@ const colors = {
     // Alerts
     alertError: '#AC3E59',
 
-    // Beemo
-    beemo1: '#1E8A96',
-    beemo1Fade: '#97c5bb',
-    beemo2: '#cbffdc',
-    beemo3: '#218a35',
-    beemoAlt: '#449885',
-    beemoTextBlack: '#001226',
-    beemoTextWhite: '#fafafa',
-    beemoRed: '#fe0156',
-    beemoYellow: '#fed61e',
-    beemoBlue: '#17657D',
-    beemoPurple: '#0e01b3',
-    beemoTeal: '#2BC5D6',
-    beemoLime: '#00f729',
-    beemoDivider: '#4950571c',
+    // Accents - Alternate color scheme to add variety and reduce blandless
+    accent1: '#1E8A96',
+    accent1Fade: '#97c5bb',
+    accent2: '#cbffdc',
+    accent3: '#218a35',
+    accentAlt: '#449885',
+    accentTextBlack: '#001226',
+    accentTextWhite: '#fafafa',
+    accentRed: '#fe0156',
+    accentYellow: '#fed61e',
+    accentBlue: '#17657D',
+    accentPurple: '#0e01b3',
+    accentTeal: '#2BC5D6',
+    accentLime: '#00f729',
+    accentDivider: '#4950571c',
 
     map: {
         momentsCircleFill: 'rgba(56,130,84,0.2)',
@@ -65,7 +66,7 @@ const colors = {
     },
 };
 
-const colorVariations = {
+const colorVariations: ITherrThemeColorVariations = {
     primaryFade: new Color(colors.primary).fade(0.35).toString(),
     primaryFadeMore: new Color(colors.primary).fade(0.65).toString(),
     primary2Fade: new Color(colors.primary2).fade(0.35).toString(),
@@ -76,21 +77,20 @@ const colorVariations = {
     textBlackFade: new Color(colors.textBlack).fade(0.75).toString(),
     textWhiteFade: new Color(colors.textWhite).fade(0.75).toString(),
     textGrayDarken: new Color(colors.textGray).darken(0.15).toString(),
-    beemo1Fade: new Color(colors.beemo1).fade(0.2).toString(),
-    beemo1LightFade: new Color(colors.beemo1).fade(0.2).toString(),
-    beemo1HeavyFade: new Color(colors.beemo1).fade(0.7).toString(),
-    beemoBlueLightFade: new Color(colors.beemoBlue).fade(0.2).toString(),
-    beemoBlueHeavyFade: new Color(colors.beemoBlue).fade(0.7).toString(),
-    beemoTextBlack: new Color(colors.beemoTextBlack).lighten(0.25).toString(),
-    beemoTextWhiteFade: new Color(colors.beemoTextWhite).fade(0.1).toString(),
+    accent1Fade: new Color(colors.accent1).fade(0.2).toString(),
+    accent1LightFade: new Color(colors.accent1).fade(0.2).toString(),
+    accent1HeavyFade: new Color(colors.accent1).fade(0.7).toString(),
+    accentBlueLightFade: new Color(colors.accentBlue).fade(0.2).toString(),
+    accentBlueHeavyFade: new Color(colors.accentBlue).fade(0.7).toString(),
+    accentTextBlack: new Color(colors.accentTextBlack).lighten(0.25).toString(),
+    accentTextWhiteFade: new Color(colors.accentTextWhite).fade(0.1).toString(),
 
     // Background
     backgroundNeutral: new Color(colors.backgroundNeutral).darken(0.1).toString(),
     backgroundNeutralLighter: new Color(colors.backgroundNeutral).lighten(0.05).toString(),
 };
 
-export default colors;
-
 export {
+    colors,
     colorVariations,
 };

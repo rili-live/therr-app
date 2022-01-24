@@ -6,11 +6,12 @@ import { appleAuth } from '@invertase/react-native-apple-authentication';
 import getStore from './getStore';
 import initInterceptors from './interceptors';
 import Layout from './components/Layout';
-// import * as therrTheme from './styles/themes';
+// import { buildStyles } from './styles';
 
 class App extends React.Component<any, any> {
     private authCredentialListener;
     private store;
+    // private theme = buildStyles()''
 
     constructor(props) {
         super(props);

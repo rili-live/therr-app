@@ -4,6 +4,10 @@ import { IUserState, UserActionTypes } from '../../types/redux/user';
 
 const initialState: IUserState = Immutable.from({
     details: null,
+    settings: {
+        locale: 'en-us',
+        mobileThemeName: 'retro',
+    },
     socketDetails: {},
     isAuthenticated: false,
 });

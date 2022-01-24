@@ -156,13 +156,13 @@
       "apple": "Apple",
       "android": "Android",
       "devices": "devices",
-      "eventOrganizers": "Event organizers",
+      "eventOrganizers": "Storefronts",
       "freelancers": "Freelancers",
       "or": "or",
       "info": "Welcome to Therr App! For the best experience, follow the links below to install the mobile app for",
-      "info2": "Therr is a space to share content at various geographic locations and connect with other users while traveling the globe or even just walking around your local community.",
-      "info3": "can post their professional profile including a range of locations where they are available to travel for work.",
-      "info4": "can share scheduled, exclusive events, granting access exclusively to attendees with their event radius."
+      "info2": "Therr is a space to share content at various geographic locations and connect with other users while traveling the globe or even just walking around your local community. Think of it as a nearby newsfeed.",
+      "info3": "can also post their professional profile at various locations. It's sort of like a digital bulletin board at a coffee shop, music venue, brewery, etc.",
+      "info4": "can share scheduled, exclusive events, promotions, and communications with users granting access exclusively to attendees within their event radius."
     },
     "createForum": {
       "buttons": {

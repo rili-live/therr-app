@@ -1,4 +1,5 @@
 import * as React from 'react';
+import classnames from 'classnames';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import {
@@ -25,6 +26,7 @@ interface IHeaderProps extends IStoreProps {
   goHome: Function;
   isAuthorized: boolean;
   toggleNavMenu: Function;
+  isLandingStylePage?: boolean;
 }
 
 interface IHeaderState {
@@ -76,10 +78,18 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
 
     render() {
         const { hasUnreadNotifications } = this.state;
-        const { goHome, isAuthorized, toggleNavMenu } = this.props;
+        const {
+            goHome,
+            isAuthorized,
+            toggleNavMenu,
+            isLandingStylePage,
+        } = this.props;
+        const headerClassNames = classnames({
+            'no-shadow': isLandingStylePage,
+        });
 
         return (
-            <header>
+            <header className={headerClassNames}>
                 <div id="therr">
                     <SvgButton
                         id="therr_svg_button"

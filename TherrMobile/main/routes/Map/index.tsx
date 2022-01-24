@@ -33,9 +33,16 @@ import {
     MOMENTS_REFRESH_THROTTLE_MS,
     LOCATION_PROCESSING_THROTTLE_MS,
 } from '../../constants';
-import * as therrTheme from '../../styles/themes';
-import styles, { loaderStyles } from '../../styles';
+import { buildStyles, loaderStyles } from '../../styles';
+import { buildStyles as buildAlertStyles } from '../../styles/alerts';
+import { buildStyles as buildButtonStyles } from '../../styles/buttons';
+import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
+import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
+import { buildStyles as buildDisclosureStyles } from '../../styles/modal/locationDisclosure';
+import { buildStyles as buildTourStyles } from '../../styles/modal/tourModal';
+import { buildStyles as buildSearchStyles } from '../../styles/modal/typeAhead';
 import mapStyles from '../../styles/map';
+import mapCustomStyle from '../../styles/map/googleCustom';
 import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 import {
     requestOSMapPermissions,
@@ -43,7 +50,6 @@ import {
 } from '../../utilities/requestOSPermissions';
 import FiltersButtonGroup from '../../components/FiltersButtonGroup';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import mapCustomStyle from '../../styles/map/googleCustom';
 import SearchTypeAheadResults from '../../components/SearchTypeAheadResults';
 import SearchThisAreaButtonGroup from '../../components/SearchThisAreaButtonGroup';
 import MarkerIcon from './MarkerIcon';
@@ -158,6 +164,14 @@ class Map extends React.Component<IMapProps, IMapState> {
     private localeShort = 'en-US'; // TODO: Derive from user locale
     private mapRef: any;
     private mapWatchId;
+    private theme = buildStyles();
+    private themeAlerts = buildAlertStyles();
+    private themeConfirmModal = buildConfirmModalStyles();
+    private themeButtons = buildButtonStyles();
+    private themeMenu = buildMenuStyles();
+    private themeDisclosure = buildDisclosureStyles();
+    private themeTour = buildTourStyles();
+    private themeSearch = buildSearchStyles({ viewPortHeight });
     private timeoutId;
     private timeoutIdGPSStart;
     private timeoutIdRefreshMoments;
@@ -201,6 +215,13 @@ class Map extends React.Component<IMapProps, IMapState> {
             },
         };
 
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
+        this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
+        this.themeDisclosure = buildDisclosureStyles(props.user.settings?.mobileThemeName);
+        this.themeTour = buildTourStyles(props.user.settings?.mobileThemeName);
+        this.themeSearch = buildSearchStyles({ viewPortHeight }, props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -1177,7 +1198,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={styles.safeAreaView} onStartShouldSetResponder={(event: any) => {
+                <SafeAreaView style={this.theme.styles.safeAreaView} onStartShouldSetResponder={(event: any) => {
                     event.persist();
                     if (event?.target?._nativeTag) {
                         captureClickTarget(event?.target?._nativeTag);
@@ -1198,8 +1219,8 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 isDropdownVisible &&
                                 <SearchTypeAheadResults
                                     handleSelect={this.handleSearchSelect}
-                                    viewPortHeight={viewPortHeight}
                                     searchPredictionResults={searchPredictionResults}
+                                    themeSearch={this.themeSearch}
                                 />
                             }
                             <MapView
@@ -1225,14 +1246,14 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 scrollEnabled={isScrollEnabled}
                                 minZoomLevel={MIN_ZOOM_LEVEL}
                                 /* react-native-map-clustering */
-                                clusterColor={therrTheme.colors.primary2}
+                                clusterColor={this.theme.colors.primary2}
                             >
                                 <Circle
                                     center={circleCenter}
                                     radius={DEFAULT_MOMENT_PROXIMITY} /* meters */
                                     strokeWidth={1}
-                                    strokeColor={therrTheme.colors.primary2}
-                                    fillColor={therrTheme.colors.map.userCircleFill}
+                                    strokeColor={this.theme.colors.primary2}
+                                    fillColor={this.theme.colors.map.userCircleFill}
                                     zIndex={0}
                                 />
                                 {
@@ -1253,7 +1274,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 stopPropagation={true}
                                             >
                                                 <View>
-                                                    <MarkerIcon area={moment} areaType="moments" />
+                                                    <MarkerIcon area={moment} areaType="moments" theme={this.theme} />
                                                 </View>
                                             </Marker>
                                         );
@@ -1277,7 +1298,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 stopPropagation={true}
                                             >
                                                 <View style={{ transform: [{ translateY: 0 }] }}>
-                                                    <MarkerIcon area={moment} areaType="moments" />
+                                                    <MarkerIcon area={moment} areaType="moments" theme={this.theme} />
                                                 </View>
                                             </Marker>
                                         );
@@ -1295,10 +1316,10 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 }}
                                                 radius={moment.radius} /* meters */
                                                 strokeWidth={0}
-                                                strokeColor={therrTheme.colors.secondary}
+                                                strokeColor={this.theme.colors.secondary}
                                                 fillColor={moment.id === activeMoment.id ?
-                                                    therrTheme.colors.map.momentsCircleFillActive :
-                                                    therrTheme.colors.map.momentsCircleFill}
+                                                    this.theme.colors.map.momentsCircleFillActive :
+                                                    this.theme.colors.map.momentsCircleFill}
                                                 zIndex={1}
                                             />
                                         );
@@ -1316,10 +1337,10 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 }}
                                                 radius={moment.radius} /* meters */
                                                 strokeWidth={0}
-                                                strokeColor={therrTheme.colors.secondary}
+                                                strokeColor={this.theme.colors.secondary}
                                                 fillColor={moment.id === activeMoment.id ?
-                                                    therrTheme.colors.map.myMomentsCircleFillActive :
-                                                    therrTheme.colors.map.myMomentsCircleFill}
+                                                    this.theme.colors.map.myMomentsCircleFillActive :
+                                                    this.theme.colors.map.myMomentsCircleFill}
                                                 zIndex={1}
                                             />
                                         );
@@ -1343,7 +1364,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 stopPropagation={true}
                                             >
                                                 <View>
-                                                    <MarkerIcon area={space} areaType="spaces" />
+                                                    <MarkerIcon area={space} areaType="spaces" theme={this.theme} />
                                                 </View>
                                             </Marker>
                                         );
@@ -1367,7 +1388,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 stopPropagation={true}
                                             >
                                                 <View style={{ transform: [{ translateY: 0 }] }}>
-                                                    <MarkerIcon area={space} areaType="spaces" />
+                                                    <MarkerIcon area={space} areaType="spaces" theme={this.theme} />
                                                 </View>
                                             </Marker>
                                         );
@@ -1385,10 +1406,10 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 }}
                                                 radius={space.radius} /* meters */
                                                 strokeWidth={0}
-                                                strokeColor={therrTheme.colors.secondary}
+                                                strokeColor={this.theme.colors.secondary}
                                                 fillColor={space.id === activeSpace.id ?
-                                                    therrTheme.colors.map.spacesCircleFillActive :
-                                                    therrTheme.colors.map.spacesCircleFill}
+                                                    this.theme.colors.map.spacesCircleFillActive :
+                                                    this.theme.colors.map.spacesCircleFill}
                                                 zIndex={1}
                                             />
                                         );
@@ -1406,10 +1427,10 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 }}
                                                 radius={space.radius} /* meters */
                                                 strokeWidth={0}
-                                                strokeColor={therrTheme.colors.secondary}
+                                                strokeColor={this.theme.colors.secondary}
                                                 fillColor={space.id === activeSpace.id ?
-                                                    therrTheme.colors.map.mySpacesCircleFillActive :
-                                                    therrTheme.colors.map.mySpacesCircleFill}
+                                                    this.theme.colors.map.mySpacesCircleFillActive :
+                                                    this.theme.colors.map.mySpacesCircleFill}
                                                 zIndex={1}
                                             />
                                         );
@@ -1423,7 +1444,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 visible={isAreaAlertVisible}
                                 onClose={this.cancelAreaAlert}
                                 closeOnTouchOutside
-                                containerStyle={styles.overlay}
+                                containerStyle={this.theme.styles.overlay}
                                 childrenWrapperStyle={mapStyles.momentAlertOverlayContainer}
                             >
                                 <Alert
@@ -1431,6 +1452,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                     isVisible={isAreaAlertVisible}
                                     message={this.translate('pages.map.areaAlerts.walkCloser')}
                                     type="error"
+                                    themeAlerts={this.themeAlerts}
                                 />
                             </AnimatedOverlay>
                         </>
@@ -1440,6 +1462,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                         <SearchThisAreaButtonGroup
                             handleSearchLocation={this.handleSearchThisLocation}
                             translate={this.translate}
+                            themeButtons={this.themeButtons}
                         />
                     }
                 </SafeAreaView>
@@ -1459,6 +1482,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 isAuthorized={this.isAuthorized}
                                 isGpsEnabled={location?.settings?.isGpsEnabled}
                                 translate={this.translate}
+                                themeButtons={this.themeButtons}
                             />
                         }
                         <FiltersButtonGroup
@@ -1468,6 +1492,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                             toggleLayers={this.toggleLayers}
                             goToMoments={this.goToMoments}
                             translate={this.translate}
+                            themeButtons={this.themeButtons}
                         />
                     </>
                 }
@@ -1479,23 +1504,31 @@ class Map extends React.Component<IMapProps, IMapState> {
                     text={eula}
                     textConfirm={this.translate('modals.confirmModal.agree')}
                     translate={this.translate}
+                    theme={this.theme}
+                    themeButtons={this.themeButtons}
+                    themeModal={this.themeConfirmModal}
                 />
                 <LocationUseDisclosureModal
                     isVisible={isLocationUseDisclosureModalVisible}
                     translate={this.translate}
                     onRequestClose={this.toggleLocationUseDisclosure}
                     onSelect={this.handleLocationDisclosureSelect}
+                    themeButtons={this.themeButtons}
+                    themeDisclosure={this.themeDisclosure}
                 />
                 <TouringModal
                     isVisible={isTouring}
                     translate={this.translate}
                     onRequestClose={this.handleStopTouring}
+                    themeButtons={this.themeButtons}
+                    themeTour={this.themeTour}
                 />
                 <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.toggleMomentBtns}
                     translate={this.translate}
                     user={user}
+                    themeMenu={this.themeMenu}
                 />
             </>
         );

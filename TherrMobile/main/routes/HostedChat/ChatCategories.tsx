@@ -5,9 +5,6 @@ import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import therrIconConfig from '../../assets/therr-font-config.json';
-import categoryStyles from '../../styles/user-content/hosted-chat/categories';
-import formStyles from '../../styles/forms';
-import * as therrTheme from '../../styles/themes';
 
 const TherrIcon = createIconSetFromIcoMoon(
     therrIconConfig,
@@ -17,10 +14,10 @@ const TherrIcon = createIconSetFromIcoMoon(
 
 const keyExtractor = (item) => item.iconId;
 
-const renderCategoryIcon = (category) => {
-    const style = category.isActive ? categoryStyles.categoryIconActive : categoryStyles.categoryIcon;
+const renderCategoryIcon = (category, theme, themeCategory) => {
+    const style = category.isActive ? themeCategory.styles.categoryIconActive : themeCategory.styles.categoryIcon;
     const props = {
-        color: category.isActive ? therrTheme.colors.textWhite : category.iconColor,
+        color: category.isActive ? theme.colors.textWhite : category.iconColor,
         name: category.iconId,
         size: 14,
         style,
@@ -38,22 +35,22 @@ const renderCategoryIcon = (category) => {
     return (<MaterialIcon {...props} />);
 };
 
-const renderCategoryButton = (onCategoryPress) => {
+const renderCategoryButton = (onCategoryPress, theme, themeCategory, themeForms) => {
     return ({
         item: category,
     }) => {
-        const buttonStyle = category.isActive ? categoryStyles.categoryButtonActive : categoryStyles.categoryButton;
-        const containerStyle = category.isActive ? categoryStyles.categoryButtonContainerActive : categoryStyles.categoryButtonContainer;
-        const titleStyle = category.isActive ? categoryStyles.categoryButtonTitleActive : categoryStyles.categoryButtonTitle;
+        const buttonStyle = category.isActive ? themeCategory.styles.categoryButtonActive : themeCategory.styles.categoryButton;
+        const containerStyle = category.isActive ? themeCategory.styles.categoryButtonContainerActive : themeCategory.styles.categoryButtonContainer;
+        const titleStyle = category.isActive ? themeCategory.styles.categoryButtonTitleActive : themeCategory.styles.categoryButtonTitle;
 
         return (
             <Button
                 title={category.name}
-                icon={renderCategoryIcon(category)}
+                icon={renderCategoryIcon(category, theme, themeCategory)}
                 onPress={() => onCategoryPress(category)}
-                buttonStyle={[formStyles.buttonPill, buttonStyle]}
-                containerStyle={[formStyles.buttonPillContainer, containerStyle]}
-                titleStyle={[formStyles.buttonPillTitle, titleStyle]}
+                buttonStyle={[themeForms.styles.buttonPill, buttonStyle]}
+                containerStyle={[themeForms.styles.buttonPillContainer, containerStyle]}
+                titleStyle={[themeForms.styles.buttonPillTitle, titleStyle]}
             />
         );
     };
@@ -67,26 +64,29 @@ export default ({
     style,
     toggleChevronName,
     translate,
+    theme,
+    themeCategory,
+    themeForms,
 }) => {
     return (
-        <View style={[categoryStyles.outerContainer, style]}>
-            <View style={categoryStyles.innerContainer}>
-                <Text style={[categoryStyles.header, { backgroundColor }]}>{translate('pages.hostedChat.categories.title')}</Text>
+        <View style={[themeCategory.styles.outerContainer, style]}>
+            <View style={themeCategory.styles.innerContainer}>
+                <Text style={[themeCategory.styles.header, { backgroundColor }]}>{translate('pages.hostedChat.categories.title')}</Text>
                 <FlatList
                     horizontal={true}
                     keyExtractor={keyExtractor}
                     data={categories}
-                    renderItem={renderCategoryButton(onCategoryPress)}
-                    contentContainerStyle={categoryStyles.listContainer}
+                    renderItem={renderCategoryButton(onCategoryPress, theme, themeCategory, themeForms)}
+                    contentContainerStyle={themeCategory.styles.listContainer}
                 />
             </View>
             <Button
-                containerStyle={[categoryStyles.listToggleButtonContainer, { backgroundColor }]}
+                containerStyle={[themeCategory.styles.listToggleButtonContainer, { backgroundColor }]}
                 icon={
                     <FontAwesome5Icon
                         name={toggleChevronName}
                         size={16}
-                        color={therrTheme.colors.primary3}
+                        color={theme.colors.primary3}
                     />
                 }
                 onPress={onCategoryTogglePress}

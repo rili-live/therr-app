@@ -5,8 +5,6 @@ import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import therrIconConfig from '../../assets/therr-font-config.json';
-import * as therrTheme from '../../styles/themes';
-import tileStyles from '../../styles/user-content/hosted-chat/chat-tiles';
 
 const TherrIcon = createIconSetFromIcoMoon(
     therrIconConfig,
@@ -40,36 +38,36 @@ const renderChatIcon = (item, style = {}) => {
     return (<MaterialIcon {...props} />);
 };
 
-export default (onChatTilePress) => {
+export default (onChatTilePress, theme, themeChatTile) => {
     return ({
         item: chat,
     }) => {
         return (
             <Pressable
                 android_ripple={{
-                    color: therrTheme.colors.beemo1,
+                    color: theme.colors.accent1,
                     radius: 20,
                     borderless: true,
                 }}
                 onPress={() => onChatTilePress(chat)}
-                style={tileStyles.container}
+                style={themeChatTile.style.container}
             >
-                <View style={tileStyles.avatarContainer}>
+                <View style={themeChatTile.style.avatarContainer}>
                     <Image
-                        style={tileStyles.avatarStyle}
+                        style={themeChatTile.style.avatarStyle}
                         source={{ uri: `https://robohash.org/${chat.authorId}?size=75x75` }}
-                        PlaceholderContent={<ActivityIndicator size="large" color={therrTheme.colors.primary} />}
+                        PlaceholderContent={<ActivityIndicator size="large" color={theme.colors.primary} />}
                     />
                 </View>
-                <View style={tileStyles.contentContainer}>
-                    <View style={tileStyles.header}>
-                        <Text style={tileStyles.headerTitle}>{chat.title}</Text>
+                <View style={themeChatTile.style.contentContainer}>
+                    <View style={themeChatTile.style.header}>
+                        <Text style={themeChatTile.style.headerTitle}>{chat.title}</Text>
                     </View>
-                    <View style={tileStyles.body}>
-                        <Text style={tileStyles.bodyText}>{chat.description}</Text>
+                    <View style={themeChatTile.style.body}>
+                        <Text style={themeChatTile.style.bodyText}>{chat.description}</Text>
                     </View>
-                    <View style={tileStyles.footer}>
-                        <View style={tileStyles.footerIconsContainer}>
+                    <View style={themeChatTile.style.footer}>
+                        <View style={themeChatTile.style.footerIconsContainer}>
                             {
                                 chat.categories && chat.categories.map((cat) => renderChatIcon(cat))
                             }

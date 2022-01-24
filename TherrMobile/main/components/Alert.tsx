@@ -1,22 +1,22 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import { alertMsg } from '../styles/alerts';
 
 export default ({
     containerStyles,
     isVisible,
     message,
     type,
+    themeAlerts,
 }) => {
     if (!isVisible) {
         return null;
     }
 
     // Styles
-    let containerStyle = type === 'error' ? alertMsg.containerError : alertMsg.containerSuccess;
-    let messageStyle = type === 'error' ? alertMsg.error : alertMsg.success;
-    let iconStyle = type === 'error' ? alertMsg.iconError : alertMsg.iconSuccess;
+    let containerStyle = type === 'error' ? themeAlerts.styles.containerError : themeAlerts.styles.containerSuccess;
+    let messageStyle = type === 'error' ? themeAlerts.styles.error : themeAlerts.styles.success;
+    let iconStyle = type === 'error' ? themeAlerts.styles.iconError : themeAlerts.styles.iconSuccess;
 
     let iconName = type === 'error' ? 'exclamation-circle' : 'check-circle';
 

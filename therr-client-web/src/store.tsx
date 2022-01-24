@@ -40,6 +40,10 @@ if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
         user: {
             details: storedUser,
             isAuthenticated,
+            settings: {
+                locale: 'en-us',
+                mobileThemeName: 'retro',
+            },
             socketDetails: {
                 session: storedSocketDetails || {},
             },

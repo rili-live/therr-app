@@ -35,7 +35,6 @@ import UsersActions from '../redux/actions/UsersActions';
 let _viewListener: any; // eslint-disable-line no-underscore-dangle
 
 interface ILayoutRouterProps {
-
 }
 
 interface ILayoutDispatchProps {
@@ -305,7 +304,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         );
     }
 
-    renderHeader = () => (
+    renderHeader = (isLandingStylePage?: boolean) => (
         <Header
             goHome={this.goHome}
             isAuthorized={
@@ -318,10 +317,11 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                 )
             }
             toggleNavMenu={this.toggleNavMenu}
+            isLandingStylePage
         />
     )
 
-    renderFooter = () => {
+    renderFooter = (isLandingStylePage?: boolean) => {
         const { isMessagingOpen, isMsgContainerOpen, messagingContext } = this.state;
 
         return (
@@ -341,6 +341,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                 messagingContext={messagingContext}
                 toggleNavMenu={this.toggleNavMenu}
                 toggleMessaging={this.toggleMessaging}
+                isLandingStylePage
             />
         );
     };
@@ -351,11 +352,17 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             'is-open': this.state.isNavMenuOpen,
             'is-expanded': this.state.isNavMenuExpanded,
         });
+        const isLandingStylePage = location.pathname === '/'
+            || location.pathname === '/create-profile'
+            || location.pathname === '/login'
+            || location.pathname === '/register'
+            || location.pathname === '/verify-account'
+            || location.pathname === '/reset-password';
         // Cloak the view so it doesn't flash before client mounts
         if (this.state.clientHasLoaded) {
             return (
                 <>
-                    {this.renderHeader()}
+                    {this.renderHeader(isLandingStylePage)}
                     <AccessControl isAuthorized={UsersService.isAuthorized({ type: AccessCheckType.ALL, levels: ['user.default'] }, this.props.user)}>
                         <div id="nav_menu" className={navMenuClassNames}>
                             {this.renderNavMenuContent()}
@@ -366,7 +373,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                         enter
                         exit
                         component="div"
-                        className="content-container view"
+                        className={ isLandingStylePage ? 'content-container-home view' : 'content-container view' }
                     >
                         <Switch>
                             {
@@ -400,7 +407,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         // Opportunity to add a loader of graphical display
         return (
             <>
-                {this.renderHeader()}
+                {this.renderHeader(isLandingStylePage)}
             </>
         );
     }

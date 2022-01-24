@@ -30,9 +30,12 @@ import EditSpace from './EditSpace';
 import EditChat from './HostedChat/EditChat';
 import ViewChat from './HostedChat/ViewChat';
 import ViewUser from './ViewUser/index.tsx';
-import styles from '../styles';
+import { buildStyles } from '../styles';
 import HeaderTherrLogo from '../components/HeaderTherrLogo';
 import HeaderSearchInput from '../components/Input/HeaderSearchInput';
+
+// TODO: Use Props
+const styles = buildStyles().styles;
 
 const momentTransitionSpec: any = {
     open: {
@@ -307,7 +310,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleBeemo,
+            headerStyle: styles.headerStyleAccent,
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',
@@ -329,7 +332,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleBeemo,
+            headerStyle: styles.headerStyleAccent,
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',
@@ -351,7 +354,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleBeemo,
+            headerStyle: styles.headerStyleAccent,
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',
@@ -371,7 +374,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleBeemo,
+            headerStyle: styles.headerStyleAccent,
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',
@@ -393,7 +396,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleBeemo,
+            headerStyle: styles.headerStyleAccent,
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',
@@ -413,7 +416,7 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleBeemo,
+            headerStyle: styles.headerStyleAccent,
             headerTitleStyle: {
                 ...styles.headerTitleStyle,
                 alignSelf: 'flex-start',

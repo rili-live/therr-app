@@ -6,14 +6,16 @@ import { bindActionCreators } from 'redux';
 import { Button } from 'react-native-elements';
 import { IUserState } from 'therr-react/types';
 import Alert from '../components/Alert';
-import BeemoTextInput from '../components/TextInput/Beemo';
+import AccentTextInput from '../components/Input/TextInput/Accent';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
 import { UsersService } from 'therr-react/services';
 import translator from '../services/translator';
 import BaseStatusBar from '../components/BaseStatusBar';
-import styles, { addMargins } from '../styles';
-import formStyles from '../styles/forms';
+import { buildStyles, addMargins } from '../styles';
+import { buildStyles as buildMenuStyles } from '../styles/navigation/buttonMenu';
+import { buildStyles as buildAlertStyles } from '../styles/alerts';
+import { buildStyles as buildFormStyles } from '../styles/forms';
 
 interface IHomeDispatchProps {
     logout: Function;
@@ -48,10 +50,12 @@ const mapDispatchToProps = (dispatch: any) =>
 
 class Home extends React.Component<IHomeProps, IHomeState> {
     private translate: Function;
-
     private quote: string;
-
     private quoteAuthor: string;
+    private theme = buildStyles();
+    private themeAlerts = buildAlertStyles();
+    private themeMenu = buildMenuStyles();
+    private themeForms = buildFormStyles();
 
     constructor(props) {
         super(props);
@@ -62,6 +66,10 @@ class Home extends React.Component<IHomeProps, IHomeState> {
             prevReqSuccess: '',
         };
 
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
 
@@ -128,25 +136,25 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={styles.safeAreaView}>
+                <SafeAreaView style={this.theme.styles.safeAreaView}>
                     <ScrollView
                         contentInsetAdjustmentBehavior="automatic"
-                        style={styles.scrollView}
+                        style={this.theme.styles.scrollView}
                     >
-                        <View style={styles.body}>
-                            <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitleCenter}>
+                        <View style={this.theme.styles.body}>
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionTitleCenter}>
                                     {this.translate('pages.userProfile.h2.quoteOfTheDay')}
                                 </Text>
-                                <Text style={styles.sectionQuote}>
+                                <Text style={this.theme.styles.sectionQuote}>
                                     {`"${this.quote}" - ${this.quoteAuthor}`}
                                 </Text>
                             </View>
-                            <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitleCenter}>
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionTitleCenter}>
                                     {this.translate('pages.userProfile.h2.shareFeedback')}
                                 </Text>
-                                <BeemoTextInput
+                                <AccentTextInput
                                     placeholder={this.translate(
                                         'pages.userProfile.labels.feedbackPlaceholder'
                                     )}
@@ -155,6 +163,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                         this.onInputChange('feedbackMessage', text)
                                     }
                                     numberOfLines={5}
+                                    themeForms={this.themeForms}
                                 />
                                 <Alert
                                     containerStyles={addMargins({
@@ -163,10 +172,11 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                     isVisible={!!prevReqSuccess || !!prevReqError}
                                     message={!!prevReqSuccess ? prevReqSuccess : prevReqError}
                                     type={!!prevReqSuccess ? 'success' : 'error'}
+                                    themeAlerts={this.themeAlerts}
                                 />
                                 <Button
-                                    buttonStyle={formStyles.button}
-                                    disabledStyle={formStyles.buttonDisabled}
+                                    buttonStyle={this.themeForms.styles.button}
+                                    disabledStyle={this.themeForms.styles.buttonDisabled}
                                     title={this.translate(
                                         'pages.userProfile.buttons.send'
                                     )}
@@ -175,20 +185,20 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                     raised={false}
                                 />
                             </View>
-                            <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitleCenter}>
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionTitleCenter}>
                                     {this.translate('pages.userProfile.h2.howItWorks')}
                                 </Text>
-                                <Text style={styles.sectionDescription}>
+                                <Text style={this.theme.styles.sectionDescription}>
                                     {this.translate('pages.userProfile.siteDescription1')}
                                 </Text>
-                                <Text style={styles.sectionDescription}>
+                                <Text style={this.theme.styles.sectionDescription}>
                                     {this.translate('pages.userProfile.siteDescription2')}
                                 </Text>
-                                <Text style={styles.sectionDescription}>
+                                <Text style={this.theme.styles.sectionDescription}>
                                     {this.translate('pages.userProfile.siteDescription3')}
                                 </Text>
-                                <Text style={styles.sectionDescription}>
+                                <Text style={this.theme.styles.sectionDescription}>
                                     {this.translate('pages.userProfile.siteDescription4')}
                                 </Text>
                             </View>
@@ -200,6 +210,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                     onActionButtonPress={this.handleRefresh}
                     translate={this.translate}
                     user={user}
+                    themeMenu={this.themeMenu}
                 />
             </>
         );

@@ -2,27 +2,31 @@ import React, { useState } from 'react';
 import { Text, Modal, Pressable, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import styles from '../../styles/modal/tourModal';
-import buttonStyles from '../../styles/buttons';
 
 interface ITouringModal {
     isVisible: boolean;
     onRequestClose: any;
     translate: Function;
+    themeButtons: {
+        styles: any;
+    };
+    themeTour: {
+        styles: any;
+    };
 }
 
-const ModalButton = ({ title, iconName, onPress, iconRight }) => {
+const ModalButton = ({ title, iconName, onPress, iconRight, themeButtons }) => {
     const iconStyle = iconRight ? { paddingLeft: 7 } : { paddingRight: 7 };
     return (
         <Button
             containerStyle={{ flex: 1 }}
-            buttonStyle={[buttonStyles.btnClear, { padding: 10 }]}
-            titleStyle={buttonStyles.btnTitleBlack}
+            buttonStyle={[themeButtons.styles.btnClear, { padding: 10 }]}
+            titleStyle={themeButtons.styles.btnTitleBlack}
             icon={
                 <MaterialIcon
                     name={iconName}
                     size={20}
-                    style={[buttonStyles.btnIconBlack, iconStyle]}
+                    style={[themeButtons.styles.btnIconBlack, iconStyle]}
                 />
             }
             iconRight={iconRight}
@@ -37,6 +41,8 @@ const ModalButton = ({ title, iconName, onPress, iconRight }) => {
 export default ({
     isVisible,
     onRequestClose,
+    themeButtons,
+    themeTour,
     translate,
 }: ITouringModal) => {
     const [tab, setTab] = useState(0);
@@ -50,66 +56,72 @@ export default ({
         >
             <Pressable
                 onPress={onRequestClose}
-                style={styles.overlay}>
+                style={themeTour.styles.overlay}>
                 {
                     (tab !== 1 && tab !== 2) &&
-                    <Pressable style={styles.container}>
-                        <Text style={styles.header}>{translate('modals.touringModal.header1')}</Text>
-                        <Text style={styles.text}>{translate('modals.touringModal.createAMoment')}</Text>
+                    <Pressable style={themeTour.styles.container}>
+                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header1')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.createAMoment')}</Text>
                         <View style={{ width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                             <ModalButton
                                 iconName="close"
                                 title={translate('modals.touringModal.exit')}
                                 onPress={onRequestClose}
                                 iconRight={false}
+                                themeButtons={themeButtons}
                             />
                             <ModalButton
                                 iconName="arrow-forward"
                                 title={translate('modals.touringModal.next')}
                                 onPress={() => setTab(1)}
                                 iconRight
+                                themeButtons={themeButtons}
                             />
                         </View>
                     </Pressable>
                 }
                 {
                     (tab === 1) &&
-                    <Pressable style={styles.container}>
-                        <Text style={styles.header}>{translate('modals.touringModal.header2')}</Text>
-                        <Text style={styles.text}>{translate('modals.touringModal.claimYourSpaces')}</Text>
+                    <Pressable style={themeTour.styles.container}>
+                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header2')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.claimYourSpaces')}</Text>
                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                             <ModalButton
                                 iconName="arrow-back"
                                 title={translate('modals.touringModal.back')}
                                 onPress={() => setTab(0)}
                                 iconRight={false}
+                                themeButtons={themeButtons}
                             />
                             <ModalButton
                                 iconName="arrow-forward"
                                 title={translate('modals.touringModal.next')}
                                 onPress={() => setTab(2)}
                                 iconRight
+                                themeButtons={themeButtons}
                             />
                         </View>
                     </Pressable>
                 }
                 {
                     (tab === 2) &&
-                    <Pressable style={styles.container}>
-                        <Text style={styles.header}>{translate('modals.touringModal.header2')}</Text>
-                        <Text style={styles.text}>{translate('modals.touringModal.exploreTheWorld')}</Text>
+                    <Pressable style={themeTour.styles.container}>
+                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header2')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.exploreTheWorld')}</Text>
                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                             <ModalButton
                                 iconName="arrow-back"
                                 title={translate('modals.touringModal.back')}
                                 onPress={() => setTab(1)}
                                 iconRight={false}
+                                themeButtons={themeButtons}
                             />
                             <ModalButton
                                 iconName="check"
                                 title={translate('modals.touringModal.done')}
                                 onPress={onRequestClose}
                                 iconRight
+                                themeButtons={themeButtons}
                             />
                         </View>
                     </Pressable>
