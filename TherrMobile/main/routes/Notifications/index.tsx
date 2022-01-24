@@ -14,8 +14,9 @@ import {
 } from 'therr-react/types';
 import { Notifications as NotificationsEmuns } from 'therr-js-utilities/constants';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import styles from '../../styles';
-import { notifications as notificationStyles } from '../../styles/notifications';
+import { buildStyles } from '../../styles';
+import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
+import { notifications as notificationStyles, buildStyles as buildNotificationStyles } from '../../styles/notifications';
 import translator from '../../services/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import Notification from './Notification';
@@ -60,6 +61,9 @@ class Notifications extends React.Component<
 > {
     private flatListRef: any;
     private translate: Function;
+    private theme = buildStyles();
+    private themeMenu = buildMenuStyles();
+    private themeNotification = buildNotificationStyles();
 
     constructor(props) {
         super(props);
@@ -68,6 +72,9 @@ class Notifications extends React.Component<
             isRefreshing: false,
         };
 
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
+        this.themeNotification = buildNotificationStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
             translator('en-us', key, params);
     }
@@ -154,7 +161,7 @@ class Notifications extends React.Component<
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView  style={styles.safeAreaView}>
+                <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     {
                         notifications.messages.length ? (
                             <FlatList
@@ -168,6 +175,7 @@ class Notifications extends React.Component<
                                         notification={item}
                                         containerStyles={index === 0 ? notificationStyles.firstChildNotification : {}}
                                         translate={this.translate}
+                                        themeNotification={this.themeNotification}
                                     />
                                 )}
                                 ref={(component) => (this.flatListRef = component)}
@@ -183,8 +191,8 @@ class Notifications extends React.Component<
                                 style={notificationStyles.container}
                             />
                         ) :
-                            <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionDescription}>
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionDescription}>
                                     {this.translate(
                                         'pages.notifications.noNotifications'
                                     )}
@@ -197,6 +205,7 @@ class Notifications extends React.Component<
                     onActionButtonPress={this.scrollTop}
                     translate={this.translate}
                     user={user}
+                    themeMenu={this.themeMenu}
                 />
             </>
         );

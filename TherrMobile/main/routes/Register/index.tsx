@@ -4,12 +4,14 @@ import { Text, View, SafeAreaView } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';
-import styles from '../../styles';
+import { buildStyles } from '../../styles';
+import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
+import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
+import { buildStyles as buildFTUIStyles } from '../../styles/first-time-ui';
 import RegisterForm from './RegisterForm';
 import { bindActionCreators } from 'redux';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
-import firstTimeUIStyles from '../../styles/first-time-ui';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import eula from '../Map/EULA';
@@ -45,6 +47,10 @@ const mapDispatchToProps = (dispatch: any) =>
 
 class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> {
     private translate;
+    private theme = buildStyles();
+    private themeButtons = buildButtonsStyles();
+    private themeConfirmModal = buildConfirmModalStyles();
+    private themeFTUI = buildFTUIStyles();
 
     constructor(props) {
         super(props);
@@ -53,6 +59,10 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
             isEULAVisible: false,
         };
 
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
+        this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
+        this.themeFTUI = buildFTUIStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
             translator('en-us', key, params);
     }
@@ -83,14 +93,19 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView  style={styles.safeAreaView}>
-                    <KeyboardAwareScrollView style={styles.bodyFlex} contentContainerStyle={styles.bodyScroll} enableOnAndroid>
-                        <View style={styles.sectionContainer}>
-                            <Text style={firstTimeUIStyles.titleWithSpacing}>
+                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                    <KeyboardAwareScrollView style={this.theme.styles.bodyFlex} contentContainerStyle={this.theme.styles.bodyScroll} enableOnAndroid>
+                        <View style={this.theme.styles.sectionContainer}>
+                            <Text style={this.themeFTUI.styles.titleWithSpacing}>
                                 {pageTitle}
                             </Text>
                         </View>
-                        <RegisterForm register={this.props.register} onSuccess={this.onSuccess} toggleEULA={this.toggleEULA} />
+                        <RegisterForm
+                            register={this.props.register}
+                            onSuccess={this.onSuccess}
+                            toggleEULA={this.toggleEULA}
+                            userSettings={this.props.user?.settings || {}}
+                        />
                     </KeyboardAwareScrollView>
                 </SafeAreaView>
                 <ConfirmModal
@@ -101,6 +116,9 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
                     text={eula}
                     textConfirm={this.translate('modals.confirmModal.agree')}
                     translate={this.translate}
+                    theme={this.theme}
+                    themeButtons={this.themeButtons}
+                    themeModal={this.themeConfirmModal}
                 />
             </>
         );

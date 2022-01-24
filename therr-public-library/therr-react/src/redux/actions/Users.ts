@@ -1,6 +1,6 @@
 import * as Immutable from 'seamless-immutable';
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
-import { IUser, UserActionTypes } from '../../types/redux/user';
+import { IUser, IUserSettings, UserActionTypes } from '../../types/redux/user';
 import UsersService from '../../services/UsersService';
 
 interface ILoginSSOTokens {
@@ -63,6 +63,11 @@ class UsersActions {
                 phoneNumber,
                 userName,
             });
+            // TODO: Get user settings data from db response
+            const userSettingsData: IUserSettings = Immutable.from({
+                locale: 'en-us',
+                mobileThemeName: 'retro',
+            });
             this.socketIO.io.opts.query = {
                 token: idToken,
             };
@@ -89,8 +94,10 @@ class UsersActions {
             });
             this.socketIO.connect();
             (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
+            (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
             if (data.rememberMe && !this.NativeStorage) {
                 localStorage.setItem('therrUser', JSON.stringify(userData));
+                localStorage.setItem('therrUserSettings', JSON.stringify(userSettingsData));
             }
         });
     };
@@ -111,7 +118,7 @@ class UsersActions {
             sessionStorage.removeItem('therrSession');
             sessionStorage.removeItem('therrUser');
         } else {
-            await this.NativeStorage.multiRemove(['therrSession', 'therrUser']);
+            await this.NativeStorage.multiRemove(['therrSession', 'therrUser', 'therrUserSettings']);
         }
         dispatch({
             type: SocketClientActionTypes.LOGOUT,
@@ -159,11 +166,19 @@ class UsersActions {
         // TODO: Determine if it is necessary to dispatch anything after user registers
         // set current user?
         const userDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || {});
+        const userSettings = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUserSettings') || {});
         const userData: IUser = Immutable.from({
             ...userDetails,
             ...response.data,
         });
+        // TODO: Get user settings from db
+        const userSettingsData: IUser = Immutable.from({
+            ...userSettings,
+            locale: 'en-us',
+            mobileThemeName: 'retro',
+        });
         (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
+        (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
 
         dispatch({
             type: SocketClientActionTypes.UPDATE_USER,

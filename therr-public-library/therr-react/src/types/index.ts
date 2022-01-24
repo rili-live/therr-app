@@ -35,6 +35,7 @@ import {
     IUser,
     ISocketDetails,
     IUserState,
+    IMobileThemeName,
 
     // User Connections
     IUserConnection,
@@ -112,6 +113,7 @@ export {
     IUser,
     ISocketDetails,
     IUserState,
+    IMobileThemeName,
 
     // User Connections
     IUserConnection,

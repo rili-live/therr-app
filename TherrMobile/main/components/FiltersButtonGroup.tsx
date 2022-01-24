@@ -3,7 +3,6 @@ import { View } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
-import buttonStyles from '../styles/buttons';
 
 interface IFiltersButtonGroupProps {
     areLayersVisible: boolean;
@@ -13,6 +12,9 @@ interface IFiltersButtonGroupProps {
     toggleLayer: Function;
     toggleLayers: Function;
     translate: Function;
+    themeButtons: {
+        styles: any;
+    }
 }
 
 export default ({
@@ -23,6 +25,7 @@ export default ({
     toggleLayer,
     toggleLayers,
     translate,
+    themeButtons,
 }: IFiltersButtonGroupProps) => {
     if (!goToMap && !goToMoments) {
         throw new Error('At least one of goToMap or goToMoments function is required');
@@ -32,30 +35,30 @@ export default ({
         <>
             {
                 areLayersVisible &&
-                <View style={buttonStyles.buttonGroupFilterList}>
-                    <View style={buttonStyles.momentLayerOption3}>
+                <View style={themeButtons.styles.buttonGroupFilterList}>
+                    <View style={themeButtons.styles.momentLayerOption3}>
                         <Button
-                            buttonStyle={buttonStyles.btnMedium}
-                            titleStyle={buttonStyles.btnTextWhite}
+                            buttonStyle={themeButtons.styles.btnMedium}
+                            titleStyle={themeButtons.styles.btnTextWhite}
                             icon={
                                 <FontAwesomeIcon
                                     name="globe"
-                                    size={buttonStyles.btnMedium.height}
-                                    style={layers.connectionsMoments ? buttonStyles.btnIcon : buttonStyles.btnIconInactive}
+                                    size={themeButtons.styles.btnMedium.height}
+                                    style={layers.connectionsMoments ? themeButtons.styles.btnIcon : themeButtons.styles.btnIconInactive}
                                 />
                             }
                             raised={true}
                             onPress={() => toggleLayer('connectionsMoments')}
                         />
                     </View>
-                    <View style={buttonStyles.momentLayerOption4}>
+                    <View style={themeButtons.styles.momentLayerOption4}>
                         <Button
-                            buttonStyle={buttonStyles.btnMedium}
+                            buttonStyle={themeButtons.styles.btnMedium}
                             icon={
                                 <FontAwesomeIcon
                                     name="child"
-                                    size={buttonStyles.btnMedium.height}
-                                    style={layers.myMoments ? buttonStyles.btnIcon : buttonStyles.btnIconInactive}
+                                    size={themeButtons.styles.btnMedium.height}
+                                    style={layers.myMoments ? themeButtons.styles.btnIcon : themeButtons.styles.btnIconInactive}
                                 />
                             }
                             raised={true}
@@ -64,18 +67,18 @@ export default ({
                     </View>
                 </View>
             }
-            <View style={buttonStyles.buttonGroup}>
-                <View style={buttonStyles.buttonGroupContainer}>
+            <View style={themeButtons.styles.buttonGroup}>
+                <View style={themeButtons.styles.buttonGroupContainer}>
                     <Button
-                        buttonStyle={buttonStyles.searchFiltersButton}
-                        containerStyle={buttonStyles.btnGroupButtonContainer}
-                        titleStyle={buttonStyles.searchFiltersTitle}
+                        buttonStyle={themeButtons.styles.searchFiltersButton}
+                        containerStyle={themeButtons.styles.btnGroupButtonContainer}
+                        titleStyle={themeButtons.styles.searchFiltersTitle}
                         title={translate('menus.filters.title')}
                         icon={
                             <MaterialIcon
                                 name="tune"
                                 size={23}
-                                style={buttonStyles.btnIconWhite}
+                                style={themeButtons.styles.btnIconWhite}
                             />
                         }
                         onPress={() => toggleLayers()}

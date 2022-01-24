@@ -15,11 +15,12 @@ import YoutubePlayer from 'react-native-youtube-iframe';
 import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
-import styles, { addMargins } from '../styles';
-import beemoLayoutStyles from '../styles/layouts/beemo';
-import * as therrTheme from '../styles/themes';
-import formStyles, { beemoEditForm as editMomentFormStyles } from '../styles/forms';
-import editMomentStyles from '../styles/user-content/moments/editing';
+import { buildStyles, addMargins } from '../styles';
+import { buildStyles as buildAlertStyles } from '../styles/alerts';
+import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
+import { buildStyles as buildFormStyles } from '../styles/forms';
+import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
+import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/editing';
 import userContentStyles from '../styles/user-content';
 import {
     youtubeLinkRegex,
@@ -29,8 +30,8 @@ import {
 } from '../constants';
 import Alert from '../components/Alert';
 import formatHashtags from '../utilities/formatHashtags';
-import BeemoInput from '../components/Input/Beemo';
-import BeemoTextInput from '../components/TextInput/Beemo';
+import AccentInput from '../components/Input/Accent';
+import AccentTextInput from '../components/Input/TextInput/Accent';
 import HashtagsContainer from '../components/UserContent/HashtagsContainer';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { getImagePreviewPath } from '../utilities/areaUtils';
@@ -73,6 +74,12 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
     private scrollViewRef;
     private translate: Function;
     private unsubscribeNavListener;
+    private theme = buildStyles();
+    private themeAlerts = buildAlertStyles();
+    private themeAccentLayout = buildAccentStyles();
+    private themeMoments = buildMomentStyles();
+    private themeForms = buildFormStyles();
+    private themeAccentForms = buildAccentFormStyles();
 
     constructor(props) {
         super(props);
@@ -94,6 +101,12 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             imagePreviewPath: getImagePreviewPath(imageURI),
         };
 
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
+        this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
+        this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
+        this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
         this.categoryOptions = [
             {
@@ -122,7 +135,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 value: 'idea',
             },
         ];
-        // changeNavigationBarColor(therrTheme.colors.beemo1, false, true);
+        // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
     }
 
     componentDidMount() {
@@ -374,25 +387,25 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={styles.safeAreaView}>
+                <SafeAreaView style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={[styles.bodyFlex, beemoLayoutStyles.bodyEdit]}
-                        contentContainerStyle={[styles.bodyScroll, beemoLayoutStyles.bodyEditScroll]}
+                        style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit]}
+                        contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyEditScroll]}
                     >
-                        <Pressable style={beemoLayoutStyles.container} onPress={Keyboard.dismiss}>
+                        <Pressable style={this.themeAccentLayout.styles.container} onPress={Keyboard.dismiss}>
                             {
                                 !!imagePreviewPath &&
-                                <View style={editMomentStyles.mediaContainer}>
+                                <View style={this.themeMoments.styles.mediaContainer}>
                                     <Image
                                         source={{ uri: imagePreviewPath }}
-                                        style={editMomentStyles.mediaImage}
+                                        style={this.themeMoments.styles.mediaImage}
                                     />
                                 </View>
                             }
-                            <BeemoInput
+                            <AccentInput
                                 maxLength={100}
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.notificationMsg'
@@ -401,8 +414,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 onChangeText={(text) =>
                                     this.onInputChange('notificationMsg', text)
                                 }
+                                themeForms={this.themeForms}
                             />
-                            <BeemoTextInput
+                            <AccentTextInput
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.message'
                                 )}
@@ -411,18 +425,20 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     this.onInputChange('message', text)
                                 }
                                 numberOfLines={5}
+                                themeForms={this.themeForms}
                             />
-                            <View style={[formStyles.input, { display: 'flex', flexDirection: 'row', alignItems: 'center' }]}>
+                            <View style={[this.themeForms.styles.input, { display: 'flex', flexDirection: 'row', alignItems: 'center' }]}>
                                 <DropDown
                                     onChange={(newValue) =>
                                         this.onInputChange('category', newValue || 'uncategorized')
                                     }
                                     options={this.categoryOptions}
+                                    formStyles={this.themeForms.styles}
                                 />
                             </View>
-                            <BeemoInput
+                            <AccentInput
                                 autoCorrect={false}
-                                errorStyle={styles.displayNone}
+                                errorStyle={this.theme.styles.displayNone}
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.hashTags'
                                 )}
@@ -431,25 +447,27 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     this.onInputChange('hashTags', text)
                                 }
                                 onBlur={this.handleHashTagsBlur}
+                                themeForms={this.themeForms}
                             />
                             <HashtagsContainer
                                 hashtags={hashtags}
                                 onHashtagPress={this.handleHashtagPress}
+                                styles={this.themeForms.styles}
                             />
-                            <View style={formStyles.inputSliderContainer}>
+                            <View style={this.themeForms.styles.inputSliderContainer}>
                                 <Slider
                                     value={inputs.radius}
                                     onValueChange={(value) => this.onSliderChange('radius', value)}
                                     maximumValue={MAX_RADIUS_PRIVATE}
                                     minimumValue={MIN_RADIUS_PRIVATE}
                                     step={1}
-                                    thumbStyle={{ backgroundColor: therrTheme.colors.beemoBlue }}
+                                    thumbStyle={{ backgroundColor: this.theme.colors.accentBlue }}
                                     thumbTouchSize={{ width: 100, height: 100 }}
-                                    minimumTrackTintColor={therrTheme.colorVariations.beemoBlueLightFade}
-                                    maximumTrackTintColor={therrTheme.colorVariations.beemoBlueHeavyFade}
+                                    minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
+                                    maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
                                     onSlidingStart={Keyboard.dismiss}
                                 />
-                                <Text style={formStyles.inputLabelDark}>
+                                <Text style={this.themeForms.styles.inputLabelDark}>
                                     {`${this.translate('forms.editMoment.labels.radius', { meters: inputs.radius })}`}
                                 </Text>
                             </View>
@@ -460,8 +478,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 isVisible={!!(errorMsg || successMsg)}
                                 message={successMsg || errorMsg}
                                 type={errorMsg ? 'error' : 'success'}
+                                themeAlerts={this.themeAlerts}
                             />
-                            {/* <BeemoInput
+                            {/* <AccentInput
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.maxProximity'
                                 )}
@@ -470,7 +489,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     this.onInputChange('maxProximity', text)
                                 }
                             />
-                            {/* <BeemoInput
+                            {/* <AccentInput
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.maxViews'
                                 )}
@@ -479,7 +498,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     this.onInputChange('maxViews', text)
                                 }
                             />
-                            <BeemoInput
+                            <AccentInput
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.expiresAt'
                                 )}
@@ -491,9 +510,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         </Pressable>
                         {
                             !!previewLinkId
-                            && <View style={[userContentStyles.preview, editMomentFormStyles.previewContainer, previewStyleState]}>
-                                <Text style={editMomentFormStyles.previewHeader}>{this.translate('pages.editMoment.previewHeader')}</Text>
-                                <View style={editMomentFormStyles.preview}>
+                            && <View style={[userContentStyles.preview, this.themeAccentForms.styles.previewContainer, previewStyleState]}>
+                                <Text style={this.themeAccentForms.styles.previewHeader}>{this.translate('pages.editMoment.previewHeader')}</Text>
+                                <View style={this.themeAccentForms.styles.preview}>
                                     <YoutubePlayer
                                         height={300}
                                         play={false}
@@ -504,10 +523,10 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             </View>
                         }
                     </KeyboardAwareScrollView>
-                    <View style={beemoLayoutStyles.footer}>
+                    <View style={this.themeAccentLayout.styles.footer}>
                         <Button
-                            containerStyle={editMomentFormStyles.backButtonContainer}
-                            buttonStyle={editMomentFormStyles.backButton}
+                            containerStyle={this.themeAccentForms.styles.backButtonContainer}
+                            buttonStyle={this.themeAccentForms.styles.backButton}
                             onPress={() => navigation.navigate('Map')}
                             icon={
                                 <FontAwesome5Icon
@@ -519,11 +538,11 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             type="clear"
                         />
                         <Button
-                            buttonStyle={editMomentFormStyles.submitButton}
-                            disabledStyle={editMomentFormStyles.submitButtonDisabled}
-                            disabledTitleStyle={editMomentFormStyles.submitDisabledButtonTitle}
-                            titleStyle={editMomentFormStyles.submitButtonTitle}
-                            containerStyle={editMomentFormStyles.submitButtonContainer}
+                            buttonStyle={this.themeAccentForms.styles.submitButton}
+                            disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
+                            disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
+                            titleStyle={this.themeAccentForms.styles.submitButtonTitle}
+                            containerStyle={this.themeAccentForms.styles.submitButtonContainer}
                             title={this.translate(
                                 'forms.editMoment.buttons.submit'
                             )}
@@ -532,7 +551,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     name="paper-plane"
                                     size={25}
                                     color={this.isFormDisabled() ? 'grey' : 'black'}
-                                    style={editMomentFormStyles.submitButtonIcon}
+                                    style={this.themeAccentForms.styles.submitButtonIcon}
                                 />
                             }
                             onPress={this.onSubmit}

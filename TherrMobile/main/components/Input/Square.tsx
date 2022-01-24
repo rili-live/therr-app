@@ -1,7 +1,6 @@
 import React from 'react';
 import 'react-native-gesture-handler';
 import BaseInput from './';
-import formStyles from '../../styles/forms';
 
 export class SquareInput extends BaseInput {
     constructor(props) {
@@ -9,9 +8,11 @@ export class SquareInput extends BaseInput {
     }
 
     render() {
+        const { themeForms } = this.props;
+
         return (
             <BaseInput
-                inputContainerStyle={formStyles.inputContainerSquare}
+                inputContainerStyle={themeForms.styles.inputContainerSquare}
                 {...this.props}
             />
         );

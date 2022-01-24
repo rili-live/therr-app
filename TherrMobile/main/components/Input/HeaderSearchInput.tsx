@@ -6,33 +6,42 @@ import { InputProps } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { MapActions } from 'therr-react/redux/actions';
-import { IMapReduxState } from 'therr-react/types';
+import { IMapReduxState, IUserState } from 'therr-react/types';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
 import RoundInput from '.';
 import translator from '../../services/translator';
-import * as therrTheme from '../../styles/themes';
-import styles from '../../styles';
-import formStyles from '../../styles/forms';
+import { buildStyles } from '../../styles';
+import { buildStyles as buildFormsStyles } from '../../styles/forms';
 
 const { width: screenWidth } = Dimensions.get('window');
 
+interface IHeaderSearchInputState {
+    inputText: string;
+    lastSearchRequest: any;
+    lastClickedTargetId: any;
+    overlayTopOffset: number;
+    overlayLeftOffset: number;
+    shouldEvaluateClickaway: boolean;
+}
 interface IHeaderSearchInputDispatchProps extends InputProps {
     getPlacesSearchAutoComplete: Function;
     setSearchDropdownVisibility: Function;
 }
 
 interface IHeaderSearchInputStoreProps extends IHeaderSearchInputDispatchProps {
-    isAdvancedSearch: Boolean;
     map: IMapReduxState;
+    user: IUserState;
 }
 
 interface IHeaderSearchInputProps extends IHeaderSearchInputStoreProps {
+    isAdvancedSearch?: Boolean;
     navigation: any;
-    icon: String;
+    icon: string;
 }
 
 const mapStateToProps = (state: any) => ({
     map: state.map,
+    user: state.user,
 });
 
 const mapDispatchToProps = (dispatch: any) =>
@@ -44,23 +53,27 @@ const mapDispatchToProps = (dispatch: any) =>
         dispatch
     );
 
-export class HeaderSearchInput<IHeaderSearchInputProps> extends RoundInput {
+export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, IHeaderSearchInputState> {
     private translate: Function;
     private throttleTimeoutId: any;
+    private theme = buildStyles();
+    private themeForms = buildFormsStyles();
     containerRef: any;
 
     constructor(props: IHeaderSearchInputProps) {
-        super(props as InputProps);
+        super(props);
 
         this.state = {
+            inputText: '',
             lastSearchRequest: Date.now(),
             lastClickedTargetId: '',
             overlayTopOffset: 100,
             overlayLeftOffset: 0,
             shouldEvaluateClickaway: false,
-            inputText: '',
         };
 
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormsStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
@@ -113,6 +126,10 @@ export class HeaderSearchInput<IHeaderSearchInputProps> extends RoundInput {
     //     }
     // }
 
+    componentWillUnmount = () => {
+        clearTimeout(this.throttleTimeoutId);
+    }
+
     onInputChange = (input: string) => {
         const { getPlacesSearchAutoComplete, map, setSearchDropdownVisibility } = this.props;
         clearTimeout(this.throttleTimeoutId);
@@ -145,10 +162,6 @@ export class HeaderSearchInput<IHeaderSearchInputProps> extends RoundInput {
         }
     }
 
-    componentWillUnmount = () => {
-        clearTimeout(this.throttleTimeoutId);
-    }
-
     // TODO: Display red dot to show filters enabled
 
     render() {
@@ -157,9 +170,11 @@ export class HeaderSearchInput<IHeaderSearchInputProps> extends RoundInput {
         return (
             <RoundInput
                 errorStyle={{ display: 'none' }}
-                containerStyle={[styles.headerSearchContainer, { width: screenWidth - 124 }]}
-                inputStyle={[Platform.OS !== 'ios' ? formStyles.input : formStyles.inputAlt, { fontSize: Platform.OS !== 'ios' ? 16 : 19 }]}
-                inputContainerStyle={[formStyles.inputContainerRound, styles.headerSearchInputContainer]}
+                containerStyle={[this.theme.styles.headerSearchContainer, { width: screenWidth - 124 }]}
+                inputStyle={
+                    [Platform.OS !== 'ios' ? this.themeForms.styles.input : this.themeForms.styles.inputAlt, { fontSize: Platform.OS !== 'ios' ? 16 : 19 }]
+                }
+                inputContainerStyle={[this.themeForms.styles.inputContainerRound, this.theme.styles.headerSearchInputContainer]}
                 onChangeText={this.onInputChange}
                 onFocus={this.handlePress}
                 placeholder={this.translate('components.header.searchInput.placeholder')}
@@ -167,10 +182,10 @@ export class HeaderSearchInput<IHeaderSearchInputProps> extends RoundInput {
                     <MaterialIcon
                         name={icon}
                         size={22}
-                        color={therrTheme.colors.primary3}
+                        color={this.theme.colors.primary3}
                     />
                 }
-                {...this.props}
+                themeForms={this.themeForms}
             />
         );
     }

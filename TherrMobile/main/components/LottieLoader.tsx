@@ -1,7 +1,6 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 import LottieView from 'lottie-react-native';
-import loaderStyles from '../styles/loaders';
 import karaokeLoader from '../assets/karaoke.json';
 import happySwingLoader from '../assets/happy-swing.json';
 import shoppingLoader from '../assets/shopping.json';
@@ -14,10 +13,14 @@ import therrBlackRolling from '../assets/therr-logo-black-rolling.json';
 export type ILottieId = 'donut' | 'taco' | 'shopping' | 'happy-swing' | 'karaoke' | 'yellow-car' | 'zeppelin' | 'therr-black-rolling';
 export interface ILottieLoaderProps {
     id: ILottieId;
+    theme: {
+        styles: any;
+    }
 }
 
 export default ({
     id,
+    theme,
 }: ILottieLoaderProps) => {
     let containerStyles: any = {};
     let textStyles: any = {};
@@ -25,48 +28,48 @@ export default ({
 
     switch (id) {
         case 'donut':
-            containerStyles = loaderStyles.defaultContainer;
-            textStyles = loaderStyles.defaultText;
+            containerStyles = theme.styles.defaultContainer;
+            textStyles = theme.styles.defaultText;
             source = donutLoader;
             break;
         case 'taco':
-            containerStyles = loaderStyles.defaultContainer;
-            textStyles = loaderStyles.defaultText;
+            containerStyles = theme.styles.defaultContainer;
+            textStyles = theme.styles.defaultText;
             source = tacoLoader;
             break;
         case 'shopping':
-            containerStyles = loaderStyles.defaultContainer;
-            textStyles = loaderStyles.defaultText;
+            containerStyles = theme.styles.defaultContainer;
+            textStyles = theme.styles.defaultText;
             source = shoppingLoader;
             break;
         case 'happy-swing':
-            containerStyles = loaderStyles.defaultContainer;
-            textStyles = loaderStyles.defaultText;
+            containerStyles = theme.styles.defaultContainer;
+            textStyles = theme.styles.defaultText;
             source = happySwingLoader;
             break;
         case 'karaoke':
-            containerStyles = loaderStyles.karaokeContainer;
-            textStyles = loaderStyles.karaokeText;
+            containerStyles = theme.styles.karaokeContainer;
+            textStyles = theme.styles.karaokeText;
             source = karaokeLoader;
             break;
         case 'zeppelin':
-            containerStyles = loaderStyles.defaultContainer;
-            textStyles = loaderStyles.defaultText;
+            containerStyles = theme.styles.defaultContainer;
+            textStyles = theme.styles.defaultText;
             source = zeppelinLoader;
             break;
         case 'therr-black-rolling':
-            containerStyles = loaderStyles.therrBlackRollingContainer;
-            textStyles = loaderStyles.therrBlackRollingText;
+            containerStyles = theme.styles.therrBlackRollingContainer;
+            textStyles = theme.styles.therrBlackRollingText;
             source = therrBlackRolling;
             break;
         case 'yellow-car':
-            containerStyles = loaderStyles.yellowCarContainer;
-            textStyles = loaderStyles.yellowCarText;
+            containerStyles = theme.styles.yellowCarContainer;
+            textStyles = theme.styles.yellowCarText;
             source = carLoader;
             break;
         default:
-            containerStyles = loaderStyles.defaultContainer;
-            textStyles = loaderStyles.defaultText;
+            containerStyles = theme.styles.defaultContainer;
+            textStyles = theme.styles.defaultText;
             source = carLoader;
             break;
     }

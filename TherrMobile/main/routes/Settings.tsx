@@ -13,9 +13,11 @@ import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
 import Alert from '../components/Alert';
 import translator from '../services/translator';
-import styles from '../styles';
-import * as therrTheme from '../styles/themes';
-import formStyles, { settingsForm as settingsFormStyles } from '../styles/forms';
+import { buildStyles } from '../styles';
+import { buildStyles as buildMenuStyles } from '../styles/navigation/buttonMenu';
+import { buildStyles as buildAlertStyles } from '../styles/alerts';
+import { buildStyles as buildFormStyles } from '../styles/forms';
+import { buildStyles as buildSettingsFormStyles } from '../styles/forms/settingsForm';
 import SquareInput from '../components/Input/Square';
 import PasswordRequirements from '../components/Input/PasswordRequirements';
 import BaseStatusBar from '../components/BaseStatusBar';
@@ -54,6 +56,11 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 export class Settings extends React.Component<ISettingsProps, ISettingsState> {
     private scrollViewRef;
     private translate: Function;
+    private theme = buildStyles();
+    private themeMenu = buildMenuStyles();
+    private themeAlerts = buildAlertStyles();
+    private themeForms = buildFormStyles();
+    private themeSettingsForm = buildSettingsFormStyles();
 
     constructor(props) {
         super(props);
@@ -73,6 +80,11 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             passwordErrorMessage: '',
         };
 
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings.buildMenuStyles);
+        this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
+        this.themeSettingsForm = buildSettingsFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -125,7 +137,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             phoneNumber: user.details.phoneNumber || phoneNumber,
             firstName,
             lastName,
-            userName: userName.toLowerCase(),
+            userName: userName?.toLowerCase(),
             shouldHideMatureContent,
         };
 
@@ -215,24 +227,25 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView  style={styles.safeAreaView}>
+                <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={styles.scrollView}
+                        style={this.theme.styles.scrollView}
                     >
-                        <View style={styles.body}>
-                            <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitle}>
+                        <View style={this.theme.styles.body}>
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionTitle}>
                                     {pageHeaderUser}
                                 </Text>
                             </View>
-                            <View style={settingsFormStyles.userContainer}>
+                            <View style={this.themeSettingsForm.styles.userContainer}>
                                 <Alert
-                                    containerStyles={settingsFormStyles.alert}
+                                    containerStyles={this.themeSettingsForm.styles.alert}
                                     isVisible={!!(errorMsg || successMsg)}
                                     message={successMsg || errorMsg}
                                     type={errorMsg ? 'error' : 'success'}
+                                    themeAlerts={this.themeAlerts}
                                 />
                                 <SquareInput
                                     label={this.translate(
@@ -246,9 +259,10 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         <FontAwesomeIcon
                                             name="user"
                                             size={22}
-                                            color={therrTheme.colorVariations.primary3Fade}
+                                            color={this.theme.colorVariations.primary3Fade}
                                         />
                                     }
+                                    themeForms={this.themeForms}
                                 />
                                 <SquareInput
                                     label={this.translate(
@@ -262,9 +276,10 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         <FontAwesomeIcon
                                             name="smile"
                                             size={22}
-                                            color={therrTheme.colorVariations.primary3Fade}
+                                            color={this.theme.colorVariations.primary3Fade}
                                         />
                                     }
+                                    themeForms={this.themeForms}
                                 />
                                 <SquareInput
                                     label={this.translate(
@@ -278,9 +293,10 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         <FontAwesomeIcon
                                             name="smile-beam"
                                             size={22}
-                                            color={therrTheme.colorVariations.primary3Fade}
+                                            color={this.theme.colorVariations.primary3Fade}
                                         />
                                     }
+                                    themeForms={this.themeForms}
                                 />
                                 <SquareInput
                                     disabled
@@ -295,9 +311,10 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         <MaterialIcon
                                             name="email"
                                             size={24}
-                                            color={therrTheme.colorVariations.primary3Fade}
+                                            color={this.theme.colorVariations.primary3Fade}
                                         />
                                     }
+                                    themeForms={this.themeForms}
                                 />
                                 {/* TODO: RMOBILE-26: Use react-native-phone-input */}
                                 <SquareInput
@@ -313,21 +330,22 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         <MaterialIcon
                                             name="phone"
                                             size={24}
-                                            color={therrTheme.colorVariations.primary3Fade}
+                                            color={this.theme.colorVariations.primary3Fade}
                                         />
                                     }
+                                    themeForms={this.themeForms}
                                 />
                             </View>
-                            <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitle}>
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionTitle}>
                                     {pageHeaderSettings}
                                 </Text>
                             </View>
-                            <View style={settingsFormStyles.settingsContainer}>
+                            <View style={this.themeSettingsForm.styles.settingsContainer}>
                                 <ReactPicker
                                     selectedValue={inputs.shouldHideMatureContent}
-                                    style={formStyles.picker}
-                                    itemStyle={formStyles.pickerItem}
+                                    style={this.themeForms.styles.picker}
+                                    itemStyle={this.themeForms.styles.pickerItem}
                                     onValueChange={(itemValue) =>
                                         this.onInputChange('shouldHideMatureContent', itemValue)
                                     }>
@@ -339,13 +357,13 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     )} value={false} />
                                 </ReactPicker>
                             </View>
-                            <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitle}>
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionTitle}>
                                     {pageHeaderPassword}
                                 </Text>
                             </View>
-                            <View style={settingsFormStyles.passwordContainer}>
-                                <PasswordRequirements translate={this.translate} password={inputs.password} />
+                            <View style={this.themeSettingsForm.styles.passwordContainer}>
+                                <PasswordRequirements translate={this.translate} password={inputs.password} themeForms={this.themeForms} />
                                 <SquareInput
                                     placeholder={this.translate(
                                         'forms.settings.labels.password'
@@ -359,9 +377,10 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         <MaterialIcon
                                             name="vpn-key"
                                             size={26}
-                                            color={therrTheme.colorVariations.primary3Fade}
+                                            color={this.theme.colorVariations.primary3Fade}
                                         />
                                     }
+                                    themeForms={this.themeForms}
                                 />
                                 <SquareInput
                                     placeholder={this.translate(
@@ -376,9 +395,10 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         <MaterialIcon
                                             name="lock"
                                             size={26}
-                                            color={therrTheme.colorVariations.primary3Fade}
+                                            color={this.theme.colorVariations.primary3Fade}
                                         />
                                     }
+                                    themeForms={this.themeForms}
                                 />
                                 <SquareInput
                                     placeholder={this.translate(
@@ -394,13 +414,14 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                         <MaterialIcon
                                             name="lock"
                                             size={26}
-                                            color={therrTheme.colorVariations.primary3Fade}
+                                            color={this.theme.colorVariations.primary3Fade}
                                         />
                                     }
+                                    themeForms={this.themeForms}
                                 />
-                                <View style={settingsFormStyles.submitButtonContainer}>
+                                <View style={this.themeSettingsForm.styles.submitButtonContainer}>
                                     <Button
-                                        buttonStyle={formStyles.button}
+                                        buttonStyle={this.themeForms.styles.button}
                                         title={this.translate(
                                             'forms.settings.buttons.submit'
                                         )}
@@ -418,6 +439,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                     onActionButtonPress={this.handleRefresh}
                     translate={this.translate}
                     user={user}
+                    themeMenu={this.themeMenu}
                 />
             </>
         );

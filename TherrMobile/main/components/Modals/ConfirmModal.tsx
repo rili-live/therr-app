@@ -2,9 +2,8 @@ import React from 'react';
 import { Text, Modal, Pressable, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import styles from '../../styles/modal/confirmModal';
-import buttonStyles from '../../styles/buttons';
 import { ScrollView } from 'react-native-gesture-handler';
+import { ITherrThemeColors } from 'main/styles/themes';
 
 interface IConfirmModal {
     headerText?: string;
@@ -16,21 +15,33 @@ interface IConfirmModal {
     textCancel?: string;
     translate: Function;
     width?: string;
+    theme: {
+        colors: ITherrThemeColors;
+        styles: any;
+    };
+    themeModal: {
+        colors: ITherrThemeColors;
+        styles: any;
+    };
+    themeButtons: {
+        colors: ITherrThemeColors;
+        styles: any;
+    };
 }
 
-const ModalButton = ({ title, hasBorderRight, iconName, onPress }) => {
+const ModalButton = ({ title, hasBorderRight, iconName, onPress, themeButtons, themeModal }) => {
     const extraStyles = hasBorderRight ? { borderRightWidth: 1 } : {};
 
     return (
         <Button
-            containerStyle={[styles.buttonContainer, extraStyles]}
-            buttonStyle={[buttonStyles.btnClear, { padding: 10 }]}
-            titleStyle={buttonStyles.btnTitleBlack}
+            containerStyle={[themeModal.styles.buttonContainer, extraStyles]}
+            buttonStyle={[themeButtons.styles.btnClear, { padding: 10 }]}
+            titleStyle={themeButtons.styles.btnTitleBlack}
             icon={
                 <MaterialIcon
                     name={iconName}
                     size={20}
-                    style={[buttonStyles.btnIconBlack, { paddingRight: 7 }]}
+                    style={[themeButtons.styles.btnIconBlack, { paddingRight: 7 }]}
                 />
             }
             raised={true}
@@ -49,6 +60,8 @@ export default ({
     text,
     textConfirm,
     textCancel,
+    themeModal,
+    themeButtons,
     translate,
     width,
 }: IConfirmModal) => {
@@ -63,34 +76,38 @@ export default ({
         >
             <Pressable
                 onPress={onCancel}
-                style={styles.overlay}>
-                <Pressable style={[styles.container, extraStyles]}>
+                style={themeModal.styles.overlay}>
+                <Pressable style={[themeModal.styles.container, extraStyles]}>
                     {
                         headerText ?
                             <>
-                                <View style={styles.header}>
-                                    <Text style={styles.headerText}>{headerText}</Text>
+                                <View style={themeModal.styles.header}>
+                                    <Text style={themeModal.styles.headerText}>{headerText}</Text>
                                 </View>
-                                <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
+                                <ScrollView style={themeModal.styles.body} contentContainerStyle={themeModal.styles.bodyContent}>
                                     <View onStartShouldSetResponder={() => true}>
-                                        <Text style={styles.bodyText}>{text}</Text>
+                                        <Text style={themeModal.styles.bodyText}>{text}</Text>
                                     </View>
                                 </ScrollView>
                             </> :
-                            <Text style={styles.bodyTextBold}>{text}</Text>
+                            <Text style={themeModal.styles.bodyTextBold}>{text}</Text>
                     }
-                    <View style={styles.buttonsContainer}>
+                    <View style={themeModal.styles.buttonsContainer}>
                         <ModalButton
                             iconName="close"
                             title={textCancel || translate('modals.confirmModal.cancel')}
                             onPress={() => onCancel()}
                             hasBorderRight={true}
+                            themeModal={themeModal}
+                            themeButtons={themeButtons}
                         />
                         <ModalButton
                             iconName="check"
                             title={textConfirm || translate('modals.confirmModal.confirm')}
                             onPress={() => onConfirm()}
                             hasBorderRight={false}
+                            themeModal={themeModal}
+                            themeButtons={themeButtons}
                         />
                     </View>
                 </Pressable>

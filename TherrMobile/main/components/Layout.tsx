@@ -20,7 +20,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
 import routes from '../routes';
-import { theme } from '../styles';
+import { buildNavTheme } from '../styles';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import HeaderMenuRight from './HeaderMenuRight';
@@ -29,8 +29,9 @@ import UsersActions from '../redux/actions/UsersActions';
 import { ILocationState } from '../types/redux/location';
 import HeaderMenuLeft from './HeaderMenuLeft';
 import translator from '../services/translator';
-import styles from '../styles';
-import * as therrTheme from '../styles/themes';
+import { buildStyles } from '../styles';
+import { buildStyles as buildFormStyles } from '../styles/forms';
+import { buildStyles as buildMenuStyles } from '../styles/modal/headerMenuModal';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 
@@ -96,6 +97,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private unsubscribePushNotifications;
     private urlEventListener;
     private routeNameRef: any = {};
+    private theme = buildStyles();
+    private themeForms = buildFormStyles();
+    private themeMenu = buildMenuStyles();
 
     constructor(props) {
         super(props);
@@ -105,8 +109,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             targetRouteView: '',
         };
 
+        this.theme = buildStyles(props?.user?.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props?.user?.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props?.user?.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
+            translator(props?.user?.settings?.locale || 'en-us', key, params);
     }
 
     componentDidMount() {
@@ -368,7 +375,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         return (
             <NavigationContainer
-                theme={theme}
+                theme={buildNavTheme(this.theme)}
                 ref={navigationRef}
                 onReady={() => {
                     this.routeNameRef.current = navigationRef?.getCurrentRoute()?.name;
@@ -391,11 +398,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         const currentScreen = this.getCurrentScreen(navigation);
                         const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
                         // const isMap = currentScreen === 'Map';
+                        let headerTitle;
                         let headerStyleName: any = 'light';
-                        let headerTitleColor = therrTheme.colors.textWhite;
+                        let headerTitleColor = this.theme.colors.textWhite;
                         if (isMoment) {
-                            headerStyleName = 'beemo';
-                            headerTitleColor = therrTheme.colors.beemoTextBlack;
+                            headerStyleName = 'accent';
+                            headerTitleColor = this.theme.colors.accentTextBlack;
                         }
 
                         return ({
@@ -407,6 +415,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     navigation={navigation}
                                     isAuthenticated={user.isAuthenticated}
                                     isEmailVerifed={this.isUserEmailVerified()}
+                                    theme={this.theme}
                                 />
                             ),
                             headerRight: this.shouldShowTopRightMenu() ? () => (
@@ -420,19 +429,22 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     logout={this.logout}
                                     updateGpsStatus={updateGpsStatus}
                                     user={user}
+                                    theme={this.theme}
+                                    themeMenu={this.themeMenu}
                                 />
                             ) : () => (<View />),
                             headerTitleStyle: {
-                                ...styles.headerTitleStyle,
+                                ...this.theme.styles.headerTitleStyle,
                                 color: headerTitleColor,
                                 textShadowOffset: { width: 0, height: 0 },
                                 textShadowRadius: 0,
                             },
                             headerTitleAlign: 'center',
-                            headerStyle: styles.headerStyle,
+                            headerStyle: this.theme.styles.headerStyle,
                             headerTransparent: false,
                             headerBackVisible: false,
                             headerBackTitleVisible: false,
+                            headerTitle,
                         });
                     }}
                 >

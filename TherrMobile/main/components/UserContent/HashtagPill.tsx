@@ -1,15 +1,14 @@
 import React from 'react';
 import { Button } from 'react-native-elements';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-import formStyles from '../../styles/forms';
 
-const renderIcon = (hasIcon) => {
+const renderIcon = (hasIcon, styles) => {
     if (hasIcon) {
         return (
             <FontAwesome5Icon
                 name="times"
                 size={14}
-                style={formStyles.buttonPillIcon}
+                style={styles.buttonPillIcon}
             />
         );
     }
@@ -17,14 +16,14 @@ const renderIcon = (hasIcon) => {
     return false;
 };
 
-export default ({ tag, onPress, hasIcon = true }) => {
+export default ({ tag, onPress, hasIcon = true, styles }) => {
     return (
         <Button
-            buttonStyle={formStyles.buttonPill}
-            containerStyle={formStyles.buttonPillContainer}
-            titleStyle={formStyles.buttonPillTitle}
+            buttonStyle={styles.buttonPill}
+            containerStyle={styles.buttonPillContainer}
+            titleStyle={styles.buttonPillTitle}
             title={`#${tag}`}
-            icon={renderIcon(hasIcon)}
+            icon={renderIcon(hasIcon, styles)}
             iconRight={true}
             onPress={() => onPress(tag)}
         />

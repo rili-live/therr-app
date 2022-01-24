@@ -11,11 +11,10 @@ import {
 import { Button, Image } from 'react-native-elements';
 import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { IUserState } from 'therr-react/types';
 import UserMedia from './UserMedia';
 import HashtagsContainer from './HashtagsContainer';
-import styles from '../../styles';
-import * as therrTheme from '../../styles/themes';
-import { getViewingAreaStyles } from '../../styles/user-content/moments';
+import { ITherrThemeColors } from '../../styles/themes';
 import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 
 const { width: viewportWidth } = Dimensions.get('window');
@@ -35,24 +34,31 @@ interface IAreaDisplayProps {
     areaMedia: string;
     goToViewUser: Function;
     updateAreaReaction: Function;
+    user: IUserState;
     userDetails: IUserDetails;
+    theme: {
+        styles: any;
+        colors: ITherrThemeColors;
+    };
+    themeForms: {
+        styles: any;
+        colors: ITherrThemeColors;
+    };
+    themeViewArea: {
+        styles: any;
+        colors: ITherrThemeColors;
+    };
 }
 
 interface IAreaDisplayState {
 }
 
 export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAreaDisplayState> {
-    private viewAreaStyles;
-
     constructor(props: IAreaDisplayProps) {
         super(props);
 
         this.state = {
         };
-
-        this.viewAreaStyles = getViewingAreaStyles({
-            isDarkMode: props.isDarkMode,
-        });
     }
 
     onBookmarkPress = (area) => {
@@ -74,43 +80,46 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             areaMedia,
             goToViewUser,
             userDetails,
+            theme,
+            themeForms,
+            themeViewArea,
         } = this.props;
 
         const isBookmarked = area.reaction?.userBookmarkCategory;
 
         return (
             <>
-                <View style={this.viewAreaStyles.areaAuthorContainer}>
+                <View style={themeViewArea.styles.areaAuthorContainer}>
                     <Pressable
                         onPress={() => goToViewUser(area.fromUserId)}
                     >
                         <Image
                             source={{ uri: `https://robohash.org/${area.fromUserId}?size=52x52` }}
-                            style={this.viewAreaStyles.areaUserAvatarImg}
-                            containerStyle={this.viewAreaStyles.areaUserAvatarImgContainer}
-                            PlaceholderContent={<ActivityIndicator size="large" color={therrTheme.colors.primary}/>}
+                            style={themeViewArea.styles.areaUserAvatarImg}
+                            containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
+                            PlaceholderContent={<ActivityIndicator size="large" color={theme.colors.primary}/>}
                             transition={false}
                         />
                     </Pressable>
-                    <View style={this.viewAreaStyles.areaAuthorTextContainer}>
+                    <View style={themeViewArea.styles.areaAuthorTextContainer}>
                         {
                             userDetails &&
-                                <Text style={this.viewAreaStyles.areaUserName}>
+                                <Text style={themeViewArea.styles.areaUserName}>
                                     {`${userDetails.userName}`}
                                 </Text>
                         }
-                        <Text style={this.viewAreaStyles.dateTime}>
+                        <Text style={themeViewArea.styles.dateTime}>
                             {date}
                         </Text>
                     </View>
                     <Button
-                        containerStyle={this.viewAreaStyles.moreButtonContainer}
-                        buttonStyle={this.viewAreaStyles.moreButton}
+                        containerStyle={themeViewArea.styles.moreButtonContainer}
+                        buttonStyle={themeViewArea.styles.moreButton}
                         icon={
                             <Icon
                                 name="more-horiz"
                                 size={24}
-                                color={isDarkMode ? therrTheme.colors.textWhite : therrTheme.colors.tertiary}
+                                color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
                             />
                         }
                         onPress={() => toggleAreaOptions(area)}
@@ -123,21 +132,21 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     media={areaMedia}
                     isVisible={areaMedia}
                 />
-                <View style={this.viewAreaStyles.areaContentTitleContainer}>
+                <View style={themeViewArea.styles.areaContentTitleContainer}>
                     <Text
-                        style={this.viewAreaStyles.areaContentTitle}
+                        style={themeViewArea.styles.areaContentTitle}
                         numberOfLines={2}
                     >
                         {sanitizeNotificationMsg(area.notificationMsg)}
                     </Text>
                     <Button
-                        containerStyle={this.viewAreaStyles.bookmarkButtonContainer}
-                        buttonStyle={this.viewAreaStyles.bookmarkButton}
+                        containerStyle={themeViewArea.styles.bookmarkButtonContainer}
+                        buttonStyle={themeViewArea.styles.bookmarkButton}
                         icon={
                             <Icon
                                 name={ isBookmarked ? 'bookmark' : 'bookmark-border' }
                                 size={24}
-                                color={isDarkMode ? therrTheme.colors.textWhite : therrTheme.colors.tertiary}
+                                color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
                             />
                         }
                         onPress={() => this.onBookmarkPress(area)}
@@ -145,10 +154,10 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         TouchableComponent={TouchableWithoutFeedbackComponent}
                     />
                 </View>
-                <Text style={this.viewAreaStyles.areaMessage} numberOfLines={3}>
+                <Text style={themeViewArea.styles.areaMessage} numberOfLines={3}>
                     <Autolink
                         text={area.message}
-                        linkStyle={styles.link}
+                        linkStyle={theme.styles.link}
                         phone="sms"
                     />
                 </Text>
@@ -159,6 +168,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         onHashtagPress={() => {}}
                         visibleCount={isExpanded ? 20 : 5}
                         right
+                        styles={themeForms.styles}
                     />
                 </View>
             </>

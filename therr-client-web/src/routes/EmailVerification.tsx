@@ -116,56 +116,64 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
         const { errorReason, verificationStatus } = this.state;
 
         return (
-            <div id="page_email_verification">
-                <h1>{this.translate('pages.emailVerification.pageTitle')}</h1>
+            <div id="page_email_verification" className="flex-box space-evenly center row wrap-reverse">
+                <div className="register-container">
+                    <div className="flex fill max-wide-20">
+                        <h1>{this.translate('pages.emailVerification.pageTitle')}</h1>
 
-                <div className="form-field">
-                    {
-                        verificationStatus === 'pending'
-                        && <p>...</p>
-                    }
-                    {
-                        verificationStatus === 'success'
-                        && <p className="alert-success">{this.translate('pages.emailVerification.successMessage')}</p>
-                    }
-                    {
-                        verificationStatus === 'failed' && errorReason === 'TokenExpired'
-                        && <p className="alert-error">{this.translate('pages.emailVerification.failedMessageExpired')}</p>
-                    }
-                    {
-                        verificationStatus === 'failed' && errorReason === 'UserNotFound'
-                        && <p className="alert-error">{this.translate('pages.emailVerification.failedMessageUserNotFound')}</p>
-                    }
-                    {
-                        verificationStatus === 'failed' && errorReason !== 'TokenExpired' && errorReason !== 'UserNotFound'
-                        && <p className="alert-error">{this.translate('pages.emailVerification.failedMessage')}</p>
-                    }
-                    <div className="text-center">
-                        <Link to="/login">{this.translate('pages.emailVerification.returnToLogin')}</Link>
+                        <div className="form-field">
+                            {
+                                verificationStatus === 'pending'
+                                && <p>...</p>
+                            }
+                            {
+                                verificationStatus === 'success'
+                                && <p className="alert-success">{this.translate('pages.emailVerification.successMessage')}</p>
+                            }
+                            {
+                                verificationStatus === 'failed' && errorReason === 'TokenExpired'
+                                && <p className="alert-error">{this.translate('pages.emailVerification.failedMessageExpired')}</p>
+                            }
+                            {
+                                verificationStatus === 'failed' && errorReason === 'UserNotFound'
+                                && <p className="alert-error">{this.translate('pages.emailVerification.failedMessageUserNotFound')}</p>
+                            }
+                            {
+                                verificationStatus === 'failed' && errorReason !== 'TokenExpired' && errorReason !== 'UserNotFound'
+                                && <p className="alert-error">{this.translate('pages.emailVerification.failedMessage')}</p>
+                            }
+                            <div className="text-center">
+                                <Link to="/login">{this.translate('pages.emailVerification.returnToLogin')}</Link>
+                            </div>
+                        </div>
+
+                        {
+                            verificationStatus === 'failed'
+                            && <div className="form-field">
+                                <label htmlFor="email">{this.translate('pages.emailVerification.labels.email')}:</label>
+                                <Input
+                                    type="text"
+                                    id="email"
+                                    name="email"
+                                    value={this.state.email}
+                                    onChange={this.onInputChange}
+                                    onEnter={this.onSubmit}
+                                    translate={this.translate}
+                                    validations={['isRequired', 'email']}
+                                />
+
+                                <div className="form-field text-right">
+                                    <ButtonPrimary
+                                        id="email"
+                                        text={this.translate('pages.emailVerification.buttons.send')}
+                                        onClick={this.onSubmit}
+                                        disabled={!this.state.email}
+                                    />
+                                </div>
+                            </div>
+                        }
                     </div>
                 </div>
-
-                {
-                    verificationStatus === 'failed'
-                    && <div className="form-field">
-                        <label htmlFor="email">{this.translate('pages.emailVerification.labels.email')}:</label>
-                        <Input
-                            type="text"
-                            id="email"
-                            name="email"
-                            value={this.state.email}
-                            onChange={this.onInputChange}
-                            onEnter={this.onSubmit}
-                            translate={this.translate}
-                            validations={['isRequired', 'email']}
-                        />
-
-                        <div className="form-field text-right">
-                            <ButtonPrimary
-                                id="email" text={this.translate('pages.emailVerification.buttons.send')} onClick={this.onSubmit} disabled={!this.state.email} />
-                        </div>
-                    </div>
-                }
             </div>
         );
     }

@@ -2,8 +2,8 @@ import React from 'react';
 import { GestureResponderEvent, View } from 'react-native';
 import { Button }  from 'react-native-elements';
 import Alert from '../Alert';
-import formStyles, { settingsForm as settingsFormStyles } from '../../styles/forms';
 import PhoneNumberInput from '../Input/PhoneNumberInput';
+import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 
 interface ICreateProfileStageBProps {
     errorMsg: string;
@@ -11,6 +11,21 @@ interface ICreateProfileStageBProps {
     onInputChange: Function;
     onSubmit: ((event: GestureResponderEvent) => void) | undefined;
     translate: Function;
+    theme: {
+        colors: ITherrThemeColors;
+        styles: any;
+    };
+    themeAlerts: {
+        colorVariations: ITherrThemeColorVariations;
+        styles: any;
+    };
+    themeForms: {
+        colors: ITherrThemeColors;
+        styles: any;
+    };
+    themeSettingsForm: {
+        styles: any;
+    };
 }
 
 interface ICreateProfileStageBState {}
@@ -34,25 +49,32 @@ class CreateProfileStageB extends React.Component<ICreateProfileStageBProps, ICr
             isFormDisabled,
             onSubmit,
             translate,
+            theme,
+            themeAlerts,
+            themeForms,
+            themeSettingsForm,
         } = this.props;
 
         return (
-            <View style={settingsFormStyles.userContainer}>
+            <View style={themeSettingsForm.styles.userContainer}>
                 <Alert
-                    containerStyles={settingsFormStyles.alert}
+                    containerStyles={themeSettingsForm.styles.alert}
                     isVisible={errorMsg}
                     message={errorMsg}
                     type="error"
+                    themeAlerts={themeAlerts}
                 />
                 <PhoneNumberInput
                     onChangeText={this.onPhoneInputChange}
                     onSubmit={onSubmit}
                     placeholder={translate('forms.settings.labels.phoneNumber')}
                     translate={translate}
+                    theme={theme}
+                    themeForms={themeForms}
                 />
-                <View style={settingsFormStyles.submitButtonContainer}>
+                <View style={themeSettingsForm.styles.submitButtonContainer}>
                     <Button
-                        buttonStyle={formStyles.button}
+                        buttonStyle={themeForms.styles.button}
                         title={translate(
                             'forms.createProfile.buttons.verifyNow'
                         )}
@@ -61,10 +83,10 @@ class CreateProfileStageB extends React.Component<ICreateProfileStageBProps, ICr
                         raised={true}
                     />
                 </View>
-                <View style={settingsFormStyles.submitButtonContainer}>
+                <View style={themeSettingsForm.styles.submitButtonContainer}>
                     <Button
-                        buttonStyle={formStyles.buttonWarning}
-                        titleStyle={formStyles.buttonWarningTitle}
+                        buttonStyle={themeForms.styles.buttonWarning}
+                        titleStyle={themeForms.styles.buttonWarningTitle}
                         title={translate(
                             'forms.createProfile.buttons.verifyLater'
                         )}

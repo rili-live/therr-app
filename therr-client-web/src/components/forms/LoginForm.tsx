@@ -110,47 +110,49 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
 
         return (
             <div className="login-container">
-                <h1 className="text-center">{ title || this.translate('components.loginForm.defaultTitle') }</h1>
-                {
-                    alert && !prevLoginError
-                    && <div className="text-center alert-success">{alert}</div>
-                }
-                {
-                    prevLoginError
-                    && <div className="text-center alert-error backed padding-sm">{prevLoginError}</div>
-                }
-                <label htmlFor="user_name">{this.translate('components.loginForm.labels.userName')}:</label>
-                <Input
-                    type="text"
-                    id="user_name"
-                    name="userName"
-                    value={this.state.inputs.userName}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    validations={['isRequired']}
-                />
+                <div className="flex fill max-wide-20">
+                    <h1 className="text-center">{ title || this.translate('components.loginForm.defaultTitle') }</h1>
+                    {
+                        alert && !prevLoginError
+                        && <div className="text-center alert-success">{alert}</div>
+                    }
+                    {
+                        prevLoginError
+                        && <div className="text-center alert-error backed padding-sm">{prevLoginError}</div>
+                    }
+                    <label htmlFor="user_name">{this.translate('components.loginForm.labels.userName')}:</label>
+                    <Input
+                        type="text"
+                        id="user_name"
+                        name="userName"
+                        value={this.state.inputs.userName}
+                        onChange={this.onInputChange}
+                        onEnter={this.onSubmit}
+                        translate={this.translate}
+                        validations={['isRequired']}
+                    />
 
-                {/* TODO: RMOBILE-26: Centralize password requirements */}
-                <label htmlFor="password">{this.translate('components.loginForm.labels.password')}:</label>
-                <Input
-                    type="password"
-                    id="password"
-                    name="password"
-                    value={this.state.inputs.password}
-                    onChange={this.onInputChange}
-                    onEnter={this.onSubmit}
-                    translate={this.translate}
-                    validations={['isRequired']}
-                />
+                    {/* TODO: RMOBILE-26: Centralize password requirements */}
+                    <label htmlFor="password">{this.translate('components.loginForm.labels.password')}:</label>
+                    <Input
+                        type="password"
+                        id="password"
+                        name="password"
+                        value={this.state.inputs.password}
+                        onChange={this.onInputChange}
+                        onEnter={this.onSubmit}
+                        translate={this.translate}
+                        validations={['isRequired']}
+                    />
 
-                <div className="form-field text-right" style={{ paddingTop: '.5rem' }}>
-                    <ButtonPrimary
-                        id="login_button" text={this.translate('components.loginForm.buttons.login')} onClick={this.onSubmit} disabled={this.isLoginFormDisabled()} />
-                </div>
+                    <div className="form-field text-right" style={{ paddingTop: '.5rem' }}>
+                        <ButtonPrimary
+                            id="login_button" text={this.translate('components.loginForm.buttons.login')} onClick={this.onSubmit} disabled={this.isLoginFormDisabled()} />
+                    </div>
 
-                <div className="text-center" style={{ padding: '1.5rem 0 0 1rem' }}>
-                    <Link to="/register">{this.translate('components.loginForm.buttons.signUp')}</Link> | <Link to="/reset-password">{this.translate('components.loginForm.buttons.forgotPassword')}</Link>
+                    <div className="text-center" style={{ padding: '1.5rem 0 0 1rem' }}>
+                        <Link to="/register">{this.translate('components.loginForm.buttons.signUp')}</Link> | <Link to="/reset-password">{this.translate('components.loginForm.buttons.forgotPassword')}</Link>
+                    </div>
                 </div>
             </div>
         );

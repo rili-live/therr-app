@@ -4,8 +4,7 @@ import { connect } from 'react-redux';
 import { View } from 'react-native';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
-import momentStyles from '../../styles/user-content/moments';
-import * as therrTheme from '../../styles/themes';
+import { buildStyles } from '../../styles/user-content/areas';
 import { CAROUSEL_TABS } from '../../constants';
 
 interface ICarouselTabsMenuDispatchProps {
@@ -36,10 +35,14 @@ export const mapDispatchToProps = (dispatch: any) =>
     );
 
 export class CarouselTabsMenu extends React.Component<ICarouselTabsMenuProps, ICarouselTabsMenuState> {
+    private theme = buildStyles();
+
     constructor(props) {
         super(props);
 
         this.state = {};
+
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
     }
 
     getButtonStyles = (name) => {
@@ -47,7 +50,7 @@ export class CarouselTabsMenu extends React.Component<ICarouselTabsMenuProps, IC
 
         if (name === activeTab) {
             return {
-                backgroundColor: therrTheme.colors.primary3,
+                backgroundColor: this.theme.colors.primary3,
             };
         }
 
@@ -57,18 +60,18 @@ export class CarouselTabsMenu extends React.Component<ICarouselTabsMenuProps, IC
     render() {
         const { onButtonPress } = this.props;
         const areaCarouselTab = {
-            ...momentStyles.areaCarouselTab,
+            ...this.theme.styles.areaCarouselTab,
             width: '30%',
         };
         const areaCarouselTabButton = {
-            backgroundColor: therrTheme.colors.beemo1,
+            backgroundColor: this.theme.colors.accent1,
             paddingTop: 2,
             paddingBottom: 3,
             borderRadius: 9,
         };
 
         return (
-            <View style={momentStyles.areaCarouselHeader}>
+            <View style={this.theme.styles.areaCarouselHeader}>
                 <Button
                     buttonStyle={[areaCarouselTabButton, this.getButtonStyles(CAROUSEL_TABS.SOCIAL)]}
                     containerStyle={areaCarouselTab}

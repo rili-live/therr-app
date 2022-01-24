@@ -3,7 +3,6 @@ import { Pressable, Text } from 'react-native';
 import { connect } from 'react-redux';
 import 'react-native-gesture-handler';
 import { FlatListHeaderTabs, mapStateToProps, mapDispatchToProps } from './';
-import buttonStyles from '../../styles/navigation/buttonMenu';
 
 class MessagesContactsTab extends FlatListHeaderTabs {
     constructor(props) {
@@ -19,24 +18,24 @@ class MessagesContactsTab extends FlatListHeaderTabs {
     };
 
     render() {
-        const { tabName, translate } = this.props;
+        const { themeMenu, tabName, translate } = this.props;
 
         return (
             <FlatListHeaderTabs {...this.props}>
                 <>
                     <Pressable
                         onPress={() => this.handleButtonPress('ActiveConnections')}
-                        style={tabName === 'ActiveConnections' ? buttonStyles.tabActive : buttonStyles.tab}
+                        style={tabName === 'ActiveConnections' ? themeMenu.styles.tabActive : themeMenu.styles.tab}
                     >
-                        <Text style={buttonStyles.tabText}>
+                        <Text style={themeMenu.styles.tabText}>
                             {translate('components.activeConnections.title')}
                         </Text>
                     </Pressable>
                     <Pressable
                         onPress={() => this.handleButtonPress('Contacts')}
-                        style={tabName === 'Contacts' ? buttonStyles.tabActive : buttonStyles.tab}
+                        style={tabName === 'Contacts' ? themeMenu.styles.tabActive : themeMenu.styles.tab}
                     >
-                        <Text style={buttonStyles.tabText}>
+                        <Text style={themeMenu.styles.tabText}>
                             {translate('components.contactsSearch.title')}
                         </Text>
                     </Pressable>

@@ -29,6 +29,7 @@ h2 {
     // border-bottom: 1px solid;
     // padding: .5rem .75rem;
     // box-sizing: border-box;
+    line-height: 2rem;
 }
 
 h4 {
@@ -50,6 +51,25 @@ h4 {
     box-shadow: none;
     min-height: calc(100vh - #{$header-height-small} - #{$footer-height-small});
     box-sizing: border-box;
+}
+
+.content-container-home {
+    display: flex;
+    background: $therr-background-black;
+    border: none;
+    border-radius: 0;
+    // border-left: rem-calc(4px) double $therr-primary-2;
+    // border-right: rem-calc(4px) double $therr-primary-2;
+    margin: $header-height-small 0;
+    padding: 1.5rem 1rem;
+    box-shadow: none;
+    min-height: calc(100vh - #{$header-height-small} - #{$footer-height-small});
+    box-sizing: border-box;
+    flex-direction: column;
+
+    div {
+        flex: 1;
+    }
 }
 
 @media only screen and (min-width: $screen-small) {
@@ -109,6 +129,14 @@ ul {
 
 .desktop-only {
     display: none;
+}
+
+.no-shadow {
+    box-shadow: none;
+}
+
+.max-wide-20 {
+    max-width: 20rem;
 }
 
 @media only screen and (min-width: rem-calc(540px)) {

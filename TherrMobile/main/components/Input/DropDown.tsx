@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
-import formStyles from '../../styles/forms';
 
 interface IDropDownProps {
     onChange: (newValue: null | string) => any;
     options: any[];
+    formStyles: {
+        pickerFlex: any;
+        pickerItem: any;
+    };
     style?: any;
 }
 
@@ -12,6 +15,7 @@ export default ({
     onChange,
     options,
     style,
+    formStyles,
 }: IDropDownProps) => {
     const [value, setValue] = useState(null);
 

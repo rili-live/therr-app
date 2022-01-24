@@ -5,9 +5,11 @@ import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import styles, { addMargins } from '../styles';
-import * as therrTheme from '../styles/themes';
-import formStyles, { forgotPasswordForm as forgotPasswordFormStyles } from '../styles/forms';
+import { IUserState } from 'therr-react/types';
+import { buildStyles, addMargins } from '../styles';
+import { buildStyles as buildAlertStyles } from '../styles/alerts';
+import { buildStyles as buildAuthFormStyles } from '../styles/forms/authenticationForms';
+import { buildStyles as buildFormStyles } from '../styles/forms';
 import translator from '../services/translator';
 import UsersActions from '../redux/actions/UsersActions';
 import Alert from '../components/Alert';
@@ -24,6 +26,7 @@ interface IStoreProps extends IForgotPasswordDispatchProps {}
 // Regular component props
 export interface IForgotPasswordProps extends IStoreProps {
     navigation: any;
+    user: IUserState;
 }
 
 interface IForgotPasswordState {
@@ -33,7 +36,9 @@ interface IForgotPasswordState {
     isSubmitting: boolean;
 }
 
-const mapStateToProps = () => ({});
+const mapStateToProps = (state: any) => ({
+    user: state.user,
+});
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     updateUser: UsersActions.update,
@@ -42,6 +47,10 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswordState> {
     private scrollViewRef;
     private translate: Function;
+    private theme = buildStyles();
+    private themeAlerts = buildAlertStyles();
+    private themeAuthForm = buildAuthFormStyles();
+    private themeForms = buildFormStyles();
 
     constructor(props) {
         super(props);
@@ -55,6 +64,10 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
             isSubmitting: false,
         };
 
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
+        this.themeAuthForm = buildAuthFormStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -83,7 +96,7 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
             this.setState({
                 isSubmitting: true,
             });
-            VerificationCodesService.requestOneTimePassword(email.toLowerCase())
+            VerificationCodesService.requestOneTimePassword(email?.toLowerCase())
                 .then(() => {
                     this.setState({
                         inputs: {
@@ -137,17 +150,17 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView  style={styles.safeAreaView}>
-                    <ScrollView style={styles.bodyFlex} contentContainerStyle={styles.bodyScrollSmall}>
-                        <View style={styles.sectionContainerAlt}>
-                            <Text style={styles.sectionTitle}>
+                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                    <ScrollView style={this.theme.styles.bodyFlex} contentContainerStyle={this.theme.styles.bodyScrollSmall}>
+                        <View style={this.theme.styles.sectionContainerAlt}>
+                            <Text style={this.theme.styles.sectionTitle}>
                                 {pageHeader}
                             </Text>
-                            <Text style={styles.sectionDescription}>
+                            <Text style={this.theme.styles.sectionDescription}>
                                 {this.translate('pages.forgotPassword.instructions')}
                             </Text>
                         </View>
-                        <View style={forgotPasswordFormStyles.inputsContainer}>
+                        <View style={this.themeAuthForm.styles.forgotPassowrdInputsContainer}>
                             <RoundInput
                                 autoCapitalize="none"
                                 autoCompleteType="email"
@@ -164,9 +177,10 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
                                     <FontAwesomeIcon
                                         name="envelope"
                                         size={22}
-                                        color={therrTheme.colors.primary3}
+                                        color={this.theme.colors.primary3}
                                     />
                                 }
+                                themeForms={this.themeForms}
                             />
                             <Alert
                                 containerStyles={addMargins({
@@ -175,11 +189,12 @@ class ForgotPassword extends React.Component<IForgotPasswordProps, IForgotPasswo
                                 isVisible={!!(errorMsg || successMsg)}
                                 message={successMsg || errorMsg}
                                 type={errorMsg ? 'error' : 'success'}
+                                themeAlerts={this.themeAlerts}
                             />
                         </View>
-                        <View style={forgotPasswordFormStyles.submitButtonContainer}>
+                        <View style={this.themeAuthForm.styles.submitButtonContainer}>
                             <Button
-                                buttonStyle={formStyles.button}
+                                buttonStyle={this.themeAuthForm.styles.button}
                                 title={this.translate(
                                     'forms.forgotPassword.buttons.submit'
                                 )}

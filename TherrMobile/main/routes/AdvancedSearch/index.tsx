@@ -6,9 +6,9 @@ import { Picker as ReactPicker } from '@react-native-picker/picker';
 import { bindActionCreators } from 'redux';
 import { ContentActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
-import styles from '../../styles';
-import formStyles from '../../styles/forms';
-import * as therrTheme from '../../styles/themes';
+import { buildStyles } from '../../styles';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
+import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
@@ -56,6 +56,9 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
     private carouselRef;
     private translate: Function;
     private unsubscribeNavListener;
+    private theme = buildStyles();
+    private themeForms = buildFormStyles();
+    private themeMenu = buildMenuStyles();
 
     constructor(props) {
         super(props);
@@ -65,6 +68,9 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
             hasChanges: false,
         };
 
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -127,17 +133,17 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={[styles.safeAreaView, { backgroundColor: therrTheme.colorVariations.backgroundNeutral }]}>
-                    <View style={styles.body}>
-                        <View style={styles.sectionContainer}>
-                            <Text style={styles.sectionTitle}>
+                <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
+                    <View style={this.theme.styles.body}>
+                        <View style={this.theme.styles.sectionContainer}>
+                            <Text style={this.theme.styles.sectionTitle}>
                                 {this.translate('pages.advancedSearch.labels.searchOrder')}
                             </Text>
-                            <View style={styles.sectionForm}>
+                            <View style={this.theme.styles.sectionForm}>
                                 <ReactPicker
                                     selectedValue={content.activeAreasFilters.order}
-                                    style={formStyles.picker}
-                                    itemStyle={formStyles.pickerItem}
+                                    style={this.themeForms.styles.picker}
+                                    itemStyle={this.themeForms.styles.pickerItem}
                                     onValueChange={this.onSearchOrderSelect}>
                                     <ReactPicker.Item label={this.translate(
                                         'pages.advancedSearch.labels.desc'
@@ -156,6 +162,7 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
                     onActionButtonPress={this.onRefresh}
                     translate={this.translate}
                     user={user}
+                    themeMenu={this.themeMenu}
                 />
             </>
         );

@@ -15,11 +15,12 @@ import YoutubePlayer from 'react-native-youtube-iframe';
 import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
-import styles, { addMargins } from '../styles';
-import beemoLayoutStyles from '../styles/layouts/beemo';
-import * as therrTheme from '../styles/themes';
-import formStyles, { beemoEditForm as editSpaceFormStyles } from '../styles/forms';
-import editSpaceStyles from '../styles/user-content/moments/editing';
+import { buildStyles, addMargins } from '../styles';
+import { buildStyles as buildAlertStyles } from '../styles/alerts';
+import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
+import { buildStyles as buildFormStyles } from '../styles/forms';
+import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
+import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/editing';
 import userContentStyles from '../styles/user-content';
 import {
     youtubeLinkRegex,
@@ -29,8 +30,8 @@ import {
 } from '../constants';
 import Alert from '../components/Alert';
 import formatHashtags from '../utilities/formatHashtags';
-import BeemoInput from '../components/Input/Beemo';
-import BeemoTextInput from '../components/TextInput/Beemo';
+import AccentInput from '../components/Input/Accent';
+import AccentTextInput from '../components/Input/TextInput/Accent';
 import HashtagsContainer from '../components/UserContent/HashtagsContainer';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { getImagePreviewPath } from '../utilities/areaUtils';
@@ -73,6 +74,12 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
     private scrollViewRef;
     private translate: Function;
     private unsubscribeNavListener;
+    private theme;
+    private themeAlerts = buildAlertStyles();
+    private themeAccentLayout = buildAccentStyles();
+    private themeMoments = buildMomentStyles();
+    private themeForms = buildFormStyles();
+    private themeAccentForms = buildAccentFormStyles();
 
     constructor(props) {
         super(props);
@@ -95,6 +102,12 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
             imagePreviewPath: getImagePreviewPath(imageURI),
         };
 
+        this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
+        this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
+        this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
+        this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
         this.categoryOptions = [
             {
@@ -128,7 +141,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                 value: 'food',
             },
         ];
-        // changeNavigationBarColor(therrTheme.colors.beemo1, false, true);
+        // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
     }
 
     componentDidMount() {
@@ -380,25 +393,25 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={styles.safeAreaView}>
+                <SafeAreaView style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={[styles.bodyFlex, beemoLayoutStyles.bodyEdit]}
-                        contentContainerStyle={[styles.bodyScroll, beemoLayoutStyles.bodyEditScroll]}
+                        style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit]}
+                        contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyEditScroll]}
                     >
-                        <Pressable style={beemoLayoutStyles.container} onPress={Keyboard.dismiss}>
+                        <Pressable style={this.themeAccentLayout.styles.container} onPress={Keyboard.dismiss}>
                             {
                                 !!imagePreviewPath &&
-                                <View style={editSpaceStyles.mediaContainer}>
+                                <View style={this.themeMoments.styles.mediaContainer}>
                                     <Image
                                         source={{ uri: imagePreviewPath }}
-                                        style={editSpaceStyles.mediaImage}
+                                        style={this.themeMoments.styles.mediaImage}
                                     />
                                 </View>
                             }
-                            <BeemoInput
+                            <AccentInput
                                 maxLength={100}
                                 placeholder={this.translate(
                                     'forms.editSpace.labels.notificationMsg'
@@ -407,8 +420,9 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                 onChangeText={(text) =>
                                     this.onInputChange('notificationMsg', text)
                                 }
+                                themeForms={this.themeForms}
                             />
-                            <BeemoTextInput
+                            <AccentTextInput
                                 placeholder={this.translate(
                                     'forms.editSpace.labels.message'
                                 )}
@@ -417,18 +431,20 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                     this.onInputChange('message', text)
                                 }
                                 numberOfLines={5}
+                                themeForms={this.themeForms}
                             />
-                            <View style={[formStyles.input, { display: 'flex', flexDirection: 'row', alignItems: 'center' }]}>
+                            <View style={[this.themeForms.styles.input, { display: 'flex', flexDirection: 'row', alignItems: 'center' }]}>
                                 <DropDown
                                     onChange={(newValue) =>
                                         this.onInputChange('category', newValue || 'uncategorized')
                                     }
                                     options={this.categoryOptions}
+                                    formStyles={this.themeForms.styles}
                                 />
                             </View>
-                            <BeemoInput
+                            <AccentInput
                                 autoCorrect={false}
-                                errorStyle={styles.displayNone}
+                                errorStyle={this.theme.styles.displayNone}
                                 placeholder={this.translate(
                                     'forms.editSpace.labels.hashTags'
                                 )}
@@ -437,25 +453,27 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                     this.onInputChange('hashTags', text)
                                 }
                                 onBlur={this.handleHashTagsBlur}
+                                themeForms={this.themeForms}
                             />
                             <HashtagsContainer
                                 hashtags={hashtags}
                                 onHashtagPress={this.handleHashtagPress}
+                                styles={this.themeForms.styles}
                             />
-                            <View style={formStyles.inputSliderContainer}>
+                            <View style={this.themeForms.styles.inputSliderContainer}>
                                 <Slider
                                     value={inputs.radius}
                                     onValueChange={(value) => this.onSliderChange('radius', value)}
                                     maximumValue={MAX_RADIUS_PUBLIC}
                                     minimumValue={MIN_RADIUS_PUBLIC}
                                     step={1}
-                                    thumbStyle={{ backgroundColor: therrTheme.colors.beemoBlue }}
+                                    thumbStyle={{ backgroundColor: this.theme.colors.accentBlue }}
                                     thumbTouchSize={{ width: 100, height: 100 }}
-                                    minimumTrackTintColor={therrTheme.colorVariations.beemoBlueLightFade}
-                                    maximumTrackTintColor={therrTheme.colorVariations.beemoBlueHeavyFade}
+                                    minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
+                                    maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
                                     onSlidingStart={Keyboard.dismiss}
                                 />
-                                <Text style={formStyles.inputLabelDark}>
+                                <Text style={this.themeForms.styles.inputLabelDark}>
                                     {`${this.translate('forms.editSpace.labels.radius', { meters: inputs.radius })}`}
                                 </Text>
                             </View>
@@ -466,8 +484,9 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                 isVisible={!!(errorMsg || successMsg)}
                                 message={successMsg || errorMsg}
                                 type={errorMsg ? 'error' : 'success'}
+                                themeAlerts={this.themeAlerts}
                             />
-                            {/* <BeemoInput
+                            {/* <AccentInput
                                 placeholder={this.translate(
                                     'forms.editSpace.labels.maxProximity'
                                 )}
@@ -476,7 +495,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                     this.onInputChange('maxProximity', text)
                                 }
                             />
-                            {/* <BeemoInput
+                            {/* <AccentInput
                                 placeholder={this.translate(
                                     'forms.editSpace.labels.maxViews'
                                 )}
@@ -485,7 +504,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                     this.onInputChange('maxViews', text)
                                 }
                             />
-                            <BeemoInput
+                            <AccentInput
                                 placeholder={this.translate(
                                     'forms.editSpace.labels.expiresAt'
                                 )}
@@ -497,9 +516,9 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                         </Pressable>
                         {
                             !!previewLinkId
-                            && <View style={[userContentStyles.preview, editSpaceFormStyles.previewContainer, previewStyleState]}>
-                                <Text style={editSpaceFormStyles.previewHeader}>{this.translate('pages.editSpace.previewHeader')}</Text>
-                                <View style={editSpaceFormStyles.preview}>
+                            && <View style={[userContentStyles.preview, this.themeAccentForms.styles.previewContainer, previewStyleState]}>
+                                <Text style={this.themeAccentForms.styles.previewHeader}>{this.translate('pages.editSpace.previewHeader')}</Text>
+                                <View style={this.themeAccentForms.styles.preview}>
                                     <YoutubePlayer
                                         height={300}
                                         play={false}
@@ -510,10 +529,10 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                             </View>
                         }
                     </KeyboardAwareScrollView>
-                    <View style={beemoLayoutStyles.footer}>
+                    <View style={this.themeAccentLayout.styles.footer}>
                         <Button
-                            containerStyle={editSpaceFormStyles.backButtonContainer}
-                            buttonStyle={editSpaceFormStyles.backButton}
+                            containerStyle={this.themeAccentForms.styles.backButtonContainer}
+                            buttonStyle={this.themeAccentForms.styles.backButton}
                             onPress={() => navigation.navigate('Map')}
                             icon={
                                 <FontAwesome5Icon
@@ -525,11 +544,11 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                             type="clear"
                         />
                         <Button
-                            buttonStyle={editSpaceFormStyles.submitButton}
-                            disabledStyle={editSpaceFormStyles.submitButtonDisabled}
-                            disabledTitleStyle={editSpaceFormStyles.submitDisabledButtonTitle}
-                            titleStyle={editSpaceFormStyles.submitButtonTitle}
-                            containerStyle={editSpaceFormStyles.submitButtonContainer}
+                            buttonStyle={this.themeAccentForms.styles.submitButton}
+                            disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
+                            disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
+                            titleStyle={this.themeAccentForms.styles.submitButtonTitle}
+                            containerStyle={this.themeAccentForms.styles.submitButtonContainer}
                             title={this.translate(
                                 'forms.editSpace.buttons.submit'
                             )}
@@ -538,7 +557,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                     name="paper-plane"
                                     size={25}
                                     color={this.isFormDisabled() ? 'grey' : 'black'}
-                                    style={editSpaceFormStyles.submitButtonIcon}
+                                    style={this.themeAccentForms.styles.submitButtonIcon}
                                 />
                             }
                             onPress={this.onSubmit}

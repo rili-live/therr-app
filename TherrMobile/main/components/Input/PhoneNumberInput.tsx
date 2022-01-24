@@ -2,15 +2,22 @@ import React from 'react';
 import { GestureResponderEvent, View } from 'react-native';
 import PhoneInput from 'react-native-phone-input';
 import CountryPicker, { CountryCode } from 'react-native-country-picker-modal';
-import styles from '../../styles';
-import * as therrTheme from '../../styles/themes';
-import formStyles, { phoneInput as phoneStyles } from '../../styles/forms';
+import phoneStyles from '../../styles/forms/phoneInput';
+import { ITherrThemeColors } from 'main/styles/themes';
 
 interface IPhoneNumberInputProps {
     onSubmit: ((event: GestureResponderEvent) => void) | undefined;
     onChangeText?: (value: string, isValid: boolean) => any;
     placeholder?: string;
     translate: Function;
+    theme: {
+        colors: ITherrThemeColors;
+        styles: any;
+    };
+    themeForms: {
+        colors: ITherrThemeColors;
+        styles: any;
+    };
 }
 
 interface IPhoneNumberInputState {
@@ -63,7 +70,7 @@ class PhoneNumberInput extends React.Component<IPhoneNumberInputProps, IPhoneNum
     }
 
     render() {
-        const { onSubmit, placeholder, translate } = this.props;
+        const { onSubmit, placeholder, translate, theme, themeForms } = this.props;
         const { countryCode, isCountryPickerVisible } = this.state;
 
         return (
@@ -76,13 +83,13 @@ class PhoneNumberInput extends React.Component<IPhoneNumberInputProps, IPhoneNum
                     onChangePhoneNumber={this.onPhoneInputChange}
                     onSubmitEditing={onSubmit}
                     initialCountry={'us'}
-                    flagStyle={styles.displayNone}
-                    style={formStyles.phoneInput}
+                    flagStyle={theme.styles.displayNone}
+                    style={themeForms.styles.phoneInput}
                     textProps={{
                         placeholder: placeholder || translate('forms.createConnection.placeholders.phone'),
-                        selectionColor: therrTheme.colors.ternary,
-                        style: {...formStyles.phoneInputText},
-                        placeholderTextColor: therrTheme.colors.placeholderTextColor,
+                        selectionColor: theme.colors.ternary,
+                        style: {...themeForms.styles.phoneInputText},
+                        placeholderTextColor: theme.colors.placeholderTextColor,
                     }}
                 />
                 <View style={phoneStyles.countryFlagContainer}>
