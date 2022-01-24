@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import classnames from 'classnames';
 import {
     AccessControl,
     SvgButton,
@@ -32,6 +33,7 @@ interface IFooterProps extends IStoreProps {
     messagingContext: IMessagingContext;
     toggleNavMenu: Function;
     toggleMessaging: Function;
+    isLandingStylePage?: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -70,10 +72,14 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
             messagingContext,
             toggleMessaging,
             user,
+            isLandingStylePage,
         } = this.props;
+        const headerClassNames = classnames({
+            'no-shadow': isLandingStylePage,
+        });
 
         return (
-            <footer>
+            <footer className={headerClassNames}>
                 <div className="footer-menu-item">
                     <AccessControl isAuthorized={UsersService.isAuthorized({
                         type: AccessCheckType.ALL,

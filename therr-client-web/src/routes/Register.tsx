@@ -79,9 +79,8 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
 
         return (
             <>
-                <div id="page_register" className="flex-box">
+                <div id="page_register" className="flex-box space-evenly center row wrap-reverse">
                     <RegisterForm register={this.register} title={this.translate('pages.register.pageTitle')} />
-
                 </div>
                 {
                     errorMessage

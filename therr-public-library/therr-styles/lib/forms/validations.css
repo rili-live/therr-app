@@ -1,19 +1,21 @@
 .validation-errors {
   color: #c23e37;
-  font-size: 0.875rem;
-  margin: 0.375rem;
+  font-size: rem-calc(13px);
+  margin: rem-calc(2px);
   margin-bottom: 0;
   background: #fbfeffbf;
-  padding: 0.3rem;
+  padding: 0.25rem;
   border-radius: 0.25rem;
-  min-height: rem-cal(26px);
+  box-sizing: border-box;
+}
+.validation-errors.phone {
+  margin-bottom: 0.5rem;
 }
 .validation-errors .message-container {
   position: relative;
 }
 .validation-errors .message-container .message {
   display: block;
-  line-height: 1rem;
   margin-left: 1.25rem;
 }
 

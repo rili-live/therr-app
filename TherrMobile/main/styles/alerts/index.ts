@@ -37,7 +37,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         error: {
             ...messageStyle,
-            color: '#AA0042',
+            color: '#780e0e',
         },
         success: {
             ...messageStyle,

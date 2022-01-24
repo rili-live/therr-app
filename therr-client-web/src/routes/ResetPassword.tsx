@@ -77,8 +77,8 @@ export class ResetPasswordComponent extends React.Component<IResetPasswordProps 
         const { errorReason, isEmailSent } = this.state;
 
         return (
-            <div id="page_reset_password" className="flex-box space-evenly row">
-                <div className="centered-container">
+            <div id="page_reset_password" className="flex-box space-evenly center row wrap-reverse">
+                <div className="flex fill max-wide-20">
                     <h1 className="text-center">{this.translate('pages.resetPassword.pageTitle')}</h1>
 
                     <div className="form-field">
@@ -100,7 +100,7 @@ export class ResetPasswordComponent extends React.Component<IResetPasswordProps 
                         }
                     </div>
 
-                    <div className="form-field">
+                    <div className="form-field fill">
                         <label htmlFor="email">{this.translate('pages.resetPassword.labels.email')}:</label>
                         <Input
                             type="text"
@@ -117,7 +117,7 @@ export class ResetPasswordComponent extends React.Component<IResetPasswordProps 
                             <ButtonPrimary
                                 id="email" text={this.translate('pages.resetPassword.buttons.send')} onClick={this.onSubmit} disabled={!this.state.email} />
                         </div>
-                        <div className="form-field text-center" style={{ padding: '1.5rem 0px 0px 1rem' }}>
+                        <div className="form-field text-center" style={{ padding: '1.5rem 0px 0px 0px' }}>
                             <div>
                                 <Link to="/login">{this.translate('pages.resetPassword.returnToLogin')}</Link>
                             </div>
