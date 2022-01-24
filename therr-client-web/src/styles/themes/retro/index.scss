@@ -1,4 +1,5 @@
 // Local variables will overwrite library defaults
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@200;400;600;800&display=swap');
 @import './variables';
 @import '../../../../../therr-public-library/therr-styles/lib';
 @import './forms';
@@ -9,6 +10,10 @@ html {
   background-size: cover;
   -webkit-background-size: cover;
   background-repeat: inherit;
+}
+
+html, body {
+  font-family: 'Lexend', sans-serif;
 }
 
 button {
