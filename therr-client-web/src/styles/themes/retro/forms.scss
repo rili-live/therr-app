@@ -1,4 +1,6 @@
 label {
+    font-weight: 400;
+
     &.required {
         &::before {
             display: none;
