@@ -7,6 +7,7 @@ const dividerHeight = 10;
 
 const getMomentTextStyles = (theme: ITherrTheme) => ({
     color: theme.colors.textBlack,
+    fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
 });
 
 const androidMomentContainerStyles: any = {
@@ -42,6 +43,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         areaCarouselTab: {
 
+        },
+        areaCarouselTabTitle: {
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
         },
         areaCarouselFooter: {
             marginTop: dividerHeight / 2,

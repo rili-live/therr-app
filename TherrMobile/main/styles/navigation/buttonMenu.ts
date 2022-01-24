@@ -29,6 +29,7 @@ const getButtonsTitleStyle = (theme: ITherrTheme) => ({
     fontSize: 10,
     marginTop: 5,
     paddingBottom: Platform.OS === 'ios' ? 10 : 0,
+    fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
     ...getIconStyle(theme),
 });
 
@@ -158,6 +159,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         tabText: {
             color: therrTheme.colors.textWhite,
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
         },
     });
 

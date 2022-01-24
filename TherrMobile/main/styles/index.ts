@@ -13,7 +13,7 @@ const HEADER_HEIGHT = 48 + HEADER_EXTRA_HEIGHT;
 const HEADER_PADDING_BOTTOM = 20;
 
 const sectionTitle: any = {
-    fontFamily: Platform.OS === 'ios' ? 'KohinoorBangla-Light' : 'sans-serif',
+    fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
     marginBottom: 8,
     fontSize: 24,
     fontWeight: '500',
@@ -159,12 +159,17 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         sectionContainer: {
             marginTop: 18,
             marginBottom: 8,
-            paddingHorizontal: 24,
+            paddingHorizontal: 15,
         },
         sectionContainerAlt: {
             marginTop: 4,
             marginBottom: 12,
             paddingHorizontal: 12,
+        },
+        sectionContainerWide: {
+            marginTop: 18,
+            marginBottom: 8,
+            paddingHorizontal: 0,
         },
         sectionForm: {
             color: therrTheme.colors.textWhite,
@@ -185,10 +190,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.textBlack,
         },
         sectionDescription: {
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
             marginBottom: 10,
             fontSize: 18,
             fontWeight: '400',
-            color: therrTheme.colors.textWhite,
+            color: therrTheme.colors.textGray,
         },
         sectionQuote: {
             display: 'flex',
@@ -221,7 +227,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         headerTitleStyle: {
             fontSize: 18,
-            fontFamily: Platform.OS === 'ios' ? 'Helvetica' : 'monospace',
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'monospace',
             alignSelf: 'center',
             textAlign: 'center',
             justifyContent: 'center',

@@ -165,11 +165,16 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
     // TODO: Display red dot to show filters enabled
 
     render() {
+        const { inputText } = this.state;
         const { icon } = this.props;
+        const textStyle = !inputText?.length
+            ? [this.themeForms.styles.placeholderText, { fontSize: 16 }]
+            : [this.themeForms.styles.inputText, { fontSize: 16 }];
 
         return (
             <RoundInput
                 errorStyle={{ display: 'none' }}
+                style={textStyle}
                 containerStyle={[this.theme.styles.headerSearchContainer, { width: screenWidth - 124 }]}
                 inputStyle={
                     [Platform.OS !== 'ios' ? this.themeForms.styles.input : this.themeForms.styles.inputAlt, { fontSize: Platform.OS !== 'ios' ? 16 : 19 }]
@@ -178,6 +183,7 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                 onChangeText={this.onInputChange}
                 onFocus={this.handlePress}
                 placeholder={this.translate('components.header.searchInput.placeholder')}
+                placeholderTextColor={this.themeForms.colors.textGray}
                 rightIcon={
                     <MaterialIcon
                         name={icon}

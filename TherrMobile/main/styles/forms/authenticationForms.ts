@@ -1,7 +1,7 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { getTheme } from '../themes';
-import { containerStyles } from './base';
+import { containerNoHorizontalStyles, containerStyles } from './base';
 
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
@@ -21,18 +21,21 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             height: '100%',
         },
         button: {
-            backgroundColor: therrTheme.colors.primary3,
+            backgroundColor: therrTheme.colors.primary4,
             display: 'flex',
             alignItems: 'center',
+            borderRadius: 15,
+            height: 59,
         },
         buttonLink: {
-            color: therrTheme.colors.primary3,
+            color: therrTheme.colors.textGray,
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
         },
         submitButtonContainer: {
-            ...containerStyles,
+            ...containerNoHorizontalStyles,
         },
         registerButtonContainer: {
-            ...containerStyles,
+            ...containerNoHorizontalStyles,
             paddingBottom: '15%',
         },
         moreLinksContainer: {

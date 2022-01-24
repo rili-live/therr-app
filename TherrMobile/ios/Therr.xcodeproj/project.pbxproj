@@ -12,14 +12,16 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		24DE642959B844E2B0303F65 /* Lexend-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 306868688D0A4C918476D8B9 /* Lexend-Thin.ttf */; };
 		2D02E4BC1E0B4A80006451C7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		2DCD954D1E0B4F2C00145EB5 /* TherrTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* TherrTests.m */; };
+		2E64983B38654A6F8CC013C0 /* Lexend-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D15094A3CF044E94B50F48A8 /* Lexend-ExtraBold.ttf */; };
+		4D0D88EAD9AB4C2D94EF65F2 /* Lexend-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 16A98059AF174E4B8194ACF2 /* Lexend-Light.ttf */; };
+		51D7D29654354055A96169C7 /* SSOFont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B3DFC5C6217043D8862772F5 /* SSOFont.ttf */; };
 		7134E4B425E16E7F00F7A07C /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = 008F07F21AC5B25A0029DE68 /* main.jsbundle */; };
 		714AA58126B0911A003E88A1 /* Contacts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 714AA58026B0911A003E88A1 /* Contacts.framework */; };
-		714EBB2825C6FBEA00910449 /* fonts in Resources */ = {isa = PBXBuildFile; fileRef = 714EBB2725C6FBEA00910449 /* fonts */; };
-		714EBB3C25C6FCA700910449 /* TherrFont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 714EBB3B25C6FCA600910449 /* TherrFont.ttf */; };
 		715B89602618EA6300408914 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 715B895E2618EA6300408914 /* GoogleService-Info.plist */; };
 		715B89612618EA6300408914 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 715B895E2618EA6300408914 /* GoogleService-Info.plist */; };
 		717DDE3F26FB61B900A0E99B /* RNBackgroundFetch+AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 717DDE3E26FB61B900A0E99B /* RNBackgroundFetch+AppDelegate.m */; };
@@ -35,7 +37,14 @@
 		71F9E0B6277251A8006CDC68 /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 71F9E0B5277251A8006CDC68 /* BootSplash.storyboard */; };
 		71F9E0B7277251A8006CDC68 /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 71F9E0B5277251A8006CDC68 /* BootSplash.storyboard */; };
 		8940DE96474BDD89358A944A /* libPods-Therr-TherrTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AF609D4578E265330DA2521 /* libPods-Therr-TherrTests.a */; };
+		8D8B7E1F312C4A74941921EF /* Lexend-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 365F573960E144D8A35F492F /* Lexend-Black.ttf */; };
+		A42A133F13F24C0A8F5D6FD1 /* Lexend-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7FE73642445E4B0694ACA205 /* Lexend-Bold.ttf */; };
 		B02FABD4265A15B4E8400390 /* libPods-Therr-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 57D55D0B7C5CA0FD4E1AF6F7 /* libPods-Therr-tvOS.a */; };
+		B20735DCB3444724ACCEB7E7 /* Lexend-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 13D3351AB5B24B319FE71B16 /* Lexend-Medium.ttf */; };
+		B33A763AB55F4AB99B6C2418 /* TherrFont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 124C5AF1BBC24C06AA3B0790 /* TherrFont.ttf */; };
+		B8E92D50596A4D7D8231D14B /* Lexend-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EC8BB08B674341F59980BB9E /* Lexend-SemiBold.ttf */; };
+		C0CE8385AE144FAC914B4E81 /* Lexend-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B384DBC074E547ACA44ED49F /* Lexend-Regular.ttf */; };
+		F1907A5F31184B70942DE47F /* Lexend-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7AF08F3CE9D94071A397F991 /* Lexend-ExtraLight.ttf */; };
 		F96814E6597FA25C200F6045 /* libPods-Therr-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E1F0CD9A27D9BB9F141FB04F /* libPods-Therr-tvOSTests.a */; };
 /* End PBXBuildFile section */
 
@@ -62,6 +71,7 @@
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* TherrTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TherrTests.m; sourceTree = "<group>"; };
 		02C80B30226A68BB6202F68F /* Pods-Therr-TherrTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr-TherrTests.release.xcconfig"; path = "Target Support Files/Pods-Therr-TherrTests/Pods-Therr-TherrTests.release.xcconfig"; sourceTree = "<group>"; };
+		124C5AF1BBC24C06AA3B0790 /* TherrFont.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = TherrFont.ttf; path = ../main/assets/fonts/TherrFont.ttf; sourceTree = "<group>"; };
 		12D22065542CD981A7430BCB /* Pods-Therr-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr-tvOS.release.xcconfig"; path = "Target Support Files/Pods-Therr-tvOS/Pods-Therr-tvOS.release.xcconfig"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Therr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Therr.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = Therr/AppDelegate.h; sourceTree = "<group>"; };
@@ -69,15 +79,21 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Therr/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Therr/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Therr/main.m; sourceTree = "<group>"; };
+		13D3351AB5B24B319FE71B16 /* Lexend-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Medium.ttf"; path = "../main/assets/fonts/Lexend-Medium.ttf"; sourceTree = "<group>"; };
+		16A98059AF174E4B8194ACF2 /* Lexend-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Light.ttf"; path = "../main/assets/fonts/Lexend-Light.ttf"; sourceTree = "<group>"; };
+		2472A839E46A4744A5CC6BC9 /* Zocial.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Zocial.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Zocial.ttf"; sourceTree = "<group>"; };
+		25F3861E824649188343BA69 /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
 		269A8BEF73C08FCC4CE2F5BA /* libPods-Therr.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Therr.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D02E47B1E0B4A5D006451C7 /* Therr-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Therr-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D02E4901E0B4A5D006451C7 /* Therr-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Therr-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2F674C59F75441E49246F668 /* AntDesign.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = AntDesign.ttf; path = "../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf"; sourceTree = "<group>"; };
+		306868688D0A4C918476D8B9 /* Lexend-Thin.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Thin.ttf"; path = "../main/assets/fonts/Lexend-Thin.ttf"; sourceTree = "<group>"; };
+		365F573960E144D8A35F492F /* Lexend-Black.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Black.ttf"; path = "../main/assets/fonts/Lexend-Black.ttf"; sourceTree = "<group>"; };
 		57D55D0B7C5CA0FD4E1AF6F7 /* libPods-Therr-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Therr-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5AF609D4578E265330DA2521 /* libPods-Therr-TherrTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Therr-TherrTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		712C1DF325C649470078CB60 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../main/assets; sourceTree = "<group>"; };
 		714AA58026B0911A003E88A1 /* Contacts.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Contacts.framework; path = System/Library/Frameworks/Contacts.framework; sourceTree = SDKROOT; };
 		714EBB2725C6FBEA00910449 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; name = fonts; path = ../resources/fonts; sourceTree = "<group>"; };
-		714EBB3B25C6FCA600910449 /* TherrFont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = TherrFont.ttf; path = ../resources/fonts/TherrFont.ttf; sourceTree = "<group>"; };
 		715B895E2618EA6300408914 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		715B89BF2619FD6600408914 /* TherrDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = TherrDebug.entitlements; path = Therr/TherrDebug.entitlements; sourceTree = "<group>"; };
 		715B89C52619FD9100408914 /* TherrRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = TherrRelease.entitlements; path = Therr/TherrRelease.entitlements; sourceTree = "<group>"; };
@@ -92,15 +108,34 @@
 		71ED0B49267D2AD6002AA90C /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		71ED0B4B267D2AE0002AA90C /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		71F9E0B5277251A8006CDC68 /* BootSplash.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BootSplash.storyboard; path = Therr/BootSplash.storyboard; sourceTree = "<group>"; };
+		75F5FC0188604134B89F0E09 /* FontAwesome.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome.ttf"; sourceTree = "<group>"; };
+		7AF08F3CE9D94071A397F991 /* Lexend-ExtraLight.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-ExtraLight.ttf"; path = "../main/assets/fonts/Lexend-ExtraLight.ttf"; sourceTree = "<group>"; };
+		7EFE63A5F26F4E8E9C8AA892 /* Foundation.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Foundation.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Foundation.ttf"; sourceTree = "<group>"; };
+		7FE73642445E4B0694ACA205 /* Lexend-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Bold.ttf"; path = "../main/assets/fonts/Lexend-Bold.ttf"; sourceTree = "<group>"; };
+		84E9804B07624677A9E27214 /* EvilIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = EvilIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/EvilIcons.ttf"; sourceTree = "<group>"; };
+		B2EA9CA08AD346FF978F89EB /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = SimpleLineIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf"; sourceTree = "<group>"; };
+		B384DBC074E547ACA44ED49F /* Lexend-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Regular.ttf"; path = "../main/assets/fonts/Lexend-Regular.ttf"; sourceTree = "<group>"; };
+		B3DFC5C6217043D8862772F5 /* SSOFont.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = SSOFont.ttf; path = ../main/assets/fonts/SSOFont.ttf; sourceTree = "<group>"; };
+		B4AB12EDEF8942A598832046 /* Entypo.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Entypo.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Entypo.ttf"; sourceTree = "<group>"; };
 		B4C0AFF7A0EB3CDCB76035AA /* Pods-Therr-tvOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr-tvOSTests.release.xcconfig"; path = "Target Support Files/Pods-Therr-tvOSTests/Pods-Therr-tvOSTests.release.xcconfig"; sourceTree = "<group>"; };
 		B67245E08F5B27DB70ACD5DE /* Pods-Therr-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-Therr-tvOS/Pods-Therr-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
+		B6AC10877A7046E295E229DD /* FontAwesome5_Brands.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Brands.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Brands.ttf"; sourceTree = "<group>"; };
 		B8E0C8C7EFF2E15B2ED2C1CF /* Pods-Therr.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr.release.xcconfig"; path = "Target Support Files/Pods-Therr/Pods-Therr.release.xcconfig"; sourceTree = "<group>"; };
+		BA6595D5063946F5A6B73126 /* Feather.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Feather.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Feather.ttf"; sourceTree = "<group>"; };
+		BBA4B64FA1E94D198C8489A0 /* MaterialIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf"; sourceTree = "<group>"; };
+		C2ADCA8DEFBD41979C0D4562 /* Fontisto.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Fontisto.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Fontisto.ttf"; sourceTree = "<group>"; };
 		C2C948F4D5679F3AEE65C205 /* Pods-Therr-tvOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr-tvOSTests.debug.xcconfig"; path = "Target Support Files/Pods-Therr-tvOSTests/Pods-Therr-tvOSTests.debug.xcconfig"; sourceTree = "<group>"; };
+		CAD7F3013329410FB1471362 /* FontAwesome5_Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Regular.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf"; sourceTree = "<group>"; };
+		D15094A3CF044E94B50F48A8 /* Lexend-ExtraBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-ExtraBold.ttf"; path = "../main/assets/fonts/Lexend-ExtraBold.ttf"; sourceTree = "<group>"; };
+		D5C450B2558340A4B4F49077 /* FontAwesome5_Solid.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Solid.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf"; sourceTree = "<group>"; };
 		DACA37B7937449C65A25F7C0 /* Pods-Therr-TherrTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr-TherrTests.debug.xcconfig"; path = "Target Support Files/Pods-Therr-TherrTests/Pods-Therr-TherrTests.debug.xcconfig"; sourceTree = "<group>"; };
 		E1F0CD9A27D9BB9F141FB04F /* libPods-Therr-tvOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Therr-tvOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5A874528DCBB960959D1E29 /* Pods-Therr.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Therr.debug.xcconfig"; path = "Target Support Files/Pods-Therr/Pods-Therr.debug.xcconfig"; sourceTree = "<group>"; };
+		EC8BB08B674341F59980BB9E /* Lexend-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-SemiBold.ttf"; path = "../main/assets/fonts/Lexend-SemiBold.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
+		F1DD5295B3A84303ABA9A753 /* Ionicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Ionicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Ionicons.ttf"; sourceTree = "<group>"; };
+		FDF1087DEAA345039EA6A70E /* Octicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Octicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Octicons.ttf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -257,7 +292,33 @@
 		EB3A45D744634A65B1C6CB50 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				714EBB3B25C6FCA600910449 /* TherrFont.ttf */,
+				2F674C59F75441E49246F668 /* AntDesign.ttf */,
+				84E9804B07624677A9E27214 /* EvilIcons.ttf */,
+				BA6595D5063946F5A6B73126 /* Feather.ttf */,
+				75F5FC0188604134B89F0E09 /* FontAwesome.ttf */,
+				B6AC10877A7046E295E229DD /* FontAwesome5_Brands.ttf */,
+				CAD7F3013329410FB1471362 /* FontAwesome5_Regular.ttf */,
+				D5C450B2558340A4B4F49077 /* FontAwesome5_Solid.ttf */,
+				C2ADCA8DEFBD41979C0D4562 /* Fontisto.ttf */,
+				7EFE63A5F26F4E8E9C8AA892 /* Foundation.ttf */,
+				F1DD5295B3A84303ABA9A753 /* Ionicons.ttf */,
+				25F3861E824649188343BA69 /* MaterialCommunityIcons.ttf */,
+				BBA4B64FA1E94D198C8489A0 /* MaterialIcons.ttf */,
+				FDF1087DEAA345039EA6A70E /* Octicons.ttf */,
+				B2EA9CA08AD346FF978F89EB /* SimpleLineIcons.ttf */,
+				2472A839E46A4744A5CC6BC9 /* Zocial.ttf */,
+				365F573960E144D8A35F492F /* Lexend-Black.ttf */,
+				7FE73642445E4B0694ACA205 /* Lexend-Bold.ttf */,
+				D15094A3CF044E94B50F48A8 /* Lexend-ExtraBold.ttf */,
+				7AF08F3CE9D94071A397F991 /* Lexend-ExtraLight.ttf */,
+				16A98059AF174E4B8194ACF2 /* Lexend-Light.ttf */,
+				B4AB12EDEF8942A598832046 /* Entypo.ttf */,
+				13D3351AB5B24B319FE71B16 /* Lexend-Medium.ttf */,
+				B384DBC074E547ACA44ED49F /* Lexend-Regular.ttf */,
+				EC8BB08B674341F59980BB9E /* Lexend-SemiBold.ttf */,
+				306868688D0A4C918476D8B9 /* Lexend-Thin.ttf */,
+				B3DFC5C6217043D8862772F5 /* SSOFont.ttf */,
+				124C5AF1BBC24C06AA3B0790 /* TherrFont.ttf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -414,12 +475,21 @@
 			buildActionMask = 2147483647;
 			files = (
 				7134E4B425E16E7F00F7A07C /* main.jsbundle in Resources */,
-				714EBB3C25C6FCA700910449 /* TherrFont.ttf in Resources */,
 				71EFC8F225C64E2200F57AB8 /* assets in Resources */,
 				71F9E0B6277251A8006CDC68 /* BootSplash.storyboard in Resources */,
-				714EBB2825C6FBEA00910449 /* fonts in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				715B89602618EA6300408914 /* GoogleService-Info.plist in Resources */,
+				8D8B7E1F312C4A74941921EF /* Lexend-Black.ttf in Resources */,
+				A42A133F13F24C0A8F5D6FD1 /* Lexend-Bold.ttf in Resources */,
+				2E64983B38654A6F8CC013C0 /* Lexend-ExtraBold.ttf in Resources */,
+				F1907A5F31184B70942DE47F /* Lexend-ExtraLight.ttf in Resources */,
+				4D0D88EAD9AB4C2D94EF65F2 /* Lexend-Light.ttf in Resources */,
+				B20735DCB3444724ACCEB7E7 /* Lexend-Medium.ttf in Resources */,
+				C0CE8385AE144FAC914B4E81 /* Lexend-Regular.ttf in Resources */,
+				B8E92D50596A4D7D8231D14B /* Lexend-SemiBold.ttf in Resources */,
+				24DE642959B844E2B0303F65 /* Lexend-Thin.ttf in Resources */,
+				51D7D29654354055A96169C7 /* SSOFont.ttf in Resources */,
+				B33A763AB55F4AB99B6C2418 /* TherrFont.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
