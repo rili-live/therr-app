@@ -550,7 +550,7 @@
     "register": {
       "headerTitle": "Therr",
       "pageTitle": "Sign Up",
-      "pageSubtitle": "Create a profile and see what you are missing.",
+      "pageSubtitle": "Create a profile and see what you are missing",
       "passwordRequirements1": "Contains a mixture of letters and numbers",
       "passwordRequirements2": "At least one capital letter",
       "passwordRequirements3": "At least one special character !@#$%^&*",
