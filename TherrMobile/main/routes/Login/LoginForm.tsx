@@ -163,7 +163,7 @@ export class LoginFormComponent extends React.Component<
         });
     };
 
-    public render(): JSX.Element | null {
+    public render() {
         const { isSubmitting, prevLoginError } = this.state;
         const { navigation, userMessage } = this.props;
 

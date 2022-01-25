@@ -158,7 +158,7 @@ export class RegisterFormComponent extends React.Component<
         });
     };
 
-    public render(): JSX.Element | null {
+    public render() {
         const {
             isPasswordEntryDirty,
             passwordErrorMessage,

@@ -8,7 +8,7 @@ interface IGetTypeAheadStyles {
 
 const buildStyles = ({
     viewPortHeight,
-}, themeName?: IMobileThemeName) => {
+}: IGetTypeAheadStyles, themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
 
     const styles = StyleSheet.create({

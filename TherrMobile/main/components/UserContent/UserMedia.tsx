@@ -15,7 +15,7 @@ export default ({
     media,
     isVisible,
     viewportWidth,
-}) => {
+}: IUserMediaProps) => {
     return (
         <View style={{ display: 'flex', position: 'relative' }}>
             {

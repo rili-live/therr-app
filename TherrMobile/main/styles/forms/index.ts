@@ -9,12 +9,9 @@ const getInputContainerBaseStyles = (theme: ITherrTheme): any => ({
 });
 
 const platformSpecificInputStyles = Platform.OS !== 'ios' ? {
-    shadowColor: 'black',
-    shadowOffset: { width: 1, height: 2 },
-    shadowOpacity: 0.99,
-    shadowRadius: 2,
+    backgroundColor: 'rgba(255,255,255,.15)', // colors.teriary with 70% opacity
+    color: 'black',
 } : {
-    // backgroundColor: therrTheme.colors.backgroundWhite,
     backgroundColor: 'rgba(255,255,255,.1)', // colors.teriary with 70% opacity
     color: 'black',
 };
@@ -91,7 +88,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingLeft: 10,
             paddingRight: 10,
             borderRadius: 15,
-            elevation: 1,
+            elevation: 0,
             borderBottomWidth: 0,
             height: 59,
             paddingHorizontal: 0,
