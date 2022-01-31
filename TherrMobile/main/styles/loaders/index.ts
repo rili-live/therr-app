@@ -28,6 +28,10 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         defaultContainer: {
             ...containerStyles,
         },
+        earthLoaderContainer: {
+            ...containerStyles,
+            marginHorizontal: '35%',
+        },
         therrBlackRollingContainer: {
             ...containerStyles,
             marginHorizontal: '35%',

@@ -252,6 +252,9 @@
       }
     },
     "nearbyForm": {
+      "buttons": {
+        "enableLocation": "Turn On"
+      },
       "labels": {
         "radiusOfAwareness": "Awareness Radius: {meters} meters",
         "radiusOfInfluence": "Influence Radius: {meters} meters"
@@ -438,6 +441,13 @@
         "searchOrder": "Order Results By: Date"
       }
     },
+    "areas": {
+      "headerTitle": "Area",
+      "pageTitle": "Areas",
+      "noSocialAreasFound": "You have not yet activated any moments/spaces. Explore the world, and active areas will start to appear in this view.",
+      "noHireAreasFound": "No freelancer postings found in your area. Check back soon to find local freelancers in range of your location.",
+      "noEventsAreasFound": "No current or upcoming events found. Grow your connections to increase visibility and receive invites to exclusive events."
+    },
     "bookmarked": {
       "headerTitle": "Favorited",
       "noSocialBookmarksFound": "No bookmarks to display. Mark content as favorited by clicking the bookmark icon on a post.",
@@ -518,12 +528,11 @@
         "title": "Categories"
       }
     },
-    "areas": {
-      "headerTitle": "Area",
-      "pageTitle": "Areas",
-      "noSocialAreasFound": "You have not yet activated any moments/spaces. Explore the world, and active areas will start to appear in this view.",
-      "noHireAreasFound": "No freelancer postings found in your area. Check back soon to find local freelancers in range of your location.",
-      "noEventsAreasFound": "No current or upcoming events found. Grow your connections to increase visibility and receive invites to exclusive events."
+    "nearby": {
+      "headerTitle": "Nearby Newsfeed",
+      "locationDescription1": "See posts from nearby users in the local community where you currently are.",
+      "locationDescription2": "Use the awareness and influence sliders to control content distance and your own visibility.",
+      "locationDescription3": "Please enable location services to activate this feature."
     },
     "notifications": {
       "headerTitle": "Notifications",

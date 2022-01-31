@@ -461,8 +461,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     maximumValue={MAX_RADIUS_PRIVATE}
                                     minimumValue={MIN_RADIUS_PRIVATE}
                                     step={1}
-                                    thumbStyle={{ backgroundColor: this.theme.colors.accentBlue }}
-                                    thumbTouchSize={{ width: 100, height: 100 }}
+                                    thumbStyle={{ backgroundColor: this.theme.colors.accentBlue, height: 20, width: 20 }}
+                                    thumbTouchSize={{ width: 30, height: 30 }}
                                     minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
                                     maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
                                     onSlidingStart={Keyboard.dismiss}

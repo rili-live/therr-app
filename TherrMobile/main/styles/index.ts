@@ -71,6 +71,14 @@ const getHeaderStyles = (theme: ITherrTheme) => ({
     shadowColor: 'transparent',
 });
 
+const getSectionDescriptionStyles = (theme: ITherrTheme): any => ({
+    fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+    marginBottom: 10,
+    fontSize: 18,
+    fontWeight: '400',
+    color: theme.colors.textGray,
+});
+
 const buildNavTheme = (theme: ITherrTheme): Theme => ({
     dark: true,
     colors: {
@@ -190,11 +198,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.textBlack,
         },
         sectionDescription: {
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
-            marginBottom: 10,
-            fontSize: 18,
-            fontWeight: '400',
-            color: therrTheme.colors.textGray,
+            ...getSectionDescriptionStyles(therrTheme),
+        },
+        sectionDescriptionCentered: {
+            ...getSectionDescriptionStyles(therrTheme),
+            textAlign: 'center',
+            fontSize: 16,
         },
         sectionQuote: {
             display: 'flex',
