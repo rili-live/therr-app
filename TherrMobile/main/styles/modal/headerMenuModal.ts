@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { HEADER_HEIGHT, HEADER_EXTRA_HEIGHT } from '..';
 import { getTheme } from '../themes';
@@ -38,12 +38,16 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.accentAlt,
             paddingRight: 10,
             paddingLeft: 10,
+            fontSize: 16,
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
         },
         buttonsTitleActive: {
             backgroundColor: 'transparent',
             color: therrTheme.colors.primary,
             paddingRight: 10,
             paddingLeft: 10,
+            fontSize: 18,
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
         },
         iconStyle: {
             color: therrTheme.colors.accentAlt,
@@ -103,8 +107,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         headerTitleText: {
             color: therrTheme.colors.primary3,
-            fontSize: 20,
-            letterSpacing: 3,
+            fontSize: 18,
+            letterSpacing: 2,
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
         },
         headerTitleIcon: {
             // color: therrTheme.colors.accentAlt,

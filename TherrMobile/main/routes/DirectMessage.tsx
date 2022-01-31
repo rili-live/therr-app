@@ -8,6 +8,7 @@ import { bindActionCreators } from 'redux';
 import { MessageActions, SocketActions } from 'therr-react/redux/actions';
 import { IUserState, IMessagesState } from 'therr-react/types';
 import { buildStyles } from '../styles';
+import { buildStyles as buildFormsStyles } from '../styles/forms';
 import { buildStyles as buildMessageStyles } from '../styles/user-content/messages';
 import translator from '../services/translator';
 import TextMessage from '../components/TextMessage';
@@ -59,6 +60,7 @@ class DirectMessage extends React.Component<
     private flatListRef: any;
     private translate: Function;
     private theme = buildStyles();
+    private themeForms = buildFormsStyles();
     private themeMessage = buildMessageStyles();
 
     constructor(props) {
@@ -71,6 +73,7 @@ class DirectMessage extends React.Component<
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormsStyles(props.user.settings?.mobileThemeName);
         this.themeMessage = buildMessageStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
@@ -178,8 +181,8 @@ class DirectMessage extends React.Component<
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={[this.theme.safeAreaView]}>
-                    <View style={this.themeMessage.container}>
+                <SafeAreaView style={[this.theme.styles.safeAreaView]}>
+                    <View style={this.themeMessage.styles.container}>
                         <FlatList
                             data={dms}
                             inverted
@@ -197,12 +200,12 @@ class DirectMessage extends React.Component<
                                 />
                             )}
                             ref={(component) => (this.flatListRef = component)}
-                            style={this.theme.stretch}
+                            style={this.theme.styles.stretch}
                             // onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}
                             onEndReached={this.tryLoadMore}
                             onEndReachedThreshold={0.5}
                         />
-                        <View style={this.themeMessage.sendInputsContainer}>
+                        <View style={this.themeMessage.styles.sendInputsContainer}>
                             <RoundInput
                                 value={msgInputVal}
                                 onChangeText={this.handleInputChange}
@@ -210,13 +213,14 @@ class DirectMessage extends React.Component<
                                     'pages.directMessage.inputPlaceholder'
                                 )}
                                 onSubmitEditing={() => this.handleSend()}
-                                containerStyle={this.themeMessage.inputContainer}
-                                errorStyle={this.theme.displayNone}
+                                containerStyle={this.themeMessage.styles.inputContainer}
+                                errorStyle={this.theme.styles.displayNone}
+                                themeForms={this.themeForms}
                             />
                             <Button
-                                icon={<Icon name="send" size={26} style={this.themeMessage.icon} />}
-                                buttonStyle={this.themeMessage.sendBtn}
-                                containerStyle={this.themeMessage.sendBtnContainer}
+                                icon={<Icon name="send" size={26} style={this.themeMessage.styles.icon} />}
+                                buttonStyle={this.themeMessage.styles.sendBtn}
+                                containerStyle={this.themeMessage.styles.sendBtnContainer}
                                 onPress={this.handleSend}
                             />
                         </View>

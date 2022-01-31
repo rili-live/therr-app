@@ -9,13 +9,10 @@ const getInputContainerBaseStyles = (theme: ITherrTheme): any => ({
 });
 
 const platformSpecificInputStyles = Platform.OS !== 'ios' ? {
-    shadowColor: 'black',
-    shadowOffset: { width: 1, height: 2 },
-    shadowOpacity: 0.99,
-    shadowRadius: 2,
+    backgroundColor: 'rgba(255,255,255,.15)', // colors.teriary with 70% opacity
+    color: 'black',
 } : {
-    // backgroundColor: therrTheme.colors.backgroundWhite,
-    backgroundColor: 'rgba(16,72,82,.7)', // colors.teriary with 70% opacity
+    backgroundColor: 'rgba(255,255,255,.1)', // colors.teriary with 70% opacity
     color: 'black',
 };
 
@@ -38,6 +35,15 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.accentTextBlack,
             borderColor: therrTheme.colors.accentTextBlack,
             borderWidth: 1,
+        },
+        inputText: {
+            fontWeight: '600',
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+        },
+        placeholderText: {
+            fontWeight: '600',
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            color: 'rgba(255,255,255,.58)',
         },
         textField: {
             padding: inputStyle.padding,
@@ -70,6 +76,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingBottom: 20,
             marginRight: 10,
         },
+        containerRound: {
+            paddingHorizontal: 0,
+        },
         inputContainerSquare: {
             ...getInputContainerBaseStyles(therrTheme),
         },
@@ -78,9 +87,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             ...platformSpecificInputStyles,
             paddingLeft: 10,
             paddingRight: 10,
-            borderRadius: 25,
-            elevation: 1,
+            borderRadius: 15,
+            elevation: 0,
             borderBottomWidth: 0,
+            height: 59,
+            paddingHorizontal: 0,
         },
         inputLabelLight: {
             paddingHorizontal: 2,
@@ -141,6 +152,10 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         buttonDisabled: {
             backgroundColor: therrTheme.colorVariations.primary3Fade,
+        },
+        buttonTitle: {
+            fontWeight: '500',
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
         },
         buttonTitleDisabled: {
             color: therrTheme.colors.textGray,

@@ -32,10 +32,6 @@ import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptio
 import { getReactionUpdateArgs } from '../utilities/reactions';
 // import AccentInput from '../components/Input/Accent';
 
-interface IMomentDetails {
-    userDetails?: any;
-}
-
 interface IViewMomentDispatchProps {
     getMomentDetails: Function;
     deleteMoment: Function;

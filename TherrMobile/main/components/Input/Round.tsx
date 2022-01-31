@@ -8,10 +8,13 @@ export class RoundInput extends BaseInput {
         super(props);
     }
     render() {
-        const { themeForms } = this.props;
+        const { themeForms, value } = this.props;
 
         return (
             <BaseInput
+                containerStyle={themeForms.styles.containerRound}
+                style={ !value?.length ? themeForms.styles.placeholderText : themeForms.styles.inputText }
+                placeholderTextColor={themeForms.colors.textGray}
                 inputStyle={Platform.OS !== 'ios' ? themeForms.styles.input : themeForms.styles.inputAlt}
                 inputContainerStyle={themeForms.styles.inputContainerRound}
                 {...this.props}

@@ -1,7 +1,6 @@
 import React, { Ref } from 'react';
 import { Dimensions, PermissionsAndroid, Keyboard, Platform, SafeAreaView, View } from 'react-native';
 import { StackActions } from '@react-navigation/native';
-import { PERMISSIONS } from 'react-native-permissions';
 import MapView from 'react-native-map-clustering';
 import { PROVIDER_GOOGLE, Circle, Marker } from 'react-native-maps';
 import AnimatedOverlay from 'react-native-modal-overlay';
@@ -11,7 +10,7 @@ import { MapsService, UsersService, PushNotificationsService } from 'therr-react
 import { IAreaType, AccessCheckType, IMapState as IMapReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
 import { MapActions, ReactionActions, UserInterfaceActions } from 'therr-react/redux/actions';
 import { AccessLevels, Location } from 'therr-js-utilities/constants';
-import Geolocation from '@react-native-community/geolocation';
+import Geolocation from 'react-native-geolocation-service';
 import AnimatedLoader from 'react-native-animated-loader';
 import { distanceTo, insideCircle } from 'geolocation-utils';
 import * as ImagePicker from 'react-native-image-picker';
@@ -47,6 +46,8 @@ import requestLocationServiceActivation from '../../utilities/requestLocationSer
 import {
     requestOSMapPermissions,
     requestOSCameraPermissions,
+    isLocationPermissionGranted,
+    checkAndroidPermission,
 } from '../../utilities/requestOSPermissions';
 import FiltersButtonGroup from '../../components/FiltersButtonGroup';
 import BaseStatusBar from '../../components/BaseStatusBar';
@@ -438,7 +439,6 @@ class Map extends React.Component<IMapProps, IMapState> {
     handleGpsRecenterPress = () => {
         const {
             location,
-            navigation,
             map,
             setInitialUserLocation,
             updateCoordinates,
@@ -449,10 +449,6 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         this.setState({
             shouldShowCreateActions: false,
-        });
-
-        navigation.setOptions({
-            title: this.translate('pages.map.headerTitle'),
         });
 
         this.timeoutId = setTimeout(() => {
@@ -469,94 +465,110 @@ class Map extends React.Component<IMapProps, IMapState> {
             shouldIgnoreRequirement: false,
         }).then((response: any) => {
             if (response?.status || Platform.OS === 'ios') {
-                if (response?.alreadyEnabled && !location?.settings?.isLocationDislosureComplete) {
+                if (response?.alreadyEnabled && isLocationPermissionGranted(location.permissions)) {
                     // Ensure that the user sees location disclosure even if gps is already enabled (otherwise requestOSMapPermissions will handle it)
                     if (!location?.settings?.isLocationDislosureComplete) {
                         this.setState({
                             isLocationUseDisclosureModalVisible: true,
                         });
                         return true;
+                    } else {
+                        return false;
                     }
-                } else {
-                    updateLocationDisclosure(true);
                 }
-                return updateGpsStatus(response?.status || 'enabled');
+
+                updateLocationDisclosure(true);
+                updateGpsStatus(response?.status || 'enabled');
+
+                return false;
             }
 
-            return Promise.resolve();
+            return Promise.resolve(false);
         }).then((shouldAbort) => {
             if (shouldAbort) { // short-circuit because backup disclosure is in progress
                 return;
             }
-            requestOSMapPermissions(updateLocationPermissions).then((permissions) => {
+
+            return requestOSMapPermissions(updateLocationPermissions).then((permissions) => {
+                // TODO: If permissions are never ask again, display instructions for user to go to app settings and allow
                 return new Promise((resolve, reject) => {
-                    perms = permissions;
-                    // If permissions are granted
-                    if (permissions[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]
-                        || permissions[PERMISSIONS.IOS.LOCATION_WHEN_IN_USE]) {
-                        this.setState({
-                            isLocationReady: true,
-                        });
-
-                        // User has already logged in initially and loaded the map
-                        if (map.longitude && map.latitude && map.hasUserLocationLoaded) {
-                            const coords = {
-                                longitude: map.longitude,
-                                latitude: map.latitude,
-                            };
-                            this.setState({
-                                circleCenter: coords,
-                            });
-                            updateCoordinates(coords);
-                            this.handleGpsRecenter(coords, null, ANIMATE_TO_REGION_DURATION);
-                            return resolve(coords);
-                        }
-                        // Get Location Success Handler
-                        const positionSuccessCallback = (position) => {
-                            const coords = {
-                                latitude:
-                                    position.coords
-                                        .latitude,
-                                longitude:
-                                    position.coords
-                                        .longitude,
-                            };
-                            this.setState({
-                                circleCenter: coords,
-                            });
-                            setInitialUserLocation();
-                            updateCoordinates(coords);
-                            this.handleGpsRecenter(coords, null, ANIMATE_TO_REGION_DURATION_SLOW);
-                            return resolve(coords);
-                        };
-                        // Get Location Failed Handler
-                        const positionErrorCallback = (error, type) => {
-                            console.log('geolocation error', error.code, type);
-                            if (type !== 'watch' && error.code !== error.TIMEOUT) {
-                                return reject(error);
-                            }
-                        };
-                        const positionOptions = {
-                            enableHighAccuracy: true,
-                        };
-
-                        // If this is not cached, response can be slow
-                        Geolocation.getCurrentPosition(
-                            positionSuccessCallback,
-                            (error) => positionErrorCallback(error, 'get'),
-                            positionOptions,
-                        );
-
-                        // Sometimes watch is faster than get, so we'll call both and cancel after one resolves first
-                        this.mapWatchId = Geolocation.watchPosition(
-                            positionSuccessCallback,
-                            (error) => positionErrorCallback(error, 'watch'),
-                            positionOptions,
-                        );
-                    } else {
-                        console.log('Location permission denied');
-                        return reject('permissionDenied');
+                    let extraPromise = Promise.resolve(false);
+                    if (Platform.OS === 'android' && permissions[PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION] !== 'granted') {
+                        extraPromise = checkAndroidPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION, updateLocationPermissions);
                     }
+
+                    return extraPromise.then((isCoarseLocationGranted) => {
+                        perms = {
+                            ...permissions,
+                            [PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION]: isCoarseLocationGranted ? 'granted' : 'denied',
+                        };
+                        // If permissions are granted
+                        if (isLocationPermissionGranted(perms)) {
+                            this.setState({
+                                isLocationReady: true,
+                            });
+
+                            // User has already logged in initially and loaded the map
+                            if (map.longitude && map.latitude && map.hasUserLocationLoaded) {
+                                const coords = {
+                                    longitude: map.longitude,
+                                    latitude: map.latitude,
+                                };
+                                this.setState({
+                                    circleCenter: coords,
+                                });
+                                updateCoordinates(coords);
+                                this.handleGpsRecenter(coords, null, ANIMATE_TO_REGION_DURATION);
+                                return resolve(coords);
+                            }
+                            // Get Location Success Handler
+                            const positionSuccessCallback = (position) => {
+
+                                const coords = {
+                                    latitude:
+                                        position.coords
+                                            .latitude,
+                                    longitude:
+                                        position.coords
+                                            .longitude,
+                                };
+                                this.setState({
+                                    circleCenter: coords,
+                                });
+                                setInitialUserLocation();
+                                updateCoordinates(coords);
+                                this.handleGpsRecenter(coords, null, ANIMATE_TO_REGION_DURATION_SLOW);
+                                return resolve(coords);
+                            };
+                            // Get Location Failed Handler
+                            const positionErrorCallback = (error, type) => {
+                                console.log('geolocation error', error.code, type);
+                                if (type !== 'watch' && error.code !== error.TIMEOUT) {
+                                    return reject(error);
+                                }
+                            };
+                            const positionOptions = {
+                                enableHighAccuracy: true,
+                            };
+
+                            // If this is not cached, response can be slow
+                            // Geolocation.getCurrentPosition(
+                            //     positionSuccessCallback,
+                            //     (error) => positionErrorCallback(error, 'get'),
+                            //     positionOptions,
+                            // );
+
+                            // Sometimes watch is faster than get, so we'll call both and cancel after one resolves first
+                            this.mapWatchId = Geolocation.watchPosition(
+                                positionSuccessCallback,
+                                (error) => positionErrorCallback(error, 'watch'),
+                                positionOptions,
+                            );
+                        } else {
+                            console.log('Location permission denied');
+                            return reject('permissionDenied');
+                        }
+                    });
                 });
             })
                 .then((coords: any) => {
@@ -1029,8 +1041,6 @@ class Map extends React.Component<IMapProps, IMapState> {
             return;
         }
 
-        console.log('ZACK_DEBUG', lastLocationSendForProcessing);
-
         if (lastLocationSendForProcessing) {
             if (Date.now() - lastLocationSendForProcessing <= LOCATION_PROCESSING_THROTTLE_MS) {
                 return;
@@ -1056,8 +1066,6 @@ class Map extends React.Component<IMapProps, IMapState> {
                 }
             }
         }
-
-        console.log('ZACK_DEBUG_2');
 
         // Send location to backend for processing
         PushNotificationsService.postLocationChange({

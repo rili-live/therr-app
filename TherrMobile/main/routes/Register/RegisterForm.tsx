@@ -9,7 +9,7 @@ import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildAuthFormStyles } from '../../styles/forms/authenticationForms';
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
 import Alert from '../../components/Alert';
-import SquareInput from '../../components/Input/Square';
+import RoundInput from '../../components/Input/Round';
 import PasswordRequirements from '../../components/Input/PasswordRequirements';
 
 // Regular component props
@@ -158,7 +158,7 @@ export class RegisterFormComponent extends React.Component<
         });
     };
 
-    public render(): JSX.Element | null {
+    public render() {
         const {
             isPasswordEntryDirty,
             passwordErrorMessage,
@@ -168,7 +168,7 @@ export class RegisterFormComponent extends React.Component<
 
         return (
             <>
-                <SquareInput
+                <RoundInput
                     autoCapitalize="none"
                     autoCorrect={false}
                     placeholder={this.translate(
@@ -192,7 +192,7 @@ export class RegisterFormComponent extends React.Component<
                         <PasswordRequirements translate={this.translate} password={this.state.inputs.password} themeForms={this.themeForms} />
                 }
                 {/* TODO: RMOBILE-26: Centralize password requirements */}
-                <SquareInput
+                <RoundInput
                     autoCapitalize="none"
                     autoCorrect={false}
                     placeholder={this.translate(
@@ -212,7 +212,7 @@ export class RegisterFormComponent extends React.Component<
                     }
                     themeForms={this.themeForms}
                 />
-                <SquareInput
+                <RoundInput
                     autoCapitalize="none"
                     autoCorrect={false}
                     placeholder={this.translate(
@@ -247,6 +247,8 @@ export class RegisterFormComponent extends React.Component<
                 <View style={this.themeAuthForm.styles.registerButtonContainer}>
                     <Button
                         buttonStyle={this.themeAuthForm.styles.button}
+                        titleStyle={this.themeForms.styles.buttonTitle}
+                        // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                         title={this.translate(
                             'forms.registerForm.buttons.register'
                         )}

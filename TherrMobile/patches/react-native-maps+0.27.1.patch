@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-maps/lib/components/Geojson.js b/node_modules/react-native-maps/lib/components/Geojson.js
-index e72b56b..62fe68b 100644
+index e72b56b..5ba2252 100644
 --- a/node_modules/react-native-maps/lib/components/Geojson.js
 +++ b/node_modules/react-native-maps/lib/components/Geojson.js
 @@ -1,5 +1,7 @@
@@ -39,7 +39,7 @@ index e72b56b..62fe68b 100644
                coordinates={overlay.coordinates}
                strokeColor={props.strokeColor}
 diff --git a/node_modules/react-native-maps/lib/components/MapPolygon.js b/node_modules/react-native-maps/lib/components/MapPolygon.js
-index b3c3a7c..8231932 100644
+index b3c3a7c..ea50cfd 100644
 --- a/node_modules/react-native-maps/lib/components/MapPolygon.js
 +++ b/node_modules/react-native-maps/lib/components/MapPolygon.js
 @@ -5,7 +5,7 @@ import decorateMapComponent, {

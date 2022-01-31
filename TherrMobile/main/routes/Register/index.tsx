@@ -89,15 +89,19 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
     render() {
         const { isEULAVisible } = this.state;
         const pageTitle = this.translate('pages.register.pageTitle');
+        const pageSubtitle = this.translate('pages.register.pageSubtitle');
 
         return (
             <>
                 <BaseStatusBar />
                 <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView style={this.theme.styles.bodyFlex} contentContainerStyle={this.theme.styles.bodyScroll} enableOnAndroid>
-                        <View style={this.theme.styles.sectionContainer}>
-                            <Text style={this.themeFTUI.styles.titleWithSpacing}>
+                        <View style={this.theme.styles.sectionContainerWide}>
+                            <Text style={this.themeFTUI.styles.titleWithNoSpacing}>
                                 {pageTitle}
+                            </Text>
+                            <Text style={this.themeFTUI.styles.subtitle}>
+                                {pageSubtitle}
                             </Text>
                         </View>
                         <RegisterForm

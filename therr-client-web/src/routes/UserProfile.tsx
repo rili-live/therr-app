@@ -107,11 +107,11 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
                     <div id="account_details" className="account-section">
                         <h2 className="desktop-only block">{this.translate('pages.userProfile.h2.accountDetails')}</h2>
                         <div className="account-section-content">
-                            <h4><b>{this.translate('pages.userProfile.labels.firstName')}:</b> {user.details.firstName}</h4>
-                            <h4><b>{this.translate('pages.userProfile.labels.lastName')}:</b> {user.details.lastName}</h4>
-                            <h4><b>{this.translate('pages.userProfile.labels.userName')}:</b> {user.details.userName}</h4>
-                            <h4><b>{this.translate('pages.userProfile.labels.email')}:</b> {user.details.email}</h4>
-                            <h4><b>{this.translate('pages.userProfile.labels.phone')}:</b> {user.details.phoneNumber}</h4>
+                            <h4><label>{this.translate('pages.userProfile.labels.firstName')}:</label> {user.details.firstName}</h4>
+                            <h4><label>{this.translate('pages.userProfile.labels.lastName')}:</label> {user.details.lastName}</h4>
+                            <h4><label>{this.translate('pages.userProfile.labels.userName')}:</label> {user.details.userName}</h4>
+                            <h4><label>{this.translate('pages.userProfile.labels.email')}:</label> {user.details.email}</h4>
+                            <h4><label>{this.translate('pages.userProfile.labels.phone')}:</label> {user.details.phoneNumber}</h4>
                         </div>
                     </div>
                     <div id="your_connections" className="account-section">
