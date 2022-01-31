@@ -163,7 +163,7 @@ export class LoginFormComponent extends React.Component<
         });
     };
 
-    public render(): JSX.Element | null {
+    public render() {
         const { isSubmitting, prevLoginError } = this.state;
         const { navigation, userMessage } = this.props;
 
@@ -223,6 +223,7 @@ export class LoginFormComponent extends React.Component<
                 <View style={this.themeAuthForm.styles.submitButtonContainer}>
                     <Button
                         buttonStyle={this.themeAuthForm.styles.button}
+                        titleStyle={this.themeForms.styles.buttonTitle}
                         disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                         disabledStyle={this.themeForms.styles.buttonDisabled}
                         title={this.translate(
@@ -230,7 +231,7 @@ export class LoginFormComponent extends React.Component<
                         )}
                         onPress={() => this.onSubmit()}
                         loading={isSubmitting}
-                        raised={true}
+                        // raised={true}
                         icon={
                             <FontAwesomeIcon
                                 name="sign-in-alt"

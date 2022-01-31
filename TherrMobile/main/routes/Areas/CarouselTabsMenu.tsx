@@ -75,18 +75,21 @@ export class CarouselTabsMenu extends React.Component<ICarouselTabsMenuProps, IC
                 <Button
                     buttonStyle={[areaCarouselTabButton, this.getButtonStyles(CAROUSEL_TABS.SOCIAL)]}
                     containerStyle={areaCarouselTab}
+                    titleStyle={this.theme.styles.areaCarouselTabTitle}
                     title="Social"
                     onPress={() => onButtonPress(CAROUSEL_TABS.SOCIAL)}
                 />
                 <Button
                     buttonStyle={[areaCarouselTabButton, this.getButtonStyles(CAROUSEL_TABS.HIRE)]}
                     containerStyle={areaCarouselTab}
+                    titleStyle={this.theme.styles.areaCarouselTabTitle}
                     title="Hire"
                     onPress={() => onButtonPress(CAROUSEL_TABS.HIRE)}
                 />
                 <Button
                     buttonStyle={[areaCarouselTabButton, this.getButtonStyles(CAROUSEL_TABS.EVENTS)]}
                     containerStyle={areaCarouselTab}
+                    titleStyle={this.theme.styles.areaCarouselTabTitle}
                     title="Events"
                     onPress={() => onButtonPress(CAROUSEL_TABS.EVENTS)}
                 />

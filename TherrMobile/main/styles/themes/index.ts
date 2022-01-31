@@ -17,6 +17,7 @@ export interface ITherrThemeColors {
     primary: string;
     primary2: string;
     primary3: string;
+    primary4: string;
     secondary: string;
     secondaryFaded: string;
     ternary: string;

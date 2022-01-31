@@ -6,6 +6,7 @@ const colors: ITherrThemeColors = {
     primary: '#1C7F8A',
     primary2: '#20919E',
     primary3: '#143b54',
+    primary4: '#22A5B4',
     secondary: '#388254',
     secondaryFaded: '#4e8e67',
     ternary: '#e0c845',
@@ -14,7 +15,7 @@ const colors: ITherrThemeColors = {
 
     // Text
     textBlack: '#363636',
-    textGray: '#bfc7d5',
+    textGray: 'rgba(255,255,255,.58)',
     textDarkGray: '#728f94',
     textWhite: '#fcfeff',
 

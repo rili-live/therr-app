@@ -15,7 +15,7 @@ interface IHeaderTherrLogoStoreProps extends IHeaderTherrLogoDispatchProps {
     user: IUserState;
 }
 
-interface IHeaderTherrLogoProps {
+interface IHeaderTherrLogoProps extends IHeaderTherrLogoStoreProps {
     navigation: any;
 }
 

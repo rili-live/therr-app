@@ -17,6 +17,7 @@ export default ({
                 position: 'absolute',
                 right: 20,
                 bottom: buttonMenuHeight + 20,
+                borderRadius: 100,
             }}
             buttonStyle={themeButtons.styles.btn}
             icon={

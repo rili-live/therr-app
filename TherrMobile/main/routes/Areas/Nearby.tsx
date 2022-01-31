@@ -1,15 +1,20 @@
 import React from 'react';
-import { Keyboard, SafeAreaView, Text, View } from 'react-native';
-import { Slider } from 'react-native-elements';
+import { Keyboard, PermissionsAndroid, Platform, SafeAreaView, Text, View } from 'react-native';
+import { Button, Slider } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import LottieView from 'lottie-react-native';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import { PushNotificationsService } from 'therr-react/services';
 import { Location } from 'therr-js-utilities/constants';
 // import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
+import Geolocation from 'react-native-geolocation-service';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
+import { buildStyles as buildDisclosureStyles } from '../../styles/modal/locationDisclosure';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildMomentStyles } from '../../styles/user-content/areas';
@@ -26,11 +31,15 @@ import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
 import { CAROUSEL_TABS } from '../../constants';
 import { handleAreaReaction, loadMoreAreas, navToViewArea } from './areaViewHelpers';
-
-// const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
+import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
+import { checkAndroidPermission, isLocationPermissionGranted, requestOSMapPermissions } from '../../utilities/requestOSPermissions';
+import LocationActions from '../../redux/actions/LocationActions';
+import { ILocationState } from '../../types/redux/location';
+import earthLoader from '../../assets/earth-loader.json';
+import LocationUseDisclosureModal from '../../components/Modals/LocationUseDisclosureModal';
 
 function getRandomLoaderId(): ILottieId {
-    const options: ILottieId[] = ['donut', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
+    const options: ILottieId[] = ['donut', 'earth', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
     const selected = Math.floor(Math.random() * options.length);
     return options[selected] as ILottieId;
 }
@@ -46,11 +55,16 @@ interface INearbyDispatchProps {
     updateActiveSpaces: Function;
     createOrUpdateSpaceReaction: Function;
 
+    updateGpsStatus: Function;
+    updateLocationDisclosure: Function;
+    updateLocationPermissions: Function;
+
     logout: Function;
 }
 
 interface IStoreProps extends INearbyDispatchProps {
     content: IContentState;
+    location: ILocationState;
     map: IMapState;
     user: IUserState;
     userConnections: IUserConnectionsState;
@@ -64,12 +78,14 @@ export interface INearbyProps extends IStoreProps {
 interface INearbyState {
     activeTab: string;
     isLoading: boolean;
+    isLocationUseDisclosureModalVisible: boolean;
     areAreaOptionsVisible: boolean;
     selectedArea: any;
 }
 
 const mapStateToProps = (state: any) => ({
     content: state.content,
+    location: state.location,
     map: state.map,
     user: state.user,
     userConnections: state.userConnections,
@@ -87,6 +103,10 @@ const mapDispatchToProps = (dispatch: any) =>
             searchActiveSpaces: ContentActions.searchActiveSpaces,
             updateActiveSpaces: ContentActions.updateActiveSpaces,
             createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
+
+            updateGpsStatus: LocationActions.updateGpsStatus,
+            updateLocationDisclosure: LocationActions.updateLocationDisclosure,
+            updateLocationPermissions: LocationActions.updateLocationPermissions,
         },
         dispatch
     );
@@ -96,14 +116,17 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
     private translate: Function;
     private loaderId: ILottieId;
     private loadTimeoutId: any;
+    private locationListener: any;
     private unsubscribeNavigationListener;
     private theme = buildStyles();
     private themeButtons = buildButtonsStyles();
+    private themeDisclosure = buildDisclosureStyles();
     private themeLoader = buildLoaderStyles();
     private themeMenu = buildMenuStyles();
     private themeMoments = buildMomentStyles();
     private themeReactionsModal = buildReactionsModalStyles();
     private themeForms = buildFormStyles();
+    private mapWatchId;
 
     constructor(props) {
         super(props);
@@ -111,12 +134,14 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
         this.state = {
             activeTab: CAROUSEL_TABS.SOCIAL,
             isLoading: true,
+            isLocationUseDisclosureModalVisible: false,
             areAreaOptionsVisible: false,
             selectedArea: {},
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
+        this.themeDisclosure = buildDisclosureStyles(props.user.settings?.mobileThemeName);
         this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
@@ -132,7 +157,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
         const { content, navigation } = this.props;
 
         navigation.setOptions({
-            title: this.translate('pages.areas.headerTitle'),
+            title: this.translate('pages.nearby.headerTitle'),
         });
 
         this.unsubscribeNavigationListener = navigation.addListener('focus', () => {
@@ -153,7 +178,12 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
 
     componentWillUnmount() {
         this.unsubscribeNavigationListener();
+        if (this.locationListener) {
+            this.locationListener();
+        }
         clearTimeout(this.loadTimeoutId);
+        Geolocation.clearWatch(this.mapWatchId);
+        Geolocation.stopObserving();
     }
 
     getEmptyListMessage = (activeTab) => {
@@ -167,6 +197,14 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
 
         // CAROUSEL_TABS.EVENTS
         return this.translate('pages.areas.noEventsAreasFound');
+    }
+
+    shouldRenderNearbyNewsfeed = () => {
+        const { location } = this.props;
+
+        return location?.settings.isGpsEnabled
+            && location?.settings?.isLocationDislosureComplete
+            && isLocationPermissionGranted(location?.permissions);
     }
 
     goToMap = () => {
@@ -279,6 +317,130 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
         });
     }
 
+    positionSuccessCallback = (position) => {
+        const { map } = this.props;
+        // TODO: Throttle to prevent too many requests
+        PushNotificationsService.postLocationChange({
+            longitude: position.coords.longitude,
+            latitude: position.coords.latitude,
+            // lastLocationSendForProcessing,
+            radiusOfAwareness: map.radiusOfAwareness,
+            radiusOfInfluence: map.radiusOfInfluence,
+        });
+    };
+
+    positionErrorCallback = (error) => {
+        console.log('geolocation error', error.code);
+    }
+
+    handleEnableLocationPress = () => {
+        const {
+            location,
+            updateGpsStatus,
+            updateLocationDisclosure,
+            updateLocationPermissions,
+        } = this.props;
+
+        let perms;
+
+        return requestLocationServiceActivation({
+            isGpsEnabled: location?.settings?.isGpsEnabled,
+            translate: this.translate,
+            shouldIgnoreRequirement: false,
+        }).then((response: any) => {
+            // TODO: if location is set to never_ask_again, display modal to encourage enabling in settings
+            if (response?.status || Platform.OS === 'ios') {
+                if (response?.alreadyEnabled && isLocationPermissionGranted(location.permissions)) {
+                    // Ensure that the user sees location disclosure even if gps is already enabled (otherwise requestOSMapPermissions will handle it)
+                    if (!location?.settings?.isLocationDislosureComplete) {
+                        this.setState({
+                            isLocationUseDisclosureModalVisible: true,
+                        });
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+
+                updateLocationDisclosure(true);
+                updateGpsStatus(response?.status || 'enabled');
+
+                return false;
+            }
+
+            return Promise.resolve(false);
+        }).then((shouldAbort: boolean) => {
+            if (shouldAbort) { // short-circuit because backup disclosure is in progress
+                return;
+            }
+
+            return requestOSMapPermissions(updateLocationPermissions).then((permissions) => {
+                // TODO: If permissions are never ask again, display instructions for user to go to app settings and allow
+                return new Promise((resolve, reject) => {
+                    let extraPromise = Promise.resolve(false);
+                    if (Platform.OS === 'android' && permissions[PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION] !== 'granted') {
+                        extraPromise = checkAndroidPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION, updateLocationPermissions);
+                    }
+
+                    return extraPromise.then((isCoarseLocationGranted) => {
+                        perms = {
+                            ...permissions,
+                            [PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION]: isCoarseLocationGranted ? 'granted' : 'denied',
+                        };
+                        // If permissions are granted
+                        if (isLocationPermissionGranted(perms)) {
+                            Geolocation.getCurrentPosition(
+                                this.positionSuccessCallback,
+                                this.positionErrorCallback,
+                                {
+                                    enableHighAccuracy: true,
+                                },
+                            );
+                            this.mapWatchId = Geolocation.watchPosition(
+                                this.positionSuccessCallback,
+                                this.positionErrorCallback,
+                                {
+                                    enableHighAccuracy: true,
+                                },
+                            );
+
+                            return resolve(null);
+                        } else {
+                            console.log('Location permission denied');
+                            return reject('permissionDenied');
+                        }
+                    });
+                });
+            })
+                .catch((error) => {
+                    console.log('requestOSPermissionsError', error);
+                    // TODO: Display message encouraging user to turn on location permissions in settings
+                    // this.goToHome();
+                });
+        }).catch((error) => {
+            console.log('gps activation error', error);
+            // this.goToHome();
+        });
+    }
+
+    handleLocationDisclosureSelect = (selection) => {
+        const { updateLocationDisclosure } = this.props;
+        // TODO: Decide if selection should be dynamic
+        console.log(selection);
+        updateLocationDisclosure(true).then(() => {
+            this.toggleLocationUseDisclosure();
+            this.handleEnableLocationPress();
+        });
+    }
+
+    toggleLocationUseDisclosure = () => {
+        const { isLocationUseDisclosureModalVisible } = this.state;
+        this.setState({
+            isLocationUseDisclosureModalVisible: !isLocationUseDisclosureModalVisible,
+        });
+    }
+
+
     renderHeader = () => {
         const { radiusOfAwareness, radiusOfInfluence } = this.props.map;
 
@@ -294,8 +456,8 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                         maximumValue={Location.MAX_RADIUS_OF_AWARENESS}
                         minimumValue={Location.MIN_RADIUS_OF_AWARENESS}
                         step={1}
-                        thumbStyle={{ backgroundColor: this.theme.colors.accentBlue }}
-                        thumbTouchSize={{ width: 100, height: 100 }}
+                        thumbStyle={{ backgroundColor: this.theme.colors.accentBlue, height: 20, width: 20 }}
+                        thumbTouchSize={{ width: 30, height: 30 }}
                         minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
                         maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
                         onSlidingStart={Keyboard.dismiss}
@@ -311,14 +473,60 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                         maximumValue={Location.MAX_RADIUS_OF_INFLUENCE}
                         minimumValue={Location.MIN_RADIUS_OF_INFLUENCE}
                         step={1}
-                        thumbStyle={{ backgroundColor: this.theme.colors.accent1 }}
-                        thumbTouchSize={{ width: 100, height: 100 }}
+                        thumbStyle={{ backgroundColor: this.theme.colors.accent1, height: 20, width: 20 }}
+                        thumbTouchSize={{ width: 30, height: 30 }}
                         minimumTrackTintColor={this.theme.colorVariations.accent1LightFade}
                         maximumTrackTintColor={this.theme.colorVariations.accent1HeavyFade}
                         onSlidingStart={Keyboard.dismiss}
                     />
                 </View>
             </View>
+        );
+    }
+
+    renderGpsEnableButton = () => {
+        return (
+            <KeyboardAwareScrollView
+                contentInsetAdjustmentBehavior="automatic"
+                style={this.theme.styles.bodyFlex}
+                contentContainerStyle={this.theme.styles.bodyScroll}
+            >
+                <View style={this.theme.styles.sectionContainer}>
+                    <View style={{ flex: 1, height: 100, marginBottom: 30 }}>
+                        <LottieView
+                            source={earthLoader}
+                            // resizeMode="cover"
+                            speed={1}
+                            autoPlay
+                            loop
+                        />
+                    </View>
+                    <Text style={this.theme.styles.sectionTitleCenter}>
+                        {this.translate('pages.nearby.headerTitle')}
+                    </Text>
+                    <Text style={this.theme.styles.sectionDescriptionCentered}>
+                        {this.translate('pages.nearby.locationDescription1')}
+                    </Text>
+                    <Text style={this.theme.styles.sectionDescriptionCentered}>
+                        {this.translate('pages.nearby.locationDescription2')}
+                    </Text>
+                    <Text style={this.theme.styles.sectionDescriptionCentered}>
+                        {this.translate('pages.nearby.locationDescription3')}
+                    </Text>
+                    <Text style={[this.theme.styles.sectionDescriptionCentered, { marginBottom: 40 }]} />
+                    <Button
+                        buttonStyle={this.themeForms.styles.button}
+                        titleStyle={this.themeForms.styles.buttonTitle}
+                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                        disabledStyle={this.themeForms.styles.buttonDisabled}
+                        title={this.translate(
+                            'forms.nearbyForm.buttons.enableLocation'
+                        )}
+                        onPress={() => this.handleEnableLocationPress()}
+                        iconRight
+                    />
+                </View>
+            </KeyboardAwareScrollView>
         );
     }
 
@@ -360,7 +568,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
     }
 
     render() {
-        const { areAreaOptionsVisible, selectedArea } = this.state;
+        const { areAreaOptionsVisible, isLocationUseDisclosureModalVisible, selectedArea } = this.state;
         const { content, navigation, user } = this.props;
 
         return (
@@ -368,7 +576,9 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                 <BaseStatusBar />
                 <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
                     {
-                        this.renderCarousel(content, user)
+                        this.shouldRenderNearbyNewsfeed()
+                            ? this.renderCarousel(content, user)
+                            : this.renderGpsEnableButton()
                     }
                 </SafeAreaView>
                 <AreaOptionsModal
@@ -379,7 +589,14 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                     themeButtons={this.themeButtons}
                     themeReactionsModal={this.themeReactionsModal}
                 />
-                {/* <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} /> */}
+                <LocationUseDisclosureModal
+                    isVisible={isLocationUseDisclosureModalVisible}
+                    translate={this.translate}
+                    onRequestClose={this.toggleLocationUseDisclosure}
+                    onSelect={this.handleLocationDisclosureSelect}
+                    themeButtons={this.themeButtons}
+                    themeDisclosure={this.themeDisclosure}
+                />
                 <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.scrollTop}

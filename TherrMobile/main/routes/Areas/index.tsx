@@ -28,7 +28,7 @@ import CarouselTabsMenu from './CarouselTabsMenu';
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
 function getRandomLoaderId(): ILottieId {
-    const options: ILottieId[] = ['donut', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
+    const options: ILottieId[] = ['donut', 'earth', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
     const selected = Math.floor(Math.random() * options.length);
     return options[selected] as ILottieId;
 }

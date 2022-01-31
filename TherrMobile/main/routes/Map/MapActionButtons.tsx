@@ -44,6 +44,9 @@ export default ({
         <>
             <View style={themeButtons.styles.notifications}>
                 <Button
+                    containerStyle={[
+                        themeButtons.styles.btnContainer, hasNotifications ? { borderWidth: 2, borderColor: themeButtons.colors.brandingMapYellow } : {},
+                    ]}
                     buttonStyle={themeButtons.styles.btn}
                     icon={
                         <MaterialIcon
@@ -59,26 +62,26 @@ export default ({
             {
                 shouldShowCreateButton &&
                     <>
-                        <View style={themeButtons.styles.addAMoment}>
-                            <Button
-                                buttonStyle={themeButtons.styles.btnLarge}
-                                icon={
-                                    <OctIcon
-                                        name={ shouldShowCreateActions ? 'dash' : 'plus' }
-                                        size={36}
-                                        style={themeButtons.styles.btnIcon}
-                                    />
-                                }
-                                raised={true}
-                                onPress={() => toggleMomentActions()}
-                            />
-                        </View>
+                        <Button
+                            buttonStyle={themeButtons.styles.btnLarge}
+                            containerStyle={themeButtons.styles.addAMoment}
+                            icon={
+                                <OctIcon
+                                    name={ shouldShowCreateActions ? 'dash' : 'plus' }
+                                    size={36}
+                                    style={themeButtons.styles.btnIcon}
+                                />
+                            }
+                            raised={true}
+                            onPress={() => toggleMomentActions()}
+                        />
                         {
                             shouldShowCreateActions &&
                                 <>
                                     <View style={themeButtons.styles.claimASpace}>
                                         <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.claimASpace')}</Text>
                                         <Button
+                                            containerStyle={themeButtons.styles.btnContainer}
                                             buttonStyle={themeButtons.styles.btnMedium}
                                             icon={
                                                 <FontAwesome5Icon
@@ -94,6 +97,7 @@ export default ({
                                     <View style={themeButtons.styles.shareAThought}>
                                         <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.shareAThought')}</Text>
                                         <Button
+                                            containerStyle={themeButtons.styles.btnContainer}
                                             buttonStyle={themeButtons.styles.btnMedium}
                                             icon={
                                                 <OctIcon
@@ -109,6 +113,7 @@ export default ({
                                     <View style={themeButtons.styles.uploadMoment}>
                                         <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.uploadAMoment')}</Text>
                                         <Button
+                                            containerStyle={themeButtons.styles.btnContainer}
                                             buttonStyle={themeButtons.styles.btnMedium}
                                             icon={
                                                 <FontAwesome5Icon
@@ -124,6 +129,7 @@ export default ({
                                     <View style={themeButtons.styles.captureMoment}>
                                         <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.captureAMoment')}</Text>
                                         <Button
+                                            containerStyle={themeButtons.styles.btnContainer}
                                             buttonStyle={themeButtons.styles.btnMedium}
                                             icon={
                                                 <OctIcon
@@ -142,6 +148,7 @@ export default ({
             }
             <View style={themeButtons.styles.locationEnable}>
                 <Button
+                    containerStyle={themeButtons.styles.btnContainer}
                     buttonStyle={themeButtons.styles.btn}
                     icon={
                         <MaterialIcon

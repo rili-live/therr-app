@@ -317,7 +317,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                 )
             }
             toggleNavMenu={this.toggleNavMenu}
-            isLandingStylePage
+            isLandingStylePage={isLandingStylePage}
         />
     )
 
@@ -341,7 +341,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                 messagingContext={messagingContext}
                 toggleNavMenu={this.toggleNavMenu}
                 toggleMessaging={this.toggleMessaging}
-                isLandingStylePage
+                isLandingStylePage={isLandingStylePage}
             />
         );
     };
@@ -352,6 +352,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             'is-open': this.state.isNavMenuOpen,
             'is-expanded': this.state.isNavMenuExpanded,
         });
+        // TODO: Make sure header/footer is re-rendered if isLandingStylePage changes
         const isLandingStylePage = location.pathname === '/'
             || location.pathname === '/create-profile'
             || location.pathname === '/login'
@@ -400,7 +401,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                     {/* <Alerts></Alerts> */}
                     {/* <Loader></Loader> */}
 
-                    { this.renderFooter() }
+                    { this.renderFooter(isLandingStylePage) }
                 </>
             );
         }

@@ -1,4 +1,5 @@
 import {
+    Permission,
     PermissionsAndroid,
     Platform,
 } from 'react-native';
@@ -7,15 +8,34 @@ import {
     PERMISSIONS,
 } from 'react-native-permissions';
 
+const makePermissionsUniform = (permissions) => {
+    return permissions;
+};
+
+const checkAndroidPermission = (requestedPermissions: Permission, storePermissionsResponse) => PermissionsAndroid.check(requestedPermissions)
+    .then((isGranted) => {
+        storePermissionsResponse({
+            [requestedPermissions]: isGranted ? 'granted' : 'never_ask_again',
+        });
+        return isGranted;
+    });
+
+const isLocationPermissionGranted = (permissions) => {
+    return (permissions[PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION] === 'granted')
+        || (permissions[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION] === 'granted')
+        || permissions[PERMISSIONS.IOS.LOCATION_ALWAYS] === 'granted'
+        || permissions[PERMISSIONS.IOS.LOCATION_WHEN_IN_USE] === 'granted';
+};
+
 const requestAndroidPermission = (requestedPermissions: any[], storePermissionsResponse) => PermissionsAndroid.requestMultiple(requestedPermissions)
     .then((grantedPermissions) => {
-        storePermissionsResponse(grantedPermissions);
+        storePermissionsResponse(makePermissionsUniform(grantedPermissions));
         return grantedPermissions;
     });
 
 const requestIOSPermissions = (requestedPermissions: any[], storePermissionsResponse) => requestMultiple(requestedPermissions)
     .then((grantedPermissions) => {
-        storePermissionsResponse(grantedPermissions);
+        storePermissionsResponse(makePermissionsUniform(grantedPermissions));
         return grantedPermissions;
     });
 
@@ -36,7 +56,7 @@ const requestOSCameraPermissions = (storePermissionsResponse) => {
     }
 };
 
-const requestOSMapPermissions = (storePermissionsResponse) => {
+const requestOSMapPermissions = (storePermissionsResponse, useFineAccurracy = true) => {
     switch (Platform.OS) {
         case 'ios':
             return requestIOSPermissions([
@@ -45,8 +65,7 @@ const requestOSMapPermissions = (storePermissionsResponse) => {
             ], storePermissionsResponse);
         case 'android':
             return requestAndroidPermission([
-                PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
-                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+                useFineAccurracy ? PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION : PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
             ], storePermissionsResponse);
         default:
             return Promise.reject();
@@ -54,6 +73,8 @@ const requestOSMapPermissions = (storePermissionsResponse) => {
 };
 
 export {
+    checkAndroidPermission,
+    isLocationPermissionGranted,
     requestOSCameraPermissions,
     requestOSMapPermissions,
 };

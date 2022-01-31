@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { getTheme, ITherrTheme } from '../themes';
 
@@ -12,6 +12,7 @@ const containerStyles: any = {
 };
 
 const getTextStyles = (theme: ITherrTheme) => ({
+    fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
     color: theme.colors.textBlack,
     marginVertical: 50,
     paddingHorizontal: 10,
@@ -26,6 +27,10 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         // container styles
         defaultContainer: {
             ...containerStyles,
+        },
+        earthLoaderContainer: {
+            ...containerStyles,
+            marginHorizontal: '35%',
         },
         therrBlackRollingContainer: {
             ...containerStyles,

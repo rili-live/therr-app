@@ -15,6 +15,10 @@ const btnStyles: any = {
     boxSizing: 'border-box',
 };
 
+const btnContainerStyles: any = {
+    borderRadius: 100,
+};
+
 const getBtnIconStyle = (theme: ITherrTheme) => ({
     color: theme.colors.ternary,
     padding: 0,
@@ -349,6 +353,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         refreshMoments: {
             ...getBottomLeftBtnViewStyles(therrTheme),
+        },
+        btnContainer: {
+            ...btnContainerStyles,
         },
         btn: {
             ...btnStyles,
