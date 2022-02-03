@@ -94,12 +94,13 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
         },
         areaUserName: {
             fontSize: 15,
+            fontWeight: '500',
             paddingBottom: 1,
             color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
         },
         dateTime: {
             fontSize: 11,
-            color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
+            color: isDarkMode ? therrTheme.colorVariations.accentTextWhiteFade : therrTheme.colors.tertiary,
         },
         moreButtonContainer: {
             ...buttonContainerStyles,
@@ -130,14 +131,14 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
             // position: 'absolute',
             fontSize: 18,
+            fontWeight: '600',
             // top: 10,
             paddingVertical: ((contentTitleContainerHeight - 18) / 2) - 3,
             paddingHorizontal: 6,
             height: '100%',
-            fontWeight: 'bold',
         },
         areaMessage: {
-            fontSize: 15,
+            fontSize: 16,
             color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
             overflow: 'scroll',
             width: '100%',

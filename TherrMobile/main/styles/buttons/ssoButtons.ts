@@ -7,6 +7,7 @@ export default StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         flex: 1,
+        borderRadius: 9,
     },
     googleButton: {
         backgroundColor: '#FFFFFF', // Google styles color
@@ -23,8 +24,8 @@ export default StyleSheet.create({
         fontWeight: 'bold',
     },
     googleButtonIcon: {
-        height: 22,
-        width: 22,
+        height: 26,
+        width: 26,
         padding: 8,
     },
 

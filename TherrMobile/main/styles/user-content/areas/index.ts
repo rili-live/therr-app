@@ -3,7 +3,7 @@ import { IMobileThemeName } from 'therr-react/types';
 import { getTheme, ITherrTheme } from '../../themes';
 
 
-const dividerHeight = 10;
+const dividerHeight = 2;
 
 const getMomentTextStyles = (theme: ITherrTheme) => ({
     color: theme.colors.textBlack,
@@ -35,8 +35,8 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-around',
-            marginTop: dividerHeight,
-            marginBottom: dividerHeight / 2,
+            marginTop: dividerHeight * 2,
+            marginBottom: dividerHeight * 2,
         },
         areaCarouselHeaderSliders: {
             marginTop: 10,

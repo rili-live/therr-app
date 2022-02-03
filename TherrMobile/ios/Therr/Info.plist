@@ -56,6 +56,8 @@
 		<key>NSExceptionDomains</key>
 		<dict/>
 	</dict>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>This permission allows the user to access and share audio files from their library to the social space of the app.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Camera usage is needed for taking photos of various locations and sharing with social connections.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
