@@ -64,7 +64,7 @@ function GoogleSignInButton({
                 setDisabled,
             })}
             disabled={disabled || isDisabled}
-            raised={true}
+            // raised={true}
             containerStyle={ssoButtonStyles.googleButtonContainer}
             buttonStyle={ssoButtonStyles.googleButton}
             titleStyle={ssoButtonStyles.googleButtonTitle}

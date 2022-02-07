@@ -395,7 +395,7 @@
     "mapActions": {
       "claimASpace": "Claim a Space",
       "shareAThought": "Share a Thought",
-      "uploadAMoment": "Upload a Moment",
+      "uploadAMoment": "Share a Moment",
       "captureAMoment": "Capture a Moment"
     },
     "main": {
