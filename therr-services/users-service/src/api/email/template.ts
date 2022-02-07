@@ -19,6 +19,18 @@ const template = `
       <td class="container" style="font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; Margin: 0 auto; max-width: 580px; padding: 10px; width: 580px;">
         <div class="content" style="box-sizing: border-box; display: block; Margin: 0 auto; max-width: 580px; padding: 10px;">
 
+        <!-- START HEADER -->
+          <div class="header" style="clear: both; margin-top: 0px; text-align: center; width: 100%;">
+            <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
+              <tr>
+                <td class="content-block" style="font-family: sans-serif; vertical-align: top; padding-bottom: 0px; padding-top: 0px; color: #999999; text-align: center; line-height: 0">
+                  <img src="${globalConfig[process.env.NODE_ENV].hostFull}/assets/images/email-header.jpg" alt="Therr email header" style="height: auto; width: 100%" />
+                </td>
+              </tr>
+            </table>
+          </div>
+          <!-- END HEADER -->
+
           <!-- START CENTERED WHITE CONTAINER -->
           <table class="main" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #ffffff;">
 
