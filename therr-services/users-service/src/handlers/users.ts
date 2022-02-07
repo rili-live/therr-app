@@ -283,6 +283,7 @@ const updateUser = (req, res) => {
             const updateArgs: any = {
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
+                media: req.body.media,
                 phoneNumber: req.body.phoneNumber,
                 hasAgreedToTerms: req.body.hasAgreedToTerms,
                 userName: req.body.userName,

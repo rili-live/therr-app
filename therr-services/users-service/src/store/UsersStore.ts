@@ -129,6 +129,10 @@ export default class UsersStore {
             modifiedParams.lastName = params.lastName;
         }
 
+        if (params.media) {
+            modifiedParams.media = JSON.stringify(params.media);
+        }
+
         if (params.hasAgreedToTerms) {
             modifiedParams.hasAgreedToTerms = params.hasAgreedToTerms;
         }
