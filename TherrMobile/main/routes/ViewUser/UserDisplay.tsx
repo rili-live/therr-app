@@ -3,6 +3,7 @@ import { ActivityIndicator, Text, View, Pressable } from 'react-native';
 import { Image } from 'react-native-elements';
 import { FlatList } from 'react-native-gesture-handler';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { getUserImageUri } from '../../utilities/content';
 import { buildStyles } from '../../styles/user-content/user-display';
 
 interface IActionItem {
@@ -144,7 +145,7 @@ export default ({
                 onPress={() => onProfilePicturePress(userInView, isMe)}
             >
                 <Image
-                    source={{ uri: `https://robohash.org/${userInView.id}?size=400x400` }}
+                    source={{ uri: getUserImageUri({ details: userInView }, 400) }}
                     style={theme.styles.profileImage}
                     containerStyle={{}}
                     PlaceholderContent={<ActivityIndicator size="large" color={theme.colors.primary}/>}

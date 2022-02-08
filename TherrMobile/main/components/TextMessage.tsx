@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { ActivityIndicator, View, Text, Pressable } from 'react-native';
 import { Image } from 'react-native-elements';
+import { getUserImageUri } from '../utilities/content';
 
 export default ({
     connectionDetails,
@@ -37,7 +38,7 @@ export default ({
                         onPress={() => goToUser(isYou() ? userDetails.id : connectionDetails.id)}
                     >
                         <Image
-                            source={{ uri: `https://robohash.org/${isYou() ? userDetails.id : connectionDetails.id}?size=50x50` }}
+                            source={{ uri: getUserImageUri(isYou() ? { details: userDetails } : { details: connectionDetails }, 50) }}
                             style={themeMessage.styles.userImage}
                             PlaceholderContent={<ActivityIndicator />}
                         />

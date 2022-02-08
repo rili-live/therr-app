@@ -1,6 +1,7 @@
 import React from 'react';
 import { Avatar, ListItem } from 'react-native-elements';
 import 'react-native-gesture-handler';
+import { getUserImageUri } from '../../utilities/content';
 
 interface IConnectionItemProps {
     connectionDetails: any;
@@ -27,7 +28,7 @@ const ConnectionItem: React.FunctionComponent<IConnectionItemProps> = ({
                 title={`${connectionDetails.firstName.substring(0, 1)}${connectionDetails.lastName.substring(0, 1)}`}
                 rounded
                 source={{
-                    uri: `https://robohash.org/${connectionDetails.id}?size=100x100`,
+                    uri: getUserImageUri({ details: connectionDetails }, 100),
                 }}
                 size="small"
             />

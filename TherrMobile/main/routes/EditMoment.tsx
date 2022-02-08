@@ -8,7 +8,6 @@ import RNFB from 'rn-fetch-blob';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
-import { MapsService } from 'therr-react/services';
 import { Content } from 'therr-js-utilities/constants';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import YoutubePlayer from 'react-native-youtube-iframe';
@@ -35,6 +34,7 @@ import AccentTextInput from '../components/Input/TextInput/Accent';
 import HashtagsContainer from '../components/UserContent/HashtagsContainer';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { getImagePreviewPath } from '../utilities/areaUtils';
+import { signImageUrl } from '../utilities/content';
 
 interface IEditMomentDispatchProps {
     createMoment: Function;
@@ -163,7 +163,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         );
     }
 
-    signImageUrl = (createArgs) => {
+    signAndUploadImage = (createArgs) => {
         const {
             message,
             notificationMsg,
@@ -177,11 +177,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         const { imageDetails } = route.params;
         const { croppedImage } = imageDetails || {};
 
-        const signUrl = isPublic ? MapsService.getSignedUrlPublicBucket : MapsService.getSignedUrlPrivateBucket;
-
-        // TODO: This is too slow
-        // Use public method for public moments
-        return signUrl({
+        return signImageUrl(isPublic, {
             action: 'write',
             filename: `content/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g,'_')}.jpg`,
         }).then((response) => {
@@ -248,7 +244,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 isSubmitting: true,
             });
 
-            (croppedImage ? this.signImageUrl(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
+            (croppedImage ? this.signAndUploadImage(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
                 this.props
                     .createMoment(modifiedCreateArgs)
                     .then(() => {

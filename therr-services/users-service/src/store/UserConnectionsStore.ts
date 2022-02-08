@@ -150,6 +150,7 @@ export default class UserConnectionsStore {
                 `${USERS_TABLE_NAME}.userName as users[].userName`,
                 `${USERS_TABLE_NAME}.firstName as users[].firstName`,
                 `${USERS_TABLE_NAME}.lastName as users[].lastName`,
+                `${USERS_TABLE_NAME}.media as users[].media`,
             ])
             .where({
                 isConnectionBroken: false,

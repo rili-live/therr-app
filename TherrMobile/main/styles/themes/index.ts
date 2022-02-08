@@ -40,6 +40,7 @@ export interface ITherrThemeColors {
     backgroundWhite: string;
     backgroundGray: string;
     backgroundNeutral: string;
+    backgroundBlack: string;
 
     borderLight: string;
     placeholderTextColor: string;
@@ -86,6 +87,7 @@ export interface ITherrThemeColorVariations {
     primary3LightFade: string;
     primary3Fade: string;
     backgroundCreamLighten: string;
+    backgroundBlackFade: string;
     textBlackFade: string;
     textWhiteFade: string;
     textGrayDarken: string;

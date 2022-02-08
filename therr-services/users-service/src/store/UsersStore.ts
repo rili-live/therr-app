@@ -82,7 +82,7 @@ export default class UsersStore {
 
     findUsers({
         ids,
-    }: IFindUsersArgs, returning: any = ['id', 'userName', 'firstName', 'lastName']) {
+    }: IFindUsersArgs, returning: any = ['id', 'userName', 'firstName', 'lastName', 'media']) {
         let queryString: any = knexBuilder.select(returning).from('main.users')
             .whereIn('id', ids || []);
 
