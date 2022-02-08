@@ -331,7 +331,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         const { navigation } = this.props;
 
         if (!imageResponse.didCancel && !imageResponse.errorCode) {
-            return navigation.navigate('CropImage', {
+            return navigation.navigate('AreaImageCrop', {
                 ...userCoords,
                 areaType,
                 imageDetails: imageResponse,

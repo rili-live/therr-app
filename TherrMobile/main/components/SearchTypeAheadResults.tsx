@@ -1,7 +1,7 @@
-import { ITherrThemeColors } from 'main/styles/themes';
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
+import { ITherrThemeColors } from '../styles/themes';
 
 interface ISearchTypeAheadProps {
     handleSelect: Function;

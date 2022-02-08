@@ -13,6 +13,7 @@ export interface IUser extends Immutable.ImmutableObject<any>{
   lastName: string;
   phoneNumber: string;
   userName: string;
+  media?: any;
 }
 
 export interface IUserSettings extends Immutable.ImmutableObject<any>{

@@ -5,6 +5,7 @@ import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import therrIconConfig from '../../assets/therr-font-config.json';
+import { getUserImageUri } from '../../utilities/content';
 
 const TherrIcon = createIconSetFromIcoMoon(
     therrIconConfig,
@@ -55,7 +56,7 @@ export default (onChatTilePress, theme, themeChatTile) => {
                 <View style={themeChatTile.style.avatarContainer}>
                     <Image
                         style={themeChatTile.style.avatarStyle}
-                        source={{ uri: `https://robohash.org/${chat.authorId}?size=75x75` }}
+                        source={{ uri: getUserImageUri({ details: { id: chat.authorId } }) }}
                         PlaceholderContent={<ActivityIndicator size="large" color={theme.colors.primary} />}
                     />
                 </View>

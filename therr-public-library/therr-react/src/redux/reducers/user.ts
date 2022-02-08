@@ -45,7 +45,7 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
         case SocketClientActionTypes.LOGOUT:
             return state.setIn(['isAuthenticated'], false)
                 .setIn(['socketDetails'], {})
-                .setIn(['details'], { id: state.details.id, userName: state.details.userName });
+                .setIn(['details'], { id: state.details.id, userName: state.details.userName, media: state.details.media });
         default:
             return state;
     }

@@ -211,6 +211,7 @@
     },
     "createProfile": {
       "buttons": {
+        "skip": "Skip",
         "submit": "Next",
         "verifyNow": "Send Verification",
         "verifyLater": "Save & Continue"
@@ -473,7 +474,8 @@
     "createProfile": {
       "headerTitle": "Therr",
       "pageHeaderA": "Create your profile",
-      "pageHeaderB": "Keep it secure"
+      "pageHeaderB": "Keep it secure",
+      "pageHeaderC": "Profile Picture"
     },
     "cropImage": {
       "headerTitle": "Crop Image"

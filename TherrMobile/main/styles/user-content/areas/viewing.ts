@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { getTheme } from '../../themes';
 
-const areaUserAvatarImgPadding = 2;
+const areaUserAvatarImgPadding = 4;
 const areaUserAvatarImgWidth = 52 - (2 * areaUserAvatarImgPadding);
 const areaUserAvatarImgRadius = areaUserAvatarImgWidth / 2;
 const contentTitleContainerHeight = 38;
@@ -56,12 +56,13 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             marginBottom: 32,
         },
         areaUserAvatarImgContainer: {
-            height: '100%',
+            width: areaUserAvatarImgWidth - (areaUserAvatarImgPadding * 2),
             borderRadius: areaUserAvatarImgRadius,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             padding: 0,
+            margin: areaUserAvatarImgPadding,
         },
         areaUserAvatarImg: {
             height: areaUserAvatarImgWidth,

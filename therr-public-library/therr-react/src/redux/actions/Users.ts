@@ -52,6 +52,7 @@ class UsersActions {
                 lastName,
                 phoneNumber,
                 userName,
+                media,
             } = response.data;
             const userData: IUser = Immutable.from({
                 accessLevels,
@@ -62,6 +63,7 @@ class UsersActions {
                 lastName,
                 phoneNumber,
                 userName,
+                media,
             });
             // TODO: Get user settings data from db response
             const userSettingsData: IUserSettings = Immutable.from({
@@ -162,6 +164,7 @@ class UsersActions {
             shouldHideMatureContent,
             lastName,
             userName,
+            media,
         } = response && response.data;
         // TODO: Determine if it is necessary to dispatch anything after user registers
         // set current user?
@@ -192,6 +195,7 @@ class UsersActions {
                 firstName,
                 lastName,
                 userName,
+                media,
             },
         });
         return { email, id, userName };

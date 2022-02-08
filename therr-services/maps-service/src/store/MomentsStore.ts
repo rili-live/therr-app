@@ -209,6 +209,7 @@ export default class MomentsStore {
                             modifiedMoment.fromUserName = matchingUser.userName;
                             modifiedMoment.fromUserFirstName = matchingUser.firstName;
                             modifiedMoment.fromUserLastName = matchingUser.lastName;
+                            modifiedMoment.fromUserMedia = matchingUser.media;
                         }
                     }
 
