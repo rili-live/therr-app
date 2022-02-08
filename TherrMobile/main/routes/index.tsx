@@ -14,7 +14,7 @@ import Areas from './Areas';
 import ActiveConnections from './ActiveConnections';
 import Contacts from './Contacts';
 import CreateConnection from './CreateConnection';
-import CropImage from './CropImage';
+import AreaImageCrop from './CropImage/AreaImageCrop';
 import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
 import ForgotPassword from './ForgotPassword';
@@ -91,7 +91,7 @@ const routes: RouteConfig<
         name: 'CreateProfile',
         component: CreateProfile,
         options: () => ({
-            title: 'CreateProfile',
+            title: 'Create Profile',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
@@ -126,7 +126,7 @@ const routes: RouteConfig<
         name: 'AdvancedSearch',
         component: AdvancedSearch,
         options: () => ({
-            title: 'AdvancedSearch',
+            title: 'Advanced Search',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -137,7 +137,7 @@ const routes: RouteConfig<
         name: 'BookMarked',
         component: BookMarked,
         options: () => ({
-            title: 'BookMarked',
+            title: 'Bookmarked',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -145,10 +145,10 @@ const routes: RouteConfig<
         }),
     },
     {
-        name: 'CropImage',
-        component: CropImage,
+        name: 'AreaImageCrop',
+        component: AreaImageCrop,
         options: () => ({
-            title: 'CropImage',
+            title: 'Crop Image',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -171,7 +171,7 @@ const routes: RouteConfig<
         name: 'ActiveConnections',
         component: ActiveConnections,
         options: () => ({
-            title: 'ActiveConnections',
+            title: 'Active Connections',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -195,7 +195,7 @@ const routes: RouteConfig<
         name: 'CreateConnection',
         component: CreateConnection,
         options: () => ({
-            title: 'CreateConnection',
+            title: 'Create Connection',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -206,7 +206,7 @@ const routes: RouteConfig<
         name: 'DirectMessage',
         component: DirectMessage,
         options: () => ({
-            title: 'DirectMessage',
+            title: 'Direct Message',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -267,7 +267,7 @@ const routes: RouteConfig<
         name: 'EmailVerification',
         component: EmailVerification,
         options: (params) => ({
-            title: 'EmailVerification',
+            title: 'Email Verification',
             access: {
                 type: AccessCheckType.NONE,
                 levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
@@ -305,7 +305,7 @@ const routes: RouteConfig<
         name: 'EditChat',
         component: EditChat,
         options: () => ({
-            title: 'EditChat',
+            title: 'Edit Chat',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -327,7 +327,7 @@ const routes: RouteConfig<
         name: 'ViewChat',
         component: ViewChat,
         options: () => ({
-            title: 'ViewChat',
+            title: 'View Chat',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -349,7 +349,7 @@ const routes: RouteConfig<
         name: 'ViewMoment',
         component: ViewMoment,
         options: () => ({
-            title: 'ViewMoment',
+            title: 'View Moment',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -369,7 +369,7 @@ const routes: RouteConfig<
         name: 'EditMoment',
         component: EditMoment,
         options: () => ({
-            title: 'EditMoment',
+            title: 'Edit Moment',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -391,7 +391,7 @@ const routes: RouteConfig<
         name: 'ViewSpace',
         component: ViewSpace,
         options: () => ({
-            title: 'ViewSpace',
+            title: 'View Space',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -411,7 +411,7 @@ const routes: RouteConfig<
         name: 'EditSpace',
         component: EditSpace,
         options: () => ({
-            title: 'EditSpace',
+            title: 'Edit Space',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -433,7 +433,7 @@ const routes: RouteConfig<
         name: 'ViewUser',
         component: ViewUser,
         options: () => ({
-            title: 'ViewUser',
+            title: 'View User',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

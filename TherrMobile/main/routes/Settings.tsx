@@ -1,14 +1,16 @@
 import React from 'react';
-import { SafeAreaView, View, Text } from 'react-native';
+import { Dimensions, SafeAreaView, View, Text, Platform } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Button }  from 'react-native-elements';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
 import { IUserState } from 'therr-react/types';
-import { PasswordRegex } from 'therr-js-utilities/constants';
+import { Content, PasswordRegex } from 'therr-js-utilities/constants';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import * as ImagePicker from 'react-native-image-picker';
+import RNFB from 'rn-fetch-blob';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
 import Alert from '../components/Alert';
@@ -21,7 +23,12 @@ import { buildStyles as buildSettingsFormStyles } from '../styles/forms/settings
 import SquareInput from '../components/Input/Square';
 import PasswordRequirements from '../components/Input/PasswordRequirements';
 import BaseStatusBar from '../components/BaseStatusBar';
+import UserImage from '../components/UserContent/UserImage';
+import { getImagePreviewPath } from '../utilities/areaUtils';
+import ImageCropView from '../components/ImageCropView';
+import { getUserImageUri, signImageUrl } from '../utilities/content';
 
+const { width: viewportWidth } = Dimensions.get('window');
 
 
 interface ISettingsDispatchProps {
@@ -38,11 +45,15 @@ export interface ISettingsProps extends IStoreProps {
 }
 
 interface ISettingsState {
+    croppedImageDetails: any;
     errorMsg: string;
     successMsg: string;
     inputs: any;
+    imageDetails: any;
+    isCropping: boolean;
     isSubmitting: boolean;
     passwordErrorMessage: string;
+    profPicLocalFilepath: string;
 }
 
 const mapStateToProps = (state) => ({
@@ -54,6 +65,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 export class Settings extends React.Component<ISettingsProps, ISettingsState> {
+    private cropViewRef;
     private scrollViewRef;
     private translate: Function;
     private theme = buildStyles();
@@ -66,6 +78,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         super(props);
 
         this.state = {
+            croppedImageDetails: {},
             errorMsg: '',
             successMsg: '',
             inputs: {
@@ -76,8 +89,11 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 phoneNumber: props.user.details.phoneNumber,
                 shouldHideMatureContent: props.user.details.shouldHideMatureContent,
             },
+            imageDetails: {},
+            isCropping: false,
             isSubmitting: false,
             passwordErrorMessage: '',
+            profPicLocalFilepath: '',
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -150,37 +166,39 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             this.setState({
                 isSubmitting: true,
             });
-            this.props
-                .updateUser(user.details.id, updateArgs)
-                .then(() => {
-                    this.setState({
-                        successMsg: this.translate('forms.settings.backendSuccessMessage'),
-                    });
-                })
-                .catch((error: any) => {
-                    if (
-                        error.statusCode === 400 ||
-                        error.statusCode === 401 ||
-                        error.statusCode === 404
-                    ) {
-                        this.setState({
-                            errorMsg: `${error.message}${
-                                error.parameters
-                                    ? '(' + error.parameters.toString() + ')'
-                                    : ''
-                            }`,
-                        });
-                    } else if (error.statusCode >= 500) {
-                        this.setState({
-                            errorMsg: this.translate('forms.settings.backendErrorMessage'),
-                        });
-                    }
-                })
-                .finally(() => {
-                    this.scrollViewRef?.scrollToPosition(0, 0);
-                });
+            this.requestUserUpdate(user, updateArgs);
         }
     };
+
+    requestUserUpdate = (user, updateArgs) => this.props
+        .updateUser(user.details.id, updateArgs)
+        .then(() => {
+            this.setState({
+                successMsg: this.translate('forms.settings.backendSuccessMessage'),
+            });
+        })
+        .catch((error: any) => {
+            if (
+                error.statusCode === 400 ||
+                error.statusCode === 401 ||
+                error.statusCode === 404
+            ) {
+                this.setState({
+                    errorMsg: `${error.message}${
+                        error.parameters
+                            ? '(' + error.parameters.toString() + ')'
+                            : ''
+                    }`,
+                });
+            } else if (error.statusCode >= 500) {
+                this.setState({
+                    errorMsg: this.translate('forms.settings.backendErrorMessage'),
+                });
+            }
+        })
+        .finally(() => {
+            this.scrollViewRef?.scrollToPosition(0, 0);
+        });
 
     onInputChange = (name: string, value: string) => {
         let passwordErrorMessage = '';
@@ -213,16 +231,103 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         });
     };
 
+    handleImagePress = () => {
+        ImagePicker.launchImageLibrary(
+            {
+                mediaType: 'photo',
+                includeBase64: false,
+                maxHeight: 4 * viewportWidth,
+                maxWidth: 4 * viewportWidth,
+                // selectionLimit: 1,
+            },
+            (cameraResponse) => this.onImageSelect(cameraResponse),
+        );
+    }
+
+    onCropAction = (name) => {
+        if (name === 'rotate') {
+            this.cropViewRef?.rotateImage(true);
+        } else if (name === 'cancel') {
+            this.setState({
+                isCropping: false,
+            });
+        } else if (name === 'done') {
+            const imageQualityPercent = 75;
+            this.cropViewRef?.saveImage(true, imageQualityPercent);
+        }
+    }
+
+    onDoneCropping = (croppedImageDetails) => {
+        const { user } = this.props;
+        this.setState({
+            croppedImageDetails,
+            isCropping: false,
+        });
+
+        this.signAndUploadImage(croppedImageDetails).then((imageUploadResponse) => {
+            this.requestUserUpdate(user, {
+                media: {
+                    profilePicture: {
+                        altText: `${user.firstName} ${user.lastName}`,
+                        type: Content.mediaTypes.USER_IMAGE_PUBLIC,
+                        path: imageUploadResponse.path,
+                    },
+                },
+            });
+        });
+    }
+
+    onImageSelect = (imageResponse) => {
+        let profPicLocalFilepath = Platform.OS === 'ios' ? imageResponse.uri?.replace('file:///', '') : imageResponse.uri;
+
+        if (!imageResponse.didCancel && !imageResponse.errorCode) {
+            this.setState({
+                imageDetails: imageResponse,
+                isCropping: true,
+                profPicLocalFilepath,
+            });
+        }
+    }
+
+    signAndUploadImage = (croppedImageDetails) => {
+        const filePathSplit = croppedImageDetails?.uri?.split('.');
+        const fileExtension = filePathSplit ? `${filePathSplit[filePathSplit.length - 1]}` : 'jpeg';
+        return signImageUrl(true, {
+            action: 'write',
+            filename: `profile/user_profile.${fileExtension}`,
+        }).then((response) => {
+            const signedUrl = response?.data?.url && response?.data?.url[0];
+
+            const localFileCroppedPath = Platform.OS === 'ios'
+                ? croppedImageDetails?.uri.replace('file:///', '').replace('file:/', '')
+                : croppedImageDetails?.uri;
+
+            // Upload to Google Cloud
+            // TODO: Abstract and add nudity filter sightengine.com
+            return RNFB.fetch(
+                'PUT',
+                signedUrl,
+                {
+                    'Content-Type': `image/${fileExtension}`,
+                    'Content-Disposition': 'inline',
+                },
+                RNFB.wrap(localFileCroppedPath),
+            ).then(() => response?.data);
+        });
+    }
+
     handleRefresh = () => {
         console.log('refresh');
     }
 
     render() {
         const { navigation, user } = this.props;
-        const { errorMsg, successMsg, inputs, passwordErrorMessage } = this.state;
+        const { croppedImageDetails, errorMsg, successMsg, inputs, isCropping, passwordErrorMessage, profPicLocalFilepath } = this.state;
         const pageHeaderUser = this.translate('pages.settings.pageHeaderUser');
         const pageHeaderPassword = this.translate('pages.settings.pageHeaderPassword');
         const pageHeaderSettings = this.translate('pages.settings.pageHeaderSettings');
+        const currentUserImageUri = getUserImageUri(user, 200);
+        const userImageUri = getImagePreviewPath(croppedImageDetails.uri) || currentUserImageUri;
 
         return (
             <>
@@ -240,6 +345,11 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                 </Text>
                             </View>
                             <View style={this.themeSettingsForm.styles.userContainer}>
+                                <UserImage
+                                    onPress={this.handleImagePress}
+                                    theme={this.theme}
+                                    userImageUri={userImageUri}
+                                />
                                 <Alert
                                     containerStyles={this.themeSettingsForm.styles.alert}
                                     isVisible={!!(errorMsg || successMsg)}
@@ -433,6 +543,18 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                             </View>
                         </View>
                     </KeyboardAwareScrollView>
+                    <ImageCropView
+                        isHidden={!isCropping}
+                        onImageCrop={this.onDoneCropping}
+                        onActionButtonPress={this.onCropAction}
+                        componentRef={(ref) => this.cropViewRef = ref}
+                        imageUrl={profPicLocalFilepath}
+                        navigation={navigation}
+                        theme={this.theme}
+                        themeMenu={this.themeMenu}
+                        translate={this.translate}
+                        user={user}
+                    />
                 </SafeAreaView>
                 <MainButtonMenu
                     navigation={navigation}

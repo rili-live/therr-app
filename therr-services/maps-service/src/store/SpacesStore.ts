@@ -209,6 +209,7 @@ export default class SpacesStore {
                             modifiedSpace.fromUserName = matchingUser.userName;
                             modifiedSpace.fromUserFirstName = matchingUser.firstName;
                             modifiedSpace.fromUserLastName = matchingUser.lastName;
+                            modifiedSpace.fromUserMedia = matchingUser.media;
                         }
                     }
 

@@ -13,6 +13,7 @@ import { bindActionCreators } from 'redux';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import { getUserImageUri } from '../../utilities/content';
 
 interface ILoginDispatchProps {
     login: Function;
@@ -46,7 +47,7 @@ const mapDispatchToProps = (dispatch: any) =>
 
 class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     private translate;
-    private cachedUserId;
+    private cachedUserDetails;
     private theme = buildStyles();
     private themeFTUI = buildFTUIStyles();
 
@@ -57,7 +58,7 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         this.themeFTUI = buildFTUIStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
             translator('en-us', key, params);
-        this.cachedUserId = (props.user && props.user.details && props.user.details.id);
+        this.cachedUserDetails = props.user?.details;
     }
 
     // TODO: On logout, ignore any deep link logic
@@ -88,9 +89,12 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                         contentContainerStyle={this.theme.styles.bodyScroll}
                     >
                         {
-                            this.cachedUserId ?
+                            this.cachedUserDetails ?
                                 <View style={[mixins.flexCenter, mixins.marginMediumBot, mixins.marginMediumTop]}>
-                                    <Image source={{ uri: `https://robohash.org/${this.cachedUserId}?size=200x200` }} loaderSize="large" theme={this.theme} />
+                                    <Image source={{ uri: getUserImageUri({ details: this.cachedUserDetails }, 200) }}
+                                        loaderSize="large"
+                                        theme={this.theme}
+                                    />
                                 </View> :
                                 <View style={this.theme.styles.sectionContainerWide}>
                                     <Text style={this.themeFTUI.styles.titleWithNoSpacing}>

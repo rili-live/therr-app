@@ -29,6 +29,7 @@ import { buildStyles as buildAccentFormStyles } from '../../styles/forms/accentE
 import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
 import AccentInput from '../../components/Input/Accent';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import { getUserImageUri } from '../../utilities/content';
 
 const userColors: any = {}; // local state
 
@@ -154,7 +155,7 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
             roomId: forumId,
             roomName: title,
             userName: user.details.userName,
-            userImgSrc: `https://robohash.org/${user.details.id}`,
+            userImgSrc: getUserImageUri(user.details, 100),
         });
     }
 
@@ -174,7 +175,7 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
                 roomId: user.socketDetails.currentRoom,
                 message: msgInputVal,
                 userName: user.details.userName,
-                userImgSrc: `https://robohash.org/${user.details.id}`,
+                userImgSrc: getUserImageUri(user.details, 100),
             });
 
             this.setState({

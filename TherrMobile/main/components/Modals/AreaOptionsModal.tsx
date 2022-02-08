@@ -1,8 +1,8 @@
-import { ITherrThemeColors } from 'main/styles/themes';
 import React from 'react';
 import { Modal, Pressable } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { ITherrThemeColors } from '../../styles/themes';
 
 export type ISelectionType = 'like' | 'dislike' | 'report';
 
