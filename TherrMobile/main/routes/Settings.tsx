@@ -327,7 +327,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const pageHeaderPassword = this.translate('pages.settings.pageHeaderPassword');
         const pageHeaderSettings = this.translate('pages.settings.pageHeaderSettings');
         const currentUserImageUri = getUserImageUri(user, 200);
-        const userImageUri = getImagePreviewPath(croppedImageDetails.uri) || currentUserImageUri || `https://robohash.org/${user.settings?.id}?size=200x200`;
+        const userImageUri = getImagePreviewPath(croppedImageDetails.uri) || currentUserImageUri;
 
         return (
             <>
