@@ -89,7 +89,7 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                         contentContainerStyle={this.theme.styles.bodyScroll}
                     >
                         {
-                            this.cachedUserDetails ?
+                            this.cachedUserDetails?.media ?
                                 <View style={[mixins.flexCenter, mixins.marginMediumBot, mixins.marginMediumTop]}>
                                     <Image source={{ uri: getUserImageUri({ details: this.cachedUserDetails }, 200) }}
                                         loaderSize="large"

@@ -98,7 +98,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                             source={{ uri: getUserImageUri({ details: { media: area.fromUserMedia } }, 52) }}
                             style={themeViewArea.styles.areaUserAvatarImg}
                             containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
-                            PlaceholderContent={<ActivityIndicator size="large" color={theme.colors.primary}/>}
+                            PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary}/>}
                             transition={false}
                         />
                     </Pressable>

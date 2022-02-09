@@ -1,19 +1,19 @@
 import React from 'react';
-import { Dimensions, GestureResponderEvent, View } from 'react-native';
-import { Button }  from 'react-native-elements';
-import * as ImagePicker from 'react-native-image-picker';
-import Alert from '../Alert';
+import { GestureResponderEvent, View } from 'react-native';
+import { Button } from 'react-native-elements';
+import RNFB from 'rn-fetch-blob';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
+import Alert from '../Alert';
 import UserImage from '../UserContent/UserImage';
-
-const { width: viewportWidth } = Dimensions.get('window');
+import { signImageUrl } from '../../utilities/content';
 
 interface ICreateProfileStageCProps {
     errorMsg: string;
     isDisabled: boolean;
-    onImageSelect: Function;
+    requestUserUpdate: Function;
+    onCropComplete: Function;
     onInputChange: Function;
-    onSubmit: ((event: GestureResponderEvent) => void) | undefined;
+    onContinue: ((event: GestureResponderEvent) => void) | undefined;
     translate: Function;
     theme: {
         colors: ITherrThemeColors;
@@ -44,26 +44,52 @@ class CreateProfileStageC extends React.Component<ICreateProfileStageCProps, ICr
         this.state = {};
     }
 
-    handleImagePress = () => {
-        const { onImageSelect } = this.props;
+    onDoneCropping = (croppedImageDetails) => {
+        const { onCropComplete } = this.props;
 
-        ImagePicker.launchImageLibrary(
-            {
-                mediaType: 'photo',
-                includeBase64: false,
-                maxHeight: 4 * viewportWidth,
-                maxWidth: 4 * viewportWidth,
-                // selectionLimit: 1,
-            },
-            (cameraResponse) => onImageSelect(cameraResponse),
-        );
+        if (!croppedImageDetails.didCancel && !croppedImageDetails.errorCode) {
+            const { requestUserUpdate } = this.props;
+            onCropComplete(croppedImageDetails);
+
+            this.signAndUploadImage(croppedImageDetails).then((imageUploadResponse) => {
+                requestUserUpdate(imageUploadResponse);
+            }).catch((err) => {
+                console.log(err);
+            });
+        }
+    }
+
+    signAndUploadImage = (croppedImageDetails) => {
+        const filePathSplit = croppedImageDetails?.path?.split('.');
+        const fileExtension = filePathSplit ? `${filePathSplit[filePathSplit.length - 1]}` : 'jpeg';
+        return signImageUrl(true, {
+            action: 'write',
+            filename: `profile/user_profile.${fileExtension}`,
+        }).then((response) => {
+            const signedUrl = response?.data?.url && response?.data?.url[0];
+
+            const localFileCroppedPath = `${croppedImageDetails?.path}`;
+
+            // Upload to Google Cloud
+            // TODO: Abstract and add nudity filter sightengine.com
+            return RNFB.fetch(
+                'PUT',
+                signedUrl,
+                {
+                    'Content-Type': croppedImageDetails.mime,
+                    'Content-Length': croppedImageDetails.size.toString(),
+                    'Content-Disposition': 'inline',
+                },
+                RNFB.wrap(localFileCroppedPath),
+            ).then(() => response?.data);
+        });
     }
 
     render() {
         const {
             errorMsg,
             isDisabled,
-            onSubmit,
+            onContinue,
             translate,
             theme,
             themeAlerts,
@@ -82,7 +108,7 @@ class CreateProfileStageC extends React.Component<ICreateProfileStageCProps, ICr
                     themeAlerts={themeAlerts}
                 />
                 <UserImage
-                    onPress={this.handleImagePress}
+                    onImageReady={this.onDoneCropping}
                     theme={theme}
                     userImageUri={userImageUri}
                 />
@@ -92,7 +118,7 @@ class CreateProfileStageC extends React.Component<ICreateProfileStageCProps, ICr
                         title={translate(
                             'forms.createProfile.buttons.submit'
                         )}
-                        onPress={onSubmit}
+                        onPress={onContinue}
                         raised={true}
                         disabled={isDisabled}
                     />
