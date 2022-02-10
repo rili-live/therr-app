@@ -19,9 +19,9 @@ const mergeAreas = (moments: any[], spaces: any[]) => {
             mergedAreas.push(moments[mIndex]);
             mIndex++;
         } else {
-            const mDate = new Date(moments[mIndex].createdAt).getTime();
-            const sDate = new Date(spaces[sIndex].createdAt).getTime();
-            if (mDate > sDate) {
+            const momentOrderByVal = new Date(moments[mIndex].createdAt).getTime();
+            const spaceOrderByVal = new Date(spaces[sIndex].createdAt).getTime();
+            if (momentOrderByVal > spaceOrderByVal) {
                 mergedAreas.push(moments[mIndex]);
                 mIndex++;
             } else {

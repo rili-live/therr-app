@@ -2,6 +2,7 @@ import React from 'react';
 import { Provider } from 'shared/react-redux';
 import SplashScreen from 'react-native-bootsplash';
 import { appleAuth } from '@invertase/react-native-apple-authentication';
+import LogRocket from '@logrocket/react-native';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import getStore from './getStore';
 import initInterceptors from './interceptors';
@@ -31,6 +32,32 @@ class App extends React.Component<any, any> {
                 console.warn('Credential Revoked');
             });
         }
+
+        LogRocket.init('pibaqj/therr-app-mobile', {
+            network: {
+                requestSanitizer: request => {
+                    if (request.headers['authorization']) {
+                        request.headers['authorization'] = '';
+                    }
+                    if (request.body?.toString().includes('password')) {
+                        request.body = '';
+                    }
+
+                    return request;
+                },
+                responseSanitizer: response => {
+                    if (response.body?.toString().includes('password') || response.body?.toString().includes('idToken')) {
+                        response.body = '';
+                    }
+
+                    return response;
+                },
+            },
+            console: {
+                shouldAggregateConsoleErrors: true,
+            },
+            redactionTags: ['RedactionString'],
+        });
     }
 
     componentWillUnmount() {

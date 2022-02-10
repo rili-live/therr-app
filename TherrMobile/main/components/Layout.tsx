@@ -12,6 +12,7 @@ import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import analytics from '@react-native-firebase/analytics';
 import crashlytics from '@react-native-firebase/crashlytics';
 import messaging from '@react-native-firebase/messaging';
+import LogRocket from '@logrocket/react-native';
 import { UsersService } from 'therr-react/services';
 import { AccessCheckType, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions } from 'therr-react/redux/actions';
@@ -146,6 +147,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             if (user.isAuthenticated) { // Happens after login
                 if (user.details?.id) {
                     crashlytics().setUserId(user.details?.id?.toString());
+                    LogRocket.identify(user.details?.id, {
+                        name: `${user.details?.firstName} ${user.details?.lastName}`,
+                        email: user.details?.email,
+
+                        // Add your own custom user variables here, ie:
+                    });
                 }
 
                 if (targetRouteView) {
