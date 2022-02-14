@@ -18,6 +18,7 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
+import { buildStyles as buildUserStyles } from '../../styles/user-content/user-display';
 import translator from '../../services/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import LottieLoader from '../../components/LottieLoader';
@@ -67,6 +68,7 @@ class ViewUser extends React.Component<
     private themeConfirmModal = buildConfirmModalStyles();
     private themeButtons = buildMenuStyles();
     private themeMenu = buildMenuStyles();
+    private themeUser = buildUserStyles();
 
     constructor(props) {
         super(props);
@@ -81,6 +83,7 @@ class ViewUser extends React.Component<
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
+        this.themeUser = buildUserStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
             translator('en-us', key, params);
     }
@@ -223,6 +226,7 @@ class ViewUser extends React.Component<
                                 onConnectionRequest={this.onConnectionRequest}
                                 onMessageUser={this.onMessageUser}
                                 onReportUser={this.onReportUser}
+                                themeUser={this.themeUser}
                                 translate={this.translate}
                                 user={user}
                                 userInView={fetchedUserInView}

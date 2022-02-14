@@ -7,6 +7,9 @@ import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildFTUIStyles } from '../../styles/first-time-ui';
+import { buildStyles as buildAuthFormStyles } from '../../styles/forms/authenticationForms';
+import { buildStyles as buildAlertStyles } from '../../styles/alerts';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
 import mixins from '../../styles/mixins';
 import LoginForm from './LoginForm';
 import { bindActionCreators } from 'redux';
@@ -49,13 +52,19 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     private translate;
     private cachedUserDetails;
     private theme = buildStyles();
+    private themeAlerts = buildAlertStyles();
+    private themeAuthForm = buildAuthFormStyles();
     private themeFTUI = buildFTUIStyles();
+    private themeForms = buildFormStyles();
 
     constructor(props) {
         super(props);
 
         this.theme = buildStyles(props.user?.settings?.mobileThemeName);
+        this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
+        this.themeAuthForm = buildAuthFormStyles(props.user.settings?.mobileThemeName);
         this.themeFTUI = buildFTUIStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
             translator('en-us', key, params);
         this.cachedUserDetails = props.user?.details;
@@ -108,6 +117,9 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                         <LoginForm
                             login={this.props.login}
                             navigation={this.props.navigation}
+                            themeAlerts={this.themeAlerts}
+                            themeAuthForm={this.themeAuthForm}
+                            themeForms={this.themeForms}
                             userMessage={userMessage}
                             userSettings={user?.settings || {}} />
                     </KeyboardAwareScrollView>

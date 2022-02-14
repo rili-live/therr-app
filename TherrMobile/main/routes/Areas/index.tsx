@@ -8,6 +8,7 @@ import { ContentActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
 // import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { buildStyles } from '../../styles';
+import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
@@ -89,6 +90,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     private loaderId: ILottieId;
     private loadTimeoutId: any;
     private theme = buildStyles();
+    private themeAreas = buildAreaStyles();
     private themeButtons = buildButtonsStyles();
     private themeLoader = buildLoaderStyles();
     private themeMenu = buildMenuStyles();
@@ -105,6 +107,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeAreas = buildAreaStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
         this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
@@ -277,6 +280,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                     <CarouselTabsMenu
                         activeTab={activeTab}
                         onButtonPress={this.onTabSelect}
+                        themeAreas={this.themeAreas}
                         translate={this.translate}
                         user={user}
                     />

@@ -35,6 +35,8 @@ import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildMenuStyles } from '../styles/modal/headerMenuModal';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
+import HeaderTherrLogo from './HeaderTherrLogo';
+import HeaderSearchInput from './Input/HeaderSearchInput';
 
 const Stack = createStackNavigator();
 
@@ -403,14 +405,41 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 <Stack.Navigator
                     screenOptions={({ navigation }) => {
                         const currentScreen = this.getCurrentScreen(navigation);
+                        const isAreas = currentScreen === 'Areas';
                         const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
-                        // const isMap = currentScreen === 'Map';
+                        const isMap = currentScreen === 'Map';
+                        const hasLogoHeaderTitle = currentScreen === 'Login'
+                            || currentScreen === 'Home'
+                            || currentScreen === 'ForgotPassword'
+                            || currentScreen === 'Nearby'
+                            || currentScreen === 'EmailVerification'
+                            || currentScreen === 'Register';
                         let headerTitle;
                         let headerStyleName: any = 'light';
                         let headerTitleColor = this.theme.colors.textWhite;
                         if (isMoment) {
                             headerStyleName = 'accent';
                             headerTitleColor = this.theme.colors.accentTextBlack;
+                        }
+                        if (hasLogoHeaderTitle) {
+                            headerTitle = () => (<HeaderTherrLogo navigation={navigation} theme={this.theme} />);
+                        }
+                        if (isAreas) {
+                            headerTitle = () => (<HeaderSearchInput
+                                icon="tune"
+                                isAdvancedSearch
+                                navigation={navigation}
+                                theme={this.theme}
+                                themeForms={this.themeForms}
+                            />);
+                        }
+                        if (isMap) {
+                            headerTitle = () => (<HeaderSearchInput
+                                icon="search"
+                                navigation={navigation}
+                                theme={this.theme}
+                                themeForms={this.themeForms}
+                            />);
                         }
 
                         return ({
