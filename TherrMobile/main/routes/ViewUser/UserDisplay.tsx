@@ -4,7 +4,6 @@ import { Image } from 'react-native-elements';
 import { FlatList } from 'react-native-gesture-handler';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getUserImageUri } from '../../utilities/content';
-import { buildStyles } from '../../styles/user-content/user-display';
 
 interface IActionItem {
     id: string;
@@ -87,7 +86,7 @@ const ListItem = ({
     onMessageUser,
     onReportUser,
     translate,
-    theme,
+    themeUser,
     userInView,
 }) => {
     let contextOnPress;
@@ -111,15 +110,15 @@ const ListItem = ({
     }
 
     return (
-        <Pressable onPress={() => contextOnPress(item, userInView)} style={theme.styles.actionMenuItemContainer}>
-            <View style={theme.styles.actionMenuItemIcon}>
+        <Pressable onPress={() => contextOnPress(item, userInView)} style={themeUser.styles.actionMenuItemContainer}>
+            <View style={themeUser.styles.actionMenuItemIcon}>
                 <MaterialIcon
                     name={item.icon}
                     size={30}
-                    color={theme.colorVariations.primary3LightFade}
+                    color={themeUser.colorVariations.primary3LightFade}
                 />
             </View>
-            <Text numberOfLines={1} style={theme.styles.actionMenuItemText}>{translate(item.title)}</Text>
+            <Text numberOfLines={1} style={themeUser.styles.actionMenuItemText}>{translate(item.title)}</Text>
         </Pressable>
     );
 };
@@ -130,6 +129,7 @@ export default ({
     onMessageUser,
     onReportUser,
     onProfilePicturePress,
+    themeUser,
     translate,
     user,
     userInView,
@@ -137,23 +137,22 @@ export default ({
     // eslint-disable-next-line eqeqeq
     const isMe = user.details?.id == userInView.id;
     let actionsList = getActionableOptions(isMe, userInView);
-    const theme = buildStyles(user.settings?.mobileThemeName);
 
     return (
-        <View style={theme.styles.container}>
+        <View style={themeUser.styles.container}>
             <Pressable
                 onPress={() => onProfilePicturePress(userInView, isMe)}
             >
                 <Image
                     source={{ uri: getUserImageUri({ details: userInView }, 400) }}
-                    style={theme.styles.profileImage}
+                    style={themeUser.styles.profileImage}
                     containerStyle={{}}
-                    PlaceholderContent={<ActivityIndicator size="large" color={theme.colors.primary}/>}
+                    PlaceholderContent={<ActivityIndicator size="large" color={themeUser.colors.primary}/>}
                     transition={false}
                 />
             </Pressable>
             <FlatList
-                style={theme.styles.actionMenuContainer}
+                style={themeUser.styles.actionMenuContainer}
                 data={actionsList}
                 keyExtractor={(item) => String(item.id)}
                 renderItem={({ item }) => <ListItem
@@ -163,10 +162,10 @@ export default ({
                     onMessageUser={onMessageUser}
                     onReportUser={onReportUser}
                     translate={translate}
-                    theme={theme}
+                    themeUser={themeUser}
                     userInView={userInView}
                 />}
-                ItemSeparatorComponent={() => <View style={theme.styles.separator} />}
+                ItemSeparatorComponent={() => <View style={themeUser.styles.separator} />}
                 keyboardShouldPersistTaps="always"
                 // ref={(component) => (this.flatListRef = component)}
                 // style={styles.stretch}

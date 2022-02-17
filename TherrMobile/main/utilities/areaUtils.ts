@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+// import { Platform } from 'react-native';
 import uuid from 'react-native-uuid';
 
 const getImagePreviewPath = (imageURI) => {
@@ -6,9 +6,7 @@ const getImagePreviewPath = (imageURI) => {
         return '';
     }
     let fullImagePath = imageURI.replace('file:///', '').replace('file:/', '');
-    if (Platform.OS !== 'ios') {
-        fullImagePath = `file:///${fullImagePath}`;
-    }
+    fullImagePath = `file:///${fullImagePath}`;
 
     return `${fullImagePath}?cachebust=${uuid.v4()}`;
 };

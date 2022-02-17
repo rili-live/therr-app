@@ -3,25 +3,24 @@ import { View } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { IUserState } from 'therr-react/types';
 import Svg, { Path, G } from 'react-native-svg';
 import translator from '../services/translator';
-import { buildStyles } from '../styles';
+import { ITherrThemeColors } from '../styles/themes';
 
 interface IHeaderTherrLogoDispatchProps {
 }
 
-interface IHeaderTherrLogoStoreProps extends IHeaderTherrLogoDispatchProps {
-    user: IUserState;
-}
+interface IHeaderTherrLogoStoreProps extends IHeaderTherrLogoDispatchProps {}
 
 interface IHeaderTherrLogoProps extends IHeaderTherrLogoStoreProps {
     navigation: any;
+    theme: {
+        colors: ITherrThemeColors;
+        styles: any;
+    }
 }
 
-const mapStateToProps = (state: any) => ({
-    user: state.user,
-});
+const mapStateToProps = () => ({});
 
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
@@ -31,13 +30,11 @@ const mapDispatchToProps = (dispatch: any) =>
 
 export class HeaderTherrLogo extends React.Component<IHeaderTherrLogoProps> {
     private translate: Function;
-    private theme = buildStyles();
     containerRef: any;
 
     constructor(props) {
         super(props);
 
-        this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
@@ -50,10 +47,12 @@ export class HeaderTherrLogo extends React.Component<IHeaderTherrLogoProps> {
     // TODO: Display red dot to show filters enabled
 
     render() {
+        const { theme } = this.props;
+
         return (
-            <View style={this.theme.styles.headerTitleLogoText}>
+            <View style={theme.styles.headerTitleLogoText}>
                 <Svg width={75} height={25} x="0" y="0" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid meet">
-                    <G transform="translate(0,400) scale(0.1,-0.1)" fill={this.theme.colors.textWhite} stroke="none">
+                    <G transform="translate(0,400) scale(0.1,-0.1)" fill={theme.colors.textWhite} stroke="none">
                         <Path d="M2711 3588 c-50 -297 -432 -3071 -434 -3162 -2 -57 -1 -59 26 -67 15
                             -4 168 -9 340 -11 l311 -3 101 729 100 729 120 79 c368 241 572 312 704 243
                             56 -29 66 -56 64 -180 -1 -119 -5 -148 -124 -1004 -43 -316 -77 -576 -75 -578

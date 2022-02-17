@@ -98,7 +98,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                             source={{ uri: getUserImageUri({ details: { media: area.fromUserMedia } }, 52) }}
                             style={themeViewArea.styles.areaUserAvatarImg}
                             containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
-                            PlaceholderContent={<ActivityIndicator size="large" color={theme.colors.primary}/>}
+                            PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary}/>}
                             transition={false}
                         />
                     </Pressable>
@@ -131,7 +131,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                 <UserMedia
                     viewportWidth={viewportWidth}
                     media={areaMedia}
-                    isVisible={areaMedia}
+                    isVisible={!!areaMedia}
                 />
                 <View style={themeViewArea.styles.areaContentTitleContainer}>
                     <Text
@@ -172,6 +172,10 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         styles={themeForms.styles}
                     />
                 </View>
+                {
+                    area.distance != null &&
+                    <Text  style={themeViewArea.styles.areaDistance}>{`${area.distance} mi`}</Text>
+                }
             </>
         );
     }

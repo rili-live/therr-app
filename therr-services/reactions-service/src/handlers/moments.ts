@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { distanceTo } from 'geolocation-utils';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 // import translate from '../utilities/translator';
@@ -17,6 +18,8 @@ const searchActiveMoments = async (req: any, res: any) => {
         withMedia,
         withUser,
         withBookmark,
+        userLatitude,
+        userLongitude, // TODO: Fetch coords from user redis store instead?
     } = req.body;
 
     const conditions: any = {
@@ -63,10 +66,23 @@ const searchActiveMoments = async (req: any, res: any) => {
         })
         .then((response) => {
             let moments = response?.data?.moments;
-            moments = moments.map((moment) => ({
-                ...moment,
-                reaction: reactions.find((reaction) => reaction.momentId === moment.id) || {},
-            })).filter((moment) => !blockedUsers.includes(moment.fromUserId));
+            moments = moments.map((moment) => {
+                const alteredMoment = moment;
+                if (userLatitude && userLongitude) {
+                    const distance = distanceTo({
+                        lon: moment.longitude,
+                        lat: moment.latitude,
+                    }, {
+                        lon: userLongitude,
+                        lat: userLatitude,
+                    }) / 1069.344; // convert meters to miles
+                    alteredMoment.distance = Math.round(distance * 10) / 10;
+                }
+                return {
+                    ...alteredMoment,
+                    reaction: reactions.find((reaction) => reaction.momentId === moment.id) || {},
+                };
+            }).filter((moment) => !blockedUsers.includes(moment.fromUserId));
             return res.status(200).send({
                 moments,
                 media: response?.data?.media,

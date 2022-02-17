@@ -6,7 +6,6 @@ import { bindActionCreators } from 'redux';
 import { Content } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import LottieView from 'lottie-react-native';
-import RNFB from 'rn-fetch-blob';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
 import { buildStyles } from '../styles';
@@ -20,9 +19,8 @@ import CreateProfileStageB from '../components/0_First_Time_UI/CreateProfileStag
 import CreateProfileStageC from '../components/0_First_Time_UI/CreateProfileStageC';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../constants';
-import ImageCropView from '../components/ImageCropView';
 import { getImagePreviewPath } from '../utilities/areaUtils';
-import { signImageUrl } from '../utilities/content';
+import { getUserImageUri } from '../utilities/content';
 
 const profileLoader = require('../assets/profile-circling.json');
 const verifyPhoneLoader = require('../assets/verify-phone-shield.json');
@@ -45,12 +43,9 @@ type StageType = 'A' | 'B' | 'C';
 interface ICreateProfileState {
     croppedImageDetails: any;
     errorMsg: string;
-    imageDetails: any;
     inputs: any;
-    isCropping: boolean;
     isPhoneNumberValid: boolean;
     isSubmitting: boolean;
-    profPicLocalFilepath: string;
     stage: StageType;
 }
 
@@ -63,7 +58,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 export class CreateProfile extends React.Component<ICreateProfileProps, ICreateProfileState> {
-    private cropViewRef;
     private scrollViewRef;
     private translate: Function;
     private theme = buildStyles();
@@ -79,7 +73,6 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         this.state = {
             croppedImageDetails: {},
             errorMsg: '',
-            imageDetails: {},
             inputs: {
                 email: props.user.details.email,
                 firstName: Platform.OS === 'ios' ? (props.user.details.firstName || DEFAULT_FIRSTNAME) : props.user.details.firstName,
@@ -87,10 +80,8 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                 userName: props.user.details.userName,
                 phoneNumber: props.user.details.phoneNumber,
             },
-            isCropping: false,
             isPhoneNumberValid: false,
             isSubmitting: false,
-            profPicLocalFilepath: '',
             stage: props.route?.params?.stage || 'A',
         };
 
@@ -130,68 +121,34 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         );
     }
 
-    onCropAction = (name) => {
-        if (name === 'rotate') {
-            this.cropViewRef?.rotateImage(true);
-        } else if (name === 'cancel') {
-            this.setState({
-                isCropping: false,
-            });
-        } else if (name === 'done') {
-            const imageQualityPercent = 75;
-            this.cropViewRef?.saveImage(true, imageQualityPercent);
-        }
-    }
+    requestUserUpdate = (imageUploadResponse) => {
+        const { user } = this.props;
 
-    onDoneCropping = (croppedImageDetails) => {
-        console.log('cropped', croppedImageDetails);
-        this.setState({
-            croppedImageDetails,
-            isCropping: false,
+        this.props.updateUser(user.details?.id, {
+            media: {
+                profilePicture: {
+                    altText: `${user.details?.firstName} ${user.details?.lastName}`,
+                    type: Content.mediaTypes.USER_IMAGE_PUBLIC,
+                    path: imageUploadResponse.path,
+                },
+            },
         });
     }
 
-    onImageSelect = (imageResponse) => {
-        let profPicLocalFilepath = Platform.OS === 'ios' ? imageResponse.uri?.replace('file:///', '') : imageResponse.uri;
-
-        if (!imageResponse.didCancel && !imageResponse.errorCode) {
-            this.setState({
-                imageDetails: imageResponse,
-                isCropping: true,
-                profPicLocalFilepath,
-            });
-        }
+    onCropComplete = (croppedImageDetails) => {
+        this.setState({
+            croppedImageDetails,
+        });
     }
 
-    signAndUploadImage = (croppedImageDetails) => {
-        const filePathSplit = croppedImageDetails?.uri?.split('.');
-        const fileExtension = filePathSplit ? `${filePathSplit[filePathSplit.length - 1]}` : 'jpeg';
-        return signImageUrl(true, {
-            action: 'write',
-            filename: `profile/user_profile.${fileExtension}`,
-        }).then((response) => {
-            const signedUrl = response?.data?.url && response?.data?.url[0];
-
-            const localFileCroppedPath = Platform.OS === 'ios'
-                ? croppedImageDetails?.uri.replace('file:///', '').replace('file:/', '')
-                : croppedImageDetails?.uri;
-
-            // Upload to Google Cloud
-            // TODO: Abstract and add nudity filter sightengine.com
-            return RNFB.fetch(
-                'PUT',
-                signedUrl,
-                {
-                    'Content-Type': `image/${fileExtension}`,
-                    'Content-Disposition': 'inline',
-                },
-                RNFB.wrap(localFileCroppedPath),
-            ).then(() => response?.data);
+    onContinue = () => {
+        this.setState({
+            stage: 'B',
         });
     }
 
     onSubmit = (stage: StageType) => {
-        const { croppedImageDetails, isPhoneNumberValid } = this.state;
+        const { isPhoneNumberValid } = this.state;
         const {
             firstName,
             lastName,
@@ -221,56 +178,44 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             this.setState({
                 isSubmitting: true,
             });
-            (croppedImageDetails?.uri ? this.signAndUploadImage(croppedImageDetails) : Promise.resolve({})).then((imageUploadResponse) => {
-                if (imageUploadResponse.path) {
-                    updateArgs.media = {
-                        profilePicture: {
-                            altText: `${firstName} ${lastName}`,
-                            type: Content.mediaTypes.USER_IMAGE_PUBLIC,
-                            path: imageUploadResponse.path,
-                        },
-                    };
-                }
-
-                this.props
-                    .updateUser(user.details.id, updateArgs)
-                    .then(() => {
-                        if (stage === 'A') {
-                            this.setState({
-                                stage: 'C',
-                            });
-                        } else if (stage === 'C') {
-                            this.setState({
-                                stage: 'B',
-                            });
-                        }
-                    })
-                    .catch((error: any) => {
-                        if (
-                            error.statusCode === 400 ||
-                            error.statusCode === 401 ||
-                            error.statusCode === 404
-                        ) {
-                            this.setState({
-                                errorMsg: `${error.message}${
-                                    error.parameters
-                                        ? '(' + error.parameters.toString() + ')'
-                                        : ''
-                                }`,
-                            });
-                        } else if (error.statusCode >= 500) {
-                            this.setState({
-                                errorMsg: this.translate('forms.settings.backendErrorMessage'),
-                            });
-                        }
-                    })
-                    .finally(() => {
-                        this.scrollViewRef?.scrollToPosition(0, 0);
+            this.props
+                .updateUser(user.details.id, updateArgs)
+                .then(() => {
+                    if (stage === 'A') {
                         this.setState({
-                            isSubmitting: false,
+                            stage: 'C',
                         });
+                    } else if (stage === 'C') {
+                        this.setState({
+                            stage: 'B',
+                        });
+                    }
+                })
+                .catch((error: any) => {
+                    if (
+                        error.statusCode === 400 ||
+                        error.statusCode === 401 ||
+                        error.statusCode === 404
+                    ) {
+                        this.setState({
+                            errorMsg: `${error.message}${
+                                error.parameters
+                                    ? '(' + error.parameters.toString() + ')'
+                                    : ''
+                            }`,
+                        });
+                    } else if (error.statusCode >= 500) {
+                        this.setState({
+                            errorMsg: this.translate('forms.settings.backendErrorMessage'),
+                        });
+                    }
+                })
+                .finally(() => {
+                    this.scrollViewRef?.scrollToPosition(0, 0);
+                    this.setState({
+                        isSubmitting: false,
                     });
-            });
+                });
         }
     };
 
@@ -297,12 +242,13 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
     };
 
     render() {
-        const { navigation, user } = this.props;
-        const { croppedImageDetails, errorMsg, inputs, isCropping, isSubmitting, profPicLocalFilepath, stage } = this.state;
+        const { user } = this.props;
+        const { croppedImageDetails, errorMsg, inputs, isSubmitting, stage } = this.state;
         const pageHeaderA = this.translate('pages.createProfile.pageHeaderA');
         const pageHeaderB = this.translate('pages.createProfile.pageHeaderB');
         const pageHeaderC = this.translate('pages.createProfile.pageHeaderC');
-        const profPicUri = getImagePreviewPath(croppedImageDetails.uri) || `https://robohash.org/${user.settings?.id}?size=200x200`;
+        const currentUserImageUri = getUserImageUri(user, 200);
+        const userImageUri = getImagePreviewPath(croppedImageDetails.path) || currentUserImageUri;
 
         return (
             <>
@@ -393,30 +339,19 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                 <CreateProfileStageC
                                     errorMsg={errorMsg}
                                     isDisabled={isSubmitting}
-                                    onImageSelect={this.onImageSelect}
+                                    onCropComplete={this.onCropComplete}
+                                    requestUserUpdate={this.requestUserUpdate}
                                     onInputChange={this.onPhoneInputChange}
-                                    onSubmit={() => this.onSubmit(stage)}
+                                    onContinue={() => this.onContinue()}
                                     translate={this.translate}
                                     theme={this.theme}
                                     themeAlerts={this.themeAlerts}
                                     themeForms={this.themeForms}
                                     themeSettingsForm={this.themeSettingsForm}
-                                    userImageUri={profPicUri}
+                                    userImageUri={userImageUri}
                                 />
                             }
                         </View>
-                        <ImageCropView
-                            isHidden={!isCropping}
-                            onImageCrop={this.onDoneCropping}
-                            onActionButtonPress={this.onCropAction}
-                            componentRef={(ref) => this.cropViewRef = ref}
-                            imageUrl={profPicLocalFilepath}
-                            navigation={navigation}
-                            theme={this.theme}
-                            themeMenu={this.themeMenu}
-                            translate={this.translate}
-                            user={user}
-                        />
                     </KeyboardAwareScrollView>
                 </SafeAreaView>
             </>

@@ -13,7 +13,7 @@ import { AccessLevels, Location } from 'therr-js-utilities/constants';
 import Geolocation from 'react-native-geolocation-service';
 import AnimatedLoader from 'react-native-animated-loader';
 import { distanceTo, insideCircle } from 'geolocation-utils';
-import * as ImagePicker from 'react-native-image-picker';
+import ImageCropPicker from 'react-native-image-crop-picker';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
 import MapActionButtons, { ICreateMomentAction } from './MapActionButtons';
 import Alert from '../../components/Alert';
@@ -329,11 +329,11 @@ class Map extends React.Component<IMapProps, IMapState> {
 
     handleImageSelect = (imageResponse, userCoords, areaType: IAreaType = 'moments') => {
         const { navigation } = this.props;
+        const routeName = areaType === 'spaces' ? 'EditSpace' : 'EditMoment';
 
         if (!imageResponse.didCancel && !imageResponse.errorCode) {
-            return navigation.navigate('AreaImageCrop', {
+            return navigation.navigate(routeName, {
                 ...userCoords,
-                areaType,
                 imageDetails: imageResponse,
             });
         }
@@ -375,40 +375,24 @@ class Map extends React.Component<IMapProps, IMapState> {
                 const permissionsDenied = Object.keys(response).some((key) => {
                     return response[key] !== 'granted';
                 });
+                const pickerOptions: any = {
+                    mediaType: 'photo',
+                    includeBase64: false,
+                    height: 4 * viewportWidth,
+                    width: 4 * viewportWidth,
+                    multiple: false,
+                    cropping: true,
+                };
                 if (!permissionsDenied) {
                     if (action === 'camera') {
-                        return ImagePicker.launchCamera(
-                            {
-                                mediaType: 'photo',
-                                includeBase64: false,
-                                maxHeight: 4 * viewportWidth,
-                                maxWidth: 4 * viewportWidth,
-                                saveToPhotos: true,
-                            },
-                            (cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter),
-                        );
+                        return ImageCropPicker.openCamera(pickerOptions)
+                            .then((cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter));
                     } else if (action === 'upload') {
-                        return ImagePicker.launchImageLibrary(
-                            {
-                                mediaType: 'photo',
-                                includeBase64: false,
-                                maxHeight: 4 * viewportWidth,
-                                maxWidth: 4 * viewportWidth,
-                                // selectionLimit: 1,
-                            },
-                            (cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter),
-                        );
+                        return ImageCropPicker.openPicker(pickerOptions)
+                            .then((cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter));
                     } else if (action === 'claim') {
-                        return ImagePicker.launchImageLibrary(
-                            {
-                                mediaType: 'photo',
-                                includeBase64: false,
-                                maxHeight: 4 * viewportWidth,
-                                maxWidth: 4 * viewportWidth,
-                                // selectionLimit: 1,
-                            },
-                            (cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter, 'spaces'),
-                        );
+                        return ImageCropPicker.openPicker(pickerOptions)
+                            .then((cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter, 'spaces'));
                     } else {
                         navigation.navigate('EditMoment', {
                             ...circleCenter,
@@ -420,7 +404,12 @@ class Map extends React.Component<IMapProps, IMapState> {
                 }
             }).catch((e) => {
                 console.log(e);
-                // Handle Permissions denied
+                // TODO: Handle Permissions denied
+                if (e?.message.toLowerCase().includes('cancel')) {
+                    this.handleImageSelect({
+                        didCancel: true,
+                    }, circleCenter);
+                }
             });
 
         } else {

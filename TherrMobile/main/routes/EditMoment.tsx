@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, Pressable, SafeAreaView, Keyboard, Text, View } from 'react-native';
+import { Pressable, SafeAreaView, Keyboard, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button, Slider, Image } from 'react-native-elements';
@@ -86,8 +86,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
 
         const { route } = props;
         const { imageDetails } = route.params;
-        const { croppedImage } = imageDetails || {};
-        const imageURI = croppedImage?.uri || imageDetails?.uri;
 
         this.state = {
             errorMsg: '',
@@ -98,7 +96,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             },
             isSubmitting: false,
             previewStyleState: {},
-            imagePreviewPath: getImagePreviewPath(imageURI),
+            imagePreviewPath: getImagePreviewPath(imageDetails?.path),
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -175,29 +173,33 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         const {
         } = route.params;
         const { imageDetails } = route.params;
-        const { croppedImage } = imageDetails || {};
+        const filePathSplit = imageDetails?.path?.split('.');
+        const fileExtension = filePathSplit ? `${filePathSplit[filePathSplit.length - 1]}` : 'jpeg';
 
+        // TODO: This is too slow
+        // Use public method for public spaces
         return signImageUrl(isPublic, {
             action: 'write',
-            filename: `content/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g,'_')}.jpg`,
+            filename: `content/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g,'_')}.${fileExtension}`,
         }).then((response) => {
             const signedUrl = response?.data?.url && response?.data?.url[0];
             createArgs.media = [{}];
             createArgs.media[0].type = isPublic ? Content.mediaTypes.USER_IMAGE_PUBLIC : Content.mediaTypes.USER_IMAGE_PRIVATE;
             createArgs.media[0].path = response?.data?.path;
 
-            const localFilePath = Platform.OS === 'ios' ? imageDetails.uri.replace('file:///', '') : imageDetails.uri;
-            const localFileCroppedPath = Platform.OS === 'ios' ? imageDetails.uri.replace('file:///', '').replace('file:/', '') : croppedImage?.uri;
+            const localFileCroppedPath = `${imageDetails?.path}`;
 
             // Upload to Google Cloud
+            // TODO: Abstract and add nudity filter sightengine.com
             return RNFB.fetch(
                 'PUT',
                 signedUrl,
                 {
-                    'Content-Type': imageDetails.type,
+                    'Content-Type': imageDetails.mime,
+                    'Content-Length': imageDetails.size.toString(),
                     'Content-Disposition': 'inline',
                 },
-                RNFB.wrap(localFileCroppedPath || localFilePath),
+                RNFB.wrap(localFileCroppedPath),
             ).then(() => createArgs);
         });
     }
@@ -223,7 +225,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             longitude,
         } = route.params;
         const { imageDetails } = route.params;
-        const { croppedImage } = imageDetails || {};
 
         const createArgs: any = {
             category,
@@ -244,7 +245,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 isSubmitting: true,
             });
 
-            (croppedImage ? this.signAndUploadImage(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
+            (imageDetails?.path ? this.signAndUploadImage(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
                 this.props
                     .createMoment(modifiedCreateArgs)
                     .then(() => {
@@ -378,7 +379,15 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
 
     render() {
         const { navigation } = this.props;
-        const { errorMsg, successMsg, hashtags, inputs, previewLinkId, previewStyleState, imagePreviewPath } = this.state;
+        const {
+            errorMsg,
+            successMsg,
+            hashtags,
+            inputs,
+            previewLinkId,
+            previewStyleState,
+            imagePreviewPath,
+        } = this.state;
 
         return (
             <>
