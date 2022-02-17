@@ -1,5 +1,7 @@
 import 'react-native';
 import React from 'react';
+import { buildStyles as buildAlertStyles } from '../../main/styles/alerts';
+import { buildStyles as buildFormStyles } from '../../main/styles/forms';
 import RegisterForm from '../../main/routes/Register/RegisterForm';
 
 // Note: test renderer must be required after react-native.
@@ -7,6 +9,9 @@ import renderer from 'react-test-renderer';
 
 jest.mock('react-native-country-picker-modal');
 jest.mock('react-native-phone-input');
+
+const themeAlerts = buildAlertStyles();
+const themeForms = buildFormStyles();
 
 beforeEach(() => {
     jest.useFakeTimers();
@@ -26,7 +31,15 @@ describe('RegisterForm', () => {
         const mockToggleEULA = jest.fn();
         const onSuccessMock = jest.fn();
         const component = renderer.create(
-            <RegisterForm register={mockRegister} onSuccess={onSuccessMock} toggleEULA={mockToggleEULA} userSettings={{ mobileThemeName: 'retro' }} />
+            <RegisterForm
+                register={mockRegister}
+                onSuccess={onSuccessMock}
+                toggleEULA={mockToggleEULA}
+                userSettings={{ mobileThemeName: 'retro' }}
+                themeAuthForm={{ styles: {} }}
+                themeAlerts={themeAlerts}
+                themeForms={themeForms}
+            />
         );
         const instance = component.getInstance();
         expect(instance.isRegisterFormDisabled()).toEqual(true);
