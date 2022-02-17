@@ -5,7 +5,7 @@ import { View } from 'react-native';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { CAROUSEL_TABS } from '../../constants';
-import { ITherrThemeColors } from 'main/styles/themes';
+import { ITherrThemeColors } from '../../styles/themes';
 
 interface ICarouselTabsMenuDispatchProps {
 }

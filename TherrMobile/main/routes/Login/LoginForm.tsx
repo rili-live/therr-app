@@ -10,7 +10,7 @@ import Alert from '../../components/Alert';
 import RoundInput from '../../components/Input/Round';
 import AppleSignInButton from '../../components/LoginButtons/AppleSignInButton';
 import GoogleSignInButton from '../../components/LoginButtons/GoogleSignInButton';
-import { ITherrThemeColors } from 'main/styles/themes';
+import { ITherrThemeColors } from '../../styles/themes';
 
 interface ISSOUserDetails {
     isSSO: boolean;
