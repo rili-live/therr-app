@@ -146,6 +146,13 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             paddingHorizontal: 14,
             paddingBottom: 4,
         },
+        areaDistance: {
+            color: isDarkMode ? therrTheme.colors.textGray : therrTheme.colors.tertiary,
+            width: '100%',
+            paddingHorizontal: 10,
+            fontFamily: 'Lexend-Regular',
+            textAlign: 'left',
+        },
         footer: {
             paddingRight: 20,
         },

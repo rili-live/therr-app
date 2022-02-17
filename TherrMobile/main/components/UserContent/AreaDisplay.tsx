@@ -131,7 +131,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                 <UserMedia
                     viewportWidth={viewportWidth}
                     media={areaMedia}
-                    isVisible={areaMedia}
+                    isVisible={!!areaMedia}
                 />
                 <View style={themeViewArea.styles.areaContentTitleContainer}>
                     <Text
@@ -172,6 +172,10 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         styles={themeForms.styles}
                     />
                 </View>
+                {
+                    area.distance != null &&
+                    <Text  style={themeViewArea.styles.areaDistance}>{`${area.distance} mi`}</Text>
+                }
             </>
         );
     }

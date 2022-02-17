@@ -248,62 +248,52 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         });
     }
 
-    renderCarousel = (content) => {
-        const { createOrUpdateMomentReaction, createOrUpdateSpaceReaction, user } = this.props;
-        const { activeTab, isLoading } = this.state;
-
-        if (isLoading) {
-            return <LottieLoader id={this.loaderId} theme={this.themeLoader} />;
-        }
-
-        const activeData = getActiveCarouselData({
+    render() {
+        const { activeTab, areAreaOptionsVisible, isLoading, selectedArea } = this.state;
+        const { content, navigation, createOrUpdateMomentReaction, createOrUpdateSpaceReaction, user } = this.props;
+        const activeData = isLoading ? [] : getActiveCarouselData({
             activeTab,
             content,
             isForBookmarks: false,
         });
 
-        return (
-            <AreaCarousel
-                activeData={activeData}
-                content={content}
-                inspectArea={this.goToArea}
-                goToViewUser={this.goToViewUser}
-                toggleAreaOptions={this.toggleAreaOptions}
-                translate={this.translate}
-                containerRef={(component) => this.carouselRef = component}
-                handleRefresh={this.handleRefresh}
-                onEndReached={this.tryLoadMore}
-                updateMomentReaction={createOrUpdateMomentReaction}
-                updateSpaceReaction={createOrUpdateSpaceReaction}
-                emptyListMessage={this.getEmptyListMessage(activeTab)}
-                renderHeader={() => (
-                    <CarouselTabsMenu
-                        activeTab={activeTab}
-                        onButtonPress={this.onTabSelect}
-                        themeAreas={this.themeAreas}
-                        translate={this.translate}
-                        user={user}
-                    />
-                )}
-                user={user}
-                rootStyles={this.theme.styles}
-                // viewportHeight={viewportHeight}
-                // viewportWidth={viewportWidth}
-            />
-        );
-    }
-
-    render() {
-        const { areAreaOptionsVisible, selectedArea } = this.state;
-        const { content, navigation, user } = this.props;
+        // TODO: Fetch missing media
+        const fetchMedia = () => {};
 
         return (
             <>
                 <BaseStatusBar />
                 <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
-                    {
-                        this.renderCarousel(content)
-                    }
+                    <AreaCarousel
+                        activeData={activeData}
+                        content={content}
+                        inspectArea={this.goToArea}
+                        isLoading={isLoading}
+                        fetchMedia={fetchMedia}
+                        goToViewUser={this.goToViewUser}
+                        toggleAreaOptions={this.toggleAreaOptions}
+                        translate={this.translate}
+                        containerRef={(component) => this.carouselRef = component}
+                        handleRefresh={this.handleRefresh}
+                        onEndReached={this.tryLoadMore}
+                        updateMomentReaction={createOrUpdateMomentReaction}
+                        updateSpaceReaction={createOrUpdateSpaceReaction}
+                        emptyListMessage={this.getEmptyListMessage(activeTab)}
+                        renderHeader={() => (
+                            <CarouselTabsMenu
+                                activeTab={activeTab}
+                                onButtonPress={this.onTabSelect}
+                                themeAreas={this.themeAreas}
+                                translate={this.translate}
+                                user={user}
+                            />
+                        )}
+                        renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
+                        user={user}
+                        rootStyles={this.theme.styles}
+                        // viewportHeight={viewportHeight}
+                        // viewportWidth={viewportWidth}
+                    />
                 </SafeAreaView>
                 <AreaOptionsModal
                     isVisible={areAreaOptionsVisible}
