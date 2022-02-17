@@ -13,6 +13,8 @@ export const searchActiveAreasValidation = [
     body('shouldHideMatureContent').exists().isBoolean(),
     body('withMedia').isBoolean().optional(),
     body('withUser').isBoolean().optional(),
+    body('userLatitude').isNumeric().optional(),
+    body('userLongitude').isNumeric().optional(),
 ];
 
 export const searchBookmarkedAreasValidation = searchActiveAreasValidation;

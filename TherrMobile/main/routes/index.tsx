@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { RouteConfig, StackNavigationState } from '@react-navigation/native';
 import { StackNavigationOptions } from '@react-navigation/stack';
 import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/src/types';
@@ -31,8 +31,6 @@ import EditChat from './HostedChat/EditChat';
 import ViewChat from './HostedChat/ViewChat';
 import ViewUser from './ViewUser/index.tsx';
 import { buildStyles } from '../styles';
-import HeaderTherrLogo from '../components/HeaderTherrLogo';
-import HeaderSearchInput from '../components/Input/HeaderSearchInput';
 
 // TODO: Use Props
 const styles = buildStyles().styles;
@@ -76,7 +74,7 @@ const routes: RouteConfig<
     {
         name: 'Login',
         component: Login,
-        options: (params) => ({
+        options: () => ({
             title: 'Login',
             access: {
                 type: AccessCheckType.NONE,
@@ -84,7 +82,6 @@ const routes: RouteConfig<
                 isPublic: true,
             },
             headerStyle: styles.headerStyleNoShadow,
-            headerTitle: () => <HeaderTherrLogo navigation={params?.navigation} />,
         }),
     },
     {
@@ -101,25 +98,23 @@ const routes: RouteConfig<
     {
         name: 'Map',
         component: Map,
-        options: (params) => ({
+        options: () => ({
             title: 'Map',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerTitle: () => <HeaderSearchInput icon="search" navigation={params?.navigation} />,
         }),
     },
     {
         name: 'Areas',
         component: Areas,
-        options: (params) => ({
+        options: () => ({
             title: 'Areas',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerTitle: () => <HeaderSearchInput icon="tune" isAdvancedSearch navigation={params?.navigation} />,
         }),
     },
     {
@@ -158,13 +153,12 @@ const routes: RouteConfig<
     {
         name: 'Home',
         component: Home,
-        options: (params) => ({
+        options: () => ({
             title: 'Home',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerTitle: () => <HeaderTherrLogo navigation={params?.navigation} />,
         }),
     },
     {
@@ -218,7 +212,7 @@ const routes: RouteConfig<
     {
         name: 'ForgotPassword',
         component: ForgotPassword,
-        options: (params) => ({
+        options: () => ({
             title: 'Password Reset',
             access: {
                 type: AccessCheckType.NONE,
@@ -226,7 +220,6 @@ const routes: RouteConfig<
                 isPublic: true,
             },
             headerStyle: styles.headerStyleNoShadow,
-            headerTitle: () => <HeaderTherrLogo navigation={params?.navigation} />,
         }),
     },
     // {
@@ -243,13 +236,12 @@ const routes: RouteConfig<
     {
         name: 'Nearby',
         component: Nearby,
-        options: (params) => ({
+        options: () => ({
             title: 'Nearby',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerTitle: () => <HeaderTherrLogo navigation={params?.navigation} />,
         }),
     },
     {
@@ -266,20 +258,19 @@ const routes: RouteConfig<
     {
         name: 'EmailVerification',
         component: EmailVerification,
-        options: (params) => ({
+        options: () => ({
             title: 'Email Verification',
             access: {
                 type: AccessCheckType.NONE,
                 levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
                 isPublic: true,
             },
-            headerTitle: () => <HeaderTherrLogo navigation={params?.navigation} />,
         }),
     },
     {
         name: 'Register',
         component: Register,
-        options: (params) => ({
+        options: () => ({
             title: 'Create Account',
             access: {
                 type: AccessCheckType.NONE,
@@ -287,7 +278,6 @@ const routes: RouteConfig<
                 isPublic: true,
             },
             headerStyle: styles.headerStyleNoShadow,
-            headerTitle: () => <HeaderTherrLogo navigation={params?.navigation} />,
         }),
     },
     {

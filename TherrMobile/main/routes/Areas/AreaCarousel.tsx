@@ -13,6 +13,7 @@ const renderItem = ({ item: area }, {
     content,
     inspectArea,
     toggleAreaOptions,
+    fetchMedia,
     formattedDate,
     goToViewUser,
     translate,
@@ -22,6 +23,9 @@ const renderItem = ({ item: area }, {
     updateAreaReaction,
     user,
 }) => {
+    if (area.media && !content?.media[area.media[0]?.id]) {
+        fetchMedia(area.media[0]?.id);
+    }
     const areaMedia = content?.media[area.media && area.media[0]?.id];
 
     return (
@@ -63,8 +67,10 @@ export default ({
     content,
     inspectArea,
     containerRef,
+    fetchMedia,
     goToViewUser,
     handleRefresh,
+    isLoading,
     onEndReached,
     toggleAreaOptions,
     translate,
@@ -72,12 +78,15 @@ export default ({
     updateSpaceReaction,
     emptyListMessage,
     renderHeader,
+    renderLoader,
     rootStyles,
     user,
     // viewportHeight,
     // viewportWidth,
 }) => {
     const [refreshing, setRefreshing] = React.useState(false);
+
+    // TODO: Move to top level
     const theme = buildStyles(user.details.mobileThemeName);
     const themeArea = buildAreaStyles(user.details.mobileThemeName, false);
     const themeForms = buildFormStyles(user.details.mobileThemeName);
@@ -114,6 +123,10 @@ export default ({
     //     );
     // }
 
+    if (isLoading) {
+        return renderLoader();
+    }
+
     return (
         <>
             <FlatList
@@ -122,6 +135,7 @@ export default ({
                 renderItem={(itemObj) => renderItem(itemObj, {
                     content,
                     inspectArea,
+                    fetchMedia,
                     formattedDate: formatDate(itemObj.item.createdAt),
                     goToViewUser,
                     toggleAreaOptions,
@@ -132,6 +146,7 @@ export default ({
                     updateAreaReaction: itemObj.item.areaType === 'spaces' ? updateSpaceReaction : updateMomentReaction,
                     user,
                 })}
+                initialNumToRender={1}
                 ListEmptyComponent={<Text style={theme.styles.noAreasFoundText}>{emptyListMessage}</Text>}
                 ListHeaderComponent={renderHeader()}
                 ListFooterComponent={<View style={theme.styles.areaCarouselFooter} />}

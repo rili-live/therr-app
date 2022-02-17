@@ -12,6 +12,7 @@ import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
 import analytics from '@react-native-firebase/analytics';
 import crashlytics from '@react-native-firebase/crashlytics';
 import messaging from '@react-native-firebase/messaging';
+import LogRocket from '@logrocket/react-native';
 import { UsersService } from 'therr-react/services';
 import { AccessCheckType, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions } from 'therr-react/redux/actions';
@@ -34,6 +35,8 @@ import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildMenuStyles } from '../styles/modal/headerMenuModal';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
+import HeaderTherrLogo from './HeaderTherrLogo';
+import HeaderSearchInput from './Input/HeaderSearchInput';
 
 const Stack = createStackNavigator();
 
@@ -146,6 +149,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             if (user.isAuthenticated) { // Happens after login
                 if (user.details?.id) {
                     crashlytics().setUserId(user.details?.id?.toString());
+                    LogRocket.identify(user.details?.id, {
+                        name: `${user.details?.firstName} ${user.details?.lastName}`,
+                        email: user.details?.email,
+
+                        // Add your own custom user variables here, ie:
+                    });
                 }
 
                 if (targetRouteView) {
@@ -396,14 +405,41 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 <Stack.Navigator
                     screenOptions={({ navigation }) => {
                         const currentScreen = this.getCurrentScreen(navigation);
+                        const isAreas = currentScreen === 'Areas';
                         const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
-                        // const isMap = currentScreen === 'Map';
+                        const isMap = currentScreen === 'Map';
+                        const hasLogoHeaderTitle = currentScreen === 'Login'
+                            || currentScreen === 'Home'
+                            || currentScreen === 'ForgotPassword'
+                            || currentScreen === 'Nearby'
+                            || currentScreen === 'EmailVerification'
+                            || currentScreen === 'Register';
                         let headerTitle;
                         let headerStyleName: any = 'light';
                         let headerTitleColor = this.theme.colors.textWhite;
                         if (isMoment) {
                             headerStyleName = 'accent';
                             headerTitleColor = this.theme.colors.accentTextBlack;
+                        }
+                        if (hasLogoHeaderTitle) {
+                            headerTitle = () => (<HeaderTherrLogo navigation={navigation} theme={this.theme} />);
+                        }
+                        if (isAreas) {
+                            headerTitle = () => (<HeaderSearchInput
+                                icon="tune"
+                                isAdvancedSearch
+                                navigation={navigation}
+                                theme={this.theme}
+                                themeForms={this.themeForms}
+                            />);
+                        }
+                        if (isMap) {
+                            headerTitle = () => (<HeaderSearchInput
+                                icon="search"
+                                navigation={navigation}
+                                theme={this.theme}
+                                themeForms={this.themeForms}
+                            />);
                         }
 
                         return ({

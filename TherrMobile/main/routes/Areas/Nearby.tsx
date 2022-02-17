@@ -186,18 +186,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
         Geolocation.stopObserving();
     }
 
-    getEmptyListMessage = (activeTab) => {
-        if (activeTab === CAROUSEL_TABS.SOCIAL) {
-            return this.translate('pages.areas.noSocialAreasFound');
-        }
-
-        if (activeTab === CAROUSEL_TABS.HIRE) {
-            return this.translate('pages.areas.noHireAreasFound');
-        }
-
-        // CAROUSEL_TABS.EVENTS
-        return this.translate('pages.areas.noEventsAreasFound');
-    }
+    getEmptyListMessage = () => this.translate('pages.areas.noNearbyAreasFound');
 
     shouldRenderNearbyNewsfeed = () => {
         const { location } = this.props;
@@ -229,10 +218,12 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
     }
 
     handleRefresh = () => {
-        const { content, updateActiveMoments, updateActiveSpaces, user } = this.props;
+        const { content, map, updateActiveMoments, updateActiveSpaces, user } = this.props;
         this.setState({ isLoading: true });
 
         const activeMomentsPromise = updateActiveMoments({
+            userLatitude: map.latitude,
+            userLongitude: map.longitude,
             withMedia: true,
             withUser: true,
             offset: 0,
@@ -242,6 +233,8 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
         });
 
         const activeSpacesPromise = updateActiveSpaces({
+            userLatitude: map.latitude,
+            userLongitude: map.longitude,
             withMedia: true,
             withUser: true,
             offset: 0,
@@ -258,10 +251,11 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
     }
 
     tryLoadMore = () => {
-        const { content, searchActiveMoments, searchActiveSpaces, user } = this.props;
+        const { content, map, searchActiveMoments, searchActiveSpaces, user } = this.props;
 
         loadMoreAreas({
             content,
+            map,
             user,
             searchActiveMoments,
             searchActiveSpaces,
@@ -530,55 +524,50 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
         );
     }
 
-    renderCarousel = (content, user) => {
-        const { createOrUpdateMomentReaction, createOrUpdateSpaceReaction } = this.props;
-        const { activeTab, isLoading } = this.state;
+    render() {
+        const { activeTab, areAreaOptionsVisible, isLocationUseDisclosureModalVisible, isLoading, selectedArea } = this.state;
+        const { createOrUpdateMomentReaction, createOrUpdateSpaceReaction, content, navigation, user } = this.props;
 
-        if (isLoading) {
-            return <LottieLoader id={this.loaderId} theme={this.themeLoader} />;
-        }
+        // TODO: Fetch missing media
+        const fetchMedia = () => {};
 
-        const activeData = getActiveCarouselData({
+        const activeData = isLoading ? [] : getActiveCarouselData({
             activeTab,
             content,
             isForBookmarks: false,
-        });
-
-        return (
-            <AreaCarousel
-                activeData={activeData}
-                content={content}
-                inspectArea={this.goToArea}
-                goToViewUser={this.goToViewUser}
-                toggleAreaOptions={this.toggleAreaOptions}
-                translate={this.translate}
-                containerRef={(component) => this.carouselRef = component}
-                handleRefresh={this.handleRefresh}
-                onEndReached={this.tryLoadMore}
-                updateMomentReaction={createOrUpdateMomentReaction}
-                updateSpaceReaction={createOrUpdateSpaceReaction}
-                emptyListMessage={this.getEmptyListMessage(activeTab)}
-                renderHeader={this.renderHeader}
-                user={user}
-                rootStyles={this.theme.styles}
-                // viewportHeight={viewportHeight}
-                // viewportWidth={viewportWidth}
-            />
-        );
-    }
-
-    render() {
-        const { areAreaOptionsVisible, isLocationUseDisclosureModalVisible, selectedArea } = this.state;
-        const { content, navigation, user } = this.props;
+        }, 'distance');
 
         return (
             <>
                 <BaseStatusBar />
                 <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
                     {
+                        true &&
+                            <AreaCarousel
+                                activeData={activeData}
+                                content={content}
+                                fetchMedia={fetchMedia}
+                                inspectArea={this.goToArea}
+                                goToViewUser={this.goToViewUser}
+                                toggleAreaOptions={this.toggleAreaOptions}
+                                translate={this.translate}
+                                containerRef={(component) => this.carouselRef = component}
+                                handleRefresh={this.handleRefresh}
+                                isLoading={isLoading}
+                                onEndReached={this.tryLoadMore}
+                                updateMomentReaction={createOrUpdateMomentReaction}
+                                updateSpaceReaction={createOrUpdateSpaceReaction}
+                                emptyListMessage={this.getEmptyListMessage()}
+                                renderHeader={this.renderHeader}
+                                renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
+                                user={user}
+                                rootStyles={this.theme.styles}
+                                // viewportHeight={viewportHeight}
+                                // viewportWidth={viewportWidth}
+                            />
+                    }
+                    {
                         this.shouldRenderNearbyNewsfeed()
-                            ? this.renderCarousel(content, user)
-                            : this.renderGpsEnableButton()
                     }
                 </SafeAreaView>
                 <AreaOptionsModal

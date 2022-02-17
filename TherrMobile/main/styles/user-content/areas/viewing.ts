@@ -56,18 +56,17 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             marginBottom: 32,
         },
         areaUserAvatarImgContainer: {
-            width: areaUserAvatarImgWidth - (areaUserAvatarImgPadding * 2),
-            borderRadius: areaUserAvatarImgRadius,
+            width: areaUserAvatarImgWidth,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             padding: 0,
-            margin: areaUserAvatarImgPadding,
         },
         areaUserAvatarImg: {
-            height: areaUserAvatarImgWidth,
-            width: areaUserAvatarImgWidth,
-            padding: areaUserAvatarImgPadding,
+            height: areaUserAvatarImgWidth - (areaUserAvatarImgPadding * 2),
+            width: areaUserAvatarImgWidth - (areaUserAvatarImgPadding * 2),
+            borderRadius: areaUserAvatarImgRadius,
+            margin: areaUserAvatarImgPadding,
         },
         areaAuthorContainer: {
             display: 'flex',
@@ -81,6 +80,7 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             height: areaUserAvatarImgWidth,
             maxHeight: areaUserAvatarImgWidth,
             position: 'relative',
+            boxSizing: 'border-box',
         },
         areaAuthorTextContainer: {
             height: '100%',
@@ -145,6 +145,13 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             width: '100%',
             paddingHorizontal: 14,
             paddingBottom: 4,
+        },
+        areaDistance: {
+            color: isDarkMode ? therrTheme.colors.textGray : therrTheme.colors.tertiary,
+            width: '100%',
+            paddingHorizontal: 10,
+            fontFamily: 'Lexend-Regular',
+            textAlign: 'left',
         },
         footer: {
             paddingRight: 20,

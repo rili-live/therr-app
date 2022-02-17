@@ -22,14 +22,25 @@ const handleAreaReaction = (selectedArea, reactionType: ISelectionType, {
     }
 };
 
+interface ILoadMoreAreas {
+    content: any;
+    map?: any;
+    user: any;
+    searchActiveMoments: any;
+    searchActiveSpaces: any;
+}
+
 const loadMoreAreas = ({
     content,
+    map,
     user,
     searchActiveMoments,
     searchActiveSpaces,
-}) => {
+}: ILoadMoreAreas) => {
     if (!content.activeMomentsPagination.isLastPage) {
         return searchActiveMoments({
+            userLatitude: map?.latitude,
+            userLongitude: map?.longitude,
             withMedia: true,
             withUser: true,
             offset: content.activeMomentsPagination.offset + content.activeMomentsPagination.itemsPerPage,
@@ -41,6 +52,8 @@ const loadMoreAreas = ({
 
     if (!content.activeSpacesPagination.isLastPage) {
         return searchActiveSpaces({
+            userLatitude: map?.latitude,
+            userLongitude: map?.longitude,
             withMedia: true,
             withUser: true,
             offset: content.activeSpacesPagination.offset + content.activeSpacesPagination.itemsPerPage,

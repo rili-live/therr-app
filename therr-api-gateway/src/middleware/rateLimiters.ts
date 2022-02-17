@@ -22,12 +22,12 @@ const genericRateLimiter = new RateLimit({
     }),
 });
 
-const serviceRateLimiter = new RateLimit({
+const serviceRateLimiter = (maxRequests = 100) => new RateLimit({
     store: new RedisStore({
         client: redisClient,
     }),
     windowMs: 10 * 1000, // 10 seconds
-    max: 100, // limit each IP to 50 requests per windowMs
+    max: maxRequests, // limit each IP to 100 requests per windowMs
     statusCode: limitReachedStatusCode,
     handler: (req, res) => handleHttpError({
         res,

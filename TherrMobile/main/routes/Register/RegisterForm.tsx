@@ -5,12 +5,10 @@ import { PasswordRegex } from 'therr-js-utilities/constants';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import translator from '../../services/translator';
 import { addMargins } from '../../styles';
-import { buildStyles as buildFormStyles } from '../../styles/forms';
-import { buildStyles as buildAuthFormStyles } from '../../styles/forms/authenticationForms';
-import { buildStyles as buildAlertStyles } from '../../styles/alerts';
 import Alert from '../../components/Alert';
 import RoundInput from '../../components/Input/Round';
 import PasswordRequirements from '../../components/Input/PasswordRequirements';
+import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 
 // Regular component props
 interface IRegisterFormProps {
@@ -20,6 +18,18 @@ interface IRegisterFormProps {
     title?: string;
     toggleEULA: Function;
     userSettings: any;
+    themeAlerts: {
+        colors: ITherrThemeColors;
+        colorVariations: ITherrThemeColorVariations;
+        styles: any;
+    };
+    themeAuthForm: {
+        styles: any;
+    };
+    themeForms: {
+        colors: ITherrThemeColors;
+        styles: any;
+    };
 }
 
 interface IRegisterFormState {
@@ -38,9 +48,6 @@ export class RegisterFormComponent extends React.Component<
     IRegisterFormState
 > {
     private translate: Function;
-    private themeAlerts = buildAlertStyles();
-    private themeForms = buildFormStyles();
-    private themeAuthForm = buildAuthFormStyles();
 
     constructor(props: IRegisterFormProps) {
         super(props);
@@ -53,9 +60,6 @@ export class RegisterFormComponent extends React.Component<
             isPasswordEntryDirty: false,
         };
 
-        this.themeAlerts = buildAlertStyles(props.userSettings.mobileThemeName);
-        this.themeForms = buildFormStyles(props.userSettings.mobileThemeName);
-        this.themeAuthForm = buildAuthFormStyles(props.userSettings.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -164,7 +168,7 @@ export class RegisterFormComponent extends React.Component<
             passwordErrorMessage,
             prevRegisterError,
         } = this.state;
-        const { toggleEULA } = this.props;
+        const { themeAlerts, themeForms, themeAuthForm, toggleEULA } = this.props;
 
         return (
             <>
@@ -182,14 +186,14 @@ export class RegisterFormComponent extends React.Component<
                         <MaterialIcon
                             name="email"
                             size={24}
-                            color={this.themeAlerts.colorVariations.primary3Fade}
+                            color={themeAlerts.colorVariations.primary3Fade}
                         />
                     }
-                    themeForms={this.themeForms}
+                    themeForms={themeForms}
                 />
                 {
                     isPasswordEntryDirty &&
-                        <PasswordRequirements translate={this.translate} password={this.state.inputs.password} themeForms={this.themeForms} />
+                        <PasswordRequirements translate={this.translate} password={this.state.inputs.password} themeForms={themeForms} />
                 }
                 {/* TODO: RMOBILE-26: Centralize password requirements */}
                 <RoundInput
@@ -207,10 +211,10 @@ export class RegisterFormComponent extends React.Component<
                         <MaterialIcon
                             name="vpn-key"
                             size={26}
-                            color={this.themeAlerts.colorVariations.primary3Fade}
+                            color={themeAlerts.colorVariations.primary3Fade}
                         />
                     }
-                    themeForms={this.themeForms}
+                    themeForms={themeForms}
                 />
                 <RoundInput
                     autoCapitalize="none"
@@ -230,10 +234,10 @@ export class RegisterFormComponent extends React.Component<
                         <MaterialIcon
                             name="lock"
                             size={26}
-                            color={this.themeAlerts.colorVariations.primary3Fade}
+                            color={themeAlerts.colorVariations.primary3Fade}
                         />
                     }
-                    themeForms={this.themeForms}
+                    themeForms={themeForms}
                 />
                 <Alert
                     containerStyles={addMargins({
@@ -242,13 +246,13 @@ export class RegisterFormComponent extends React.Component<
                     isVisible={!!prevRegisterError}
                     message={prevRegisterError}
                     type={'error'}
-                    themeAlerts={this.themeAlerts}
+                    themeAlerts={themeAlerts}
                 />
-                <View style={this.themeAuthForm.styles.registerButtonContainer}>
+                <View style={themeAuthForm.styles.registerButtonContainer}>
                     <Button
-                        buttonStyle={this.themeAuthForm.styles.button}
-                        titleStyle={this.themeForms.styles.buttonTitle}
-                        // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                        buttonStyle={themeAuthForm.styles.button}
+                        titleStyle={themeForms.styles.buttonTitle}
+                        // disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
                         title={this.translate(
                             'forms.registerForm.buttons.register'
                         )}
@@ -256,10 +260,10 @@ export class RegisterFormComponent extends React.Component<
                         disabled={this.isRegisterFormDisabled()}
                     />
                 </View>
-                <View style={this.themeAuthForm.styles.moreLinksContainer}>
+                <View style={themeAuthForm.styles.moreLinksContainer}>
                     <Button
                         type="clear"
-                        titleStyle={this.themeAuthForm.styles.buttonLink}
+                        titleStyle={themeAuthForm.styles.buttonLink}
                         title={this.translate(
                             'forms.registerForm.buttons.eula'
                         )}
