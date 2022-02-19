@@ -26,6 +26,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontSize: 20,
             fontWeight: '800',
             paddingBottom: 8,
+            fontFamily: 'Lexend-Regular',
         },
         text: {
             paddingBottom: 5,

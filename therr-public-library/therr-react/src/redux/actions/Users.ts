@@ -6,6 +6,10 @@ import UsersService from '../../services/UsersService';
 interface ILoginSSOTokens {
     google?: string;
 }
+
+interface IUpdateTourArgs {
+    isTouring: boolean;
+}
 class UsersActions {
     constructor(socketIO, NativeStorage?, GoogleSignin?) {
         this.socketIO = socketIO;
@@ -165,7 +169,7 @@ class UsersActions {
             lastName,
             userName,
             media,
-        } = response && response.data;
+        } = response?.data || {};
         // TODO: Determine if it is necessary to dispatch anything after user registers
         // set current user?
         const userDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || {});
@@ -200,6 +204,22 @@ class UsersActions {
         });
         return { email, id, userName };
     });
+
+    updateTour = (id: string, data: IUpdateTourArgs) => (dispatch: any) => (this.NativeStorage || sessionStorage)
+        .getItem('therrUserSettings').then(async (settings) => {
+            const userSettings = JSON.parse(settings || {});
+            // TODO: Get user settings from db
+            const userSettingsData: IUser = Immutable.from({
+                ...userSettings,
+                isTouring: data.isTouring,
+            });
+            (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
+
+            dispatch({
+                type: UserActionTypes.UPDATE_USER_TOUR,
+                data,
+            });
+        });
 }
 
 export default UsersActions;

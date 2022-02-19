@@ -1,5 +1,7 @@
 import React from 'react';
-import { ActivityIndicator, Platform, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import { Button, Image, Text } from 'react-native-elements';
 import Overlay from 'react-native-modal-overlay';
 import { CommonActions, StackActions } from '@react-navigation/native';
@@ -14,6 +16,7 @@ import { ILocationState } from '../types/redux/location';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
 import { ITherrThemeColors } from '../styles/themes';
 import { getUserImageUri } from '../utilities/content';
+import UsersActions from '../redux/actions/UsersActions';
 
 const ANIMATION_DURATION = 180;
 
@@ -23,7 +26,9 @@ const ANIMATION_DURATION = 180;
 //     'TherrFont.ttf'
 // );
 
-interface IHeaderMenuRightDispatchProps {}
+interface IHeaderMenuRightDispatchProps {
+    updateTour: Function;
+}
 
 interface IStoreProps extends IHeaderMenuRightDispatchProps {
 }
@@ -51,6 +56,16 @@ export interface IHeaderMenuRightProps extends IStoreProps {
 interface IHeaderMenuRightState {
     isModalVisible: boolean;
 }
+
+const mapStateToProps = () => ({});
+
+const mapDispatchToProps = (dispatch: any) =>
+    bindActionCreators(
+        {
+            updateTour: UsersActions.updateTour,
+        },
+        dispatch
+    );
 
 class HeaderMenuRight extends React.Component<
     IHeaderMenuRightProps,
@@ -162,16 +177,15 @@ class HeaderMenuRight extends React.Component<
     };
 
     startTour = () => {
-        const { navigation } = this.props;
-        if (this.getCurrentScreen() === 'Map') {
-            this.toggleOverlay();
-            navigation.replace('Map', {
-                isTourEnabled: true,
-            });
-        } else {
-            navigation.navigate('Map', {
-                isTourEnabled: true,
-            });
+        const { navigation, user, updateTour } = this.props;
+        this.toggleOverlay();
+
+        updateTour(user.details.id, {
+            isTouring: true,
+        });
+
+        if (this.getCurrentScreen() !== 'Map') {
+            navigation.navigate('Map');
         }
     }
 
@@ -514,22 +528,19 @@ class HeaderMenuRight extends React.Component<
                                         />
                                     </View>
                                     <View style={themeMenu.styles.footer}>
-                                        {
-                                            Platform.OS !== 'ios' &&
-                                            <Button
-                                                titleStyle={themeMenu.styles.buttonsTitle}
-                                                buttonStyle={[themeMenu.styles.buttons, , { justifyContent: 'center', marginBottom: 10 }]}
-                                                title={this.translate('components.headerMenuRight.menuItems.tour')}
-                                                icon={
-                                                    <FontAwesomeIcon
-                                                        style={themeMenu.styles.iconStyle}
-                                                        name="info"
-                                                        size={18}
-                                                    />
-                                                }
-                                                onPress={this.startTour}
-                                            />
-                                        }
+                                        <Button
+                                            titleStyle={themeMenu.styles.buttonsTitle}
+                                            buttonStyle={[themeMenu.styles.buttons, , { justifyContent: 'center', marginBottom: 10 }]}
+                                            title={this.translate('components.headerMenuRight.menuItems.tour')}
+                                            icon={
+                                                <FontAwesomeIcon
+                                                    style={themeMenu.styles.iconStyle}
+                                                    name="info"
+                                                    size={18}
+                                                />
+                                            }
+                                            onPress={this.startTour}
+                                        />
                                         <Button
                                             titleStyle={themeMenu.styles.buttonsTitle}
                                             buttonStyle={[themeMenu.styles.buttons, { justifyContent: 'center' }]}
@@ -557,4 +568,4 @@ class HeaderMenuRight extends React.Component<
     }
 }
 
-export default HeaderMenuRight;
+export default connect(mapStateToProps, mapDispatchToProps)(HeaderMenuRight);

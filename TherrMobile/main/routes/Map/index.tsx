@@ -36,6 +36,7 @@ import { buildStyles, loaderStyles } from '../../styles';
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
+import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildDisclosureStyles } from '../../styles/modal/locationDisclosure';
 import { buildStyles as buildTourStyles } from '../../styles/modal/tourModal';
@@ -83,6 +84,7 @@ interface IMapDispatchProps {
     updateLocationDisclosure: Function;
     updateLocationPermissions: Function;
     updateUser: Function;
+    updateTour: Function;
 }
 
 interface IStoreProps extends IMapDispatchProps {
@@ -120,7 +122,6 @@ interface IMapState {
     isLocationUseDisclosureModalVisible: boolean;
     isMinLoadTimeComplete: boolean;
     isSearchThisLocationBtnVisible: boolean;
-    isTouring: boolean;
     shouldIgnoreSearchThisAreaButton: boolean;
     shouldShowCreateActions: boolean;
     lastMomentsRefresh?: number,
@@ -157,6 +158,7 @@ const mapDispatchToProps = (dispatch: any) =>
             updateLocationDisclosure: LocationActions.updateLocationDisclosure,
             updateLocationPermissions: LocationActions.updateLocationPermissions,
             updateUser: UsersActions.update,
+            updateTour: UsersActions.updateTour,
         },
         dispatch
     );
@@ -169,6 +171,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     private themeAlerts = buildAlertStyles();
     private themeConfirmModal = buildConfirmModalStyles();
     private themeButtons = buildButtonStyles();
+    private themeLoader = buildLoaderStyles();
     private themeMenu = buildMenuStyles();
     private themeDisclosure = buildDisclosureStyles();
     private themeTour = buildTourStyles();
@@ -196,7 +199,6 @@ class Map extends React.Component<IMapProps, IMapState> {
             shouldFollowUserLocation: false,
             isConfirmModalVisible: false,
             isScrollEnabled: true,
-            isTouring: false,
             isAreaAlertVisible: false,
             isLocationUseDisclosureModalVisible: false,
             isLocationReady: false,
@@ -219,6 +221,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
         this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
+        this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeDisclosure = buildDisclosureStyles(props.user.settings?.mobileThemeName);
         this.themeTour = buildTourStyles(props.user.settings?.mobileThemeName);
@@ -230,18 +233,8 @@ class Map extends React.Component<IMapProps, IMapState> {
     componentDidMount = async () => {
         const { navigation, setSearchDropdownVisibility } = this.props;
 
-        this.unsubscribeNavigationListener = navigation.addListener('state', (event) => {
-            const route = event.data.state.routes.find(route => route.name === 'Map');
+        this.unsubscribeNavigationListener = navigation.addListener('state', () => {
             setSearchDropdownVisibility(false);
-            if (route && route.params?.isTourEnabled) {
-                this.setState({
-                    isTouring: true,
-                });
-            } else {
-                this.setState({
-                    isTouring: false,
-                });
-            }
             clearTimeout(this.timeoutId);
             this.setState({
                 isMinLoadTimeComplete: true,
@@ -940,9 +933,9 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     handleStopTouring = () => {
-        const { navigation } = this.props;
-        navigation.navigate('Map', {
-            isTourEnabled: false,
+        const { user, updateTour } = this.props;
+        updateTour(user.details.id, {
+            isTouring: false,
         });
     }
 
@@ -1184,13 +1177,14 @@ class Map extends React.Component<IMapProps, IMapState> {
             isAreaAlertVisible,
             isScrollEnabled,
             isSearchThisLocationBtnVisible,
-            isTouring,
             layers,
         } = this.state;
         const { captureClickTarget, location, map, navigation, notifications, user } = this.props;
         const searchPredictionResults = map?.searchPredictions?.results || [];
         const isDropdownVisible = map?.searchPredictions?.isSearchDropdownVisible;
         const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
+        const isTouring = !!user?.settings?.isTouring;
+        console.log("ZACK_DEBUG", !!user.settings.isTouring);
 
         return (
             <>

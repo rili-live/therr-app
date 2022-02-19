@@ -42,6 +42,11 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
                 ...state.details,
                 ...action.data,
             });
+        case UserActionTypes.UPDATE_USER_TOUR:
+            return state.setIn(['settings'], {
+                ...state.settings,
+                ...action.data,
+            });
         case SocketClientActionTypes.LOGOUT:
             return state.setIn(['isAuthenticated'], false)
                 .setIn(['socketDetails'], {})
