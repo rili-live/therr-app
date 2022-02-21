@@ -59,19 +59,23 @@ export default ({
     translate,
 }: ITouringModal) => {
     const [tab, setTab] = useState(0);
+    const onClose = () => {
+        setTab(0);
+        onRequestClose();
+    };
 
     return (
         <Modal
             animationType="slide"
             visible={isVisible}
-            onRequestClose={onRequestClose}
+            onRequestClose={onClose}
             transparent={true}
             style={{
                 zIndex: 1000,
             }}
         >
             <Pressable
-                onPress={onRequestClose}
+                onPress={onClose}
                 style={themeTour.styles.overlay}>
                 {
                     (tab !== 1 && tab !== 2) &&
@@ -90,7 +94,7 @@ export default ({
                             <ModalButton
                                 iconName="close"
                                 title={translate('modals.touringModal.exit')}
-                                onPress={onRequestClose}
+                                onPress={onClose}
                                 iconRight={false}
                                 themeButtons={themeButtons}
                             />
@@ -159,7 +163,7 @@ export default ({
                             <ModalButton
                                 iconName="check"
                                 title={translate('modals.touringModal.done')}
-                                onPress={onRequestClose}
+                                onPress={onClose}
                                 iconRight
                                 themeButtons={themeButtons}
                             />

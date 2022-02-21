@@ -39,6 +39,7 @@ export default ({
                     <View style={themeButtons.styles.momentLayerOption3}>
                         <Button
                             buttonStyle={themeButtons.styles.btnMedium}
+                            containerStyle={{ borderRadius: 100 }}
                             titleStyle={themeButtons.styles.btnTextWhite}
                             icon={
                                 <FontAwesomeIcon
@@ -54,6 +55,7 @@ export default ({
                     <View style={themeButtons.styles.momentLayerOption4}>
                         <Button
                             buttonStyle={themeButtons.styles.btnMedium}
+                            containerStyle={{ borderRadius: 100 }}
                             icon={
                                 <FontAwesomeIcon
                                     name="child"

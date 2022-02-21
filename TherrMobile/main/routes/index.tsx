@@ -8,6 +8,7 @@ import AdvancedSearch from './AdvancedSearch';
 import BookMarked from './Areas/BookMarked';
 import Home from './Home';
 import DirectMessage from './DirectMessage';
+import Landing from './Landing';
 import Login from './Login';
 import Map from './Map';
 import Areas from './Areas';
@@ -71,6 +72,19 @@ const routes: RouteConfig<
     ExtendedRouteOptions,
     StackNavigationEventMap
 >[] = [
+    {
+        name: 'Landing',
+        component: Landing,
+        options: () => ({
+            title: 'Landing',
+            access: {
+                type: AccessCheckType.NONE,
+                levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+                isPublic: true,
+            },
+            headerStyle: styles.headerStyleNoShadow,
+        }),
+    },
     {
         name: 'Login',
         component: Login,

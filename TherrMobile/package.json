@@ -99,8 +99,7 @@
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "metro-react-native-babel-preset": "^0.66.2",
     "patch-package": "^6.2.2",
-    "react-devtools": "^4.15.0",
-    "react-native-svg-transformer": "^1.0.0"
+    "react-devtools": "^4.15.0"
   },
   "rnpm": {
     "assets": [

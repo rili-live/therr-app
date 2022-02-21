@@ -144,6 +144,7 @@
       "menuItems": {
         "account": "ACCOUNT SETTINGS",
         "addConnection": "NEW CONNECTION",
+        "bookmarks": "BOOKMARKS",
         "chat": "MESSAGES",
         "connections": "CONNECTIONS",
         "home": "HOME",
@@ -185,6 +186,7 @@
     }
   },
   "forms": {
+    "dividerOr": "or",
     "createConnection": {
       "buttons": {
         "submit": "Send"
@@ -402,7 +404,7 @@
     "main": {
       "buttons": {
         "account": "Account",
-        "connections": "People",
+        "connect": "Connect",
         "bookmarked": "Saved",
         "goToTop": "Go To Top",
         "list": "Discovered",
@@ -418,6 +420,7 @@
     },
     "connections": {
       "buttons": {
+        "add": "Add",
         "activeConnections": "Active Connections",
         "searchContacts": "Search Contacts",
         "createConnection": "Add Connection"
@@ -531,6 +534,29 @@
         "title": "Categories"
       }
     },
+    "landing": {
+      "headerTitle": "Welcome",
+      "buttons": {
+        "getStarted": "Get Started",
+        "signIn": "Sign In"
+      },
+      "carousel": {
+        "claimTitle": "Claim a Space",
+        "claimDescription": "that is exclusive and visible to all users.",
+        "discoverTitle": "Discover Content",
+        "discoverDescription": "while on the move and find those hidden gems.",
+        "momentTitle": "Share Moments",
+        "momentDescription": "that are only visible to your connections and groups."
+      }
+    },
+    "login": {
+      "headerTitle": "Therr",
+      "pageTitle": "Welcome",
+      "pageSubtitle": "Sign in to Therr to see what you missed",
+      "userAlerts": {
+        "registerSuccess": "Registration success! Check your e-mail for verification."
+      }
+    },
     "nearby": {
       "headerTitle": "Nearby Newsfeed",
       "locationDescription1": "See posts from nearby users in the local community where you currently are.",
@@ -541,14 +567,6 @@
       "headerTitle": "Notifications",
       "pageTitle": "Notifications",
       "noNotifications": "You have no notifications at this time"
-    },
-    "login": {
-      "headerTitle": "Therr",
-      "pageTitle": "Welcome",
-      "pageSubtitle": "Sign in to Therr to see what you missed",
-      "userAlerts": {
-        "registerSuccess": "Registration success! Check your e-mail for verification."
-      }
     },
     "map": {
       "headerTitle": " ",
@@ -646,10 +664,10 @@
       "back": "Back",
       "next": "Next",
       "done": "Done",
-      "header1": "Tour: Claim a Spaces",
+      "header1": "Tour: Claim a Space",
       "header2": "Tour: Share a Moment",
       "header3": "Tour: Explore the World",
-      "createAMoment": "Curate content on the go. 'Moments' are only available when a user in your network discovers them. Enable location and press the plus icon. Set the geo-radius for activation and customize each moment to your hearts desire!",
+      "createAMoment": "Curate content on the go. 'Moments' are only available when a user in your network discovers them. Enable location and press the plus icon. Set the geo-radius for activation and customize each moment to your heart's desire!",
       "claimYourSpaces": "Claim a limited # of spaces. Content is public, and nobody can claim overlapping spaces. Use your space to notify users and share local content.",
       "exploreTheWorld": "Seek out 'moments' that peak your interests. Check the map for Insights and plan your travels accordingly. Find and post 'Gigs', schedule 'Events', and connect with the community. Some of these features are unlocked only after reaching certain milestones."
     }

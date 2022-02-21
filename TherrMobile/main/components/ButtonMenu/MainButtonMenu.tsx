@@ -135,30 +135,30 @@ class MainButtonMenuAlt extends ButtonMenu {
                     onPress={() => this.navTo('Map')}
                 />
                 <Button
-                    title={!isCompact ? translate('menus.main.buttons.bookmarked') : null}
+                    title={!isCompact ? translate('menus.main.buttons.connect') : null}
                     buttonStyle={
-                        currentScreen === 'BookMarked'
+                        currentScreen === 'ActiveConnections'
                             ? themeMenu.styles.buttonsActive
                             : themeMenu.styles.buttons
                     }
                     containerStyle={themeMenu.styles.buttonContainer}
                     titleStyle={
-                        currentScreen === 'BookMarked'
+                        currentScreen === 'ActiveConnections'
                             ? themeMenu.styles.buttonsTitleActive
                             : themeMenu.styles.buttonsTitle
                     }
                     icon={
                         <FontAwesomeIcon
-                            name="bookmark"
+                            name="user-friends"
                             size={20}
                             style={
-                                currentScreen === 'BookMarked'
+                                currentScreen === 'ActiveConnections'
                                     ? themeMenu.styles.buttonIconActive
                                     : themeMenu.styles.buttonIcon
                             }
                         />
                     }
-                    onPress={() => this.navTo('BookMarked')}
+                    onPress={() => this.navTo('ActiveConnections')}
                 />
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.nearby') : null}

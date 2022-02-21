@@ -31,34 +31,38 @@ function safelyParse(input: any) {
 
 const getStore = async () => {
     // Get stored user details from session storage if they are already logged in
-    if (typeof window !== 'undefined') {
-        const therrSession = await AsyncStorage.getItem('therrSession');
-        const storedSocketDetails = JSON.parse(therrSession || '{}');
-        const therrUser = await AsyncStorage.getItem('therrUser');
-        let storedUser = JSON.parse(therrUser || '{}');
-        storedUser = storedUser || {};
-        const isAuthenticated = !!(storedUser && storedUser.id && storedUser.idToken);
-        const reloadedState: any = {
-            user: {
-                details: storedUser,
-                isAuthenticated,
-                settings: {
-                    locale: 'en-us',
-                    mobileThemeName: 'retro',
-                },
-                socketDetails: {
-                    session: storedSocketDetails,
-                },
+    const therrSession = await AsyncStorage.getItem('therrSession');
+    const storedSocketDetails = JSON.parse(therrSession || '{}');
+    const therrUser = await AsyncStorage.getItem('therrUser');
+    let storedUser = JSON.parse(therrUser || '{}');
+    storedUser = storedUser || {};
+    const isAuthenticated = !!(storedUser && storedUser.id && storedUser.idToken);
+    const reloadedState: any = {
+        user: {
+            details: storedUser,
+            isAuthenticated,
+            settings: {
+                locale: 'en-us',
+                mobileThemeName: 'retro',
             },
-        };
+            socketDetails: {
+                session: storedSocketDetails,
+            },
+        },
+    };
+    if (typeof window !== 'undefined') {
         preLoadedState = Object.assign(
             safelyParse(window.__PRELOADED_STATE__),
             reloadedState
         );
-        if (isAuthenticated) {
-            updateSocketToken(reloadedState.user, true);
-        }
+    } else {
+        preLoadedState = reloadedState;
     }
+
+    if (isAuthenticated) {
+        updateSocketToken(reloadedState.user, true);
+    }
+    console.log('ZACK', preLoadedState);
 
     return __DEV__
         ? createStore(

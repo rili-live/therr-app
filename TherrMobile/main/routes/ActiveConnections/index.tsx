@@ -167,7 +167,7 @@ class ActiveConnectionsComponent extends React.Component<
                         // onContentSizeChange={() => connections.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
                     />
                 </SafeAreaView>
-                <CreateConnectionButton navigation={navigation} themeButtons={this.themeButtons}/>
+                <CreateConnectionButton navigation={navigation} themeButtons={this.themeButtons} translate={this.translate}/>
                 <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}

@@ -192,6 +192,22 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingTop: 0,
             color: therrTheme.colors.accentTextBlack,
         },
+        orDividerContainer: {
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        orDividerText: {
+            color: therrTheme.colors.textGray,
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            marginHorizontal: 12,
+            fontSize: 16,
+        },
+        orDividerLines: {
+            flexGrow: 1,
+            borderBottomWidth: 1,
+            borderBottomColor: therrTheme.colors.textGray,
+        },
     });
 
     return ({

@@ -11,6 +11,7 @@ import RoundInput from '../../components/Input/Round';
 import AppleSignInButton from '../../components/LoginButtons/AppleSignInButton';
 import GoogleSignInButton from '../../components/LoginButtons/GoogleSignInButton';
 import { ITherrThemeColors } from '../../styles/themes';
+import OrDivider from '../../components/Input/OrDivider';
 
 interface ISSOUserDetails {
     isSSO: boolean;
@@ -255,6 +256,11 @@ export class LoginFormComponent extends React.Component<
                     // Temporarily disable SSO for Apple compliance until we have made phoneNumber optional
                     Platform.OS !== 'ios' &&
                     <>
+                        <OrDivider
+                            translate={this.translate}
+                            themeForms={themeForms}
+                            containerStyle={{ marginBottom: 20 }}
+                        />
                         <View style={themeAuthForm.styles.submitButtonContainer}>
                             <GoogleSignInButton
                                 disabled={isSubmitting}

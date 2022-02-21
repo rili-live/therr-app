@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button, Image, Text } from 'react-native-elements';
@@ -198,6 +198,13 @@ class HeaderMenuRight extends React.Component<
         );
     };
 
+    viewUser = () => {
+        const { navigation } = this.props;
+
+        this.toggleOverlay();
+        navigation.navigate('Settings');
+    }
+
     render() {
         const {
             isVisible,
@@ -267,11 +274,15 @@ class HeaderMenuRight extends React.Component<
                                 <View style={themeMenu.styles.container}>
                                     <View style={themeMenu.styles.header}>
                                         <View style={themeMenu.styles.headerTitle}>
-                                            <Image
-                                                source={{ uri: getUserImageUri(user, 50) }}
-                                                style={themeMenu.styles.headerTitleIcon}
-                                                transition={false}
-                                            />
+                                            <Pressable
+                                                onPress={this.viewUser}
+                                            >
+                                                <Image
+                                                    source={{ uri: getUserImageUri(user, 50) }}
+                                                    style={themeMenu.styles.headerTitleIcon}
+                                                    transition={false}
+                                                />
+                                            </Pressable>
                                             <Text numberOfLines={1} style={themeMenu.styles.headerTitleText}>
                                                 {user.details?.userName}
                                             </Text>
@@ -398,6 +409,33 @@ class HeaderMenuRight extends React.Component<
                                                 hasNotifications && <View style={themeMenu.styles.notificationCircle} />
                                             }
                                         </View>
+                                        <Button
+                                            buttonStyle={
+                                                currentScreen === 'BookMarked'
+                                                    ? themeMenu.styles.buttonsActive
+                                                    : themeMenu.styles.buttons
+                                            }
+                                            containerStyle={{ width: '100%' }}
+                                            titleStyle={
+                                                currentScreen === 'BookMarked'
+                                                    ? themeMenu.styles.buttonsTitleActive
+                                                    : themeMenu.styles.buttonsTitle
+                                            }
+                                            title={this.translate('components.headerMenuRight.menuItems.bookmarks')}
+                                            icon={
+                                                <FontAwesomeIcon
+                                                    style={
+                                                        currentScreen === 'BookMarked'
+                                                            ? themeMenu.styles.iconStyleActive
+                                                            : themeMenu.styles.iconStyle
+                                                    }
+                                                    name={'bookmark'}
+                                                    size={18}
+                                                />
+                                            }
+                                            iconRight
+                                            onPress={() => this.navTo('BookMarked')}
+                                        />
                                         <Button
                                             buttonStyle={
                                                 currentScreen === 'ActiveConnections'
