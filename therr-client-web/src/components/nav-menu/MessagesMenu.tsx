@@ -204,7 +204,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
 
     renderPeopleContent = () => (
         <>
-            <h2>{this.translate('components.messagesMenu.h2.riliConnect')}</h2>
+            <h2>{this.translate('components.messagesMenu.h2.friendRequest')}</h2>
             <div className="connection-form">
                 <CreateConnectionForm
                     createUserConnection={this.props.createUserConnection}
@@ -229,14 +229,14 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                         onClick={(e) => this.handleTabSelect(e, 'messages')}
                         buttonType="primary"
                     />
-                    <SvgButton
+                    {/* <SvgButton
                         id="nav_menu_forums_button"
                         name="forum"
                         className={`menu-tab-button ${activeTab === 'forums' ? 'active' : ''}`}
                         iconClassName="tab-icon"
                         onClick={(e) => this.handleTabSelect(e, 'forums')}
                         buttonType="primary"
-                    />
+                    /> */}
                     <SvgButton
                         id="nav_menu_people"
                         name="people"
@@ -251,10 +251,10 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                         activeTab === 'messages'
                             && this.renderMessagesContent()
                     }
-                    {
+                    {/* {
                         activeTab === 'forums'
                             && this.renderForumsContent()
-                    }
+                    } */}
                     {
                         activeTab === 'people'
                             && this.renderPeopleContent()

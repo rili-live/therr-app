@@ -542,7 +542,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                 <BaseStatusBar />
                 <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
                     {
-                        true &&
+                        this.shouldRenderNearbyNewsfeed() &&
                             <AreaCarousel
                                 activeData={activeData}
                                 content={content}
@@ -567,7 +567,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                             />
                     }
                     {
-                        this.shouldRenderNearbyNewsfeed()
+                        !this.shouldRenderNearbyNewsfeed() && this.renderGpsEnableButton()
                     }
                 </SafeAreaView>
                 <AreaOptionsModal

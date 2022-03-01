@@ -444,7 +444,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         }
 
                         return ({
-                            animationEnabled: false,
+                            animationEnabled: true,
                             cardStyleInterpolator: forFade,
                             headerLeft: () => (
                                 <HeaderMenuLeft

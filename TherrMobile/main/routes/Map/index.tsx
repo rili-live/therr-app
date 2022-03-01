@@ -14,6 +14,7 @@ import Geolocation from 'react-native-geolocation-service';
 import AnimatedLoader from 'react-native-animated-loader';
 import { distanceTo, insideCircle } from 'geolocation-utils';
 import ImageCropPicker from 'react-native-image-crop-picker';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
 import MapActionButtons, { ICreateMomentAction } from './MapActionButtons';
 import Alert from '../../components/Alert';
@@ -50,7 +51,7 @@ import {
     isLocationPermissionGranted,
     checkAndroidPermission,
 } from '../../utilities/requestOSPermissions';
-import FiltersButtonGroup from '../../components/FiltersButtonGroup';
+// import FiltersButtonGroup from '../../components/FiltersButtonGroup';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import SearchTypeAheadResults from '../../components/SearchTypeAheadResults';
 import SearchThisAreaButtonGroup from '../../components/SearchThisAreaButtonGroup';
@@ -68,6 +69,11 @@ const earthLoader = require('../../assets/earth-loader.json');
 const ANIMATE_TO_REGION_DURATION = 750;
 const ANIMATE_TO_REGION_DURATION_SLOW = 1500;
 const ANIMATE_TO_REGION_DURATION_FAST = 500;
+
+const hapticFeedbackOptions = {
+    enableVibrateFallback: true,
+    ignoreAndroidSystemSettings: false,
+};
 
 
 interface IMapDispatchProps {
@@ -619,6 +625,8 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
 
         if (pressedSpaces.length) {
+            ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
+
             this.setState({
                 activeMoment: {},
                 activeMomentDetails: {},
@@ -1084,7 +1092,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                 this.setState({
                     isSearchThisLocationBtnVisible: true,
                 });
-            }, 1500);
+            }, 1000);
         }
     }
 
@@ -1184,7 +1192,6 @@ class Map extends React.Component<IMapProps, IMapState> {
         const isDropdownVisible = map?.searchPredictions?.isSearchDropdownVisible;
         const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
         const isTouring = !!user?.settings?.isTouring;
-        console.log("ZACK_DEBUG", !!user.settings.isTouring);
 
         return (
             <>
@@ -1476,7 +1483,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 themeButtons={this.themeButtons}
                             />
                         }
-                        <FiltersButtonGroup
+                        {/* <FiltersButtonGroup
                             areLayersVisible={areLayersVisible}
                             layers={layers}
                             toggleLayer={this.toggleLayer}
@@ -1484,7 +1491,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                             goToMoments={this.goToMoments}
                             translate={this.translate}
                             themeButtons={this.themeButtons}
-                        />
+                        /> */}
                     </>
                 }
                 <ConfirmModal

@@ -52,7 +52,7 @@ const getBottomLeftBtnViewStyles = (theme: ITherrTheme): any => ({
 const getLeftSmallButton1ViewStyles = (theme: ITherrTheme): any => ({
     position: 'absolute',
     left: 18,
-    bottom: 106 + buttonMenuHeight - collapseOffset,
+    bottom: 60 + buttonMenuHeight - collapseOffset,
     shadowColor: theme.colors.textBlack,
     shadowOffset: {
         height: 1,
@@ -165,7 +165,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         claimASpace: {
             position: 'absolute',
             right: 24,
-            bottom: 280 + buttonMenuHeight - collapseOffset,
+            bottom: 310 + buttonMenuHeight - collapseOffset,
             shadowColor: therrTheme.colors.textBlack,
             shadowOffset: {
                 height: 1,
@@ -182,7 +182,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         shareAThought: {
             position: 'absolute',
             right: 24,
-            bottom: 230 + buttonMenuHeight - collapseOffset,
+            bottom: 250 + buttonMenuHeight - collapseOffset,
             shadowColor: therrTheme.colors.textBlack,
             shadowOffset: {
                 height: 1,
@@ -199,7 +199,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         uploadMoment: {
             position: 'absolute',
             right: 24,
-            bottom: 180 + buttonMenuHeight - collapseOffset,
+            bottom: 190 + buttonMenuHeight - collapseOffset,
             shadowColor: therrTheme.colors.textBlack,
             shadowOffset: {
                 height: 1,
@@ -366,6 +366,15 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             backgroundColor: therrTheme.colors.accent1,
             height: 34,
             width: 34,
+        },
+        btnMediumWithText: {
+            ...btnStyles,
+            backgroundColor: therrTheme.colors.accent1,
+            height: 34,
+            paddingHorizontal: 15,
+        },
+        btnMediumTitle: {
+            paddingRight: 12,
         },
         btnLarge: {
             ...btnStyles,

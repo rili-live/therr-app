@@ -235,17 +235,23 @@ class HeaderMenuRight extends React.Component<
                 <>
                     {
                         isEmailVerifed ?
-                            <Button
-                                icon={
-                                    <Image
-                                        source={{ uri: getUserImageUri(user, 50) }}
-                                        style={imageStyle}
-                                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
-                                    />}
-                                onPress={() => this.toggleOverlay()}
-                                type="clear"
-                                containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
-                            /> :
+                            <View>
+                                <Button
+                                    icon={
+                                        <Image
+                                            source={{ uri: getUserImageUri(user, 50) }}
+                                            style={imageStyle}
+                                            PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
+                                        />}
+                                    onPress={() => this.toggleOverlay()}
+                                    type="clear"
+                                    containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
+                                />
+                                {
+                                    hasNotifications && <View style={themeMenu.styles.notificationCircle2} />
+                                }
+                            </View>
+                            :
                             <Button
                                 icon={
                                     <FontAwesomeIcon
@@ -282,6 +288,9 @@ class HeaderMenuRight extends React.Component<
                                                     style={themeMenu.styles.headerTitleIcon}
                                                     transition={false}
                                                 />
+                                                {
+                                                    hasNotifications && <View style={themeMenu.styles.notificationCircle3} />
+                                                }
                                             </Pressable>
                                             <Text numberOfLines={1} style={themeMenu.styles.headerTitleText}>
                                                 {user.details?.userName}
