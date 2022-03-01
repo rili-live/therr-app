@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, Platform, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, View } from 'react-native';
 import { Button, Image, Text } from 'react-native-elements';
 import Overlay from 'react-native-modal-overlay';
 import { CommonActions, StackActions } from '@react-navigation/native';
@@ -214,17 +214,23 @@ class HeaderMenuRight extends React.Component<
                 <>
                     {
                         isEmailVerifed ?
-                            <Button
-                                icon={
-                                    <Image
-                                        source={{ uri: getUserImageUri(user, 50) }}
-                                        style={imageStyle}
-                                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
-                                    />}
-                                onPress={() => this.toggleOverlay()}
-                                type="clear"
-                                containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
-                            /> :
+                            <View>
+                                <Button
+                                    icon={
+                                        <Image
+                                            source={{ uri: getUserImageUri(user, 50) }}
+                                            style={imageStyle}
+                                            PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
+                                        />}
+                                    onPress={() => this.toggleOverlay()}
+                                    type="clear"
+                                    containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
+                                />
+                                {
+                                    hasNotifications && <View style={themeMenu.styles.notificationCircle2} />
+                                }
+                            </View>
+                            :
                             <Button
                                 icon={
                                     <FontAwesomeIcon
@@ -253,11 +259,18 @@ class HeaderMenuRight extends React.Component<
                                 <View style={themeMenu.styles.container}>
                                     <View style={themeMenu.styles.header}>
                                         <View style={themeMenu.styles.headerTitle}>
-                                            <Image
-                                                source={{ uri: getUserImageUri(user, 50) }}
-                                                style={themeMenu.styles.headerTitleIcon}
-                                                transition={false}
-                                            />
+                                            <Pressable
+                                                onPress={this.viewUser}
+                                            >
+                                                <Image
+                                                    source={{ uri: getUserImageUri(user, 50) }}
+                                                    style={themeMenu.styles.headerTitleIcon}
+                                                    transition={false}
+                                                />
+                                                {
+                                                    hasNotifications && <View style={themeMenu.styles.notificationCircle3} />
+                                                }
+                                            </Pressable>
                                             <Text numberOfLines={1} style={themeMenu.styles.headerTitleText}>
                                                 {user.details?.userName}
                                             </Text>

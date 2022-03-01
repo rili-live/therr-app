@@ -121,6 +121,9 @@ class UsersActions {
             sessionStorage.removeItem('therrUser');
         } else {
             await this.NativeStorage.multiRemove(['therrSession', 'therrUser', 'therrUserSettings']);
+            await (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify({
+                id: userDetails?.id,
+            }));
         }
         dispatch({
             type: SocketClientActionTypes.LOGOUT,

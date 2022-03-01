@@ -21,7 +21,7 @@ const colors: ITherrThemeColors = {
 
     // Branding
     brandingMapYellow: '#ebc300',
-    brandingOrange: '#f9ad2a',
+    brandingOrange: '#DE6E07',
     brandingLightBlue: '#d8f0f2',
 
     // Background
