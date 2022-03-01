@@ -60,7 +60,7 @@
       "h2": {
         "messaging": "Messaging",
         "forums": "Hosted Chat",
-        "friendRequest": "Friend Request",
+        "riliConnect": "Rili Connect",
         "locationMap": "Explore"
       },
       "noActiveConnections": "No recently active connections"
