@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { getTheme } from '../../themes';
 
-const areaUserAvatarImgPadding = 2;
+const areaUserAvatarImgPadding = 4;
 const areaUserAvatarImgWidth = 52 - (2 * areaUserAvatarImgPadding);
 const areaUserAvatarImgRadius = areaUserAvatarImgWidth / 2;
 const contentTitleContainerHeight = 38;
@@ -56,17 +56,17 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             marginBottom: 32,
         },
         areaUserAvatarImgContainer: {
-            height: '100%',
-            borderRadius: areaUserAvatarImgRadius,
+            width: areaUserAvatarImgWidth,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             padding: 0,
         },
         areaUserAvatarImg: {
-            height: areaUserAvatarImgWidth,
-            width: areaUserAvatarImgWidth,
-            padding: areaUserAvatarImgPadding,
+            height: areaUserAvatarImgWidth - (areaUserAvatarImgPadding * 2),
+            width: areaUserAvatarImgWidth - (areaUserAvatarImgPadding * 2),
+            borderRadius: areaUserAvatarImgRadius,
+            margin: areaUserAvatarImgPadding,
         },
         areaAuthorContainer: {
             display: 'flex',
@@ -80,6 +80,7 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             height: areaUserAvatarImgWidth,
             maxHeight: areaUserAvatarImgWidth,
             position: 'relative',
+            boxSizing: 'border-box',
         },
         areaAuthorTextContainer: {
             height: '100%',
@@ -94,12 +95,13 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
         },
         areaUserName: {
             fontSize: 15,
+            fontWeight: '500',
             paddingBottom: 1,
             color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
         },
         dateTime: {
             fontSize: 11,
-            color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
+            color: isDarkMode ? therrTheme.colorVariations.accentTextWhiteFade : therrTheme.colors.tertiary,
         },
         moreButtonContainer: {
             ...buttonContainerStyles,
@@ -130,19 +132,26 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
             // position: 'absolute',
             fontSize: 18,
+            fontWeight: '600',
             // top: 10,
             paddingVertical: ((contentTitleContainerHeight - 18) / 2) - 3,
             paddingHorizontal: 6,
             height: '100%',
-            fontWeight: 'bold',
         },
         areaMessage: {
-            fontSize: 15,
+            fontSize: 16,
             color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
             overflow: 'scroll',
             width: '100%',
             paddingHorizontal: 14,
             paddingBottom: 4,
+        },
+        areaDistance: {
+            color: isDarkMode ? therrTheme.colors.textGray : therrTheme.colors.tertiary,
+            width: '100%',
+            paddingHorizontal: 10,
+            fontFamily: 'Lexend-Regular',
+            textAlign: 'left',
         },
         footer: {
             paddingRight: 20,

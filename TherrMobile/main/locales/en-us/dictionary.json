@@ -211,6 +211,7 @@
     },
     "createProfile": {
       "buttons": {
+        "skip": "Skip",
         "submit": "Next",
         "verifyNow": "Send Verification",
         "verifyLater": "Save & Continue"
@@ -252,6 +253,9 @@
       }
     },
     "nearbyForm": {
+      "buttons": {
+        "enableLocation": "Turn On"
+      },
       "labels": {
         "radiusOfAwareness": "Awareness Radius: {meters} meters",
         "radiusOfInfluence": "Influence Radius: {meters} meters"
@@ -333,7 +337,7 @@
     "registerForm": {
       "buttons": {
         "backToLogin": "Back to Login",
-        "register": "Create",
+        "register": "Sign Up",
         "eula": "End User Agreement"
       },
       "defaultTitle": "Create an Account",
@@ -392,7 +396,7 @@
     "mapActions": {
       "claimASpace": "Claim a Space",
       "shareAThought": "Share a Thought",
-      "uploadAMoment": "Upload a Moment",
+      "uploadAMoment": "Share a Moment",
       "captureAMoment": "Capture a Moment"
     },
     "main": {
@@ -438,6 +442,14 @@
         "searchOrder": "Order Results By: Date"
       }
     },
+    "areas": {
+      "headerTitle": "Area",
+      "pageTitle": "Areas",
+      "noNearbyAreasFound": "Nothing yet. Start the conversation by posting from the Map or increase the Awareness Radius to discover nearby content.",
+      "noSocialAreasFound": "You have not yet activated any moments/spaces. Explore the world, and active areas will start to appear in this view.",
+      "noHireAreasFound": "No freelancer postings found in your area. Check back soon to find local freelancers in range of your location.",
+      "noEventsAreasFound": "No current or upcoming events found. Grow your connections to increase visibility and receive invites to exclusive events."
+    },
     "bookmarked": {
       "headerTitle": "Favorited",
       "noSocialBookmarksFound": "No bookmarks to display. Mark content as favorited by clicking the bookmark icon on a post.",
@@ -463,7 +475,8 @@
     "createProfile": {
       "headerTitle": "Therr",
       "pageHeaderA": "Create your profile",
-      "pageHeaderB": "Keep it secure"
+      "pageHeaderB": "Keep it secure",
+      "pageHeaderC": "Profile Picture"
     },
     "cropImage": {
       "headerTitle": "Crop Image"
@@ -518,12 +531,11 @@
         "title": "Categories"
       }
     },
-    "areas": {
-      "headerTitle": "Area",
-      "pageTitle": "Areas",
-      "noSocialAreasFound": "You have not yet activated any moments/spaces. Explore the world, and active areas will start to appear in this view.",
-      "noHireAreasFound": "No freelancer postings found in your area. Check back soon to find local freelancers in range of your location.",
-      "noEventsAreasFound": "No current or upcoming events found. Grow your connections to increase visibility and receive invites to exclusive events."
+    "nearby": {
+      "headerTitle": "Nearby Newsfeed",
+      "locationDescription1": "See posts from nearby users in the local community where you currently are.",
+      "locationDescription2": "Use the awareness and influence sliders to control content distance and your own visibility.",
+      "locationDescription3": "Please enable location services to activate this feature."
     },
     "notifications": {
       "headerTitle": "Notifications",
@@ -532,6 +544,8 @@
     },
     "login": {
       "headerTitle": "Therr",
+      "pageTitle": "Welcome",
+      "pageSubtitle": "Sign in to Therr to see what you missed",
       "userAlerts": {
         "registerSuccess": "Registration success! Check your e-mail for verification."
       }
@@ -547,7 +561,8 @@
     },
     "register": {
       "headerTitle": "Therr",
-      "pageTitle": "Create an Account",
+      "pageTitle": "Sign Up",
+      "pageSubtitle": "Create a profile and see what you are missing",
       "passwordRequirements1": "Contains a mixture of letters and numbers",
       "passwordRequirements2": "At least one capital letter",
       "passwordRequirements3": "At least one special character !@#$%^&*",

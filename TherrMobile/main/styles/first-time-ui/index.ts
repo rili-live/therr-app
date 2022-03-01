@@ -3,7 +3,7 @@ import { IMobileThemeName } from 'therr-react/types';
 import { getTheme, ITherrTheme } from '../themes';
 
 const getTitleStyles = (theme: ITherrTheme): any => ({
-    fontFamily: Platform.OS === 'ios' ? 'KohinoorBangla-Light' : 'sans-serif-condensed',
+    fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
     color: theme.colors.textWhite,
     fontSize: 28,
     marginTop: 6,
@@ -31,7 +31,30 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         titleWithSpacing: {
             ...getTitleStyles(therrTheme),
+            fontWeight: '800',
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
             paddingBottom: 20,
+            textAlign: 'left',
+            letterSpacing: 1,
+        },
+        titleWithNoSpacing: {
+            ...getTitleStyles(therrTheme),
+            fontWeight: '800',
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            paddingBottom: 0,
+            marginBottom: 7,
+            textAlign: 'left',
+            letterSpacing: 1,
+        },
+        subtitle: {
+            fontSize: 18,
+            fontWeight: '600',
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            color: therrTheme.colors.textGray,
+            paddingBottom: 20,
+            marginBottom: 20,
+            textAlign: 'left',
+            letterSpacing: 1,
         },
         formAGraphic: {
             ...createProfileGraphicStyles,

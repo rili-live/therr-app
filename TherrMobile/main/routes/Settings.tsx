@@ -6,9 +6,10 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
 import { IUserState } from 'therr-react/types';
-import { PasswordRegex } from 'therr-js-utilities/constants';
+import { Content, PasswordRegex } from 'therr-js-utilities/constants';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import RNFB from 'rn-fetch-blob';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
 import Alert from '../components/Alert';
@@ -21,7 +22,9 @@ import { buildStyles as buildSettingsFormStyles } from '../styles/forms/settings
 import SquareInput from '../components/Input/Square';
 import PasswordRequirements from '../components/Input/PasswordRequirements';
 import BaseStatusBar from '../components/BaseStatusBar';
-
+import UserImage from '../components/UserContent/UserImage';
+import { getImagePreviewPath } from '../utilities/areaUtils';
+import { getUserImageUri, signImageUrl } from '../utilities/content';
 
 
 interface ISettingsDispatchProps {
@@ -38,9 +41,11 @@ export interface ISettingsProps extends IStoreProps {
 }
 
 interface ISettingsState {
+    croppedImageDetails: any;
     errorMsg: string;
     successMsg: string;
     inputs: any;
+    isCropping: boolean;
     isSubmitting: boolean;
     passwordErrorMessage: string;
 }
@@ -66,6 +71,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         super(props);
 
         this.state = {
+            croppedImageDetails: {},
             errorMsg: '',
             successMsg: '',
             inputs: {
@@ -76,6 +82,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 phoneNumber: props.user.details.phoneNumber,
                 shouldHideMatureContent: props.user.details.shouldHideMatureContent,
             },
+            isCropping: false,
             isSubmitting: false,
             passwordErrorMessage: '',
         };
@@ -150,37 +157,39 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             this.setState({
                 isSubmitting: true,
             });
-            this.props
-                .updateUser(user.details.id, updateArgs)
-                .then(() => {
-                    this.setState({
-                        successMsg: this.translate('forms.settings.backendSuccessMessage'),
-                    });
-                })
-                .catch((error: any) => {
-                    if (
-                        error.statusCode === 400 ||
-                        error.statusCode === 401 ||
-                        error.statusCode === 404
-                    ) {
-                        this.setState({
-                            errorMsg: `${error.message}${
-                                error.parameters
-                                    ? '(' + error.parameters.toString() + ')'
-                                    : ''
-                            }`,
-                        });
-                    } else if (error.statusCode >= 500) {
-                        this.setState({
-                            errorMsg: this.translate('forms.settings.backendErrorMessage'),
-                        });
-                    }
-                })
-                .finally(() => {
-                    this.scrollViewRef?.scrollToPosition(0, 0);
-                });
+            this.requestUserUpdate(user, updateArgs);
         }
     };
+
+    requestUserUpdate = (user, updateArgs) => this.props
+        .updateUser(user.details.id, updateArgs)
+        .then(() => {
+            this.setState({
+                successMsg: this.translate('forms.settings.backendSuccessMessage'),
+            });
+        })
+        .catch((error: any) => {
+            if (
+                error.statusCode === 400 ||
+                error.statusCode === 401 ||
+                error.statusCode === 404
+            ) {
+                this.setState({
+                    errorMsg: `${error.message}${
+                        error.parameters
+                            ? '(' + error.parameters.toString() + ')'
+                            : ''
+                    }`,
+                });
+            } else if (error.statusCode >= 500) {
+                this.setState({
+                    errorMsg: this.translate('forms.settings.backendErrorMessage'),
+                });
+            }
+        })
+        .finally(() => {
+            this.scrollViewRef?.scrollToPosition(0, 0);
+        });
 
     onInputChange = (name: string, value: string) => {
         let passwordErrorMessage = '';
@@ -213,16 +222,68 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         });
     };
 
+    onDoneCropping = (croppedImageDetails) => {
+        if (!croppedImageDetails.didCancel && !croppedImageDetails.errorCode) {
+            const { user } = this.props;
+            this.setState({
+                croppedImageDetails,
+                isCropping: false,
+            });
+
+            this.signAndUploadImage(croppedImageDetails).then((imageUploadResponse) => {
+                this.requestUserUpdate(user, {
+                    media: {
+                        profilePicture: {
+                            altText: `${user.details.firstName} ${user.details.lastName}`,
+                            type: Content.mediaTypes.USER_IMAGE_PUBLIC,
+                            path: imageUploadResponse.path,
+                        },
+                    },
+                });
+            }).catch((err) => {
+                console.log(err);
+            });
+        }
+    }
+
+    signAndUploadImage = (croppedImageDetails) => {
+        const filePathSplit = croppedImageDetails?.path?.split('.');
+        const fileExtension = filePathSplit ? `${filePathSplit[filePathSplit.length - 1]}` : 'jpeg';
+        return signImageUrl(true, {
+            action: 'write',
+            filename: `profile/user_profile.${fileExtension}`,
+        }).then((response) => {
+            const signedUrl = response?.data?.url && response?.data?.url[0];
+
+            const localFileCroppedPath = `${croppedImageDetails?.path}`;
+
+            // Upload to Google Cloud
+            // TODO: Abstract and add nudity filter sightengine.com
+            return RNFB.fetch(
+                'PUT',
+                signedUrl,
+                {
+                    'Content-Type': croppedImageDetails.mime,
+                    'Content-Length': croppedImageDetails.size.toString(),
+                    'Content-Disposition': 'inline',
+                },
+                RNFB.wrap(localFileCroppedPath),
+            ).then(() => response?.data);
+        });
+    }
+
     handleRefresh = () => {
         console.log('refresh');
     }
 
     render() {
         const { navigation, user } = this.props;
-        const { errorMsg, successMsg, inputs, passwordErrorMessage } = this.state;
+        const { croppedImageDetails, errorMsg, successMsg, inputs, passwordErrorMessage } = this.state;
         const pageHeaderUser = this.translate('pages.settings.pageHeaderUser');
         const pageHeaderPassword = this.translate('pages.settings.pageHeaderPassword');
         const pageHeaderSettings = this.translate('pages.settings.pageHeaderSettings');
+        const currentUserImageUri = getUserImageUri(user, 200);
+        const userImageUri = getImagePreviewPath(croppedImageDetails.path) || currentUserImageUri;
 
         return (
             <>
@@ -240,6 +301,11 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                 </Text>
                             </View>
                             <View style={this.themeSettingsForm.styles.userContainer}>
+                                <UserImage
+                                    onImageReady={this.onDoneCropping}
+                                    theme={this.theme}
+                                    userImageUri={userImageUri}
+                                />
                                 <Alert
                                     containerStyles={this.themeSettingsForm.styles.alert}
                                     isVisible={!!(errorMsg || successMsg)}

@@ -6,28 +6,28 @@ import { CropView } from 'react-native-image-crop-tools';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
-import CropButtonMenu from '../components/ButtonMenu/CropButtonMenu';
-import translator from '../services/translator';
-import { buildStyles } from '../styles';
-import { buildStyles as buildMenuStyles } from '../styles/navigation/buttonMenu';
-import BaseStatusBar from '../components/BaseStatusBar';
+import CropButtonMenu from '../../components/ButtonMenu/CropButtonMenu';
+import translator from '../../services/translator';
+import { buildStyles } from '../../styles';
+import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
+import BaseStatusBar from '../../components/BaseStatusBar';
 
 
-interface ICropImageDispatchProps {
+interface IAreaImageCropDispatchProps {
     createMoment: Function;
 }
 
-interface IStoreProps extends ICropImageDispatchProps {
+interface IStoreProps extends IAreaImageCropDispatchProps {
     user: IUserState;
 }
 
 // Regular component props
-export interface ICropImageProps extends IStoreProps {
+export interface IAreaImageCropProps extends IStoreProps {
     navigation: any;
     route: any;
 }
 
-interface ICropImageState {
+interface IAreaImageCropState {
     errorMsg: string;
     successMsg: string;
     isSubmitting: boolean;
@@ -41,7 +41,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     createMoment: MapActions.createMoment,
 }, dispatch);
 
-export class CropImage extends React.Component<ICropImageProps, ICropImageState> {
+export class AreaImageCrop extends React.Component<IAreaImageCropProps, IAreaImageCropState> {
     private cropViewRef;
     private scrollViewRef;
     private translate: Function;
@@ -144,4 +144,4 @@ export class CropImage extends React.Component<ICropImageProps, ICropImageState>
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(CropImage);
+export default connect(mapStateToProps, mapDispatchToProps)(AreaImageCrop);

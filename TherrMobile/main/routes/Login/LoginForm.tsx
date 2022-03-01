@@ -6,13 +6,11 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { appleAuth } from '@invertase/react-native-apple-authentication';
 import translator from '../../services/translator';
 import { addMargins } from '../../styles';
-import { buildStyles as buildFormStyles } from '../../styles/forms';
-import { buildStyles as buildAuthFormStyles } from '../../styles/forms/authenticationForms';
-import { buildStyles as buildAlertStyles } from '../../styles/alerts';
 import Alert from '../../components/Alert';
 import RoundInput from '../../components/Input/Round';
 import AppleSignInButton from '../../components/LoginButtons/AppleSignInButton';
 import GoogleSignInButton from '../../components/LoginButtons/GoogleSignInButton';
+import { ITherrThemeColors } from '../../styles/themes';
 
 interface ISSOUserDetails {
     isSSO: boolean;
@@ -31,6 +29,17 @@ interface ILoginFormProps {
     navigation: any;
     userMessage?: string;
     userSettings: any;
+    themeAlerts: {
+        colors: ITherrThemeColors;
+        styles: any;
+    };
+    themeAuthForm: {
+        styles: any;
+    };
+    themeForms: {
+        colors: ITherrThemeColors;
+        styles: any;
+    };
     title?: string;
 }
 
@@ -48,9 +57,6 @@ export class LoginFormComponent extends React.Component<
     ILoginFormState
 > {
     private translate: Function;
-    private themeAlerts = buildAlertStyles();
-    private themeAuthForm = buildAuthFormStyles();
-    private themeForms = buildFormStyles();
 
     constructor(props: ILoginFormProps) {
         super(props);
@@ -61,9 +67,6 @@ export class LoginFormComponent extends React.Component<
             isSubmitting: false,
         };
 
-        this.themeAlerts = buildAlertStyles(props.userSettings.mobileThemeName);
-        this.themeAuthForm = buildAuthFormStyles(props.userSettings.mobileThemeName);
-        this.themeForms = buildFormStyles(props.userSettings.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -163,9 +166,15 @@ export class LoginFormComponent extends React.Component<
         });
     };
 
-    public render(): JSX.Element | null {
+    public render() {
         const { isSubmitting, prevLoginError } = this.state;
-        const { navigation, userMessage } = this.props;
+        const {
+            navigation,
+            themeAlerts,
+            themeAuthForm,
+            themeForms,
+            userMessage,
+        } = this.props;
 
         return (
             <>
@@ -176,7 +185,7 @@ export class LoginFormComponent extends React.Component<
                     isVisible={!!userMessage}
                     message={userMessage}
                     type={'success'}
-                    themeAlerts={this.themeAlerts}
+                    themeAlerts={themeAlerts}
                 />
                 <RoundInput
                     autoCapitalize="none"
@@ -193,10 +202,10 @@ export class LoginFormComponent extends React.Component<
                         <MaterialIcon
                             name="person"
                             size={24}
-                            color={this.themeAlerts.colors.primary3}
+                            color={themeAlerts.colors.primary3}
                         />
                     }
-                    themeForms={this.themeForms}
+                    themeForms={themeForms}
                 />
                 <RoundInput
                     autoCapitalize="none"
@@ -215,27 +224,28 @@ export class LoginFormComponent extends React.Component<
                         <MaterialIcon
                             name="vpn-key"
                             size={24}
-                            color={this.themeAlerts.colors.primary3}
+                            color={themeAlerts.colors.primary3}
                         />
                     }
-                    themeForms={this.themeForms}
+                    themeForms={themeForms}
                 />
-                <View style={this.themeAuthForm.styles.submitButtonContainer}>
+                <View style={themeAuthForm.styles.submitButtonContainer}>
                     <Button
-                        buttonStyle={this.themeAuthForm.styles.button}
-                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                        disabledStyle={this.themeForms.styles.buttonDisabled}
+                        buttonStyle={themeAuthForm.styles.button}
+                        titleStyle={themeForms.styles.buttonTitle}
+                        disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
+                        disabledStyle={themeForms.styles.buttonDisabled}
                         title={this.translate(
                             'forms.loginForm.buttons.login'
                         )}
                         onPress={() => this.onSubmit()}
                         loading={isSubmitting}
-                        raised={true}
+                        // raised={true}
                         icon={
                             <FontAwesomeIcon
                                 name="sign-in-alt"
                                 size={18}
-                                style={this.themeForms.styles.buttonIcon}
+                                style={themeForms.styles.buttonIcon}
                             />
                         }
                         iconRight
@@ -245,7 +255,7 @@ export class LoginFormComponent extends React.Component<
                     // Temporarily disable SSO for Apple compliance until we have made phoneNumber optional
                     Platform.OS !== 'ios' &&
                     <>
-                        <View style={this.themeAuthForm.styles.submitButtonContainer}>
+                        <View style={themeAuthForm.styles.submitButtonContainer}>
                             <GoogleSignInButton
                                 disabled={isSubmitting}
                                 buttonTitle={this.translate('forms.loginForm.sso.googleButtonTitle')}
@@ -256,7 +266,7 @@ export class LoginFormComponent extends React.Component<
                         {
                             // Platform.OS === 'ios' && appleAuth.isSupported &&
                             appleAuth.isSupported &&
-                            <View style={this.themeAuthForm.styles.submitButtonContainer}>
+                            <View style={themeAuthForm.styles.submitButtonContainer}>
                                 <AppleSignInButton
                                     disabled={isSubmitting}
                                     buttonTitle={this.translate('forms.loginForm.sso.appleButtonTitle')}
@@ -274,12 +284,12 @@ export class LoginFormComponent extends React.Component<
                     isVisible={!!prevLoginError}
                     message={prevLoginError}
                     type={'error'}
-                    themeAlerts={this.themeAlerts}
+                    themeAlerts={themeAlerts}
                 />
-                <View style={this.themeAuthForm.styles.moreLinksContainer}>
+                <View style={themeAuthForm.styles.moreLinksContainer}>
                     <Button
                         type="clear"
-                        titleStyle={this.themeAuthForm.styles.buttonLink}
+                        titleStyle={themeAuthForm.styles.buttonLink}
                         title={this.translate(
                             'forms.loginForm.buttons.signUp'
                         )}
@@ -287,7 +297,7 @@ export class LoginFormComponent extends React.Component<
                     />
                     <Button
                         type="clear"
-                        titleStyle={this.themeAuthForm.styles.buttonLink}
+                        titleStyle={themeAuthForm.styles.buttonLink}
                         title={this.translate(
                             'forms.loginForm.buttons.forgotPassword'
                         )}

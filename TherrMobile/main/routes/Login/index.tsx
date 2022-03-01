@@ -1,26 +1,22 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { SafeAreaView, View } from 'react-native';
+import { SafeAreaView, View, Text } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Image from '../../components/BaseImage';
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';
-import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import { buildStyles } from '../../styles';
+import { buildStyles as buildFTUIStyles } from '../../styles/first-time-ui';
+import { buildStyles as buildAuthFormStyles } from '../../styles/forms/authenticationForms';
+import { buildStyles as buildAlertStyles } from '../../styles/alerts';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
 import mixins from '../../styles/mixins';
 import LoginForm from './LoginForm';
 import { bindActionCreators } from 'redux';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import therrIconConfig from '../../assets/therr-font-config.json';
-
-const LogoIcon = createIconSetFromIcoMoon(
-    therrIconConfig,
-    'TherrFont',
-    'TherrFont.ttf'
-);
-
+import { getUserImageUri } from '../../utilities/content';
 
 interface ILoginDispatchProps {
     login: Function;
@@ -54,16 +50,24 @@ const mapDispatchToProps = (dispatch: any) =>
 
 class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     private translate;
-    private cachedUserId;
+    private cachedUserDetails;
     private theme = buildStyles();
+    private themeAlerts = buildAlertStyles();
+    private themeAuthForm = buildAuthFormStyles();
+    private themeFTUI = buildFTUIStyles();
+    private themeForms = buildFormStyles();
 
     constructor(props) {
         super(props);
 
         this.theme = buildStyles(props.user?.settings?.mobileThemeName);
+        this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
+        this.themeAuthForm = buildAuthFormStyles(props.user.settings?.mobileThemeName);
+        this.themeFTUI = buildFTUIStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
             translator('en-us', key, params);
-        this.cachedUserId = (props.user && props.user.details && props.user.details.id);
+        this.cachedUserDetails = props.user?.details;
     }
 
     // TODO: On logout, ignore any deep link logic
@@ -81,6 +85,8 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     render() {
         const { route, user } = this.props;
         const { userMessage } = route?.params || '';
+        const pageTitle = this.translate('pages.login.pageTitle');
+        const pageSubtitle = this.translate('pages.login.pageSubtitle');
 
         return (
             <>
@@ -92,21 +98,28 @@ class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                         contentContainerStyle={this.theme.styles.bodyScroll}
                     >
                         {
-                            this.cachedUserId ?
+                            this.cachedUserDetails?.media ?
                                 <View style={[mixins.flexCenter, mixins.marginMediumBot, mixins.marginMediumTop]}>
-                                    <Image source={{ uri: `https://robohash.org/${this.cachedUserId}?size=200x200` }} loaderSize="large" theme={this.theme} />
-                                </View> :
-                                <View style={[mixins.flexCenter, mixins.marginMediumBot, mixins.marginMediumTop]}>
-                                    <LogoIcon
-                                        name="therr-logo"
-                                        size={140}
-                                        style={[this.theme.styles.logoIcon, { marginLeft: 0 }]}
+                                    <Image source={{ uri: getUserImageUri({ details: this.cachedUserDetails }, 200) }}
+                                        loaderSize="large"
+                                        theme={this.theme}
                                     />
+                                </View> :
+                                <View style={this.theme.styles.sectionContainerWide}>
+                                    <Text style={this.themeFTUI.styles.titleWithNoSpacing}>
+                                        {pageTitle}
+                                    </Text>
+                                    <Text style={this.themeFTUI.styles.subtitle}>
+                                        {pageSubtitle}
+                                    </Text>
                                 </View>
                         }
                         <LoginForm
                             login={this.props.login}
                             navigation={this.props.navigation}
+                            themeAlerts={this.themeAlerts}
+                            themeAuthForm={this.themeAuthForm}
+                            themeForms={this.themeForms}
                             userMessage={userMessage}
                             userSettings={user?.settings || {}} />
                     </KeyboardAwareScrollView>

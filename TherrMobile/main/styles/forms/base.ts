@@ -11,6 +11,12 @@ const containerTightStyles: any = {
     marginBottom: 5,
 };
 
+const containerNoHorizontalStyles: any = {
+    marginTop: 0,
+    marginBottom: 20,
+    marginHorizontal: 0,
+};
+
 const getTextInputStyle = (theme: ITherrTheme) : any => ({
     marginLeft: 10,
     marginRight: 10,
@@ -30,6 +36,7 @@ const inputStyle: any = {
 export {
     containerStyles,
     containerTightStyles,
+    containerNoHorizontalStyles,
     getTextInputStyle,
     inputStyle,
 };

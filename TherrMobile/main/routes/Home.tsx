@@ -174,16 +174,18 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                     type={!!prevReqSuccess ? 'success' : 'error'}
                                     themeAlerts={this.themeAlerts}
                                 />
-                                <Button
-                                    buttonStyle={this.themeForms.styles.button}
-                                    disabledStyle={this.themeForms.styles.buttonDisabled}
-                                    title={this.translate(
-                                        'pages.userProfile.buttons.send'
-                                    )}
-                                    onPress={this.onSubmit}
-                                    disabled={this.isFormDisabled()}
-                                    raised={false}
-                                />
+                                <View style={this.theme.styles.sectionContainer}>
+                                    <Button
+                                        buttonStyle={this.themeForms.styles.button}
+                                        disabledStyle={this.themeForms.styles.buttonDisabled}
+                                        title={this.translate(
+                                            'pages.userProfile.buttons.send'
+                                        )}
+                                        onPress={this.onSubmit}
+                                        disabled={this.isFormDisabled()}
+                                        raised={false}
+                                    />
+                                </View>
                             </View>
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitleCenter}>

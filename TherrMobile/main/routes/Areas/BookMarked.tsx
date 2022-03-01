@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, Text } from 'react-native';
+import { SafeAreaView } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -10,6 +10,7 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import translator from '../../services/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
+import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildMomentStyles } from '../../styles/user-content/areas';
 import { buildStyles as buildReactionsModalStyles } from '../../styles/modal/areaReactionsModal';
@@ -19,7 +20,13 @@ import { getReactionUpdateArgs } from '../../utilities/reactions';
 import { CAROUSEL_TABS } from '../../constants';
 import { handleAreaReaction, navToViewArea } from './areaViewHelpers';
 import AreaOptionsModal, { ISelectionType } from '../../components/Modals/AreaOptionsModal';
+import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 
+function getRandomLoaderId(): ILottieId {
+    const options: ILottieId[] = ['donut', 'earth', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
+    const selected = Math.floor(Math.random() * options.length);
+    return options[selected] as ILottieId;
+}
 
 interface IBookMarkedDispatchProps {
     searchBookmarkedMoments: Function;
@@ -65,9 +72,11 @@ const mapDispatchToProps = (dispatch: any) =>
 
 class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
     private carouselRef;
+    private loaderId: ILottieId;
     private translate: Function;
     private theme = buildStyles();
     private themeButtons = buildButtonsStyles();
+    private themeLoader = buildLoaderStyles();
     private themeMenu = buildMenuStyles();
     private themeMoments = buildMomentStyles();
     private themeReactionsModal = buildReactionsModalStyles();
@@ -84,11 +93,13 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
+        this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
         this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
+        this.loaderId = getRandomLoaderId();
     }
 
     componentDidMount() {
@@ -208,56 +219,45 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         });
     }
 
-    renderCarousel = (content, user) => {
-        const { activeTab, isLoading } = this.state;
-        const { createOrUpdateMomentReaction, createOrUpdateSpaceReaction } = this.props;
+    render() {
+        const { activeTab, areAreaOptionsVisible, isLoading, selectedArea } = this.state;
+        const { createOrUpdateMomentReaction, createOrUpdateSpaceReaction, content, navigation, user } = this.props;
 
-        if (isLoading) {
-            return (
-                <Text style={this.themeMoments.styles.noAreasFoundText}>Loading...</Text>
-            );
-        }
+        // TODO: Fetch missing media
+        const fetchMedia = () => {};
 
-        const activeData = getActiveCarouselData({
+        const activeData = isLoading ? [] : getActiveCarouselData({
             activeTab,
             content,
             isForBookmarks: true,
         });
 
         return (
-            <AreaCarousel
-                activeData={activeData}
-                content={content}
-                inspectArea={this.goToArea}
-                translate={this.translate}
-                containerRef={(component) => this.carouselRef = component}
-                goToViewUser={this.goToViewUser}
-                handleRefresh={() => Promise.resolve(this.handleRefresh())}
-                toggleAreaOptions={this.toggleAreaOptions}
-                onEndReached={this.tryLoadMore}
-                updateMomentReaction={createOrUpdateMomentReaction}
-                updateSpaceReaction={createOrUpdateSpaceReaction}
-                emptyListMessage={this.getEmptyListMessage(activeTab)}
-                renderHeader={() => null}
-                user={user}
-                rootStyles={this.theme.styles}
-                // viewportHeight={viewportHeight}
-                // viewportWidth={viewportWidth}
-            />
-        );
-    }
-
-    render() {
-        const { areAreaOptionsVisible, selectedArea } = this.state;
-        const { content, navigation, user } = this.props;
-
-        return (
             <>
                 <BaseStatusBar />
                 <SafeAreaView style={this.theme.styles.safeAreaView}>
-                    {
-                        this.renderCarousel(content, user)
-                    }
+                    <AreaCarousel
+                        activeData={activeData}
+                        content={content}
+                        inspectArea={this.goToArea}
+                        translate={this.translate}
+                        containerRef={(component) => this.carouselRef = component}
+                        fetchMedia={fetchMedia}
+                        goToViewUser={this.goToViewUser}
+                        handleRefresh={() => Promise.resolve(this.handleRefresh())}
+                        toggleAreaOptions={this.toggleAreaOptions}
+                        isLoading={isLoading}
+                        onEndReached={this.tryLoadMore}
+                        updateMomentReaction={createOrUpdateMomentReaction}
+                        updateSpaceReaction={createOrUpdateSpaceReaction}
+                        emptyListMessage={this.getEmptyListMessage(activeTab)}
+                        renderHeader={() => null}
+                        renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
+                        user={user}
+                        rootStyles={this.theme.styles}
+                        // viewportHeight={viewportHeight}
+                        // viewportWidth={viewportWidth}
+                    />
                 </SafeAreaView>
                 <AreaOptionsModal
                     isVisible={areAreaOptionsVisible}

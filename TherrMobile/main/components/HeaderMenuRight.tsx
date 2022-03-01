@@ -13,6 +13,7 @@ import translator from '../services/translator';
 import { ILocationState } from '../types/redux/location';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
 import { ITherrThemeColors } from '../styles/themes';
+import { getUserImageUri } from '../utilities/content';
 
 const ANIMATION_DURATION = 180;
 
@@ -208,7 +209,6 @@ class HeaderMenuRight extends React.Component<
         if (styleName === 'accent') {
             imageStyle = themeMenu.styles.toggleIconDark;
         }
-
         if (isVisible) {
             return (
                 <>
@@ -217,7 +217,7 @@ class HeaderMenuRight extends React.Component<
                             <Button
                                 icon={
                                     <Image
-                                        source={{ uri: `https://robohash.org/${user.details?.id}?size=50x50` }}
+                                        source={{ uri: getUserImageUri(user, 50) }}
                                         style={imageStyle}
                                         PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
                                     />}
@@ -254,7 +254,7 @@ class HeaderMenuRight extends React.Component<
                                     <View style={themeMenu.styles.header}>
                                         <View style={themeMenu.styles.headerTitle}>
                                             <Image
-                                                source={{ uri: `https://robohash.org/${user.details?.id}?size=50x50` }}
+                                                source={{ uri: getUserImageUri(user, 50) }}
                                                 style={themeMenu.styles.headerTitleIcon}
                                                 transition={false}
                                             />

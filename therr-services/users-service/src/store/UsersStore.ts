@@ -82,7 +82,7 @@ export default class UsersStore {
 
     findUsers({
         ids,
-    }: IFindUsersArgs, returning: any = ['id', 'userName', 'firstName', 'lastName']) {
+    }: IFindUsersArgs, returning: any = ['id', 'userName', 'firstName', 'lastName', 'media']) {
         let queryString: any = knexBuilder.select(returning).from('main.users')
             .whereIn('id', ids || []);
 
@@ -127,6 +127,10 @@ export default class UsersStore {
 
         if (params.lastName) {
             modifiedParams.lastName = params.lastName;
+        }
+
+        if (params.media) {
+            modifiedParams.media = JSON.stringify(params.media);
         }
 
         if (params.hasAgreedToTerms) {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { RouteConfig, StackNavigationState } from '@react-navigation/native';
 import { StackNavigationOptions } from '@react-navigation/stack';
 import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/src/types';
@@ -14,7 +14,7 @@ import Areas from './Areas';
 import ActiveConnections from './ActiveConnections';
 import Contacts from './Contacts';
 import CreateConnection from './CreateConnection';
-import CropImage from './CropImage';
+import AreaImageCrop from './CropImage/AreaImageCrop';
 import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
 import ForgotPassword from './ForgotPassword';
@@ -31,8 +31,6 @@ import EditChat from './HostedChat/EditChat';
 import ViewChat from './HostedChat/ViewChat';
 import ViewUser from './ViewUser/index.tsx';
 import { buildStyles } from '../styles';
-import HeaderTherrLogo from '../components/HeaderTherrLogo';
-import HeaderSearchInput from '../components/Input/HeaderSearchInput';
 
 // TODO: Use Props
 const styles = buildStyles().styles;
@@ -76,7 +74,7 @@ const routes: RouteConfig<
     {
         name: 'Login',
         component: Login,
-        options: (params) => ({
+        options: () => ({
             title: 'Login',
             access: {
                 type: AccessCheckType.NONE,
@@ -84,14 +82,13 @@ const routes: RouteConfig<
                 isPublic: true,
             },
             headerStyle: styles.headerStyleNoShadow,
-            headerTitle: () => <HeaderTherrLogo navigation={params?.navigation} />,
         }),
     },
     {
         name: 'CreateProfile',
         component: CreateProfile,
         options: () => ({
-            title: 'CreateProfile',
+            title: 'Create Profile',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
@@ -101,32 +98,30 @@ const routes: RouteConfig<
     {
         name: 'Map',
         component: Map,
-        options: (params) => ({
+        options: () => ({
             title: 'Map',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerTitle: () => <HeaderSearchInput icon="search" navigation={params?.navigation} />,
         }),
     },
     {
         name: 'Areas',
         component: Areas,
-        options: (params) => ({
+        options: () => ({
             title: 'Areas',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerTitle: () => <HeaderSearchInput icon="tune" isAdvancedSearch navigation={params?.navigation} />,
         }),
     },
     {
         name: 'AdvancedSearch',
         component: AdvancedSearch,
         options: () => ({
-            title: 'AdvancedSearch',
+            title: 'Advanced Search',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -137,7 +132,7 @@ const routes: RouteConfig<
         name: 'BookMarked',
         component: BookMarked,
         options: () => ({
-            title: 'BookMarked',
+            title: 'Bookmarked',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -145,10 +140,10 @@ const routes: RouteConfig<
         }),
     },
     {
-        name: 'CropImage',
-        component: CropImage,
+        name: 'AreaImageCrop',
+        component: AreaImageCrop,
         options: () => ({
-            title: 'CropImage',
+            title: 'Crop Image',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -158,20 +153,19 @@ const routes: RouteConfig<
     {
         name: 'Home',
         component: Home,
-        options: (params) => ({
+        options: () => ({
             title: 'Home',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerTitle: () => <HeaderTherrLogo navigation={params?.navigation} />,
         }),
     },
     {
         name: 'ActiveConnections',
         component: ActiveConnections,
         options: () => ({
-            title: 'ActiveConnections',
+            title: 'Active Connections',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -195,7 +189,7 @@ const routes: RouteConfig<
         name: 'CreateConnection',
         component: CreateConnection,
         options: () => ({
-            title: 'CreateConnection',
+            title: 'Create Connection',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -206,7 +200,7 @@ const routes: RouteConfig<
         name: 'DirectMessage',
         component: DirectMessage,
         options: () => ({
-            title: 'DirectMessage',
+            title: 'Direct Message',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -218,7 +212,7 @@ const routes: RouteConfig<
     {
         name: 'ForgotPassword',
         component: ForgotPassword,
-        options: (params) => ({
+        options: () => ({
             title: 'Password Reset',
             access: {
                 type: AccessCheckType.NONE,
@@ -226,7 +220,6 @@ const routes: RouteConfig<
                 isPublic: true,
             },
             headerStyle: styles.headerStyleNoShadow,
-            headerTitle: () => <HeaderTherrLogo navigation={params?.navigation} />,
         }),
     },
     // {
@@ -243,13 +236,12 @@ const routes: RouteConfig<
     {
         name: 'Nearby',
         component: Nearby,
-        options: (params) => ({
+        options: () => ({
             title: 'Nearby',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerTitle: () => <HeaderTherrLogo navigation={params?.navigation} />,
         }),
     },
     {
@@ -266,20 +258,19 @@ const routes: RouteConfig<
     {
         name: 'EmailVerification',
         component: EmailVerification,
-        options: (params) => ({
-            title: 'EmailVerification',
+        options: () => ({
+            title: 'Email Verification',
             access: {
                 type: AccessCheckType.NONE,
                 levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
                 isPublic: true,
             },
-            headerTitle: () => <HeaderTherrLogo navigation={params?.navigation} />,
         }),
     },
     {
         name: 'Register',
         component: Register,
-        options: (params) => ({
+        options: () => ({
             title: 'Create Account',
             access: {
                 type: AccessCheckType.NONE,
@@ -287,7 +278,6 @@ const routes: RouteConfig<
                 isPublic: true,
             },
             headerStyle: styles.headerStyleNoShadow,
-            headerTitle: () => <HeaderTherrLogo navigation={params?.navigation} />,
         }),
     },
     {
@@ -305,7 +295,7 @@ const routes: RouteConfig<
         name: 'EditChat',
         component: EditChat,
         options: () => ({
-            title: 'EditChat',
+            title: 'Edit Chat',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -327,7 +317,7 @@ const routes: RouteConfig<
         name: 'ViewChat',
         component: ViewChat,
         options: () => ({
-            title: 'ViewChat',
+            title: 'View Chat',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -349,7 +339,7 @@ const routes: RouteConfig<
         name: 'ViewMoment',
         component: ViewMoment,
         options: () => ({
-            title: 'ViewMoment',
+            title: 'View Moment',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -369,7 +359,7 @@ const routes: RouteConfig<
         name: 'EditMoment',
         component: EditMoment,
         options: () => ({
-            title: 'EditMoment',
+            title: 'Edit Moment',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -391,7 +381,7 @@ const routes: RouteConfig<
         name: 'ViewSpace',
         component: ViewSpace,
         options: () => ({
-            title: 'ViewSpace',
+            title: 'View Space',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -411,7 +401,7 @@ const routes: RouteConfig<
         name: 'EditSpace',
         component: EditSpace,
         options: () => ({
-            title: 'EditSpace',
+            title: 'Edit Space',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -433,7 +423,7 @@ const routes: RouteConfig<
         name: 'ViewUser',
         component: ViewUser,
         options: () => ({
-            title: 'ViewUser',
+            title: 'View User',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

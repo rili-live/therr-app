@@ -283,6 +283,7 @@ const updateUser = (req, res) => {
             const updateArgs: any = {
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
+                media: req.body.media,
                 phoneNumber: req.body.phoneNumber,
                 hasAgreedToTerms: req.body.hasAgreedToTerms,
                 userName: req.body.userName,
@@ -297,12 +298,10 @@ const updateUser = (req, res) => {
                 userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
                 updateArgs.accessLevels = JSON.stringify(userAccessLevels);
             }
-            console.log(userSearchResults[0]);
             if (!isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
                 const userAccessLevels = userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
                 userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
                 updateArgs.accessLevels = JSON.stringify(userAccessLevels);
-                console.log(updateArgs);
             }
 
             passwordPromise

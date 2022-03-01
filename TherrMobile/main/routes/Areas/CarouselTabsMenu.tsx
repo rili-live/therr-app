@@ -4,8 +4,8 @@ import { connect } from 'react-redux';
 import { View } from 'react-native';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
-import { buildStyles } from '../../styles/user-content/areas';
 import { CAROUSEL_TABS } from '../../constants';
+import { ITherrThemeColors } from '../../styles/themes';
 
 interface ICarouselTabsMenuDispatchProps {
 }
@@ -17,6 +17,10 @@ interface IStoreProps extends ICarouselTabsMenuDispatchProps {
 export interface ICarouselTabsMenuProps extends IStoreProps {
     activeTab: string;
     onButtonPress: Function;
+    themeAreas: {
+        styles: any;
+        colors: ITherrThemeColors;
+    },
     translate: Function;
     user: any;
 }
@@ -35,22 +39,18 @@ export const mapDispatchToProps = (dispatch: any) =>
     );
 
 export class CarouselTabsMenu extends React.Component<ICarouselTabsMenuProps, ICarouselTabsMenuState> {
-    private theme = buildStyles();
-
     constructor(props) {
         super(props);
 
         this.state = {};
-
-        this.theme = buildStyles(props.user.settings?.mobileThemeName);
     }
 
     getButtonStyles = (name) => {
-        const { activeTab } = this.props;
+        const { activeTab, themeAreas } = this.props;
 
         if (name === activeTab) {
             return {
-                backgroundColor: this.theme.colors.primary3,
+                backgroundColor: themeAreas.colors.primary3,
             };
         }
 
@@ -58,35 +58,38 @@ export class CarouselTabsMenu extends React.Component<ICarouselTabsMenuProps, IC
     }
 
     render() {
-        const { onButtonPress } = this.props;
+        const { onButtonPress, themeAreas } = this.props;
         const areaCarouselTab = {
-            ...this.theme.styles.areaCarouselTab,
-            width: '30%',
+            ...themeAreas.styles.areaCarouselTab,
+            width: '32%',
         };
         const areaCarouselTabButton = {
-            backgroundColor: this.theme.colors.accent1,
+            backgroundColor: themeAreas.colors.accent1,
             paddingTop: 2,
             paddingBottom: 3,
-            borderRadius: 9,
+            borderRadius: 6,
         };
 
         return (
-            <View style={this.theme.styles.areaCarouselHeader}>
+            <View style={themeAreas.styles.areaCarouselHeader}>
                 <Button
                     buttonStyle={[areaCarouselTabButton, this.getButtonStyles(CAROUSEL_TABS.SOCIAL)]}
                     containerStyle={areaCarouselTab}
+                    titleStyle={themeAreas.styles.areaCarouselTabTitle}
                     title="Social"
                     onPress={() => onButtonPress(CAROUSEL_TABS.SOCIAL)}
                 />
                 <Button
                     buttonStyle={[areaCarouselTabButton, this.getButtonStyles(CAROUSEL_TABS.HIRE)]}
                     containerStyle={areaCarouselTab}
+                    titleStyle={themeAreas.styles.areaCarouselTabTitle}
                     title="Hire"
                     onPress={() => onButtonPress(CAROUSEL_TABS.HIRE)}
                 />
                 <Button
                     buttonStyle={[areaCarouselTabButton, this.getButtonStyles(CAROUSEL_TABS.EVENTS)]}
                     containerStyle={areaCarouselTab}
+                    titleStyle={themeAreas.styles.areaCarouselTabTitle}
                     title="Events"
                     onPress={() => onButtonPress(CAROUSEL_TABS.EVENTS)}
                 />

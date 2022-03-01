@@ -6,6 +6,7 @@ const colors: ITherrThemeColors = {
     primary: '#1C7F8A',
     primary2: '#20919E',
     primary3: '#143b54',
+    primary4: '#22A5B4',
     secondary: '#388254',
     secondaryFaded: '#4e8e67',
     ternary: '#e0c845',
@@ -14,7 +15,7 @@ const colors: ITherrThemeColors = {
 
     // Text
     textBlack: '#363636',
-    textGray: '#bfc7d5',
+    textGray: 'rgba(255,255,255,.58)',
     textDarkGray: '#728f94',
     textWhite: '#fcfeff',
 
@@ -28,6 +29,7 @@ const colors: ITherrThemeColors = {
     backgroundWhite: '#ffffff',
     backgroundGray: '#f3f4f6',
     backgroundNeutral: '#e7eaed',
+    backgroundBlack: '#000000',
 
     borderLight: 'gray',
     placeholderTextColor: '#78909b',
@@ -74,6 +76,7 @@ const colorVariations: ITherrThemeColorVariations = {
     primary3LightFade: new Color(colors.primary3).fade(0.15).toString(),
     primary3Fade: new Color(colors.primary3).fade(0.25).toString(),
     backgroundCreamLighten: new Color(colors.backgroundCream).lighten(0.02).toString(),
+    backgroundBlackFade: new Color(colors.backgroundBlack).fade(0.85).toString(),
     textBlackFade: new Color(colors.textBlack).fade(0.75).toString(),
     textWhiteFade: new Color(colors.textWhite).fade(0.75).toString(),
     textGrayDarken: new Color(colors.textGray).darken(0.15).toString(),

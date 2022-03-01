@@ -32,10 +32,6 @@ import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptio
 import { getReactionUpdateArgs } from '../utilities/reactions';
 // import AccentInput from '../components/Input/Accent';
 
-interface ISpaceDetails {
-    userDetails?: any;
-}
-
 interface IViewSpaceDispatchProps {
     getSpaceDetails: Function;
     deleteSpace: Function;

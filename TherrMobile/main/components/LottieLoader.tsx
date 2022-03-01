@@ -5,12 +5,13 @@ import karaokeLoader from '../assets/karaoke.json';
 import happySwingLoader from '../assets/happy-swing.json';
 import shoppingLoader from '../assets/shopping.json';
 import donutLoader from '../assets/donut.json';
+import earthLoader from '../assets/earth-loader.json';
 import tacoLoader from '../assets/taco.json';
 import carLoader from '../assets/sports-car.json';
 import zeppelinLoader from '../assets/zeppelin.json';
 import therrBlackRolling from '../assets/therr-logo-black-rolling.json';
 
-export type ILottieId = 'donut' | 'taco' | 'shopping' | 'happy-swing' | 'karaoke' | 'yellow-car' | 'zeppelin' | 'therr-black-rolling';
+export type ILottieId = 'donut' | 'earth' | 'taco' | 'shopping' | 'happy-swing' | 'karaoke' | 'yellow-car' | 'zeppelin' | 'therr-black-rolling';
 export interface ILottieLoaderProps {
     id: ILottieId;
     theme: {
@@ -31,6 +32,11 @@ export default ({
             containerStyles = theme.styles.defaultContainer;
             textStyles = theme.styles.defaultText;
             source = donutLoader;
+            break;
+        case 'earth':
+            containerStyles = theme.styles.earthLoaderContainer;
+            textStyles = theme.styles.defaultText;
+            source = earthLoader;
             break;
         case 'taco':
             containerStyles = theme.styles.defaultContainer;

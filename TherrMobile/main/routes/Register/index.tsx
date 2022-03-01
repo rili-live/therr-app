@@ -5,6 +5,9 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import 'react-native-gesture-handler';
 import { IUserState } from 'therr-react/types';
 import { buildStyles } from '../../styles';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
+import { buildStyles as buildAuthFormStyles } from '../../styles/forms/authenticationForms';
+import { buildStyles as buildAlertStyles } from '../../styles/alerts';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildFTUIStyles } from '../../styles/first-time-ui';
@@ -48,8 +51,11 @@ const mapDispatchToProps = (dispatch: any) =>
 class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> {
     private translate;
     private theme = buildStyles();
+    private themeAlerts = buildAlertStyles();
+    private themeAuthForm = buildAuthFormStyles();
     private themeButtons = buildButtonsStyles();
     private themeConfirmModal = buildConfirmModalStyles();
+    private themeForms = buildFormStyles();
     private themeFTUI = buildFTUIStyles();
 
     constructor(props) {
@@ -60,8 +66,10 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
+        this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
         this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeFTUI = buildFTUIStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
             translator('en-us', key, params);
@@ -89,20 +97,27 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
     render() {
         const { isEULAVisible } = this.state;
         const pageTitle = this.translate('pages.register.pageTitle');
+        const pageSubtitle = this.translate('pages.register.pageSubtitle');
 
         return (
             <>
                 <BaseStatusBar />
                 <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView style={this.theme.styles.bodyFlex} contentContainerStyle={this.theme.styles.bodyScroll} enableOnAndroid>
-                        <View style={this.theme.styles.sectionContainer}>
-                            <Text style={this.themeFTUI.styles.titleWithSpacing}>
+                        <View style={this.theme.styles.sectionContainerWide}>
+                            <Text style={this.themeFTUI.styles.titleWithNoSpacing}>
                                 {pageTitle}
+                            </Text>
+                            <Text style={this.themeFTUI.styles.subtitle}>
+                                {pageSubtitle}
                             </Text>
                         </View>
                         <RegisterForm
                             register={this.props.register}
                             onSuccess={this.onSuccess}
+                            themeAlerts={this.themeAlerts}
+                            themeAuthForm={this.themeAuthForm}
+                            themeForms={this.themeForms}
                             toggleEULA={this.toggleEULA}
                             userSettings={this.props.user?.settings || {}}
                         />

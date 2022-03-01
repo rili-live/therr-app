@@ -1,7 +1,7 @@
-import { ITherrThemeColors } from 'main/styles/themes';
 import React from 'react';
 import { Input, InputProps } from 'react-native-elements';
 import 'react-native-gesture-handler';
+import { ITherrThemeColors } from '../../styles/themes';
 
 export interface IBaseInputProps {
     themeForms: {

@@ -68,7 +68,7 @@ class MainButtonMenuAlt extends ButtonMenu {
             return translate('menus.main.buttons.toggle');
         }
 
-        if (currentScreen === 'Areas' || currentScreen === 'Notifications') {
+        if (currentScreen === 'Areas' || currentScreen === 'Notifications' || currentScreen === 'Nearby') {
             return translate('menus.main.buttons.goToTop');
         }
 

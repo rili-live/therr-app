@@ -3,6 +3,7 @@ import { SafeAreaView, View, Text, Platform } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { Content } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import LottieView from 'lottie-react-native';
 import UsersActions from '../redux/actions/UsersActions';
@@ -11,11 +12,15 @@ import { buildStyles } from '../styles';
 import { buildStyles as buildAlertStyles } from '../styles/alerts';
 import { buildStyles as buildFTUIStyles } from '../styles/first-time-ui';
 import { buildStyles as buildFormStyles } from '../styles/forms';
+import { buildStyles as buildMenuStyles } from '../styles/navigation/buttonMenu';
 import { buildStyles as buildSettingsFormStyles } from '../styles/forms/settingsForm';
 import CreateProfileStageA from '../components/0_First_Time_UI/CreateProfileStageA';
 import CreateProfileStageB from '../components/0_First_Time_UI/CreateProfileStageB';
+import CreateProfileStageC from '../components/0_First_Time_UI/CreateProfileStageC';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../constants';
+import { getImagePreviewPath } from '../utilities/areaUtils';
+import { getUserImageUri } from '../utilities/content';
 
 const profileLoader = require('../assets/profile-circling.json');
 const verifyPhoneLoader = require('../assets/verify-phone-shield.json');
@@ -33,9 +38,10 @@ export interface ICreateProfileProps extends IStoreProps {
     navigation: any;
 }
 
-type StageType = 'A' | 'B';
+type StageType = 'A' | 'B' | 'C';
 
 interface ICreateProfileState {
+    croppedImageDetails: any;
     errorMsg: string;
     inputs: any;
     isPhoneNumberValid: boolean;
@@ -58,12 +64,14 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
     private themeAlerts = buildAlertStyles();
     private themeFTUI = buildFTUIStyles();
     private themeForms = buildFormStyles();
+    private themeMenu = buildMenuStyles();
     private themeSettingsForm = buildSettingsFormStyles();
 
     constructor(props) {
         super(props);
 
         this.state = {
+            croppedImageDetails: {},
             errorMsg: '',
             inputs: {
                 email: props.user.details.email,
@@ -74,13 +82,14 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             },
             isPhoneNumberValid: false,
             isSubmitting: false,
-            stage: 'A',
+            stage: props.route?.params?.stage || 'A',
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeFTUI = buildFTUIStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
-        this.themeSettingsForm = buildSettingsFormStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
+        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -110,6 +119,32 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             !isPhoneNumberValid ||
             isSubmitting
         );
+    }
+
+    requestUserUpdate = (imageUploadResponse) => {
+        const { user } = this.props;
+
+        this.props.updateUser(user.details?.id, {
+            media: {
+                profilePicture: {
+                    altText: `${user.details?.firstName} ${user.details?.lastName}`,
+                    type: Content.mediaTypes.USER_IMAGE_PUBLIC,
+                    path: imageUploadResponse.path,
+                },
+            },
+        });
+    }
+
+    onCropComplete = (croppedImageDetails) => {
+        this.setState({
+            croppedImageDetails,
+        });
+    }
+
+    onContinue = () => {
+        this.setState({
+            stage: 'B',
+        });
     }
 
     onSubmit = (stage: StageType) => {
@@ -148,6 +183,10 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                 .then(() => {
                     if (stage === 'A') {
                         this.setState({
+                            stage: 'C',
+                        });
+                    } else if (stage === 'C') {
+                        this.setState({
                             stage: 'B',
                         });
                     }
@@ -173,6 +212,9 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                 })
                 .finally(() => {
                     this.scrollViewRef?.scrollToPosition(0, 0);
+                    this.setState({
+                        isSubmitting: false,
+                    });
                 });
         }
     };
@@ -200,9 +242,13 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
     };
 
     render() {
-        const { errorMsg, inputs, stage } = this.state;
+        const { user } = this.props;
+        const { croppedImageDetails, errorMsg, inputs, isSubmitting, stage } = this.state;
         const pageHeaderA = this.translate('pages.createProfile.pageHeaderA');
         const pageHeaderB = this.translate('pages.createProfile.pageHeaderB');
+        const pageHeaderC = this.translate('pages.createProfile.pageHeaderC');
+        const currentUserImageUri = getUserImageUri(user, 200);
+        const userImageUri = getImagePreviewPath(croppedImageDetails.path) || currentUserImageUri;
 
         return (
             <>
@@ -211,7 +257,9 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         ref={(component) => (this.scrollViewRef = component)}
-                        style={this.theme.styles.scrollViewFull}
+                        // style={this.theme.styles.scrollViewFull}
+                        style={[this.theme.styles.bodyFlex, { padding: 0 }]}
+                        contentContainerStyle={[this.theme.styles.bodyScroll, { minHeight: '100%' }]}
                     >
                         <View style={this.theme.styles.body}>
                             <View style={this.theme.styles.sectionContainer}>
@@ -227,28 +275,37 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                         {pageHeaderB}
                                     </Text>
                                 }
-                            </View>
-                            <View style={[this.theme.styles.sectionContainer, { height: 100, marginBottom: 20 }]}>
-                                { stage === 'A' &&
-                                    <LottieView
-                                        source={profileLoader}
-                                        style={this.themeFTUI.styles.formAGraphic}
-                                        resizeMode="cover"
-                                        speed={1.75}
-                                        autoPlay
-                                        loop
-                                    />
-                                }
-                                { stage === 'B' &&
-                                    <LottieView
-                                        source={verifyPhoneLoader}
-                                        style={this.themeFTUI.styles.formBGraphic}
-                                        resizeMode="contain"
-                                        autoPlay
-                                        loop
-                                    />
+                                {
+                                    stage === 'C' &&
+                                    <Text style={this.themeFTUI.styles.title}>
+                                        {pageHeaderC}
+                                    </Text>
                                 }
                             </View>
+                            {
+                                (stage === 'A' || stage === 'B') &&
+                                <View style={[this.theme.styles.sectionContainer, { height: 100, marginBottom: 20 }]}>
+                                    { stage === 'A' &&
+                                        <LottieView
+                                            source={profileLoader}
+                                            style={this.themeFTUI.styles.formAGraphic}
+                                            resizeMode="cover"
+                                            speed={1.75}
+                                            autoPlay
+                                            loop
+                                        />
+                                    }
+                                    { stage === 'B' &&
+                                        <LottieView
+                                            source={verifyPhoneLoader}
+                                            style={this.themeFTUI.styles.formBGraphic}
+                                            resizeMode="contain"
+                                            autoPlay
+                                            loop
+                                        />
+                                    }
+                                </View>
+                            }
                             {
                                 stage === 'A' &&
                                 <CreateProfileStageA
@@ -275,6 +332,23 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                     themeAlerts={this.themeAlerts}
                                     themeForms={this.themeForms}
                                     themeSettingsForm={this.themeSettingsForm}
+                                />
+                            }
+                            {
+                                stage === 'C' &&
+                                <CreateProfileStageC
+                                    errorMsg={errorMsg}
+                                    isDisabled={isSubmitting}
+                                    onCropComplete={this.onCropComplete}
+                                    requestUserUpdate={this.requestUserUpdate}
+                                    onInputChange={this.onPhoneInputChange}
+                                    onContinue={() => this.onContinue()}
+                                    translate={this.translate}
+                                    theme={this.theme}
+                                    themeAlerts={this.themeAlerts}
+                                    themeForms={this.themeForms}
+                                    themeSettingsForm={this.themeSettingsForm}
+                                    userImageUri={userImageUri}
                                 />
                             }
                         </View>

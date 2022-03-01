@@ -16,6 +16,7 @@ import UserMedia from './UserMedia';
 import HashtagsContainer from './HashtagsContainer';
 import { ITherrThemeColors } from '../../styles/themes';
 import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
+import { getUserImageUri } from '../../utilities/content';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -94,10 +95,10 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         onPress={() => goToViewUser(area.fromUserId)}
                     >
                         <Image
-                            source={{ uri: `https://robohash.org/${area.fromUserId}?size=52x52` }}
+                            source={{ uri: getUserImageUri({ details: { media: area.fromUserMedia } }, 52) }}
                             style={themeViewArea.styles.areaUserAvatarImg}
                             containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
-                            PlaceholderContent={<ActivityIndicator size="large" color={theme.colors.primary}/>}
+                            PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary}/>}
                             transition={false}
                         />
                     </Pressable>
@@ -130,7 +131,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                 <UserMedia
                     viewportWidth={viewportWidth}
                     media={areaMedia}
-                    isVisible={areaMedia}
+                    isVisible={!!areaMedia}
                 />
                 <View style={themeViewArea.styles.areaContentTitleContainer}>
                     <Text
@@ -171,6 +172,10 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         styles={themeForms.styles}
                     />
                 </View>
+                {
+                    area.distance != null &&
+                    <Text  style={themeViewArea.styles.areaDistance}>{`${area.distance} mi`}</Text>
+                }
             </>
         );
     }

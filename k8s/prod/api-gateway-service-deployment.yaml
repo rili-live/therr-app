@@ -43,6 +43,13 @@ spec:
             secretKeyRef:
               name: honeycomb-writekey
               key: HONEYCOMB
+        - name: MAPS_SERVICE_GOOGLE_CREDENTIALS_BASE64
+          valueFrom:
+            secretKeyRef:
+              name: maps-service-google-app-credentials
+              key: MAPS_SERVICE_GOOGLE_APP_CREDENTIALS
+        - name: BUCKET_PUBLIC_USER_DATA
+          value: "therr-public-user-data"
         - name: GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY
           valueFrom:
             secretKeyRef:

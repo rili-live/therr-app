@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, Pressable, SafeAreaView, Keyboard, Text, View } from 'react-native';
+import { Pressable, SafeAreaView, Keyboard, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button, Slider, Image } from 'react-native-elements';
@@ -8,7 +8,6 @@ import RNFB from 'rn-fetch-blob';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
-import { MapsService } from 'therr-react/services';
 import { Content } from 'therr-js-utilities/constants';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import YoutubePlayer from 'react-native-youtube-iframe';
@@ -35,6 +34,7 @@ import AccentTextInput from '../components/Input/TextInput/Accent';
 import HashtagsContainer from '../components/UserContent/HashtagsContainer';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { getImagePreviewPath } from '../utilities/areaUtils';
+import { signImageUrl } from '../utilities/content';
 
 interface IEditSpaceDispatchProps {
     createSpace: Function;
@@ -86,8 +86,6 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
 
         const { route } = props;
         const { imageDetails } = route.params;
-        const { croppedImage } = imageDetails || {};
-        const imageURI = croppedImage?.uri || imageDetails?.uri;
 
         this.state = {
             errorMsg: '',
@@ -99,7 +97,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
             },
             isSubmitting: false,
             previewStyleState: {},
-            imagePreviewPath: getImagePreviewPath(imageURI),
+            imagePreviewPath: getImagePreviewPath(imageDetails?.path),
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -169,7 +167,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
         );
     }
 
-    signImageUrl = (createArgs) => {
+    signAndUploadImage = (createArgs) => {
         const {
             message,
             notificationMsg,
@@ -181,33 +179,33 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
         const {
         } = route.params;
         const { imageDetails } = route.params;
-        const { croppedImage } = imageDetails || {};
-
-        const signUrl = isPublic ? MapsService.getSignedUrlPublicBucket : MapsService.getSignedUrlPrivateBucket;
+        const filePathSplit = imageDetails?.path?.split('.');
+        const fileExtension = filePathSplit ? `${filePathSplit[filePathSplit.length - 1]}` : 'jpeg';
 
         // TODO: This is too slow
         // Use public method for public spaces
-        return signUrl({
+        return signImageUrl(isPublic, {
             action: 'write',
-            filename: `content/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g,'_')}.jpg`,
+            filename: `content/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g,'_')}.${fileExtension}`,
         }).then((response) => {
             const signedUrl = response?.data?.url && response?.data?.url[0];
             createArgs.media = [{}];
             createArgs.media[0].type = isPublic ? Content.mediaTypes.USER_IMAGE_PUBLIC : Content.mediaTypes.USER_IMAGE_PRIVATE;
             createArgs.media[0].path = response?.data?.path;
 
-            const localFilePath = Platform.OS === 'ios' ? imageDetails.uri.replace('file:///', '') : imageDetails.uri;
-            const localFileCroppedPath = Platform.OS === 'ios' ? imageDetails.uri.replace('file:///', '').replace('file:/', '') : croppedImage?.uri;
+            const localFileCroppedPath = `${imageDetails?.path}`;
 
             // Upload to Google Cloud
+            // TODO: Abstract and add nudity filter sightengine.com
             return RNFB.fetch(
                 'PUT',
                 signedUrl,
                 {
-                    'Content-Type': imageDetails.type,
+                    'Content-Type': imageDetails.mime,
+                    'Content-Length': imageDetails.size.toString(),
                     'Content-Disposition': 'inline',
                 },
-                RNFB.wrap(localFileCroppedPath || localFilePath),
+                RNFB.wrap(localFileCroppedPath),
             ).then(() => createArgs);
         });
     }
@@ -233,7 +231,6 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
             longitude,
         } = route.params;
         const { imageDetails } = route.params;
-        const { croppedImage } = imageDetails || {};
 
         const createArgs: any = {
             category,
@@ -254,7 +251,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                 isSubmitting: true,
             });
 
-            (croppedImage ? this.signImageUrl(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
+            (imageDetails?.path ? this.signAndUploadImage(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
                 this.props
                     .createSpace(modifiedCreateArgs)
                     .then(() => {
@@ -388,7 +385,15 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
 
     render() {
         const { navigation } = this.props;
-        const { errorMsg, successMsg, hashtags, inputs, previewLinkId, previewStyleState, imagePreviewPath } = this.state;
+        const {
+            errorMsg,
+            successMsg,
+            hashtags,
+            inputs,
+            previewLinkId,
+            previewStyleState,
+            imagePreviewPath,
+        } = this.state;
 
         return (
             <>
@@ -467,8 +472,8 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                     maximumValue={MAX_RADIUS_PUBLIC}
                                     minimumValue={MIN_RADIUS_PUBLIC}
                                     step={1}
-                                    thumbStyle={{ backgroundColor: this.theme.colors.accentBlue }}
-                                    thumbTouchSize={{ width: 100, height: 100 }}
+                                    thumbStyle={{ backgroundColor: this.theme.colors.accentBlue, height: 20, width: 20 }}
+                                    thumbTouchSize={{ width: 30, height: 30 }}
                                     minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
                                     maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
                                     onSlidingStart={Keyboard.dismiss}

@@ -17,6 +17,7 @@ export interface ITherrThemeColors {
     primary: string;
     primary2: string;
     primary3: string;
+    primary4: string;
     secondary: string;
     secondaryFaded: string;
     ternary: string;
@@ -39,6 +40,7 @@ export interface ITherrThemeColors {
     backgroundWhite: string;
     backgroundGray: string;
     backgroundNeutral: string;
+    backgroundBlack: string;
 
     borderLight: string;
     placeholderTextColor: string;
@@ -85,6 +87,7 @@ export interface ITherrThemeColorVariations {
     primary3LightFade: string;
     primary3Fade: string;
     backgroundCreamLighten: string;
+    backgroundBlackFade: string;
     textBlackFade: string;
     textWhiteFade: string;
     textGrayDarken: string;

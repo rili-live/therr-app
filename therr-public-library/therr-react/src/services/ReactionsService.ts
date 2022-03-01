@@ -27,6 +27,8 @@ export interface ISearchActiveAreasParams {
     shouldHideMatureContent: boolean;
     withMedia: boolean;
     withUser: boolean;
+    userLatitude?: number;
+    userLongitude?: number,
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -71,6 +73,8 @@ class ReactionsService {
             shouldHideMatureContent: options.shouldHideMatureContent,
             withMedia: options.withMedia,
             withUser: options.withUser,
+            userLatitude: options.userLatitude,
+            userLongitude: options.userLongitude,
         },
     })
 

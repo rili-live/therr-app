@@ -6,12 +6,11 @@ import { InputProps } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { MapActions } from 'therr-react/redux/actions';
-import { IMapReduxState, IUserState } from 'therr-react/types';
+import { IMapReduxState } from 'therr-react/types';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
 import RoundInput from '.';
 import translator from '../../services/translator';
-import { buildStyles } from '../../styles';
-import { buildStyles as buildFormsStyles } from '../../styles/forms';
+import { ITherrThemeColors } from '../../styles/themes';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -30,7 +29,14 @@ interface IHeaderSearchInputDispatchProps extends InputProps {
 
 interface IHeaderSearchInputStoreProps extends IHeaderSearchInputDispatchProps {
     map: IMapReduxState;
-    user: IUserState;
+    theme: {
+        colors: ITherrThemeColors;
+        styles: any;
+    };
+    themeForms: {
+        colors: ITherrThemeColors;
+        styles: any;
+    };
 }
 
 interface IHeaderSearchInputProps extends IHeaderSearchInputStoreProps {
@@ -41,7 +47,6 @@ interface IHeaderSearchInputProps extends IHeaderSearchInputStoreProps {
 
 const mapStateToProps = (state: any) => ({
     map: state.map,
-    user: state.user,
 });
 
 const mapDispatchToProps = (dispatch: any) =>
@@ -56,8 +61,6 @@ const mapDispatchToProps = (dispatch: any) =>
 export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, IHeaderSearchInputState> {
     private translate: Function;
     private throttleTimeoutId: any;
-    private theme = buildStyles();
-    private themeForms = buildFormsStyles();
     containerRef: any;
 
     constructor(props: IHeaderSearchInputProps) {
@@ -72,8 +75,6 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
             shouldEvaluateClickaway: false,
         };
 
-        this.theme = buildStyles(props.user.settings?.mobileThemeName);
-        this.themeForms = buildFormsStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
@@ -163,29 +164,34 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
     }
 
     // TODO: Display red dot to show filters enabled
-
     render() {
-        const { icon } = this.props;
+        const { inputText } = this.state;
+        const { icon, theme, themeForms } = this.props;
+        const textStyle = !inputText?.length
+            ? [themeForms.styles.placeholderText, { fontSize: 16 }]
+            : [themeForms.styles.inputText, { fontSize: 16 }];
 
         return (
             <RoundInput
                 errorStyle={{ display: 'none' }}
-                containerStyle={[this.theme.styles.headerSearchContainer, { width: screenWidth - 124 }]}
+                style={textStyle}
+                containerStyle={[theme.styles.headerSearchContainer, { width: screenWidth - 124 }]}
                 inputStyle={
-                    [Platform.OS !== 'ios' ? this.themeForms.styles.input : this.themeForms.styles.inputAlt, { fontSize: Platform.OS !== 'ios' ? 16 : 19 }]
+                    [Platform.OS !== 'ios' ? themeForms.styles.input : themeForms.styles.inputAlt, { fontSize: Platform.OS !== 'ios' ? 16 : 19 }]
                 }
-                inputContainerStyle={[this.themeForms.styles.inputContainerRound, this.theme.styles.headerSearchInputContainer]}
+                inputContainerStyle={[themeForms.styles.inputContainerRound, theme.styles.headerSearchInputContainer]}
                 onChangeText={this.onInputChange}
                 onFocus={this.handlePress}
                 placeholder={this.translate('components.header.searchInput.placeholder')}
+                placeholderTextColor={themeForms.colors.textGray}
                 rightIcon={
                     <MaterialIcon
                         name={icon}
                         size={22}
-                        color={this.theme.colors.primary3}
+                        color={theme.colors.primary3}
                     />
                 }
-                themeForms={this.themeForms}
+                themeForms={themeForms}
             />
         );
     }

@@ -3,7 +3,7 @@ import { GestureResponderEvent, View } from 'react-native';
 import PhoneInput from 'react-native-phone-input';
 import CountryPicker, { CountryCode } from 'react-native-country-picker-modal';
 import phoneStyles from '../../styles/forms/phoneInput';
-import { ITherrThemeColors } from 'main/styles/themes';
+import { ITherrThemeColors } from '../../styles/themes';
 
 interface IPhoneNumberInputProps {
     onSubmit: ((event: GestureResponderEvent) => void) | undefined;

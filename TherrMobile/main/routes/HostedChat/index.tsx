@@ -13,6 +13,7 @@ import translator from '../../services/translator';
 import RoundInput from '../../components/Input/Round';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
+import { buildStyles as buildFormsStyles } from '../../styles/forms';
 import { buildStyles as buildCategoryStyles } from '../../styles/user-content/hosted-chat/categories';
 import { buildStyles as buildChatStyles } from '../../styles/user-content/hosted-chat';
 import { buildStyles as buildTileStyles } from '../../styles/user-content/hosted-chat/chat-tiles';
@@ -68,6 +69,7 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
     private searchTimerId: any;
     private theme = buildStyles();
     private themeButtons = buildButtonStyles();
+    private themeForms = buildFormsStyles();
     private themeCategory = buildCategoryStyles();
     private themeChat = buildChatStyles();
     private themeTile = buildTileStyles();
@@ -225,6 +227,7 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
                                 />
                             }
                             errorStyle={this.themeChat.styles.searchInputError}
+                            themeForms={this.themeForms}
                         />
                     </View>
                     <ChatCategories
@@ -236,13 +239,14 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
                         onCategoryTogglePress={this.handleCategoryTogglePress}
                         toggleChevronName={toggleChevronName}
                         theme={this.theme}
+                        themeForms={this.themeForms}
                         themeCategory={this.themeCategory}
                     />
 
                     {
-                        !forumSearchResults.length
-                            ? <Text style={this.themeChat.styles.noResultsText}>{this.translate('forms.hostedChat.noResultsFound')}</Text>
-                            : <FlatList
+                        !forumSearchResults.length ?
+                            <Text style={this.themeChat.styles.noResultsText}>{this.translate('forms.hostedChat.noResultsFound')}</Text> :
+                            <FlatList
                                 horizontal={false}
                                 keyExtractor={chatKeyExtractor}
                                 data={forumSearchResults}

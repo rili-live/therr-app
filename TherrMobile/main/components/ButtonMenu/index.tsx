@@ -7,7 +7,7 @@ import { INotificationsState } from 'therr-react/types';
 import LocationActions from '../../redux/actions/LocationActions';
 import { ILocationState } from '../../types/redux/location';
 import { buttonMenuHeight, buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
-import { ITherrThemeColors } from 'main/styles/themes';
+import { ITherrThemeColors } from '../../styles/themes';
 
 interface IButtonMenuDispatchProps {
     updateGpsStatus: Function;
