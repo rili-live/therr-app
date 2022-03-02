@@ -189,7 +189,9 @@
     "dividerOr": "or",
     "createConnection": {
       "buttons": {
-        "submit": "Send"
+        "submit": "Send",
+        "invitePhoneContacts": "Invite Phone Contacts",
+        "shareALink": "Share a Link"
       },
       "errorMessages": {
         "invalidEmail": "Invalid e-mail",
@@ -203,12 +205,16 @@
         "connectionSent": "You connection request is on the way!"
       },
       "labels": {
-        "phone": "Phone",
-        "email": "E-mail"
+        "phone": "By Phone",
+        "email": "By E-mail"
       },
       "placeholders": {
         "phone": "Connection's Phone #",
         "email": "Connection's E-mail"
+      },
+      "shareLink": {
+        "message": "Have you to joined Therr app yet? It's a newsfeed that promotes connections through the areas around you. Find the android and iOS links here https://therr.app",
+        "title": "Therr App | Nearby Newsfeed"
       }
     },
     "createProfile": {
@@ -610,6 +616,10 @@
         "quoteOfTheDay": "Daily Words of Wisdom",
         "howItWorks": "Welcome back!",
         "shareFeedback": "Share Feedback"
+      },
+      "subtitles": {
+        "createConnection": "Send a connection request or invite someone to join Therr!",
+        "whoInviteDisclaimer": "Choose who and how you would like to invite."
       },
       "labels": {
         "email": "E-mail",

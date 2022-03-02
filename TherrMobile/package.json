@@ -63,6 +63,7 @@
     "react-native-background-fetch": "^4.0.3",
     "react-native-bootsplash": "^4.0.2",
     "react-native-config": "^1.4.2",
+    "react-native-contacts": "^7.0.4",
     "react-native-country-picker-modal": "^2.0.0",
     "react-native-device-info": "^6.2.0",
     "react-native-dotenv": "^3.2.0",

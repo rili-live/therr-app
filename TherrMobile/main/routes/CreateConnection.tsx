@@ -1,20 +1,22 @@
 import React from 'react';
-import { SafeAreaView, View, Text } from 'react-native';
+import { SafeAreaView, Share, View, Text } from 'react-native';
 import { Button } from 'react-native-elements';
-import { Picker as ReactPicker } from '@react-native-picker/picker';
+// import { Picker as ReactPicker } from '@react-native-picker/picker';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import { FlatList } from 'react-native-gesture-handler';
+import Contacts from 'react-native-contacts';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import isEmail from 'validator/es/lib/isEmail';
 import Alert from '../components/Alert';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
-import SquareInput from '../components/Input/Square';
+// import SquareInput from '../components/Input/Square';
+import RoundInput from '../components/Input/Round';
 import PhoneNumberInput from '../components/Input/PhoneNumberInput';
 import { buildStyles, addMargins } from '../styles';
 import { buildStyles as buildAlertStyles } from '../styles/alerts';
@@ -26,6 +28,8 @@ import BaseStatusBar from '../components/BaseStatusBar';
 import MessagesContactsTabs from '../components/FlatListHeaderTabs/MessagesContactsTabs';
 import ConfirmModal from '../components/Modals/ConfirmModal';
 import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../constants';
+import OrDivider from '../components/Input/OrDivider';
+import { requestOSContactsPermissions } from '../utilities/requestOSPermissions';
 
 interface IHomeDispatchProps {
     createUserConnection: Function;
@@ -83,7 +87,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         super(props);
 
         this.state = {
-            connectionContext: 'phone',
+            connectionContext: 'email',
             didIgnoreNameConfirm: false,
             emailErrorMessage: '',
             inputs: {},
@@ -291,6 +295,44 @@ class Home extends React.Component<IHomeProps, IHomeState> {
         navigation.navigate('Settings');
     }
 
+    onGetPhoneContacts = () => {
+        // TODO: Store permissions in redux
+        const storePermissions = () => {};
+
+        return requestOSContactsPermissions(storePermissions).then((response) => {
+            const permissionsDenied = Object.keys(response).some((key) => {
+                return response[key] !== 'granted';
+            });
+            if (!permissionsDenied) {
+                return Contacts.getAll().then(contacts => {
+                    // contacts returned
+                    console.dir(contacts);
+                });
+            }
+        });
+    }
+
+    onShareALink = () => {
+        Share.share({
+            message: this.translate('forms.createConnection.shareLink.message'),
+            url: 'https://therr.app',
+            title: this.translate('forms.createConnection.shareLink.title'),
+        }).then((response) => {
+            console.log(response);
+            if (response.action === Share.sharedAction) {
+                if (response.activityType) {
+                    // shared with activity type of response.activityType
+                } else {
+                    // shared
+                }
+            } else if (response.action === Share.dismissedAction) {
+                // dismissed
+            }
+        }).catch((err) => {
+            console.error(err);
+        });
+    }
+
     render() {
         const {
             connectionContext,
@@ -312,11 +354,14 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                         renderItem={() => (
                             <View style={this.theme.styles.body}>
                                 <View style={this.theme.styles.sectionContainer}>
-                                    <Text style={this.theme.styles.sectionTitle}>
+                                    <Text style={[this.theme.styles.sectionTitle, { marginBottom: 15 }]}>
                                         {this.translate('pages.userProfile.h2.createConnection')}
                                     </Text>
+                                    <Text style={[this.theme.styles.sectionDescription, { marginBottom: 25 }]}>
+                                        {this.translate('pages.userProfile.subtitles.createConnection')}
+                                    </Text>
                                     <View style={this.theme.styles.sectionForm}>
-                                        <ReactPicker
+                                        {/* <ReactPicker
                                             selectedValue={connectionContext}
                                             style={this.themeForms.styles.picker}
                                             itemStyle={this.themeForms.styles.pickerItem}
@@ -324,15 +369,15 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                                 this.setState({ connectionContext: itemValue })
                                             }>
                                             <ReactPicker.Item label={this.translate(
-                                                'forms.createConnection.labels.phone'
-                                            )} value="phone" />
-                                            <ReactPicker.Item label={this.translate(
                                                 'forms.createConnection.labels.email'
                                             )} value="email" />
-                                        </ReactPicker>
+                                            <ReactPicker.Item label={this.translate(
+                                                'forms.createConnection.labels.phone'
+                                            )} value="phone" />
+                                        </ReactPicker> */}
                                         {
                                             connectionContext === 'email' &&
-                                            <SquareInput
+                                            <RoundInput
                                                 placeholder={this.translate(
                                                     'forms.createConnection.placeholders.email'
                                                 )}
@@ -375,9 +420,11 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                             themeAlerts={this.themeAlerts}
                                         />
                                         <Button
-                                            buttonStyle={this.themeForms.styles.button}
+                                            buttonStyle={this.themeForms.styles.buttonRound}
                                             // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                            disabledStyle={this.themeForms.styles.buttonDisabled}
+                                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                            titleStyle={this.themeForms.styles.buttonTitle}
                                             title={this.translate(
                                                 'forms.createConnection.buttons.submit'
                                             )}
@@ -385,7 +432,43 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                             disabled={this.isConnReqFormDisabled()}
                                             raised={false}
                                         />
+                                        <OrDivider
+                                            translate={this.translate}
+                                            themeForms={this.themeForms}
+                                            containerStyle={{ marginVertical: 30 }}
+                                        />
+                                        {/* <Button
+                                            containerStyle={{ marginBottom: 20 }}
+                                            buttonStyle={this.themeForms.styles.buttonRoundAlt}
+                                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                            titleStyle={this.themeForms.styles.buttonTitleAlt}
+                                            title={this.translate(
+                                                'forms.createConnection.buttons.invitePhoneContacts'
+                                            )}
+                                            type="outline"
+                                            onPress={this.onGetPhoneContacts}
+                                            raised={false}
+                                        /> */}
+                                        <Button
+                                            containerStyle={{ marginBottom: 10 }}
+                                            buttonStyle={this.themeForms.styles.buttonRoundAlt}
+                                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                            titleStyle={this.themeForms.styles.buttonTitleAlt}
+                                            title={this.translate(
+                                                'forms.createConnection.buttons.shareALink'
+                                            )}
+                                            type="outline"
+                                            onPress={this.onShareALink}
+                                            raised={false}
+                                        />
                                     </View>
+                                    <Text style={[this.theme.styles.sectionDescription, { textAlign: 'center', fontSize: 12 }]}>
+                                        {this.translate('pages.userProfile.subtitles.whoInviteDisclaimer')}
+                                    </Text>
                                 </View>
                             </View>
                         )}

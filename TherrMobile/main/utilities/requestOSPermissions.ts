@@ -43,6 +43,21 @@ const requestOSCameraPermissions = (storePermissionsResponse) => {
     switch (Platform.OS) {
         case 'ios':
             return requestIOSPermissions([
+                PERMISSIONS.IOS.CONTACTS,
+            ], storePermissionsResponse);
+        case 'android':
+            return requestAndroidPermission([
+                PermissionsAndroid.PERMISSIONS.READ_CONTACTS,
+            ], storePermissionsResponse);
+        default:
+            return Promise.reject();
+    }
+};
+
+const requestOSContactsPermissions = (storePermissionsResponse) => {
+    switch (Platform.OS) {
+        case 'ios':
+            return requestIOSPermissions([
                 PERMISSIONS.IOS.CAMERA,
             ], storePermissionsResponse);
         case 'android':
@@ -76,5 +91,6 @@ export {
     checkAndroidPermission,
     isLocationPermissionGranted,
     requestOSCameraPermissions,
+    requestOSContactsPermissions,
     requestOSMapPermissions,
 };

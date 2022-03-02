@@ -417,10 +417,9 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
         });
     }
 
-    handleLocationDisclosureSelect = (selection) => {
+    handleLocationDisclosureSelect = (/* selection */) => {
         const { updateLocationDisclosure } = this.props;
         // TODO: Decide if selection should be dynamic
-        console.log(selection);
         updateLocationDisclosure(true).then(() => {
             this.toggleLocationUseDisclosure();
             this.handleEnableLocationPress();
