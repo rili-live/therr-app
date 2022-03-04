@@ -428,6 +428,7 @@
       "buttons": {
         "add": "Add",
         "activeConnections": "Active Connections",
+        "invite": "Invite",
         "searchContacts": "Search Contacts",
         "createConnection": "Add Connection"
       }
@@ -582,6 +583,10 @@
     },
     "pageNotFound": {
       "pageTitle": "Page Not Found"
+    },
+    "phoneContacts": {
+      "headerTitle": "Phone Contacts",
+      "pageTitle": "Phone Contacts"
     },
     "register": {
       "headerTitle": "Therr",

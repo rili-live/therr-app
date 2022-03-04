@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { buttonMenuHeight } from '../navigation/buttonMenu';
 import { getTheme, ITherrTheme } from '../themes';
@@ -375,12 +375,23 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         btnMediumTitle: {
             paddingRight: 12,
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+        },
+        btnMediumTitleRight: {
+            paddingLeft: 12,
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
         },
         btnLarge: {
             ...btnStyles,
             backgroundColor: therrTheme.colors.accent1,
             height: 44,
             width: 44,
+        },
+        btnLargeWithText: {
+            ...btnStyles,
+            backgroundColor: therrTheme.colors.accent1,
+            height: 44,
+            paddingHorizontal: 15,
         },
         btnClear: {
             ...btnStyles,

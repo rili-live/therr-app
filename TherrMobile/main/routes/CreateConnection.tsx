@@ -296,6 +296,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
     }
 
     onGetPhoneContacts = () => {
+        const { navigation } = this.props;
         const { didIgnoreNameConfirm } = this.state;
         // TODO: Store permissions in redux
         const storePermissions = () => {};
@@ -312,7 +313,10 @@ class Home extends React.Component<IHomeProps, IHomeState> {
             if (!permissionsDenied) {
                 return Contacts.getAll().then(contacts => {
                     // contacts returned
-                    console.dir(contacts);
+
+                    navigation.navigate('PhoneContacts', {
+                        allContacts: contacts,
+                    });
                 });
             }
         });
@@ -443,7 +447,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                             themeForms={this.themeForms}
                                             containerStyle={{ marginVertical: 30 }}
                                         />
-                                        {/* <Button
+                                        <Button
                                             containerStyle={{ marginBottom: 20 }}
                                             buttonStyle={this.themeForms.styles.buttonRoundAlt}
                                             // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
@@ -456,7 +460,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                             type="outline"
                                             onPress={this.onGetPhoneContacts}
                                             raised={false}
-                                        /> */}
+                                        />
                                         <Button
                                             containerStyle={{ marginBottom: 10 }}
                                             buttonStyle={this.themeForms.styles.buttonRoundAlt}

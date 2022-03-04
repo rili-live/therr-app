@@ -15,6 +15,7 @@ import Areas from './Areas';
 import ActiveConnections from './ActiveConnections';
 import Contacts from './Contacts';
 import CreateConnection from './CreateConnection';
+import PhoneContacts from './Contacts/PhoneContacts';
 import AreaImageCrop from './CropImage/AreaImageCrop';
 import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
@@ -204,6 +205,17 @@ const routes: RouteConfig<
         component: CreateConnection,
         options: () => ({
             title: 'Create Connection',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'PhoneContacts',
+        component: PhoneContacts,
+        options: () => ({
+            title: 'Phone Contacts',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
