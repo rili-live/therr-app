@@ -9,7 +9,8 @@
         "userConnections": {
             "alreadyExists": "This user connection already exists",
             "noUserFound": "No user found with the provided criteria",
-            "noRequestSelf": "Cannot make a user connection with self"
+            "noRequestSelf": "Cannot make a user connection with self",
+            "mismatchTokenUserId": "Invalid requesting user ID"
         }
     },
     "notifications": {

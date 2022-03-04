@@ -209,8 +209,8 @@
         "email": "By E-mail"
       },
       "placeholders": {
-        "phone": "Connection's Phone #",
-        "email": "Connection's E-mail"
+        "phone": "Invitee's Phone #",
+        "email": "Invitee's E-mail"
       },
       "shareLink": {
         "message": "Have you to joined Therr app yet? It's a newsfeed that promotes connections through the areas around you. Find the android and iOS links here https://therr.app",

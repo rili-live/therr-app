@@ -296,8 +296,14 @@ class Home extends React.Component<IHomeProps, IHomeState> {
     }
 
     onGetPhoneContacts = () => {
+        const { didIgnoreNameConfirm } = this.state;
         // TODO: Store permissions in redux
         const storePermissions = () => {};
+
+        if (!didIgnoreNameConfirm && this.isUserNameAnonymous()) {
+            this.toggleNameConfirmModal();
+            return;
+        }
 
         return requestOSContactsPermissions(storePermissions).then((response) => {
             const permissionsDenied = Object.keys(response).some((key) => {
@@ -410,15 +416,6 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                                 themeForms={this.themeForms}
                                             />
                                         }
-                                        <Alert
-                                            containerStyles={addMargins({
-                                                marginBottom: 24,
-                                            })}
-                                            isVisible={!!prevConnReqSuccess || !!prevConnReqError}
-                                            message={!!prevConnReqSuccess ? prevConnReqSuccess : prevConnReqError}
-                                            type={!!prevConnReqSuccess ? 'success' : 'error'}
-                                            themeAlerts={this.themeAlerts}
-                                        />
                                         <Button
                                             buttonStyle={this.themeForms.styles.buttonRound}
                                             // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
@@ -431,6 +428,15 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                             onPress={this.onSubmit}
                                             disabled={this.isConnReqFormDisabled()}
                                             raised={false}
+                                        />
+                                        <Alert
+                                            containerStyles={addMargins({
+                                                marginTop: 24,
+                                            })}
+                                            isVisible={!!prevConnReqSuccess || !!prevConnReqError}
+                                            message={!!prevConnReqSuccess ? prevConnReqSuccess : prevConnReqError}
+                                            type={!!prevConnReqSuccess ? 'success' : 'error'}
+                                            themeAlerts={this.themeAlerts}
                                         />
                                         <OrDivider
                                             translate={this.translate}

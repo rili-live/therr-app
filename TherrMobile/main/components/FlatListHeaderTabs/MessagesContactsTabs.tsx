@@ -24,19 +24,19 @@ class MessagesContactsTab extends FlatListHeaderTabs {
             <FlatListHeaderTabs {...this.props}>
                 <>
                     <Pressable
-                        onPress={() => this.handleButtonPress('ActiveConnections')}
-                        style={tabName === 'ActiveConnections' ? themeMenu.styles.tabActive : themeMenu.styles.tab}
-                    >
-                        <Text style={themeMenu.styles.tabText}>
-                            {translate('components.activeConnections.title')}
-                        </Text>
-                    </Pressable>
-                    <Pressable
                         onPress={() => this.handleButtonPress('Contacts')}
                         style={tabName === 'Contacts' ? themeMenu.styles.tabActive : themeMenu.styles.tab}
                     >
                         <Text style={themeMenu.styles.tabText}>
                             {translate('components.contactsSearch.title')}
+                        </Text>
+                    </Pressable>
+                    <Pressable
+                        onPress={() => this.handleButtonPress('ActiveConnections')}
+                        style={tabName === 'ActiveConnections' ? themeMenu.styles.tabActive : themeMenu.styles.tab}
+                    >
+                        <Text style={themeMenu.styles.tabText}>
+                            {translate('components.activeConnections.title')}
                         </Text>
                     </Pressable>
                 </>

@@ -87,14 +87,14 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
         this.cachedUserDetails = props.user?.details;
         this.ftuiData = [
             {
-                title: this.translate('pages.landing.carousel.claimTitle'),
-                subtitle: this.translate('pages.landing.carousel.claimDescription'),
-                source: ftuiClaim,
-            },
-            {
                 title: this.translate('pages.landing.carousel.discoverTitle'),
                 subtitle: this.translate('pages.landing.carousel.discoverDescription'),
                 source: ftuiDiscover,
+            },
+            {
+                title: this.translate('pages.landing.carousel.claimTitle'),
+                subtitle: this.translate('pages.landing.carousel.claimDescription'),
+                source: ftuiClaim,
             },
             {
                 title: this.translate('pages.landing.carousel.momentTitle'),

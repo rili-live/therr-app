@@ -144,13 +144,13 @@ class MainButtonMenuAlt extends ButtonMenu {
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.connect') : null}
                     buttonStyle={
-                        currentScreen === 'ActiveConnections'
+                        currentScreen === 'Contacts'
                             ? themeMenu.styles.buttonsActive
                             : themeMenu.styles.buttons
                     }
                     containerStyle={themeMenu.styles.buttonContainer}
                     titleStyle={
-                        currentScreen === 'ActiveConnections'
+                        currentScreen === 'Contacts'
                             ? themeMenu.styles.buttonsTitleActive
                             : themeMenu.styles.buttonsTitle
                     }
@@ -159,13 +159,13 @@ class MainButtonMenuAlt extends ButtonMenu {
                             name="user-friends"
                             size={20}
                             style={
-                                currentScreen === 'ActiveConnections'
+                                currentScreen === 'Contacts'
                                     ? themeMenu.styles.buttonIconActive
                                     : themeMenu.styles.buttonIcon
                             }
                         />
                     }
-                    onPress={() => this.navTo('ActiveConnections')}
+                    onPress={() => this.navTo('Contacts')}
                 />
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.nearby') : null}
