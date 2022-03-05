@@ -2,6 +2,7 @@ import KnexBuilder, { Knex } from 'knex';
 import { AccessLevels } from 'therr-js-utilities/constants';
 import normalizeEmail from 'normalize-email';
 import { IConnection } from './connection';
+import normalizePhoneNumber from '../utilities/normalizePhoneNumber';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -18,7 +19,7 @@ export interface ICreateUserParams {
     verificationCodes: string;
 }
 
-interface IFindUserArgs {
+export interface IFindUserArgs {
     id?: string;
     email?: string;
     userName?: string;
@@ -27,6 +28,11 @@ interface IFindUserArgs {
 
 interface IFindUsersArgs {
     ids?: string[];
+}
+
+interface IFindUsersByContactInfo {
+    email?: string;
+    phoneNumber?: string;
 }
 
 export default class UsersStore {
@@ -85,6 +91,34 @@ export default class UsersStore {
     }: IFindUsersArgs, returning: any = ['id', 'userName', 'firstName', 'lastName', 'media']) {
         let queryString: any = knexBuilder.select(returning).from('main.users')
             .whereIn('id', ids || []);
+
+        queryString = queryString.toString();
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
+    findUsersByContactInfo(
+        contacts: IFindUsersByContactInfo[],
+        returning: any = ['id', 'email', 'phoneNumber', 'deviceMobileFirebaseToken'],
+    ) {
+        const emails: string[] = [];
+        const phoneNumbers: string[] = [];
+        contacts.forEach((contact) => {
+            // TODO: Format email
+            if (contact.email) { emails.push(normalizeEmail(contact.email)); }
+            // TODO: Format phoneNumbers to match db format
+            if (contact.phoneNumber) {
+                // Note: `normalizePhoneNumber` requires a country code prefix
+                // we can't guess this because it could result in sending an invite to the wrong person
+                const normalizedPhoneNumber = normalizePhoneNumber(contact.phoneNumber as string);
+                console.log(normalizedPhoneNumber);
+                if (normalizedPhoneNumber) {
+                    phoneNumbers.push(normalizedPhoneNumber);
+                }
+            }
+        });
+        let queryString: any = knexBuilder.select(returning).from('main.users')
+            .whereIn('email', emails || [])
+            .orWhereIn('phoneNumber', phoneNumbers);
 
         queryString = queryString.toString();
         return this.db.read.query(queryString).then((response) => response.rows);

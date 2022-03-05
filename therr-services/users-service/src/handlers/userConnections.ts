@@ -1,13 +1,17 @@
 import { RequestHandler } from 'express';
 import { Notifications, PushNotifications } from 'therr-js-utilities/constants';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
-import sendPushNotification from '../utilities/sendPushNotification';
+import printLogs from 'therr-js-utilities/print-logs';
+import normalizeEmail from 'normalize-email';
+import sendPushNotificationAndEmail from '../utilities/sendPushNotificationAndEmail';
 import beeline from '../beeline';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import { translateNotification } from './notifications';
 import { createUserHelper } from './users';
+import normalizePhoneNumber from '../utilities/normalizePhoneNumber';
+import sendContactInviteEmail from '../api/email/sendContactInviteEmail';
 
 // CREATE
 // TODO:RSERV-24: Security, get requestingUserId from user header token
@@ -23,10 +27,21 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
     } = req.body;
     const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
-    // eslint-disable-next-line eqeqeq
     const fromUserFullName = `${requestingUserFirstName} ${requestingUserLastName}`;
     const locale = req.headers['x-localecode'] || 'en-us';
-    let acceptingId = acceptingUserId;
+    let acceptingUser: {
+        id?: string,
+        deviceMobileFirebaseToken?: string;
+        email?: string;
+    } = {};
+
+    if (Number(requestingUserId) !== Number(userId)) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.userConnections.mismatchTokenUserId'),
+            statusCode: 400,
+        });
+    }
 
     // 1. Lookup User in DB and send e-mail invite if not found
     if (!acceptingUserId) {
@@ -34,8 +49,9 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
             const userResults = await Store.users.findUser({
                 phoneNumber: acceptingUserPhoneNumber,
                 email: acceptingUserEmail,
-            });
+            }, ['id', 'deviceMobileFirebaseToken', 'email']);
 
+            // 1a. Send email invite when user does not exist
             if (!userResults.length) {
                 if (acceptingUserEmail) {
                     // TODO: Ratelimit this to prevent spamming new user email
@@ -59,9 +75,11 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                     statusCode: 404,
                 });
             }
-            acceptingId = userResults[0].id;
 
-            if (acceptingId === requestingUserId) {
+            // 1b. Capture user id for step 2 when found in DB
+            acceptingUser = userResults[0];
+
+            if (acceptingUser.id === requestingUserId) {
                 return handleHttpError({
                     res,
                     message: translate(locale, 'errorMessages.userConnections.noRequestSelf'),
@@ -81,11 +99,9 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
     // 2. If user is found, create the connection and send notifications
     return Store.userConnections.getUserConnections({
         requestingUserId,
-        acceptingUserId: acceptingId,
+        acceptingUserId: acceptingUser.id,
     }, true)
         .then((getResults) => {
-            const toUserIdForNotification = acceptingId;
-
             if (getResults.length && !getResults[0].isConnectionBroken) {
                 return handleHttpError({
                     res,
@@ -108,23 +124,24 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
             } else {
                 connectionPromise = Store.userConnections.createUserConnection({
                     requestingUserId,
-                    acceptingUserId: acceptingId,
+                    acceptingUserId: acceptingUser.id as string,
                     requestStatus: 'pending',
                 });
             }
 
-            sendPushNotification(Store.users.findUser, {
+            // NOTE: no need to refetch user from DB
+            sendPushNotificationAndEmail(() => Promise.resolve([acceptingUser as { deviceMobileFirebaseToken: string; email: string; }]), {
                 authorization,
                 fromUserName: fromUserFullName,
                 fromUserId: userId,
                 locale,
-                toUserId: toUserIdForNotification,
+                toUserId: acceptingUser.id,
                 type: 'new-connection-request',
                 retentionEmailType: PushNotifications.Types.newConnectionRequest,
             });
 
             return connectionPromise.then(([userConnection]) => Store.notifications.createNotification({
-                userId: acceptingId,
+                userId: acceptingUser.id as string,
                 type: Notifications.Types.CONNECTION_REQUEST_RECEIVED,
                 associationId: userConnection.id,
                 isUnread: true,
@@ -145,6 +162,141 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
             res,
             message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR',
         }));
+};
+
+const createOrInviteUserConnections: RequestHandler = async (req: any, res: any) => {
+    const {
+        requestingUserId,
+        requestingUserFirstName,
+        requestingUserLastName,
+        requestingUserEmail,
+        inviteList,
+    } = req.body;
+    const authorization = req.headers.authorization;
+    const userId = req.headers['x-userid'];
+    const fromUserFullName = `${requestingUserFirstName} ${requestingUserLastName}`;
+    const locale = req.headers['x-localecode'] || 'en-us';
+
+    if (requestingUserId !== userId) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.userConnections.mismatchTokenUserId'),
+            statusCode: 400,
+        });
+    }
+
+    // 1. Lookup Users in DB, collect those that exist, send e-mail invite to those that do not yet exist
+    try {
+        const userResults = await Store.users.findUsersByContactInfo(inviteList);
+        const existingUsers: any[] = [];
+        const otherUserEmails: any[] = [];
+        const otherUserPhoneNumbers: any[] = [];
+        inviteList.forEach((contact) => {
+            const isFound = userResults.some((result) => {
+                if (contact.email && normalizeEmail(contact.email) === result.email) {
+                    existingUsers.push(result);
+                    return true;
+                }
+
+                if (contact.phoneNumber && result.phoneNumber && normalizePhoneNumber(contact.phoneNumber) === result.phoneNumber) {
+                    existingUsers.push(result);
+                    return true;
+                }
+
+                return false;
+            });
+
+            if (!isFound) {
+                if (contact.email) {
+                    otherUserEmails.push(normalizeEmail(contact.email));
+                } else if (contact.phoneNumber) {
+                    const normalizedPhoneNumber = normalizePhoneNumber(contact.phoneNumber);
+                    if (normalizedPhoneNumber) {
+                        otherUserPhoneNumbers.push(normalizedPhoneNumber);
+                    }
+                }
+                // If no email or normal phone number, do nothing
+            }
+        });
+
+        // 2. Send email invites if user does not exist
+        const emailSendPromises: any[] = [];
+        otherUserEmails.forEach((email) => emailSendPromises.push(sendContactInviteEmail({
+            subject: `${requestingUserFirstName} ${requestingUserLastName} invited you to Therr app`,
+            toAddresses: [email],
+        }, {
+            fromName: `${requestingUserFirstName} ${requestingUserLastName}`,
+            fromEmail: requestingUserEmail || '',
+            toEmail: email,
+        })));
+        // TODO: Change to Promise.allSettled
+        Promise.all(emailSendPromises).catch((err) => {
+            printLogs({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: [err?.message],
+                tracer: beeline,
+                traceArgs: {
+                    issue: '',
+                    port: process.env.USERS_SERVICE_API_PORT,
+                    processId: process.pid,
+                },
+            });
+        });
+
+        // 3. Send in-app invites to existing users
+        if (existingUsers.length > 0) {
+            // Query db and send connection requests if don't already exist
+            return Store.userConnections.findUserConnections(userId, existingUsers.map((user) => user.id)).then((connections) => {
+                // TODO: Determine if we can replace this logic in the SQL query
+                const newConnectionUserIds: any = [];
+                const newConnectionUsers: { id: string; deviceMobileFirebaseToken: string; email: string; }[] = [];
+                existingUsers
+                    .forEach((user) => {
+                        if (!connections.find((conn) => conn.acceptingUserId === user.id || conn.requestingUser === user.id)) {
+                            newConnectionUserIds.push(user.id);
+                            newConnectionUsers.push({
+                                id: user.id,
+                                deviceMobileFirebaseToken: user.deviceMobileFirebaseToken,
+                                email: user.email,
+                            });
+                        }
+                    });
+
+                return Store.userConnections.createUserConnections(userId, newConnectionUserIds).then((response) => ({
+                    userConnections: response,
+                    newConnectionUsers,
+                }));
+            }).then(({ userConnections, newConnectionUsers }) => {
+                // 3a. Send notifications to each new connection request
+                newConnectionUsers.forEach((acceptingUser) => {
+                    // NOTE: no need to refetch user from DB
+                    sendPushNotificationAndEmail(() => Promise.resolve([acceptingUser as { deviceMobileFirebaseToken: string; email: string; }]), {
+                        authorization,
+                        fromUserName: fromUserFullName,
+                        fromUserId: userId,
+                        locale,
+                        toUserId: acceptingUser.id,
+                        type: 'new-connection-request',
+                        retentionEmailType: PushNotifications.Types.newConnectionRequest,
+                    });
+                });
+                return res.status(201).send({ userConnections });
+            }).catch((err) => handleHttpError({
+                err,
+                res,
+                message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR',
+            }));
+        }
+
+        return res.status(201).send({});
+    } catch (err: any) {
+        return handleHttpError({
+            err,
+            res,
+            message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR',
+        });
+    }
 };
 
 // READ
@@ -225,13 +377,28 @@ const updateUserConnection = (req, res) => {
                 });
             }
 
-            sendPushNotification(Store.users.findUser, {
-                authorization,
-                fromUserName: '', // TODO: Fetch this or send it from the frontend
-                fromUserId: userId,
-                locale,
-                toUserId: getResults[0].acceptingUserId,
-                type: 'connection-request-accepted',
+            Store.users.getUserById(requestingUserId, ['userName']).then((otherUserRows) => {
+                const fromUserName = otherUserRows[0]?.userName;
+
+                sendPushNotificationAndEmail(Store.users.findUser, {
+                    authorization,
+                    fromUserName: fromUserName || '',
+                    fromUserId: userId,
+                    locale,
+                    toUserId: getResults[0].acceptingUserId,
+                    type: PushNotifications.Types.connectionRequestAccepted,
+                });
+            }).catch((err) => {
+                printLogs({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message],
+                    tracer: beeline,
+                    traceArgs: {
+                        port: process.env.USERS_SERVICE_API_PORT,
+                        processId: process.pid,
+                    },
+                });
             });
 
             return Store.userConnections
@@ -254,6 +421,7 @@ const updateUserConnection = (req, res) => {
 
 export {
     createUserConnection,
+    createOrInviteUserConnections,
     getUserConnection,
     searchUserConnections,
     updateUserConnection,

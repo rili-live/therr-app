@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 import LottieView from 'lottie-react-native';
+import claimASpace from '../assets/claim-a-space.json';
 import karaokeLoader from '../assets/karaoke.json';
 import happySwingLoader from '../assets/happy-swing.json';
 import shoppingLoader from '../assets/shopping.json';
@@ -11,7 +12,16 @@ import carLoader from '../assets/sports-car.json';
 import zeppelinLoader from '../assets/zeppelin.json';
 import therrBlackRolling from '../assets/therr-logo-black-rolling.json';
 
-export type ILottieId = 'donut' | 'earth' | 'taco' | 'shopping' | 'happy-swing' | 'karaoke' | 'yellow-car' | 'zeppelin' | 'therr-black-rolling';
+export type ILottieId = 'claim-a-space'
+    | 'donut'
+    | 'earth'
+    | 'taco'
+    | 'shopping'
+    | 'happy-swing'
+    | 'karaoke'
+    | 'yellow-car'
+    | 'zeppelin'
+    | 'therr-black-rolling';
 export interface ILottieLoaderProps {
     id: ILottieId;
     theme: {
@@ -28,6 +38,11 @@ export default ({
     let source: any = carLoader;
 
     switch (id) {
+        case 'claim-a-space':
+            containerStyles = theme.styles.claimASpace;
+            textStyles = theme.styles.defaultText;
+            source = claimASpace;
+            break;
         case 'donut':
             containerStyles = theme.styles.defaultContainer;
             textStyles = theme.styles.defaultText;

@@ -8,12 +8,14 @@ import AdvancedSearch from './AdvancedSearch';
 import BookMarked from './Areas/BookMarked';
 import Home from './Home';
 import DirectMessage from './DirectMessage';
+import Landing from './Landing';
 import Login from './Login';
 import Map from './Map';
 import Areas from './Areas';
 import ActiveConnections from './ActiveConnections';
 import Contacts from './Contacts';
 import CreateConnection from './CreateConnection';
+import PhoneContacts from './Contacts/PhoneContacts';
 import AreaImageCrop from './CropImage/AreaImageCrop';
 import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
@@ -71,6 +73,19 @@ const routes: RouteConfig<
     ExtendedRouteOptions,
     StackNavigationEventMap
 >[] = [
+    {
+        name: 'Landing',
+        component: Landing,
+        options: () => ({
+            title: 'Landing',
+            access: {
+                type: AccessCheckType.NONE,
+                levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+                isPublic: true,
+            },
+            headerStyle: styles.headerStyleNoShadow,
+        }),
+    },
     {
         name: 'Login',
         component: Login,
@@ -190,6 +205,17 @@ const routes: RouteConfig<
         component: CreateConnection,
         options: () => ({
             title: 'Create Connection',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'PhoneContacts',
+        component: PhoneContacts,
+        options: () => ({
+            title: 'Phone Contacts',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

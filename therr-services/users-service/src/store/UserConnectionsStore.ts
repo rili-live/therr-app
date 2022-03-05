@@ -157,6 +157,7 @@ export default class UserConnectionsStore {
                 requestStatus: 'complete',
             });
 
+        // TODO: Compare query performance and consider using `findUserConnections` method instead
         if (conditions.filterBy && conditions.query) {
             const operator = conditions.filterOperator || '=';
             const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
@@ -184,10 +185,38 @@ export default class UserConnectionsStore {
         return this.db.read.query(queryString).then((response) => formatSQLJoinAsJSON(response.rows, [{ propKey: 'users', propId: 'id' }]));
     }
 
+    findUserConnections(userId: string, otherUserIds: string[]) {
+        const queryString = knexBuilder
+            .select(['acceptingUserId', 'requestingUserId'])
+            .from(USER_CONNECTIONS_TABLE_NAME)
+            .where((builder) => {
+                builder.where({ requestingUserId: userId }).and.whereIn('acceptingUserId', otherUserIds);
+            })
+            .orWhere((builder) => {
+                builder.where({ acceptingUserId: userId }).and.whereIn('requestingUserId', otherUserIds);
+            });
+
+        return this.db.read.query(queryString.toString()).then((response) => response.rows);
+    }
+
     createUserConnection(params: ICreateUserConnectionParams) {
         const queryString = knexBuilder.insert(params)
             .into(USER_CONNECTIONS_TABLE_NAME)
             .returning('*')
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
+    createUserConnections(userId: string, otherUserIds: string[]) {
+        const newConnections = otherUserIds.map((otherUserId) => ({
+            requestingUserId: userId,
+            acceptingUserId: otherUserId,
+            requestStatus: 'pending',
+        }));
+        const queryString = knexBuilder.insert(newConnections)
+            .into(USER_CONNECTIONS_TABLE_NAME)
+            .returning(['id', 'acceptingUserId', 'requestingUserId'])
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);

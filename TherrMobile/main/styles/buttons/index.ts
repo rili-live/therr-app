@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { buttonMenuHeight } from '../navigation/buttonMenu';
 import { getTheme, ITherrTheme } from '../themes';
@@ -52,7 +52,7 @@ const getBottomLeftBtnViewStyles = (theme: ITherrTheme): any => ({
 const getLeftSmallButton1ViewStyles = (theme: ITherrTheme): any => ({
     position: 'absolute',
     left: 18,
-    bottom: 106 + buttonMenuHeight - collapseOffset,
+    bottom: 60 + buttonMenuHeight - collapseOffset,
     shadowColor: theme.colors.textBlack,
     shadowOffset: {
         height: 1,
@@ -165,7 +165,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         claimASpace: {
             position: 'absolute',
             right: 24,
-            bottom: 280 + buttonMenuHeight - collapseOffset,
+            bottom: 310 + buttonMenuHeight - collapseOffset,
             shadowColor: therrTheme.colors.textBlack,
             shadowOffset: {
                 height: 1,
@@ -182,7 +182,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         shareAThought: {
             position: 'absolute',
             right: 24,
-            bottom: 230 + buttonMenuHeight - collapseOffset,
+            bottom: 250 + buttonMenuHeight - collapseOffset,
             shadowColor: therrTheme.colors.textBlack,
             shadowOffset: {
                 height: 1,
@@ -199,7 +199,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         uploadMoment: {
             position: 'absolute',
             right: 24,
-            bottom: 180 + buttonMenuHeight - collapseOffset,
+            bottom: 190 + buttonMenuHeight - collapseOffset,
             shadowColor: therrTheme.colors.textBlack,
             shadowOffset: {
                 height: 1,
@@ -367,11 +367,31 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             height: 34,
             width: 34,
         },
+        btnMediumWithText: {
+            ...btnStyles,
+            backgroundColor: therrTheme.colors.accent1,
+            height: 34,
+            paddingHorizontal: 15,
+        },
+        btnMediumTitle: {
+            paddingRight: 12,
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+        },
+        btnMediumTitleRight: {
+            paddingLeft: 12,
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+        },
         btnLarge: {
             ...btnStyles,
             backgroundColor: therrTheme.colors.accent1,
             height: 44,
             width: 44,
+        },
+        btnLargeWithText: {
+            ...btnStyles,
+            backgroundColor: therrTheme.colors.accent1,
+            height: 44,
+            paddingHorizontal: 15,
         },
         btnClear: {
             ...btnStyles,

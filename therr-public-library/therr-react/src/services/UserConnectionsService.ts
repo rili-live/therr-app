@@ -11,10 +11,27 @@ interface ICreateConnectionBody {
     acceptingUserPhoneNumber?: string;
 }
 
+interface IInviteConnectionsBody {
+    requestingUserId: number;
+    requestingUserEmail?: string;
+    requestingUserFirstName?: string;
+    requestingUserLastName?: string;
+    inviteList: {
+        email?: string;
+        phoneNumber?: string;
+    }[]
+}
+
 class UserConnectionsService {
     create = (data: ICreateConnectionBody) => axios({
         method: 'post',
         url: '/users-service/users/connections',
+        data,
+    })
+
+    invite = (data: IInviteConnectionsBody) => axios({
+        method: 'post',
+        url: '/users-service/users/connections/multi-invite',
         data,
     })
 

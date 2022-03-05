@@ -11,6 +11,7 @@ import { MapActions } from 'therr-react/redux/actions';
 import { Content } from 'therr-js-utilities/constants';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import YoutubePlayer from 'react-native-youtube-iframe';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
@@ -35,6 +36,11 @@ import HashtagsContainer from '../components/UserContent/HashtagsContainer';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { getImagePreviewPath } from '../utilities/areaUtils';
 import { signImageUrl } from '../utilities/content';
+
+const hapticFeedbackOptions = {
+    enableVibrateFallback: true,
+    ignoreAndroidSystemSettings: false,
+};
 
 interface IEditMomentDispatchProps {
     createMoment: Function;
@@ -241,6 +247,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         };
 
         if (!this.isFormDisabled()) {
+            ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
+
             this.setState({
                 isSubmitting: true,
             });

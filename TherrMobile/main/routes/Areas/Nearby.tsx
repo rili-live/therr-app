@@ -417,10 +417,9 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
         });
     }
 
-    handleLocationDisclosureSelect = (selection) => {
+    handleLocationDisclosureSelect = (/* selection */) => {
         const { updateLocationDisclosure } = this.props;
         // TODO: Decide if selection should be dynamic
-        console.log(selection);
         updateLocationDisclosure(true).then(() => {
             this.toggleLocationUseDisclosure();
             this.handleEnableLocationPress();
@@ -542,7 +541,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                 <BaseStatusBar />
                 <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
                     {
-                        true &&
+                        this.shouldRenderNearbyNewsfeed() &&
                             <AreaCarousel
                                 activeData={activeData}
                                 content={content}
@@ -567,7 +566,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                             />
                     }
                     {
-                        this.shouldRenderNearbyNewsfeed()
+                        !this.shouldRenderNearbyNewsfeed() && this.renderGpsEnableButton()
                     }
                 </SafeAreaView>
                 <AreaOptionsModal

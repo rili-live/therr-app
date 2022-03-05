@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
@@ -30,11 +30,11 @@ export default ({
     handleCreateMoment,
     handleGpsRecenter,
     toggleMomentActions,
-    hasNotifications,
+    // hasNotifications,
     isAuthorized,
     isGpsEnabled,
     translate,
-    goToNotifications,
+    // goToNotifications,
     shouldShowCreateActions,
     themeButtons,
 }: MapActionButtonsProps) => {
@@ -42,7 +42,7 @@ export default ({
 
     return (
         <>
-            <View style={themeButtons.styles.notifications}>
+            {/* <View style={themeButtons.styles.notifications}>
                 <Button
                     containerStyle={[
                         themeButtons.styles.btnContainer, hasNotifications ? { borderWidth: 2, borderColor: themeButtons.colors.brandingMapYellow } : {},
@@ -58,6 +58,21 @@ export default ({
                     raised={true}
                     onPress={() => goToNotifications()}
                 />
+            </View> */}
+            <View style={themeButtons.styles.locationEnable}>
+                <Button
+                    containerStyle={themeButtons.styles.btnContainer}
+                    buttonStyle={themeButtons.styles.btnLarge}
+                    icon={
+                        <MaterialIcon
+                            name={ isGpsEnabled ? 'gps-fixed' : 'gps-off' }
+                            size={32}
+                            style={themeButtons.styles.btnIcon}
+                        />
+                    }
+                    raised={true}
+                    onPress={handleGpsRecenter}
+                />
             </View>
             {
                 shouldShowCreateButton &&
@@ -68,7 +83,7 @@ export default ({
                             icon={
                                 <OctIcon
                                     name={ shouldShowCreateActions ? 'dash' : 'plus' }
-                                    size={36}
+                                    size={32}
                                     style={themeButtons.styles.btnIcon}
                                 />
                             }
@@ -79,10 +94,10 @@ export default ({
                             shouldShowCreateActions &&
                                 <>
                                     <View style={themeButtons.styles.claimASpace}>
-                                        <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.claimASpace')}</Text>
+                                        {/* <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.claimASpace')}</Text> */}
                                         <Button
                                             containerStyle={themeButtons.styles.btnContainer}
-                                            buttonStyle={themeButtons.styles.btnMedium}
+                                            buttonStyle={themeButtons.styles.btnMediumWithText}
                                             icon={
                                                 <FontAwesome5Icon
                                                     name="map-marked"
@@ -90,15 +105,18 @@ export default ({
                                                     style={themeButtons.styles.btnIcon}
                                                 />
                                             }
-                                            raised={true}
+                                            iconRight
+                                            raised
+                                            title={translate('menus.mapActions.claimASpace')}
+                                            titleStyle={themeButtons.styles.btnMediumTitle}
                                             onPress={() => handleCreateMoment('claim')}
                                         />
                                     </View>
                                     <View style={themeButtons.styles.shareAThought}>
-                                        <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.shareAThought')}</Text>
+                                        {/* <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.shareAThought')}</Text> */}
                                         <Button
                                             containerStyle={themeButtons.styles.btnContainer}
-                                            buttonStyle={themeButtons.styles.btnMedium}
+                                            buttonStyle={themeButtons.styles.btnMediumWithText}
                                             icon={
                                                 <OctIcon
                                                     name="megaphone"
@@ -106,31 +124,37 @@ export default ({
                                                     style={themeButtons.styles.btnIcon}
                                                 />
                                             }
-                                            raised={true}
+                                            iconRight
+                                            raised
+                                            title={translate('menus.mapActions.shareAThought')}
+                                            titleStyle={themeButtons.styles.btnMediumTitle}
                                             onPress={() => handleCreateMoment('text-only')}
                                         />
                                     </View>
                                     <View style={themeButtons.styles.uploadMoment}>
-                                        <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.uploadAMoment')}</Text>
+                                        {/* <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.uploadAMoment')}</Text> */}
                                         <Button
                                             containerStyle={themeButtons.styles.btnContainer}
-                                            buttonStyle={themeButtons.styles.btnMedium}
+                                            buttonStyle={themeButtons.styles.btnMediumWithText}
                                             icon={
                                                 <FontAwesome5Icon
-                                                    name="gem"
+                                                    name="images"
                                                     size={24}
                                                     style={themeButtons.styles.btnIcon}
                                                 />
                                             }
-                                            raised={true}
+                                            iconRight
+                                            raised
+                                            title={translate('menus.mapActions.uploadAMoment')}
+                                            titleStyle={themeButtons.styles.btnMediumTitle}
                                             onPress={() => handleCreateMoment('upload')}
                                         />
                                     </View>
                                     <View style={themeButtons.styles.captureMoment}>
-                                        <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.captureAMoment')}</Text>
+                                        {/* <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.captureAMoment')}</Text> */}
                                         <Button
                                             containerStyle={themeButtons.styles.btnContainer}
-                                            buttonStyle={themeButtons.styles.btnMedium}
+                                            buttonStyle={themeButtons.styles.btnMediumWithText}
                                             icon={
                                                 <OctIcon
                                                     name="device-camera"
@@ -138,7 +162,10 @@ export default ({
                                                     style={themeButtons.styles.btnIcon}
                                                 />
                                             }
-                                            raised={true}
+                                            iconRight
+                                            raised
+                                            title={translate('menus.mapActions.captureAMoment')}
+                                            titleStyle={themeButtons.styles.btnMediumTitle}
                                             onPress={() => handleCreateMoment('camera')}
                                         />
                                     </View>
@@ -146,21 +173,6 @@ export default ({
                         }
                     </>
             }
-            <View style={themeButtons.styles.locationEnable}>
-                <Button
-                    containerStyle={themeButtons.styles.btnContainer}
-                    buttonStyle={themeButtons.styles.btn}
-                    icon={
-                        <MaterialIcon
-                            name={ isGpsEnabled ? 'gps-fixed' : 'gps-off' }
-                            size={28}
-                            style={themeButtons.styles.btnIcon}
-                        />
-                    }
-                    raised={true}
-                    onPress={handleGpsRecenter}
-                />
-            </View>
         </>
     );
 };

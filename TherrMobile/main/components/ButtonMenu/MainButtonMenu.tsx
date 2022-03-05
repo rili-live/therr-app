@@ -4,8 +4,14 @@ import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { ButtonMenu, mapStateToProps, mapDispatchToProps } from '.';
 // import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
+
+const hapticFeedbackOptions = {
+    enableVibrateFallback: true,
+    ignoreAndroidSystemSettings: false,
+};
 
 class MainButtonMenuAlt extends ButtonMenu {
     constructor(props) {
@@ -16,6 +22,7 @@ class MainButtonMenuAlt extends ButtonMenu {
 
     navTo = (routeName) => {
         // const { location, navigation, translate, updateGpsStatus } = this.props;
+        ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
         const { navigation } = this.props;
 
         // if (routeName === 'Map') {
@@ -135,30 +142,30 @@ class MainButtonMenuAlt extends ButtonMenu {
                     onPress={() => this.navTo('Map')}
                 />
                 <Button
-                    title={!isCompact ? translate('menus.main.buttons.bookmarked') : null}
+                    title={!isCompact ? translate('menus.main.buttons.connect') : null}
                     buttonStyle={
-                        currentScreen === 'BookMarked'
+                        currentScreen === 'Contacts'
                             ? themeMenu.styles.buttonsActive
                             : themeMenu.styles.buttons
                     }
                     containerStyle={themeMenu.styles.buttonContainer}
                     titleStyle={
-                        currentScreen === 'BookMarked'
+                        currentScreen === 'Contacts'
                             ? themeMenu.styles.buttonsTitleActive
                             : themeMenu.styles.buttonsTitle
                     }
                     icon={
                         <FontAwesomeIcon
-                            name="bookmark"
+                            name="user-friends"
                             size={20}
                             style={
-                                currentScreen === 'BookMarked'
+                                currentScreen === 'Contacts'
                                     ? themeMenu.styles.buttonIconActive
                                     : themeMenu.styles.buttonIcon
                             }
                         />
                     }
-                    onPress={() => this.navTo('BookMarked')}
+                    onPress={() => this.navTo('Contacts')}
                 />
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.nearby') : null}

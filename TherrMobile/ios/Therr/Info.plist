@@ -60,6 +60,8 @@
 	<string>This permission allows the user to access and share audio files from their library to the social space of the app.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Camera usage is needed for taking photos of various locations and sharing with social connections.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Contact permissions are need to fetch a list of contacts, allowing users to invite friends to the app.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This allows querying the user's current location to find nearby content shared by a user's connections</string>
 	<key>NSLocationAlwaysUsageDescription</key>

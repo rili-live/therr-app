@@ -11,6 +11,17 @@ const userProfileButtonContainerStyles: any = {
     alignItems: 'center',
 };
 
+const getNotificationCircleStyles = (theme): any => ({
+    position: 'absolute',
+    top: 7,
+    right: 14,
+    borderWidth: 4,
+    borderRadius: 3,
+    width: 4,
+    height: 4,
+    borderColor: theme.colors.brandingOrange,
+});
+
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
 
@@ -68,14 +79,21 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             justifyContent: 'center',
         },
         notificationCircle: {
-            position: 'absolute',
+            ...getNotificationCircleStyles(therrTheme),
+        },
+        notificationCircle2: {
+            ...getNotificationCircleStyles(therrTheme),
             top: 7,
-            right: 14,
-            borderWidth: 4,
-            borderRadius: 3,
-            width: 4,
-            height: 4,
-            borderColor: therrTheme.colors.brandingOrange,
+            right: 8,
+            width: 5,
+            height: 5,
+        },
+        notificationCircle3: {
+            ...getNotificationCircleStyles(therrTheme),
+            top: 2,
+            right: 9,
+            width: 5,
+            height: 5,
         },
         overlayContainer: {
             backgroundColor: therrTheme.colors.textWhite,

@@ -6,6 +6,7 @@ import { buttonMenuHeight } from '../styles/navigation/buttonMenu';
 export default ({
     navigation,
     themeButtons,
+    translate,
 }) => {
     const goToAddConnection = () => {
         navigation.navigate('CreateConnection');
@@ -19,7 +20,7 @@ export default ({
                 bottom: buttonMenuHeight + 20,
                 borderRadius: 100,
             }}
-            buttonStyle={themeButtons.styles.btn}
+            buttonStyle={[themeButtons.styles.btn, { paddingRight: 20, paddingLeft: 10 }]}
             icon={
                 <MaterialIcon
                     name="add"
@@ -28,6 +29,7 @@ export default ({
                 />
             }
             raised={true}
+            title={translate('menus.connections.buttons.add')}
             onPress={goToAddConnection}
         />
     );
