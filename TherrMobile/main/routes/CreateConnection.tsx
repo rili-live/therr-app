@@ -328,7 +328,6 @@ class Home extends React.Component<IHomeProps, IHomeState> {
             url: 'https://therr.app',
             title: this.translate('forms.createConnection.shareLink.title'),
         }).then((response) => {
-            console.log(response);
             if (response.action === Share.sharedAction) {
                 if (response.activityType) {
                     // shared with activity type of response.activityType

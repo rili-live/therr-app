@@ -163,6 +163,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
             message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR',
         }));
 };
+
 const createOrInviteUserConnections: RequestHandler = async (req: any, res: any) => {
     const {
         requestingUserId,
@@ -176,7 +177,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
     const fromUserFullName = `${requestingUserFirstName} ${requestingUserLastName}`;
     const locale = req.headers['x-localecode'] || 'en-us';
 
-    if (Number(requestingUserId) !== Number(userId)) {
+    if (requestingUserId !== userId) {
         return handleHttpError({
             res,
             message: translate(locale, 'errorMessages.userConnections.mismatchTokenUserId'),
@@ -202,16 +203,13 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                     return true;
                 }
 
-                if (contact.email) {
-                    otherUserEmails.push(normalizeEmail(contact.email));
-                    return true;
-                }
-
                 return false;
             });
 
             if (!isFound) {
-                if (contact.phoneNumber) {
+                if (contact.email) {
+                    otherUserEmails.push(normalizeEmail(contact.email));
+                } else if (contact.phoneNumber) {
                     const normalizedPhoneNumber = normalizePhoneNumber(contact.phoneNumber);
                     if (normalizedPhoneNumber) {
                         otherUserPhoneNumbers.push(normalizedPhoneNumber);
@@ -260,7 +258,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                             newConnectionUsers.push({
                                 id: user.id,
                                 deviceMobileFirebaseToken: user.deviceMobileFirebaseToken,
-                                email: user.deviceMobileFirebaseToken,
+                                email: user.email,
                             });
                         }
                     });
@@ -283,15 +281,12 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                         retentionEmailType: PushNotifications.Types.newConnectionRequest,
                     });
                 });
-                return res.status(201, { userConnections });
-            }).catch((err) => {
-                console.log('ZACK_DEBUG', err);
-                return handleHttpError({
-                    err,
-                    res,
-                    message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR',
-                });
-            });
+                return res.status(201).send({ userConnections });
+            }).catch((err) => handleHttpError({
+                err,
+                res,
+                message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR',
+            }));
         }
 
         return res.status(201).send({});

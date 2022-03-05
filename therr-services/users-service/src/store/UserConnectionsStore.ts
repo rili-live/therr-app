@@ -187,7 +187,7 @@ export default class UserConnectionsStore {
 
     findUserConnections(userId: string, otherUserIds: string[]) {
         const queryString = knexBuilder
-            .select(['acceptingUserId', 'requestingUser'])
+            .select(['acceptingUserId', 'requestingUserId'])
             .from(USER_CONNECTIONS_TABLE_NAME)
             .where((builder) => {
                 builder.where({ requestingUserId: userId }).and.whereIn('acceptingUserId', otherUserIds);
@@ -195,8 +195,6 @@ export default class UserConnectionsStore {
             .orWhere((builder) => {
                 builder.where({ acceptingUserId: userId }).and.whereIn('requestingUserId', otherUserIds);
             });
-
-        console.log('ZACK_DEBUG_findUserConnections', queryString);
 
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
@@ -220,8 +218,6 @@ export default class UserConnectionsStore {
             .into(USER_CONNECTIONS_TABLE_NAME)
             .returning(['id', 'acceptingUserId', 'requestingUserId'])
             .toString();
-
-        console.log('ZACK_DEBUG_createUserConnections', queryString);
 
         return this.db.write.query(queryString).then((response) => response.rows);
     }

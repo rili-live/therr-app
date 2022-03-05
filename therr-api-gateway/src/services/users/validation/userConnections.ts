@@ -21,6 +21,16 @@ export const createUserConnectionValidation = [
     ]),
 ];
 
+export const inviteConnectionsValidation = [
+    body('requestingUserId').isString().exists(),
+    body('requestingUserFirstName').isString().exists(),
+    body('requestingUserLastName').isString().exists(),
+    body('requestingUserEmail').isString().exists(),
+    body('inviteList')
+        .exists()
+        .isArray(),
+];
+
 export const updateUserConnectionValidation = [
     body('otherUserId').isString().exists(),
 ];

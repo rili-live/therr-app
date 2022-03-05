@@ -4,6 +4,7 @@ import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
+import { UserConnectionsService } from 'therr-react/services';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
@@ -102,28 +103,35 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
 
     onSubmit = () => {
         const { contactList } = this.state;
-        const { navigation } = this.props;
+        const { navigation, user } = this.props;
         const selectedContacts = contactList
             .filter((c => c.isChecked))
             .map((phoneContact) => {
                 const normalizedContact: any = {};
                 if (phoneContact.emailAddresses?.length) {
-                    normalizedContact.email = phoneContact.emailAddresses[0];
+                    normalizedContact.email = phoneContact.emailAddresses[0].email;
                 }
                 if (phoneContact.phoneNumbers?.length) {
                     const mobileNumber = phoneContact.phoneNumbers.find(n => n.label === 'mobile');
                     if (mobileNumber) {
-                        normalizedContact.phoneNumber = mobileNumber;
+                        normalizedContact.phoneNumber = mobileNumber.number;
                     } else {
-                        normalizedContact.phoneNumber = phoneContact.phoneNumbers[0];
+                        normalizedContact.phoneNumber = phoneContact.phoneNumbers[0].number;
                     }
                 }
 
                 return normalizedContact;
             });
 
-        console.log(selectedContacts);
-        navigation.goBack();
+        return UserConnectionsService.invite({
+            requestingUserId: user.details.id,
+            requestingUserEmail: user.details.email,
+            requestingUserFirstName: user.details.firstName,
+            requestingUserLastName: user.details.lastName,
+            inviteList: selectedContacts,
+        }).finally(() => {
+            navigation.goBack();
+        });
     }
 
     handleRefresh = () => {

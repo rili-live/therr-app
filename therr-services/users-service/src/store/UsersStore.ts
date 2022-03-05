@@ -110,6 +110,7 @@ export default class UsersStore {
                 // Note: `normalizePhoneNumber` requires a country code prefix
                 // we can't guess this because it could result in sending an invite to the wrong person
                 const normalizedPhoneNumber = normalizePhoneNumber(contact.phoneNumber as string);
+                console.log(normalizedPhoneNumber);
                 if (normalizedPhoneNumber) {
                     phoneNumbers.push(normalizedPhoneNumber);
                 }
