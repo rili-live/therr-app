@@ -2,6 +2,19 @@ import React, { useState } from 'react';
 import { Text, Modal, Pressable, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import AnimatedLottieView from 'lottie-react-native';
+
+import claimASpace from '../../assets/claim-a-space.json';
+import shareAMoment from '../../assets/share-a-moment.json';
+import discover from '../../assets/discover.json';
+
+const graphicStyles: any = {
+    height: 150,
+    width: 150,
+    display: 'flex',
+    paddingVertical: 10,
+    marginBottom: 40,
+};
 
 interface ITouringModal {
     isVisible: boolean;
@@ -46,27 +59,42 @@ export default ({
     translate,
 }: ITouringModal) => {
     const [tab, setTab] = useState(0);
+    const onClose = () => {
+        setTab(0);
+        onRequestClose();
+    };
 
     return (
         <Modal
             animationType="slide"
             visible={isVisible}
-            onRequestClose={onRequestClose}
+            onRequestClose={onClose}
             transparent={true}
+            style={{
+                zIndex: 1000,
+            }}
         >
             <Pressable
-                onPress={onRequestClose}
+                onPress={onClose}
                 style={themeTour.styles.overlay}>
                 {
                     (tab !== 1 && tab !== 2) &&
                     <Pressable style={themeTour.styles.container}>
                         <Text style={themeTour.styles.header}>{translate('modals.touringModal.header1')}</Text>
-                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.createAMoment')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.claimYourSpaces')}</Text>
+                        <AnimatedLottieView
+                            source={claimASpace}
+                            // resizeMode="cover"
+                            speed={1}
+                            autoPlay={false}
+                            loop
+                            style={graphicStyles}
+                        />
                         <View style={{ width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                             <ModalButton
                                 iconName="close"
                                 title={translate('modals.touringModal.exit')}
-                                onPress={onRequestClose}
+                                onPress={onClose}
                                 iconRight={false}
                                 themeButtons={themeButtons}
                             />
@@ -84,7 +112,15 @@ export default ({
                     (tab === 1) &&
                     <Pressable style={themeTour.styles.container}>
                         <Text style={themeTour.styles.header}>{translate('modals.touringModal.header2')}</Text>
-                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.claimYourSpaces')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.createAMoment')}</Text>
+                        <AnimatedLottieView
+                            source={shareAMoment}
+                            // resizeMode="cover"
+                            speed={1}
+                            autoPlay={false}
+                            loop
+                            style={graphicStyles}
+                        />
                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                             <ModalButton
                                 iconName="arrow-back"
@@ -106,8 +142,16 @@ export default ({
                 {
                     (tab === 2) &&
                     <Pressable style={themeTour.styles.container}>
-                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header2')}</Text>
+                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header3')}</Text>
                         <Text style={themeTour.styles.text}>{translate('modals.touringModal.exploreTheWorld')}</Text>
+                        <AnimatedLottieView
+                            source={discover}
+                            // resizeMode="cover"
+                            speed={1}
+                            autoPlay={false}
+                            loop
+                            style={graphicStyles}
+                        />
                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                             <ModalButton
                                 iconName="arrow-back"
@@ -119,7 +163,7 @@ export default ({
                             <ModalButton
                                 iconName="check"
                                 title={translate('modals.touringModal.done')}
-                                onPress={onRequestClose}
+                                onPress={onClose}
                                 iconRight
                                 themeButtons={themeButtons}
                             />

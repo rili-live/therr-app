@@ -1,0 +1,237 @@
+import React from 'react';
+import { connect } from 'react-redux';
+import { Dimensions, SafeAreaView, View, Text } from 'react-native';
+import { Button } from 'react-native-elements';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import 'react-native-gesture-handler';
+import { IUserState } from 'therr-react/types';
+import Carousel, { Pagination } from 'react-native-snap-carousel';
+import { buildStyles } from '../styles';
+import { buildStyles as buildFTUIStyles } from '../styles/first-time-ui';
+import { buildStyles as buildAuthFormStyles } from '../styles/forms/authenticationForms';
+import { buildStyles as buildFormStyles } from '../styles/forms';
+import { bindActionCreators } from 'redux';
+import UsersActions from '../redux/actions/UsersActions';
+import translator from '../services/translator';
+import BaseStatusBar from '../components/BaseStatusBar';
+import OrDivider from '../components/Input/OrDivider';
+import AnimatedLottieView from 'lottie-react-native';
+
+// import ftuiClaim from '../assets/discover.json';
+import ftuiClaim from '../assets/ftui-claim.json';
+import ftuiDiscover from '../assets/ftui-discover.json';
+import ftuiMoment from '../assets/ftui-moment.json';
+
+const { width: viewportWidth } = Dimensions.get('window');
+
+
+const graphicStyles: any = {
+    width: '100%',
+    maxHeight: 200,
+    flex: 1,
+    padding: 0,
+};
+
+interface ILandingDispatchProps {
+    login: Function;
+}
+
+interface IStoreProps extends ILandingDispatchProps {
+    user: IUserState;
+}
+
+// Regular component props
+export interface ILandingProps extends IStoreProps {
+    navigation: any;
+    route: any;
+}
+
+interface ILandingState {
+    activeSlide: number;
+}
+
+const mapStateToProps = (state: any) => ({
+    user: state.user,
+});
+
+const mapDispatchToProps = (dispatch: any) =>
+    bindActionCreators(
+        {
+            login: UsersActions.login,
+        },
+        dispatch
+    );
+
+class LandingComponent extends React.Component<ILandingProps, ILandingState> {
+    private translate;
+    private cachedUserDetails;
+    private ftuiData;
+    private theme = buildStyles();
+    private themeAuthForm = buildAuthFormStyles();
+    private themeFTUI = buildFTUIStyles();
+    private themeForms = buildFormStyles();
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            activeSlide: 0,
+        };
+
+        this.theme = buildStyles(props.user?.settings?.mobileThemeName);
+        this.themeAuthForm = buildAuthFormStyles(props.user.settings?.mobileThemeName);
+        this.themeFTUI = buildFTUIStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
+        this.translate = (key: string, params: any): string =>
+            translator('en-us', key, params);
+        this.cachedUserDetails = props.user?.details;
+        this.ftuiData = [
+            {
+                title: this.translate('pages.landing.carousel.discoverTitle'),
+                subtitle: this.translate('pages.landing.carousel.discoverDescription'),
+                source: ftuiDiscover,
+            },
+            {
+                title: this.translate('pages.landing.carousel.claimTitle'),
+                subtitle: this.translate('pages.landing.carousel.claimDescription'),
+                source: ftuiClaim,
+            },
+            {
+                title: this.translate('pages.landing.carousel.momentTitle'),
+                subtitle: this.translate('pages.landing.carousel.momentDescription'),
+                source: ftuiMoment,
+            },
+        ];
+    }
+
+    // TODO: On logout, ignore any deep link logic
+    componentDidMount() {
+        const { navigation, route } = this.props;
+        const isVerifySuccess = route.params?.isVerifySuccess;
+
+        if (!isVerifySuccess) {
+            navigation.setOptions({
+                title: this.translate('pages.landing.headerTitle'),
+            });
+        }
+    }
+
+    navTo = (routeName) => {
+        const { navigation } = this.props;
+
+        navigation.navigate(routeName);
+    }
+
+    renderFTUISlide = ({
+        title,
+        subtitle,
+        source,
+    }) => {
+        return (
+            <View style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+                <View style={{
+                    display: 'flex',
+                    width: '100%',
+                    alignItems: 'center',
+                }}>
+                    <AnimatedLottieView
+                        source={source}
+                        resizeMode="contain"
+                        speed={1}
+                        autoPlay={false}
+                        loop
+                        style={graphicStyles}
+                    />
+                </View>
+                <View style={[this.theme.styles.sectionContainerWide, { marginBottom: 0 }]}>
+                    <Text style={[this.themeFTUI.styles.titleWithNoSpacing, { textAlign: 'center' }]}>
+                        {title}
+                    </Text>
+                    <Text style={[this.themeFTUI.styles.subtitle, { textAlign: 'center', marginBottom: 0 }]}>
+                        {subtitle}
+                    </Text>
+                </View>
+            </View>
+        );
+    }
+
+    render() {
+        const { activeSlide } = this.state;
+        const sliderWidth = viewportWidth - (2 * this.theme.styles.bodyFlex.padding);
+
+        return (
+            <>
+                <BaseStatusBar />
+                <SafeAreaView  style={this.theme.styles.safeAreaView}>
+                    <KeyboardAwareScrollView
+                        contentInsetAdjustmentBehavior="automatic"
+                        style={this.theme.styles.bodyFlex}
+                        contentContainerStyle={this.theme.styles.bodyScroll}
+                    >
+                        <Carousel
+                            contentInsetAdjustmentBehavior="automatic"
+                            containerCustomStyle={{ marginTop: 40 }}
+                            vertical={false}
+                            data={this.ftuiData}
+                            renderItem={({ item }) => this.renderFTUISlide(item)}
+                            sliderWidth={sliderWidth}
+                            sliderHeight={sliderWidth}
+                            itemWidth={sliderWidth}
+                            itemHeight={sliderWidth}
+                            onSnapToItem={(index) => this.setState({ activeSlide: index }) }
+                            slideStyle={{ width: sliderWidth }}
+                            inactiveSlideOpacity={1}
+                            inactiveSlideScale={1}
+                            windowSize={21}
+                        />
+                        <Pagination
+                            dotsLength={this.ftuiData.length}
+                            activeDotIndex={activeSlide}
+                            containerStyle={{ marginBottom: 25 }}
+                            dotStyle={{
+                                width: 16,
+                                height: 16,
+                                borderRadius: 8,
+                                marginHorizontal: 3,
+                                backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                            }}
+                            inactiveDotStyle={{
+                                // Define styles for inactive dots here
+                            }}
+                            inactiveDotOpacity={0.4}
+                            inactiveDotScale={0.8}
+                        />
+                        <View style={this.themeAuthForm.styles.submitButtonContainer}>
+                            <Button
+                                buttonStyle={this.themeAuthForm.styles.button}
+                                titleStyle={this.themeForms.styles.buttonTitle}
+                                disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                disabledStyle={this.themeForms.styles.buttonDisabled}
+                                title={this.translate(
+                                    'pages.landing.buttons.getStarted'
+                                )}
+                                onPress={() => this.navTo('Register')}
+                            />
+                        </View>
+                        <OrDivider
+                            translate={this.translate}
+                            themeForms={this.themeForms}
+                        />
+                        <View style={this.themeAuthForm.styles.moreLinksContainer}>
+                            <Button
+                                type="clear"
+                                titleStyle={this.themeAuthForm.styles.buttonLink}
+                                title={this.translate(
+                                    'pages.landing.buttons.signIn'
+                                )}
+                                onPress={() => this.navTo('Login')}
+                            />
+                        </View>
+                    </KeyboardAwareScrollView>
+                </SafeAreaView>
+            </>
+        );
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(LandingComponent);

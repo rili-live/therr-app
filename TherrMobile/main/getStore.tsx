@@ -17,48 +17,32 @@ const loggerMiddleware = createLogger();
 let preLoadedState;
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
-// Grab the state from a global variable injected into the server-generated HTML
-function safelyParse(input: any) {
-    if (input) {
-        const doc = new window.DOMParser().parseFromString(input, 'text/html');
-        return JSON.parse(doc.documentElement.textContent || '');
-    }
-    console.log(
-        'Warning: __PRELOADED_STATE__ is not defined on the respective view'
-    );
-    return {};
-}
-
 const getStore = async () => {
     // Get stored user details from session storage if they are already logged in
-    if (typeof window !== 'undefined') {
-        const therrSession = await AsyncStorage.getItem('therrSession');
-        const storedSocketDetails = JSON.parse(therrSession || '{}');
-        const therrUser = await AsyncStorage.getItem('therrUser');
-        let storedUser = JSON.parse(therrUser || '{}');
-        storedUser = storedUser || {};
-        const isAuthenticated = !!(storedUser && storedUser.id && storedUser.idToken);
-        const reloadedState: any = {
-            user: {
-                details: storedUser,
-                isAuthenticated,
-                settings: {
-                    locale: 'en-us',
-                    mobileThemeName: 'retro',
-                },
-                socketDetails: {
-                    session: storedSocketDetails,
-                },
+    const therrSession = await AsyncStorage.getItem('therrSession');
+    const storedSocketDetails = JSON.parse(therrSession || '{}');
+    const therrUser = await AsyncStorage.getItem('therrUser');
+    let storedUser = JSON.parse(therrUser || '{}');
+    const therrUserSettings = await AsyncStorage.getItem('therrUserSettings');
+    const storedUserSettings = JSON.parse(therrUserSettings || '{}');
+    storedUserSettings.locale = storedUserSettings.locale || 'en-us';
+    storedUserSettings.mobileThemeName = storedUserSettings.mobileThemeName || 'retro';
+    const isAuthenticated = !!(storedUser && storedUser.id && storedUser.idToken);
+    const reloadedState: any = {
+        user: {
+            details: storedUser,
+            isAuthenticated,
+            settings: storedUserSettings,
+            socketDetails: {
+                session: storedSocketDetails,
             },
-        };
-        preLoadedState = Object.assign(
-            safelyParse(window.__PRELOADED_STATE__),
-            reloadedState
-        );
-        if (isAuthenticated) {
-            updateSocketToken(reloadedState.user, true);
-        }
+        },
+    };
+    if (isAuthenticated) {
+        updateSocketToken(reloadedState.user, true);
     }
+
+    preLoadedState = { ...reloadedState };
 
     return __DEV__
         ? createStore(
