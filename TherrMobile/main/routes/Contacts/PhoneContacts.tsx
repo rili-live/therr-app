@@ -14,7 +14,7 @@ import translator from '../../services/translator';
 // import CreateConnectionButton from '../../components/CreateConnectionButton';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
-import RoundInput from '../../components/Input/Round';
+// import RoundInput from '../../components/Input/Round';
 import PhoneContactItem from './PhoneContactItem';
 import { buttonMenuHeight } from '../../styles/navigation/buttonMenu';
 import { Button } from 'react-native-elements';
@@ -139,7 +139,7 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
     }
 
     render() {
-        const { contactList, searchInputValue } = this.state;
+        const { contactList } = this.state;
         const { navigation, user } = this.props;
 
         return (
@@ -166,25 +166,25 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
                                 </Text>
                             </View>
                         )}
-                        ListHeaderComponent={() => (
-                            <RoundInput
-                                autoCapitalize="none"
-                                containerStyle={{ paddingHorizontal: 10 }}
-                                placeholder={this.translate(
-                                    'forms.hostedChat.searchPlaceholder'
-                                )}
-                                value={searchInputValue}
-                                onChangeText={this.onSearchInputChange}
-                                rightIcon={
-                                    <FontAwesomeIcon
-                                        name="search"
-                                        color={this.theme.colors.primary3}
-                                        size={22}
-                                    />
-                                }
-                                themeForms={this.themeForms}
-                            />
-                        )}
+                        // ListHeaderComponent={() => (
+                        //     <RoundInput
+                        //         autoCapitalize="none"
+                        //         containerStyle={{ paddingHorizontal: 10 }}
+                        //         placeholder={this.translate(
+                        //             'forms.hostedChat.searchPlaceholder'
+                        //         )}
+                        //         value={searchInputValue}
+                        //         onChangeText={this.onSearchInputChange}
+                        //         rightIcon={
+                        //             <FontAwesomeIcon
+                        //                 name="search"
+                        //                 color={this.theme.colors.primary3}
+                        //                 size={22}
+                        //             />
+                        //         }
+                        //         themeForms={this.themeForms}
+                        //     />
+                        // )}
                         stickyHeaderIndices={[0]}
                         // onContentSizeChange={() => connections.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
                     />
