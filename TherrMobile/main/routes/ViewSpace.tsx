@@ -247,7 +247,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                 ...space,
                 reaction: {
                     ...space.reaction,
-                    userBookmarkCategory: !!space.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+                    userBookmarkCategory: space.reaction?.userBookmarkCategory ? null : 'Uncategorized',
                 },
             },
         });

@@ -128,12 +128,8 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
         source,
     }) => {
         return (
-            <View style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
-                <View style={{
-                    display: 'flex',
-                    width: '100%',
-                    alignItems: 'center',
-                }}>
+            <View style={this.themeFTUI.styles.slideContainer}>
+                <View style={this.themeFTUI.styles.graphicImgContainer}>
                     <AnimatedLottieView
                         source={source}
                         resizeMode="contain"
@@ -144,10 +140,10 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
                     />
                 </View>
                 <View style={[this.theme.styles.sectionContainerWide, { marginBottom: 0 }]}>
-                    <Text style={[this.themeFTUI.styles.titleWithNoSpacing, { textAlign: 'center' }]}>
+                    <Text style={[this.themeFTUI.styles.titleWithNoSpacing, this.theme.styles.textCenter]}>
                         {title}
                     </Text>
-                    <Text style={[this.themeFTUI.styles.subtitle, { textAlign: 'center', marginBottom: 0 }]}>
+                    <Text style={[this.themeFTUI.styles.subtitle, this.theme.styles.textCenter, { marginBottom: 0 }]}>
                         {subtitle}
                     </Text>
                 </View>
@@ -188,13 +184,7 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
                             dotsLength={this.ftuiData.length}
                             activeDotIndex={activeSlide}
                             containerStyle={{ marginBottom: 25 }}
-                            dotStyle={{
-                                width: 16,
-                                height: 16,
-                                borderRadius: 8,
-                                marginHorizontal: 3,
-                                backgroundColor: 'rgba(255, 255, 255, 0.92)',
-                            }}
+                            dotStyle={this.themeFTUI.styles.sliderDot}
                             inactiveDotStyle={{
                                 // Define styles for inactive dots here
                             }}

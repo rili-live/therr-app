@@ -304,6 +304,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                 <UserImage
                                     onImageReady={this.onDoneCropping}
                                     theme={this.theme}
+                                    themeForms={this.themeForms}
                                     userImageUri={userImageUri}
                                 />
                                 <Alert

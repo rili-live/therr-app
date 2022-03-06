@@ -16,7 +16,6 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 // import RoundInput from '../../components/Input/Round';
 import PhoneContactItem from './PhoneContactItem';
-import { buttonMenuHeight } from '../../styles/navigation/buttonMenu';
 import { Button } from 'react-native-elements';
 
 interface IPhoneContactsDispatchProps {
@@ -190,12 +189,7 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
                     />
                 </SafeAreaView>
                 <Button
-                    containerStyle={{
-                        position: 'absolute',
-                        right: 20,
-                        bottom: buttonMenuHeight + 20,
-                        borderRadius: 100,
-                    }}
+                    containerStyle={this.themeButtons.styles.buttonFloatBottomRightContainer}
                     buttonStyle={this.themeButtons.styles.btnLargeWithText}
                     titleStyle={this.themeButtons.styles.btnMediumTitleRight}
                     icon={

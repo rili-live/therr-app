@@ -36,31 +36,19 @@ const handleImagePress = (onImageReady) => {
 export default ({
     onImageReady,
     theme,
+    themeForms,
     userImageUri,
 }) => {
     return (
         <Pressable
             onPress={() => handleImagePress(onImageReady)}
-            style={{
-                position: 'relative',
-            }}
+            style={themeForms.styles.userImagePressableContainer}
         >
             <View style={[mixins.flexCenter, mixins.marginMediumBot]}>
                 <View>
-                    <Image source={{ uri: userImageUri }} loaderSize="large" theme={theme} style={{
-                        height: 200,
-                        width: 200,
-                        borderRadius: 100,
-                    }} />
+                    <Image source={{ uri: userImageUri }} loaderSize="large" theme={theme} style={themeForms.styles.userImage} />
                     <View
-                        style={{
-                            position: 'absolute',
-                            bottom: 0,
-                            right: 0,
-                            backgroundColor: theme.colorVariations.backgroundBlackFade,
-                            borderRadius: 40,
-                            padding: 14,
-                        }}
+                        style={themeForms.styles.userImageIconOverlay}
                     >
                         <MaterialIcon
                             name="add-a-photo"

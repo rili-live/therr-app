@@ -36,8 +36,8 @@ class App extends React.Component<any, any> {
         LogRocket.init('pibaqj/therr-app-mobile', {
             network: {
                 requestSanitizer: request => {
-                    if (request.headers['authorization']) {
-                        request.headers['authorization'] = '';
+                    if (request.headers.authorization) {
+                        request.headers.authorization = '';
                     }
                     if (request.body?.toString().includes('password')) {
                         request.body = '';

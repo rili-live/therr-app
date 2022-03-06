@@ -109,12 +109,6 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
             title: this.translate('pages.bookmarked.headerTitle'),
         });
 
-        this.setState({
-            areAreaOptionsVisible: false,
-            isLoading: false,
-            selectedArea: {},
-        });
-
         const bookmarkedMomentsPromise = searchBookmarkedMoments({
             withMedia: true,
             withUser: true,

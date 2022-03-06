@@ -276,6 +276,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         stretch: {
             flex: 1,
         },
+        textCenter: {
+            textAlign: 'center',
+        },
         footer: {
             color: therrTheme.colors.textWhite,
             fontSize: 12,

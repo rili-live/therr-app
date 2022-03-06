@@ -99,8 +99,23 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     constructor(props) {
         super(props);
 
+        const defaultActiveTab = CAROUSEL_TABS.SOCIAL;
+
+        const activeData = getActiveCarouselData({
+            activeTab: defaultActiveTab,
+            content: props.content,
+            isForBookmarks: false,
+        });
+        if (!activeData?.length || activeData.length < 21) {
+            this.handleRefresh();
+        } else {
+            this.setState({
+                isLoading: false,
+            });
+        }
+
         this.state = {
-            activeTab: CAROUSEL_TABS.SOCIAL,
+            activeTab: defaultActiveTab,
             isLoading: true,
             areAreaOptionsVisible: false,
             selectedArea: {},
@@ -118,25 +133,11 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     }
 
     componentDidMount() {
-        const { activeTab } = this.state;
-        const { content, navigation } = this.props;
+        const { navigation } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.areas.headerTitle'),
         });
-
-        const activeData = getActiveCarouselData({
-            activeTab,
-            content,
-            isForBookmarks: false,
-        });
-        if (!activeData?.length || activeData.length < 21) {
-            this.handleRefresh();
-        } else {
-            this.setState({
-                isLoading: false,
-            });
-        }
     }
 
     componentWillUnmount() {
