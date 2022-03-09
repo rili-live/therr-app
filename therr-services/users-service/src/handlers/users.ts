@@ -290,7 +290,97 @@ const updateUser = (req, res) => {
                 deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
                 shouldHideMatureContent: req.body.shouldHideMatureContent,
             };
-            if (req.body.settingsTherrCoinTotal) {
+
+            const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
+
+            if (isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED)) {
+                const userAccessLevels = userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED);
+                userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+                updateArgs.accessLevels = JSON.stringify(userAccessLevels);
+            }
+            if (!isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
+                const userAccessLevels = userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+                userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
+                updateArgs.accessLevels = JSON.stringify(userAccessLevels);
+            }
+
+            passwordPromise
+                .then(() => Store.users
+                    .updateUser(updateArgs, {
+                        id: userId,
+                    })
+                    .then((results) => {
+                        const user = results[0];
+                        delete user.password;
+                        delete user.oneTimePassword;
+                        // TODO: Investigate security issue
+                        // Lockdown updateUser
+                        return res.status(202).send({ ...user, id: userId }); // Precaution, always return correct request userID to prevent polution
+                    }))
+                .catch((e) => handleHttpError({
+                    res,
+                    message: translate(locale, 'User/password combination is incorrect'),
+                    statusCode: 400,
+                }));
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+};
+
+const updateUserCoins = (req, res) => {
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const userId = req.headers['x-userid'];
+
+    return Store.users.getUserById(userId)
+        .then((userSearchResults) => {
+            const {
+                email,
+                password,
+                oldPassword,
+                userName,
+            } = req.body;
+
+            if (!userSearchResults.length) {
+                return handleHttpError({
+                    res,
+                    message: `No user found with id, ${userId}.`,
+                    statusCode: 404,
+                });
+            }
+
+            // TODO: If password, validate and update password
+            let passwordPromise: Promise<any> = Promise.resolve();
+
+            if (password && oldPassword) {
+                passwordPromise = updatePassword({
+                    hashedPassword: userSearchResults[0].password,
+                    inputPassword: oldPassword,
+                    locale,
+                    oneTimePassword: userSearchResults[0].oneTimePassword,
+                    res,
+                    emailArgs: {
+                        email,
+                        userName,
+                    },
+                    newPassword: password,
+                    userId,
+                });
+            }
+
+            const updateArgs: any = {
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
+                media: req.body.media,
+                phoneNumber: req.body.phoneNumber,
+                hasAgreedToTerms: req.body.hasAgreedToTerms,
+                userName: req.body.userName,
+                deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
+                shouldHideMatureContent: req.body.shouldHideMatureContent,
+            };
+
+            // IMPORTANT: Only reward users who opt-in to background push notifications
+            // TODO: Weight reward based on settingsPushTopics opt-in (Each with its own valuation)
+            // TODO: increment/decrement should be stored on block-chain for auditability
+            if (req.body.settingsTherrCoinTotal && userSearchResults[0].settingsPushBackground) {
                 // increment/decrement
                 updateArgs.settingsTherrCoinTotal = userSearchResults[0] + req.body.settingsTherrCoinTotal;
             }
@@ -631,6 +721,7 @@ export {
     getUsers,
     findUsers,
     updateUser,
+    updateUserCoins,
     blockUser,
     reportUser,
     updateUserPassword,

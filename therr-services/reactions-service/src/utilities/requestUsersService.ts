@@ -1,21 +1,27 @@
-import axios from 'axios';
+import axios, { Method } from 'axios';
 import * as globalConfig from '../../../../global-config';
 
-interface IRequestUsersServiceArgs {
+interface IRequestUsersServiceConfig {
     authorization: string;
     locale: string;
     userId: string;
-    requestBody: any;
+}
+
+interface IRequestUsersServiceArgs {
+    path: string;
+    method: Method;
 }
 
 export default ({
     authorization,
     locale,
     userId,
-    requestBody,
-}: IRequestUsersServiceArgs) => axios({
-    method: 'post',
-    url: `${globalConfig[process.env.NODE_ENV].baseUsesServiceRoute}/users/send`,
+}: IRequestUsersServiceConfig, {
+    path,
+    method,
+}: IRequestUsersServiceArgs, requestBody = {}) => axios({
+    method,
+    url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}${path}`,
     headers: {
         authorization,
         'x-localecode': locale,
