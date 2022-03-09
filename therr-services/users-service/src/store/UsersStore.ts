@@ -207,6 +207,10 @@ export default class UsersStore {
             modifiedParams.shouldHideMatureContent = params.shouldHideMatureContent;
         }
 
+        if (params.settingsTherrCoinTotal != null) {
+            modifiedParams.settingsTherrCoinTotal = params.settingsTherrCoinTotal;
+        }
+
         // Security: Prevent updating multiple users
         if (!normalizedConditions.id && !normalizedConditions.email) {
             throw new Error('User ID or email is required to call updateUser');

@@ -290,6 +290,10 @@ const updateUser = (req, res) => {
                 deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
                 shouldHideMatureContent: req.body.shouldHideMatureContent,
             };
+            if (req.body.settingsTherrCoinTotal) {
+                // increment/decrement
+                updateArgs.settingsTherrCoinTotal = userSearchResults[0] + req.body.settingsTherrCoinTotal;
+            }
 
             const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
 

@@ -3,6 +3,8 @@ import { RequestHandler } from 'express';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
+import requestUsersService from '../utilities/requestUsersService';
+import getReactionValuation from '../utilities/getReactionValuation';
 // import * as globalConfig from '../../../../global-config';
 
 // CREATE/UPDATE
@@ -24,7 +26,35 @@ const createOrUpdateSpaceReaction = (req, res) => {
                 userLocale: locale,
                 userViewCount: existing[0].userViewCount + (req.body.userViewCount || 0),
             })
-                .then(([spaceReaction]) => res.status(200).send(spaceReaction));
+                .then(([spaceReaction]) => {
+                    // TODO: Should this be a blocking request to ensure update?
+                    const coinValue = getReactionValuation(existing[0], req.body);
+                    if (coinValue !== 0) {
+                        requestUsersService({
+                            authorization: req.headers.authorization,
+                            userId,
+                            locale,
+                            requestBody: {
+                                settingsTherrCoinTotal: coinValue,
+                            },
+                        });
+                    }
+
+                    return res.status(200).send(spaceReaction);
+                });
+        }
+
+        // TODO: Should this be a blocking request to ensure update?
+        const coinValue = getReactionValuation({}, req.body);
+        if (coinValue !== 0) {
+            requestUsersService({
+                authorization: req.headers.authorization,
+                userId,
+                locale,
+                requestBody: {
+                    settingsTherrCoinTotal: coinValue,
+                },
+            });
         }
 
         return Store.spaceReactions.create({
