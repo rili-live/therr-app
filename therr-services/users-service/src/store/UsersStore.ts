@@ -207,25 +207,27 @@ export default class UsersStore {
             modifiedParams.shouldHideMatureContent = params.shouldHideMatureContent;
         }
 
-        if (params.settingsTherrCoinTotal != null) {
-            modifiedParams.settingsTherrCoinTotal = params.settingsTherrCoinTotal;
-        }
-
         // Security: Prevent updating multiple users
         if (!normalizedConditions.id && !normalizedConditions.email) {
             throw new Error('User ID or email is required to call updateUser');
         }
 
-        const queryString = knexBuilder.update({
+        let queryString: any = knexBuilder.update({
             ...modifiedParams,
             updatedAt: new Date(),
         })
             .into(USERS_TABLE_NAME)
             .where(normalizedConditions)
-            .returning('*')
-            .toString();
+            .returning('*');
 
-        return this.db.write.query(queryString).then((response) => response.rows);
+        if (params.settingsTherrCoinTotal != null) {
+            modifiedParams.settingsTherrCoinTotal = params.settingsTherrCoinTotal;
+        }
+
+        // TODO: check if this works
+        queryString = queryString.increment('settingsTherrCoinTotal', params.settingsTherrCoinTotal);
+
+        return this.db.write.query(queryString.toString()).then((response) => response.rows);
     }
 
     deleteUsers(conditions) {
