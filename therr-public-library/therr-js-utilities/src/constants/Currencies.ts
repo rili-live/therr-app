@@ -5,11 +5,11 @@ const CurrentSocialValuations = {
     superLike: 0.05,
 };
 
-const CurrentSpaceValuations = {
+const CurrentMomentValuations = {
     perSquareFoot: 0.001,
 };
 
 export {
     CurrentSocialValuations,
-    CurrentSpaceValuations,
+    CurrentMomentValuations,
 };

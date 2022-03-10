@@ -4,7 +4,7 @@ import Location from './Location';
 import LogLevelMap, { ILogLevel } from './LogLevelMap';
 import {
     CurrentSocialValuations,
-    CurrentSpaceValuations,
+    CurrentMomentValuations,
 } from './Currencies';
 import {
     DefaultUserResources,
@@ -37,7 +37,7 @@ export {
     PushNotifications,
     PasswordRegex,
     CurrentSocialValuations,
-    CurrentSpaceValuations,
+    CurrentMomentValuations,
     DefaultUserResources,
     ResourceExchangeRates,
     SocketClientActionTypes,

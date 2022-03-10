@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { AccessLevels, ErrorCodes } from 'therr-js-utilities/constants';
+import { AccessLevels, CurrentSocialValuations, ErrorCodes } from 'therr-js-utilities/constants';
 import normalizeEmail from 'normalize-email';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
@@ -290,6 +290,26 @@ const updateUser = (req, res) => {
                 deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
                 shouldHideMatureContent: req.body.shouldHideMatureContent,
             };
+
+            let invitesPromise: any;
+            if (req.body.phoneNumber) {
+                invitesPromise = Store.invites.getInvitesForPhoneNumber({ phoneNumber: req.body.phoneNumber });
+            } else {
+                invitesPromise = Store.invites.getInvitesForEmail({ email });
+            }
+
+            invitesPromise.then((invites) => {
+                if (invites.length) {
+                    // TODO: Log response
+                    Store.invites.updateInvite({ id: invites.id }, { isAccepted: true }).then((response) => {
+                        Store.users.updateUser({
+                            settingsTherrCoinTotal: CurrentSocialValuations.invite,
+                        }, {
+                            id: response[0]?.requestingUserId,
+                        });
+                    });
+                }
+            });
 
             const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
 

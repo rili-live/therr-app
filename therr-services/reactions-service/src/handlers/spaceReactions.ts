@@ -3,8 +3,6 @@ import { RequestHandler } from 'express';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
-import requestUsersService from '../utilities/requestUsersService';
-import getReactionValuation from '../utilities/getReactionValuation';
 // import * as globalConfig from '../../../../global-config';
 
 // CREATE/UPDATE
