@@ -12,6 +12,7 @@ import { translateNotification } from './notifications';
 import { createUserHelper } from './users';
 import normalizePhoneNumber from '../utilities/normalizePhoneNumber';
 import sendContactInviteEmail from '../api/email/sendContactInviteEmail';
+import twilioClient from '../api/twilio';
 
 // CREATE
 // TODO:RSERV-24: Security, get requestingUserId from user header token
@@ -235,10 +236,36 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                 toEmail: contact.email,
             }));
         });
-        // 3. Create db invites for tracking
+
+        // 3. Send phone invites if user does not exist
+        const phoneSendPromises: any[] = [];
+        otherUserPhoneNumbers.forEach((contact) => {
+            phoneSendPromises.push(twilioClient.messages
+                .create({
+                    body: translate(locale, 'invites.phone'),
+                    to: contact.phoneNumber, // Text this number
+                    from: process.env.TWILIO_SENDER_PHONE_NUMBER, // From a valid Twilio number
+                })
+                .then((message) => console.log(message.sid)));
+        });
+        // 4. Create db invites for tracking
         Store.invites.createInvites([...otherUserEmails, ...otherUserPhoneNumbers]).then(() => {
             // TODO: Change to Promise.allSettled
             Promise.all(emailSendPromises).catch((err) => {
+                printLogs({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message],
+                    tracer: beeline,
+                    traceArgs: {
+                        issue: '',
+                        port: process.env.USERS_SERVICE_API_PORT,
+                        processId: process.pid,
+                    },
+                });
+            });
+            // TODO: Change to Promise.allSettled
+            Promise.all(phoneSendPromises).catch((err) => {
                 printLogs({
                     level: 'error',
                     messageOrigin: 'API_SERVER',

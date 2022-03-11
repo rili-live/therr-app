@@ -219,6 +219,7 @@
     "socket.io-client": "^4.0.0",
     "socket.io-redis": "^6.0.0",
     "tty-browserify": "0.0.1",
+    "twilio": "^3.75.1",
     "uuid": "^8.3.0",
     "validator": "^13.5.2",
     "yargs": "^13.3.2"
