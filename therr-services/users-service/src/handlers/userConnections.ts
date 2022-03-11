@@ -242,7 +242,9 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
         otherUserPhoneNumbers.forEach((contact) => {
             phoneSendPromises.push(twilioClient.messages
                 .create({
-                    body: translate(locale, 'invites.phone'),
+                    body: translate(locale, 'invites.phone', {
+                        name: `${requestingUserFirstName} ${requestingUserLastName}`,
+                    }),
                     to: contact.phoneNumber, // Text this number
                     from: process.env.TWILIO_SENDER_PHONE_NUMBER, // From a valid Twilio number
                 })
