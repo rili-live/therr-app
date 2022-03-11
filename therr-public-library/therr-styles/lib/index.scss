@@ -12,6 +12,15 @@
     text-align: center;
 }
 
+.text-title-medium {
+    font-size: rem-calc(28px);
+    font-weight: 600;
+
+    &.no-bot-margin {
+        margin-bottom: 0;
+    }
+}
+
 .text-right {
     text-align: right;
 }
