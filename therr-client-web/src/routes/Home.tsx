@@ -70,13 +70,24 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
         return (
             <div id="page_home" className="flex-box space-evenly center row wrap-reverse">
                 <div className="login-container info-container">
-                    <h1 className="text-center">
-                        {this.translate('pages.home.welcome')}
-                    </h1>
-                    <h2 className="text-center info-text">{this.translate('pages.home.info')} <a href="https://apps.apple.com/us/app/therr/id1569988763#?platform=iphone" target="_blank" rel="noreferrer"><em className="bold">{this.translate('pages.home.apple')}</em></a> {this.translate('pages.home.or')} <a href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer"><em className="bold">{this.translate('pages.home.android')}</em></a> {this.translate('pages.home.devices')}.</h2>
-                    <h2 className="text-center info-text">{this.translate('pages.home.info2')}</h2>
-                    <h2 className="text-center info-text"><em className="bold font-size-20">{this.translate('pages.home.freelancers')}</em> {this.translate('pages.home.info3')}</h2>
-                    <h2 className="text-center info-text"><em className="bold font-size-20">{this.translate('pages.home.eventOrganizers')}</em> {this.translate('pages.home.info4')}</h2>
+                    <div className="flex fill max-wide-40">
+                        <div className="flex-box fill">
+                            <img src="/assets/images/on-the-map.svg" alt="Therr users on the map" />
+                        </div>
+                        <h2 className="text-title-medium no-bot-margin fill">
+                            {this.translate('pages.home.welcome')}
+                        </h2>
+                        <p className="info-text fill">{this.translate('pages.home.info')}</p>
+                        <p className="info-text fill margin-top-lg margin-bot-lg">{this.translate('pages.home.info2')}</p>
+                        <div className="flex-box row space-around margin-top-lg">
+                            <a href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
+                                <img src="/assets/images/apple-store-download-button.svg" alt="Download Therr on the App Store" />
+                            </a>
+                            <a href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
+                                <img src="/assets/images/play-store-download-button.svg" alt="Download Therr on Google Play" />
+                            </a>
+                        </div>
+                    </div>
                 </div>
                 <LoginForm login={this.login} />
             </div>

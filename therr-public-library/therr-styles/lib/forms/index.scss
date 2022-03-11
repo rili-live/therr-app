@@ -7,6 +7,7 @@
 a,
 button {
     box-sizing: border-box;
+    
 
     &:focus {
         outline: none;
@@ -44,6 +45,10 @@ label {
     margin: 0 0 0;
 }
 
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    font-size: rem-calc('18px')
+}
+
 input[type='color'],
 input[type='date'],
 input[type='datetime-local'],
@@ -63,14 +68,14 @@ select,
 textarea {
     background-color: $therr-white;
     border: 1px solid #cdcdcd;
-    border-radius: math.div(2.375rem, 2);
+    border-radius: rem-calc(16px);
     box-shadow: none;
     box-sizing: border-box;
     color: #262626;
     display: block;
     font-family: inherit;
     font-size: .9rem;
-    height: 2.3125rem;
+    height: rem-calc(60px);
     margin: 0;
     padding: .5rem .75rem;
     transition: border-color .15s linear, background .15s linear;
