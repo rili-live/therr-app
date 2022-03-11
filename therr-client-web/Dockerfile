@@ -63,6 +63,11 @@ RUN if [ "$BUILD_MODE" = "development" ]; then \
       && npm run build; \
     fi
 
+USER root
+RUN chown -R node:node /usr/src/app/therr-client-web
+USER node
+RUN node ./update-views.js
+
 # check every 30s to ensure this service returns HTTP 200
 # HEALTHCHECK --interval=30s CMD node healthcheck.js
 
