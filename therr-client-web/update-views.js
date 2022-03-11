@@ -22,6 +22,9 @@ const replaceInFile = (fileToUpdate, replacementString) => {
     });
 };
 
+// TODO: This will fail if there are any single files in /assets.
+// This is because fs expects an explicit file name to be defined
+// See example solution here https://stackoverflow.com/questions/13786160/copy-folder-recursively-in-node-js
 fs.mkdir(path.join(__dirname, 'build/static/assets'), () => {
     fs.copy(path.join(__dirname, 'src/_static'), path.join(__dirname, 'build/static'), {
         overwrite: true,
