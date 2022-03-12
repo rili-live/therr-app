@@ -298,7 +298,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                     newConnectionUsers,
                 }));
             }).then(({ userConnections, newConnectionUsers }) => {
-                // 3a. Send notifications to each new connection request
+                // 4a. Send notifications to each new connection request
                 newConnectionUsers.forEach((acceptingUser) => {
                     // NOTE: no need to refetch user from DB
                     sendPushNotificationAndEmail(() => Promise.resolve([acceptingUser as { deviceMobileFirebaseToken: string; email: string; }]), {
