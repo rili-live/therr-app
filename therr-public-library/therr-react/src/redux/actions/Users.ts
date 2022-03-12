@@ -113,11 +113,6 @@ class UsersActions {
         // NOTE: Native Storage methods return a promise, but in this case we don't need to await
         userDetails = userDetails // eslint-disable-line no-param-reassign
             || JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || null);
-        try {
-            await ((userDetails ? UsersService.logout(userDetails) : Promise.resolve()) as Promise<any>);
-        } catch (err) {
-            console.log(err);
-        }
         if (!this.NativeStorage) {
             localStorage.removeItem('therrSession');
             localStorage.removeItem('therrUser');
@@ -129,6 +124,13 @@ class UsersActions {
                 id: userDetails?.id,
             }));
         }
+
+        try {
+            await ((userDetails ? UsersService.logout(userDetails) : Promise.resolve()) as Promise<any>);
+        } catch (err) {
+            console.log(err);
+        }
+
         dispatch({
             type: SocketClientActionTypes.LOGOUT,
             data: {

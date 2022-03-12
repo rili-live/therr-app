@@ -24,7 +24,7 @@ const authenticate = async (req, res, next) => {
             message: "Invalid 'authorization' header provided",
             statusCode: 401,
         });
-    } catch (err) {
+    } catch (err: any) {
         if (err.name === 'TokenExpiredError') {
             return handleHttpError({
                 res,

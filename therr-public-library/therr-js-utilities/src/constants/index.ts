@@ -3,6 +3,10 @@ import ErrorCodes from './ErrorCodes';
 import Location from './Location';
 import LogLevelMap, { ILogLevel } from './LogLevelMap';
 import {
+    CurrentSocialValuations,
+    CurrentMomentValuations,
+} from './Currencies';
+import {
     DefaultUserResources,
     ResourceExchangeRates,
 } from './Resources';
@@ -32,6 +36,8 @@ export {
     Notifications,
     PushNotifications,
     PasswordRegex,
+    CurrentSocialValuations,
+    CurrentMomentValuations,
     DefaultUserResources,
     ResourceExchangeRates,
     SocketClientActionTypes,

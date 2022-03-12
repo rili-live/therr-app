@@ -88,10 +88,6 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
                     isLoading: false,
                 });
             });
-        } else {
-            this.setState({
-                isLoading: false,
-            });
         }
 
         this.unsubscribeNavListener = navigation.addListener('beforeRemove', () => {

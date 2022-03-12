@@ -107,6 +107,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderRadius: 50,
             shadowOpacity: 0.5,
         },
+        buttonFloatBottomRightContainer: {
+            position: 'absolute',
+            right: 20,
+            bottom: buttonMenuHeight + 20,
+            borderRadius: 100,
+        },
         leftBtnGroupButtonContainer: {
             borderTopLeftRadius: 50,
             borderBottomLeftRadius: 50,

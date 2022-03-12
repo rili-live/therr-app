@@ -232,6 +232,22 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderBottomWidth: 1,
             borderBottomColor: therrTheme.colors.textGray,
         },
+        userImage: {
+            height: 200,
+            width: 200,
+            borderRadius: 100,
+        },
+        userImageIconOverlay: {
+            position: 'absolute',
+            bottom: 0,
+            right: 0,
+            backgroundColor: therrTheme.colorVariations.backgroundBlackFade,
+            borderRadius: 40,
+            padding: 14,
+        },
+        userImagePressableContainer: {
+            position: 'relative',
+        },
     });
 
     return ({

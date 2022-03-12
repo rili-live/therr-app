@@ -7,6 +7,7 @@ import {
     requestMultiple,
     PERMISSIONS,
 } from 'react-native-permissions';
+import Contacts from 'react-native-contacts';
 
 const makePermissionsUniform = (permissions) => {
     return permissions;
@@ -43,11 +44,13 @@ const requestOSCameraPermissions = (storePermissionsResponse) => {
     switch (Platform.OS) {
         case 'ios':
             return requestIOSPermissions([
-                PERMISSIONS.IOS.CONTACTS,
+                PERMISSIONS.IOS.CAMERA,
             ], storePermissionsResponse);
         case 'android':
             return requestAndroidPermission([
-                PermissionsAndroid.PERMISSIONS.READ_CONTACTS,
+                PermissionsAndroid.PERMISSIONS.CAMERA,
+                PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+                PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
             ], storePermissionsResponse);
         default:
             return Promise.reject();
@@ -57,14 +60,17 @@ const requestOSCameraPermissions = (storePermissionsResponse) => {
 const requestOSContactsPermissions = (storePermissionsResponse) => {
     switch (Platform.OS) {
         case 'ios':
-            return requestIOSPermissions([
-                PERMISSIONS.IOS.CAMERA,
-            ], storePermissionsResponse);
+            return Contacts.requestPermission().then((response) => {
+                return {
+                    [PERMISSIONS.IOS.CONTACTS]: response === 'authorized' ? 'granted' : response,
+                };
+            });
+            // return requestIOSPermissions([
+            //     PERMISSIONS.IOS.CONTACTS,
+            // ], storePermissionsResponse);
         case 'android':
             return requestAndroidPermission([
-                PermissionsAndroid.PERMISSIONS.CAMERA,
-                PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-                PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+                PermissionsAndroid.PERMISSIONS.READ_CONTACTS,
             ], storePermissionsResponse);
         default:
             return Promise.reject();

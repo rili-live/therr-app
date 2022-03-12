@@ -28,6 +28,8 @@ import CarouselTabsMenu from './CarouselTabsMenu';
 
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
+const defaultActiveTab = CAROUSEL_TABS.SOCIAL;
+
 function getRandomLoaderId(): ILottieId {
     const options: ILottieId[] = ['donut', 'earth', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
     const selected = Math.floor(Math.random() * options.length);
@@ -100,7 +102,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         super(props);
 
         this.state = {
-            activeTab: CAROUSEL_TABS.SOCIAL,
+            activeTab: defaultActiveTab,
             isLoading: true,
             areAreaOptionsVisible: false,
             selectedArea: {},
@@ -118,7 +120,6 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     }
 
     componentDidMount() {
-        const { activeTab } = this.state;
         const { content, navigation } = this.props;
 
         navigation.setOptions({
@@ -126,7 +127,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         });
 
         const activeData = getActiveCarouselData({
-            activeTab,
+            activeTab: defaultActiveTab,
             content,
             isForBookmarks: false,
         });
