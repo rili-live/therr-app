@@ -5,8 +5,11 @@ import store from './store';
 import * as globalConfig from '../../global-config';
 import UsersActions from './redux/actions/UsersActions';
 
+const MAX_LOGOUT_ATTEMPTS = 3;
+
 let timer: any;
 let numLoadings = 0;
+let logoutAttemptCount = 0;
 const _timeout = 350; // eslint-disable-line no-underscore-dangle
 
 const initInterceptors = (
@@ -29,6 +32,9 @@ const initInterceptors = (
             modifiedConfig.headers.authorization = `Bearer ${token}`;
             modifiedConfig.headers['x-userid'] = userId;
             // TODO: Also set user locale
+        } else {
+            delete modifiedConfig.headers.authorization;
+            delete axios.defaults.headers.common.authorization;
         }
 
         numLoadings += 1;
@@ -42,6 +48,7 @@ const initInterceptors = (
         return modifiedConfig;
     });
     axios.interceptors.response.use((response) => {
+        logoutAttemptCount = 0;
         if (numLoadings === 0) { return response; }
 
         if (numLoadings < 2) {
@@ -55,7 +62,10 @@ const initInterceptors = (
         if (error.response) {
             if (Number(error.response.status) === 401 || Number(error.response.data.statusCode) === 401) {
                 // store.dispatch(UsersActions.setRedirect(window.location.pathname));
-                store.dispatch(UsersActions.logout());
+                if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {
+                    store.dispatch(UsersActions.logout());
+                    logoutAttemptCount += 1;
+                }
                 // store.dispatch(AlertActions.addAlert({
                 //     title: 'Not Authorized',
                 //     message: 'Redirected: You do not have authorization to view this content or your session has expired.
@@ -76,7 +86,10 @@ const initInterceptors = (
                 || Number(error.statusCode) === 403
             ) {
                 // store.dispatch(UsersActions.setRedirect(window.location.pathname));
-                store.dispatch(UsersActions.logout());
+                if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {
+                    store.dispatch(UsersActions.logout());
+                    logoutAttemptCount += 1;
+                }
                 // store.dispatch(AlertActions.addAlert({
                 //     title: 'Not Authorized',
                 //     message: 'Redirected: You do not have authorization to view this content or your session has expired.

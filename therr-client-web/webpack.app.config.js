@@ -12,6 +12,7 @@ const deps = require('../package.json').dependencies;
 
 const PATHS = {
     app: path.join(__dirname, 'src'),
+    assets: path.join(__dirname, 'src/_static'),
     build: path.join(__dirname, 'build/static'),
     themes: path.join(__dirname, 'src/styles/themes'),
     utils: path.join(__dirname, '../utilities'),
@@ -79,6 +80,7 @@ const common = merge([
     parts.processTypescript([PATHS.app], false),
     parts.generateSourcemaps('source-map'),
     parts.deDupe(),
+    parts.copyDir(PATHS.assets, PATHS.build), // Copies static assets
 ]);
 
 const buildDev = () => merge([

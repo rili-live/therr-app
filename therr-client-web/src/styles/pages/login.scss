@@ -2,7 +2,8 @@
     .login-container,
     .register-container,
     .centered-container {
-        height: 100%;
+        height: auto;
+        align-self: stretch;
         border: none;
         background-color: transparent;
         border-radius: 0;
@@ -15,7 +16,7 @@
         box-shadow: none;
         box-sizing: border-box;
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         justify-content: center;
         align-items: center;
 
