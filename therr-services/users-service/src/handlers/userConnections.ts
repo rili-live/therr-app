@@ -247,8 +247,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                     }),
                     to: contact.phoneNumber, // Text this number
                     from: process.env.TWILIO_SENDER_PHONE_NUMBER, // From a valid Twilio number
-                })
-                .then((message) => console.log(message.sid)));
+                }));
         });
 
         // 4. Create db invites for tracking
