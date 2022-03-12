@@ -1,4 +1,4 @@
-import { ITherrTheme } from "../themes";
+import { ITherrTheme } from '../themes';
 
 const containerStyles: any = {
     marginTop: 18,

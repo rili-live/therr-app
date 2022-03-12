@@ -10,158 +10,7 @@ import generateOneTimePassword from '../utilities/generateOneTimePassword';
 import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
-import sendSSONewUserEmail from '../api/email/sendSSONewUserEmail';
-import sendNewUserInviteEmail from '../api/email/sendNewUserInviteEmail';
-import sendNewUserAdminNotificationEmail from '../api/email/admin/sendNewUserAdminNotificationEmail';
-
-interface IRequiredUserDetails {
-    email: string;
-    password?: string;
-    firstName?: string;
-    lastName?: string;
-    phoneNumber?: string;
-    userName?: string;
-}
-
-interface IUserByInviteDetails {
-    fromName: string;
-    fromEmail: string;
-    toEmail: string;
-}
-
-// TODO: Write unit tests for this function
-export const isUserProfileIncomplete = (updateArgs, existingUser?) => {
-    if (!existingUser) {
-        const requestIsMissingProperties = !updateArgs.phoneNumber
-            || !updateArgs.userName
-            || !updateArgs.firstName
-            || !updateArgs.lastName;
-
-        return requestIsMissingProperties;
-    }
-
-    // NOTE: The user update query does not nullify missing properties when the respective property already exists in the DB
-    const requestDoesNotCompleteProfile = !(updateArgs.phoneNumber || existingUser.phoneNumber)
-        || !(updateArgs.userName || existingUser.userName)
-        || !(updateArgs.firstName || existingUser.firstName)
-        || !(updateArgs.lastName || existingUser.lastName);
-
-    return requestDoesNotCompleteProfile;
-};
-
-export const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, userByInviteDetails?: IUserByInviteDetails) => {
-    // TODO: Supply user agent to determine if web or mobile
-    const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
-    const verificationCode = { type: codeDetails.type, code: codeDetails.code };
-    // Create a different/random permanent password as a placeholder
-    const password = (isSSO || !!userByInviteDetails) ? generateOneTimePassword(8) : (userDetails.password || '');
-    let user;
-
-    return Store.verificationCodes.createCode(verificationCode)
-        .then(() => hashPassword(password))
-        .then((hash) => {
-            const isMissingUserProps = isUserProfileIncomplete(userDetails);
-            const userAccessLevels = [
-                AccessLevels.DEFAULT,
-            ];
-            if (isSSO) {
-                if (isMissingUserProps) {
-                    userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
-                } else {
-                    userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
-                }
-            }
-            return Store.users.createUser({
-                accessLevels: JSON.stringify(userAccessLevels),
-                email: userDetails.email,
-                firstName: userDetails.firstName || undefined,
-                lastName: userDetails.lastName || undefined,
-                password: hash,
-                phoneNumber: userDetails.phoneNumber || undefined,
-                userName: userDetails.userName || undefined,
-                verificationCodes: JSON.stringify({
-                    [codeDetails.type]: {
-                        code: codeDetails.code,
-                    },
-                }),
-            });
-        })
-        // TODO: RSERV-53 - Create userResource with default values (from library constant DefaultUserResources)
-        .then((results) => {
-            user = results[0];
-            delete user.password;
-
-            if (isSSO || !!userByInviteDetails) {
-                // TODO: RMOBILE-26: Centralize password requirements
-                const msExpiresAt = Date.now() + (1000 * 60 * 60 * 6); // 6 hours
-                const otPassword = generateOneTimePassword(8);
-
-                return hashPassword(otPassword)
-                    .then((hash) => Store.users.updateUser({
-                        oneTimePassword: `${hash}:${msExpiresAt}`,
-                    }, {
-                        email: userDetails.email,
-                    }))
-                    // SSO USER AUTO-REGISTRATION ON FIRST LOGIN
-                    .then(() => {
-                        // Fire and forget
-                        sendNewUserAdminNotificationEmail({
-                            subject: userByInviteDetails ? '[New User] New User Registration by Invite' : '[New User] New User Registration',
-                            toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
-                        }, {
-                            name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
-                        });
-
-                        if (isSSO) {
-                            return sendSSONewUserEmail({
-                                subject: '[Account Created] Therr One-Time Password',
-                                toAddresses: [userDetails.email],
-                            }, {
-                                name: userDetails.email,
-                                oneTimePassword: otPassword,
-                            });
-                        }
-
-                        return sendNewUserInviteEmail({
-                            subject: `${userByInviteDetails?.fromName} Invited You to Therr app`,
-                            toAddresses: [userByInviteDetails?.toEmail || ''],
-                        }, {
-                            fromName: userByInviteDetails?.fromName || '',
-                            fromEmail: userByInviteDetails?.fromEmail || '',
-                            toEmail: userByInviteDetails?.toEmail || '',
-                            verificationCodeToken: codeDetails.token,
-                            oneTimePassword: otPassword,
-                        });
-                    })
-                    .then(() => user);
-            }
-
-            // Fire and forget
-            sendNewUserAdminNotificationEmail({
-                subject: '[New User] New User Registration',
-                toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
-            }, {
-                name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
-            });
-
-            // STANDARD USER REGISTRATION
-            return sendVerificationEmail({
-                subject: '[Account Verification] Therr User Account',
-                toAddresses: [userDetails.email],
-            }, {
-                name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
-                verificationCodeToken: codeDetails.token,
-            }).then(() => user);
-        })
-        .catch((error) => {
-            console.log(error);
-            // Delete user to allow re-registration
-            if (user && user.id) {
-                Store.users.deleteUsers({ id: user.id });
-            }
-            throw error;
-        });
-};
+import { createUserHelper, isUserProfileIncomplete } from './helpers/user';
 
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(req.body)
@@ -290,6 +139,100 @@ const updateUser = (req, res) => {
                 deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
                 shouldHideMatureContent: req.body.shouldHideMatureContent,
             };
+
+            const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
+
+            if (isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED)) {
+                const userAccessLevels = userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED);
+                userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+                updateArgs.accessLevels = JSON.stringify(userAccessLevels);
+            }
+            if (!isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
+                const userAccessLevels = userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
+                userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
+                updateArgs.accessLevels = JSON.stringify(userAccessLevels);
+            }
+
+            passwordPromise
+                .then(() => Store.users
+                    .updateUser(updateArgs, {
+                        id: userId,
+                    })
+                    .then((results) => {
+                        const user = results[0];
+                        delete user.password;
+                        delete user.oneTimePassword;
+                        // TODO: Investigate security issue
+                        // Lockdown updateUser
+                        return res.status(202).send({ ...user, id: userId }); // Precaution, always return correct request userID to prevent polution
+                    }))
+                .catch((e) => handleHttpError({
+                    res,
+                    message: translate(locale, 'User/password combination is incorrect'),
+                    statusCode: 400,
+                }));
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+};
+
+const updateUserCoins = (req, res) => {
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const userId = req.headers['x-userid'];
+
+    return Store.users.getUserById(userId)
+        .then((userSearchResults) => {
+            const {
+                email,
+                password,
+                oldPassword,
+                userName,
+            } = req.body;
+
+            if (!userSearchResults.length) {
+                return handleHttpError({
+                    res,
+                    message: `No user found with id, ${userId}.`,
+                    statusCode: 404,
+                });
+            }
+
+            // TODO: If password, validate and update password
+            let passwordPromise: Promise<any> = Promise.resolve();
+
+            if (password && oldPassword) {
+                passwordPromise = updatePassword({
+                    hashedPassword: userSearchResults[0].password,
+                    inputPassword: oldPassword,
+                    locale,
+                    oneTimePassword: userSearchResults[0].oneTimePassword,
+                    res,
+                    emailArgs: {
+                        email,
+                        userName,
+                    },
+                    newPassword: password,
+                    userId,
+                });
+            }
+
+            const updateArgs: any = {
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
+                media: req.body.media,
+                phoneNumber: req.body.phoneNumber,
+                hasAgreedToTerms: req.body.hasAgreedToTerms,
+                userName: req.body.userName,
+                deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
+                shouldHideMatureContent: req.body.shouldHideMatureContent,
+            };
+
+            // IMPORTANT: Only reward users who opt-in to background push notifications
+            // TODO: Weight reward based on settingsPushTopics opt-in (Each with its own valuation)
+            // TODO: increment/decrement should be stored on block-chain for auditability
+            if (req.body.settingsTherrCoinTotal && userSearchResults[0].settingsPushBackground) {
+                // increment/decrement
+                updateArgs.settingsTherrCoinTotal = userSearchResults[0] + req.body.settingsTherrCoinTotal;
+            }
 
             const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
 
@@ -627,6 +570,7 @@ export {
     getUsers,
     findUsers,
     updateUser,
+    updateUserCoins,
     blockUser,
     reportUser,
     updateUserPassword,

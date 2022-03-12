@@ -110,6 +110,7 @@ class CreateProfileStageC extends React.Component<ICreateProfileStageCProps, ICr
                 <UserImage
                     onImageReady={this.onDoneCropping}
                     theme={theme}
+                    themeForms={themeForms}
                     userImageUri={userImageUri}
                 />
                 <View style={themeSettingsForm.styles.submitButtonContainer}>

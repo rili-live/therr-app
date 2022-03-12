@@ -170,8 +170,8 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                         marginBottom: 24,
                                     })}
                                     isVisible={!!prevReqSuccess || !!prevReqError}
-                                    message={!!prevReqSuccess ? prevReqSuccess : prevReqError}
-                                    type={!!prevReqSuccess ? 'success' : 'error'}
+                                    message={prevReqSuccess ? prevReqSuccess : prevReqError}
+                                    type={prevReqSuccess ? 'success' : 'error'}
                                     themeAlerts={this.themeAlerts}
                                 />
                                 <View style={this.theme.styles.sectionContainer}>

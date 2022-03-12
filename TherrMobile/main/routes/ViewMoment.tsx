@@ -247,7 +247,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                 ...moment,
                 reaction: {
                     ...moment.reaction,
-                    userBookmarkCategory: !!moment.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+                    userBookmarkCategory: moment.reaction?.userBookmarkCategory ? null : 'Uncategorized',
                 },
             },
         });

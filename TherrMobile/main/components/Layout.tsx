@@ -104,6 +104,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private themeForms = buildFormStyles();
     private themeMenu = buildMenuStyles();
 
+    static getDerivedStateFromProps(nextProps: ILayoutProps, nextState: ILayoutState) {
+        if (nextProps.user?.isAuthenticated !== nextState.isAuthenticated) {
+            return {
+                isAuthenticated: nextProps.user?.isAuthenticated,
+            };
+        }
+        return {};
+    }
+
     constructor(props) {
         super(props);
 
@@ -246,9 +255,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         console.log('NOTIFICATIONS_ERROR', err);
                     });
             }
-            this.setState({
-                isAuthenticated: user.isAuthenticated,
-            });
         }
     }
 

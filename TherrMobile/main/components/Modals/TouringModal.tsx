@@ -8,14 +8,6 @@ import claimASpace from '../../assets/claim-a-space.json';
 import shareAMoment from '../../assets/share-a-moment.json';
 import discover from '../../assets/discover.json';
 
-const graphicStyles: any = {
-    height: 150,
-    width: 150,
-    display: 'flex',
-    paddingVertical: 10,
-    marginBottom: 40,
-};
-
 interface ITouringModal {
     isVisible: boolean;
     onRequestClose: any;
@@ -88,9 +80,9 @@ export default ({
                             speed={1}
                             autoPlay={false}
                             loop
-                            style={graphicStyles}
+                            style={themeTour.styles.graphic}
                         />
-                        <View style={{ width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                        <View style={themeTour.styles.actionsContainer}>
                             <ModalButton
                                 iconName="close"
                                 title={translate('modals.touringModal.exit')}
@@ -119,9 +111,9 @@ export default ({
                             speed={1}
                             autoPlay={false}
                             loop
-                            style={graphicStyles}
+                            style={themeTour.styles.graphic}
                         />
-                        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                        <View style={themeTour.styles.actionsContainer}>
                             <ModalButton
                                 iconName="arrow-back"
                                 title={translate('modals.touringModal.back')}
@@ -150,9 +142,9 @@ export default ({
                             speed={1}
                             autoPlay={false}
                             loop
-                            style={graphicStyles}
+                            style={themeTour.styles.graphic}
                         />
-                        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                        <View style={themeTour.styles.actionsContainer}>
                             <ModalButton
                                 iconName="arrow-back"
                                 title={translate('modals.touringModal.back')}

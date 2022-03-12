@@ -1,4 +1,5 @@
 import connection, { IConnection } from './connection';
+import InvitesStore from './InvitesStore';
 import NotificationsStore from './NotificationsStore';
 import SubscribersStore from './SubscribersStore';
 import UserConnectionsStore from './UserConnectionsStore';
@@ -14,6 +15,8 @@ class Store {
 
     userConnections: UserConnectionsStore;
 
+    invites: InvitesStore;
+
     notifications: NotificationsStore;
 
     verificationCodes: VerificationCodesStore;
@@ -24,6 +27,7 @@ class Store {
         this.users = new UsersStore(this.db);
         this.userConnections = new UserConnectionsStore(this.db);
         this.subscribers = new SubscribersStore(this.db);
+        this.invites = new InvitesStore(this.db);
         this.notifications = new NotificationsStore(this.db);
         this.verificationCodes = new VerificationCodesStore(this.db);
     }

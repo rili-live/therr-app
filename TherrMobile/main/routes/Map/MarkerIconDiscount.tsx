@@ -10,7 +10,6 @@ export default function MarkerIconFood(props) {
             <G>
                 <G>
                     <Path
-                        // eslint-disable-next-line max-len
                         d="M12.79,21L3,11.21v2c0,0.53,0.21,1.04,0.59,1.41l7.79,7.79c0.78,0.78,2.05,0.78,2.83,0l6.21-6.21 c0.78-0.78,0.78-2.05,0-2.83L12.79,21z"
                     />
                     <Path

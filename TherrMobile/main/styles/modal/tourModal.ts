@@ -6,6 +6,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
 
     const styles = StyleSheet.create({
+        actionsContainer: {
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
         overlay: {
             flex: 1,
             flexDirection: 'column',
@@ -21,6 +27,13 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             backgroundColor: therrTheme.colors.backgroundGray,
             elevation: 5,
             borderRadius: 12,
+        },
+        graphic: {
+            height: 150,
+            width: 150,
+            display: 'flex',
+            paddingVertical: 10,
+            marginBottom: 40,
         },
         header: {
             fontSize: 20,

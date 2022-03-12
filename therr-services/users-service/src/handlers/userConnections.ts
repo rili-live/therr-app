@@ -9,7 +9,7 @@ import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import { translateNotification } from './notifications';
-import { createUserHelper } from './users';
+import { createUserHelper } from './helpers/user';
 import normalizePhoneNumber from '../utilities/normalizePhoneNumber';
 import sendContactInviteEmail from '../api/email/sendContactInviteEmail';
 
@@ -208,11 +208,15 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
 
             if (!isFound) {
                 if (contact.email) {
-                    otherUserEmails.push(normalizeEmail(contact.email));
+                    otherUserEmails.push({
+                        email: normalizeEmail(contact.email),
+                    });
                 } else if (contact.phoneNumber) {
                     const normalizedPhoneNumber = normalizePhoneNumber(contact.phoneNumber);
                     if (normalizedPhoneNumber) {
-                        otherUserPhoneNumbers.push(normalizedPhoneNumber);
+                        otherUserPhoneNumbers.push({
+                            phoneNumber: normalizedPhoneNumber,
+                        });
                     }
                 }
                 // If no email or normal phone number, do nothing
@@ -221,16 +225,24 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
 
         // 2. Send email invites if user does not exist
         const emailSendPromises: any[] = [];
-        otherUserEmails.forEach((email) => emailSendPromises.push(sendContactInviteEmail({
-            subject: `${requestingUserFirstName} ${requestingUserLastName} invited you to Therr app`,
-            toAddresses: [email],
-        }, {
-            fromName: `${requestingUserFirstName} ${requestingUserLastName}`,
-            fromEmail: requestingUserEmail || '',
-            toEmail: email,
-        })));
-        // TODO: Change to Promise.allSettled
-        Promise.all(emailSendPromises).catch((err) => {
+        otherUserEmails.forEach((contact) => {
+            emailSendPromises.push(sendContactInviteEmail({
+                subject: `${requestingUserFirstName} ${requestingUserLastName} invited you to Therr app`,
+                toAddresses: [contact.email],
+            }, {
+                fromName: `${requestingUserFirstName} ${requestingUserLastName}`,
+                fromEmail: requestingUserEmail || '',
+                toEmail: contact.email,
+            }));
+        });
+        // 3. Create db invites for tracking
+        Store.invites.createIfNotExist([...existingUsers, ...otherUserEmails, ...otherUserPhoneNumbers]
+            .map((invite) => ({
+                requestingUserId: userId,
+                email: invite.email,
+                phoneNumber: invite.phoneNumber,
+                isAccepted: false,
+            }))).then(() => Promise.all(emailSendPromises)).catch((err) => { // TODO: change to Promise.allSettled
             printLogs({
                 level: 'error',
                 messageOrigin: 'API_SERVER',
@@ -244,7 +256,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
             });
         });
 
-        // 3. Send in-app invites to existing users
+        // 4. Send in-app invites to existing users
         if (existingUsers.length > 0) {
             // Query db and send connection requests if don't already exist
             return Store.userConnections.findUserConnections(userId, existingUsers.map((user) => user.id)).then((connections) => {

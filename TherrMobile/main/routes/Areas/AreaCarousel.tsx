@@ -38,7 +38,7 @@ const renderItem = ({ item: area }, {
                 date={formattedDate}
                 goToViewUser={goToViewUser}
                 toggleAreaOptions={toggleAreaOptions}
-                hashtags={area.hashTags ? area.hashTags.split(",") : []}
+                hashtags={area.hashTags ? area.hashTags.split(',') : []}
                 area={area}
                 // TODO: Get username from response
                 user={user}

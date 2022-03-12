@@ -15,8 +15,8 @@ export default ({
     containerStyle,
 }: IOrDividerProps) => (
     <View style={[themeForms.styles.orDividerContainer, containerStyle]}>
-        <View style={themeForms.styles.orDividerLines}></View>
+        <View style={themeForms.styles.orDividerLines} />
         <Text style={themeForms.styles.orDividerText}>{translate('forms.dividerOr')}</Text>
-        <View style={themeForms.styles.orDividerLines}></View>
+        <View style={themeForms.styles.orDividerLines} />
     </View>
 );
