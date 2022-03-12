@@ -38,6 +38,9 @@ h4 {
 
 #login_button {
     width: 100%;
+    height: rem-calc(52px);
+    font-weight: 600;
+    font-size: rem-calc(16px);
 }
 
 .content-container {
@@ -137,6 +140,14 @@ ul {
 
 .max-wide-20 {
     max-width: 20rem;
+}
+
+.max-wide-30 {
+    max-width: 30rem;
+}
+
+.max-wide-40 {
+    max-width: 40rem;
 }
 
 @media only screen and (min-width: rem-calc(540px)) {

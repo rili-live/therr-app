@@ -28,6 +28,8 @@ import CarouselTabsMenu from './CarouselTabsMenu';
 
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
+const defaultActiveTab = CAROUSEL_TABS.SOCIAL;
+
 function getRandomLoaderId(): ILottieId {
     const options: ILottieId[] = ['donut', 'earth', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
     const selected = Math.floor(Math.random() * options.length);
@@ -99,21 +101,6 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     constructor(props) {
         super(props);
 
-        const defaultActiveTab = CAROUSEL_TABS.SOCIAL;
-
-        const activeData = getActiveCarouselData({
-            activeTab: defaultActiveTab,
-            content: props.content,
-            isForBookmarks: false,
-        });
-        if (!activeData?.length || activeData.length < 21) {
-            this.handleRefresh();
-        } else {
-            this.setState({
-                isLoading: false,
-            });
-        }
-
         this.state = {
             activeTab: defaultActiveTab,
             isLoading: true,
@@ -133,11 +120,24 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     }
 
     componentDidMount() {
-        const { navigation } = this.props;
+        const { content, navigation } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.areas.headerTitle'),
         });
+
+        const activeData = getActiveCarouselData({
+            activeTab: defaultActiveTab,
+            content,
+            isForBookmarks: false,
+        });
+        if (!activeData?.length || activeData.length < 21) {
+            this.handleRefresh();
+        } else {
+            this.setState({
+                isLoading: false,
+            });
+        }
     }
 
     componentWillUnmount() {

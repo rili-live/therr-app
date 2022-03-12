@@ -6,6 +6,7 @@
   position: relative;
   white-space: nowrap;
   width: 100%;
+  /* stylelint-disable-next-line */
 }
 .search-box #contentSearchInput {
   height: 2.375rem;
@@ -33,6 +34,7 @@
   top: 2px;
   transform: translate(2.125rem, 1.0625rem) scale(1);
   transform-origin: bottom;
+  /* stylelint-disable-next-line */
   transition: transform 250ms cubic-bezier(0.55, 0, 0.1, 1), color 250ms, background 350ms, font-weight 250ms, line-height 250ms, padding 250ms;
   z-index: 1;
 }

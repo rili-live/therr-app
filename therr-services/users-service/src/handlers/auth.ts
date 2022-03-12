@@ -1,23 +1,18 @@
 import { RequestHandler } from 'express';
 import * as jwt from 'jsonwebtoken';
-import appleSignin from 'apple-signin-auth';
-import { OAuth2Client } from 'google-auth-library';
-import { AccessLevels } from 'therr-js-utilities/constants';
+import { AccessLevels, CurrentSocialValuations } from 'therr-js-utilities/constants';
+import printLogs from 'therr-js-utilities/print-logs';
 import normalizeEmail from 'normalize-email';
+import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import { createUserToken } from '../utilities/userHelpers';
 import translate from '../utilities/translator';
-import { validatePassword } from '../utilities/passwordUtils';
-import { createUserHelper, isUserProfileIncomplete } from './users';
-import * as globalConfig from '../../../../global-config';
-
-const googleOAuth2ClientId = `${globalConfig[process.env.NODE_ENV].googleOAuth2WebClientId}`;
-const googleOAuth2Client = new OAuth2Client(googleOAuth2ClientId);
+import { validateCredentials } from './helpers/user';
 
 // Authenticate user
 const login: RequestHandler = (req: any, res: any) => {
-    const userNameEmailPhone = req.body.userName || req.body.userEmail;
+    const userNameEmailPhone = req.body.userName?.trim() || req.body.userEmail?.trim();
 
     return Store.users
         .getUsers(
@@ -46,68 +41,19 @@ const login: RequestHandler = (req: any, res: any) => {
                 });
             }
 
-            // eslint-disable-next-line arrow-body-style
-            const validateCredentials = () => {
-                if (req.body.isSSO) {
-                    let verifyTokenPromise;
-                    if (req.body.ssoProvider === 'google') {
-                        verifyTokenPromise = googleOAuth2Client.verifyIdToken({
-                            idToken: req.body.idToken,
-                            audience: googleOAuth2ClientId, // Specify the CLIENT_ID of the app that accesses the backend
-                            // Or, if multiple clients access the backend:
-                            // [CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
-                        });
-                    } else if (req.body.ssoProvider === 'apple') {
-                        verifyTokenPromise = appleSignin.verifyIdToken(req.body.idToken, {
-                            // Optional Options for further verification - Full list can be found
-                            // here https://github.com/auth0/node-jsonwebtoken#jwtverifytoken-secretorpublickey-options-callback
-                            audience: 'com.therr.mobile.Therr', // client id - can also be an array
-                            nonce: req.body.nonce,
-                            ignoreExpiration: false, // default is false
-                        });
-                    } else {
-                        verifyTokenPromise = Promise.reject(new Error('Unsupported SSO Provider'));
-                    }
-                    return verifyTokenPromise.then((response) => {
-                        // Make sure that Google account email is verified
-                        if ((req.body.ssoProvider === 'google' && !response.getPayload()?.email_verified)
-                            || (req.body.ssoProvider === 'apple' && !response.email_verified)) {
-                            return [false, userSearchResults[0]];
-                        }
-
-                        if (!userSearchResults.length) { // First time SSO login
-                            return createUserHelper({
-                                email: req.body.userEmail,
-                                firstName: req.body.userFirstName,
-                                lastName: req.body.userLastName,
-                            }, true).then((user) => [true, user]);
-                        }
-
-                        // Verify user because they are using email SSO
-                        const isMissingUserProps = isUserProfileIncomplete(userSearchResults[0]);
-                        const userAccessLevels = [
-                            AccessLevels.DEFAULT,
-                        ];
-                        if (isMissingUserProps) {
-                            userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
-                        } else {
-                            userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
-                        }
-
-                        return [true, { ...userSearchResults[0], accessLevels: userAccessLevels }];
-                    });
-                }
-
-                return validatePassword({
-                    hashedPassword: userSearchResults[0].password,
-                    inputPassword: req.body.password,
-                    locale,
-                    oneTimePassword: userSearchResults[0].oneTimePassword,
-                    res,
-                }).then((isSuccess) => [isSuccess, userSearchResults[0]]);
-            };
-
-            return validateCredentials().then(([isValid, userDetails]) => {
+            return validateCredentials(userSearchResults, {
+                locale,
+                reqBody: {
+                    isSSO: req.body.isSSO,
+                    ssoProvider: req.body.ssoProvider,
+                    nonce: req.body.nonce,
+                    idToken: req.body.idToken,
+                    password: req.body.password,
+                    userEmail: req.body.userEmail,
+                    userFirstName: req.body.userFirstName,
+                    userLastName: req.body.userLastName,
+                },
+            }, res).then(([isValid, userDetails]) => {
                 if (isValid) {
                     const user = {
                         ...userDetails,
@@ -116,6 +62,47 @@ const login: RequestHandler = (req: any, res: any) => {
                     const idToken = createUserToken(user, req.body.rememberMe);
 
                     // Fire and forget
+                    // Reward inviting user for first time login
+                    if (!userSearchResults?.length || userSearchResults[0].loginCount < 2) {
+                        let invitesPromise: any;
+                        if (req.body.phoneNumber) {
+                            invitesPromise = Store.invites.getInvitesForPhoneNumber({ phoneNumber: userNameEmailPhone, isAccepted: false });
+                        } else {
+                            invitesPromise = Store.invites.getInvitesForEmail({ email: userNameEmailPhone, isAccepted: false });
+                        }
+
+                        invitesPromise.then((invites) => {
+                            if (invites.length) {
+                                // TODO: Log response
+                                return Store.invites.updateInvite({ id: invites[0].id }, { isAccepted: true });
+                            }
+
+                            return Promise.resolve();
+                        }).then((response) => {
+                            if (response?.length) {
+                                return Store.users.updateUser({
+                                    settingsTherrCoinTotal: CurrentSocialValuations.invite,
+                                }, {
+                                    id: response[0]?.requestingUserId,
+                                });
+                            }
+
+                            return Promise.resolve();
+                        }).catch((err) => {
+                            printLogs({
+                                level: 'error',
+                                messageOrigin: 'API_SERVER',
+                                messages: [err?.message],
+                                tracer: beeline,
+                                traceArgs: {
+                                    issue: '',
+                                    port: process.env.USERS_SERVICE_API_PORT,
+                                    processId: process.pid,
+                                },
+                            });
+                        });
+                    }
+
                     return Store.users.updateUser({
                         accessLevels: JSON.stringify(user.accessLevels),
                         loginCount: user.loginCount + 1,

@@ -1,7 +1,6 @@
 @import '../variables';
 
 .radio-group {
-
     .radio-option {
         align-items: center;
         display: flex;
@@ -15,7 +14,7 @@
             flex: 1;
             font-weight: 400;
             order: 2;
-            padding: .375rem 0 .375rem .25rem;
+            padding: 0.375rem 0 0.375rem 0.25rem;
             text-align: left;
 
             &:hover {
@@ -44,11 +43,10 @@
             cursor: pointer;
             float: left;
             height: 1rem;
-            margin: .375rem .25rem .375rem 0;
+            margin: 0.375rem 0.25rem 0.375rem 0;
             order: 1;
             position: relative;
             width: 1rem;
-
 
             &.selected {
                 background: $therr-primary-1;

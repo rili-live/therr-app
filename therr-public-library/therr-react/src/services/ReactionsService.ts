@@ -23,8 +23,8 @@ export interface ICreateOrUpdateAreaReactionBody {
 export interface ISearchActiveAreasParams {
     offset: number;
     order?: string;
-    blockedUsers: number[];
-    shouldHideMatureContent: boolean;
+    blockedUsers?: number[];
+    shouldHideMatureContent?: boolean;
     withMedia: boolean;
     withUser: boolean;
     userLatitude?: number;
@@ -69,8 +69,8 @@ class ReactionsService {
             offset: options.offset,
             limit,
             order: options.order,
-            blockedUsers: options.blockedUsers,
-            shouldHideMatureContent: options.shouldHideMatureContent,
+            blockedUsers: options.blockedUsers || [],
+            shouldHideMatureContent: !!options.shouldHideMatureContent,
             withMedia: options.withMedia,
             withUser: options.withUser,
             userLatitude: options.userLatitude,
@@ -86,8 +86,8 @@ class ReactionsService {
             limit,
             withMedia: options.withMedia,
             withUser: options.withUser,
-            blockedUsers: options.blockedUsers,
-            shouldHideMatureContent: options.shouldHideMatureContent,
+            blockedUsers: options.blockedUsers || [],
+            shouldHideMatureContent: !!options.shouldHideMatureContent,
         },
     })
 
