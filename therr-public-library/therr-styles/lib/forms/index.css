@@ -169,6 +169,11 @@ label.required::before {
   margin: 0 0 0;
 }
 
+::placeholder {
+  /* Chrome, Firefox, Opera, Safari 10.1+ */
+  font-size: rem-calc("18px");
+}
+
 input[type=color],
 input[type=date],
 input[type=datetime-local],
@@ -188,14 +193,14 @@ select,
 textarea {
   background-color: #dee1e4;
   border: 1px solid #cdcdcd;
-  border-radius: 1.1875rem;
+  border-radius: rem-calc(16px);
   box-shadow: none;
   box-sizing: border-box;
   color: #262626;
   display: block;
   font-family: inherit;
   font-size: 0.9rem;
-  height: 2.3125rem;
+  height: rem-calc(60px);
   margin: 0;
   padding: 0.5rem 0.75rem;
   transition: border-color 0.15s linear, background 0.15s linear;

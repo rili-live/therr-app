@@ -101,7 +101,7 @@ export class ResetPasswordComponent extends React.Component<IResetPasswordProps 
                     </div>
 
                     <div className="form-field fill">
-                        <label htmlFor="email">{this.translate('pages.resetPassword.labels.email')}:</label>
+                        {/* <label htmlFor="email">{this.translate('pages.resetPassword.labels.email')}:</label> */}
                         <Input
                             type="text"
                             id="email"
@@ -111,6 +111,7 @@ export class ResetPasswordComponent extends React.Component<IResetPasswordProps 
                             onEnter={this.onSubmit}
                             translate={this.translate}
                             validations={['isRequired', 'email']}
+                            placeholder={this.translate('pages.resetPassword.labels.email')}
                         />
 
                         <div className="form-field text-right">

@@ -17,7 +17,7 @@ const googleOAuth2Client = new OAuth2Client(googleOAuth2ClientId);
 
 // Authenticate user
 const login: RequestHandler = (req: any, res: any) => {
-    const userNameEmailPhone = req.body.userName || req.body.userEmail;
+    const userNameEmailPhone = req.body.userName?.trim() || req.body.userEmail?.trim();
 
     return Store.users
         .getUsers(
