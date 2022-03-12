@@ -9,7 +9,6 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 export const INVITES_TABLE_NAME = 'main.invites';
 
 export interface ICreateInviteParams {
-    id: string;
     requestingUserId: string;
     email?: string;
     phoneNumber?: string;
@@ -39,18 +38,20 @@ export default class InvitesStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
-    getInvitesForEmail(conditions: { email: string }) {
+    getInvitesForEmail(conditions: { email: string, isAccepted: boolean }) {
         return this.getInvites(conditions);
     }
 
-    getInvitesForPhoneNumber(conditions: { phoneNumber: string }) {
+    getInvitesForPhoneNumber(conditions: { phoneNumber: string, isAccepted: boolean }) {
         return this.getInvites(conditions);
     }
 
-    createInvites(invites: ICreateInviteParams[]) {
+    createIfNotExist(invites: ICreateInviteParams[]) {
         // TODO: Filter out invites that have neither a phone number or email
         const queryString = knexBuilder.insert(invites)
             .into(INVITES_TABLE_NAME)
+            .onConflict()
+            .ignore()
             .returning('id')
             .toString();
 

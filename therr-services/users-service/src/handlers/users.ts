@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { AccessLevels, CurrentSocialValuations, ErrorCodes } from 'therr-js-utilities/constants';
+import { AccessLevels, ErrorCodes } from 'therr-js-utilities/constants';
 import normalizeEmail from 'normalize-email';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
@@ -10,158 +10,7 @@ import generateOneTimePassword from '../utilities/generateOneTimePassword';
 import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
-import sendSSONewUserEmail from '../api/email/sendSSONewUserEmail';
-import sendNewUserInviteEmail from '../api/email/sendNewUserInviteEmail';
-import sendNewUserAdminNotificationEmail from '../api/email/admin/sendNewUserAdminNotificationEmail';
-
-interface IRequiredUserDetails {
-    email: string;
-    password?: string;
-    firstName?: string;
-    lastName?: string;
-    phoneNumber?: string;
-    userName?: string;
-}
-
-interface IUserByInviteDetails {
-    fromName: string;
-    fromEmail: string;
-    toEmail: string;
-}
-
-// TODO: Write unit tests for this function
-export const isUserProfileIncomplete = (updateArgs, existingUser?) => {
-    if (!existingUser) {
-        const requestIsMissingProperties = !updateArgs.phoneNumber
-            || !updateArgs.userName
-            || !updateArgs.firstName
-            || !updateArgs.lastName;
-
-        return requestIsMissingProperties;
-    }
-
-    // NOTE: The user update query does not nullify missing properties when the respective property already exists in the DB
-    const requestDoesNotCompleteProfile = !(updateArgs.phoneNumber || existingUser.phoneNumber)
-        || !(updateArgs.userName || existingUser.userName)
-        || !(updateArgs.firstName || existingUser.firstName)
-        || !(updateArgs.lastName || existingUser.lastName);
-
-    return requestDoesNotCompleteProfile;
-};
-
-export const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, userByInviteDetails?: IUserByInviteDetails) => {
-    // TODO: Supply user agent to determine if web or mobile
-    const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
-    const verificationCode = { type: codeDetails.type, code: codeDetails.code };
-    // Create a different/random permanent password as a placeholder
-    const password = (isSSO || !!userByInviteDetails) ? generateOneTimePassword(8) : (userDetails.password || '');
-    let user;
-
-    return Store.verificationCodes.createCode(verificationCode)
-        .then(() => hashPassword(password))
-        .then((hash) => {
-            const isMissingUserProps = isUserProfileIncomplete(userDetails);
-            const userAccessLevels = [
-                AccessLevels.DEFAULT,
-            ];
-            if (isSSO) {
-                if (isMissingUserProps) {
-                    userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
-                } else {
-                    userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
-                }
-            }
-            return Store.users.createUser({
-                accessLevels: JSON.stringify(userAccessLevels),
-                email: userDetails.email,
-                firstName: userDetails.firstName || undefined,
-                lastName: userDetails.lastName || undefined,
-                password: hash,
-                phoneNumber: userDetails.phoneNumber || undefined,
-                userName: userDetails.userName || undefined,
-                verificationCodes: JSON.stringify({
-                    [codeDetails.type]: {
-                        code: codeDetails.code,
-                    },
-                }),
-            });
-        })
-        // TODO: RSERV-53 - Create userResource with default values (from library constant DefaultUserResources)
-        .then((results) => {
-            user = results[0];
-            delete user.password;
-
-            if (isSSO || !!userByInviteDetails) {
-                // TODO: RMOBILE-26: Centralize password requirements
-                const msExpiresAt = Date.now() + (1000 * 60 * 60 * 6); // 6 hours
-                const otPassword = generateOneTimePassword(8);
-
-                return hashPassword(otPassword)
-                    .then((hash) => Store.users.updateUser({
-                        oneTimePassword: `${hash}:${msExpiresAt}`,
-                    }, {
-                        email: userDetails.email,
-                    }))
-                    // SSO USER AUTO-REGISTRATION ON FIRST LOGIN
-                    .then(() => {
-                        // Fire and forget
-                        sendNewUserAdminNotificationEmail({
-                            subject: userByInviteDetails ? '[New User] New User Registration by Invite' : '[New User] New User Registration',
-                            toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
-                        }, {
-                            name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
-                        });
-
-                        if (isSSO) {
-                            return sendSSONewUserEmail({
-                                subject: '[Account Created] Therr One-Time Password',
-                                toAddresses: [userDetails.email],
-                            }, {
-                                name: userDetails.email,
-                                oneTimePassword: otPassword,
-                            });
-                        }
-
-                        return sendNewUserInviteEmail({
-                            subject: `${userByInviteDetails?.fromName} Invited You to Therr app`,
-                            toAddresses: [userByInviteDetails?.toEmail || ''],
-                        }, {
-                            fromName: userByInviteDetails?.fromName || '',
-                            fromEmail: userByInviteDetails?.fromEmail || '',
-                            toEmail: userByInviteDetails?.toEmail || '',
-                            verificationCodeToken: codeDetails.token,
-                            oneTimePassword: otPassword,
-                        });
-                    })
-                    .then(() => user);
-            }
-
-            // Fire and forget
-            sendNewUserAdminNotificationEmail({
-                subject: '[New User] New User Registration',
-                toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
-            }, {
-                name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
-            });
-
-            // STANDARD USER REGISTRATION
-            return sendVerificationEmail({
-                subject: '[Account Verification] Therr User Account',
-                toAddresses: [userDetails.email],
-            }, {
-                name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
-                verificationCodeToken: codeDetails.token,
-            }).then(() => user);
-        })
-        .catch((error) => {
-            console.log(error);
-            // Delete user to allow re-registration
-            if (user && user.id) {
-                Store.users.deleteUsers({ id: user.id });
-            }
-            throw error;
-        });
-};
+import { createUserHelper, isUserProfileIncomplete } from './helpers/user';
 
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(req.body)
@@ -290,26 +139,6 @@ const updateUser = (req, res) => {
                 deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
                 shouldHideMatureContent: req.body.shouldHideMatureContent,
             };
-
-            let invitesPromise: any;
-            if (req.body.phoneNumber) {
-                invitesPromise = Store.invites.getInvitesForPhoneNumber({ phoneNumber: req.body.phoneNumber });
-            } else {
-                invitesPromise = Store.invites.getInvitesForEmail({ email });
-            }
-
-            invitesPromise.then((invites) => {
-                if (invites.length) {
-                    // TODO: Log response
-                    Store.invites.updateInvite({ id: invites.id }, { isAccepted: true }).then((response) => {
-                        Store.users.updateUser({
-                            settingsTherrCoinTotal: CurrentSocialValuations.invite,
-                        }, {
-                            id: response[0]?.requestingUserId,
-                        });
-                    });
-                }
-            });
 
             const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
 

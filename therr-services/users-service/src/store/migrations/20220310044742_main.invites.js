@@ -1,12 +1,12 @@
 exports.up = (knex) => knex.schema.withSchema('main').createTable('invites', (table) => {
-    table.uuid('id').primary().notNullable().defaultTo(table.raw('uuid_generate_v4()'));
+    table.uuid('id').primary().notNullable().defaultTo(knex.raw('uuid_generate_v4()'));
     table.uuid('requestingUserId')
         .references('id')
         .inTable('main.users')
         .onUpdate('CASCADE')
         .onDelete('CASCADE');
     table.string('email').unique().nullable();
-    table.string('phoneNumber', 24).nullable();
+    table.string('phoneNumber', 24).unique().nullable();
     table.boolean('isAccepted').defaultTo(false);
 
     // Audit

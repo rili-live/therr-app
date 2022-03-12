@@ -9,7 +9,7 @@ import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import { translateNotification } from './notifications';
-import { createUserHelper } from './users';
+import { createUserHelper } from './helpers/user';
 import normalizePhoneNumber from '../utilities/normalizePhoneNumber';
 import sendContactInviteEmail from '../api/email/sendContactInviteEmail';
 
@@ -236,20 +236,23 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
             }));
         });
         // 3. Create db invites for tracking
-        Store.invites.createInvites([...otherUserEmails, ...otherUserPhoneNumbers]).then(() => {
-            // TODO: Change to Promise.allSettled
-            Promise.all(emailSendPromises).catch((err) => {
-                printLogs({
-                    level: 'error',
-                    messageOrigin: 'API_SERVER',
-                    messages: [err?.message],
-                    tracer: beeline,
-                    traceArgs: {
-                        issue: '',
-                        port: process.env.USERS_SERVICE_API_PORT,
-                        processId: process.pid,
-                    },
-                });
+        Store.invites.createIfNotExist([...existingUsers, ...otherUserEmails, ...otherUserPhoneNumbers]
+            .map((invite) => ({
+                requestingUserId: userId,
+                email: invite.email,
+                phoneNumber: invite.phoneNumber,
+                isAccepted: false,
+            }))).then(() => Promise.all(emailSendPromises)).catch((err) => { // TODO: change to Promise.allSettled
+            printLogs({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: [err?.message],
+                tracer: beeline,
+                traceArgs: {
+                    issue: '',
+                    port: process.env.USERS_SERVICE_API_PORT,
+                    processId: process.pid,
+                },
             });
         });
 

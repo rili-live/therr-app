@@ -110,7 +110,6 @@ export default class UsersStore {
                 // Note: `normalizePhoneNumber` requires a country code prefix
                 // we can't guess this because it could result in sending an invite to the wrong person
                 const normalizedPhoneNumber = normalizePhoneNumber(contact.phoneNumber as string);
-                console.log(normalizedPhoneNumber);
                 if (normalizedPhoneNumber) {
                     phoneNumbers.push(normalizedPhoneNumber);
                 }
@@ -224,8 +223,11 @@ export default class UsersStore {
             modifiedParams.settingsTherrCoinTotal = params.settingsTherrCoinTotal;
         }
 
-        // TODO: check if this works
-        queryString = queryString.increment('settingsTherrCoinTotal', params.settingsTherrCoinTotal);
+        // TODO: Ensure this is absolutely secure
+        // Maybe create a separate method specifically for updating coins
+        if (params.settingsTherrCoinTotal != null && params.settingsTherrCoinTotal > 0) {
+            queryString = queryString.increment('settingsTherrCoinTotal', params.settingsTherrCoinTotal);
+        }
 
         return this.db.write.query(queryString.toString()).then((response) => response.rows);
     }
