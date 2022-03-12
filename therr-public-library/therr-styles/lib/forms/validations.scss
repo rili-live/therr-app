@@ -10,13 +10,13 @@ $validation-container-offset: rem-calc($validation-container-height-px + $valida
     margin: rem-calc($validation-container-margin-top-px);
     margin-bottom: 0;
     background: #fbfeffbf;
-    padding: .25rem;
-    border-radius: .25rem;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
     // min-height: rem-calc($validation-container-height-px);
     box-sizing: border-box;
 
     &.phone {
-        margin-bottom: .5rem;
+        margin-bottom: 0.5rem;
     }
 
     .message-container {

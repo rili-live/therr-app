@@ -2,5 +2,6 @@
 
 @function rem-calc($size) {
     $remSize: math.div($size, 16px);
+
     @return #{$remSize}rem;
 }
