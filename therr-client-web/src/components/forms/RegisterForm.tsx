@@ -86,7 +86,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                 <div className="flex fill max-wide-20">
                     <h1 className="text-center">{this.props.title}</h1>
 
-                    <label className="required" htmlFor="e_mail">{this.translate('components.registerForm.labels.email')}:</label>
+                    {/* <label className="required" htmlFor="e_mail">{this.translate('components.registerForm.labels.email')}:</label> */}
                     <Input
                         type="text"
                         id="e_mail"
@@ -96,10 +96,11 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                         onEnter={this.onSubmit}
                         translate={this.translate}
                         validations={['isRequired', 'email']}
+                        placeholder={this.translate('components.registerForm.labels.email')}
                     />
 
                     {/* TODO: RMOBILE-26: Centralize password requirements */}
-                    <label className="required" htmlFor="password">{this.translate('components.registerForm.labels.password')}:</label>
+                    {/* <label className="required" htmlFor="password">{this.translate('components.registerForm.labels.password')}:</label> */}
                     <Input
                         type="password"
                         id="password"
@@ -110,9 +111,10 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                         onEnter={this.onSubmit}
                         translate={this.translate}
                         validations={['isRequired', 'password']}
+                        placeholder={this.translate('components.registerForm.labels.password')}
                     />
 
-                    <label className="required" htmlFor="repeat_password">{this.translate('components.registerForm.labels.repeatPassword')}:</label>
+                    {/* <label className="required" htmlFor="repeat_password">{this.translate('components.registerForm.labels.repeatPassword')}:</label> */}
                     <Input
                         type="password"
                         id="repeat_password"
@@ -123,6 +125,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                         onEnter={this.onSubmit}
                         translate={this.translate}
                         validations={['isRequired']}
+                        placeholder={this.translate('components.registerForm.labels.repeatPassword')}
                     />
 
                     <div className="text-left">
