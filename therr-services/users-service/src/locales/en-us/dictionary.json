@@ -22,5 +22,8 @@
         "discoveredUniqueMoment": "Check the map to activate a moment with special attributes",
         "discoveredUniqueSpace": "Check the map to activate a space with special attributes"
     },
+    "invites": {
+        "phone": "{name} has invited you to join Therr app. Sign up with this link to connect https://therr.com"
+    },
     "validation": "The required parameters were not provided."
 }
