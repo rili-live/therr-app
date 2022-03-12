@@ -237,6 +237,11 @@ label.required::before {
   margin: 0 0 0;
 }
 
+::placeholder {
+  /* Chrome, Firefox, Opera, Safari 10.1+ */
+  font-size: "18px"/16pxrem;
+}
+
 input[type=color],
 input[type=date],
 input[type=datetime-local],
@@ -256,14 +261,14 @@ select,
 textarea {
   background-color: #dee1e4;
   border: 1px solid #cdcdcd;
-  border-radius: 1.1875rem;
+  border-radius: 1rem;
   box-shadow: none;
   box-sizing: border-box;
   color: #262626;
   display: block;
   font-family: inherit;
   font-size: 0.9rem;
-  height: 2.3125rem;
+  height: 3.75rem;
   margin: 0;
   padding: 0.5rem 0.75rem;
   transition: border-color 0.15s linear, background 0.15s linear;
@@ -653,6 +658,10 @@ select .options-list .option-container.ax-active,
   margin-bottom: 0.5rem;
 }
 
+.margin-bot-md {
+  margin-bottom: 1.5rem;
+}
+
 .margin-md {
   margin: 1.5rem;
 }
@@ -854,6 +863,14 @@ select .options-list .option-container.ax-active,
 }
 .text-center {
   text-align: center;
+}
+
+.text-title-medium {
+  font-size: 1.75rem;
+  font-weight: 600;
+}
+.text-title-medium.no-bot-margin {
+  margin-bottom: 0;
 }
 
 .text-right {
