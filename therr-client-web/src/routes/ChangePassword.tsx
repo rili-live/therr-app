@@ -119,7 +119,7 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
 
         return (
             <div id="page_change_password">
-                <h1>{this.translate('pages.changePassword.pageTitle')}</h1>
+                <h1 className="margin-bot-lg">{this.translate('pages.changePassword.pageTitle')}</h1>
 
                 <div className="form-field">
                     {
@@ -141,7 +141,7 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
                 </div>
 
                 <div className="form-field">
-                    <label htmlFor="old_password">{this.translate('pages.changePassword.labels.oldPassword')}:</label>
+                    {/* <label htmlFor="old_password">{this.translate('pages.changePassword.labels.oldPassword')}:</label> */}
                     <Input
                         type="password"
                         id="old_password"
@@ -151,8 +151,9 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
                         onEnter={this.onSubmit}
                         translate={this.translate}
                         validations={['isRequired']}
+                        placeholder={this.translate('pages.changePassword.labels.oldPassword')}
                     />
-                    <label htmlFor="new_password">{this.translate('pages.changePassword.labels.newPassword')}:</label>
+                    {/* <label htmlFor="new_password">{this.translate('pages.changePassword.labels.newPassword')}:</label> */}
                     <Input
                         type="password"
                         id="new_password"
@@ -162,8 +163,9 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
                         onEnter={this.onSubmit}
                         translate={this.translate}
                         validations={['isRequired']}
+                        placeholder={this.translate('pages.changePassword.labels.newPassword')}
                     />
-                    <label htmlFor="new_password_repeat">{this.translate('pages.changePassword.labels.newPasswordRepeat')}:</label>
+                    {/* <label htmlFor="new_password_repeat">{this.translate('pages.changePassword.labels.newPasswordRepeat')}:</label> */}
                     <Input
                         type="password"
                         id="new_password_repeat"
@@ -173,6 +175,7 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
                         onEnter={this.onSubmit}
                         translate={this.translate}
                         validations={['isRequired']}
+                        placeholder={this.translate('pages.changePassword.labels.newPasswordRepeat')}
                     />
 
                     <div className="form-field text-right">
