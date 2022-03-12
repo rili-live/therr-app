@@ -8,7 +8,7 @@
         color: $therr-black;
         flex: 1;
         font-weight: bold;
-        margin: .3125rem .3125rem .3125rem 0;
+        margin: 0.3125rem 0.3125rem 0.3125rem 0;
         text-align: center;
     }
 
@@ -32,11 +32,11 @@
             display: inline-block;
             height: 2.125rem;
             justify-content: center;
-            margin: 0 .0625rem;
+            margin: 0 0.0625rem;
             min-width: 2.125rem;
             outline: none;
             overflow: hidden;
-            padding: .1875rem;
+            padding: 0.1875rem;
             text-overflow: ellipsis;
             transition: all 500ms;
             white-space: nowrap;
@@ -45,15 +45,15 @@
             &:nth-child(1),
             &:nth-child(2) {
                 .fa {
-                    margin-top: -.125rem;
+                    margin-top: -0.125rem;
                 }
             }
 
             &:nth-last-child(1),
             &:nth-last-child(2) {
                 .fa {
-                    margin-right: -.125rem;
-                    margin-top: -.125rem;
+                    margin-right: -0.125rem;
+                    margin-top: -0.125rem;
                 }
             }
 
@@ -67,7 +67,7 @@
             }
 
             &:disabled {
-                background: transparentize($therr-white, .5);
+                background: transparentize($therr-white, 0.5);
                 color: #fff;
                 cursor: not-allowed;
             }
@@ -85,7 +85,7 @@
             position: relative;
 
             &:disabled {
-                background: transparentize($therr-white, .75);
+                background: transparentize($therr-white, 0.75);
             }
 
             &:hover,
@@ -96,15 +96,15 @@
 
         .page-button-back {
             &::before {
-                left: .125rem;
-                top: .3125rem;
+                left: 0.125rem;
+                top: 0.3125rem;
             }
         }
 
         .page-button-forward {
             &::before {
-                right: .125rem;
-                top: .3125rem;
+                right: 0.125rem;
+                top: 0.3125rem;
             }
         }
     }

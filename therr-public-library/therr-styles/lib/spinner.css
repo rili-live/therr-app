@@ -1,5 +1,5 @@
 .spinner .circle {
-  animation: spinAnimation 1.3s infinite cubic-bezier(0.53, 0.21, 0.29, 0.67);
+  animation: spin-animation 1.3s infinite cubic-bezier(0.53, 0.21, 0.29, 0.67);
   border: 1.5px solid #f8f8f8;
   border-radius: 50%;
   border-top-color: #f96e6f;
@@ -38,7 +38,7 @@
   padding-top: 0.625rem;
 }
 
-@keyframes spinAnimation {
+@keyframes spin-animation {
   0% {
     transform: rotate(0deg);
   }

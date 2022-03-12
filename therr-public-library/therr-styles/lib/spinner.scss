@@ -5,7 +5,7 @@ $spin-duration: 1.3s;
 
 .spinner {
     .circle {
-        animation: spinAnimation $spin-duration infinite cubic-bezier(.53, .21, .29, .67);
+        animation: spin-animation $spin-duration infinite cubic-bezier(0.53, 0.21, 0.29, 0.67);
         border: $border-size solid $therr-bg-grey;
         border-radius: 50%;
         border-top-color: $therr-secondary-3;
@@ -15,8 +15,8 @@ $spin-duration: 1.3s;
         width: 100%;
 
         &.xsmall {
-            height: .75rem;
-            width: .75rem;
+            height: 0.75rem;
+            width: 0.75rem;
         }
 
         &.small {
@@ -48,11 +48,11 @@ $spin-duration: 1.3s;
     }
 
     .status-message {
-        padding-top: .625rem;
+        padding-top: 0.625rem;
     }
 }
 
-@keyframes spinAnimation {
+@keyframes spin-animation {
     0% {
         transform: rotate(0deg);
     }
