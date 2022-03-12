@@ -3,6 +3,7 @@ const webpack = require('webpack');
 const autoprefixer = require('autoprefixer');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const DuplicatePackageCheckerPlugin = require("duplicate-package-checker-webpack-plugin");
 const HappyPack = require('happypack');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
@@ -31,6 +32,19 @@ exports.analyzeBundle = (config = {}) => ({
     plugins: [new BundleAnalyzerPlugin(Object.assign({
         analyzerPort: 8888,
     }, config))],
+});
+
+exports.copyDir = (source, dest) => ({
+    plugins: [
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    from: source,
+                    to: dest,
+                },
+            ],
+        }),
+    ],
 });
 
 exports.deDupe = () => ({
