@@ -1,0 +1,13 @@
+options:
+  formatter: stylish
+files:
+  include: '**/*.s+(a|c)ss'
+extends: 'stylelint-config-standard'
+rules:
+  indentation: 4
+  number-leading-zero: 'always'
+  no-descending-specificity:
+  function-no-unknown:
+  at-rule-no-unknown:
+  string-quotes: single
+  no-invalid-position-at-import-rule:

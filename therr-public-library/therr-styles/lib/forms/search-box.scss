@@ -1,5 +1,6 @@
-@use 'sass:math';
 @import '../variables';
+
+@use 'sass:math';
 
 $field-height: 2.25rem;
 $search-box-icon-width: 2rem;
@@ -7,22 +8,23 @@ $search-box-padding-top: 1rem;
 
 .search-box {
     flex: 1;
-    margin-right: .625rem;
+    margin-right: 0.625rem;
     overflow: hidden;
-    padding-top: .625rem;
+    padding-top: 0.625rem;
     position: relative;
     white-space: nowrap;
     width: 100%;
 
+    /* stylelint-disable-next-line */
     #contentSearchInput {
         height: 2.375rem;
-        margin-top: .5rem;
+        margin-top: 0.5rem;
     }
 
     &::before {
         left: 0;
         opacity: 1;
-        padding: .5rem .4rem .3rem;
+        padding: 0.5rem 0.4rem 0.3rem;
         top: 1.25rem;
         transition: left $animation-duration-1, opacity $animation-duration-1;
     }
@@ -40,9 +42,10 @@ $search-box-padding-top: 1rem;
         text-align: left;
         text-overflow: ellipsis;
         top: 2px;
-        transform: translate($search-box-icon-width + .125rem, 1.0625rem) scale(1);
+        transform: translate($search-box-icon-width + 0.125rem, 1.0625rem) scale(1);
         transform-origin: bottom;
-        transition: transform $animation-duration-1 cubic-bezier(.55, 0, .1, 1), color $animation-duration-1, background $animation-duration-1 + 100ms, font-weight $animation-duration-1, line-height $animation-duration-1, padding $animation-duration-1;
+        /* stylelint-disable-next-line */
+        transition: transform $animation-duration-1 cubic-bezier(0.55, 0, 0.1, 1), color $animation-duration-1, background $animation-duration-1 + 100ms, font-weight $animation-duration-1, line-height $animation-duration-1, padding $animation-duration-1;
         z-index: 1;
     }
 
@@ -50,17 +53,16 @@ $search-box-padding-top: 1rem;
     &.is-dirty {
         label {
             background-color: #fff;
-            font-size: .75rem;
+            font-size: 0.75rem;
             font-weight: 600;
-            line-height: .875rem;
-            padding: 0 .1875rem;
-            transform: translate(.5rem, math.div($search-box-padding-top, 2)) scale(.85);
+            line-height: 0.875rem;
+            padding: 0 0.1875rem;
+            transform: translate(0.5rem, math.div($search-box-padding-top, 2)) scale(0.85);
         }
 
         &::before {
             left: -1.25rem;
             opacity: 0;
         }
-
     }
 }
