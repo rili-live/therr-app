@@ -11,10 +11,9 @@ import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildFormsStyles } from '../../styles/forms';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
-// import CreateConnectionButton from '../../components/CreateConnectionButton';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
-// import RoundInput from '../../components/Input/Round';
+import RoundInput from '../../components/Input/Round';
 import PhoneContactItem from './PhoneContactItem';
 import { Button } from 'react-native-elements';
 
@@ -34,6 +33,7 @@ export interface IPhoneContactsProps extends IStoreProps {
 
 interface IPhoneContactsState {
     contactList: any[];
+    filteredContactList: any[];
     searchInputValue: string;
 }
 
@@ -62,6 +62,7 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
 
         this.state = {
             contactList: allContacts,
+            filteredContactList: allContacts,
             searchInputValue: '',
         };
 
@@ -95,8 +96,16 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
     };
 
     onSearchInputChange = (value: string) => {
+        const { contactList } = this.state;
+        const filtered =  [...contactList].filter((contact) => {
+            return contact.givenName?.toLowerCase().includes(value.toLowerCase())
+                || contact.familyName?.toLowerCase().includes(value.toLowerCase())
+                || `${contact.givenName} ${contact.familyName}`.toLowerCase().includes(value.toLowerCase());
+        });
+
         this.setState({
             searchInputValue: value,
+            filteredContactList: filtered,
         });
     }
 
@@ -138,7 +147,7 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
     }
 
     render() {
-        const { contactList } = this.state;
+        const { filteredContactList, searchInputValue } = this.state;
         const { navigation, user } = this.props;
 
         return (
@@ -146,7 +155,7 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
                 <BaseStatusBar />
                 <SafeAreaView style={this.theme.styles.safeAreaView}>
                     <FlatList
-                        data={contactList}
+                        data={filteredContactList}
                         keyExtractor={(item) => String(item.recordID)}
                         renderItem={({ item: contact }) => (
                             <PhoneContactItem
@@ -160,32 +169,30 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionDescription}>
                                     {this.translate(
-                                        'components.contactsSearch.noPhoneContactsFound'
+                                        'components.contactsSearch.noContactsFound'
                                     )}
                                 </Text>
                             </View>
                         )}
-                        // ListHeaderComponent={() => (
-                        //     <RoundInput
-                        //         autoCapitalize="none"
-                        //         containerStyle={{ paddingHorizontal: 10 }}
-                        //         placeholder={this.translate(
-                        //             'forms.hostedChat.searchPlaceholder'
-                        //         )}
-                        //         value={searchInputValue}
-                        //         onChangeText={this.onSearchInputChange}
-                        //         rightIcon={
-                        //             <FontAwesomeIcon
-                        //                 name="search"
-                        //                 color={this.theme.colors.primary3}
-                        //                 size={22}
-                        //             />
-                        //         }
-                        //         themeForms={this.themeForms}
-                        //     />
-                        // )}
+                        ListHeaderComponent={<RoundInput
+                            autoCapitalize="none"
+                            containerStyle={{ paddingHorizontal: 10 }}
+                            placeholder={this.translate(
+                                'forms.hostedChat.searchPlaceholder'
+                            )}
+                            value={searchInputValue}
+                            onChangeText={this.onSearchInputChange}
+                            rightIcon={
+                                <FontAwesomeIcon
+                                    name="search"
+                                    color={this.theme.colors.primary3}
+                                    size={22}
+                                />
+                            }
+                            themeForms={this.themeForms}
+                        />}
                         stickyHeaderIndices={[0]}
-                        // onContentSizeChange={() => connections.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
+                        // onContentSizeChange={() => contactList.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
                     />
                 </SafeAreaView>
                 <Button
