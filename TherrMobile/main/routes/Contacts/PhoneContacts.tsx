@@ -176,7 +176,7 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
                         )}
                         ListHeaderComponent={<RoundInput
                             autoCapitalize="none"
-                            containerStyle={{ paddingHorizontal: 10 }}
+                            containerStyle={{ paddingHorizontal: 10, backgroundColor: this.theme.colors.primary }}
                             placeholder={this.translate(
                                 'forms.hostedChat.searchPlaceholder'
                             )}

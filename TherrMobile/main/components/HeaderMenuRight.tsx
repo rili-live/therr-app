@@ -310,32 +310,6 @@ class HeaderMenuRight extends React.Component<
                                         />
                                     </View>
                                     <View style={themeMenu.styles.body}>
-                                        <Button
-                                            buttonStyle={
-                                                currentScreen === 'Home'
-                                                    ? themeMenu.styles.buttonsActive
-                                                    : themeMenu.styles.buttons
-                                            }
-                                            titleStyle={
-                                                currentScreen === 'Home'
-                                                    ? themeMenu.styles.buttonsTitleActive
-                                                    : themeMenu.styles.buttonsTitle
-                                            }
-                                            title={this.translate('components.headerMenuRight.menuItems.home')}
-                                            icon={
-                                                <FontAwesomeIcon
-                                                    style={
-                                                        currentScreen === 'Home'
-                                                            ? themeMenu.styles.iconStyleActive
-                                                            : themeMenu.styles.iconStyle
-                                                    }
-                                                    name="home"
-                                                    size={18}
-                                                />
-                                            }
-                                            iconRight
-                                            onPress={() => this.navTo('Home')}
-                                        />
                                         {/* <Button
                                             buttonStyle={
                                                 currentScreen === 'Map'
@@ -572,6 +546,32 @@ class HeaderMenuRight extends React.Component<
                                             }
                                             iconRight
                                             onPress={() => this.navTo('Settings')}
+                                        />
+                                        <Button
+                                            buttonStyle={
+                                                currentScreen === 'Home'
+                                                    ? themeMenu.styles.buttonsActive
+                                                    : themeMenu.styles.buttons
+                                            }
+                                            titleStyle={
+                                                currentScreen === 'Home'
+                                                    ? themeMenu.styles.buttonsTitleActive
+                                                    : themeMenu.styles.buttonsTitle
+                                            }
+                                            title={this.translate('components.headerMenuRight.menuItems.feedback')}
+                                            icon={
+                                                <FontAwesomeIcon
+                                                    style={
+                                                        currentScreen === 'Home'
+                                                            ? themeMenu.styles.iconStyleActive
+                                                            : themeMenu.styles.iconStyle
+                                                    }
+                                                    name="question-circle"
+                                                    size={18}
+                                                />
+                                            }
+                                            iconRight
+                                            onPress={() => this.navTo('Home')}
                                         />
                                     </View>
                                     <View style={themeMenu.styles.footer}>
