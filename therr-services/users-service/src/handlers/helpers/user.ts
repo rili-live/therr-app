@@ -30,7 +30,6 @@ interface IUserByInviteDetails {
     toEmail: string;
 }
 
-// TODO: Write unit tests for this function
 const isUserProfileIncomplete = (updateArgs, existingUser?) => {
     if (!existingUser) {
         const requestIsMissingProperties = !updateArgs?.phoneNumber
