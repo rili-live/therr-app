@@ -7,7 +7,7 @@ import {
 } from 'react-router-dom';
 import { TransitionGroup } from 'react-transition-group';
 import { Location } from 'history';
-// import * as ReactGA from 'react-ga';
+import * as ReactGA from 'react-ga';
 import { IMessagesState, IUserState, AccessCheckType } from 'therr-react/types';
 import {
     AccessControl,
@@ -22,7 +22,7 @@ import { UsersService } from 'therr-react/services';
 import scrollTo from 'therr-js-utilities/scroll-to';
 import Header from './Header';
 import initInterceptors from '../interceptors';
-// import * as globalConfig from '../../../global-config';
+import * as globalConfig from '../../../global-config';
 import getRoutes from '../routes';
 import { INavMenuContext } from '../types';
 import Footer from './footer/Footer';
@@ -108,7 +108,8 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             this.onViewChange(location);
         });
 
-        // ReactGA.initialize(globalConfig[process.env.NODE_ENV].googleAnalyticsKey);
+        ReactGA.initialize(globalConfig[process.env.NODE_ENV].googleAnalyticsKey);
+
         document.addEventListener('click', this.handleClick);
         this.setState({
             clientHasLoaded: true,
@@ -174,10 +175,10 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
     onViewChange = (location: Location) => {
         scrollTo(0, 100);
-        // if (typeof(window) !== 'undefined') {
-        //     ReactGA.set({ 'page': window.location.pathname });
-        //     ReactGA.pageview(window.location.pathname);
-        // }
+        if (typeof window !== 'undefined') {
+            console.log(location?.pathname + window?.location?.search);
+            ReactGA.pageview(location?.pathname + window?.location?.search);
+        }
     }
 
     handleWidthResize = (shouldExpand) => {

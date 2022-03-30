@@ -6,6 +6,8 @@ import UsersStore from '../../src/store/UsersStore';
 describe('UsersStore', () => {
     describe('getUsers', () => {
         it('selects with various OR conditions', () => {
+            process.env.NODE_ENV = 'development';
+            console.log(process.env.NODE_ENV);
             const expected = `select * from "main"."users" where "id" = 5 or ("userName" = 'test') or ("lastName" = 'test') order by "id" asc`;
             const mockStore = {
                 read: {

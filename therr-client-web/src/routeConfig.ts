@@ -28,6 +28,13 @@ export default [
         view: 'index',
     },
     {
+        route: '/user/profile',
+        head: {
+            title: 'Profile',
+        },
+        view: 'index',
+    },
+    {
         route: '*',
         head: {
             title: 'Not Found',
