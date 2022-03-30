@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import * as React from 'react';
 import * as ReactDOMServer from 'react-dom/server'; // eslint-disable-line import/extensions
 import { StaticRouter, matchPath } from 'react-router-dom';
+import * as ReactGA from 'react-ga';
 import { applyMiddleware, createStore } from 'redux';
 import { Provider } from 'react-redux';
 import thunkMiddleware from 'redux-thunk';
@@ -122,6 +123,7 @@ routeConfig.forEach((config) => {
                 });
                 res.end();
             } else {
+                ReactGA.pageview(req.path, null, title);
                 return res.render(routeView, { title, markup, state });
             }
         });
