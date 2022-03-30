@@ -49,14 +49,14 @@ const createOrUpdateMomentReaction = (req, res) => {
             })
                 .then(([momentReaction]) => {
                     // TODO: Should this be a blocking request to ensure update?
-                    sendUserCoinUpdateRequest(reactionsResponse[0], req);
+                    sendUserCoinUpdateRequest(req, reactionsResponse[0]);
 
                     res.status(200).send(momentReaction);
                 });
         }
 
         // TODO: Should this be a blocking request to ensure update?
-        sendUserCoinUpdateRequest({}, req);
+        sendUserCoinUpdateRequest(req, {});
 
         return Store.momentReactions.create({
             userId,
