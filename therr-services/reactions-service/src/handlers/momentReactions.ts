@@ -3,7 +3,30 @@ import { RequestHandler } from 'express';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
+import getReactionValuation from '../utilities/getReactionValuation';
+import requestUsersService from '../utilities/requestUsersService';
 // import * as globalConfig from '../../../../global-config';
+
+const sendUserCoinUpdateRequest = (req, currentReaction) => {
+    const userId = req.headers['x-userid'];
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const coinValue = getReactionValuation(currentReaction, req.body);
+
+    if (coinValue !== 0) {
+        return requestUsersService({
+            authorization: req.headers.authorization,
+            userId,
+            locale,
+        }, {
+            path: `/users/${userId}/coins`,
+            method: 'put',
+        }, {
+            settingsTherrCoinTotal: coinValue,
+        });
+    }
+
+    return Promise.resolve();
+};
 
 // CREATE/UPDATE
 const createOrUpdateMomentReaction = (req, res) => {
@@ -14,18 +37,26 @@ const createOrUpdateMomentReaction = (req, res) => {
     return Store.momentReactions.get({
         userId,
         momentId: req.params.momentId,
-    }).then((existing) => {
-        if (existing?.length) {
+    }).then((reactionsResponse) => {
+        if (reactionsResponse?.length) {
             return Store.momentReactions.update({
                 userId,
                 momentId: req.params.momentId,
             }, {
                 ...req.body,
                 userLocale: locale,
-                userViewCount: existing[0].userViewCount + (req.body.userViewCount || 0),
+                userViewCount: reactionsResponse[0].userViewCount + (req.body.userViewCount || 0),
             })
-                .then(([momentReaction]) => res.status(200).send(momentReaction));
+                .then(([momentReaction]) => {
+                    // TODO: Should this be a blocking request to ensure update?
+                    sendUserCoinUpdateRequest(req, reactionsResponse[0]);
+
+                    res.status(200).send(momentReaction);
+                });
         }
+
+        // TODO: Should this be a blocking request to ensure update?
+        sendUserCoinUpdateRequest(req, {});
 
         return Store.momentReactions.create({
             userId,

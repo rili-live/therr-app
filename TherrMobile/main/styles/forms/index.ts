@@ -144,6 +144,22 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         button: {
             backgroundColor: therrTheme.colors.primary3,
         },
+        buttonRound: {
+            backgroundColor: therrTheme.colors.primary4,
+            display: 'flex',
+            alignItems: 'center',
+            borderRadius: 15,
+            height: 59,
+        },
+        buttonRoundAlt: {
+            backgroundColor: therrTheme.colors.backgroundWhite,
+            borderColor: therrTheme.colors.primary4,
+            borderWidth: 2,
+            display: 'flex',
+            alignItems: 'center',
+            borderRadius: 15,
+            height: 59,
+        },
         buttonWarning: {
             backgroundColor: therrTheme.colors.ternary2,
         },
@@ -153,9 +169,17 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         buttonDisabled: {
             backgroundColor: therrTheme.colorVariations.primary3Fade,
         },
+        buttonRoundDisabled: {
+            backgroundColor: therrTheme.colorVariations.primary4Fade,
+        },
         buttonTitle: {
             fontWeight: '500',
             fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+        },
+        buttonTitleAlt: {
+            fontWeight: '500',
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            color: therrTheme.colors.primary4,
         },
         buttonTitleDisabled: {
             color: therrTheme.colors.textGray,
@@ -191,6 +215,38 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             lineHeight: 20,
             paddingTop: 0,
             color: therrTheme.colors.accentTextBlack,
+        },
+        orDividerContainer: {
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        orDividerText: {
+            color: therrTheme.colors.textGray,
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            marginHorizontal: 12,
+            fontSize: 16,
+        },
+        orDividerLines: {
+            flexGrow: 1,
+            borderBottomWidth: 1,
+            borderBottomColor: therrTheme.colors.textGray,
+        },
+        userImage: {
+            height: 200,
+            width: 200,
+            borderRadius: 100,
+        },
+        userImageIconOverlay: {
+            position: 'absolute',
+            bottom: 0,
+            right: 0,
+            backgroundColor: therrTheme.colorVariations.backgroundBlackFade,
+            borderRadius: 40,
+            padding: 14,
+        },
+        userImagePressableContainer: {
+            position: 'relative',
         },
     });
 

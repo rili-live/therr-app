@@ -66,7 +66,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         const { updateAreaReaction, userDetails } = this.props;
 
         updateAreaReaction(area.id, {
-            userBookmarkCategory: !!area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+            userBookmarkCategory: area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
         }, area.fromUserId, userDetails.userName);
     }
 

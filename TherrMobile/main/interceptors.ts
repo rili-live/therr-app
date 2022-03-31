@@ -5,8 +5,11 @@ import { CommonActions } from '@react-navigation/native';
 import getConfig from './utilities/getConfig';
 import UsersActions from './redux/actions/UsersActions';
 
+const MAX_LOGOUT_ATTEMPTS = 3;
+
 let timer: any;
 let numLoadings = 0;
+let logoutAttemptCount = 0;
 const _timeout = 350;
 
 const initInterceptors = (
@@ -32,6 +35,9 @@ const initInterceptors = (
             modifiedConfig.headers.authorization = `Bearer ${token}`;
             modifiedConfig.headers['x-userid'] = userId;
             modifiedConfig.headers['x-localecode'] = userSettings.locale || 'en-us';
+        } else {
+            delete modifiedConfig.headers.authorization;
+            delete axios.defaults.headers.common['authorization'];
         }
 
         numLoadings += 1;
@@ -46,6 +52,7 @@ const initInterceptors = (
     });
     axios.interceptors.response.use(
         (response) => {
+            logoutAttemptCount = 0;
             if (numLoadings === 0) {
                 return response;
             }
@@ -78,7 +85,11 @@ const initInterceptors = (
                     Number(error.response.data.statusCode) === 403
                 ) {
                     // store.dispatch(UsersActions.setRedirect(window.location.pathname));
-                    store.dispatch(UsersActions.logout());
+                    // TODO: This is so BAD. Find a better way, but for now it prevents an infinite loop and ensures that the user idToken is reset
+                    if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {
+                        store.dispatch(UsersActions.logout());
+                        logoutAttemptCount += 1;
+                    }
                     // store.dispatch(AlertActions.addAlert({
                     //     title: 'Not Authorized',
                     //     message: 'Redirected: You do not have authorization to view this content or your session has expired.
@@ -93,7 +104,11 @@ const initInterceptors = (
                     Number(error.statusCode) === 403
                 ) {
                     // store.dispatch(UsersActions.setRedirect(window.location.pathname));
-                    store.dispatch(UsersActions.logout());
+                    // TODO: This is so BAD. Find a better way, but for now it prevents an infinite loop and ensures that the user idToken is reset
+                    if (logoutAttemptCount < MAX_LOGOUT_ATTEMPTS) {
+                        store.dispatch(UsersActions.logout());
+                        logoutAttemptCount += 1;
+                    }
                     // store.dispatch(AlertActions.addAlert({
                     //     title: 'Not Authorized',
                     //     message: 'Redirected: You do not have authorization to view this content or your session has expired.

@@ -21,6 +21,7 @@ export default ({
             {
                 isVisible &&
                 <WebView
+                    androidLayerType={'hardware'}
                     bounces={false}
                     containerStyle={{
                         maxHeight: viewportWidth,

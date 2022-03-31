@@ -6,6 +6,10 @@ import UsersService from '../../services/UsersService';
 interface ILoginSSOTokens {
     google?: string;
 }
+
+interface IUpdateTourArgs {
+    isTouring: boolean;
+}
 class UsersActions {
     constructor(socketIO, NativeStorage?, GoogleSignin?) {
         this.socketIO = socketIO;
@@ -109,11 +113,6 @@ class UsersActions {
         // NOTE: Native Storage methods return a promise, but in this case we don't need to await
         userDetails = userDetails // eslint-disable-line no-param-reassign
             || JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || null);
-        try {
-            await ((userDetails ? UsersService.logout(userDetails) : Promise.resolve()) as Promise<any>);
-        } catch (err) {
-            console.log(err);
-        }
         if (!this.NativeStorage) {
             localStorage.removeItem('therrSession');
             localStorage.removeItem('therrUser');
@@ -121,7 +120,17 @@ class UsersActions {
             sessionStorage.removeItem('therrUser');
         } else {
             await this.NativeStorage.multiRemove(['therrSession', 'therrUser', 'therrUserSettings']);
+            await (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify({
+                id: userDetails?.id,
+            }));
         }
+
+        try {
+            await ((userDetails ? UsersService.logout(userDetails) : Promise.resolve()) as Promise<any>);
+        } catch (err) {
+            console.log(err);
+        }
+
         dispatch({
             type: SocketClientActionTypes.LOGOUT,
             data: {
@@ -165,7 +174,7 @@ class UsersActions {
             lastName,
             userName,
             media,
-        } = response && response.data;
+        } = response?.data || {};
         // TODO: Determine if it is necessary to dispatch anything after user registers
         // set current user?
         const userDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || {});
@@ -200,6 +209,22 @@ class UsersActions {
         });
         return { email, id, userName };
     });
+
+    updateTour = (id: string, data: IUpdateTourArgs) => (dispatch: any) => (this.NativeStorage || sessionStorage)
+        .getItem('therrUserSettings').then(async (settings) => {
+            const userSettings = JSON.parse(settings || {});
+            // TODO: Get user settings from db
+            const userSettingsData: IUser = Immutable.from({
+                ...userSettings,
+                isTouring: data.isTouring,
+            });
+            (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
+
+            dispatch({
+                type: UserActionTypes.UPDATE_USER_TOUR,
+                data,
+            });
+        });
 }
 
 export default UsersActions;

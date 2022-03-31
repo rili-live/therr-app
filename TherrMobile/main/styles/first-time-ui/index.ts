@@ -62,6 +62,23 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         formBGraphic: {
             ...createProfileGraphicStyles,
         },
+        graphicImgContainer: {
+            display: 'flex',
+            width: '100%',
+            alignItems: 'center',
+        },
+        slideContainer: {
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+        },
+        sliderDot: {
+            width: 16,
+            height: 16,
+            borderRadius: 8,
+            marginHorizontal: 3,
+            backgroundColor: 'rgba(255, 255, 255, 0.92)',
+        },
     });
 
     return ({

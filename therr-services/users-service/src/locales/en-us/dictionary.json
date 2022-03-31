@@ -9,7 +9,8 @@
         "userConnections": {
             "alreadyExists": "This user connection already exists",
             "noUserFound": "No user found with the provided criteria",
-            "noRequestSelf": "Cannot make a user connection with self"
+            "noRequestSelf": "Cannot make a user connection with self",
+            "mismatchTokenUserId": "Invalid requesting user ID"
         }
     },
     "notifications": {
@@ -20,6 +21,9 @@
         "newAreasActivated": "You recently activated {totalAreasActivated} new areas(s)",
         "discoveredUniqueMoment": "Check the map to activate a moment with special attributes",
         "discoveredUniqueSpace": "Check the map to activate a space with special attributes"
+    },
+    "invites": {
+        "phone": "{name} has invited you to join Therr app. Sign up with this link to connect https://therr.com"
     },
     "validation": "The required parameters were not provided."
 }

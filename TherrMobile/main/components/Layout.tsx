@@ -104,6 +104,15 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private themeForms = buildFormStyles();
     private themeMenu = buildMenuStyles();
 
+    static getDerivedStateFromProps(nextProps: ILayoutProps, nextState: ILayoutState) {
+        if (nextProps.user?.isAuthenticated !== nextState.isAuthenticated) {
+            return {
+                isAuthenticated: nextProps.user?.isAuthenticated,
+            };
+        }
+        return {};
+    }
+
     constructor(props) {
         super(props);
 
@@ -246,9 +255,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         console.log('NOTIFICATIONS_ERROR', err);
                     });
             }
-            this.setState({
-                isAuthenticated: user.isAuthenticated,
-            });
         }
     }
 
@@ -409,6 +415,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
                         const isMap = currentScreen === 'Map';
                         const hasLogoHeaderTitle = currentScreen === 'Login'
+                            || currentScreen === 'Landing'
                             || currentScreen === 'Home'
                             || currentScreen === 'ForgotPassword'
                             || currentScreen === 'Nearby'
@@ -443,7 +450,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         }
 
                         return ({
-                            animationEnabled: false,
+                            animationEnabled: true,
                             cardStyleInterpolator: forFade,
                             headerLeft: () => (
                                 <HeaderMenuLeft
@@ -494,6 +501,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 )
                             ) {
                                 return true;
+                            }
+
+                            if (route.name === 'Landing' && user?.details?.id) {
+                                return false;
                             }
 
                             const isAuthorized = UsersService.isAuthorized(

@@ -5,6 +5,7 @@ import {
     getUsers,
     findUsers,
     updateUser,
+    updateUserCoins,
     blockUser,
     reportUser,
     updateUserPassword,
@@ -29,6 +30,7 @@ router.put('/change-password', updateUserPassword);
 router.put('/:id', updateUser);
 router.put('/:id/block', blockUser);
 router.put('/:id/report', reportUser);
+router.put('/:id/coins', updateUserCoins);
 
 // DELETE
 router.delete('/:id', deleteUser);

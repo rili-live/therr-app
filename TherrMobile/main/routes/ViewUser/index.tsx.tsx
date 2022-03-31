@@ -101,7 +101,7 @@ class ViewUser extends React.Component<
     fetchUser = () => {
         const { route, user } = this.props;
         const { userInView } = route.params;
-        const getUserPromise = user.details?.id == userInView.id
+        const getUserPromise = user.details?.id === userInView.id
             ? Promise.resolve(user.details)
             : UsersService.get(userInView.id).then((response) => response.data);
 

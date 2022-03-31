@@ -2,6 +2,7 @@ import axios from 'axios';
 import { PushNotifications } from 'therr-js-utilities/constants';
 import sendPendingInviteEmail from '../api/email/retention/sendPendingInviteEmail';
 import * as globalConfig from '../../../../global-config';
+import { IFindUserArgs } from '../store/UsersStore';
 
 interface ISendPushNotification {
     authorization: any;
@@ -13,7 +14,10 @@ interface ISendPushNotification {
     retentionEmailType?: PushNotifications.Types;
 }
 
-export default (findUser, {
+export default (findUser: (args: IFindUserArgs, returning: any[]) => Promise<{
+    deviceMobileFirebaseToken: string;
+    email: string;
+}[]>, {
     authorization,
     fromUserName,
     fromUserId,
@@ -21,7 +25,7 @@ export default (findUser, {
     toUserId,
     type,
     retentionEmailType,
-}: ISendPushNotification) => findUser({ id: toUserId }, ['deviceMobileFirebaseToken', 'email']).then(([destinationUser]) => {
+}: ISendPushNotification): Promise<any> => findUser({ id: toUserId }, ['deviceMobileFirebaseToken', 'email']).then(([destinationUser]) => {
     if (retentionEmailType === PushNotifications.Types.newConnectionRequest) {
         sendPendingInviteEmail({
             subject: `[New Connection Request] ${fromUserName} sent you a request on Therr App`,

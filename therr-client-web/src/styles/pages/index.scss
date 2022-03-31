@@ -1,4 +1,5 @@
 @import './forum';
+@import './home';
 @import './login';
 @import './register';
 @import './user-profile';
@@ -8,13 +9,17 @@
 
     .PhoneInputCountry {
         color: $therr-secondary-1;
-        top: .6rem;
+        top: 1.125rem;
         left: 1rem;
         position: absolute;
     }
 
+    .PhoneInputCountrySelectArrow {
+        display: none;
+    }
+
     input {
-        padding-left: rem-calc(60px);
+        padding-left: rem-calc(52px);
         background: $therr-white;
     }
 }

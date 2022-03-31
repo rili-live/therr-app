@@ -5,7 +5,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
 // import * as globalConfig from '../../../../global-config';
-import sendPushNotification from '../utilities/sendPushNotification';
+import sendPushNotificationAndEmail from '../utilities/sendPushNotificationAndEmail';
 
 export const translateNotification = (notification, locale = 'en-us') => ({
     ...notification,
@@ -35,7 +35,7 @@ const createNotification = (req, res) => Store.notifications.createNotification(
         // TODO: Handle additional notification types (currently only handles DM notification)
         if (shouldSendPushNotification) {
             // Fire and forget
-            sendPushNotification(Store.users.findUser, {
+            sendPushNotificationAndEmail(Store.users.findUser, {
                 authorization,
                 fromUserName,
                 fromUserId,

@@ -1,5 +1,7 @@
 import React from 'react';
-import { ActivityIndicator, Platform, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import { Button, Image, Text } from 'react-native-elements';
 import Overlay from 'react-native-modal-overlay';
 import { CommonActions, StackActions } from '@react-navigation/native';
@@ -14,6 +16,7 @@ import { ILocationState } from '../types/redux/location';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
 import { ITherrThemeColors } from '../styles/themes';
 import { getUserImageUri } from '../utilities/content';
+import UsersActions from '../redux/actions/UsersActions';
 
 const ANIMATION_DURATION = 180;
 
@@ -23,7 +26,9 @@ const ANIMATION_DURATION = 180;
 //     'TherrFont.ttf'
 // );
 
-interface IHeaderMenuRightDispatchProps {}
+interface IHeaderMenuRightDispatchProps {
+    updateTour: Function;
+}
 
 interface IStoreProps extends IHeaderMenuRightDispatchProps {
 }
@@ -51,6 +56,16 @@ export interface IHeaderMenuRightProps extends IStoreProps {
 interface IHeaderMenuRightState {
     isModalVisible: boolean;
 }
+
+const mapStateToProps = () => ({});
+
+const mapDispatchToProps = (dispatch: any) =>
+    bindActionCreators(
+        {
+            updateTour: UsersActions.updateTour,
+        },
+        dispatch
+    );
 
 class HeaderMenuRight extends React.Component<
     IHeaderMenuRightProps,
@@ -162,16 +177,15 @@ class HeaderMenuRight extends React.Component<
     };
 
     startTour = () => {
-        const { navigation } = this.props;
-        if (this.getCurrentScreen() === 'Map') {
-            this.toggleOverlay();
-            navigation.replace('Map', {
-                isTourEnabled: true,
-            });
-        } else {
-            navigation.navigate('Map', {
-                isTourEnabled: true,
-            });
+        const { navigation, user, updateTour } = this.props;
+        this.toggleOverlay();
+
+        updateTour(user.details.id, {
+            isTouring: true,
+        });
+
+        if (this.getCurrentScreen() !== 'Map') {
+            navigation.navigate('Map');
         }
     }
 
@@ -183,6 +197,13 @@ class HeaderMenuRight extends React.Component<
             navState.routes[navState.routes.length - 1].name
         );
     };
+
+    viewUser = () => {
+        const { navigation } = this.props;
+
+        this.toggleOverlay();
+        navigation.navigate('Settings');
+    }
 
     render() {
         const {
@@ -214,17 +235,23 @@ class HeaderMenuRight extends React.Component<
                 <>
                     {
                         isEmailVerifed ?
-                            <Button
-                                icon={
-                                    <Image
-                                        source={{ uri: getUserImageUri(user, 50) }}
-                                        style={imageStyle}
-                                        PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
-                                    />}
-                                onPress={() => this.toggleOverlay()}
-                                type="clear"
-                                containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
-                            /> :
+                            <View>
+                                <Button
+                                    icon={
+                                        <Image
+                                            source={{ uri: getUserImageUri(user, 50) }}
+                                            style={imageStyle}
+                                            PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
+                                        />}
+                                    onPress={() => this.toggleOverlay()}
+                                    type="clear"
+                                    containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
+                                />
+                                {
+                                    hasNotifications && <View style={themeMenu.styles.notificationCircle2} />
+                                }
+                            </View>
+                            :
                             <Button
                                 icon={
                                     <FontAwesomeIcon
@@ -253,11 +280,18 @@ class HeaderMenuRight extends React.Component<
                                 <View style={themeMenu.styles.container}>
                                     <View style={themeMenu.styles.header}>
                                         <View style={themeMenu.styles.headerTitle}>
-                                            <Image
-                                                source={{ uri: getUserImageUri(user, 50) }}
-                                                style={themeMenu.styles.headerTitleIcon}
-                                                transition={false}
-                                            />
+                                            <Pressable
+                                                onPress={this.viewUser}
+                                            >
+                                                <Image
+                                                    source={{ uri: getUserImageUri(user, 50) }}
+                                                    style={themeMenu.styles.headerTitleIcon}
+                                                    transition={false}
+                                                />
+                                                {
+                                                    hasNotifications && <View style={themeMenu.styles.notificationCircle3} />
+                                                }
+                                            </Pressable>
                                             <Text numberOfLines={1} style={themeMenu.styles.headerTitleText}>
                                                 {user.details?.userName}
                                             </Text>
@@ -276,32 +310,6 @@ class HeaderMenuRight extends React.Component<
                                         />
                                     </View>
                                     <View style={themeMenu.styles.body}>
-                                        <Button
-                                            buttonStyle={
-                                                currentScreen === 'Home'
-                                                    ? themeMenu.styles.buttonsActive
-                                                    : themeMenu.styles.buttons
-                                            }
-                                            titleStyle={
-                                                currentScreen === 'Home'
-                                                    ? themeMenu.styles.buttonsTitleActive
-                                                    : themeMenu.styles.buttonsTitle
-                                            }
-                                            title={this.translate('components.headerMenuRight.menuItems.home')}
-                                            icon={
-                                                <FontAwesomeIcon
-                                                    style={
-                                                        currentScreen === 'Home'
-                                                            ? themeMenu.styles.iconStyleActive
-                                                            : themeMenu.styles.iconStyle
-                                                    }
-                                                    name="home"
-                                                    size={18}
-                                                />
-                                            }
-                                            iconRight
-                                            onPress={() => this.navTo('Home')}
-                                        />
                                         {/* <Button
                                             buttonStyle={
                                                 currentScreen === 'Map'
@@ -384,6 +392,33 @@ class HeaderMenuRight extends React.Component<
                                                 hasNotifications && <View style={themeMenu.styles.notificationCircle} />
                                             }
                                         </View>
+                                        <Button
+                                            buttonStyle={
+                                                currentScreen === 'BookMarked'
+                                                    ? themeMenu.styles.buttonsActive
+                                                    : themeMenu.styles.buttons
+                                            }
+                                            containerStyle={{ width: '100%' }}
+                                            titleStyle={
+                                                currentScreen === 'BookMarked'
+                                                    ? themeMenu.styles.buttonsTitleActive
+                                                    : themeMenu.styles.buttonsTitle
+                                            }
+                                            title={this.translate('components.headerMenuRight.menuItems.bookmarks')}
+                                            icon={
+                                                <FontAwesomeIcon
+                                                    style={
+                                                        currentScreen === 'BookMarked'
+                                                            ? themeMenu.styles.iconStyleActive
+                                                            : themeMenu.styles.iconStyle
+                                                    }
+                                                    name={'bookmark'}
+                                                    size={18}
+                                                />
+                                            }
+                                            iconRight
+                                            onPress={() => this.navTo('BookMarked')}
+                                        />
                                         <Button
                                             buttonStyle={
                                                 currentScreen === 'ActiveConnections'
@@ -512,24 +547,47 @@ class HeaderMenuRight extends React.Component<
                                             iconRight
                                             onPress={() => this.navTo('Settings')}
                                         />
+                                        <Button
+                                            buttonStyle={
+                                                currentScreen === 'Home'
+                                                    ? themeMenu.styles.buttonsActive
+                                                    : themeMenu.styles.buttons
+                                            }
+                                            titleStyle={
+                                                currentScreen === 'Home'
+                                                    ? themeMenu.styles.buttonsTitleActive
+                                                    : themeMenu.styles.buttonsTitle
+                                            }
+                                            title={this.translate('components.headerMenuRight.menuItems.feedback')}
+                                            icon={
+                                                <FontAwesomeIcon
+                                                    style={
+                                                        currentScreen === 'Home'
+                                                            ? themeMenu.styles.iconStyleActive
+                                                            : themeMenu.styles.iconStyle
+                                                    }
+                                                    name="question-circle"
+                                                    size={18}
+                                                />
+                                            }
+                                            iconRight
+                                            onPress={() => this.navTo('Home')}
+                                        />
                                     </View>
                                     <View style={themeMenu.styles.footer}>
-                                        {
-                                            Platform.OS !== 'ios' &&
-                                            <Button
-                                                titleStyle={themeMenu.styles.buttonsTitle}
-                                                buttonStyle={[themeMenu.styles.buttons, , { justifyContent: 'center', marginBottom: 10 }]}
-                                                title={this.translate('components.headerMenuRight.menuItems.tour')}
-                                                icon={
-                                                    <FontAwesomeIcon
-                                                        style={themeMenu.styles.iconStyle}
-                                                        name="info"
-                                                        size={18}
-                                                    />
-                                                }
-                                                onPress={this.startTour}
-                                            />
-                                        }
+                                        <Button
+                                            titleStyle={themeMenu.styles.buttonsTitle}
+                                            buttonStyle={[themeMenu.styles.buttons, , { justifyContent: 'center', marginBottom: 10 }]}
+                                            title={this.translate('components.headerMenuRight.menuItems.tour')}
+                                            icon={
+                                                <FontAwesomeIcon
+                                                    style={themeMenu.styles.iconStyle}
+                                                    name="info"
+                                                    size={18}
+                                                />
+                                            }
+                                            onPress={this.startTour}
+                                        />
                                         <Button
                                             titleStyle={themeMenu.styles.buttonsTitle}
                                             buttonStyle={[themeMenu.styles.buttons, { justifyContent: 'center' }]}
@@ -557,4 +615,4 @@ class HeaderMenuRight extends React.Component<
     }
 }
 
-export default HeaderMenuRight;
+export default connect(mapStateToProps, mapDispatchToProps)(HeaderMenuRight);

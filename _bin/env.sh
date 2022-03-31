@@ -1,4 +1,4 @@
 #!/bin/bash
 
 NODE_VERSION="16.13.0"
-NPM_VERSION="8.1.3"
+NPM_VERSION="8.5.5"

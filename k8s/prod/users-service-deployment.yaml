@@ -4,7 +4,7 @@ metadata:
   name: users-service-deployment
   namespace: default
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       component: server-users
@@ -98,6 +98,18 @@ spec:
             secretKeyRef:
               name: therrjwtsecret
               key: THERRJWT_SECRET
+        - name: TWILIO_ACCOUNT_SID
+          valueFrom:
+            secretKeyRef:
+              name: twilio-account-sid
+              key: TWILIOACCOUNTSID
+        - name: TWILIO_AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: twilio-auth-token
+              key: TWILIOAUTHTOKEN
+        - name: TWILIO_SENDER_PHONE_NUMBER
+          value: "+14783124948"
       - name: cloud-sql-proxy
         # It is recommended to use the latest version of the Cloud SQL proxy
         # Make sure to update on a regular schedule!

@@ -28,6 +28,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         defaultContainer: {
             ...containerStyles,
         },
+        claimASpace: {
+            ...containerStyles,
+            width: '100%',
+            height: 200,
+        },
         earthLoaderContainer: {
             ...containerStyles,
             marginHorizontal: '35%',

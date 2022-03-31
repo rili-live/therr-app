@@ -1,72 +1,75 @@
 .fill {
-  box-sizing: border-box;
-  width: 100%;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .flex-box {
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  align-items: center;
-
-  &.row {
-    flex-direction: row;
-    align-items: unset;
-  }
-
-  &.column {
+    display: flex;
+    justify-content: center;
     flex-direction: column;
-  }
+    align-items: center;
 
-  &.wrap {
-    flex-wrap: wrap;
-  }
-
-  &.wrap-reverse {
-    flex-wrap: wrap-reverse;
-  }
-
-  &.space-around {
-    justify-content: space-around;
-  }
-
-  &.space-evenly {
-    justify-content: space-evenly;
-
-    &.center {
-      align-items: center;
+    &.row {
+        flex-direction: row;
+        align-items: unset;
     }
-  }
+
+    &.column {
+        flex-direction: column;
+    }
+
+    &.wrap {
+        flex-wrap: wrap;
+    }
+
+    &.wrap-reverse {
+        flex-wrap: wrap-reverse;
+    }
+
+    &.space-around {
+        justify-content: space-around;
+    }
+
+    &.space-evenly {
+        justify-content: space-evenly;
+
+        &.center {
+            align-items: center;
+        }
+    }
 }
 
 // Margin
 // TODO - Use sass functions
 .margin-sm {
-  margin: .5rem;
+    margin: 0.5rem;
 }
 
 .margin-bot-sm {
-  margin-bottom: .5rem;
+    margin-bottom: 0.5rem;
+}
+
+.margin-bot-md {
+    margin-bottom: 1.5rem;
 }
 
 .margin-md {
-  margin: 1.5rem;
+    margin: 1.5rem;
 }
 
 .margin-lg {
-  margin: 3rem;
+    margin: 3rem;
 }
-
 
 // Padding
 .padding-sm {
-  padding: .5rem;
+    padding: 0.5rem;
 }
 
 .padding-md {
-  padding: 1.5rem;
+    padding: 1.5rem;
 }
 
 .padding-lg {
-  padding: 3rem;
+    padding: 3rem;
 }

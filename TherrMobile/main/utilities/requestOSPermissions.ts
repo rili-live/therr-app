@@ -7,6 +7,7 @@ import {
     requestMultiple,
     PERMISSIONS,
 } from 'react-native-permissions';
+import Contacts from 'react-native-contacts';
 
 const makePermissionsUniform = (permissions) => {
     return permissions;
@@ -56,6 +57,26 @@ const requestOSCameraPermissions = (storePermissionsResponse) => {
     }
 };
 
+const requestOSContactsPermissions = (storePermissionsResponse) => {
+    switch (Platform.OS) {
+        case 'ios':
+            return Contacts.requestPermission().then((response) => {
+                return {
+                    [PERMISSIONS.IOS.CONTACTS]: response === 'authorized' ? 'granted' : response,
+                };
+            });
+            // return requestIOSPermissions([
+            //     PERMISSIONS.IOS.CONTACTS,
+            // ], storePermissionsResponse);
+        case 'android':
+            return requestAndroidPermission([
+                PermissionsAndroid.PERMISSIONS.READ_CONTACTS,
+            ], storePermissionsResponse);
+        default:
+            return Promise.reject();
+    }
+};
+
 const requestOSMapPermissions = (storePermissionsResponse, useFineAccurracy = true) => {
     switch (Platform.OS) {
         case 'ios':
@@ -76,5 +97,6 @@ export {
     checkAndroidPermission,
     isLocationPermissionGranted,
     requestOSCameraPermissions,
+    requestOSContactsPermissions,
     requestOSMapPermissions,
 };

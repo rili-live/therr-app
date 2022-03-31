@@ -70,6 +70,7 @@
   position: relative;
   white-space: nowrap;
   width: 100%;
+  /* stylelint-disable-next-line */
 }
 .search-box #contentSearchInput {
   height: 2.375rem;
@@ -97,6 +98,7 @@
   top: 2px;
   transform: translate(2.125rem, 1.0625rem) scale(1);
   transform-origin: bottom;
+  /* stylelint-disable-next-line */
   transition: transform 250ms cubic-bezier(0.55, 0, 0.1, 1), color 250ms, background 350ms, font-weight 250ms, line-height 250ms, padding 250ms;
   z-index: 1;
 }
@@ -166,7 +168,12 @@ label.required::before {
 }
 
 .form-field {
-  margin: 0 0 0;
+  margin: 0;
+}
+
+::placeholder {
+  /* Chrome, Firefox, Opera, Safari 10.1+ */
+  font-size: rem-calc("18px");
 }
 
 input[type=color],
@@ -188,14 +195,14 @@ select,
 textarea {
   background-color: #dee1e4;
   border: 1px solid #cdcdcd;
-  border-radius: 1.1875rem;
+  border-radius: rem-calc(16px);
   box-shadow: none;
   box-sizing: border-box;
   color: #262626;
   display: block;
   font-family: inherit;
-  font-size: 0.9rem;
-  height: 2.3125rem;
+  font-size: 1rem;
+  height: rem-calc(52px);
   margin: 0;
   padding: 0.5rem 0.75rem;
   transition: border-color 0.15s linear, background 0.15s linear;
@@ -332,113 +339,82 @@ select.is-touched.is-valid:focus,
 textarea.is-touched.is-valid:focus {
   box-shadow: inset 0 0 0 0.25rem rgba(0, 125, 44, 0.1);
 }
-input[type=color]:disabled, input[type=color].disabled, input[type=color].disabled,
+input[type=color]:disabled, input[type=color].disabled,
 input[type=date]:disabled,
-input[type=date].disabled,
 input[type=date].disabled,
 input[type=datetime-local]:disabled,
 input[type=datetime-local].disabled,
-input[type=datetime-local].disabled,
 input[type=datetime]:disabled,
-input[type=datetime].disabled,
 input[type=datetime].disabled,
 input[type=email]:disabled,
 input[type=email].disabled,
-input[type=email].disabled,
 input[type=month]:disabled,
-input[type=month].disabled,
 input[type=month].disabled,
 input[type=number]:disabled,
 input[type=number].disabled,
-input[type=number].disabled,
 input[type=password]:disabled,
-input[type=password].disabled,
 input[type=password].disabled,
 input[type=search]:disabled,
 input[type=search].disabled,
-input[type=search].disabled,
 input[type=tel]:disabled,
-input[type=tel].disabled,
 input[type=tel].disabled,
 input[type=text]:disabled,
 input[type=text].disabled,
-input[type=text].disabled,
 input[type=time]:disabled,
-input[type=time].disabled,
 input[type=time].disabled,
 input[type=url]:disabled,
 input[type=url].disabled,
-input[type=url].disabled,
 input[type=week]:disabled,
-input[type=week].disabled,
 input[type=week].disabled,
 select:disabled,
 select.disabled,
-select.disabled,
 .select-box:disabled,
 .select-box.disabled,
-.select-box.disabled,
 textarea:disabled,
-textarea.disabled,
 textarea.disabled {
   background: #f0f0f0;
   color: #666;
   cursor: not-allowed;
 }
-input[type=color]:disabled button, input[type=color].disabled button, input[type=color].disabled button,
+input[type=color]:disabled button, input[type=color].disabled button,
 input[type=date]:disabled button,
-input[type=date].disabled button,
 input[type=date].disabled button,
 input[type=datetime-local]:disabled button,
 input[type=datetime-local].disabled button,
-input[type=datetime-local].disabled button,
 input[type=datetime]:disabled button,
-input[type=datetime].disabled button,
 input[type=datetime].disabled button,
 input[type=email]:disabled button,
 input[type=email].disabled button,
-input[type=email].disabled button,
 input[type=month]:disabled button,
-input[type=month].disabled button,
 input[type=month].disabled button,
 input[type=number]:disabled button,
 input[type=number].disabled button,
-input[type=number].disabled button,
 input[type=password]:disabled button,
-input[type=password].disabled button,
 input[type=password].disabled button,
 input[type=search]:disabled button,
 input[type=search].disabled button,
-input[type=search].disabled button,
 input[type=tel]:disabled button,
-input[type=tel].disabled button,
 input[type=tel].disabled button,
 input[type=text]:disabled button,
 input[type=text].disabled button,
-input[type=text].disabled button,
 input[type=time]:disabled button,
-input[type=time].disabled button,
 input[type=time].disabled button,
 input[type=url]:disabled button,
 input[type=url].disabled button,
-input[type=url].disabled button,
 input[type=week]:disabled button,
-input[type=week].disabled button,
 input[type=week].disabled button,
 select:disabled button,
 select.disabled button,
-select.disabled button,
 .select-box:disabled button,
 .select-box.disabled button,
-.select-box.disabled button,
 textarea:disabled button,
-textarea.disabled button,
 textarea.disabled button {
   background: #f0f0f0;
   color: #666;
   cursor: not-allowed;
 }
 
+/* stylelint-disable-next-line */
 .PhoneInput input {
   margin-bottom: 0.5rem;
 }
