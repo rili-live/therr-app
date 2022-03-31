@@ -56,7 +56,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                 email: nextProps.user.details.email,
                 // Add your own custom user variables below:
             });
-            nextProps.history.push('/user/profile');
+            nextProps.history.push('/discovered');
             return null;
         }
         return {};

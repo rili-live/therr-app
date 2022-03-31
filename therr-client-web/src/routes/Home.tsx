@@ -44,7 +44,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
     static getDerivedStateFromProps(nextProps: IHomeProps) {
         if (!shouldRenderLoginForm(nextProps as ILoginProps)) {
-            nextProps.history.push('/user/profile');
+            nextProps.history.push('/discovered');
             return null;
         }
         return {};

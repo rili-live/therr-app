@@ -13,6 +13,7 @@ import Home from './Home';
 import Login from './Login';
 import UserProfile from './UserProfile';
 import ChangePassword from './ChangePassword';
+import DiscoveredComponent from './Discovered';
 
 export interface IRoute extends RouteProps {
     access?: IAccess;
@@ -97,6 +98,16 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
     {
         path: '/user/profile',
         render: (routeProps) => <UserProfile onInitMessaging={routePropsConfig.onInitMessaging} {...routeProps} />, // eslint-disable-line react/display-name
+        exact: true,
+        access: {
+            type: AccessCheckType.ALL,
+            levels: [AccessLevels.EMAIL_VERIFIED],
+        },
+        redirectPath: '/create-profile',
+    },
+    {
+        path: '/discovered',
+        render: (routeProps) => <DiscoveredComponent onInitMessaging={routePropsConfig.onInitMessaging} {...routeProps} />,
         exact: true,
         access: {
             type: AccessCheckType.ALL,

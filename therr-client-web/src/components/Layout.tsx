@@ -225,7 +225,8 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         if (!isAuthorized) {
             this.props.history.push('/');
         } else {
-            this.props.history.push('/user/profile');
+            // this.props.history.push('/user/profile');
+            this.props.history.push('/discovered');
         }
     }
 
