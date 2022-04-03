@@ -36,7 +36,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
         email?: string;
     } = {};
 
-    if (Number(requestingUserId) !== Number(userId)) {
+    if (requestingUserId !== userId) {
         return handleHttpError({
             res,
             message: translate(locale, 'errorMessages.userConnections.mismatchTokenUserId'),
