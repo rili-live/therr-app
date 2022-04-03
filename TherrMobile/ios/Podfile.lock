@@ -479,7 +479,7 @@ PODS:
     - Google-Maps-iOS-Utils (= 2.1.0)
     - GoogleMaps (= 3.5.0)
     - React
-  - react-native-image-crop-tools (1.5.0):
+  - react-native-image-crop-tools (1.6.2):
     - React
     - TOCropViewController (= 2.5.3)
   - react-native-image-picker (3.8.1):
@@ -985,7 +985,7 @@ SPEC CHECKSUMS:
   react-native-contacts: 1bff4c47816d611f26b06fa8b3eaf2db4d1b2c86
   react-native-geolocation-service: c0efb872258ed9240f1003a70fca9e9757e5c785
   react-native-google-maps: 0a989abda71059db2caa98b9dacca7a8f38a47d0
-  react-native-image-crop-tools: 184957a43dc86db8aedded2e521146432545e31f
+  react-native-image-crop-tools: 06b171ac13f1cd520e633a0d190c00f664b4cb79
   react-native-image-picker: 31971f6184e7c1dcb4fc1f122e1ba2c3fb11ef1e
   react-native-maps: f4b89da81626ad7f151a8bfcb79733295d31ce5c
   react-native-safe-area-context: 584dc04881deb49474363f3be89e4ca0e854c057

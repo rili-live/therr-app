@@ -72,7 +72,7 @@
     "react-native-gesture-handler": "^1.10.1",
     "react-native-haptic-feedback": "^1.13.0",
     "react-native-image-crop-picker": "^0.37.2",
-    "react-native-image-crop-tools": "^1.5.0",
+    "react-native-image-crop-tools": "^1.6.2",
     "react-native-image-picker": "^3.8.1",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-map-clustering": "^3.4.2",
