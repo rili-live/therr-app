@@ -16,14 +16,14 @@ spec:
         layer: services-internal
     spec:
       serviceAccountName: therr-k8s-service-account
-      affinity:
-        nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - preference:
-              matchExpressions:
-              - key: cloud.google.com/gke-preemptible
-                operator: DoesNotExist
-            weight: 75
+      # affinity:
+      #   nodeAffinity:
+      #     preferredDuringSchedulingIgnoredDuringExecution:
+      #     - preference:
+      #         matchExpressions:
+      #         - key: cloud.google.com/gke-preemptible
+      #           operator: DoesNotExist
+      #       weight: 75
       containers:
       - name: server-users
         image: therrapp/users-service:latest
