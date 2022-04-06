@@ -24,8 +24,6 @@ spec:
               - key: cloud.google.com/gke-preemptible
                 operator: DoesNotExist
             weight: 100
-      nodeSelector:
-        cloud.google.com/gke-preemptible: "false"
       containers:
       - name: server-users
         image: therrapp/users-service:latest
