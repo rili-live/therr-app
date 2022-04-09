@@ -1,5 +1,5 @@
 import React from 'react';
-import { Provider } from 'shared/react-redux';
+import { Provider } from 'react-redux';
 import SplashScreen from 'react-native-bootsplash';
 import { appleAuth } from '@invertase/react-native-apple-authentication';
 import LogRocket from '@logrocket/react-native';
@@ -21,11 +21,12 @@ class App extends React.Component<any, any> {
             isLoading: true,
         };
 
-        this.loadStorage();
         // changeNavigationBarColor(therrTheme.colors.primary, false, true);
     }
 
     componentDidMount() {
+        this.loadStorage();
+
         if (appleAuth.isSupported) {
             this.authCredentialListener = appleAuth.onCredentialRevoked(async () => {
                 // TODO: Logout user
@@ -66,13 +67,17 @@ class App extends React.Component<any, any> {
         }
     }
 
-    loadStorage = async () => {
-        this.store = await getStore();
-        initInterceptors(this.store);
+    loadStorage = () => {
+        getStore().then((response) => {
+            this.store = response;
+            initInterceptors(this.store);
 
-        this.setState({
-            isLoading: false,
-        }, () => SplashScreen.hide({ fade: true }));
+            this.setState({
+                isLoading: false,
+            }, () => SplashScreen.hide({ fade: true }));
+        }).catch((err) => {
+            console.log(err);
+        });
     };
 
     render() {

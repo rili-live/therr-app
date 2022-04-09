@@ -397,6 +397,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                                 onBlur={this.onBlurValidate}
                                                 onSubmitEditing={() => this.onSubmit()}
                                                 errorMessage={emailErrorMessage}
+                                                autoCapitalize="none"
                                                 autoCorrect={false}
                                                 rightIcon={
                                                     <FontAwesomeIcon

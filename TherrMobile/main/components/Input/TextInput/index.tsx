@@ -4,6 +4,7 @@ import 'react-native-gesture-handler';
 import { ITherrThemeColors } from '../../../styles/themes';
 
 export interface IBaseTextInputProps {
+    minHeight?: number;
     themeForms: {
         colors: ITherrThemeColors;
         styles: any;

@@ -3,7 +3,7 @@ import * as React from 'react';
 import { bindActionCreators, Dispatch } from 'redux';
 import { connect } from 'react-redux';
 import {
-    Route, Switch, withRouter, RouteComponentProps,
+    Switch, Route, withRouter, RouteComponentProps,
 } from 'react-router-dom';
 import { TransitionGroup } from 'react-transition-group';
 import { Location } from 'history';
@@ -416,4 +416,4 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 }
 
 // export default Layout;
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(LayoutComponent));
+export default withRouter(connect<any, IStoreProps, {}>(mapStateToProps, mapDispatchToProps)(LayoutComponent as any));

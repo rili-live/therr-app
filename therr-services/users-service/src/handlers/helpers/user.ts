@@ -55,6 +55,7 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
     const verificationCode = { type: codeDetails.type, code: codeDetails.code };
     // Create a different/random permanent password as a placeholder
     const password = (isSSO || !!userByInviteDetails) ? generateOneTimePassword(8) : (userDetails.password || '');
+    const hasAgreedToTerms = !userByInviteDetails;
     let user;
 
     return Store.verificationCodes.createCode(verificationCode)
@@ -75,6 +76,7 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
                 accessLevels: JSON.stringify(userAccessLevels),
                 email: userDetails.email,
                 firstName: userDetails.firstName || undefined,
+                hasAgreedToTerms,
                 lastName: userDetails.lastName || undefined,
                 password: hash,
                 phoneNumber: userDetails.phoneNumber || undefined,

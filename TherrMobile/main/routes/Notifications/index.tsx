@@ -83,6 +83,7 @@ class Notifications extends React.Component<
         this.props.navigation.setOptions({
             title: this.translate('pages.notifications.headerTitle'),
         });
+        this.handleRefresh();
     }
 
     handleConnectionRequestAction = (e: any, notification, isAccepted) => {
@@ -108,6 +109,17 @@ class Notifications extends React.Component<
             },
             user: user.details,
         });
+    }
+
+    onContentSizeChange = () => {
+        const { notifications } = this.props;
+
+        if (notifications.messages?.length) {
+            this.flatListRef?.scrollToIndex({
+                index: 0,
+                animated: true,
+            });
+        }
     }
 
     markNotificationAsRead = (event, notification, userConnection?: any) => {
@@ -162,35 +174,21 @@ class Notifications extends React.Component<
             <>
                 <BaseStatusBar />
                 <SafeAreaView  style={this.theme.styles.safeAreaView}>
-                    {
-                        notifications.messages.length ? (
-                            <FlatList
-                                data={notifications.messages}
-                                keyExtractor={(item) => String(item.id)}
-                                renderItem={({ item, index }) => (
-                                    <Notification
-                                        acknowledgeRequest={this.handleConnectionRequestAction}
-                                        handlePress={(e) => this.markNotificationAsRead(e, item, false)}
-                                        isUnread={item.isUnread}
-                                        notification={item}
-                                        containerStyles={index === 0 ? notificationStyles.firstChildNotification : {}}
-                                        translate={this.translate}
-                                        themeNotification={this.themeNotification}
-                                    />
-                                )}
-                                ref={(component) => (this.flatListRef = component)}
-                                initialScrollIndex={0}
-                                onContentSizeChange={() => this.flatListRef.scrollToIndex({
-                                    index: 0,
-                                    animated: true,
-                                })}
-                                refreshControl={<RefreshControl
-                                    refreshing={isRefreshing}
-                                    onRefresh={this.handleRefresh}
-                                />}
-                                style={notificationStyles.container}
+                    <FlatList
+                        data={notifications.messages || []}
+                        keyExtractor={(item) => String(item.id)}
+                        renderItem={({ item, index }) => (
+                            <Notification
+                                acknowledgeRequest={this.handleConnectionRequestAction}
+                                handlePress={(e) => this.markNotificationAsRead(e, item, false)}
+                                isUnread={item.isUnread}
+                                notification={item}
+                                containerStyles={index === 0 ? notificationStyles.firstChildNotification : {}}
+                                translate={this.translate}
+                                themeNotification={this.themeNotification}
                             />
-                        ) :
+                        )}
+                        ListEmptyComponent={() => (
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionDescription}>
                                     {this.translate(
@@ -198,7 +196,16 @@ class Notifications extends React.Component<
                                     )}
                                 </Text>
                             </View>
-                    }
+                        )}
+                        ref={(component) => (this.flatListRef = component)}
+                        initialScrollIndex={0}
+                        onContentSizeChange={this.onContentSizeChange}
+                        refreshControl={<RefreshControl
+                            refreshing={isRefreshing}
+                            onRefresh={this.handleRefresh}
+                        />}
+                        style={notificationStyles.container}
+                    />
                 </SafeAreaView>
                 <MainButtonMenu
                     navigation={navigation}
