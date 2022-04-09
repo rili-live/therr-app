@@ -12,6 +12,7 @@ export interface ICreateUserParams {
     accessLevels: string | AccessLevels;
     email: string;
     firstName?: string;
+    hasAgreedToTerms: boolean;
     lastName?: string;
     password: string;
     phoneNumber?: string;
