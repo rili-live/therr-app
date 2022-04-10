@@ -78,64 +78,15 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
     }
 
-    // componentDidUpdate() {
-    //     const { lastClickedTargetId, shouldEvaluateClickaway } = this.state;
-    //     const { setSearchDropdownVisibility } = this.props;
-
-    //     let isClickOutside = true;
-    //     let depth = 0;
-
-    //     if (shouldEvaluateClickaway) {
-    //         console.dir(this.containerRef);
-
-    //         let stack = [this.containerRef];
-
-    //         while (stack.length) {
-    //             let current: any = stack.shift();
-
-    //             if (!current) {
-    //                 if (depth > 10) {
-    //                     break;
-    //                 } else {
-    //                     continue;
-    //                 }
-    //             }
-
-    //             if (current?._nativeTag === lastClickedTargetId) {
-    //                 isClickOutside = false;
-    //                 stack = [];
-    //                 break; // short-circuit
-    //             }
-
-    //             if (current?._children) {
-    //                 for (let i = 0; i < current._children.length; i += 1) {
-    //                     console.log(current?._children[i]);
-    //                     stack.push(current?._children[i]);
-    //                 }
-    //                 depth += 1;
-    //                 stack.push(null);
-    //             }
-    //         }
-
-    //         if (isClickOutside) {
-    //             setSearchDropdownVisibility(false);
-    //         }
-
-    //         this.setState({
-    //             shouldEvaluateClickaway: false,
-    //         });
-    //     }
-    // }
-
     componentWillUnmount = () => {
         clearTimeout(this.throttleTimeoutId);
     }
 
-    onInputChange = (input: string) => {
+    onInputChange = (text: string) => {
         const { getPlacesSearchAutoComplete, map, setSearchDropdownVisibility } = this.props;
         clearTimeout(this.throttleTimeoutId);
         this.setState({
-            inputText: input,
+            inputText: text,
         });
 
         this.throttleTimeoutId = setTimeout(() => {
@@ -144,11 +95,11 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                 latitude: map?.latitude || '-122.44696',
                 // radius,
                 apiKey: Platform.OS === 'ios' ? GOOGLE_APIS_IOS_KEY : GOOGLE_APIS_ANDROID_KEY,
-                input,
+                input: text,
             });
         }, 500);
 
-        setSearchDropdownVisibility(!!input?.length);
+        setSearchDropdownVisibility(!!text?.length);
     }
 
     handlePress = () => {
@@ -158,8 +109,8 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
         if (isAdvancedSearch) {
             navigation.navigate('AdvancedSearch');
         } else {
-            setSearchDropdownVisibility(!!inputText?.length);
             this.onInputChange(inputText || '');
+            setSearchDropdownVisibility(!!inputText?.length);
         }
     }
 
@@ -181,7 +132,7 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                 }
                 inputContainerStyle={[themeForms.styles.inputContainerRound, theme.styles.headerSearchInputContainer]}
                 onChangeText={this.onInputChange}
-                onFocus={this.handlePress}
+                // onFocus={this.handlePress}
                 placeholder={this.translate('components.header.searchInput.placeholder')}
                 placeholderTextColor={themeForms.colors.textGray}
                 rightIcon={
@@ -192,6 +143,7 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                     />
                 }
                 themeForms={themeForms}
+                value={inputText}
             />
         );
     }

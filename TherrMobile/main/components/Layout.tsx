@@ -31,7 +31,9 @@ import { ILocationState } from '../types/redux/location';
 import HeaderMenuLeft from './HeaderMenuLeft';
 import translator from '../services/translator';
 import { buildStyles } from '../styles';
+import { buildStyles as buildButtonStyles } from '../styles/buttons';
 import { buildStyles as buildFormStyles } from '../styles/forms';
+import { buildStyles as buildModalStyles } from '../styles/modal/infoModal';
 import { buildStyles as buildMenuStyles } from '../styles/modal/headerMenuModal';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
@@ -101,7 +103,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private urlEventListener;
     private routeNameRef: any = {};
     private theme = buildStyles();
+    private themeButtons = buildButtonStyles();
     private themeForms = buildFormStyles();
+    private themeModal = buildModalStyles();
     private themeMenu = buildMenuStyles();
 
     static getDerivedStateFromProps(nextProps: ILayoutProps, nextState: ILayoutState) {
@@ -122,8 +126,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         };
 
         this.theme = buildStyles(props?.user?.settings?.mobileThemeName);
+        this.themeButtons = buildButtonStyles(props?.user?.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props?.user?.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props?.user?.settings?.mobileThemeName);
+        this.themeModal = buildModalStyles(props?.user?.settings?.mobileThemeName);
         this.translate = (key: string, params: any) =>
             translator(props?.user?.settings?.locale || 'en-us', key, params);
     }
@@ -473,6 +479,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     updateGpsStatus={updateGpsStatus}
                                     user={user}
                                     theme={this.theme}
+                                    themeButtons={this.themeButtons}
+                                    themeModal={this.themeModal}
                                     themeMenu={this.themeMenu}
                                 />
                             ) : () => (<View />),

@@ -290,6 +290,9 @@
     },
     "editMoment": {
       "buttons": {
+        "addImage": "Attach an Image",
+        "captureNew": "Capture a New Photo",
+        "selectExisting": "Select an Existing Photo",
         "submit": "Send",
         "delete": "Delete?",
         "confirm": "Delete",
@@ -305,6 +308,7 @@
         "food": "Food Truck / Restaraunt"
       },
       "labels": {
+        "addImageNote": "Select an existing image or capture a new one!",
         "message": "Share something unique...",
         "notificationMsg": "Tagline or Title",
         "hashTags": "Hashtags (ie. my_tag, myTag)",
@@ -403,9 +407,10 @@
       }
     },
     "mapActions": {
+      "create": "Create",
       "claimASpace": "Claim a Space",
       "shareAThought": "Share a Thought",
-      "uploadAMoment": "Share a Moment",
+      "uploadAMoment": "Create a Moment",
       "captureAMoment": "Capture a Moment"
     },
     "main": {
@@ -579,7 +584,7 @@
     "map": {
       "headerTitle": " ",
       "areaAlerts": {
-        "walkCloser": "Walk closer to activate this moment/space"
+        "walkCloser": "Enable location and/or walk closer to activate this moment/space"
       }
     },
     "pageNotFound": {
@@ -674,6 +679,11 @@
         "dislike": "'Dislike' this",
         "report": "Report this content..."
       }
+    },
+    "infoModalPoints": {
+      "header": "What are points?",
+      "description": "In a future iteration of the app, points will be exchangable for cryptocurrency. Opt in to nearby notifications, and start earning points through various activities like inviting friends and creating quality content. Or, opt out and enjoy the app ad-free!",
+      "done": "close"
     },
     "touringModal": {
       "exit": "Exit",

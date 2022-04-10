@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, SafeAreaView, Keyboard, Text, View } from 'react-native';
+import { Dimensions, Pressable, SafeAreaView, Keyboard, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button, Slider, Image } from 'react-native-elements';
@@ -9,7 +9,9 @@ import RNFB from 'rn-fetch-blob';
 import { IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
 import { Content } from 'therr-js-utilities/constants';
+import ImageCropPicker from 'react-native-image-crop-picker';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
+import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import DropDown from '../components/Input/DropDown';
@@ -20,6 +22,7 @@ import { buildStyles as buildAlertStyles } from '../styles/alerts';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
+import { buildStyles as buildModalStyles } from '../styles/modal';
 import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/editing';
 import userContentStyles from '../styles/user-content';
 import {
@@ -30,12 +33,17 @@ import {
 } from '../constants';
 import Alert from '../components/Alert';
 import formatHashtags from '../utilities/formatHashtags';
-import AccentInput from '../components/Input/Accent';
-import AccentTextInput from '../components/Input/TextInput/Accent';
+import RoundInput from '../components/Input/Round';
+import RoundTextInput from '../components/Input/TextInput/Round';
 import HashtagsContainer from '../components/UserContent/HashtagsContainer';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { getImagePreviewPath } from '../utilities/areaUtils';
 import { signImageUrl } from '../utilities/content';
+import { requestOSCameraPermissions } from '../utilities/requestOSPermissions';
+import BottomSheet from '../components/Modals/BottomSheet';
+
+const { width: viewportWidth } = Dimensions.get('window');
+
 
 const hapticFeedbackOptions = {
     enableVibrateFallback: true,
@@ -60,11 +68,13 @@ interface IEditMomentState {
     errorMsg: string;
     successMsg: string;
     hashtags: string[];
+    isBottomSheetVisible: boolean;
     inputs: any;
     isSubmitting: boolean;
     previewLinkId?: string;
     previewStyleState: any;
     imagePreviewPath: string;
+    selectedImage?: any;
 }
 
 const mapStateToProps = (state) => ({
@@ -84,6 +94,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
     private themeAlerts = buildAlertStyles();
     private themeAccentLayout = buildAccentStyles();
     private themeMoments = buildMomentStyles();
+    private themeModal = buildModalStyles();
     private themeForms = buildFormStyles();
     private themeAccentForms = buildAccentFormStyles();
 
@@ -100,14 +111,17 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             inputs: {
                 radius: DEFAULT_RADIUS,
             },
+            isBottomSheetVisible: false,
             isSubmitting: false,
             previewStyleState: {},
+            selectedImage: imageDetails || {},
             imagePreviewPath: getImagePreviewPath(imageDetails?.path),
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
         this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
+        this.themeModal = buildModalStyles(props.user.settings?.mobileThemeName);
         this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
@@ -168,6 +182,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
     }
 
     signAndUploadImage = (createArgs) => {
+        const { selectedImage } = this.state;
         const {
             message,
             notificationMsg,
@@ -178,7 +193,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         } = this.props;
         const {
         } = route.params;
-        const { imageDetails } = route.params;
+        const imageDetails = selectedImage;
         const filePathSplit = imageDetails?.path?.split('.');
         const fileExtension = filePathSplit ? `${filePathSplit[filePathSplit.length - 1]}` : 'jpeg';
 
@@ -211,7 +226,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
     }
 
     onSubmit = () => {
-        const { hashtags } = this.state;
+        const { hashtags, selectedImage } = this.state;
         const {
             category,
             message,
@@ -230,7 +245,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             latitude,
             longitude,
         } = route.params;
-        const { imageDetails } = route.params;
 
         const createArgs: any = {
             category,
@@ -253,7 +267,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 isSubmitting: true,
             });
 
-            (imageDetails?.path ? this.signAndUploadImage(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
+            (selectedImage?.path ? this.signAndUploadImage(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
                 this.props
                     .createMoment(modifiedCreateArgs)
                     .then(() => {
@@ -346,6 +360,58 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         }
     }
 
+    handleImageSelect = (imageResponse) => {
+        if (!imageResponse.didCancel && !imageResponse.errorCode) {
+            this.setState({
+                selectedImage: imageResponse,
+                imagePreviewPath: getImagePreviewPath(imageResponse?.path),
+            }, () => this.toggleBottomSheet());
+        }
+    }
+
+    toggleBottomSheet = () => {
+        const { isBottomSheetVisible } = this.state;
+        this.setState({
+            isBottomSheetVisible: !isBottomSheetVisible,
+        });
+    }
+
+    onAddImage = (action: string) => {
+        // TODO: Store permissions in redux
+        const storePermissions = () => {};
+
+        return requestOSCameraPermissions(storePermissions).then((response) => {
+            const permissionsDenied = Object.keys(response).some((key) => {
+                return response[key] !== 'granted';
+            });
+            const pickerOptions: any = {
+                mediaType: 'photo',
+                includeBase64: false,
+                height: 4 * viewportWidth,
+                width: 4 * viewportWidth,
+                multiple: false,
+                cropping: true,
+            };
+            if (!permissionsDenied) {
+                if (action === 'camera') {
+                    return ImageCropPicker.openCamera(pickerOptions)
+                        .then((cameraResponse) => this.handleImageSelect(cameraResponse));
+                } else {
+                    return ImageCropPicker.openPicker(pickerOptions)
+                        .then((cameraResponse) => this.handleImageSelect(cameraResponse));
+                }
+            } else {
+                throw new Error('permissions denied');
+            }
+        }).catch((e) => {
+            this.toggleBottomSheet();
+            // TODO: Handle Permissions denied
+            if (e?.message.toLowerCase().includes('cancel')) {
+                console.log('canceled');
+            }
+        });
+    }
+
     onSliderChange = (name, value) => {
         const newInputChanges = {
             [name]: value,
@@ -395,18 +461,23 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             previewLinkId,
             previewStyleState,
             imagePreviewPath,
+            isBottomSheetVisible,
         } = this.state;
 
         return (
             <>
                 <BaseStatusBar />
-                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                <SafeAreaView style={[this.theme.styles.safeAreaView]}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         keyboardShouldPersistTaps="always"
                         ref={(component) => (this.scrollViewRef = component)}
                         style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit]}
-                        contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyEditScroll]}
+                        contentContainerStyle={[
+                            this.theme.styles.bodyScroll,
+                            this.themeAccentLayout.styles.bodyEditScroll,
+                            { backgroundColor: this.theme.colorVariations.primary2Fade },
+                        ]}
                     >
                         <Pressable style={this.themeAccentLayout.styles.container} onPress={Keyboard.dismiss}>
                             {
@@ -418,7 +489,23 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     />
                                 </View>
                             }
-                            <AccentInput
+                            <Button
+                                containerStyle={{ marginBottom: 10 }}
+                                buttonStyle={this.themeForms.styles.buttonRound}
+                                // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                                disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                titleStyle={this.themeForms.styles.buttonTitle}
+                                title={this.translate(
+                                    'forms.editMoment.buttons.addImage'
+                                )}
+                                onPress={() => this.toggleBottomSheet()}
+                                raised={false}
+                            />
+                            <Text style={this.theme.styles.sectionDescriptionNote}>
+                                {this.translate('forms.editMoment.labels.addImageNote')}
+                            </Text>
+                            <RoundInput
                                 maxLength={100}
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.notificationMsg'
@@ -429,7 +516,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 }
                                 themeForms={this.themeForms}
                             />
-                            <AccentTextInput
+                            <RoundTextInput
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.message'
                                 )}
@@ -437,7 +524,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 onChangeText={(text) =>
                                     this.onInputChange('message', text)
                                 }
-                                numberOfLines={5}
+                                minHeight={150}
+                                numberOfLines={7}
                                 themeForms={this.themeForms}
                             />
                             <View style={[this.themeForms.styles.input, { display: 'flex', flexDirection: 'row', alignItems: 'center' }]}>
@@ -449,7 +537,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                     formStyles={this.themeForms.styles}
                                 />
                             </View>
-                            <AccentInput
+                            <RoundInput
                                 autoCorrect={false}
                                 errorStyle={this.theme.styles.displayNone}
                                 placeholder={this.translate(
@@ -467,7 +555,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 onHashtagPress={this.handleHashtagPress}
                                 styles={this.themeForms.styles}
                             />
-                            <View style={this.themeForms.styles.inputSliderContainer}>
+                            <View style={[this.themeForms.styles.inputSliderContainer, { paddingBottom: 20 }]}>
                                 <Slider
                                     value={inputs.radius}
                                     onValueChange={(value) => this.onSliderChange('radius', value)}
@@ -571,6 +659,52 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             disabled={this.isFormDisabled()}
                         />
                     </View>
+                    <BottomSheet
+                        isVisible={isBottomSheetVisible}
+                        onRequestClose={this.toggleBottomSheet}
+                        themeModal={this.themeModal}
+                    >
+                        <Button
+                            containerStyle={{ marginBottom: 10, width: '100%' }}
+                            buttonStyle={this.themeForms.styles.buttonRound}
+                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                            titleStyle={this.themeForms.styles.buttonTitle}
+                            title={this.translate(
+                                'forms.editMoment.buttons.selectExisting'
+                            )}
+                            onPress={() => this.onAddImage('upload')}
+                            raised={false}
+                            icon={
+                                <OctIcon
+                                    name="plus"
+                                    size={22}
+                                    style={this.themeForms.styles.buttonIcon}
+                                />
+                            }
+                        />
+                        <Button
+                            containerStyle={{ width: '100%' }}
+                            buttonStyle={this.themeForms.styles.buttonRound}
+                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                            titleStyle={this.themeForms.styles.buttonTitle}
+                            title={this.translate(
+                                'forms.editMoment.buttons.captureNew'
+                            )}
+                            onPress={() => this.onAddImage('camera')}
+                            raised={false}
+                            icon={
+                                <OctIcon
+                                    name="device-camera"
+                                    size={22}
+                                    style={this.themeForms.styles.buttonIcon}
+                                />
+                            }
+                        />
+                    </BottomSheet>
                 </SafeAreaView>
             </>
         );

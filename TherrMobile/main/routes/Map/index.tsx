@@ -354,7 +354,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     }
 
-    handleCreateMoment = (action: ICreateMomentAction = 'camera') => {
+    handleCreate = (action: ICreateMomentAction = 'moment') => {
         const { location, navigation } = this.props;
         const { circleCenter } = this.state;
 
@@ -362,12 +362,12 @@ class Map extends React.Component<IMapProps, IMapState> {
             // TODO: Store permissions in redux
             const storePermissions = () => {};
 
-            // No need to request camera permissions for text only
-            if (action === 'text-only') {
+            if (action === 'moment') {
                 navigation.navigate('EditMoment', {
                     ...circleCenter,
                     imageDetails: {},
                 });
+                return;
             }
 
             return requestOSCameraPermissions(storePermissions).then((response) => {
@@ -413,6 +413,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         } else {
             // TODO: Alert that GPS is required to create a moment
+            this.showAreaAlert();
         }
     };
 
@@ -666,6 +667,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 });
                             } else {
                                 // TODO: Alert that GPS is required to create a space
+                                this.showAreaAlert();
                             }
                         });
                     })
@@ -722,6 +724,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                     });
                                 } else {
                                     // TODO: Alert that GPS is required to create a moment
+                                    this.showAreaAlert();
                                 }
                             });
                         })
@@ -972,7 +975,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         // Update user property to show confirmed
         updateUser(user.details.id, { hasAgreedToTerms: true }).then(() => {
-            this.handleCreateMoment('upload');
+            this.handleCreate('upload');
         });
     }
 
@@ -1473,7 +1476,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 goToMoments={this.goToMoments}
                                 goToNotifications={this.goToNotifications}
                                 hasNotifications={hasNotifications}
-                                handleCreateMoment={this.handleCreateMoment}
+                                handleCreate={this.handleCreate}
                                 handleGpsRecenter={this.handleGpsRecenterPress}
                                 toggleMomentActions={this.toggleMomentActions}
                                 shouldShowCreateActions={shouldShowCreateActions}

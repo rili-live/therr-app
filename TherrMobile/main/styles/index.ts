@@ -200,6 +200,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         sectionDescription: {
             ...getSectionDescriptionStyles(therrTheme),
         },
+        sectionDescriptionNote: {
+            ...getSectionDescriptionStyles(therrTheme),
+            textAlign: 'center',
+            fontSize: 12,
+            marginBottom: 20,
+        },
         sectionDescriptionCentered: {
             ...getSectionDescriptionStyles(therrTheme),
             textAlign: 'center',

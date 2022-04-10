@@ -58,7 +58,7 @@ export default ({
 
     return (
         <Modal
-            animationType="slide"
+            animationType="fade"
             visible={isVisible}
             onRequestClose={onClose}
             transparent={true}
