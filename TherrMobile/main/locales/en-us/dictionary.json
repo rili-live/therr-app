@@ -258,7 +258,7 @@
       "invalidUsernamePassword": "Invalid username/password combination.",
       "sso": {
         "appleButtonTitle": "Sign in with Apple",
-        "googleButtonTitle": "Sign in with Google"
+        "googleButtonTitle": "Continue with Google"
       }
     },
     "nearbyForm": {
