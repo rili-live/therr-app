@@ -173,6 +173,7 @@ interface IValidateCredentials {
         nonce?: string;
         idToken: string;
         password: string;
+        userPhoneNumber: string;
         userEmail: string;
         userFirstName: string;
         userLastName: string;
@@ -211,11 +212,14 @@ const validateCredentials = (userSearchResults, {
                 return [false, userSearchResults[0]];
             }
 
+            // Create user with phonenumber equal to 'apple-sso'
+            // We can use this in the future mark an account un-verified and still allow Apple SSO
             if (!userSearchResults.length) { // First time SSO login
                 return createUserHelper({
                     email: reqBody.userEmail,
                     firstName: reqBody.userFirstName,
                     lastName: reqBody.userLastName,
+                    phoneNumber: reqBody.userPhoneNumber || (reqBody.ssoProvider === 'apple' ? 'apple-sso' : undefined),
                 }, true).then((user) => [true, user]);
             }
 
