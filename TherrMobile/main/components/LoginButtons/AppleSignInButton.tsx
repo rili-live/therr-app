@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import auth from '@react-native-firebase/auth';
 import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
+import ssoButtonStyles from '../../styles/buttons/ssoButtons';
 
 interface IAppleSignInButtonProps {
     buttonTitle: string;
@@ -67,14 +68,9 @@ function AppleSignInButton({
                 onLoginSuccess,
                 setDisabled,
             })}
-            // containerStyle={ssoButtonStyles.googleButtonContainer}
             buttonStyle={AppleButton.Style.WHITE}
             buttonType={AppleButton.Type.CONTINUE}
-            style={{
-                width: '100%', // You must specify a width
-                height: 38, // You must specify a height
-                elevation: 3,
-            }}
+            style={ssoButtonStyles.appleButtonContainer}
             // titleStyle={ssoButtonStyles.googleButtonTitle}
             // icon={
             //     <Image

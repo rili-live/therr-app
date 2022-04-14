@@ -172,9 +172,9 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             return;
         }
 
-        const isDisable = (stage === 'A' && this.isFormADisabled()) || (stage === 'B' && this.isFormBDisabled());
+        const isDisabled = (stage === 'A' && this.isFormADisabled()) || (stage === 'B' && this.isFormBDisabled());
 
-        if (!isDisable) {
+        if (!isDisabled) {
             this.setState({
                 isSubmitting: true,
             });

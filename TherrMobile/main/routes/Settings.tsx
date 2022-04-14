@@ -486,21 +486,21 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                     themeForms={this.themeForms}
                                 />
-                                <View style={this.themeSettingsForm.styles.submitButtonContainer}>
-                                    <Button
-                                        buttonStyle={this.themeForms.styles.button}
-                                        title={this.translate(
-                                            'forms.settings.buttons.submit'
-                                        )}
-                                        onPress={this.onSubmit}
-                                        disabled={this.isFormDisabled()}
-                                        raised={true}
-                                    />
-                                </View>
                             </View>
                         </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>
+                <View style={this.themeSettingsForm.styles.submitButtonContainerFloat}>
+                    <Button
+                        buttonStyle={this.themeForms.styles.button}
+                        title={this.translate(
+                            'forms.settings.buttons.submit'
+                        )}
+                        onPress={this.onSubmit}
+                        disabled={this.isFormDisabled()}
+                        raised={true}
+                    />
+                </View>
                 <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}
