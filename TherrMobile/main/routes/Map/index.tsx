@@ -390,8 +390,10 @@ class Map extends React.Component<IMapProps, IMapState> {
                         return ImageCropPicker.openPicker(pickerOptions)
                             .then((cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter));
                     } else if (action === 'claim') {
-                        return ImageCropPicker.openPicker(pickerOptions)
-                            .then((cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter, 'spaces'));
+                        navigation.navigate('EditSpace', {
+                            ...circleCenter,
+                            imageDetails: {},
+                        });
                     } else {
                         navigation.navigate('EditMoment', {
                             ...circleCenter,

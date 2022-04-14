@@ -83,7 +83,7 @@ const getCachedNearbyAreas = (areaType: IAreaType, userLocationCache: UserLocati
         });
 };
 
-// Find areas withing distance that have not been activated and are close enough to activate
+// Find areas within distance that have not been activated and are close enough to activate
 const filterNearbyAreas = (areaType: IAreaType, areas, userLocationCache: UserLocationCache, headers: IHeaders, userLocation: IUserlocation) => {
     if (!areas.length) {
         return Promise.resolve([]);

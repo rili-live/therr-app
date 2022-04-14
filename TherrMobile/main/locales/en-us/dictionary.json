@@ -258,7 +258,7 @@
       "invalidUsernamePassword": "Invalid username/password combination.",
       "sso": {
         "appleButtonTitle": "Sign in with Apple",
-        "googleButtonTitle": "Sign in with Google"
+        "googleButtonTitle": "Continue with Google"
       }
     },
     "nearbyForm": {
@@ -321,14 +321,18 @@
     },
     "editSpace": {
       "buttons": {
+        "addImage": "Attach an Image",
+        "captureNew": "Capture a New Photo",
+        "selectExisting": "Select an Existing Photo",
         "submit": "Send",
         "delete": "Delete?",
         "confirm": "Delete",
         "cancel": "Cancel"
       },
       "labels": {
-        "message": "Share something unique...",
-        "notificationMsg": "Tagline or Title",
+        "addImageNote": "Select an existing image or capture a new one to represent your space.",
+        "message": "Describe the location, event, business, promotion, etc...",
+        "notificationMsg": "Title or Location Name",
         "hashTags": "Hashtags (ie. my_tag, myTag)",
         "maxViews": "Max views (per person)",
         "expiresAt": "Countdown",

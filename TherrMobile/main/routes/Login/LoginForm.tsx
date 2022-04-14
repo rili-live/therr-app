@@ -20,6 +20,7 @@ interface ISSOUserDetails {
     ssoProvider: string;
     userFirstName?: string;
     userLastName?: string;
+    userPhoneNumber?: string;
     userEmail: string;
 }
 
@@ -96,6 +97,7 @@ export class LoginFormComponent extends React.Component<
                 idToken,
                 nonce,
                 ssoProvider: provider,
+                userPhoneNumber: user.phoneNumber,
                 userFirstName: firstName,
                 userLastName: lastName,
                 userEmail: user.email,
@@ -256,7 +258,7 @@ export class LoginFormComponent extends React.Component<
                 </View>
                 {
                     // Temporarily disable SSO for Apple compliance until we have made phoneNumber optional
-                    Platform.OS !== 'ios' &&
+                    // Platform.OS !== 'ios' &&
                     <>
                         <OrDivider
                             translate={this.translate}
@@ -272,7 +274,7 @@ export class LoginFormComponent extends React.Component<
                             />
                         </View>
                         {
-                            // Platform.OS === 'ios' && appleAuth.isSupported &&
+                            Platform.OS === 'ios' && appleAuth.isSupported &&
                             appleAuth.isSupported &&
                             <View style={themeAuthForm.styles.submitButtonContainer}>
                                 <AppleSignInButton

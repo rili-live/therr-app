@@ -1,4 +1,4 @@
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
     // GOOGLE
@@ -7,13 +7,12 @@ export default StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         flex: 1,
-        borderRadius: 9,
     },
     googleButton: {
         backgroundColor: '#FFFFFF', // Google styles color
         flex: 1,
         alignItems: 'center',
-        width: Platform.OS === 'ios' ? 'auto' : '100%',
+        borderRadius: 4,
     },
     googleButtonTitle: {
         color: '#6b6969', // Google styles color
@@ -27,9 +26,21 @@ export default StyleSheet.create({
         height: 26,
         width: 26,
         padding: 8,
+        marginLeft: 12,
     },
 
     // APPLE
+    appleButtonContainer: {
+        width: '74%', // You must specify a width
+        height: 40, // You must specify a height
+        elevation: 3,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flex: 1,
+        borderRadius: 9,
+        alignSelf: 'center',
+    },
     appleButtonIcon: {
         height: 22,
         width: 18,
