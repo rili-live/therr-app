@@ -338,7 +338,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                 stage === 'C' &&
                                 <CreateProfileStageC
                                     errorMsg={errorMsg}
-                                    isDisabledd={isSubmitting}
+                                    isDisabled={isSubmitting}
                                     onCropComplete={this.onCropComplete}
                                     requestUserUpdate={this.requestUserUpdate}
                                     onInputChange={this.onPhoneInputChange}
