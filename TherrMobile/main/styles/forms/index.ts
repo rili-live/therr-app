@@ -8,11 +8,11 @@ const getInputContainerBaseStyles = (theme: ITherrTheme): any => ({
     borderBottomWidth: 1,
 });
 
-const platformSpecificInputStyles = Platform.OS !== 'ios' ? {
-    backgroundColor: 'rgba(255,255,255,.15)', // colors.teriary with 70% opacity
+const getPlatformSpecificInputStyles =  (theme: ITherrTheme): any => Platform.OS !== 'ios' ? {
+    backgroundColor: theme.colors.inputBackgroundAndroid, // colors.teriary with 70% opacity
     color: 'black',
 } : {
-    backgroundColor: 'rgba(255,255,255,.1)', // colors.teriary with 70% opacity
+    backgroundColor: theme.colors.inputBackgroundIOS, // colors.teriary with 70% opacity
     color: 'black',
 };
 
@@ -48,7 +48,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         placeholderText: {
             fontWeight: '600',
             fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
-            color: 'rgba(255,255,255,.58)',
+            color: therrTheme.colors.placeholderTextColorAlt,
         },
         switchContainer: {
             display: 'flex',
@@ -94,7 +94,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         textInputRound: {
             ...getTextInputStyle(therrTheme),
             ...getInputContainerBaseStyles(therrTheme),
-            ...platformSpecificInputStyles,
+            ...getPlatformSpecificInputStyles(therrTheme),
             color: therrTheme.colors.textWhite,
             fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
             padding: 20,
@@ -123,7 +123,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         inputContainerRound: {
             ...getInputContainerBaseStyles(therrTheme),
-            ...platformSpecificInputStyles,
+            ...getPlatformSpecificInputStyles(therrTheme),
             paddingLeft: 10,
             paddingRight: 10,
             borderRadius: 15,

@@ -33,7 +33,9 @@ export interface ITherrThemeColors {
     textDarkGray: string;
     textWhite: string;
 
-    // Branding
+    // Branding - These colors should remain unchanged regardless of theme
+    brandingWhite: string;
+    brandingBlueGreen: string;
     brandingMapYellow: string;
     brandingOrange: string;
     brandingLightBlue: string;
@@ -44,9 +46,12 @@ export interface ITherrThemeColors {
     backgroundGray: string;
     backgroundNeutral: string;
     backgroundBlack: string;
+    inputBackgroundAndroid: string;
+    inputBackgroundIOS: string;
 
     borderLight: string;
     placeholderTextColor: string;
+    placeholderTextColorAlt: string;
 
     hyperlink: string,
 

@@ -224,14 +224,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             },
         };
 
-        this.theme = buildStyles(props.user.settings?.mobileThemeName);
-        this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
-        this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
-        this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
-        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
-        this.themeDisclosure = buildDisclosureStyles(props.user.settings?.mobileThemeName);
-        this.themeTour = buildTourStyles(props.user.settings?.mobileThemeName);
-        this.themeSearch = buildSearchStyles({ viewPortHeight }, props.user.settings?.mobileThemeName);
+        this.reloadTheme();
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -260,6 +253,14 @@ class Map extends React.Component<IMapProps, IMapState> {
         }, MIN_LOAD_TIMEOUT);
     };
 
+    componentDidUpdate(prevProps: IMapProps) {
+        const { user } = this.props;
+
+        if (prevProps.user?.settings?.mobileThemeName !== user?.settings?.mobileThemeName) {
+            this.reloadTheme();
+        }
+    }
+
     componentWillUnmount() {
         Geolocation.clearWatch(this.mapWatchId);
         clearTimeout(this.timeoutId);
@@ -269,6 +270,21 @@ class Map extends React.Component<IMapProps, IMapState> {
         clearTimeout(this.timeoutIdSearchButton);
         clearTimeout(this.timeoutIdWaitForSearchSelect);
         this.unsubscribeNavigationListener();
+    }
+
+    reloadTheme = (shouldForceUpdate: boolean = false) => {
+        const themeName = this.props.user.settings?.mobileThemeName;
+        this.theme = buildStyles(themeName);
+        this.themeAlerts = buildAlertStyles(themeName);
+        this.themeConfirmModal = buildConfirmModalStyles(themeName);
+        this.themeLoader = buildLoaderStyles(themeName);
+        this.themeMenu = buildMenuStyles(themeName);
+        this.themeDisclosure = buildDisclosureStyles(themeName);
+        this.themeTour = buildTourStyles(themeName);
+        this.themeSearch = buildSearchStyles({ viewPortHeight }, themeName);
+        if (shouldForceUpdate) {
+            this.forceUpdate();
+        }
     }
 
     animateToWithHelp = (doAnimate) => {
@@ -1250,6 +1266,8 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 minZoomLevel={MIN_ZOOM_LEVEL}
                                 /* react-native-map-clustering */
                                 clusterColor={this.theme.colors.primary2}
+                                clusterFontFamily={this.theme.styles.headerTitleStyle.fontFamily}
+                                clusterTextColor={this.theme.colors.textWhite}
                             >
                                 <Circle
                                     center={circleCenter}
@@ -1532,6 +1550,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                     translate={this.translate}
                     user={user}
                     themeMenu={this.themeMenu}
+                    themeName={this.props.user?.settings?.mobileThemeName}
                 />
             </>
         );
