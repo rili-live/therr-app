@@ -3,9 +3,9 @@ import { ITherrThemeColors, ITherrThemeColorVariations } from '../';
 
 const colors: ITherrThemeColors = {
     // Main
-    primary: '#1C7F8A',
-    primary2: '#20919E',
-    primary3: '#143b54',
+    primary: '#ffffff',
+    primary2: '#fcfeff',
+    primary3: '#1C7F8A',
     primary4: '#22A5B4',
     secondary: '#388254',
     secondaryFaded: '#4e8e67',
@@ -14,25 +14,30 @@ const colors: ITherrThemeColors = {
     tertiary: '#104B52',
 
     // Text
-    textBlack: '#363636',
-    textGray: 'rgba(255,255,255,.78)',
+    textBlack: '#fcfeff',
+    textGray: 'rgba(0,0,0,.78)',
     textDarkGray: '#728f94',
-    textWhite: '#fcfeff',
+    textWhite: '#363636',
 
-    // Branding
+    // Branding - These colors should remain unchanged regardless of theme
+    brandingWhite: '#fcfeff',
+    brandingBlueGreen: '#1C7F8A',
     brandingMapYellow: '#ebc300',
     brandingOrange: '#DE6E07',
     brandingLightBlue: '#d8f0f2',
 
     // Background
-    backgroundCream: '#fefbf0',
-    backgroundWhite: '#ffffff',
-    backgroundGray: '#f3f4f6',
-    backgroundNeutral: '#e7eaed',
-    backgroundBlack: '#000000',
+    backgroundCream: '#01040f',
+    backgroundWhite: '#000000',
+    backgroundGray: '#0c0b09',
+    backgroundNeutral: '#181512',
+    backgroundBlack: '#ffffff',
+    inputBackgroundAndroid: 'rgba(0,0,0,.15)',
+    inputBackgroundIOS: 'rgba(0,0,0,.1)',
 
     borderLight: 'gray',
     placeholderTextColor: '#78909b',
+    placeholderTextColorAlt: 'rgba(0,0,0,.58)',
 
     hyperlink: '#0e01b3',
 
@@ -45,8 +50,8 @@ const colors: ITherrThemeColors = {
     accent2: '#cbffdc',
     accent3: '#218a35',
     accentAlt: '#449885',
-    accentTextBlack: '#001226',
-    accentTextWhite: '#fafafa',
+    accentTextBlack: '#fafafa',
+    accentTextWhite: '#001226',
     accentRed: '#fe0156',
     accentYellow: '#fed61e',
     accentBlue: '#17657D',

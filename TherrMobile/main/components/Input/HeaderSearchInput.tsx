@@ -128,7 +128,12 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                 style={textStyle}
                 containerStyle={[theme.styles.headerSearchContainer, { width: screenWidth - 124 }]}
                 inputStyle={
-                    [Platform.OS !== 'ios' ? themeForms.styles.input : themeForms.styles.inputAlt, { fontSize: Platform.OS !== 'ios' ? 16 : 19 }]
+                    [
+                        Platform.OS !== 'ios'
+                            ? themeForms.styles.input
+                            : themeForms.styles.inputAlt,
+                        { fontSize: Platform.OS !== 'ios' ? 16 : 19 },
+                    ]
                 }
                 inputContainerStyle={[themeForms.styles.inputContainerRound, theme.styles.headerSearchInputContainer]}
                 onChangeText={this.onInputChange}

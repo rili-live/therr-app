@@ -1,7 +1,6 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import SplashScreen from 'react-native-bootsplash';
-import { appleAuth } from '@invertase/react-native-apple-authentication';
 import LogRocket from '@logrocket/react-native';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import getStore from './getStore';
@@ -10,7 +9,6 @@ import Layout from './components/Layout';
 // import { buildStyles } from './styles';
 
 class App extends React.Component<any, any> {
-    private authCredentialListener;
     private store;
     // private theme = buildStyles()''
 
@@ -26,13 +24,6 @@ class App extends React.Component<any, any> {
 
     componentDidMount() {
         this.loadStorage();
-
-        if (appleAuth.isSupported) {
-            this.authCredentialListener = appleAuth.onCredentialRevoked(async () => {
-                // TODO: Logout user
-                console.warn('Credential Revoked');
-            });
-        }
 
         LogRocket.init('pibaqj/therr-app-mobile', {
             network: {
@@ -59,12 +50,6 @@ class App extends React.Component<any, any> {
             },
             redactionTags: ['RedactionString'],
         });
-    }
-
-    componentWillUnmount() {
-        if (this.authCredentialListener) {
-            this.authCredentialListener();
-        }
     }
 
     loadStorage = () => {

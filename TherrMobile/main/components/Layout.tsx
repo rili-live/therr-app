@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import LocationServicesDialogBox  from 'react-native-android-location-services-dialog-box';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
+import { appleAuth } from '@invertase/react-native-apple-authentication';
 import analytics from '@react-native-firebase/analytics';
 import crashlytics from '@react-native-firebase/crashlytics';
 import messaging from '@react-native-firebase/messaging';
@@ -70,7 +71,6 @@ interface IStoreProps extends ILayoutDispatchProps {
 export interface ILayoutProps extends IStoreProps {}
 
 interface ILayoutState {
-    isAuthenticated: boolean;
     targetRouteView: string;
 }
 
@@ -97,6 +97,7 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class Layout extends React.Component<ILayoutProps, ILayoutState> {
+    private authCredentialListener;
     private nativeEventListener;
     private translate;
     private unsubscribePushNotifications;
@@ -108,28 +109,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     private themeModal = buildModalStyles();
     private themeMenu = buildMenuStyles();
 
-    static getDerivedStateFromProps(nextProps: ILayoutProps, nextState: ILayoutState) {
-        if (nextProps.user?.isAuthenticated !== nextState.isAuthenticated) {
-            return {
-                isAuthenticated: nextProps.user?.isAuthenticated,
-            };
-        }
-        return {};
-    }
-
     constructor(props) {
         super(props);
 
         this.state = {
-            isAuthenticated: false,
             targetRouteView: '',
         };
 
-        this.theme = buildStyles(props?.user?.settings?.mobileThemeName);
-        this.themeButtons = buildButtonStyles(props?.user?.settings?.mobileThemeName);
-        this.themeForms = buildFormStyles(props?.user?.settings?.mobileThemeName);
-        this.themeMenu = buildMenuStyles(props?.user?.settings?.mobileThemeName);
-        this.themeModal = buildModalStyles(props?.user?.settings?.mobileThemeName);
+        this.reloadTheme();
         this.translate = (key: string, params: any) =>
             translator(props?.user?.settings?.locale || 'en-us', key, params);
     }
@@ -137,6 +124,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     componentDidMount() {
         if (Platform.OS === 'android') {
             Linking.getInitialURL().then(this.handleAppUniversalLinkURL);
+        }
+
+        if (appleAuth.isSupported) {
+            this.authCredentialListener = appleAuth.onCredentialRevoked(async () => {
+                console.warn('Apple credential revoked');
+                this.props.logout();
+            });
         }
 
         DeviceEventEmitter.addListener('locationProviderStatusChange', (status) => { // only trigger when "providerListener" is enabled
@@ -147,7 +141,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.urlEventListener = Linking.addEventListener('url', this.handleUrlEvent);
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps: ILayoutProps) {
         const { targetRouteView } = this.state;
         const {
             forums,
@@ -160,7 +154,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             updateUser,
         } = this.props;
 
-        if (user?.isAuthenticated !== this.state.isAuthenticated) {
+        if (prevProps.user?.settings?.mobileThemeName !== user?.settings?.mobileThemeName) {
+            this.reloadTheme(true);
+        }
+
+        if (user?.isAuthenticated !== prevProps.user?.isAuthenticated) {
             if (user.isAuthenticated) { // Happens after login
                 if (user.details?.id) {
                     crashlytics().setUserId(user.details?.id?.toString());
@@ -182,6 +180,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 }
 
+                // Pre-load notifications
                 searchNotifications({
                     filterBy: 'userId',
                     query: user.details.id,
@@ -272,7 +271,23 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             LocationServicesDialogBox.stopListener();
         }
 
+        if (this.authCredentialListener) {
+            this.authCredentialListener();
+        }
+
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
+    }
+
+    reloadTheme = (shouldForceUpdate: boolean = false) => {
+        const themeName = this.props?.user?.settings?.mobileThemeName;
+        this.theme = buildStyles(themeName);
+        this.themeButtons = buildButtonStyles(themeName);
+        this.themeForms = buildFormStyles(themeName);
+        this.themeMenu = buildMenuStyles(themeName);
+        this.themeModal = buildModalStyles(themeName);
+        if (shouldForceUpdate) {
+            this.forceUpdate();
+        }
     }
 
     handleNotificationEvent = (event) => {

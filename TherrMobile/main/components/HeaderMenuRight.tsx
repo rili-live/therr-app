@@ -358,7 +358,7 @@ class HeaderMenuRight extends React.Component<
                                                     <Icon
                                                         name="info"
                                                         size={24}
-                                                        color={theme.colors.textWhite}
+                                                        color={theme.colors.brandingWhite}
                                                     />
                                                 }
                                                 iconRight

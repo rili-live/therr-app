@@ -79,17 +79,19 @@ const getSectionDescriptionStyles = (theme: ITherrTheme): any => ({
     color: theme.colors.textGray,
 });
 
-const buildNavTheme = (theme: ITherrTheme): Theme => ({
-    dark: true,
-    colors: {
-        primary: theme.colors.primary,
-        background: theme.colors.primary,
-        card: theme.colors.primary,
-        text: theme.colors.textWhite,
-        border: theme.colors.primary3,
-        notification: theme.colors.primary3,
-    },
-});
+const buildNavTheme = (theme: ITherrTheme): Theme => {
+    return ({
+        dark: true,
+        colors: {
+            primary: theme.colors.primary,
+            background: theme.colors.primary,
+            card: theme.colors.primary,
+            text: theme.colors.textWhite,
+            border: theme.colors.primary3,
+            notification: theme.colors.primary3,
+        },
+    });
+};
 
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);

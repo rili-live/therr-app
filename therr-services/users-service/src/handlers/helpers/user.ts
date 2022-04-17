@@ -146,6 +146,13 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
                 name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
             });
 
+            // Fire and forget: Auto-friend Info account
+            Store.userConnections.createUserConnection({
+                requestingUserId: user.id,
+                acceptingUserId: '568bf5d2-8595-4fd6-95da-32cc318618d3', // info@therr.com
+                requestStatus: 'complete',
+            });
+
             // STANDARD USER REGISTRATION
             return sendVerificationEmail({
                 subject: '[Account Verification] Therr User Account',
