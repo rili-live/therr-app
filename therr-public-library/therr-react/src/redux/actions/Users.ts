@@ -39,7 +39,9 @@ class UsersActions {
             dispatch({
                 type: SocketClientActionTypes.UPDATE_USER,
                 data: {
-                    blockedUsers,
+                    details: {
+                        blockedUsers,
+                    },
                 },
             });
             return { blockedUsers };
@@ -170,6 +172,7 @@ class UsersActions {
             email,
             firstName,
             hasAgreedToTerms,
+            settingsThemeName,
             shouldHideMatureContent,
             lastName,
             userName,
@@ -187,7 +190,7 @@ class UsersActions {
         const userSettingsData: IUser = Immutable.from({
             ...userSettings,
             locale: 'en-us',
-            mobileThemeName: 'retro',
+            mobileThemeName: settingsThemeName || 'retro',
         });
         (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
         (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
@@ -195,16 +198,21 @@ class UsersActions {
         dispatch({
             type: SocketClientActionTypes.UPDATE_USER,
             data: {
-                accessLevels,
-                blockedUsers,
-                email,
-                id,
-                hasAgreedToTerms,
-                shouldHideMatureContent,
-                firstName,
-                lastName,
-                userName,
-                media,
+                details: {
+                    accessLevels,
+                    blockedUsers,
+                    email,
+                    id,
+                    hasAgreedToTerms,
+                    shouldHideMatureContent,
+                    firstName,
+                    lastName,
+                    userName,
+                    media,
+                },
+                settings: {
+                    mobileThemeName: settingsThemeName || 'retro',
+                },
             },
         });
         return { email, id, userName };

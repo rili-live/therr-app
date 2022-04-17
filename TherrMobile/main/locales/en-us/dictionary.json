@@ -609,9 +609,13 @@
     },
     "settings": {
       "headerTitle": "Settings",
+      "pageHeaderDisplaySettings": "Display",
       "pageHeaderUser": "User Profile",
       "pageHeaderPassword": "Update Password",
-      "pageHeaderSettings": "Content Settings"
+      "pageHeaderSettings": "Content Settings",
+      "labels": {
+        "nightMode": "Night Mode?"
+      }
     },
     "template": {
       "pageTitle": "Template",
