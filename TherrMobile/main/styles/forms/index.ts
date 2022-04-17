@@ -16,6 +16,11 @@ const platformSpecificInputStyles = Platform.OS !== 'ios' ? {
     color: 'black',
 };
 
+const inputLabelStyles: any = {
+    paddingHorizontal: 2,
+    fontSize: 14,
+};
+
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
 
@@ -44,6 +49,24 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: '600',
             fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
             color: 'rgba(255,255,255,.58)',
+        },
+        switchContainer: {
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+        },
+        switchLabel: {
+            fontSize: 15,
+            color: therrTheme.colors.textWhite,
+        },
+        switchSubContainer: {
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        switchButton: {
+            marginRight: 10,
         },
         textField: {
             padding: inputStyle.padding,
@@ -110,13 +133,15 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingHorizontal: 0,
         },
         inputLabelLight: {
-            paddingHorizontal: 2,
-            fontSize: 14,
+            ...inputLabelStyles,
             color: therrTheme.colors.accentTextWhite,
         },
+        inputLabelLightFaded: {
+            ...inputLabelStyles,
+            color: therrTheme.colorVariations.accentTextWhiteFade,
+        },
         inputLabelDark: {
-            paddingHorizontal: 2,
-            fontSize: 14,
+            ...inputLabelStyles,
             color: therrTheme.colors.accentTextBlack,
         },
         inputSliderContainer: {

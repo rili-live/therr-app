@@ -203,6 +203,10 @@ export default class UsersStore {
             modifiedParams.wasReportedBy = JSON.stringify(params.wasReportedBy);
         }
 
+        if (params.settingsThemeName != null) {
+            modifiedParams.settingsThemeName = params.settingsThemeName;
+        }
+
         if (params.shouldHideMatureContent != null) {
             modifiedParams.shouldHideMatureContent = params.shouldHideMatureContent;
         }
