@@ -137,6 +137,7 @@ const updateUser = (req, res) => {
                 hasAgreedToTerms: req.body.hasAgreedToTerms,
                 userName: req.body.userName,
                 deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
+                settingsThemeName: req.body.settingsThemeName,
                 shouldHideMatureContent: req.body.shouldHideMatureContent,
             };
 

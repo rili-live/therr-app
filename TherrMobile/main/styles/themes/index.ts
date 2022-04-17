@@ -1,10 +1,13 @@
 import { IMobileThemeName } from 'therr-react/types';
 import defaultTheme from './retro'; // Change this path to set the default theme
-import retroTheme from './retro'; // Change this path to set the default theme
+import lightTheme from './light';
+import retroTheme from './retro';
 
 
 export const getTheme = (name?: IMobileThemeName) => {
     switch (name) {
+        case 'light':
+            return lightTheme;
         case 'retro':
             return retroTheme;
         default:
