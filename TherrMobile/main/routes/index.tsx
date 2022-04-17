@@ -32,10 +32,6 @@ import EditSpace from './EditSpace';
 import EditChat from './HostedChat/EditChat';
 import ViewChat from './HostedChat/ViewChat';
 import ViewUser from './ViewUser/index.tsx';
-import { buildStyles } from '../styles';
-
-// TODO: Use Props
-const styles = buildStyles().styles;
 
 const momentTransitionSpec: any = {
     open: {
@@ -83,7 +79,6 @@ const routes: RouteConfig<
                 levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
                 isPublic: true,
             },
-            headerStyle: styles.headerStyleNoShadow,
         }),
     },
     {
@@ -96,7 +91,6 @@ const routes: RouteConfig<
                 levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
                 isPublic: true,
             },
-            headerStyle: styles.headerStyleNoShadow,
         }),
     },
     {
@@ -185,7 +179,6 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleNoShadow,
         }),
     },
     {
@@ -197,7 +190,6 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleNoShadow,
         }),
     },
     {
@@ -245,7 +237,6 @@ const routes: RouteConfig<
                 levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
                 isPublic: true,
             },
-            headerStyle: styles.headerStyleNoShadow,
         }),
     },
     // {
@@ -303,7 +294,6 @@ const routes: RouteConfig<
                 levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
                 isPublic: true,
             },
-            headerStyle: styles.headerStyleNoShadow,
         }),
     },
     {
@@ -326,14 +316,6 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleAccent,
-            headerTitleStyle: {
-                ...styles.headerTitleStyle,
-                alignSelf: 'flex-start',
-                textShadowOffset: { width: 0, height: 0 },
-                textShadowRadius: 0,
-                letterSpacing: 2,
-            },
             headerLeft: () => null,
             cardStyleInterpolator: undefined,
             transitionSpec: momentTransitionSpec,
@@ -347,14 +329,6 @@ const routes: RouteConfig<
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-            headerStyle: styles.headerStyleAccent,
-            headerTitleStyle: {
-                ...styles.headerTitleStyle,
-                alignSelf: 'flex-start',
-                textShadowOffset: { width: 0, height: 0 },
-                textShadowRadius: 0,
-                letterSpacing: 2,
             },
             headerLeft: () => null,
             cardStyleInterpolator: undefined,
@@ -370,14 +344,6 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleAccent,
-            headerTitleStyle: {
-                ...styles.headerTitleStyle,
-                alignSelf: 'flex-start',
-                textShadowOffset: { width: 0, height: 0 },
-                textShadowRadius: 0,
-                letterSpacing: 2,
-            },
             headerLeft: () => null,
         }),
     },
@@ -389,14 +355,6 @@ const routes: RouteConfig<
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-            headerStyle: styles.headerStyleAccent,
-            headerTitleStyle: {
-                ...styles.headerTitleStyle,
-                alignSelf: 'flex-start',
-                textShadowOffset: { width: 0, height: 0 },
-                textShadowRadius: 0,
-                letterSpacing: 2,
             },
             headerLeft: () => null,
             cardStyleInterpolator: undefined,
@@ -412,14 +370,6 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleAccent,
-            headerTitleStyle: {
-                ...styles.headerTitleStyle,
-                alignSelf: 'flex-start',
-                textShadowOffset: { width: 0, height: 0 },
-                textShadowRadius: 0,
-                letterSpacing: 2,
-            },
             headerLeft: () => null,
         }),
     },
@@ -431,14 +381,6 @@ const routes: RouteConfig<
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-            headerStyle: styles.headerStyleAccent,
-            headerTitleStyle: {
-                ...styles.headerTitleStyle,
-                alignSelf: 'flex-start',
-                textShadowOffset: { width: 0, height: 0 },
-                textShadowRadius: 0,
-                letterSpacing: 2,
             },
             headerLeft: () => null,
             cardStyleInterpolator: undefined,

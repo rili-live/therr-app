@@ -89,11 +89,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             passwordErrorMessage: '',
         };
 
-        this.theme = buildStyles(props.user.settings?.mobileThemeName);
-        this.themeMenu = buildMenuStyles(props.user.settings.buildMenuStyles);
-        this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
-        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
-        this.themeSettingsForm = buildSettingsFormStyles(props.user.settings?.mobileThemeName);
+        this.reloadTheme();
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -116,6 +112,15 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             !inputs.phoneNumber ||
             isSubmitting
         );
+    }
+
+    reloadTheme = () => {
+        const themeName = this.props.user.settings?.mobileThemeName;
+        this.theme = buildStyles(themeName);
+        this.themeMenu = buildMenuStyles(themeName);
+        this.themeAlerts = buildAlertStyles(themeName);
+        this.themeForms = buildFormStyles(themeName);
+        this.themeSettingsForm = buildSettingsFormStyles(themeName);
     }
 
     onSubmit = () => {
@@ -175,6 +180,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             this.setState({
                 successMsg: this.translate('forms.settings.backendSuccessMessage'),
             });
+            this.reloadTheme();
         })
         .catch((error: any) => {
             if (

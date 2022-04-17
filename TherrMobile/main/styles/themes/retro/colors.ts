@@ -19,7 +19,9 @@ const colors: ITherrThemeColors = {
     textDarkGray: '#728f94',
     textWhite: '#fcfeff',
 
-    // Branding
+    // Branding - These colors should remain unchanged regardless of theme
+    brandingWhite: '#fcfeff',
+    brandingBlueGreen: '#1C7F8A',
     brandingMapYellow: '#ebc300',
     brandingOrange: '#DE6E07',
     brandingLightBlue: '#d8f0f2',
@@ -30,9 +32,12 @@ const colors: ITherrThemeColors = {
     backgroundGray: '#f3f4f6',
     backgroundNeutral: '#e7eaed',
     backgroundBlack: '#000000',
+    inputBackgroundAndroid: 'rgba(255,255,255,.15)',
+    inputBackgroundIOS: 'rgba(255,255,255,.1)',
 
     borderLight: 'gray',
     placeholderTextColor: '#78909b',
+    placeholderTextColorAlt: 'rgba(255,255,255,.58)',
 
     hyperlink: '#0e01b3',
 

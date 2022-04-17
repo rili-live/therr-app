@@ -59,6 +59,7 @@ class UsersActions {
                 phoneNumber,
                 userName,
                 media,
+                settingsThemeName,
             } = response.data;
             const userData: IUser = Immutable.from({
                 accessLevels,
@@ -74,7 +75,7 @@ class UsersActions {
             // TODO: Get user settings data from db response
             const userSettingsData: IUserSettings = Immutable.from({
                 locale: 'en-us',
-                mobileThemeName: 'retro',
+                mobileThemeName: settingsThemeName || 'retro',
             });
             this.socketIO.io.opts.query = {
                 token: idToken,
@@ -98,6 +99,12 @@ class UsersActions {
                 dispatch({
                     type: UserActionTypes.LOGIN,
                     data: userData,
+                });
+                dispatch({
+                    type: SocketClientActionTypes.UPDATE_USER,
+                    data: {
+                        settings: userSettingsData,
+                    },
                 });
             });
             this.socketIO.connect();

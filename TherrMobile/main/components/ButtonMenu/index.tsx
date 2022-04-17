@@ -30,7 +30,8 @@ export interface IButtonMenuProps extends IStoreProps {
     themeMenu: {
         colors: ITherrThemeColors;
         styles: any;
-    }
+    },
+    themeName?: string;
 }
 
 interface IButtonMenuState {}
