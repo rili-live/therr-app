@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Button, Image } from 'react-native-elements';
 import auth from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import ssoButtonStyles from '../../styles/buttons/ssoButtons';
 
 const googleLogoImg = require('../../assets/google-letter-logo.png');
 
@@ -11,6 +10,9 @@ interface IGoogleSignInButtonProps {
     onLoginError: Function;
     onLoginSuccess: Function;
     disabled: boolean;
+    themeForms: {
+        styles: any;
+    }
 }
 
 async function onGoogleButtonPress({
@@ -52,6 +54,7 @@ function GoogleSignInButton({
     onLoginError,
     onLoginSuccess,
     disabled,
+    themeForms,
 }: IGoogleSignInButtonProps) {
     const [isDisabled, setDisabled] = useState(false);
 
@@ -65,13 +68,13 @@ function GoogleSignInButton({
             })}
             disabled={disabled || isDisabled}
             // raised={true}
-            containerStyle={ssoButtonStyles.googleButtonContainer}
-            buttonStyle={ssoButtonStyles.googleButton}
-            titleStyle={ssoButtonStyles.googleButtonTitle}
+            containerStyle={themeForms.styles.googleButtonContainer}
+            buttonStyle={themeForms.styles.googleButton}
+            titleStyle={themeForms.styles.googleButtonTitle}
             icon={
                 <Image
                     source={googleLogoImg}
-                    style={ssoButtonStyles.googleButtonIcon}
+                    style={themeForms.styles.googleButtonIcon}
                 />}
         />
     );

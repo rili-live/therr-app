@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import auth from '@react-native-firebase/auth';
-import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
-import ssoButtonStyles from '../../styles/buttons/ssoButtons';
+import { appleAuth, AppleButton, AppleButtonType } from '@invertase/react-native-apple-authentication';
 
 interface IAppleSignInButtonProps {
     buttonTitle: string;
     onLoginError: Function;
     onLoginSuccess: Function;
     disabled: boolean;
+    themeForms: {
+        styles: any;
+    },
+    type: AppleButtonType | undefined;
 }
 
 async function onAppleButtonPress({
@@ -56,6 +59,8 @@ async function onAppleButtonPress({
 function AppleSignInButton({
     onLoginError,
     onLoginSuccess,
+    themeForms,
+    type,
 }: IAppleSignInButtonProps) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [isDisabled, setDisabled] = useState(false);
@@ -69,14 +74,9 @@ function AppleSignInButton({
                 setDisabled,
             })}
             buttonStyle={AppleButton.Style.WHITE}
-            buttonType={AppleButton.Type.CONTINUE}
-            style={ssoButtonStyles.appleButtonContainer}
-            // titleStyle={ssoButtonStyles.googleButtonTitle}
-            // icon={
-            //     <Image
-            //         source={appleLogoImg}
-            //         style={ssoButtonStyles.appleButtonIcon}
-            //     />}
+            buttonType={type}
+            style={themeForms.styles.appleButtonContainer}
+            textStyle={themeForms.styles.appleTitleStyle}
         />
     );
 }

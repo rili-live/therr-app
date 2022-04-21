@@ -52,7 +52,7 @@ export class HeaderTherrLogo extends React.Component<IHeaderTherrLogoProps> {
         return (
             <View style={theme.styles.headerTitleLogoText}>
                 <Svg width={75} height={25} x="0" y="0" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid meet">
-                    <G transform="translate(0,400) scale(0.1,-0.1)" fill={theme.colors.textWhite} stroke="none">
+                    <G transform="translate(0,400) scale(0.1,-0.1)" fill={theme.colors.accentLogo} stroke="none">
                         <Path d="M2711 3588 c-50 -297 -432 -3071 -434 -3162 -2 -57 -1 -59 26 -67 15
                             -4 168 -9 340 -11 l311 -3 101 729 100 729 120 79 c368 241 572 312 704 243
                             56 -29 66 -56 64 -180 -1 -119 -5 -148 -124 -1004 -43 -316 -77 -576 -75 -578

@@ -145,7 +145,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             backgroundColor: therrTheme.colors.backgroundGray,
         },
         logoIcon: {
-            color: therrTheme.colors.textWhite,
+            color: therrTheme.colors.accentLogo,
             marginLeft: 2,
         },
         logoIconDark: {
@@ -177,7 +177,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingHorizontal: 12,
         },
         sectionContainerWide: {
-            marginTop: 18,
+            marginTop: 12,
             marginBottom: 8,
             paddingHorizontal: 0,
         },
@@ -243,13 +243,13 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderBottomColor: therrTheme.colors.accentDivider,
         },
         headerTitleStyle: {
-            fontSize: 18,
+            fontSize: 20,
             fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'monospace',
             alignSelf: 'center',
             textAlign: 'center',
             justifyContent: 'center',
             flex: 1,
-            letterSpacing: Platform.OS === 'ios' ? 2 : 3,
+            letterSpacing: Platform.OS === 'ios' ? 1 : 2,
             lineHeight: HEADER_HEIGHT,
             overflow: 'hidden',
             fontWeight: 'bold',
@@ -257,6 +257,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         headerTitleLogoText: {
             ...headerTitleStyles,
             marginBottom: (Platform.OS === 'ios' && Platform.isPad) ? HEADER_PADDING_BOTTOM : HEADER_PADDING_BOTTOM / 2,
+            paddingBottom: 2,
         },
         headerSearchContainer: {
             ...headerTitleStyles,
@@ -266,6 +267,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             height: HEADER_HEIGHT - HEADER_PADDING_BOTTOM,
             margin: 0,
             padding: 0,
+            borderRadius: 8,
         },
         highlight: {
             fontWeight: '700',

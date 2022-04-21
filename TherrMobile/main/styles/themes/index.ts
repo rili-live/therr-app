@@ -1,5 +1,5 @@
 import { IMobileThemeName } from 'therr-react/types';
-import defaultTheme from './retro'; // Change this path to set the default theme
+import defaultTheme from './light'; // Change this path to set the default theme
 import lightTheme from './light';
 import retroTheme from './retro';
 
@@ -21,8 +21,8 @@ export interface ITherrThemeColors {
     primary2: string;
     primary3: string;
     primary4: string;
+    primary5: string;
     secondary: string;
-    secondaryFaded: string;
     ternary: string;
     ternary2: string;
     tertiary: string;
@@ -32,9 +32,11 @@ export interface ITherrThemeColors {
     textGray: string;
     textDarkGray: string;
     textWhite: string;
+    selectionColor: string;
 
     // Branding - These colors should remain unchanged regardless of theme
     brandingWhite: string;
+    brandingBlack: string;
     brandingBlueGreen: string;
     brandingMapYellow: string;
     brandingOrange: string;
@@ -54,6 +56,7 @@ export interface ITherrThemeColors {
     placeholderTextColorAlt: string;
 
     hyperlink: string,
+    controlButtons: string;
 
     // Alerts
     alertError: string,
@@ -73,6 +76,7 @@ export interface ITherrThemeColors {
     accentTeal: string;
     accentLime: string;
     accentDivider: string;
+    accentLogo: string;
 
     map: {
         momentsCircleFill: string;
@@ -100,6 +104,7 @@ export interface ITherrThemeColorVariations {
     textBlackFade: string;
     textWhiteFade: string;
     textGrayDarken: string;
+    textGrayFade: string;
     accent1Fade: string;
     accent1LightFade: string;
     accent1HeavyFade: string;

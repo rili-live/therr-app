@@ -89,7 +89,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingHorizontal: 10,
             fontSize: 20,
             textAlign: 'center',
-            color: therrTheme.colors.textBlack,
+            color: therrTheme.colors.brandingBlueGreen,
         },
         loadingGraphic: {
             display: 'flex',

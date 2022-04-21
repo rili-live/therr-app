@@ -5,7 +5,6 @@ import {
     Linking,
     PermissionsAndroid,
     Platform,
-    View,
 } from 'react-native';
 import LocationServicesDialogBox  from 'react-native-android-location-services-dialog-box';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
@@ -40,6 +39,7 @@ import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
 import HeaderSearchInput from './Input/HeaderSearchInput';
+import HeaderLinkRight from './HeaderLinkRight';
 
 const Stack = createStackNavigator();
 
@@ -431,6 +431,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             >
                 <Stack.Navigator
                     screenOptions={({ navigation }) => {
+                        const themeName = this.props?.user?.settings?.mobileThemeName;
                         const currentScreen = this.getCurrentScreen(navigation);
                         const isAreas = currentScreen === 'Areas';
                         const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
@@ -442,12 +443,22 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             || currentScreen === 'Nearby'
                             || currentScreen === 'EmailVerification'
                             || currentScreen === 'Register';
+                        const isAccentPage = currentScreen === 'EditMoment'
+                            || currentScreen === 'EditSpace'
+                            || currentScreen === 'ViewMoment'
+                            || currentScreen === 'ViewSpace';
                         let headerTitle;
+                        let headerStyle = this.theme.styles.headerStyle;
                         let headerStyleName: any = 'light';
-                        let headerTitleColor = this.theme.colors.textWhite;
+                        let headerTitleColor = themeName === 'light'
+                            ? this.theme.colors.primary3
+                            : this.theme.colors.textWhite;
                         if (isMoment) {
                             headerStyleName = 'accent';
-                            headerTitleColor = this.theme.colors.accentTextBlack;
+                            headerTitleColor = this.theme.colors.accentLogo;
+                        }
+                        if (isAccentPage) {
+                            headerStyle = this.theme.styles.headerStyleAccent;
                         }
                         if (hasLogoHeaderTitle) {
                             headerTitle = () => (<HeaderTherrLogo navigation={navigation} theme={this.theme} />);
@@ -498,7 +509,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     themeModal={this.themeModal}
                                     themeMenu={this.themeMenu}
                                 />
-                            ) : () => (<View />),
+                            ) : () => (<HeaderLinkRight navigation={navigation} themeForms={this.themeForms} styleName={headerStyleName} />),
                             headerTitleStyle: {
                                 ...this.theme.styles.headerTitleStyle,
                                 color: headerTitleColor,
@@ -506,7 +517,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 textShadowRadius: 0,
                             },
                             headerTitleAlign: 'center',
-                            headerStyle: this.theme.styles.headerStyle,
+                            headerStyle,
                             headerTransparent: false,
                             headerBackVisible: false,
                             headerBackTitleVisible: false,

@@ -224,7 +224,7 @@ class EmailVerification extends React.Component<IEmailVerificationProps, IEmailV
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     <ScrollView style={this.theme.styles.bodyFlex} contentContainerStyle={this.theme.styles.bodyScrollSmall}>
                         <View style={this.theme.styles.sectionContainerAlt}>

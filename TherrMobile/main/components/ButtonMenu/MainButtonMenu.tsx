@@ -85,7 +85,7 @@ class MainButtonMenuAlt extends ButtonMenu {
     render() {
         const { onActionButtonPress, isCompact, translate, themeMenu } = this.props;
         const currentScreen = this.getCurrentScreen();
-        // const isMessageViewActive = currentScreen === 'Contacts' || currentScreen === 'ActiveConnections' || currentScreen === 'CreateConnection';
+        const isConnectViewActive = currentScreen === 'Contacts' || currentScreen === 'ActiveConnections' || currentScreen === 'CreateConnection';
 
         return (
             <ButtonMenu {...this.props}>
@@ -144,13 +144,13 @@ class MainButtonMenuAlt extends ButtonMenu {
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.connect') : null}
                     buttonStyle={
-                        currentScreen === 'Contacts'
+                        isConnectViewActive
                             ? themeMenu.styles.buttonsActive
                             : themeMenu.styles.buttons
                     }
                     containerStyle={themeMenu.styles.buttonContainer}
                     titleStyle={
-                        currentScreen === 'Contacts'
+                        isConnectViewActive
                             ? themeMenu.styles.buttonsTitleActive
                             : themeMenu.styles.buttonsTitle
                     }
@@ -159,7 +159,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                             name="user-friends"
                             size={20}
                             style={
-                                currentScreen === 'Contacts'
+                                isConnectViewActive
                                     ? themeMenu.styles.buttonIconActive
                                     : themeMenu.styles.buttonIcon
                             }
