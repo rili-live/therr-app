@@ -1,4 +1,4 @@
-import { ITherrThemeColors } from 'main/styles/themes';
+import { ITherrThemeColors } from '../../styles/themes';
 import React from 'react';
 import { ListItem } from 'react-native-elements';
 import 'react-native-gesture-handler';
@@ -29,7 +29,7 @@ const PhoneContactItem: React.FunctionComponent<IPhoneContactItemProps> = ({
             <ListItem.CheckBox
                 checked={contactDetails.isChecked}
                 onPress={() => onPress(contactDetails.recordID)}
-                checkedColor={theme.colors.primary}
+                checkedColor={theme.colors.brandingBlueGreen}
             />
         </ListItem>
     );

@@ -87,7 +87,7 @@ class PhoneNumberInput extends React.Component<IPhoneNumberInputProps, IPhoneNum
                     style={themeForms.styles.phoneInput}
                     textProps={{
                         placeholder: placeholder || translate('forms.createConnection.placeholders.phone'),
-                        selectionColor: theme.colors.ternary,
+                        selectionColor: theme.colors.selectionColor,
                         style: {...themeForms.styles.phoneInputText},
                         placeholderTextColor: theme.colors.placeholderTextColor,
                     }}

@@ -482,7 +482,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                         maximumValue={Location.MAX_RADIUS_OF_INFLUENCE}
                         minimumValue={Location.MIN_RADIUS_OF_INFLUENCE}
                         step={1}
-                        thumbStyle={{ backgroundColor: this.theme.colors.accent1, height: 20, width: 20 }}
+                        thumbStyle={{ backgroundColor: this.theme.colors.brandingOrange, height: 20, width: 20 }}
                         thumbTouchSize={{ width: 30, height: 30 }}
                         minimumTrackTintColor={this.theme.colorVariations.accent1LightFade}
                         maximumTrackTintColor={this.theme.colorVariations.accent1HeavyFade}
@@ -554,7 +554,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
                     {
                         this.shouldRenderNearbyNewsfeed() &&

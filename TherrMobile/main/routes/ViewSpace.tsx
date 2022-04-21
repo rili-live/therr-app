@@ -274,7 +274,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"

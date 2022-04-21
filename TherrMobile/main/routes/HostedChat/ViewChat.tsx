@@ -192,7 +192,7 @@ class ViewChat extends React.Component<IViewChatProps, IViewChatState> {
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={this.theme.styles.safeAreaView}>
                     <View
                         style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyEdit]}

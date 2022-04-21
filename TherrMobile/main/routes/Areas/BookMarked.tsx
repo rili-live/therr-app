@@ -228,7 +228,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={this.theme.styles.safeAreaView}>
                     <AreaCarousel
                         activeData={activeData}

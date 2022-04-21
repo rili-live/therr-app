@@ -44,7 +44,7 @@ export default [
         route: '*',
         head: {
             title: 'Not Found',
-            description: 'A nearby newsfeed app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.',
+            description: 'Navigate social media with movement and earn rewards for upvotes & interactions.',
         },
         view: 'index',
     },

@@ -1,23 +1,32 @@
 import * as React from 'react';
-import { View } from 'react-native';
-import { Button } from 'react-native-elements';
+import { Platform, View } from 'react-native';
+import { Button, Text } from 'react-native-elements';
 import { PasswordRegex } from 'therr-js-utilities/constants';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
 import translator from '../../services/translator';
 import { addMargins } from '../../styles';
 import Alert from '../../components/Alert';
 import RoundInput from '../../components/Input/Round';
 import PasswordRequirements from '../../components/Input/PasswordRequirements';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
+import OrDivider from '../../components/Input/OrDivider';
+import AppleSignInButton from '../../components/LoginButtons/AppleSignInButton';
+import GoogleSignInButton from '../../components/LoginButtons/GoogleSignInButton';
+import { ISSOUserDetails } from '../Login/LoginForm';
 
 // Regular component props
 interface IRegisterFormProps {
     alert?: string;
     onSuccess: Function;
     register: Function;
+    login: Function;
     title?: string;
     toggleEULA: Function;
     userSettings: any;
+    theme: {
+        styles: any;
+    };
     themeAlerts: {
         colors: ITherrThemeColors;
         colorVariations: ITherrThemeColorVariations;
@@ -65,7 +74,8 @@ export class RegisterFormComponent extends React.Component<
     }
 
     isRegisterFormDisabled = () => {
-        return !this.state.inputs.email ||
+        const { isSubmitting } = this.state;
+        return isSubmitting || !this.state.inputs.email ||
             !this.state.inputs.password ||
             !this.isFormValid();
     }
@@ -162,13 +172,88 @@ export class RegisterFormComponent extends React.Component<
         });
     };
 
+    onSubmitLogin = (ssoUserDetails?: ISSOUserDetails) => {
+        const { password, rememberMe, userName } = this.state.inputs;
+
+        let loginArgs: any = {
+            userName: userName?.toLowerCase(),
+            password,
+            rememberMe,
+        };
+
+        if (ssoUserDetails) {
+            loginArgs = {
+                rememberMe,
+                ...ssoUserDetails,
+            };
+        }
+
+        this.setState({
+            isSubmitting: true,
+        });
+        this.props
+            .login(loginArgs, {
+                googleSSOIdToken: ssoUserDetails?.idToken,
+            })
+            .catch((error: any) => {
+                if (
+                    error.statusCode === 400 ||
+                    error.statusCode === 401 ||
+                    error.statusCode === 404
+                ) {
+                    this.setState({
+                        prevRegisterError: this.translate(
+                            'forms.loginForm.invalidUsernamePassword'
+                        ),
+                    });
+                } else if (error.statusCode >= 500) {
+                    this.setState({
+                        prevRegisterError: this.translate(
+                            'forms.loginForm.backendErrorMessage'
+                        ),
+                    });
+                }
+                this.setState({
+                    isSubmitting: false,
+                });
+            });
+    };
+
+    onSSOLoginError = () => {
+        this.setState({
+            isSubmitting: false,
+        });
+    }
+
+    onSSOLoginSuccess = (idToken, user, additionalUserInfo, provider = 'google') => {
+        if (user.emailVerified) {
+            const firstName = additionalUserInfo?.given_name || (user.displayName?.split[0]);
+            const lastName = additionalUserInfo?.family_name || (user.displayName?.split[1]);
+            const nonce = additionalUserInfo?.profile?.nonce;
+            this.onSubmitLogin({
+                isSSO: true,
+                idToken,
+                nonce,
+                ssoProvider: provider,
+                userPhoneNumber: user.phoneNumber,
+                userFirstName: firstName,
+                userLastName: lastName,
+                userEmail: user.email,
+            });
+        } else {
+            // TODO: RMOBILE-26: Add UI alert message
+            console.log('SSO email is not verified!');
+        }
+    }
+
     public render() {
         const {
             isPasswordEntryDirty,
+            isSubmitting,
             passwordErrorMessage,
             prevRegisterError,
         } = this.state;
-        const { themeAlerts, themeForms, themeAuthForm, toggleEULA } = this.props;
+        const { theme, themeAlerts, themeForms, themeAuthForm, toggleEULA } = this.props;
 
         return (
             <>
@@ -186,7 +271,7 @@ export class RegisterFormComponent extends React.Component<
                         <MaterialIcon
                             name="email"
                             size={24}
-                            color={themeAlerts.colorVariations.primary3Fade}
+                            color={themeAlerts.colors.placeholderTextColorAlt}
                         />
                     }
                     themeForms={themeForms}
@@ -211,7 +296,7 @@ export class RegisterFormComponent extends React.Component<
                         <MaterialIcon
                             name="vpn-key"
                             size={26}
-                            color={themeAlerts.colorVariations.primary3Fade}
+                            color={themeAlerts.colors.placeholderTextColorAlt}
                         />
                     }
                     themeForms={themeForms}
@@ -234,7 +319,7 @@ export class RegisterFormComponent extends React.Component<
                         <MaterialIcon
                             name="lock"
                             size={26}
-                            color={themeAlerts.colorVariations.primary3Fade}
+                            color={themeAlerts.colors.placeholderTextColorAlt}
                         />
                     }
                     themeForms={themeForms}
@@ -248,9 +333,15 @@ export class RegisterFormComponent extends React.Component<
                     type={'error'}
                     themeAlerts={themeAlerts}
                 />
+                <Text style={[theme.styles.sectionDescription, { marginBottom: 25 }]}>
+                    {this.translate('forms.registerForm.subtitles.disclaimer')}
+                    <Text
+                        style={themeForms.styles.buttonLink}
+                        onPress={() => toggleEULA()}>{this.translate('forms.registerForm.buttons.eula')}</Text>
+                </Text>
                 <View style={themeAuthForm.styles.registerButtonContainer}>
                     <Button
-                        buttonStyle={themeAuthForm.styles.button}
+                        buttonStyle={themeForms.styles.buttonPrimary}
                         titleStyle={themeForms.styles.buttonTitle}
                         // disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
                         title={this.translate(
@@ -259,16 +350,34 @@ export class RegisterFormComponent extends React.Component<
                         onPress={this.onSubmit}
                         disabled={this.isRegisterFormDisabled()}
                     />
-                </View>
-                <View style={themeAuthForm.styles.moreLinksContainer}>
-                    <Button
-                        type="clear"
-                        titleStyle={themeAuthForm.styles.buttonLink}
-                        title={this.translate(
-                            'forms.registerForm.buttons.eula'
-                        )}
-                        onPress={() => toggleEULA()}
+                    <OrDivider
+                        translate={this.translate}
+                        themeForms={themeForms}
+                        containerStyle={{ marginVertical: 20 }}
                     />
+                    <View style={themeAuthForm.styles.submitButtonContainer}>
+                        <GoogleSignInButton
+                            disabled={isSubmitting}
+                            buttonTitle={this.translate('forms.loginForm.sso.googleButtonTitleContinue')}
+                            onLoginError={this.onSSOLoginError}
+                            onLoginSuccess={this.onSSOLoginSuccess}
+                            themeForms={themeForms}
+                        />
+                    </View>
+                    {
+                        Platform.OS === 'ios' && appleAuth.isSupported &&
+                        appleAuth.isSupported &&
+                        <View style={themeAuthForm.styles.submitButtonContainer}>
+                            <AppleSignInButton
+                                disabled={isSubmitting}
+                                buttonTitle={this.translate('forms.loginForm.sso.appleButtonTitle')}
+                                onLoginError={this.onSSOLoginError}
+                                onLoginSuccess={this.onSSOLoginSuccess}
+                                themeForms={themeForms}
+                                type={AppleButton.Type.CONTINUE}
+                            />
+                        </View>
+                    }
                 </View>
             </>
         );

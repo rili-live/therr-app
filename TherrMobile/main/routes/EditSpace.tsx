@@ -471,7 +471,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
@@ -496,7 +496,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                             }
                             <Button
                                 containerStyle={{ marginBottom: 10 }}
-                                buttonStyle={this.themeForms.styles.buttonRound}
+                                buttonStyle={this.themeForms.styles.buttonPrimary}
                                 // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                                 disabledStyle={this.themeForms.styles.buttonRoundDisabled}
                                 disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
