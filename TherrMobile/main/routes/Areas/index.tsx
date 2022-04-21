@@ -263,7 +263,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
                     <AreaCarousel
                         activeData={activeData}

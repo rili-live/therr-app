@@ -21,6 +21,9 @@ import AnimatedLottieView from 'lottie-react-native';
 import ftuiClaim from '../assets/ftui-claim.json';
 import ftuiDiscover from '../assets/ftui-discover.json';
 import ftuiMoment from '../assets/ftui-moment.json';
+import ftuiClaimLight from '../assets/ftui-claim-light.json';
+import ftuiDiscoverLight from '../assets/ftui-discover-light.json';
+import ftuiMomentLight from '../assets/ftui-moment-light.json';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -89,17 +92,17 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
             {
                 title: this.translate('pages.landing.carousel.discoverTitle'),
                 subtitle: this.translate('pages.landing.carousel.discoverDescription'),
-                source: ftuiDiscover,
+                source: props.user?.settings?.mobileThemeName === 'light' ? ftuiDiscoverLight : ftuiDiscover,
             },
             {
                 title: this.translate('pages.landing.carousel.claimTitle'),
                 subtitle: this.translate('pages.landing.carousel.claimDescription'),
-                source: ftuiClaim,
+                source: props.user?.settings?.mobileThemeName === 'light' ? ftuiClaimLight : ftuiClaim,
             },
             {
                 title: this.translate('pages.landing.carousel.momentTitle'),
                 subtitle: this.translate('pages.landing.carousel.momentDescription'),
-                source: ftuiMoment,
+                source: props.user?.settings?.mobileThemeName === 'light' ? ftuiMomentLight : ftuiMoment,
             },
         ];
     }
@@ -157,7 +160,7 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
@@ -193,7 +196,7 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
                         />
                         <View style={this.themeAuthForm.styles.submitButtonContainer}>
                             <Button
-                                buttonStyle={this.themeAuthForm.styles.button}
+                                buttonStyle={this.themeForms.styles.buttonPrimary}
                                 titleStyle={this.themeForms.styles.buttonTitle}
                                 disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                                 disabledStyle={this.themeForms.styles.buttonDisabled}
@@ -206,11 +209,15 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
                         <OrDivider
                             translate={this.translate}
                             themeForms={this.themeForms}
+                            containerStyle={{
+                                marginBottom: 20,
+                            }}
                         />
-                        <View style={this.themeAuthForm.styles.moreLinksContainer}>
+                        <View style={[this.themeAuthForm.styles.submitButtonContainer, { paddingBottom: '15%' }]}>
                             <Button
                                 type="clear"
-                                titleStyle={this.themeAuthForm.styles.buttonLink}
+                                buttonStyle={this.themeForms.styles.buttonRoundAlt}
+                                titleStyle={this.themeForms.styles.buttonTitleAlt}
                                 title={this.translate(
                                     'pages.landing.buttons.signIn'
                                 )}

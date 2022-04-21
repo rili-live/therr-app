@@ -274,7 +274,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"

@@ -75,10 +75,10 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginRight: 20,
         },
         submitButtonTitle: {
-            color: therrTheme.colors.accentTextBlack,
+            color: therrTheme.colors.brandingBlack,
         },
         submitButtonTitleLight: {
-            color: therrTheme.colors.accentTextWhite,
+            color: therrTheme.colors.brandingWhite,
         },
         submitDisabledButtonTitle: {
         },

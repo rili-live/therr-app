@@ -7,8 +7,8 @@ const colors: ITherrThemeColors = {
     primary2: '#20919E',
     primary3: '#143b54',
     primary4: '#22A5B4',
-    secondary: '#388254',
-    secondaryFaded: '#4e8e67',
+    primary5: '#1C7F8A',
+    secondary: '#1E8A96',
     ternary: '#e0c845',
     ternary2: '#ffc269',
     tertiary: '#104B52',
@@ -18,9 +18,11 @@ const colors: ITherrThemeColors = {
     textGray: 'rgba(255,255,255,.78)',
     textDarkGray: '#728f94',
     textWhite: '#fcfeff',
+    selectionColor: '#E37107',
 
     // Branding - These colors should remain unchanged regardless of theme
     brandingWhite: '#fcfeff',
+    brandingBlack: '#001226',
     brandingBlueGreen: '#1C7F8A',
     brandingMapYellow: '#ebc300',
     brandingOrange: '#DE6E07',
@@ -40,6 +42,7 @@ const colors: ITherrThemeColors = {
     placeholderTextColorAlt: 'rgba(255,255,255,.58)',
 
     hyperlink: '#0e01b3',
+    controlButtons: 'rgba(255, 255, 255, 0.92)',
 
     // Alerts
     alertError: '#AC3E59',
@@ -59,6 +62,7 @@ const colors: ITherrThemeColors = {
     accentTeal: '#2BC5D6',
     accentLime: '#00f729',
     accentDivider: '#4950571c',
+    accentLogo: '#fcfeff',
 
     map: {
         momentsCircleFill: 'rgba(56,130,84,0.2)',
@@ -86,6 +90,7 @@ const colorVariations: ITherrThemeColorVariations = {
     textBlackFade: new Color(colors.textBlack).fade(0.75).toString(),
     textWhiteFade: new Color(colors.textWhite).fade(0.75).toString(),
     textGrayDarken: new Color(colors.textGray).darken(0.15).toString(),
+    textGrayFade: new Color(colors.textGray).fade(0.15).toString(),
     accent1Fade: new Color(colors.accent1).fade(0.2).toString(),
     accent1LightFade: new Color(colors.accent1).fade(0.2).toString(),
     accent1HeavyFade: new Color(colors.accent1).fade(0.7).toString(),

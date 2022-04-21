@@ -252,7 +252,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"

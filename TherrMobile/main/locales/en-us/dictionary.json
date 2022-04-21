@@ -140,6 +140,10 @@
         "placeholder": "Search..."
       }
     },
+    "headerLinkRight": {
+      "signIn": "Sign in?",
+      "signUp": "Sign up?"
+    },
     "headerMenuRight": {
       "menuItems": {
         "account": "Account Settings",
@@ -258,7 +262,8 @@
       "invalidUsernamePassword": "Invalid username/password combination.",
       "sso": {
         "appleButtonTitle": "Sign in with Apple",
-        "googleButtonTitle": "Continue with Google"
+        "googleButtonTitleContinue": "Continue with Google",
+        "googleButtonTitleSignIn": "Sign in with Google"
       }
     },
     "nearbyForm": {
@@ -355,7 +360,7 @@
       "buttons": {
         "backToLogin": "Back to Login",
         "register": "Sign Up",
-        "eula": "End User Agreement"
+        "eula": "Terms of Use"
       },
       "defaultTitle": "Create an Account",
       "errorMessages": {
@@ -373,6 +378,9 @@
         "userName": "Username"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
+      "subtitles": {
+        "disclaimer": "By creating an account, you agree to our "
+      },
       "validationErrors": {
         "phoneNumber": "Invalid phone number"
       }

@@ -20,6 +20,7 @@ import ConfirmModal from '../../components/Modals/ConfirmModal';
 import eula from '../Map/EULA';
 
 interface IRegisterDispatchProps {
+    login: Function;
     register: Function;
 }
 
@@ -43,6 +44,7 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
+            login: UsersActions.login,
             register: UsersActions.register,
         },
         dispatch
@@ -67,6 +69,7 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
+        this.themeAuthForm = buildAuthFormStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
         this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
@@ -101,7 +104,7 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView style={this.theme.styles.bodyFlex} contentContainerStyle={this.theme.styles.bodyScroll} enableOnAndroid>
                         <View style={this.theme.styles.sectionContainerWide}>
@@ -113,8 +116,10 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
                             </Text>
                         </View>
                         <RegisterForm
+                            login={this.props.login}
                             register={this.props.register}
                             onSuccess={this.onSuccess}
+                            theme={this.theme}
                             themeAlerts={this.themeAlerts}
                             themeAuthForm={this.themeAuthForm}
                             themeForms={this.themeForms}

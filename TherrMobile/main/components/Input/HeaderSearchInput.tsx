@@ -10,7 +10,7 @@ import { IMapReduxState } from 'therr-react/types';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
 import RoundInput from '.';
 import translator from '../../services/translator';
-import { ITherrThemeColors } from '../../styles/themes';
+import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -31,6 +31,7 @@ interface IHeaderSearchInputStoreProps extends IHeaderSearchInputDispatchProps {
     map: IMapReduxState;
     theme: {
         colors: ITherrThemeColors;
+        colorVariations: ITherrThemeColorVariations;
         styles: any;
     };
     themeForms: {
@@ -137,9 +138,9 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                 }
                 inputContainerStyle={[themeForms.styles.inputContainerRound, theme.styles.headerSearchInputContainer]}
                 onChangeText={this.onInputChange}
-                // onFocus={this.handlePress}
+                onFocus={this.handlePress}
                 placeholder={this.translate('components.header.searchInput.placeholder')}
-                placeholderTextColor={themeForms.colors.textGray}
+                placeholderTextColor={theme.colorVariations.textGrayFade}
                 rightIcon={
                     <MaterialIcon
                         name={icon}

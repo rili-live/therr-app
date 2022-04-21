@@ -277,11 +277,13 @@ class Map extends React.Component<IMapProps, IMapState> {
         this.theme = buildStyles(themeName);
         this.themeAlerts = buildAlertStyles(themeName);
         this.themeConfirmModal = buildConfirmModalStyles(themeName);
+        this.themeButtons = buildButtonStyles(themeName);
         this.themeLoader = buildLoaderStyles(themeName);
         this.themeMenu = buildMenuStyles(themeName);
         this.themeDisclosure = buildDisclosureStyles(themeName);
         this.themeTour = buildTourStyles(themeName);
         this.themeSearch = buildSearchStyles({ viewPortHeight }, themeName);
+
         if (shouldForceUpdate) {
             this.forceUpdate();
         }
@@ -1216,7 +1218,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={this.theme.styles.safeAreaView} onStartShouldSetResponder={(event: any) => {
                     event.persist();
                     if (event?.target?._nativeTag) {
@@ -1265,15 +1267,15 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 scrollEnabled={isScrollEnabled}
                                 minZoomLevel={MIN_ZOOM_LEVEL}
                                 /* react-native-map-clustering */
-                                clusterColor={this.theme.colors.primary2}
+                                clusterColor={this.theme.colors.brandingBlueGreen}
                                 clusterFontFamily={this.theme.styles.headerTitleStyle.fontFamily}
-                                clusterTextColor={this.theme.colors.textWhite}
+                                clusterTextColor={this.theme.colors.brandingWhite}
                             >
                                 <Circle
                                     center={circleCenter}
                                     radius={DEFAULT_MOMENT_PROXIMITY} /* meters */
                                     strokeWidth={1}
-                                    strokeColor={this.theme.colors.primary2}
+                                    strokeColor={this.theme.colors.brandingBlueGreen}
                                     fillColor={this.theme.colors.map.userCircleFill}
                                     zIndex={0}
                                 />

@@ -19,7 +19,7 @@ export class BaseInput extends React.Component<TextInputProps & IBaseTextInputPr
     render() {
         return (
             <TextInput
-                selectionColor={this.props.themeForms.colors.ternary}
+                selectionColor={this.props.themeForms.colors.selectionColor}
                 {...this.props}
             />
         );

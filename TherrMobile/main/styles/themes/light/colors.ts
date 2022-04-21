@@ -6,18 +6,19 @@ const colors: ITherrThemeColors = {
     primary: '#ffffff',
     primary2: '#fcfeff',
     primary3: '#1C7F8A',
-    primary4: '#22A5B4',
-    secondary: '#388254',
-    secondaryFaded: '#4e8e67',
-    ternary: '#e0c845',
+    primary4: '#104B52',
+    primary5: '#17657D',
+    secondary: '#E37107',
+    ternary: '#ffffff',
     ternary2: '#ffc269',
     tertiary: '#104B52',
 
     // Text
     textBlack: '#fcfeff',
-    textGray: 'rgba(0,0,0,.78)',
+    textGray: 'rgba(0,0,0,.58)',
     textDarkGray: '#728f94',
     textWhite: '#363636',
+    selectionColor: '#E37107',
 
     // Branding - These colors should remain unchanged regardless of theme
     brandingWhite: '#fcfeff',
@@ -27,30 +28,31 @@ const colors: ITherrThemeColors = {
     brandingLightBlue: '#d8f0f2',
 
     // Background
-    backgroundCream: '#01040f',
-    backgroundWhite: '#000000',
-    backgroundGray: '#0c0b09',
-    backgroundNeutral: '#181512',
+    backgroundCream: '#575d5d',
+    backgroundWhite: '#ffffff',
+    backgroundGray: '#f3f4f6',
+    backgroundNeutral: '#e7eaed',
     backgroundBlack: '#ffffff',
-    inputBackgroundAndroid: 'rgba(0,0,0,.15)',
-    inputBackgroundIOS: 'rgba(0,0,0,.1)',
+    inputBackgroundAndroid: 'rgba(0,0,0,.04)',
+    inputBackgroundIOS: 'rgba(0,0,0,.04)',
 
     borderLight: 'gray',
     placeholderTextColor: '#78909b',
     placeholderTextColorAlt: 'rgba(0,0,0,.58)',
 
     hyperlink: '#0e01b3',
+    controlButtons: '#1C7F8A',
 
     // Alerts
     alertError: '#AC3E59',
 
     // Accents - Alternate color scheme to add variety and reduce blandless
-    accent1: '#1E8A96',
+    accent1: '#ffffff',
     accent1Fade: '#97c5bb',
     accent2: '#cbffdc',
     accent3: '#218a35',
     accentAlt: '#449885',
-    accentTextBlack: '#fafafa',
+    accentTextBlack: '#1C7F8A',
     accentTextWhite: '#001226',
     accentRed: '#fe0156',
     accentYellow: '#fed61e',
@@ -59,6 +61,7 @@ const colors: ITherrThemeColors = {
     accentTeal: '#2BC5D6',
     accentLime: '#00f729',
     accentDivider: '#4950571c',
+    accentLogo: '#1E8A96',
 
     map: {
         momentsCircleFill: 'rgba(56,130,84,0.2)',
@@ -86,6 +89,7 @@ const colorVariations: ITherrThemeColorVariations = {
     textBlackFade: new Color(colors.textBlack).fade(0.75).toString(),
     textWhiteFade: new Color(colors.textWhite).fade(0.75).toString(),
     textGrayDarken: new Color(colors.textGray).darken(0.15).toString(),
+    textGrayFade: new Color(colors.textGray).fade(0.35).toString(),
     accent1Fade: new Color(colors.accent1).fade(0.2).toString(),
     accent1LightFade: new Color(colors.accent1).fade(0.2).toString(),
     accent1HeavyFade: new Color(colors.accent1).fade(0.7).toString(),

@@ -152,7 +152,7 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={this.theme.styles.safeAreaView}>
                     <FlatList
                         data={filteredContactList}

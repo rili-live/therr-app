@@ -51,6 +51,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         // test styles
         defaultText: {
             ...getTextStyles(therrTheme),
+            color: therrTheme.colors.brandingBlack,
         },
         therrBlackRollingText: {
             ...getTextStyles(therrTheme),

@@ -138,7 +138,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         searchThisAreaButton: {
             ...getBtnGroupBtnStyles(therrTheme),
             paddingHorizontal: 15,
-            backgroundColor: therrTheme.colors.accent1,
+            backgroundColor: therrTheme.colors.brandingBlueGreen,
         },
         searchFiltersTitle: {
             color: therrTheme.colors.accentTextWhite,
@@ -147,7 +147,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             lineHeight: 18,
         },
         searchThisAreaTitle: {
-            color: therrTheme.colors.accentTextWhite,
+            color: therrTheme.colors.brandingWhite,
             fontSize: 12,
             lineHeight: 13,
         },
@@ -355,13 +355,13 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         btnLarge: {
             ...btnStyles,
-            backgroundColor: therrTheme.colors.accent1,
+            backgroundColor: therrTheme.colors.secondary,
             height: 44,
             width: 44,
         },
         btnLargeWithText: {
             ...btnStyles,
-            backgroundColor: therrTheme.colors.accent1,
+            backgroundColor: therrTheme.colors.secondary,
             height: 44,
             paddingHorizontal: 15,
         },

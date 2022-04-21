@@ -11,6 +11,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
+            backgroundColor: therrTheme.colors.textGray,
         },
         container: {
             display: 'flex',
