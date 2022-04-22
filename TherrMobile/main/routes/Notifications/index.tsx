@@ -142,7 +142,8 @@ class Notifications extends React.Component<
         }
 
         if (notification.type === NotificationsEmuns.Types.NEW_AREAS_ACTIVATED
-            || notification.type === NotificationsEmuns.Types.NEW_LIKE_RECEIVED) {
+            || notification.type === NotificationsEmuns.Types.NEW_LIKE_RECEIVED
+            || notification.type === NotificationsEmuns.Types.NEW_SUPER_LIKE_RECEIVED) {
             navigation.navigate('Nearby');
         } else if (notification.type === NotificationsEmuns.Types.NEW_DM_RECEIVED) {
             navigation.navigate('ActiveConnections');

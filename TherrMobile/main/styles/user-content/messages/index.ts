@@ -12,13 +12,13 @@ const containerStyles: any = {
     marginRight: '2%',
 };
 
-const getMessageStyles = (theme: ITherrTheme) => ({
-    color: theme.colors.accentTextBlack,
+const getMessageStyles = (theme: ITherrTheme, themeName: string) => ({
+    color: themeName === 'light' ? theme.colors.accentTextBlack : theme.colors.accentTextBlack,
     fontSize: 16,
 });
 
-const getMessageDateStyles = (theme: ITherrTheme) => ({
-    ...getMessageStyles(theme),
+const getMessageDateStyles = (theme: ITherrTheme, themeName: string) => ({
+    ...getMessageStyles(theme, themeName),
     fontSize: 11,
     color: theme.colors.textBlack,
 });
@@ -46,16 +46,19 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             alignSelf: 'flex-end',
         },
         messageTextLeft: {
-            ...getMessageStyles(therrTheme),
+            ...getMessageStyles(therrTheme, themeName),
+            color: themeName === 'light' ? therrTheme.colors.textWhite : therrTheme.colors.accentTextBlack,
         },
         messageTextRight: {
-            ...getMessageStyles(therrTheme),
+            ...getMessageStyles(therrTheme, themeName),
+            color: themeName === 'light' ? therrTheme.colors.textBlack : therrTheme.colors.accentTextBlack,
         },
         messageDateLeft: {
-            ...getMessageDateStyles(therrTheme),
+            ...getMessageDateStyles(therrTheme, themeName),
+            color: themeName === 'light' ? therrTheme.colors.textWhite : therrTheme.colors.textBlack,
         },
         messageDateRight: {
-            ...getMessageDateStyles(therrTheme),
+            ...getMessageDateStyles(therrTheme, themeName),
         },
         sectionContainer: {
             display: 'flex',

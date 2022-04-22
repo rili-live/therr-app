@@ -312,6 +312,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             targetRouteView = 'Contacts';
         } else if (event.action === 'app.therrmobile.NEW_LIKE_RECEIVED') {
             targetRouteView = 'Notifications';
+        } else if (event.action === 'app.therrmobile.NEW_SUPER_LIKE_RECEIVED') {
+            targetRouteView = 'Notifications';
         }
 
         if (isNotAuthorized) {

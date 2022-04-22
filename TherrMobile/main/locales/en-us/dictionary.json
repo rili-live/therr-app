@@ -691,8 +691,9 @@
     },
     "areaOptions": {
       "buttons": {
-        "like": "'Like' this",
+        "superLike": "'Super-Like' this",
         "dislike": "'Dislike' this",
+        "superDislike": "'Super-Dislike' this",
         "report": "Report this content..."
       }
     },
