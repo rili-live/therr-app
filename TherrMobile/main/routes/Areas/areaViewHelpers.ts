@@ -12,7 +12,7 @@ const handleAreaReaction = (selectedArea, reactionType: ISelectionType, {
     const requestArgs: any = getReactionUpdateArgs(reactionType);
 
     if (selectedArea.areaType === 'spaces') {
-        createOrUpdateSpaceReaction(selectedArea.id, requestArgs).finally(() => {
+        createOrUpdateSpaceReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName).finally(() => {
             toggleAreaOptions(selectedArea);
         });
     } else {

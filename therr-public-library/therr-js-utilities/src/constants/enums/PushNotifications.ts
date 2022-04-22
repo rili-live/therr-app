@@ -3,6 +3,7 @@ export enum Types {
     newConnectionRequest = 'new-connection-request',
     newDirectMessage = 'new-direct-message',
     newLikeReceived = 'new-like-received',
+    newSuperLikeReceived = 'new-super-like-received',
     newAreasActivated = 'new-moments-activated',
     proximityRequiredMoment = 'proximity-required-moment',
     proximityRequiredSpace = 'proximity-required-space',

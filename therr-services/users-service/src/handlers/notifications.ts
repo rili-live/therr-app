@@ -30,6 +30,8 @@ const createNotification = (req, res) => Store.notifications.createNotification(
         let pushNotificationType = PushNotifications.Types.newDirectMessage;
         if (notificationType === Notifications.Types.NEW_LIKE_RECEIVED) {
             pushNotificationType = PushNotifications.Types.newLikeReceived;
+        } else if (notificationType === Notifications.Types.NEW_SUPER_LIKE_RECEIVED) {
+            pushNotificationType = PushNotifications.Types.newSuperLikeReceived;
         }
 
         // TODO: Handle additional notification types (currently only handles DM notification)

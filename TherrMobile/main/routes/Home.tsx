@@ -6,7 +6,7 @@ import { bindActionCreators } from 'redux';
 import { Button } from 'react-native-elements';
 import { IUserState } from 'therr-react/types';
 import Alert from '../components/Alert';
-import AccentTextInput from '../components/Input/TextInput/Accent';
+import RoundTextInput from '../components/Input/TextInput/Round';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
 import { UsersService } from 'therr-react/services';
@@ -154,7 +154,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                 <Text style={this.theme.styles.sectionTitleCenter}>
                                     {this.translate('pages.userProfile.h2.shareFeedback')}
                                 </Text>
-                                <AccentTextInput
+                                <RoundTextInput
                                     placeholder={this.translate(
                                         'pages.userProfile.labels.feedbackPlaceholder'
                                     )}
@@ -164,6 +164,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                     }
                                     numberOfLines={5}
                                     themeForms={this.themeForms}
+                                    minHeight={100}
                                 />
                                 <Alert
                                     containerStyles={addMargins({

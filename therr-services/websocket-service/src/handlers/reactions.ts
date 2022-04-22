@@ -28,10 +28,12 @@ const sendReactionPushNotification = (socket: socketio.Socket, data: any, decode
                         url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/notifications`,
                         data: {
                             userId: data.areaUserId,
-                            type: Notifications.Types.NEW_LIKE_RECEIVED,
+                            type: areaReaction.userHasSuperLiked ? Notifications.Types.NEW_SUPER_LIKE_RECEIVED : Notifications.Types.NEW_LIKE_RECEIVED,
                             associationId: null,
                             isUnread: true,
-                            messageLocaleKey: Notifications.MessageKeys.NEW_LIKE_RECEIVED,
+                            messageLocaleKey: areaReaction.userHasSuperLiked
+                                ? Notifications.MessageKeys.NEW_SUPER_LIKE_RECEIVED
+                                : Notifications.MessageKeys.NEW_LIKE_RECEIVED,
                             messageParams: {
                                 userName: data.reactorUserName,
                             },

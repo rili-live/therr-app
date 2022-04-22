@@ -17,6 +17,7 @@ import HashtagsContainer from './HashtagsContainer';
 import { ITherrThemeColors } from '../../styles/themes';
 import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserImageUri } from '../../utilities/content';
+import PresssableWithDoubleTap from '../../components/PressableWithDoubleTap';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -34,6 +35,7 @@ interface IAreaDisplayProps {
     area: any;
     areaMedia: string;
     goToViewUser: Function;
+    inspectArea: () => any;
     updateAreaReaction: Function;
     user: IUserState;
     userDetails: IUserDetails;
@@ -70,6 +72,14 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         }, area.fromUserId, userDetails.userName);
     }
 
+    onLikePress = (area) => {
+        const { updateAreaReaction, userDetails } = this.props;
+
+        updateAreaReaction(area.id, {
+            userHasLiked: !area.reaction?.userHasLiked,
+        }, area.fromUserId, userDetails.userName);
+    }
+
     render() {
         const {
             date,
@@ -80,6 +90,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             area,
             areaMedia,
             goToViewUser,
+            inspectArea,
             userDetails,
             theme,
             themeForms,
@@ -87,6 +98,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         } = this.props;
 
         const isBookmarked = area.reaction?.userBookmarkCategory;
+        const isLiked = area.reaction?.userHasLiked;
+        const likeColor = isLiked ? theme.colors.accentRed : (isDarkMode ? theme.colors.textWhite : theme.colors.tertiary);
 
         return (
             <>
@@ -128,11 +141,16 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         TouchableComponent={TouchableWithoutFeedbackComponent}
                     />
                 </View>
-                <UserMedia
-                    viewportWidth={viewportWidth}
-                    media={areaMedia}
-                    isVisible={!!areaMedia}
-                />
+                <PresssableWithDoubleTap
+                    onPress={inspectArea}
+                    onDoubleTap={() => this.onLikePress(area)}
+                >
+                    <UserMedia
+                        viewportWidth={viewportWidth}
+                        media={areaMedia}
+                        isVisible={!!areaMedia}
+                    />
+                </PresssableWithDoubleTap>
                 <View style={themeViewArea.styles.areaContentTitleContainer}>
                     <Text
                         style={themeViewArea.styles.areaContentTitle}
@@ -151,6 +169,20 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                             />
                         }
                         onPress={() => this.onBookmarkPress(area)}
+                        type="clear"
+                        TouchableComponent={TouchableWithoutFeedbackComponent}
+                    />
+                    <Button
+                        containerStyle={themeViewArea.styles.bookmarkButtonContainer}
+                        buttonStyle={themeViewArea.styles.bookmarkButton}
+                        icon={
+                            <Icon
+                                name={ isLiked ? 'favorite' : 'favorite-border' }
+                                size={24}
+                                color={likeColor}
+                            />
+                        }
+                        onPress={() => this.onLikePress(area)}
                         type="clear"
                         TouchableComponent={TouchableWithoutFeedbackComponent}
                     />
