@@ -28,7 +28,7 @@ const notifications = StyleSheet.create({
     },
 });
 
-const getRootStyle = (theme) => ({
+const getRootStyle: any = (theme) => ({
     display: 'flex',
     marginLeft: 14,
     marginRight: 14,
@@ -73,7 +73,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         unread: {
             ...notificationStyle,
-            color: therrTheme.colors.primary,
+            color: therrTheme.colors.brandingBlueGreen,
         },
         read: {
             ...notificationStyle,
@@ -81,7 +81,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         iconUnread: {
             ...iconStyle,
-            color: therrTheme.colors.primary,
+            color: therrTheme.colors.brandingBlueGreen,
         },
         iconRead: {
             ...iconStyle,

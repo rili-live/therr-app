@@ -49,7 +49,7 @@ const colors: ITherrThemeColors = {
     // Accents - Alternate color scheme to add variety and reduce blandless
     accent1: '#ffffff',
     accent1Fade: '#97c5bb',
-    accent2: '#cbffdc',
+    accent2: '#104B52',
     accent3: '#218a35',
     accentAlt: '#449885',
     accentTextBlack: '#1C7F8A',

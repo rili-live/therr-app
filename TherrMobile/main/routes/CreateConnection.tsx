@@ -421,7 +421,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                             />
                                         }
                                         <Button
-                                            buttonStyle={this.themeForms.styles.buttonRound}
+                                            buttonStyle={this.themeForms.styles.buttonPrimary}
                                             // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                                             disabledStyle={this.themeForms.styles.buttonRoundDisabled}
                                             disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}

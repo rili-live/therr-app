@@ -4,7 +4,7 @@ import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { ITherrThemeColors } from '../../styles/themes';
 
-export type ISelectionType = 'like' | 'dislike' | 'report';
+export type ISelectionType = 'like' | 'superLike' | 'dislike' | 'superDislike' | 'report';
 
 interface IAreaOptionsModal {
     isVisible: boolean;
@@ -61,14 +61,20 @@ export default ({
                 <Pressable style={themeReactionsModal.styles.container}>
                     <ModalButton
                         iconName="thumb-up"
-                        title={translate('modals.areaOptions.buttons.like')}
-                        onPress={() => onSelect('like')}
+                        title={translate('modals.areaOptions.buttons.superLike')}
+                        onPress={() => onSelect('superLike')}
                         themeButtons={themeButtons}
                     />
                     <ModalButton
                         iconName="thumb-down"
                         title={translate('modals.areaOptions.buttons.dislike')}
                         onPress={() => onSelect('dislike')}
+                        themeButtons={themeButtons}
+                    />
+                    <ModalButton
+                        iconName="thumb-down"
+                        title={translate('modals.areaOptions.buttons.superDislike')}
+                        onPress={() => onSelect('superDislike')}
                         themeButtons={themeButtons}
                     />
                     <ModalButton

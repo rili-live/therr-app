@@ -40,6 +40,7 @@ const renderItem = ({ item: area }, {
                 toggleAreaOptions={toggleAreaOptions}
                 hashtags={area.hashTags ? area.hashTags.split(',') : []}
                 area={area}
+                inspectArea={() => inspectArea(area)}
                 // TODO: Get username from response
                 user={user}
                 userDetails={{

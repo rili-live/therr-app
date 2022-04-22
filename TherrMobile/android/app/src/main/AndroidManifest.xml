@@ -63,6 +63,10 @@
             <action android:name="app.therrmobile.NEW_LIKE_RECEIVED" />
             <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
+        <intent-filter>
+            <action android:name="app.therrmobile.NEW_SUPER_LIKE_RECEIVED" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
       </activity>
 
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />

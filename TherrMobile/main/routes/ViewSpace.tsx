@@ -211,10 +211,9 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
 
     onSpaceOptionSelect = (type: ISelectionType) => {
         const { selectedSpace } = this.state;
-        const { createOrUpdateSpaceReaction } = this.props;
         const requestArgs: any = getReactionUpdateArgs(type);
 
-        createOrUpdateSpaceReaction(selectedSpace.id, requestArgs).finally(() => {
+        this.onUpdateSpaceReaction(selectedSpace.id, requestArgs).finally(() => {
             this.toggleAreaOptions(selectedSpace);
         });
     }
@@ -240,18 +239,18 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
     }
 
     onUpdateSpaceReaction = (spaceId, data) => {
-        const { createOrUpdateSpaceReaction, navigation, route } = this.props;
+        const { createOrUpdateSpaceReaction, navigation, route, user } = this.props;
         const { space } = route.params;
         navigation.setParams({
             space: {
                 ...space,
                 reaction: {
                     ...space.reaction,
-                    userBookmarkCategory: space.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+                    ...data,
                 },
             },
         });
-        return createOrUpdateSpaceReaction(spaceId, data);
+        return createOrUpdateSpaceReaction(spaceId, data, space.fromUserId, user.details.userName);
     }
 
     toggleAreaOptions = (area) => {
@@ -290,6 +289,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                 hashtags={this.hashtags}
                                 isDarkMode={true}
                                 isExpanded={true}
+                                inspectArea={() => null}
                                 area={space}
                                 goToViewUser={this.goToViewUser}
                                 updateAreaReaction={(spaceId, data) => this.onUpdateSpaceReaction(spaceId, data)}
