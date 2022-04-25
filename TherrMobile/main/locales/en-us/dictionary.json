@@ -301,7 +301,9 @@
         "submit": "Send",
         "delete": "Delete?",
         "confirm": "Delete",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "visibilityPublic": "Visibility: Public",
+        "visibilityPrivate": "Visibility: Friends Only"
       },
       "categories": {
         "uncategorized": "Select a Category",
@@ -336,6 +338,7 @@
       },
       "labels": {
         "addImageNote": "Select an existing image or capture a new one to represent your space.",
+        "cost": "Cost: {pointCost} points",
         "message": "Describe the location, event, business, promotion, etc...",
         "notificationMsg": "Title or Location Name",
         "hashTags": "Hashtags (ie. my_tag, myTag)",
@@ -474,9 +477,9 @@
       "headerTitle": "Area",
       "pageTitle": "Areas",
       "noNearbyAreasFound": "Nothing yet. Start the conversation by posting from the Map or increase the Awareness Radius to discover nearby content.",
-      "noSocialAreasFound": "You have not yet activated any moments/spaces. Explore the world, and active areas will start to appear in this view.",
+      "noSocialAreasFound": "You have not yet activated any moments/spaces. Enable location from the map, and active areas will start to appear in this view as you travel.",
       "noHireAreasFound": "No freelancer postings found in your area. Check back soon to find local freelancers in range of your location.",
-      "noEventsAreasFound": "No current or upcoming events found. Grow your connections to increase visibility and receive invites to exclusive events."
+      "noEventsAreasFound": "No current or upcoming events found. Invite friends and grow your connections to increase visibility and receive invites to exclusive events."
     },
     "bookmarked": {
       "headerTitle": "Favorited",

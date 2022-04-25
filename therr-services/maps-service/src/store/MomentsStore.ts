@@ -110,7 +110,7 @@ export default class MomentsStore {
                     }
                 });
             } else {
-                queryString = queryString.andWandWhere(conditions.filterBy, operator, query);
+                queryString = queryString.andWhere(conditions.filterBy, operator, query);
                 queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
                     builder.where(conditions.filterBy, operator, query);
                     if (includePublicResults) {

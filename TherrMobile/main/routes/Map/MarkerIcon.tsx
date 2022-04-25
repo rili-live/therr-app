@@ -10,7 +10,7 @@ import MarkerIconThinking from './MarkerIconThinking';
 
 const getMarkerConfigs = (theme: ITherrTheme) => ({
     deals: {
-        fill: theme.colors.textBlack,
+        fill: theme.colors.brandingBlack,
     },
     geocache: {
         fill: theme.colors.accentRed,
@@ -19,18 +19,18 @@ const getMarkerConfigs = (theme: ITherrTheme) => ({
         fill: theme.colors.brandingMapYellow,
     },
     food: {
-        fill: theme.colors.textBlack,
+        fill: theme.colors.brandingBlack,
     },
     music: {
-        fill: theme.colors.accentTextBlack,
+        fill: theme.colors.brandingBlack,
     },
     storefront: {
         fill: theme.colors.accentBlue,
-        fillAlt: theme.colorVariations.primary2Darken,
+        fillAlt: theme.colorVariations.primary3Darken,
     },
     area: {
         fill: theme.colors.accentBlue,
-        fillAlt: theme.colorVariations.primary2Darken,
+        fillAlt: theme.colorVariations.primary3Darken,
     },
 });
 
