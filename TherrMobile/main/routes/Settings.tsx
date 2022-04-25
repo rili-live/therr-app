@@ -116,6 +116,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
 
     reloadTheme = () => {
         const themeName = this.props.user.settings?.mobileThemeName;
+
         this.theme = buildStyles(themeName);
         this.themeMenu = buildMenuStyles(themeName);
         this.themeAlerts = buildAlertStyles(themeName);
@@ -308,7 +309,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
 
         return (
             <>
-                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
                 <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"

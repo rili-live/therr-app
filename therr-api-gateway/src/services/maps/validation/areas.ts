@@ -10,6 +10,7 @@ export const createAreaValidation = [
     body('expiresAt').optional(),
     body('fromUserId').isString().exists(),
     body('isPublic').isBoolean().optional(),
+    body('isDraft').isBoolean().optional(),
     body('message').isString().exists(),
     body('notificationMsg').isString().optional(),
     body('mediaIds').isString().optional(),
