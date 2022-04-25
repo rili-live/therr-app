@@ -68,7 +68,8 @@ interface IEditMomentState {
     errorMsg: string;
     successMsg: string;
     hashtags: string[];
-    isBottomSheetVisible: boolean;
+    isImageBottomSheetVisible: boolean;
+    isVisibilityBottomSheetVisible: boolean;
     inputs: any;
     isSubmitting: boolean;
     previewLinkId?: string;
@@ -110,8 +111,10 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             hashtags: [],
             inputs: {
                 radius: DEFAULT_RADIUS,
+                isPublic: true,
             },
-            isBottomSheetVisible: false,
+            isImageBottomSheetVisible: false,
+            isVisibilityBottomSheetVisible: false,
             isSubmitting: false,
             previewStyleState: {},
             selectedImage: imageDetails || {},
@@ -365,14 +368,21 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             this.setState({
                 selectedImage: imageResponse,
                 imagePreviewPath: getImagePreviewPath(imageResponse?.path),
-            }, () => this.toggleBottomSheet());
+            }, () => this.toggleImageBottomSheet());
         }
     }
 
-    toggleBottomSheet = () => {
-        const { isBottomSheetVisible } = this.state;
+    toggleImageBottomSheet = () => {
+        const { isImageBottomSheetVisible } = this.state;
         this.setState({
-            isBottomSheetVisible: !isBottomSheetVisible,
+            isImageBottomSheetVisible: !isImageBottomSheetVisible,
+        });
+    }
+
+    toggleVisibilityBottomSheet = () => {
+        const { isVisibilityBottomSheetVisible } = this.state;
+        this.setState({
+            isVisibilityBottomSheetVisible: !isVisibilityBottomSheetVisible,
         });
     }
 
@@ -404,12 +414,23 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 throw new Error('permissions denied');
             }
         }).catch((e) => {
-            this.toggleBottomSheet();
+            this.toggleImageBottomSheet();
             // TODO: Handle Permissions denied
             if (e?.message.toLowerCase().includes('cancel')) {
                 console.log('canceled');
             }
         });
+    }
+
+    onSetVisibility = (isPublic: boolean) => {
+        this.setState({
+            inputs: {
+                ...this.state.inputs,
+                isPublic,
+            },
+        });
+
+        this.toggleVisibilityBottomSheet();
     }
 
     onSliderChange = (name, value) => {
@@ -461,7 +482,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             previewLinkId,
             previewStyleState,
             imagePreviewPath,
-            isBottomSheetVisible,
+            isImageBottomSheetVisible,
+            isVisibilityBottomSheetVisible,
         } = this.state;
 
         return (
@@ -499,7 +521,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 title={this.translate(
                                     'forms.editMoment.buttons.addImage'
                                 )}
-                                onPress={() => this.toggleBottomSheet()}
+                                onPress={() => this.toggleImageBottomSheet()}
                                 raised={false}
                             />
                             <Text style={this.theme.styles.sectionDescriptionNote}>
@@ -554,6 +576,20 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 hashtags={hashtags}
                                 onHashtagPress={this.handleHashtagPress}
                                 styles={this.themeForms.styles}
+                            />
+                            <Button
+                                containerStyle={{ marginBottom: 10 }}
+                                buttonStyle={this.themeForms.styles.buttonRoundAlt}
+                                // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                                disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                titleStyle={this.themeForms.styles.buttonTitleAlt}
+                                title={inputs.isPublic
+                                    ? this.translate('forms.editMoment.buttons.visibilityPublic')
+                                    : this.translate('forms.editMoment.buttons.visibilityPrivate')}
+                                type="outline"
+                                onPress={this.toggleVisibilityBottomSheet}
+                                raised={false}
                             />
                             <View style={[this.themeForms.styles.inputSliderContainer, { paddingBottom: 20 }]}>
                                 <Slider
@@ -660,8 +696,54 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         />
                     </View>
                     <BottomSheet
-                        isVisible={isBottomSheetVisible}
-                        onRequestClose={this.toggleBottomSheet}
+                        isVisible={isVisibilityBottomSheetVisible}
+                        onRequestClose={this.toggleVisibilityBottomSheet}
+                        themeModal={this.themeModal}
+                    >
+                        <Button
+                            containerStyle={{ marginBottom: 10, width: '100%' }}
+                            buttonStyle={this.themeForms.styles.buttonRound}
+                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                            titleStyle={this.themeForms.styles.buttonTitle}
+                            title={this.translate(
+                                'forms.editMoment.buttons.visibilityPublic'
+                            )}
+                            onPress={() => this.onSetVisibility(true)}
+                            raised={false}
+                            icon={
+                                <OctIcon
+                                    name="globe"
+                                    size={22}
+                                    style={this.themeForms.styles.buttonIcon}
+                                />
+                            }
+                        />
+                        <Button
+                            containerStyle={{ width: '100%' }}
+                            buttonStyle={this.themeForms.styles.buttonRound}
+                            // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                            disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                            disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                            titleStyle={this.themeForms.styles.buttonTitle}
+                            title={this.translate(
+                                'forms.editMoment.buttons.visibilityPrivate'
+                            )}
+                            onPress={() => this.onSetVisibility(false)}
+                            raised={false}
+                            icon={
+                                <OctIcon
+                                    name="people"
+                                    size={22}
+                                    style={this.themeForms.styles.buttonIcon}
+                                />
+                            }
+                        />
+                    </BottomSheet>
+                    <BottomSheet
+                        isVisible={isImageBottomSheetVisible}
+                        onRequestClose={this.toggleImageBottomSheet}
                         themeModal={this.themeModal}
                     >
                         <Button

@@ -81,6 +81,7 @@ const colorVariations: ITherrThemeColorVariations = {
     primaryFadeMore: new Color(colors.primary).fade(0.65).toString(),
     primary2Fade: new Color(colors.primary2).fade(0.35).toString(),
     primary2Darken: new Color(colors.primary2).darken(0.075).toString(),
+    primary3Darken: new Color(colors.primary3).darken(0.075).toString(),
     primary3LightFade: new Color(colors.primary3).fade(0.15).toString(),
     primary3Fade: new Color(colors.primary3).fade(0.25).toString(),
     primary4Fade: new Color(colors.primary4).fade(0.5).toString(),

@@ -85,7 +85,7 @@
     "react-native-screens": "^3.0.0",
     "react-native-snap-carousel": "^3.9.1",
     "react-native-svg": "^12.1.1",
-    "react-native-vector-icons": "^8.0.0",
+    "react-native-vector-icons": "^9.1.0",
     "react-native-webview": "^11.4.4",
     "react-native-youtube-iframe": "^1.4.0",
     "rn-fetch-blob": "^0.12.0"
