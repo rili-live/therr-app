@@ -14,12 +14,12 @@ export default ({
     return (
         <Button
             containerStyle={themeButtons.styles.buttonFloatBottomRightContainer}
-            buttonStyle={[themeButtons.styles.btnLargeWithText, { paddingRight: 20, paddingLeft: 10 }]}
-            titleStyle={themeButtons.styles.btnMediumTitleRight}
+            buttonStyle={[themeButtons.styles.btnLargeWithText]}
+            titleStyle={themeButtons.styles.btnLargeTitle}
             icon={
                 <MaterialIcon
                     name="add"
-                    size={40}
+                    size={22}
                     style={themeButtons.styles.btnIcon}
                 />
             }

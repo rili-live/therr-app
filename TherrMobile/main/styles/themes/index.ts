@@ -96,6 +96,7 @@ export interface ITherrThemeColorVariations {
     primaryFadeMore: string;
     primary2Fade: string;
     primary2Darken: string;
+    primary3Darken: string;
     primary3LightFade: string;
     primary3Fade: string;
     primary4Fade: string;

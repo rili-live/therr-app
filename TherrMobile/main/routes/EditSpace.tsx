@@ -576,6 +576,9 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                 <Text style={this.themeForms.styles.inputLabelDark}>
                                     {`${this.translate('forms.editSpace.labels.radius', { meters: inputs.radius })}`}
                                 </Text>
+                                <Text style={this.themeForms.styles.inputLabelDark}>
+                                    {`${this.translate('forms.editSpace.labels.cost', { pointCost: 0 })}`}
+                                </Text>
                             </View>
                             <Alert
                                 containerStyles={addMargins({
