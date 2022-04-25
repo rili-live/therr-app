@@ -21,6 +21,7 @@ export interface ICreateMomentParams {
     fromUserId: number;
     locale: string;
     isPublic?: boolean;
+    isDraft?: boolean;
     message: string;
     notificationMsg?: string;
     mediaIds?: string;
@@ -259,6 +260,7 @@ export default class MomentsStore {
                 fromUserId: params.fromUserId,
                 locale: params.locale,
                 isPublic: !!params.isPublic,
+                isDraft: !!params.isDraft,
                 message: params.message,
                 notificationMsg,
                 mediaIds: mediaIds || params.mediaIds || '',

@@ -25,7 +25,7 @@ const ConnectionItem: React.FunctionComponent<IConnectionItemProps> = ({
             containerStyle={theme.styles.listItemCard}
         >
             <Avatar
-                title={`${connectionDetails.firstName.substring(0, 1)}${connectionDetails.lastName.substring(0, 1)}`}
+                title={`${connectionDetails.firstName?.substring(0, 1)}${connectionDetails.lastName?.substring(0, 1)}`}
                 rounded
                 source={{
                     uri: getUserImageUri({ details: connectionDetails }, 100),
