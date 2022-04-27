@@ -2,6 +2,7 @@ import {
     body,
     oneOf,
     query,
+    param,
 } from 'express-validator/check'; // eslint-disable-line import/extensions
 
 export const createAreaValidation = [
@@ -45,9 +46,17 @@ export const createAreaValidation = [
     ]),
 ];
 
+export const updateAreaValidation = [
+    ...createAreaValidation,
+    param('momentId'),
+];
+
 export const searchAreasValidation = [
     query('longitude').exists(),
     query('latitude').exists(),
+];
+
+export const searchMyAreasValidation = [
 ];
 
 export const deleteAreasValidation = [

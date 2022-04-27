@@ -6,6 +6,7 @@ import { AccessLevels } from 'therr-js-utilities/constants';
 import { IAccess, AccessCheckType } from 'therr-react/types';
 import AdvancedSearch from './AdvancedSearch';
 import BookMarked from './Areas/BookMarked';
+import MyDrafts from './Areas/MyDrafts';
 import Home from './Home';
 import DirectMessage from './DirectMessage';
 import Landing from './Landing';
@@ -142,6 +143,17 @@ const routes: RouteConfig<
         component: BookMarked,
         options: () => ({
             title: 'Bookmarked',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'MyDrafts',
+        component: MyDrafts,
+        options: () => ({
+            title: 'My Drafts',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

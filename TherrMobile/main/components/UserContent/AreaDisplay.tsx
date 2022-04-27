@@ -73,11 +73,13 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
     }
 
     onLikePress = (area) => {
-        const { updateAreaReaction, userDetails } = this.props;
+        if (!area.isDraft) {
+            const { updateAreaReaction, userDetails } = this.props;
 
-        updateAreaReaction(area.id, {
-            userHasLiked: !area.reaction?.userHasLiked,
-        }, area.fromUserId, userDetails.userName);
+            updateAreaReaction(area.id, {
+                userHasLiked: !area.reaction?.userHasLiked,
+            }, area.fromUserId, userDetails.userName);
+        }
     }
 
     render() {
@@ -158,36 +160,41 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     >
                         {sanitizeNotificationMsg(area.notificationMsg)}
                     </Text>
-                    <Button
-                        containerStyle={themeViewArea.styles.bookmarkButtonContainer}
-                        buttonStyle={themeViewArea.styles.bookmarkButton}
-                        icon={
-                            <Icon
-                                name={ isBookmarked ? 'bookmark' : 'bookmark-border' }
-                                size={24}
-                                color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                    {
+                        !area.isDraft &&
+                        <>
+                            <Button
+                                containerStyle={themeViewArea.styles.bookmarkButtonContainer}
+                                buttonStyle={themeViewArea.styles.bookmarkButton}
+                                icon={
+                                    <Icon
+                                        name={ isBookmarked ? 'bookmark' : 'bookmark-border' }
+                                        size={24}
+                                        color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                    />
+                                }
+                                onPress={() => this.onBookmarkPress(area)}
+                                type="clear"
+                                TouchableComponent={TouchableWithoutFeedbackComponent}
                             />
-                        }
-                        onPress={() => this.onBookmarkPress(area)}
-                        type="clear"
-                        TouchableComponent={TouchableWithoutFeedbackComponent}
-                    />
-                    <Button
-                        containerStyle={themeViewArea.styles.bookmarkButtonContainer}
-                        buttonStyle={themeViewArea.styles.bookmarkButton}
-                        icon={
-                            <Icon
-                                name={ isLiked ? 'favorite' : 'favorite-border' }
-                                size={24}
-                                color={likeColor}
+                            <Button
+                                containerStyle={themeViewArea.styles.bookmarkButtonContainer}
+                                buttonStyle={themeViewArea.styles.bookmarkButton}
+                                icon={
+                                    <Icon
+                                        name={ isLiked ? 'favorite' : 'favorite-border' }
+                                        size={24}
+                                        color={likeColor}
+                                    />
+                                }
+                                onPress={() => this.onLikePress(area)}
+                                type="clear"
+                                TouchableComponent={TouchableWithoutFeedbackComponent}
                             />
-                        }
-                        onPress={() => this.onLikePress(area)}
-                        type="clear"
-                        TouchableComponent={TouchableWithoutFeedbackComponent}
-                    />
+                        </>
+                    }
                 </View>
-                <Text style={themeViewArea.styles.areaMessage} numberOfLines={3}>
+                <Text style={themeViewArea.styles.areaMessage} numberOfLines={isExpanded ? undefined : 3}>
                     <Autolink
                         text={area.message}
                         linkStyle={theme.styles.link}

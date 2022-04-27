@@ -7,6 +7,8 @@ export interface IContentState extends Immutable.ImmutableObject<any> {
     activeSpaces: any;
     activeSpacesPagination: any;
     bookmarkedSpaces: any;
+    myDrafts: any;
+    myDraftsPagination: any;
 
     activeAreasFilters: any;
     media: any;
@@ -20,6 +22,9 @@ export enum ContentActionTypes {
     UPDATE_ACTIVE_MOMENTS = 'UPDATE_ACTIVE_MOMENTS',
     UPDATE_ACTIVE_MOMENT_REACTION = 'UPDATE_ACTIVE_MOMENT_REACTION',
     SEARCH_BOOKMARKED_MOMENTS = 'SEARCH_BOOKMARKED_MOMENTS',
+    SEARCH_MY_DRAFTS = 'SEARCH_MY_DRAFTS',
+    MOMENT_DRAFT_CREATED = 'MOMENT_DRAFT_CREATED',
+    MOMENT_DRAFT_DELETED = 'MOMENT_DRAFT_DELETED',
 
     // Spaces
     UPDATE_ACTIVE_SPACE_REACTION = 'UPDATE_ACTIVE_SPACE_REACTION',

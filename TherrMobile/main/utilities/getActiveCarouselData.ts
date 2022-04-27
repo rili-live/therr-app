@@ -38,11 +38,19 @@ const mergeAreas = (moments: any[], spaces: any[], sortBy = 'createdAt') => {
     }
 };
 
+interface IGetActiveDataArgs {
+    activeTab: any;
+    content: any;
+    isForBookmarks?: boolean;
+    isForDrafts?: boolean;
+}
+
 export default ({
     activeTab,
     content,
     isForBookmarks,
-}, sortBy = 'createdAt') => {
+    isForDrafts,
+}: IGetActiveDataArgs, sortBy = 'createdAt') => {
     if (activeTab === CAROUSEL_TABS.HIRE) {
         return [];
     }
@@ -53,6 +61,10 @@ export default ({
 
     if (isForBookmarks) {
         return mergeAreas(content.bookmarkedMoments, content.bookmarkedSpaces, sortBy);
+    }
+
+    if (isForDrafts) {
+        return mergeAreas(content.myDrafts, [], sortBy);
     }
 
     return mergeAreas(content.activeMoments, content.activeSpaces, sortBy);

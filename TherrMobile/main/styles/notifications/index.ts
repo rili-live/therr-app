@@ -9,11 +9,6 @@ const messageContainerStyle: any = {
     justifyContent: 'flex-start',
 };
 
-const iconStyle: any = {
-    position: 'absolute',
-    right: 10,
-};
-
 const notificationStyle: any = {
     textAlign: 'left',
     fontSize: 16,
@@ -79,12 +74,14 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             ...notificationStyle,
             color: therrTheme.colors.textWhite,
         },
+        iconContainerStyle: {
+            position: 'absolute',
+            right: 10,
+        },
         iconUnread: {
-            ...iconStyle,
             color: therrTheme.colors.brandingBlueGreen,
         },
         iconRead: {
-            ...iconStyle,
             color: therrTheme.colors.accent1Fade,
         },
     });
