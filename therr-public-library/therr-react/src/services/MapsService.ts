@@ -63,6 +63,12 @@ class MapsService {
         data,
     })
 
+    updateArea = (areaType: IAreaType, id: string, data: ICreateAreaBody) => axios({
+        method: 'put',
+        url: `/maps-service/${areaType}/${id}`,
+        data,
+    })
+
     getAreaDetails = (areaType: IAreaType, id: number, args: IGetAreaDetailsArgs) => axios({
         method: 'post',
         url: `/maps-service/${areaType}/${id}/details`,
@@ -79,6 +85,16 @@ class MapsService {
         });
     }
 
+    searchMyAreas = (areaType: IAreaType, query: ISearchQuery, data: ISearchAreasArgs = {}) => {
+        const queryString = getSearchQueryString(query);
+
+        return axios({
+            method: 'post',
+            url: `/maps-service/${areaType}/search/me${queryString}`,
+            data,
+        });
+    }
+
     deleteAreas = (areaType: IAreaType, data: IDeleteAreasBody) => axios({
         method: 'delete',
         url: `/maps-service/${areaType}`,
@@ -88,9 +104,13 @@ class MapsService {
     // Moments
     createMoment = (data: ICreateAreaBody) => this.createArea('moments', data)
 
+    updateMoment = (id: string, data: ICreateAreaBody) => this.updateArea('moments', id, data)
+
     getMomentDetails = (id: number, args: IGetAreaDetailsArgs) => this.getAreaDetails('moments', id, args)
 
     searchMoments = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('moments', query, data)
+
+    searchMyMoments = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchMyAreas('moments', query, data)
 
     deleteMoments = (data: IDeleteAreasBody) => this.deleteAreas('moments', data)
 

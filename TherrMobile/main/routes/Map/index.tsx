@@ -219,8 +219,8 @@ class Map extends React.Component<IMapProps, IMapState> {
                 connectionsSpaces: true,
             },
             circleCenter: {
-                longitude: -96.4683143,
-                latitude: 32.8102631,
+                longitude: -99.458829,
+                latitude: 39.7629981,
             },
         };
 
@@ -375,6 +375,10 @@ class Map extends React.Component<IMapProps, IMapState> {
     handleCreate = (action: ICreateMomentAction = 'moment') => {
         const { location, navigation } = this.props;
         const { circleCenter } = this.state;
+
+        this.setState({
+            shouldShowCreateActions: false,
+        });
 
         if (location?.settings?.isGpsEnabled) {
             // TODO: Store permissions in redux
@@ -918,7 +922,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         if (lat && long) {
             searchMoments({
                 query: 'connections',
-                itemsPerPage: 50,
+                itemsPerPage: 200,
                 pageNumber: 1,
                 order: 'desc',
                 filterBy: 'fromUserIds',
@@ -940,7 +944,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             });
             searchSpaces({
                 query: 'connections',
-                itemsPerPage: 50,
+                itemsPerPage: 200,
                 pageNumber: 1,
                 order: 'desc',
                 filterBy: 'fromUserIds',

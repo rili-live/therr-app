@@ -52,6 +52,7 @@ const hapticFeedbackOptions = {
 
 interface IEditMomentDispatchProps {
     createMoment: Function;
+    updateMoment: Function;
 }
 
 interface IStoreProps extends IEditMomentDispatchProps {
@@ -84,6 +85,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     createMoment: MapActions.createMoment,
+    updateMoment: MapActions.updateMoment,
 }, dispatch);
 
 export class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
@@ -103,15 +105,21 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         super(props);
 
         const { route } = props;
-        const { imageDetails } = route.params;
+        const { area, imageDetails } = route.params;
 
         this.state = {
             errorMsg: '',
             successMsg: '',
             hashtags: [],
             inputs: {
-                radius: DEFAULT_RADIUS,
-                isPublic: true,
+                isDraft: false,
+                isPublic: area?.isPublic || true,
+                radius: area?.radius || DEFAULT_RADIUS,
+                category: area?.category || '',
+                message: area?.message || '',
+                notificationMsg: area?.notificationMsg || '',
+                hashTags: area?.hashtags || '',
+                maxViews: area?.maxViews,
             },
             isImageBottomSheetVisible: false,
             isVisibilityBottomSheetVisible: false,
@@ -228,7 +236,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         });
     }
 
-    onSubmit = () => {
+    onSubmit = (isDraft = false) => {
         const { hashtags, selectedImage } = this.state;
         const {
             category,
@@ -244,10 +252,14 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             route,
             user,
         } = this.props;
-        const {
+        let {
             latitude,
             longitude,
         } = route.params;
+        if (!latitude || !longitude) {
+            latitude = route.params.area?.latitude;
+            longitude = route.params.area?.longitude;
+        }
 
         const createArgs: any = {
             category,
@@ -256,6 +268,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             message,
             notificationMsg,
             hashTags: hashtags.join(','),
+            isDraft,
             latitude,
             longitude,
             maxViews,
@@ -270,9 +283,14 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 isSubmitting: true,
             });
 
-            (selectedImage?.path ? this.signAndUploadImage(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
-                this.props
-                    .createMoment(modifiedCreateArgs)
+            // Note do not save image on 'create draft' otherwise we end up with duplicate images when finalizing draft
+            // This is not the BEST user experience but prevents a lot of potential waste
+            ((selectedImage?.path && !isDraft) ? this.signAndUploadImage(createArgs) : Promise.resolve(createArgs)).then((modifiedCreateArgs) => {
+                const createOrUpdatePromise = route.params.area?.id
+                    ? this.props.updateMoment(route.params.area.id, modifiedCreateArgs, !isDraft) // isCompletedDraft (when id and saving finalized)
+                    : this.props.createMoment(modifiedCreateArgs);
+
+                createOrUpdatePromise
                     .then(() => {
                         this.setState({
                             successMsg: this.translate('forms.editMoment.backendSuccessMessage'),
@@ -664,7 +682,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         <Button
                             containerStyle={this.themeAccentForms.styles.backButtonContainer}
                             buttonStyle={this.themeAccentForms.styles.backButton}
-                            onPress={() => navigation.navigate('Map')}
+                            onPress={() => navigation.goBack()}
                             icon={
                                 <FontAwesome5Icon
                                     name="arrow-left"
@@ -673,6 +691,26 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 />
                             }
                             type="clear"
+                        />
+                        <Button
+                            buttonStyle={this.themeAccentForms.styles.draftButton}
+                            disabledStyle={this.themeAccentForms.styles.submitButtonDisabled}
+                            disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
+                            titleStyle={this.themeAccentForms.styles.submitButtonTitle}
+                            containerStyle={[this.themeAccentForms.styles.submitButtonContainer, { marginRight: 20 }]}
+                            title={this.translate(
+                                'forms.editMoment.buttons.draft'
+                            )}
+                            icon={
+                                <FontAwesome5Icon
+                                    name="pencil-alt"
+                                    size={20}
+                                    color={this.isFormDisabled() ? 'grey' : 'black'}
+                                    style={this.themeAccentForms.styles.submitButtonIcon}
+                                />
+                            }
+                            onPress={() => this.onSubmit(true)}
+                            disabled={this.isFormDisabled()}
                         />
                         <Button
                             buttonStyle={this.themeAccentForms.styles.submitButton}
@@ -686,12 +724,12 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             icon={
                                 <FontAwesome5Icon
                                     name="paper-plane"
-                                    size={25}
+                                    size={20}
                                     color={this.isFormDisabled() ? 'grey' : 'black'}
                                     style={this.themeAccentForms.styles.submitButtonIcon}
                                 />
                             }
-                            onPress={this.onSubmit}
+                            onPress={() => this.onSubmit()}
                             disabled={this.isFormDisabled()}
                         />
                     </View>
