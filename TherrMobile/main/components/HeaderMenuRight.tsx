@@ -451,6 +451,33 @@ class HeaderMenuRight extends React.Component<
                                             </View>
                                             <Button
                                                 buttonStyle={
+                                                    currentScreen === 'MyDrafts'
+                                                        ? themeMenu.styles.buttonsActive
+                                                        : themeMenu.styles.buttons
+                                                }
+                                                containerStyle={{ width: '100%' }}
+                                                titleStyle={
+                                                    currentScreen === 'MyDrafts'
+                                                        ? themeMenu.styles.buttonsTitleActive
+                                                        : themeMenu.styles.buttonsTitle
+                                                }
+                                                title={this.translate('components.headerMenuRight.menuItems.myDrafts')}
+                                                icon={
+                                                    <FontAwesomeIcon
+                                                        style={
+                                                            currentScreen === 'MyDrafts'
+                                                                ? themeMenu.styles.iconStyleActive
+                                                                : themeMenu.styles.iconStyle
+                                                        }
+                                                        name={'pencil-alt'}
+                                                        size={18}
+                                                    />
+                                                }
+                                                iconRight
+                                                onPress={() => this.navTo('MyDrafts')}
+                                            />
+                                            <Button
+                                                buttonStyle={
                                                     currentScreen === 'BookMarked'
                                                         ? themeMenu.styles.buttonsActive
                                                         : themeMenu.styles.buttons

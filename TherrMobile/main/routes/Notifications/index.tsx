@@ -100,7 +100,7 @@ class Notifications extends React.Component<
             requestStatus: isAccepted ? 'complete' : 'denied',
         };
 
-        this.markNotificationAsRead(e, notification, updatedUserConnection);
+        this.markNotificationAsRead(e, notification, updatedUserConnection, false);
 
         updateUserConnection({
             connection: {
@@ -122,8 +122,7 @@ class Notifications extends React.Component<
         }
     }
 
-    markNotificationAsRead = (event, notification, userConnection?: any) => {
-        const { navigation } = this.props;
+    markNotificationAsRead = (event, notification, userConnection?: any, shouldNavigate = true) => {
         if (notification.isUnread || userConnection) {
             const { updateNotification, user } = this.props;
 
@@ -141,6 +140,13 @@ class Notifications extends React.Component<
             updateNotification(message);
         }
 
+        if (shouldNavigate) {
+            this.navigateToNotificationContext(notification);
+        }
+    }
+
+    navigateToNotificationContext = (notification) => {
+        const { navigation } = this.props;
         if (notification.type === NotificationsEmuns.Types.NEW_AREAS_ACTIVATED
             || notification.type === NotificationsEmuns.Types.NEW_LIKE_RECEIVED
             || notification.type === NotificationsEmuns.Types.NEW_SUPER_LIKE_RECEIVED) {
@@ -181,7 +187,8 @@ class Notifications extends React.Component<
                         renderItem={({ item, index }) => (
                             <Notification
                                 acknowledgeRequest={this.handleConnectionRequestAction}
-                                handlePress={(e) => this.markNotificationAsRead(e, item, false)}
+                                handlePressAndNavigate={(e) => this.markNotificationAsRead(e, item, false, true)}
+                                handlePress={(e) => this.markNotificationAsRead(e, item, false, false)}
                                 isUnread={item.isUnread}
                                 notification={item}
                                 containerStyles={index === 0 ? notificationStyles.firstChildNotification : {}}

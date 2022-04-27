@@ -4,9 +4,10 @@ import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { ITherrThemeColors } from '../../styles/themes';
 
-export type ISelectionType = 'like' | 'superLike' | 'dislike' | 'superDislike' | 'report';
+export type ISelectionType = 'like' | 'superLike' | 'dislike' | 'superDislike' | 'report' | 'delete';
 
 interface IAreaOptionsModal {
+    children?: React.ReactNode,
     isVisible: boolean;
     onRequestClose: any;
     translate: Function;
@@ -21,7 +22,7 @@ interface IAreaOptionsModal {
     onSelect: (type: ISelectionType) => any
 }
 
-const ModalButton = ({ title, iconName, onPress, themeButtons }) => (
+export const ModalButton = ({ title, iconName, onPress, themeButtons }) => (
     <Button
         containerStyle={{ width: '100%' }}
         buttonStyle={[themeButtons.styles.btnClear, { padding: 10 }]}
@@ -41,6 +42,7 @@ const ModalButton = ({ title, iconName, onPress, themeButtons }) => (
 );
 
 export default ({
+    children,
     isVisible,
     onRequestClose,
     translate,
@@ -59,30 +61,35 @@ export default ({
                 onPress={onRequestClose}
                 style={themeReactionsModal.styles.overlay}>
                 <Pressable style={themeReactionsModal.styles.container}>
-                    <ModalButton
-                        iconName="thumb-up"
-                        title={translate('modals.areaOptions.buttons.superLike')}
-                        onPress={() => onSelect('superLike')}
-                        themeButtons={themeButtons}
-                    />
-                    <ModalButton
-                        iconName="thumb-down"
-                        title={translate('modals.areaOptions.buttons.dislike')}
-                        onPress={() => onSelect('dislike')}
-                        themeButtons={themeButtons}
-                    />
-                    <ModalButton
-                        iconName="thumb-down"
-                        title={translate('modals.areaOptions.buttons.superDislike')}
-                        onPress={() => onSelect('superDislike')}
-                        themeButtons={themeButtons}
-                    />
-                    <ModalButton
-                        iconName="report-problem"
-                        title={translate('modals.areaOptions.buttons.report')}
-                        onPress={() => onSelect('report')}
-                        themeButtons={themeButtons}
-                    />
+                    {
+                        children ||
+                        <>
+                            <ModalButton
+                                iconName="thumb-up"
+                                title={translate('modals.areaOptions.buttons.superLike')}
+                                onPress={() => onSelect('superLike')}
+                                themeButtons={themeButtons}
+                            />
+                            <ModalButton
+                                iconName="thumb-down"
+                                title={translate('modals.areaOptions.buttons.dislike')}
+                                onPress={() => onSelect('dislike')}
+                                themeButtons={themeButtons}
+                            />
+                            <ModalButton
+                                iconName="thumb-down"
+                                title={translate('modals.areaOptions.buttons.superDislike')}
+                                onPress={() => onSelect('superDislike')}
+                                themeButtons={themeButtons}
+                            />
+                            <ModalButton
+                                iconName="report-problem"
+                                title={translate('modals.areaOptions.buttons.report')}
+                                onPress={() => onSelect('report')}
+                                themeButtons={themeButtons}
+                            />
+                        </>
+                    }
                 </Pressable>
             </Pressable>
         </Modal>

@@ -27,6 +27,11 @@ const renderItem = ({ item: area }, {
         fetchMedia(area.media[0]?.id);
     }
     const areaMedia = content?.media[area.media && area.media[0]?.id];
+    const userDetails = area.fromUserName ? {
+        userName: area.fromUserName,
+    } : {
+        userName: user.details.id === area.fromUserId ? user.details.userName : area.fromUserId,
+    };
 
     return (
         <Pressable
@@ -43,9 +48,7 @@ const renderItem = ({ item: area }, {
                 inspectArea={() => inspectArea(area)}
                 // TODO: Get username from response
                 user={user}
-                userDetails={{
-                    userName: area.fromUserName || area.fromUserId,
-                }}
+                userDetails={userDetails}
                 updateAreaReaction={updateAreaReaction}
                 areaMedia={areaMedia}
                 isDarkMode={false}

@@ -53,6 +53,10 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             justifyContent: 'center',
             elevation: 3,
         },
+        draftButton: {
+            ...submitButtonStyles,
+            backgroundColor: therrTheme.colors.accent1Fade,
+        },
         submitButton: {
             ...submitButtonStyles,
             backgroundColor: therrTheme.colors.accentTeal,
