@@ -75,7 +75,8 @@ const getSpaceDetails = (req, res) => {
             const space = spaces[0];
             let userHasAccessPromise = () => Promise.resolve(true);
             // Verify that user has activated space and has access to view it
-            if (space.fromUserId !== userId) {
+            // TODO: Verify space exists
+            if (space?.fromUserId !== userId) {
                 userHasAccessPromise = () => getReactions(spaceId, {
                     'x-userid': userId,
                 });

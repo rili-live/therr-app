@@ -93,7 +93,8 @@ const getMomentDetails = (req, res) => {
             const moment = moments[0];
             let userHasAccessPromise = () => Promise.resolve(true);
             // Verify that user has activated moment and has access to view it
-            if (moment.fromUserId !== userId) {
+            // TODO: Verify moment exists
+            if (moment?.fromUserId !== userId) {
                 userHasAccessPromise = () => getReactions(momentId, {
                     'x-userid': userId,
                 });

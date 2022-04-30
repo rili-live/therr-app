@@ -156,7 +156,7 @@ export default class MomentsStore {
         }
 
         queryString = queryString
-            .limit(limit)
+            .limit(limit || 50)
             .offset(offset)
             .toString();
 
@@ -178,7 +178,7 @@ export default class MomentsStore {
             .whereIn('id', momentIds || [])
             .limit(restrictedLimit);
 
-        if (filters.fromUserId) {
+        if (filters?.fromUserId) {
             query = query.where({ fromUserId: filters.fromUserId });
         }
 
