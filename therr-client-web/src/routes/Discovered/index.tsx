@@ -2,8 +2,10 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import translator from '../services/translator';
+import translator from '../../services/translator';
 // import * as globalConfig from '../../../global-config.js';
+
+import Tile from './Tile'
 
 import { ContentActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
@@ -115,9 +117,22 @@ export class DiscoveredComponent extends React.Component<IDiscoveredProps, IDisc
   }
 
     public render(): JSX.Element | null {
+        // render is a function
+        const { content } = this.props;
+
+        // define tiles
+        // console.log(content.activeMoments)
+        // console.log(content.activeSpaces)
+
+        // mimic instagram
+
         return (
             <div id="page_discovered">
-                {this.translate('pages.discovered.helloDiscovered')}
+                <div id="page_discovered_content">
+                    {content.activeMoments.map(moment => {
+                        return <div className='tile_wrapper' key={moment.id}><Tile moment={moment} /></div>
+                    })}
+                </div>
             </div>
         );
     }

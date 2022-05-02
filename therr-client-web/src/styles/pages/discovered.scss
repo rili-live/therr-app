@@ -1,0 +1,46 @@
+#page_discovered {
+  background: white;
+  border-radius: 20px;
+}
+
+#page_discovered_content {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.tile_wrapper {
+  width: 30%;
+  padding: 0 10px;
+  border-bottom: solid;
+  border-width: 2px;
+  border-color: #E7E8E8;
+}
+
+.tile {
+  width: 100%;
+  color: #6a7071;
+}
+
+.tile_username {
+  color: #393C3C
+}
+
+.tile_image {
+  width: 100%;
+  max-height: 70%;
+}
+
+.tile_lower_content {
+  display: flex;
+  justify-content: space-between;
+}
+
+.tile_message {
+  display: 'flex';
+  justify-content: 'center';
+  padding: '1rem';
+}
+
+.tile_button_liked {
+  background-color: red;
+}
