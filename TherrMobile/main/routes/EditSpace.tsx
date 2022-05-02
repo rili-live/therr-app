@@ -14,6 +14,7 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import analytics from '@react-native-firebase/analytics';
 import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
@@ -134,8 +135,8 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
             },
             {
                 id: 2,
-                label: this.translate('forms.editMoment.categories.music'),
-                value: 'music',
+                label: this.translate('forms.editMoment.categories.menu'),
+                value: 'menu',
             },
             {
                 id: 3,
@@ -156,6 +157,16 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                 id: 6,
                 label: this.translate('forms.editMoment.categories.food'),
                 value: 'food',
+            },
+            {
+                id: 7,
+                label: this.translate('forms.editMoment.categories.music'),
+                value: 'music',
+            },
+            {
+                id: 8,
+                label: this.translate('forms.editMoment.categories.nature'),
+                value: 'nature',
             },
         ];
         // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
@@ -279,6 +290,14 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                         this.setState({
                             successMsg: this.translate('forms.editSpace.backendSuccessMessage'),
                         });
+                        analytics().logEvent('space_create', {
+                            userId: user.details.id,
+                            momentLongitude: longitude,
+                            momentLatitude: latitude,
+                            radius,
+                            isPublic,
+                            category,
+                        }).catch((err) => console.log(err));
                         setTimeout(() => {
                             this.props.navigation.navigate('Map');
                         }, 500);

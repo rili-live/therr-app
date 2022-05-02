@@ -168,6 +168,15 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         navToViewArea(area, user, navigation.navigate);
     };
 
+    goToViewMap = (lat, long) => {
+        const { navigation } = this.props;
+
+        navigation.navigate('Map', {
+            latitude: lat,
+            longitude: long,
+        });
+    }
+
     goToViewUser = (userId) => {
         const { navigation } = this.props;
 
@@ -271,6 +280,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                         inspectArea={this.goToArea}
                         isLoading={isLoading}
                         fetchMedia={fetchMedia}
+                        goToViewMap={this.goToViewMap}
                         goToViewUser={this.goToViewUser}
                         toggleAreaOptions={this.toggleAreaOptions}
                         translate={this.translate}

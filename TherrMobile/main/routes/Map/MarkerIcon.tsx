@@ -1,14 +1,19 @@
 import React from 'react';
 import { ITherrTheme } from '../../styles/themes';
+import MarkerIconArt from './MarkerIconArt';
 import MarkerIconGeocache from './MarkerIconGeocache';
 import MarkerIconCamera from './MarkerIconCamera';
 import MarkerIconDiscount from './MarkerIconDiscount';
 import MarkerIconFood from './MarkerIconFood';
 import MarkerIconMusic from './MarkerIconMusic';
+import MarkerIconNature from './MarkerIconNature';
 import MarkerIconStorefront from './MarkerIconStorefront';
 import MarkerIconThinking from './MarkerIconThinking';
 
 const getMarkerConfigs = (theme: ITherrTheme) => ({
+    art: {
+        fill: theme.colors.ternary2,
+    },
     deals: {
         fill: theme.colors.brandingBlack,
     },
@@ -32,6 +37,9 @@ const getMarkerConfigs = (theme: ITherrTheme) => ({
         fill: theme.colors.accentBlue,
         fillAlt: theme.colorVariations.primary3Darken,
     },
+    nature: {
+        fill: theme.colors.accent3,
+    },
 });
 
 export default function MarkerIcon({
@@ -39,7 +47,15 @@ export default function MarkerIcon({
     area,
     theme,
 }) {
+    return (
+        <MarkerIconNature {...getMarkerConfigs(theme).nature} />
+    );
     // TODO: Add all categories
+    if (area.category === 'art') {
+        return (
+            <MarkerIconArt {...getMarkerConfigs(theme).art} />
+        );
+    }
     if (area.category === 'deals') {
         return (
             <MarkerIconDiscount {...getMarkerConfigs(theme).deals} />
@@ -68,6 +84,11 @@ export default function MarkerIcon({
     if (area.category === 'geocache') {
         return (
             <MarkerIconGeocache {...getMarkerConfigs(theme).geocache} />
+        );
+    }
+    if (area.category === 'nature') {
+        return (
+            <MarkerIconNature {...getMarkerConfigs(theme).nature} />
         );
     }
 

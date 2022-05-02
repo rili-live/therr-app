@@ -228,6 +228,15 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         }
     }
 
+    goToViewMap = (lat, long) => {
+        const { navigation } = this.props;
+
+        navigation.navigate('Map', {
+            latitude: lat,
+            longitude: long,
+        });
+    }
+
     goToViewUser = (userId) => {
         const { navigation } = this.props;
 
@@ -291,6 +300,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 isExpanded={true}
                                 inspectArea={() => null}
                                 area={moment}
+                                goToViewMap={this.goToViewMap}
                                 goToViewUser={this.goToViewUser}
                                 updateAreaReaction={(momentId, data) => this.onUpdateMomentReaction(momentId, data)}
                                 // TODO: User Username from response

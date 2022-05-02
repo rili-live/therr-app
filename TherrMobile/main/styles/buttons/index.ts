@@ -139,6 +139,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             ...getBtnGroupBtnStyles(therrTheme),
             paddingHorizontal: 15,
             backgroundColor: therrTheme.colors.brandingBlueGreen,
+            borderRadius: 50,
         },
         searchFiltersTitle: {
             color: therrTheme.colors.accentTextWhite,
@@ -150,6 +151,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.brandingWhite,
             fontSize: 12,
             lineHeight: 13,
+            fontWeight: '500',
         },
         claimASpace: {
             position: 'absolute',

@@ -16,19 +16,27 @@ const mergeAreas = (moments: any[], spaces: any[], sortBy = 'createdAt') => {
     } else {
         while (moments[mIndex] || spaces[sIndex]) {
             if (!moments[mIndex]) {
-                mergedAreas.push(spaces[sIndex]);
+                if (!spaces[sIndex].isDraft) {
+                    mergedAreas.push(spaces[sIndex]);
+                }
                 sIndex++;
             } else if (!spaces[sIndex]) {
-                mergedAreas.push(moments[mIndex]);
+                if (!moments[mIndex].isDraft) {
+                    mergedAreas.push(moments[mIndex]);
+                }
                 mIndex++;
             } else {
                 const momentOrderByVal = new Date(moments[mIndex].createdAt).getTime();
                 const spaceOrderByVal = new Date(spaces[sIndex].createdAt).getTime();
                 if (momentOrderByVal > spaceOrderByVal) {
-                    mergedAreas.push(moments[mIndex]);
+                    if (!moments[mIndex].isDraft) {
+                        mergedAreas.push(moments[mIndex]);
+                    }
                     mIndex++;
                 } else {
-                    mergedAreas.push(spaces[sIndex]);
+                    if (!spaces[sIndex].isDraft) {
+                        mergedAreas.push(spaces[sIndex]);
+                    }
                     sIndex++;
                 }
             }
