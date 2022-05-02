@@ -149,6 +149,15 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
         });
     };
 
+    goToViewMap = (lat, long) => {
+        const { navigation } = this.props;
+
+        navigation.navigate('Map', {
+            latitude: lat,
+            longitude: long,
+        });
+    }
+
     goToViewUser = (userId) => {
         const { navigation } = this.props;
 
@@ -223,6 +232,7 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
                         translate={this.translate}
                         containerRef={(component) => this.carouselRef = component}
                         fetchMedia={fetchMedia}
+                        goToViewMap={this.goToViewMap}
                         goToViewUser={this.goToViewUser}
                         handleRefresh={() => Promise.resolve(this.handleRefresh())}
                         toggleAreaOptions={this.toggleAreaOptions}

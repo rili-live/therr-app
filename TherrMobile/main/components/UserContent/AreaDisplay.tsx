@@ -35,6 +35,7 @@ interface IAreaDisplayProps {
     area: any;
     areaMedia: string;
     goToViewUser: Function;
+    goToViewMap: (lat: string, long: string) => any;
     inspectArea: () => any;
     updateAreaReaction: Function;
     user: IUserState;
@@ -62,6 +63,12 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
 
         this.state = {
         };
+    }
+
+    onViewMapPress = (area) => {
+        const { goToViewMap } = this.props;
+
+        goToViewMap(area.latitude, area.longitude);
     }
 
     onBookmarkPress = (area) => {
@@ -160,12 +167,26 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     >
                         {sanitizeNotificationMsg(area.notificationMsg)}
                     </Text>
+                    <Button
+                        containerStyle={themeViewArea.styles.areaReactionButtonContainer}
+                        buttonStyle={themeViewArea.styles.areaReactionButton}
+                        icon={
+                            <Icon
+                                name="public"
+                                size={24}
+                                color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                            />
+                        }
+                        onPress={() => this.onViewMapPress(area)}
+                        type="clear"
+                        TouchableComponent={TouchableWithoutFeedbackComponent}
+                    />
                     {
                         !area.isDraft &&
                         <>
                             <Button
-                                containerStyle={themeViewArea.styles.bookmarkButtonContainer}
-                                buttonStyle={themeViewArea.styles.bookmarkButton}
+                                containerStyle={themeViewArea.styles.areaReactionButtonContainer}
+                                buttonStyle={themeViewArea.styles.areaReactionButton}
                                 icon={
                                     <Icon
                                         name={ isBookmarked ? 'bookmark' : 'bookmark-border' }
@@ -178,8 +199,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 TouchableComponent={TouchableWithoutFeedbackComponent}
                             />
                             <Button
-                                containerStyle={themeViewArea.styles.bookmarkButtonContainer}
-                                buttonStyle={themeViewArea.styles.bookmarkButton}
+                                containerStyle={themeViewArea.styles.areaReactionButtonContainer}
+                                buttonStyle={themeViewArea.styles.areaReactionButton}
                                 icon={
                                     <Icon
                                         name={ isLiked ? 'favorite' : 'favorite-border' }

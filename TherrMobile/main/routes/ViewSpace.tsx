@@ -228,6 +228,15 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         }
     }
 
+    goToViewMap = (lat, long) => {
+        const { navigation } = this.props;
+
+        navigation.navigate('Map', {
+            latitude: lat,
+            longitude: long,
+        });
+    }
+
     goToViewUser = (userId) => {
         const { navigation } = this.props;
 
@@ -291,6 +300,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                 isExpanded={true}
                                 inspectArea={() => null}
                                 area={space}
+                                goToViewMap={this.goToViewMap}
                                 goToViewUser={this.goToViewUser}
                                 updateAreaReaction={(spaceId, data) => this.onUpdateSpaceReaction(spaceId, data)}
                                 // TODO: User Username from response

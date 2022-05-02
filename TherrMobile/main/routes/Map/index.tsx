@@ -183,16 +183,20 @@ class Map extends React.Component<IMapProps, IMapState> {
     private themeTour = buildTourStyles();
     private themeSearch = buildSearchStyles({ viewPortHeight });
     private timeoutId;
-    private timeoutIdGPSStart;
+    private timeoutIdGoToArea;
     private timeoutIdRefreshMoments;
     private timeoutIdShowMoment;
     private timeoutIdSearchButton;
     private timeoutIdWaitForSearchSelect;
     private translate: Function;
+    private unsubscribeFocusListener: any;
     private unsubscribeNavigationListener: any;
 
     constructor(props) {
         super(props);
+
+        const routeLongitude = props.route?.params?.longitude;
+        const routeLatitude = props.route?.params?.latitude;
 
         this.state = {
             activeMoment: {},
@@ -219,8 +223,8 @@ class Map extends React.Component<IMapProps, IMapState> {
                 connectionsSpaces: true,
             },
             circleCenter: {
-                longitude: -99.458829,
-                latitude: 39.7629981,
+                longitude: routeLongitude || -99.458829,
+                latitude: routeLatitude || 39.7629981,
             },
         };
 
@@ -230,7 +234,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     componentDidMount = async () => {
-        const { navigation, setSearchDropdownVisibility } = this.props;
+        const { navigation, route, setSearchDropdownVisibility } = this.props;
 
         this.unsubscribeNavigationListener = navigation.addListener('state', () => {
             setSearchDropdownVisibility(false);
@@ -239,6 +243,29 @@ class Map extends React.Component<IMapProps, IMapState> {
                 isMinLoadTimeComplete: true,
                 isLocationReady: true,
             });
+        });
+
+        this.unsubscribeFocusListener = navigation.addListener('focus', () => {
+            setSearchDropdownVisibility(false);
+            clearTimeout(this.timeoutId);
+
+            /** Animate to region when user selection area location from other views (earth icon) */
+            if (route.params?.latitude && route.params?.longitude) {
+                const loc = {
+                    latitude: route.params.latitude,
+                    longitude: route.params.longitude,
+                    latitudeDelta: route.params.longitudeDelta || PRIMARY_LATITUDE_DELTA,
+                    longitudeDelta: route.params.latitudeDelta || PRIMARY_LONGITUDE_DELTA,
+                };
+
+                // TODO: Determine why the mapview interferes with this animation
+                // This is sloppy/bad code. We should find a better way
+                const weirdTimeout = Platform.OS === 'ios' ? 500 : 2000;
+
+                this.timeoutIdGoToArea = setTimeout(() => {
+                    this.animateToWithHelp(() => this?.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION));
+                }, weirdTimeout);
+            }
         });
 
         navigation.setOptions({
@@ -264,12 +291,13 @@ class Map extends React.Component<IMapProps, IMapState> {
     componentWillUnmount() {
         Geolocation.clearWatch(this.mapWatchId);
         clearTimeout(this.timeoutId);
-        clearTimeout(this.timeoutIdGPSStart);
+        clearTimeout(this.timeoutIdGoToArea);
         clearTimeout(this.timeoutIdRefreshMoments);
         clearTimeout(this.timeoutIdShowMoment);
         clearTimeout(this.timeoutIdSearchButton);
         clearTimeout(this.timeoutIdWaitForSearchSelect);
         this.unsubscribeNavigationListener();
+        this.unsubscribeFocusListener();
     }
 
     reloadTheme = (shouldForceUpdate: boolean = false) => {
@@ -604,13 +632,25 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     handleGpsRecenter = (coords?, delta?, duration?) => {
-        const { circleCenter } = this.state;
+        const { circleCenter, lastLocationSendForProcessing } = this.state;
+        const { map } = this.props;
         const loc = {
             latitude: coords?.latitude || circleCenter.latitude,
             longitude: coords?.longitude || circleCenter.longitude,
             latitudeDelta: delta?.latitudeDelta || PRIMARY_LATITUDE_DELTA,
             longitudeDelta: delta?.longitudeDelta || PRIMARY_LONGITUDE_DELTA,
         };
+        /**
+         * Send location to backend for processing
+         * This helps ensure first time users post their location and get some initial content
+         */
+        PushNotificationsService.postLocationChange({
+            longitude: loc.longitude,
+            latitude: loc.latitude,
+            lastLocationSendForProcessing,
+            radiusOfAwareness: map.radiusOfAwareness,
+            radiusOfInfluence: map.radiusOfInfluence,
+        });
         this.animateToWithHelp(() => this.mapRef && this.mapRef.animateToRegion(loc, duration || ANIMATE_TO_REGION_DURATION));
         this.setState({
             areLayersVisible: false,
