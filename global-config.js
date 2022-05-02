@@ -33,6 +33,7 @@ module.exports = {
             pingTimeout: 1000 * 15,
             userSocketSessionExpire: 1000 * 60 * 30,
         },
+        tempLocationExpansionDistMeters: 100000, 
     },
     stage: {
         baseApiGatewayRoute: `https://api.${hostStage}/v1`,
@@ -52,6 +53,7 @@ module.exports = {
             pingTimeout: 1000 * 5,
             userSocketSessionExpire: 1000 * 60 * 30,
         },
+        tempLocationExpansionDistMeters: 100000, 
     },
     production: {
         baseApiGatewayRoute: `https://api.${hostProd}/v1`,
@@ -71,6 +73,7 @@ module.exports = {
             pingTimeout: 1000 * 5,
             userSocketSessionExpire: 1000 * 60 * 30,
         },
+        tempLocationExpansionDistMeters: 100000, 
     },
 };
 

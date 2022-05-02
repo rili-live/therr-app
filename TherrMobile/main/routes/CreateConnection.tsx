@@ -355,7 +355,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={this.theme.styles.safeAreaView}>
                     <FlatList
                         data={[{}]}
@@ -397,6 +397,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                                 onBlur={this.onBlurValidate}
                                                 onSubmitEditing={() => this.onSubmit()}
                                                 errorMessage={emailErrorMessage}
+                                                autoCapitalize="none"
                                                 autoCorrect={false}
                                                 rightIcon={
                                                     <FontAwesomeIcon
@@ -420,7 +421,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                             />
                                         }
                                         <Button
-                                            buttonStyle={this.themeForms.styles.buttonRound}
+                                            buttonStyle={this.themeForms.styles.buttonPrimary}
                                             // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                                             disabledStyle={this.themeForms.styles.buttonRoundDisabled}
                                             disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}

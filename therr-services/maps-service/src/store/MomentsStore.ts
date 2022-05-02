@@ -21,6 +21,7 @@ export interface ICreateMomentParams {
     fromUserId: number;
     locale: string;
     isPublic?: boolean;
+    isDraft?: boolean;
     message: string;
     notificationMsg?: string;
     mediaIds?: string;
@@ -109,7 +110,7 @@ export default class MomentsStore {
                     }
                 });
             } else {
-                queryString = queryString.andWandWhere(conditions.filterBy, operator, query);
+                queryString = queryString.andWhere(conditions.filterBy, operator, query);
                 queryString = queryString.andWhere((builder) => { // eslint-disable-line func-names
                     builder.where(conditions.filterBy, operator, query);
                     if (includePublicResults) {
@@ -130,17 +131,56 @@ export default class MomentsStore {
         });
     }
 
+    searchMyMoments(userId: string, requirements: any = {}, conditions: any = {}, returning?, overrides?: any) {
+        const modifiedConditions: any = {
+            ...conditions,
+            fromUserId: userId,
+        };
+        const offset = modifiedConditions.pagination.itemsPerPage * (modifiedConditions.pagination.pageNumber - 1);
+        const limit = modifiedConditions.pagination.itemsPerPage;
+        let proximityMax = overrides?.distanceOverride || Location.AREA_PROXIMITY_METERS;
+        if ((modifiedConditions.filterBy && modifiedConditions.filterBy === 'distance') && modifiedConditions.query) {
+            proximityMax = modifiedConditions.query;
+        }
+        let queryString: any = knexBuilder
+            .select(returning?.length ? returning : '*')
+            .from(MOMENTS_TABLE_NAME);
+
+        if (modifiedConditions.longitude && modifiedConditions.latitude) {
+            // NOTE // Sorting by updatedAt is very expensive/slow
+            // NOTE: Cast to a geography type to search distance within n meters
+            queryString = queryString.where(knexBuilder.raw(`ST_DWithin(geom, ST_MakePoint(${modifiedConditions.longitude}, ${modifiedConditions.latitude})::geography, ${proximityMax})`)) // eslint-disable-line max-len
+                .andWhere(requirements); // eslint-disable-line quotes, max-len
+        } else {
+            queryString = queryString.where(requirements); // eslint-disable-line quotes, max-len
+        }
+
+        queryString = queryString
+            .limit(limit || 50)
+            .offset(offset)
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => {
+            const configuredResponse = formatSQLJoinAsJSON(response.rows, []);
+            return configuredResponse;
+        });
+    }
+
     findMoments(momentIds, filters, options: any = {}) {
         // hard limit to prevent overloading client
         const restrictedLimit = (filters.limit) > 1000 ? 1000 : filters.limit;
         const orderBy = filters.orderBy || `${MOMENTS_TABLE_NAME}.updatedAt`;
         const order = filters.order || 'DESC';
 
-        const query = knexBuilder
+        let query = knexBuilder
             .from(MOMENTS_TABLE_NAME)
             .orderBy(orderBy, order)
             .whereIn('id', momentIds || [])
             .limit(restrictedLimit);
+
+        if (filters?.fromUserId) {
+            query = query.where({ fromUserId: filters.fromUserId });
+        }
 
         return this.db.read.query(query.toString()).then(async ({ rows: moments }) => {
             if (options.withMedia || options.withUser) {
@@ -259,6 +299,7 @@ export default class MomentsStore {
                 fromUserId: params.fromUserId,
                 locale: params.locale,
                 isPublic: !!params.isPublic,
+                isDraft: !!params.isDraft,
                 message: params.message,
                 notificationMsg,
                 mediaIds: mediaIds || params.mediaIds || '',
@@ -277,6 +318,61 @@ export default class MomentsStore {
             const queryString = knexBuilder.insert(sanitizedParams)
                 .into(MOMENTS_TABLE_NAME)
                 .returning('*')
+                .toString();
+
+            return this.db.write.query(queryString).then((response) => response.rows);
+        });
+    }
+
+    updateMoment(id: string, params: ICreateMomentParams) {
+        const region = countryReverseGeo.get_country(params.latitude, params.longitude);
+        const notificationMsg = params.notificationMsg
+            ? `${sanitizeNotificationMsg(params.notificationMsg).substring(0, maxNotificationMsgLength)}`
+            : `${sanitizeNotificationMsg(params.message).substring(0, maxNotificationMsgLength)}`;
+
+        // TODO: Support creating multiple
+        // eslint-disable-next-line no-param-reassign
+        params.media = params.media
+            ? params.media.map((media, index): ICreateMediaParams => ({
+                ...media,
+                fromUserId: params.fromUserId,
+                altText: `${notificationMsg} ${index}`,
+            }))
+            : undefined;
+
+        const mediaPromise: Promise<string | undefined> = params.media
+            ? this.mediaStore.create(params.media[0]).then((mediaIds) => mediaIds.toString())
+            : Promise.resolve(undefined);
+
+        return mediaPromise.then((mediaIds: string | undefined) => {
+            const sanitizedParams = {
+                areaType: params.areaType || 'moments',
+                category: params.category || 'uncategorized',
+                expiresAt: params.expiresAt,
+                fromUserId: params.fromUserId,
+                locale: params.locale,
+                isPublic: !!params.isPublic,
+                isDraft: !!params.isDraft,
+                message: params.message,
+                notificationMsg,
+                mediaIds: mediaIds || params.mediaIds || '',
+                mentionsIds: params.mentionsIds || '',
+                hashTags: params.hashTags || '',
+                maxViews: params.maxViews || 0,
+                maxProximity: params.maxProximity,
+                // latitude: params.latitude,
+                // longitude: params.longitude,
+                radius: params.radius,
+                region: region.code,
+                // polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
+                // geom: knexBuilder.raw(`ST_SetSRID(ST_MakePoint(${params.longitude}, ${params.latitude}), 4326)`),
+                updatedAt: new Date(),
+            };
+
+            const queryString = knexBuilder.update(sanitizedParams)
+                .into(MOMENTS_TABLE_NAME)
+                .where({ id })
+                .returning(['id'])
                 .toString();
 
             return this.db.write.query(queryString).then((response) => response.rows);

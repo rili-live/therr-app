@@ -55,6 +55,7 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
     const verificationCode = { type: codeDetails.type, code: codeDetails.code };
     // Create a different/random permanent password as a placeholder
     const password = (isSSO || !!userByInviteDetails) ? generateOneTimePassword(8) : (userDetails.password || '');
+    const hasAgreedToTerms = !userByInviteDetails;
     let user;
 
     return Store.verificationCodes.createCode(verificationCode)
@@ -75,6 +76,7 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
                 accessLevels: JSON.stringify(userAccessLevels),
                 email: userDetails.email,
                 firstName: userDetails.firstName || undefined,
+                hasAgreedToTerms,
                 lastName: userDetails.lastName || undefined,
                 password: hash,
                 phoneNumber: userDetails.phoneNumber || undefined,
@@ -144,6 +146,17 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
                 name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
             });
 
+            if (process.env.NODE_ENV === 'production') {
+                // Fire and forget: Auto-friend Info account
+                Store.userConnections.createUserConnection({
+                    requestingUserId: user.id,
+                    acceptingUserId: '568bf5d2-8595-4fd6-95da-32cc318618d3', // info@therr.com
+                    requestStatus: 'complete',
+                }).catch((err) => {
+                    console.log(err);
+                });
+            }
+
             // STANDARD USER REGISTRATION
             return sendVerificationEmail({
                 subject: '[Account Verification] Therr User Account',
@@ -171,6 +184,7 @@ interface IValidateCredentials {
         nonce?: string;
         idToken: string;
         password: string;
+        userPhoneNumber: string;
         userEmail: string;
         userFirstName: string;
         userLastName: string;
@@ -209,11 +223,14 @@ const validateCredentials = (userSearchResults, {
                 return [false, userSearchResults[0]];
             }
 
+            // Create user with phonenumber equal to 'apple-sso'
+            // We can use this in the future mark an account un-verified and still allow Apple SSO
             if (!userSearchResults.length) { // First time SSO login
                 return createUserHelper({
                     email: reqBody.userEmail,
                     firstName: reqBody.userFirstName,
                     lastName: reqBody.userLastName,
+                    phoneNumber: reqBody.userPhoneNumber || (reqBody.ssoProvider === 'apple' ? 'apple-sso' : undefined),
                 }, true).then((user) => [true, user]);
             }
 

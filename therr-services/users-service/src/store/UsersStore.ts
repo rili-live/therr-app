@@ -12,6 +12,7 @@ export interface ICreateUserParams {
     accessLevels: string | AccessLevels;
     email: string;
     firstName?: string;
+    hasAgreedToTerms: boolean;
     lastName?: string;
     password: string;
     phoneNumber?: string;
@@ -200,6 +201,10 @@ export default class UsersStore {
 
         if (params.wasReportedBy) {
             modifiedParams.wasReportedBy = JSON.stringify(params.wasReportedBy);
+        }
+
+        if (params.settingsThemeName != null) {
+            modifiedParams.settingsThemeName = params.settingsThemeName;
         }
 
         if (params.shouldHideMatureContent != null) {

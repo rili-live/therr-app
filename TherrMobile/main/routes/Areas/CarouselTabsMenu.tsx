@@ -50,7 +50,7 @@ export class CarouselTabsMenu extends React.Component<ICarouselTabsMenuProps, IC
 
         if (name === activeTab) {
             return {
-                backgroundColor: themeAreas.colors.primary3,
+                backgroundColor: themeAreas.colors.primary5,
             };
         }
 
@@ -64,7 +64,7 @@ export class CarouselTabsMenu extends React.Component<ICarouselTabsMenuProps, IC
             width: '32%',
         };
         const areaCarouselTabButton = {
-            backgroundColor: themeAreas.colors.accent1,
+            backgroundColor: themeAreas.colors.primary3,
             paddingTop: 2,
             paddingBottom: 3,
             borderRadius: 6,

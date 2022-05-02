@@ -14,6 +14,12 @@ afterEach(() => {
     jest.clearAllTimers();
 });
 
+const mockStyles = {
+    placeholderText: {
+        color: 'white',
+    },
+};
+
 describe('LoginForm', () => {
     beforeEach(() => {
     });
@@ -27,9 +33,9 @@ describe('LoginForm', () => {
             <LoginForm navigation={mockNavigation}
                 login={mockLogin}
                 userSettings={{ mobileThemeName: 'retro' }}
-                themeAuthForm={{ styles: {} }}
-                themeAlerts={{ styles: {}, colors: {} }}
-                themeForms={{ styles: {}, colors: {} }}
+                themeAuthForm={{ styles: mockStyles }}
+                themeAlerts={{ styles: mockStyles, colors: {} as any }}
+                themeForms={{ styles: mockStyles, colors: {} as any }}
             />
         );
         expect(component.getInstance().isLoginFormDisabled()).toEqual(true);

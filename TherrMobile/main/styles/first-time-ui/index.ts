@@ -42,7 +42,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: '800',
             fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
             paddingBottom: 0,
-            marginBottom: 7,
+            marginBottom: 16,
             textAlign: 'left',
             letterSpacing: 1,
         },
@@ -52,7 +52,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
             color: therrTheme.colors.textGray,
             paddingBottom: 20,
-            marginBottom: 20,
+            marginBottom: 4,
             textAlign: 'left',
             letterSpacing: 1,
         },
@@ -77,7 +77,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             height: 16,
             borderRadius: 8,
             marginHorizontal: 3,
-            backgroundColor: 'rgba(255, 255, 255, 0.92)',
+            backgroundColor: therrTheme.colors.controlButtons,
         },
     });
 

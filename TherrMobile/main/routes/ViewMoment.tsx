@@ -211,10 +211,9 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
 
     onMomentOptionSelect = (type: ISelectionType) => {
         const { selectedMoment } = this.state;
-        const { createOrUpdateMomentReaction, user } = this.props;
         const requestArgs: any = getReactionUpdateArgs(type);
 
-        createOrUpdateMomentReaction(selectedMoment.id, requestArgs, selectedMoment.fromUserId, user.details.userName).finally(() => {
+        this.onUpdateMomentReaction(selectedMoment.id, requestArgs).finally(() => {
             this.toggleAreaOptions(selectedMoment);
         });
     }
@@ -247,7 +246,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                 ...moment,
                 reaction: {
                     ...moment.reaction,
-                    userBookmarkCategory: moment.reaction?.userBookmarkCategory ? null : 'Uncategorized',
+                    ...data,
                 },
             },
         });
@@ -274,7 +273,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
@@ -290,6 +289,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 hashtags={this.hashtags}
                                 isDarkMode={true}
                                 isExpanded={true}
+                                inspectArea={() => null}
                                 area={moment}
                                 goToViewUser={this.goToViewUser}
                                 updateAreaReaction={(momentId, data) => this.onUpdateMomentReaction(momentId, data)}

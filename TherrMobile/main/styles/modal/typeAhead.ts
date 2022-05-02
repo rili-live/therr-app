@@ -14,7 +14,7 @@ const buildStyles = ({
     const styles = StyleSheet.create({
         container: {
             position: 'absolute',
-            backgroundColor: therrTheme.colors.backgroundCream,
+            backgroundColor: therrTheme.colors.brandingWhite,
             zIndex: 1000,
             width: '100%',
             top: 0,
@@ -33,7 +33,7 @@ const buildStyles = ({
             paddingVertical: 9,
         },
         itemText: {
-            color: therrTheme.colors.textBlack,
+            color: therrTheme.colors.brandingBlack,
         },
     });
 

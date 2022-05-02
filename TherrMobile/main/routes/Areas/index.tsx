@@ -123,7 +123,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         const { content, navigation } = this.props;
 
         navigation.setOptions({
-            title: this.translate('pages.areas.headerTitle'),
+            title: this.translate('pages.myDrafts.headerTitle'),
         });
 
         const activeData = getActiveCarouselData({
@@ -263,7 +263,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
                     <AreaCarousel
                         activeData={activeData}

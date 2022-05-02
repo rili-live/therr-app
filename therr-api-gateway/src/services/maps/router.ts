@@ -6,7 +6,9 @@ import { validate } from '../../validation';
 import { getSignedUrlValidation } from './validation';
 import {
     createAreaValidation,
+    updateAreaValidation,
     searchAreasValidation,
+    searchMyAreasValidation,
     deleteAreasValidation,
 } from './validation/areas';
 import {
@@ -26,12 +28,22 @@ mapsServiceRouter.post('/moments', createAreaValidation, validate, handleService
     method: 'post',
 }));
 
+mapsServiceRouter.put('/moments/:momentId', updateAreaValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'put',
+}));
+
 mapsServiceRouter.post('/moments/:momentId/details', getMomentDetailsValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));
 
 mapsServiceRouter.post('/moments/search', searchAreasValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
+
+mapsServiceRouter.post('/moments/search/me', searchMyAreasValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));

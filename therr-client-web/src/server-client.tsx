@@ -65,6 +65,8 @@ routeConfig.forEach((config) => {
     const routePath = config.route;
     const routeView = config.view;
     const title = config.head.title;
+    const description = config.head.description
+    || 'A nearby newsfeed app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.';
 
     app.get(routePath, (req, res) => {
         const promises: any = [];
@@ -124,7 +126,12 @@ routeConfig.forEach((config) => {
                 res.end();
             } else {
                 ReactGA.pageview(req.path, null, title);
-                return res.render(routeView, { title, markup, state });
+                return res.render(routeView, {
+                    title,
+                    description,
+                    markup,
+                    state,
+                });
             }
         });
     });

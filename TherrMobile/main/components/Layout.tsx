@@ -5,10 +5,10 @@ import {
     Linking,
     PermissionsAndroid,
     Platform,
-    View,
 } from 'react-native';
 import LocationServicesDialogBox  from 'react-native-android-location-services-dialog-box';
 import { checkMultiple, PERMISSIONS } from 'react-native-permissions';
+import { appleAuth } from '@invertase/react-native-apple-authentication';
 import analytics from '@react-native-firebase/analytics';
 import crashlytics from '@react-native-firebase/crashlytics';
 import messaging from '@react-native-firebase/messaging';
@@ -31,12 +31,15 @@ import { ILocationState } from '../types/redux/location';
 import HeaderMenuLeft from './HeaderMenuLeft';
 import translator from '../services/translator';
 import { buildStyles } from '../styles';
+import { buildStyles as buildButtonStyles } from '../styles/buttons';
 import { buildStyles as buildFormStyles } from '../styles/forms';
+import { buildStyles as buildModalStyles } from '../styles/modal/infoModal';
 import { buildStyles as buildMenuStyles } from '../styles/modal/headerMenuModal';
 import { navigationRef, RootNavigation } from './RootNavigation';
 import PlatformNativeEventEmitter from '../PlatformNativeEventEmitter';
 import HeaderTherrLogo from './HeaderTherrLogo';
 import HeaderSearchInput from './Input/HeaderSearchInput';
+import HeaderLinkRight from './HeaderLinkRight';
 
 const Stack = createStackNavigator();
 
@@ -68,7 +71,6 @@ interface IStoreProps extends ILayoutDispatchProps {
 export interface ILayoutProps extends IStoreProps {}
 
 interface ILayoutState {
-    isAuthenticated: boolean;
     targetRouteView: string;
 }
 
@@ -95,35 +97,26 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class Layout extends React.Component<ILayoutProps, ILayoutState> {
+    private authCredentialListener;
     private nativeEventListener;
     private translate;
     private unsubscribePushNotifications;
     private urlEventListener;
     private routeNameRef: any = {};
     private theme = buildStyles();
+    private themeButtons = buildButtonStyles();
     private themeForms = buildFormStyles();
+    private themeModal = buildModalStyles();
     private themeMenu = buildMenuStyles();
-
-    static getDerivedStateFromProps(nextProps: ILayoutProps, nextState: ILayoutState) {
-        if (nextProps.user?.isAuthenticated !== nextState.isAuthenticated) {
-            return {
-                isAuthenticated: nextProps.user?.isAuthenticated,
-            };
-        }
-        return {};
-    }
 
     constructor(props) {
         super(props);
 
         this.state = {
-            isAuthenticated: false,
             targetRouteView: '',
         };
 
-        this.theme = buildStyles(props?.user?.settings?.mobileThemeName);
-        this.themeForms = buildFormStyles(props?.user?.settings?.mobileThemeName);
-        this.themeMenu = buildMenuStyles(props?.user?.settings?.mobileThemeName);
+        this.reloadTheme();
         this.translate = (key: string, params: any) =>
             translator(props?.user?.settings?.locale || 'en-us', key, params);
     }
@@ -131,6 +124,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
     componentDidMount() {
         if (Platform.OS === 'android') {
             Linking.getInitialURL().then(this.handleAppUniversalLinkURL);
+        }
+
+        if (appleAuth.isSupported) {
+            this.authCredentialListener = appleAuth.onCredentialRevoked(async () => {
+                console.warn('Apple credential revoked');
+                this.props.logout();
+            });
         }
 
         DeviceEventEmitter.addListener('locationProviderStatusChange', (status) => { // only trigger when "providerListener" is enabled
@@ -141,7 +141,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.urlEventListener = Linking.addEventListener('url', this.handleUrlEvent);
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps: ILayoutProps) {
         const { targetRouteView } = this.state;
         const {
             forums,
@@ -154,7 +154,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             updateUser,
         } = this.props;
 
-        if (user?.isAuthenticated !== this.state.isAuthenticated) {
+        if (prevProps.user?.settings?.mobileThemeName !== user?.settings?.mobileThemeName) {
+            this.reloadTheme(true);
+        }
+
+        if (user?.isAuthenticated !== prevProps.user?.isAuthenticated) {
             if (user.isAuthenticated) { // Happens after login
                 if (user.details?.id) {
                     crashlytics().setUserId(user.details?.id?.toString());
@@ -176,6 +180,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 }
 
+                // Pre-load notifications
                 searchNotifications({
                     filterBy: 'userId',
                     query: user.details.id,
@@ -266,7 +271,23 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             LocationServicesDialogBox.stopListener();
         }
 
+        if (this.authCredentialListener) {
+            this.authCredentialListener();
+        }
+
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
+    }
+
+    reloadTheme = (shouldForceUpdate: boolean = false) => {
+        const themeName = this.props?.user?.settings?.mobileThemeName;
+        this.theme = buildStyles(themeName);
+        this.themeButtons = buildButtonStyles(themeName);
+        this.themeForms = buildFormStyles(themeName);
+        this.themeMenu = buildMenuStyles(themeName);
+        this.themeModal = buildModalStyles(themeName);
+        if (shouldForceUpdate) {
+            this.forceUpdate();
+        }
     }
 
     handleNotificationEvent = (event) => {
@@ -290,6 +311,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         } else if (event.action === 'app.therrmobile.NEW_DIRECT_MESSAGE') {
             targetRouteView = 'Contacts';
         } else if (event.action === 'app.therrmobile.NEW_LIKE_RECEIVED') {
+            targetRouteView = 'Notifications';
+        } else if (event.action === 'app.therrmobile.NEW_SUPER_LIKE_RECEIVED') {
             targetRouteView = 'Notifications';
         }
 
@@ -410,6 +433,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             >
                 <Stack.Navigator
                     screenOptions={({ navigation }) => {
+                        const themeName = this.props?.user?.settings?.mobileThemeName;
                         const currentScreen = this.getCurrentScreen(navigation);
                         const isAreas = currentScreen === 'Areas';
                         const isMoment = currentScreen === 'ViewMoment' || currentScreen === 'EditMoment';
@@ -421,12 +445,22 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             || currentScreen === 'Nearby'
                             || currentScreen === 'EmailVerification'
                             || currentScreen === 'Register';
+                        const isAccentPage = currentScreen === 'EditMoment'
+                            || currentScreen === 'EditSpace'
+                            || currentScreen === 'ViewMoment'
+                            || currentScreen === 'ViewSpace';
                         let headerTitle;
+                        let headerStyle = this.theme.styles.headerStyle;
                         let headerStyleName: any = 'light';
-                        let headerTitleColor = this.theme.colors.textWhite;
+                        let headerTitleColor = themeName === 'light'
+                            ? this.theme.colors.primary3
+                            : this.theme.colors.textWhite;
                         if (isMoment) {
                             headerStyleName = 'accent';
-                            headerTitleColor = this.theme.colors.accentTextBlack;
+                            headerTitleColor = this.theme.colors.accentLogo;
+                        }
+                        if (isAccentPage) {
+                            headerStyle = this.theme.styles.headerStyleAccent;
                         }
                         if (hasLogoHeaderTitle) {
                             headerTitle = () => (<HeaderTherrLogo navigation={navigation} theme={this.theme} />);
@@ -473,9 +507,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     updateGpsStatus={updateGpsStatus}
                                     user={user}
                                     theme={this.theme}
+                                    themeButtons={this.themeButtons}
+                                    themeModal={this.themeModal}
                                     themeMenu={this.themeMenu}
                                 />
-                            ) : () => (<View />),
+                            ) : () => (<HeaderLinkRight navigation={navigation} themeForms={this.themeForms} styleName={headerStyleName} />),
                             headerTitleStyle: {
                                 ...this.theme.styles.headerTitleStyle,
                                 color: headerTitleColor,
@@ -483,7 +519,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                 textShadowRadius: 0,
                             },
                             headerTitleAlign: 'center',
-                            headerStyle: this.theme.styles.headerStyle,
+                            headerStyle,
                             headerTransparent: false,
                             headerBackVisible: false,
                             headerBackTitleVisible: false,

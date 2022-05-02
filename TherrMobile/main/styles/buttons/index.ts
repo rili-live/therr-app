@@ -138,7 +138,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         searchThisAreaButton: {
             ...getBtnGroupBtnStyles(therrTheme),
             paddingHorizontal: 15,
-            backgroundColor: therrTheme.colors.accent1,
+            backgroundColor: therrTheme.colors.brandingBlueGreen,
         },
         searchFiltersTitle: {
             color: therrTheme.colors.accentTextWhite,
@@ -147,48 +147,14 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             lineHeight: 18,
         },
         searchThisAreaTitle: {
-            color: therrTheme.colors.accentTextWhite,
+            color: therrTheme.colors.brandingWhite,
             fontSize: 12,
             lineHeight: 13,
-        },
-        captureMoment: {
-            position: 'absolute',
-            right: 24,
-            bottom: 130 + buttonMenuHeight - collapseOffset,
-            shadowColor: therrTheme.colors.textBlack,
-            shadowOffset: {
-                height: 1,
-                width: 1,
-            },
-            shadowRadius: 4,
-            borderRadius: 100,
-            padding: 0,
-            alignItems: 'center',
-            justifyContent: 'center',
-            display: 'flex',
-            flexDirection: 'row',
         },
         claimASpace: {
             position: 'absolute',
             right: 24,
-            bottom: 310 + buttonMenuHeight - collapseOffset,
-            shadowColor: therrTheme.colors.textBlack,
-            shadowOffset: {
-                height: 1,
-                width: 1,
-            },
-            shadowRadius: 4,
-            borderRadius: 100,
-            padding: 0,
-            alignItems: 'center',
-            justifyContent: 'center',
-            display: 'flex',
-            flexDirection: 'row',
-        },
-        shareAThought: {
-            position: 'absolute',
-            right: 24,
-            bottom: 250 + buttonMenuHeight - collapseOffset,
+            bottom: 200 + buttonMenuHeight - collapseOffset,
             shadowColor: therrTheme.colors.textBlack,
             shadowOffset: {
                 height: 1,
@@ -205,7 +171,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         uploadMoment: {
             position: 'absolute',
             right: 24,
-            bottom: 190 + buttonMenuHeight - collapseOffset,
+            bottom: 130 + buttonMenuHeight - collapseOffset,
             shadowColor: therrTheme.colors.textBlack,
             shadowOffset: {
                 height: 1,
@@ -389,15 +355,19 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         btnLarge: {
             ...btnStyles,
-            backgroundColor: therrTheme.colors.accent1,
+            backgroundColor: therrTheme.colors.secondary,
             height: 44,
             width: 44,
         },
         btnLargeWithText: {
             ...btnStyles,
-            backgroundColor: therrTheme.colors.accent1,
+            backgroundColor: therrTheme.colors.secondary,
             height: 44,
             paddingHorizontal: 15,
+        },
+        btnLargeTitle: {
+            paddingLeft: 10,
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
         },
         btnClear: {
             ...btnStyles,

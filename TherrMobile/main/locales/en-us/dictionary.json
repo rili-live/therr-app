@@ -140,6 +140,10 @@
         "placeholder": "Search..."
       }
     },
+    "headerLinkRight": {
+      "signIn": "Sign in?",
+      "signUp": "Sign up?"
+    },
     "headerMenuRight": {
       "menuItems": {
         "account": "Account Settings",
@@ -153,6 +157,7 @@
         "logout": "Logout",
         "map": "Map",
         "moments": "Moments",
+        "myDrafts": "My Drafts",
         "notifications": "Notifications",
         "tour": "Take a Tour"
       }
@@ -258,7 +263,8 @@
       "invalidUsernamePassword": "Invalid username/password combination.",
       "sso": {
         "appleButtonTitle": "Sign in with Apple",
-        "googleButtonTitle": "Sign in with Google"
+        "googleButtonTitleContinue": "Continue with Google",
+        "googleButtonTitleSignIn": "Sign in with Google"
       }
     },
     "nearbyForm": {
@@ -290,10 +296,16 @@
     },
     "editMoment": {
       "buttons": {
+        "addImage": "Attach an Image",
+        "captureNew": "Capture a New Photo",
+        "selectExisting": "Select an Existing Photo",
+        "draft": "Draft",
         "submit": "Send",
         "delete": "Delete?",
         "confirm": "Delete",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "visibilityPublic": "Visibility: Public",
+        "visibilityPrivate": "Visibility: Friends Only"
       },
       "categories": {
         "uncategorized": "Select a Category",
@@ -305,6 +317,7 @@
         "food": "Food Truck / Restaraunt"
       },
       "labels": {
+        "addImageNote": "Select an existing image or capture a new one!",
         "message": "Share something unique...",
         "notificationMsg": "Tagline or Title",
         "hashTags": "Hashtags (ie. my_tag, myTag)",
@@ -317,14 +330,19 @@
     },
     "editSpace": {
       "buttons": {
+        "addImage": "Attach an Image",
+        "captureNew": "Capture a New Photo",
+        "selectExisting": "Select an Existing Photo",
         "submit": "Send",
         "delete": "Delete?",
         "confirm": "Delete",
         "cancel": "Cancel"
       },
       "labels": {
-        "message": "Share something unique...",
-        "notificationMsg": "Tagline or Title",
+        "addImageNote": "Select an existing image or capture a new one to represent your space.",
+        "cost": "Cost: {pointCost} points",
+        "message": "Describe the location, event, business, promotion, etc...",
+        "notificationMsg": "Title or Location Name",
         "hashTags": "Hashtags (ie. my_tag, myTag)",
         "maxViews": "Max views (per person)",
         "expiresAt": "Countdown",
@@ -347,7 +365,7 @@
       "buttons": {
         "backToLogin": "Back to Login",
         "register": "Sign Up",
-        "eula": "End User Agreement"
+        "eula": "Terms of Use"
       },
       "defaultTitle": "Create an Account",
       "errorMessages": {
@@ -365,6 +383,9 @@
         "userName": "Username"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
+      "subtitles": {
+        "disclaimer": "By creating an account, you agree to our "
+      },
       "validationErrors": {
         "phoneNumber": "Invalid phone number"
       }
@@ -403,9 +424,10 @@
       }
     },
     "mapActions": {
+      "create": "Create",
       "claimASpace": "Claim a Space",
       "shareAThought": "Share a Thought",
-      "uploadAMoment": "Share a Moment",
+      "uploadAMoment": "Create a Moment",
       "captureAMoment": "Capture a Moment"
     },
     "main": {
@@ -457,9 +479,9 @@
       "headerTitle": "Area",
       "pageTitle": "Areas",
       "noNearbyAreasFound": "Nothing yet. Start the conversation by posting from the Map or increase the Awareness Radius to discover nearby content.",
-      "noSocialAreasFound": "You have not yet activated any moments/spaces. Explore the world, and active areas will start to appear in this view.",
+      "noSocialAreasFound": "You have not yet activated any moments/spaces. Enable location from the map, and active areas will start to appear in this view as you travel.",
       "noHireAreasFound": "No freelancer postings found in your area. Check back soon to find local freelancers in range of your location.",
-      "noEventsAreasFound": "No current or upcoming events found. Grow your connections to increase visibility and receive invites to exclusive events."
+      "noEventsAreasFound": "No current or upcoming events found. Invite friends and grow your connections to increase visibility and receive invites to exclusive events."
     },
     "bookmarked": {
       "headerTitle": "Favorited",
@@ -565,6 +587,10 @@
         "registerSuccess": "Registration success! Check your e-mail for verification."
       }
     },
+    "myDrafts": {
+      "headerTitle": "My Drafts",
+      "noDraftsFound": "No drafts found. Save an in-progress post as a draft to edit later."
+    },
     "nearby": {
       "headerTitle": "Nearby Newsfeed",
       "locationDescription1": "See posts from nearby users in the local community where you currently are.",
@@ -579,7 +605,7 @@
     "map": {
       "headerTitle": " ",
       "areaAlerts": {
-        "walkCloser": "Walk closer to activate this moment/space"
+        "walkCloser": "Enable location and/or walk closer to activate this moment/space"
       }
     },
     "pageNotFound": {
@@ -600,9 +626,13 @@
     },
     "settings": {
       "headerTitle": "Settings",
+      "pageHeaderDisplaySettings": "Display",
       "pageHeaderUser": "User Profile",
       "pageHeaderPassword": "Update Password",
-      "pageHeaderSettings": "Content Settings"
+      "pageHeaderSettings": "Content Settings",
+      "labels": {
+        "nightMode": "Night Mode?"
+      }
     },
     "template": {
       "pageTitle": "Template",
@@ -670,10 +700,17 @@
     },
     "areaOptions": {
       "buttons": {
-        "like": "'Like' this",
+        "superLike": "'Super-Like' this",
+        "delete": "Delete?",
         "dislike": "'Dislike' this",
+        "superDislike": "'Super-Dislike' this",
         "report": "Report this content..."
       }
+    },
+    "infoModalPoints": {
+      "header": "What are points?",
+      "description": "In a future iteration of the app, points will be exchangable for cryptocurrency. Opt in to nearby notifications, and start earning points through various activities like inviting friends and creating quality content. Or, opt out and enjoy the app ad-free!",
+      "done": "close"
     },
     "touringModal": {
       "exit": "Exit",

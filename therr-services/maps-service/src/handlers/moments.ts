@@ -39,6 +39,35 @@ const createMoment = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
 
+// UPDATE
+const updateMoment = (req, res) => {
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const userId = req.headers['x-userid'];
+    const { momentId } = req.params;
+
+    // Ensure user can only update own moments
+    return Store.moments.findMoments([momentId], { fromUserId: userId }).then(({ moments }) => {
+        if (!moments.length) {
+            return handleHttpError({
+                res,
+                message: `No moment found with id, ${momentId}.`,
+                statusCode: 404,
+            });
+        }
+
+        const [moment] = moments;
+
+        return Store.moments.updateMoment(momentId, {
+            ...moment,
+            ...req.body,
+            locale,
+            fromUserId: userId,
+        })
+            .then(([response]) => res.status(201).send(response))
+            .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
+    });
+};
+
 // READ
 const getMomentDetails = (req, res) => {
     const userId = req.headers['x-userid'];
@@ -64,7 +93,8 @@ const getMomentDetails = (req, res) => {
             const moment = moments[0];
             let userHasAccessPromise = () => Promise.resolve(true);
             // Verify that user has activated moment and has access to view it
-            if (moment.fromUserId !== userId) {
+            // TODO: Verify moment exists
+            if (moment?.fromUserId !== userId) {
                 userHasAccessPromise = () => getReactions(momentId, {
                     'x-userid': userId,
                 });
@@ -152,6 +182,45 @@ const searchMoments: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
 
+const searchMyMoments: RequestHandler = async (req: any, res: any) => {
+    const userId = req.headers['x-userid'];
+    const {
+        query,
+        itemsPerPage,
+        pageNumber,
+    } = req.query;
+    const {
+        distanceOverride,
+    } = req.body;
+
+    const integerColumns = ['maxViews', 'longitude', 'latitude'];
+    const searchArgs = getSearchQueryArgs(req.query, integerColumns);
+    const requirements: any = {
+        fromUserId: userId,
+    };
+    if (query.includes('drafts-only')) {
+        requirements.isDraft = true;
+    }
+    if (query.includes('public-only')) {
+        requirements.isPublic = true;
+    }
+    const searchPromise = Store.moments.searchMyMoments(userId, requirements, searchArgs[0], searchArgs[1], { distanceOverride });
+    const countPromise = Promise.resolve();
+
+    return Promise.all([searchPromise, countPromise]).then(([results]) => {
+        const response = {
+            results,
+            pagination: {
+                itemsPerPage: Number(itemsPerPage),
+                pageNumber: Number(pageNumber),
+            },
+        };
+
+        res.status(200).send(response);
+    })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
+};
+
 // NOTE: This should remain a non-public endpoint
 const findMoments: RequestHandler = async (req: any, res: any) => {
     // const userId = req.headers['x-userid'];
@@ -227,8 +296,10 @@ const deleteMoments = (req, res) => {
 
 export {
     createMoment,
+    updateMoment,
     getMomentDetails,
     searchMoments,
+    searchMyMoments,
     findMoments,
     getSignedUrlPrivateBucket,
     getSignedUrlPublicBucket,

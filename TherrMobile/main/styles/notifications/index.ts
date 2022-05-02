@@ -1,6 +1,5 @@
 import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
-import { buttonMenuHeight } from '../navigation/buttonMenu';
 import { getTheme } from '../themes';
 
 const messageContainerStyle: any = {
@@ -8,11 +7,6 @@ const messageContainerStyle: any = {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-};
-
-const iconStyle: any = {
-    position: 'absolute',
-    right: 10,
 };
 
 const notificationStyle: any = {
@@ -23,14 +17,13 @@ const notificationStyle: any = {
 const notifications = StyleSheet.create({
     container: {
         marginTop: 20,
-        marginBottom: buttonMenuHeight,
     },
     firstChildNotification: {
         borderTopWidth: 1,
     },
 });
 
-const getRootStyle = (theme) => ({
+const getRootStyle: any = (theme) => ({
     display: 'flex',
     marginLeft: 14,
     marginRight: 14,
@@ -75,18 +68,20 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         unread: {
             ...notificationStyle,
-            color: therrTheme.colors.primary,
+            color: therrTheme.colors.brandingBlueGreen,
         },
         read: {
             ...notificationStyle,
             color: therrTheme.colors.textWhite,
         },
+        iconContainerStyle: {
+            position: 'absolute',
+            right: 10,
+        },
         iconUnread: {
-            ...iconStyle,
-            color: therrTheme.colors.primary,
+            color: therrTheme.colors.brandingBlueGreen,
         },
         iconRead: {
-            ...iconStyle,
             color: therrTheme.colors.accent1Fade,
         },
     });

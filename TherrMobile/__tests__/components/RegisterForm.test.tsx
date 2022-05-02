@@ -27,15 +27,18 @@ describe('RegisterForm', () => {
     });
 
     it('renders correctly', () => {
+        const mockLogin = jest.fn();
         const mockRegister = jest.fn();
         const mockToggleEULA = jest.fn();
         const onSuccessMock = jest.fn();
         const component = renderer.create(
             <RegisterForm
+                login={mockLogin}
                 register={mockRegister}
                 onSuccess={onSuccessMock}
                 toggleEULA={mockToggleEULA}
                 userSettings={{ mobileThemeName: 'retro' }}
+                theme={{ styles: {} }}
                 themeAuthForm={{ styles: {} }}
                 themeAlerts={themeAlerts}
                 themeForms={themeForms}

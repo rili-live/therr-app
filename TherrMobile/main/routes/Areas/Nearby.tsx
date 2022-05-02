@@ -77,6 +77,7 @@ export interface INearbyProps extends IStoreProps {
 
 interface INearbyState {
     activeTab: string;
+    isFirstLoad: boolean;
     isLoading: boolean;
     isLocationUseDisclosureModalVisible: boolean;
     areAreaOptionsVisible: boolean;
@@ -133,6 +134,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
 
         this.state = {
             activeTab: CAROUSEL_TABS.SOCIAL,
+            isFirstLoad: true,
             isLoading: true,
             isLocationUseDisclosureModalVisible: false,
             areAreaOptionsVisible: false,
@@ -153,20 +155,34 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
     }
 
     componentDidMount() {
-        const { activeTab } = this.state;
+        const { activeTab, isFirstLoad } = this.state;
         const { content, navigation } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.nearby.headerTitle'),
         });
 
+        const activeData = getActiveCarouselData({
+            activeTab,
+            content,
+            isForBookmarks: false,
+        });
+
+        if (isFirstLoad || !activeData?.length || activeData.length < 21) {
+            this.handleRefresh();
+        } else {
+            this.setState({
+                isLoading: false,
+            });
+        }
+
         this.unsubscribeNavigationListener = navigation.addListener('focus', () => {
-            const activeData = getActiveCarouselData({
+            const data = getActiveCarouselData({
                 activeTab,
                 content,
                 isForBookmarks: false,
             });
-            if (!activeData?.length || activeData.length < 21) {
+            if (isFirstLoad || !data?.length || data.length < 21) {
                 this.handleRefresh();
             } else {
                 this.setState({
@@ -219,7 +235,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
 
     handleRefresh = () => {
         const { content, map, updateActiveMoments, updateActiveSpaces, user } = this.props;
-        this.setState({ isLoading: true });
+        this.setState({ isLoading: false, isFirstLoad: false });
 
         const activeMomentsPromise = updateActiveMoments({
             userLatitude: map.latitude,
@@ -466,7 +482,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                         maximumValue={Location.MAX_RADIUS_OF_INFLUENCE}
                         minimumValue={Location.MIN_RADIUS_OF_INFLUENCE}
                         step={1}
-                        thumbStyle={{ backgroundColor: this.theme.colors.accent1, height: 20, width: 20 }}
+                        thumbStyle={{ backgroundColor: this.theme.colors.brandingOrange, height: 20, width: 20 }}
                         thumbTouchSize={{ width: 30, height: 30 }}
                         minimumTrackTintColor={this.theme.colorVariations.accent1LightFade}
                         maximumTrackTintColor={this.theme.colorVariations.accent1HeavyFade}
@@ -538,7 +554,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
                     {
                         this.shouldRenderNearbyNewsfeed() &&

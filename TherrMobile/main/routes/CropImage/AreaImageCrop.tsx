@@ -113,7 +113,7 @@ export class AreaImageCrop extends React.Component<IAreaImageCropProps, IAreaIma
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={this.theme.styles.safeAreaView}>
                     <ScrollView
                         style={[this.theme.styles.bodyFlex, { padding: 0 }]} contentContainerStyle={[this.theme.styles.bodyScroll, { minHeight: '100%' }]}

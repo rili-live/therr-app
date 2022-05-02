@@ -40,7 +40,10 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
         case SocketClientActionTypes.UPDATE_USER:
             return state.setIn(['details'], {
                 ...state.details,
-                ...action.data,
+                ...action.data.details,
+            }).setIn(['settings'], {
+                ...state.settings,
+                ...action.data.settings,
             });
         case UserActionTypes.UPDATE_USER_TOUR:
             return state.setIn(['settings'], {

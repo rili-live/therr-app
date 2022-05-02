@@ -3,7 +3,7 @@ import { Platform, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import { appleAuth } from '@invertase/react-native-apple-authentication';
+import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
 import translator from '../../services/translator';
 import { addMargins } from '../../styles';
 import Alert from '../../components/Alert';
@@ -13,13 +13,14 @@ import GoogleSignInButton from '../../components/LoginButtons/GoogleSignInButton
 import { ITherrThemeColors } from '../../styles/themes';
 import OrDivider from '../../components/Input/OrDivider';
 
-interface ISSOUserDetails {
+export interface ISSOUserDetails {
     isSSO: boolean;
     idToken: string;
     nonce?: string;
     ssoProvider: string;
     userFirstName?: string;
     userLastName?: string;
+    userPhoneNumber?: string;
     userEmail: string;
 }
 
@@ -96,6 +97,7 @@ export class LoginFormComponent extends React.Component<
                 idToken,
                 nonce,
                 ssoProvider: provider,
+                userPhoneNumber: user.phoneNumber,
                 userFirstName: firstName,
                 userLastName: lastName,
                 userEmail: user.email,
@@ -203,7 +205,7 @@ export class LoginFormComponent extends React.Component<
                         <MaterialIcon
                             name="person"
                             size={24}
-                            color={themeAlerts.colors.primary3}
+                            color={themeAlerts.colors.placeholderTextColorAlt}
                         />
                     }
                     themeForms={themeForms}
@@ -226,7 +228,7 @@ export class LoginFormComponent extends React.Component<
                         <MaterialIcon
                             name="vpn-key"
                             size={24}
-                            color={themeAlerts.colors.primary3}
+                            color={themeAlerts.colors.placeholderTextColorAlt}
                         />
                     }
                     themeForms={themeForms}
@@ -234,7 +236,7 @@ export class LoginFormComponent extends React.Component<
                 />
                 <View style={themeAuthForm.styles.submitButtonContainer}>
                     <Button
-                        buttonStyle={themeAuthForm.styles.button}
+                        buttonStyle={themeForms.styles.buttonPrimary}
                         titleStyle={themeForms.styles.buttonTitle}
                         disabledTitleStyle={themeForms.styles.buttonTitleDisabled}
                         disabledStyle={themeForms.styles.buttonDisabled}
@@ -254,36 +256,33 @@ export class LoginFormComponent extends React.Component<
                         iconRight
                     />
                 </View>
+                <OrDivider
+                    translate={this.translate}
+                    themeForms={themeForms}
+                    containerStyle={{ marginBottom: 20 }}
+                />
+                <View style={themeAuthForm.styles.submitButtonContainer}>
+                    <GoogleSignInButton
+                        disabled={isSubmitting}
+                        buttonTitle={this.translate('forms.loginForm.sso.googleButtonTitleSignIn')}
+                        onLoginError={this.onSSOLoginError}
+                        onLoginSuccess={this.onSSOLoginSuccess}
+                        themeForms={themeForms}
+                    />
+                </View>
                 {
-                    // Temporarily disable SSO for Apple compliance until we have made phoneNumber optional
-                    Platform.OS !== 'ios' &&
-                    <>
-                        <OrDivider
-                            translate={this.translate}
+                    Platform.OS === 'ios' && appleAuth.isSupported &&
+                    appleAuth.isSupported &&
+                    <View style={themeAuthForm.styles.submitButtonContainer}>
+                        <AppleSignInButton
+                            disabled={isSubmitting}
+                            buttonTitle={this.translate('forms.loginForm.sso.appleButtonTitle')}
+                            onLoginError={this.onSSOLoginError}
+                            onLoginSuccess={this.onSSOLoginSuccess}
                             themeForms={themeForms}
-                            containerStyle={{ marginBottom: 20 }}
+                            type={AppleButton.Type.SIGN_IN}
                         />
-                        <View style={themeAuthForm.styles.submitButtonContainer}>
-                            <GoogleSignInButton
-                                disabled={isSubmitting}
-                                buttonTitle={this.translate('forms.loginForm.sso.googleButtonTitle')}
-                                onLoginError={this.onSSOLoginError}
-                                onLoginSuccess={this.onSSOLoginSuccess}
-                            />
-                        </View>
-                        {
-                            // Platform.OS === 'ios' && appleAuth.isSupported &&
-                            appleAuth.isSupported &&
-                            <View style={themeAuthForm.styles.submitButtonContainer}>
-                                <AppleSignInButton
-                                    disabled={isSubmitting}
-                                    buttonTitle={this.translate('forms.loginForm.sso.appleButtonTitle')}
-                                    onLoginError={this.onSSOLoginError}
-                                    onLoginSuccess={this.onSSOLoginSuccess}
-                                />
-                            </View>
-                        }
-                    </>
+                    </View>
                 }
                 <Alert
                     containerStyles={addMargins({
@@ -294,18 +293,10 @@ export class LoginFormComponent extends React.Component<
                     type={'error'}
                     themeAlerts={themeAlerts}
                 />
-                <View style={themeAuthForm.styles.moreLinksContainer}>
+                <View style={themeForms.styles.moreLinksContainer}>
                     <Button
                         type="clear"
-                        titleStyle={themeAuthForm.styles.buttonLink}
-                        title={this.translate(
-                            'forms.loginForm.buttons.signUp'
-                        )}
-                        onPress={() => navigation.navigate('Register')}
-                    />
-                    <Button
-                        type="clear"
-                        titleStyle={themeAuthForm.styles.buttonLink}
+                        titleStyle={themeForms.styles.buttonLink}
                         title={this.translate(
                             'forms.loginForm.buttons.forgotPassword'
                         )}

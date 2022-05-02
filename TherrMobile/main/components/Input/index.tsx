@@ -22,7 +22,7 @@ export class BaseInput extends React.Component<InputProps & IBaseInputProps, any
             <Input
                 inputStyle={themeForms.styles.input}
                 rightIconContainerStyle={themeForms.styles.icon}
-                selectionColor={themeForms.colors.ternary}
+                selectionColor={themeForms.colors.selectionColor}
                 {...this.props}
             />
         );

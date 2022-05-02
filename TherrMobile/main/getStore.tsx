@@ -26,7 +26,7 @@ const getStore = async () => {
     const therrUserSettings = await AsyncStorage.getItem('therrUserSettings');
     const storedUserSettings = JSON.parse(therrUserSettings || '{}');
     storedUserSettings.locale = storedUserSettings.locale || 'en-us';
-    storedUserSettings.mobileThemeName = storedUserSettings.mobileThemeName || 'retro';
+    storedUserSettings.mobileThemeName = storedUserSettings.mobileThemeName || 'light';
     const isAuthenticated = !!(storedUser && storedUser.id && storedUser.idToken);
     const reloadedState: any = {
         user: {

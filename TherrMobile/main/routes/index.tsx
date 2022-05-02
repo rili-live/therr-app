@@ -6,6 +6,7 @@ import { AccessLevels } from 'therr-js-utilities/constants';
 import { IAccess, AccessCheckType } from 'therr-react/types';
 import AdvancedSearch from './AdvancedSearch';
 import BookMarked from './Areas/BookMarked';
+import MyDrafts from './Areas/MyDrafts';
 import Home from './Home';
 import DirectMessage from './DirectMessage';
 import Landing from './Landing';
@@ -32,10 +33,6 @@ import EditSpace from './EditSpace';
 import EditChat from './HostedChat/EditChat';
 import ViewChat from './HostedChat/ViewChat';
 import ViewUser from './ViewUser/index.tsx';
-import { buildStyles } from '../styles';
-
-// TODO: Use Props
-const styles = buildStyles().styles;
 
 const momentTransitionSpec: any = {
     open: {
@@ -83,7 +80,6 @@ const routes: RouteConfig<
                 levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
                 isPublic: true,
             },
-            headerStyle: styles.headerStyleNoShadow,
         }),
     },
     {
@@ -96,7 +92,6 @@ const routes: RouteConfig<
                 levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
                 isPublic: true,
             },
-            headerStyle: styles.headerStyleNoShadow,
         }),
     },
     {
@@ -155,6 +150,17 @@ const routes: RouteConfig<
         }),
     },
     {
+        name: 'MyDrafts',
+        component: MyDrafts,
+        options: () => ({
+            title: 'My Drafts',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
         name: 'AreaImageCrop',
         component: AreaImageCrop,
         options: () => ({
@@ -185,7 +191,6 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleNoShadow,
         }),
     },
     {
@@ -197,7 +202,6 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleNoShadow,
         }),
     },
     {
@@ -245,7 +249,6 @@ const routes: RouteConfig<
                 levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
                 isPublic: true,
             },
-            headerStyle: styles.headerStyleNoShadow,
         }),
     },
     // {
@@ -303,7 +306,6 @@ const routes: RouteConfig<
                 levels: [AccessLevels.DEFAULT, AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
                 isPublic: true,
             },
-            headerStyle: styles.headerStyleNoShadow,
         }),
     },
     {
@@ -326,15 +328,8 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleAccent,
-            headerTitleStyle: {
-                ...styles.headerTitleStyle,
-                alignSelf: 'flex-start',
-                textShadowOffset: { width: 0, height: 0 },
-                textShadowRadius: 0,
-                letterSpacing: 2,
-            },
             headerLeft: () => null,
+            headerTitleAlign: 'left',
             cardStyleInterpolator: undefined,
             transitionSpec: momentTransitionSpec,
         }),
@@ -348,15 +343,8 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleAccent,
-            headerTitleStyle: {
-                ...styles.headerTitleStyle,
-                alignSelf: 'flex-start',
-                textShadowOffset: { width: 0, height: 0 },
-                textShadowRadius: 0,
-                letterSpacing: 2,
-            },
             headerLeft: () => null,
+            headerTitleAlign: 'left',
             cardStyleInterpolator: undefined,
             transitionSpec: momentTransitionSpec,
         }),
@@ -370,15 +358,8 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleAccent,
-            headerTitleStyle: {
-                ...styles.headerTitleStyle,
-                alignSelf: 'flex-start',
-                textShadowOffset: { width: 0, height: 0 },
-                textShadowRadius: 0,
-                letterSpacing: 2,
-            },
             headerLeft: () => null,
+            headerTitleAlign: 'left',
         }),
     },
     {
@@ -390,15 +371,8 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleAccent,
-            headerTitleStyle: {
-                ...styles.headerTitleStyle,
-                alignSelf: 'flex-start',
-                textShadowOffset: { width: 0, height: 0 },
-                textShadowRadius: 0,
-                letterSpacing: 2,
-            },
             headerLeft: () => null,
+            headerTitleAlign: 'left',
             cardStyleInterpolator: undefined,
             transitionSpec: momentTransitionSpec,
         }),
@@ -412,15 +386,8 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleAccent,
-            headerTitleStyle: {
-                ...styles.headerTitleStyle,
-                alignSelf: 'flex-start',
-                textShadowOffset: { width: 0, height: 0 },
-                textShadowRadius: 0,
-                letterSpacing: 2,
-            },
             headerLeft: () => null,
+            headerTitleAlign: 'left',
         }),
     },
     {
@@ -432,15 +399,8 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            headerStyle: styles.headerStyleAccent,
-            headerTitleStyle: {
-                ...styles.headerTitleStyle,
-                alignSelf: 'flex-start',
-                textShadowOffset: { width: 0, height: 0 },
-                textShadowRadius: 0,
-                letterSpacing: 2,
-            },
             headerLeft: () => null,
+            headerTitleAlign: 'left',
             cardStyleInterpolator: undefined,
             transitionSpec: momentTransitionSpec,
         }),

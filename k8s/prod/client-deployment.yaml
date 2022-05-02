@@ -15,6 +15,16 @@ spec:
         tier: frontend
         layer: services-external
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - preference:
+              matchExpressions:
+              - key: cloud.google.com/gke-preemptible
+                operator: Exists
+            weight: 100
+      nodeSelector:
+        cloud.google.com/gke-preemptible: "true"
       containers:
       - name: web
         image: therrapp/client-web:latest

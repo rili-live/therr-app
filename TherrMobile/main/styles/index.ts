@@ -79,17 +79,19 @@ const getSectionDescriptionStyles = (theme: ITherrTheme): any => ({
     color: theme.colors.textGray,
 });
 
-const buildNavTheme = (theme: ITherrTheme): Theme => ({
-    dark: true,
-    colors: {
-        primary: theme.colors.primary,
-        background: theme.colors.primary,
-        card: theme.colors.primary,
-        text: theme.colors.textWhite,
-        border: theme.colors.primary3,
-        notification: theme.colors.primary3,
-    },
-});
+const buildNavTheme = (theme: ITherrTheme): Theme => {
+    return ({
+        dark: true,
+        colors: {
+            primary: theme.colors.primary,
+            background: theme.colors.primary,
+            card: theme.colors.primary,
+            text: theme.colors.textWhite,
+            border: theme.colors.primary3,
+            notification: theme.colors.primary3,
+        },
+    });
+};
 
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
@@ -143,7 +145,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             backgroundColor: therrTheme.colors.backgroundGray,
         },
         logoIcon: {
-            color: therrTheme.colors.textWhite,
+            color: therrTheme.colors.accentLogo,
             marginLeft: 2,
         },
         logoIconDark: {
@@ -175,7 +177,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingHorizontal: 12,
         },
         sectionContainerWide: {
-            marginTop: 18,
+            marginTop: 12,
             marginBottom: 8,
             paddingHorizontal: 0,
         },
@@ -199,6 +201,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         sectionDescription: {
             ...getSectionDescriptionStyles(therrTheme),
+        },
+        sectionDescriptionNote: {
+            ...getSectionDescriptionStyles(therrTheme),
+            textAlign: 'center',
+            fontSize: 12,
+            marginBottom: 20,
         },
         sectionDescriptionCentered: {
             ...getSectionDescriptionStyles(therrTheme),
@@ -235,13 +243,13 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderBottomColor: therrTheme.colors.accentDivider,
         },
         headerTitleStyle: {
-            fontSize: 18,
+            fontSize: 20,
             fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'monospace',
             alignSelf: 'center',
             textAlign: 'center',
             justifyContent: 'center',
             flex: 1,
-            letterSpacing: Platform.OS === 'ios' ? 2 : 3,
+            letterSpacing: Platform.OS === 'ios' ? 1 : 2,
             lineHeight: HEADER_HEIGHT,
             overflow: 'hidden',
             fontWeight: 'bold',
@@ -249,6 +257,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         headerTitleLogoText: {
             ...headerTitleStyles,
             marginBottom: (Platform.OS === 'ios' && Platform.isPad) ? HEADER_PADDING_BOTTOM : HEADER_PADDING_BOTTOM / 2,
+            paddingBottom: 2,
         },
         headerSearchContainer: {
             ...headerTitleStyles,
@@ -258,6 +267,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             height: HEADER_HEIGHT - HEADER_PADDING_BOTTOM,
             margin: 0,
             padding: 0,
+            borderRadius: 8,
         },
         highlight: {
             fontWeight: '700',
