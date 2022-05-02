@@ -5,7 +5,7 @@ import { getTheme } from '../../themes';
 const areaUserAvatarImgPadding = 4;
 const areaUserAvatarImgWidth = 52 - (2 * areaUserAvatarImgPadding);
 const areaUserAvatarImgRadius = areaUserAvatarImgWidth / 2;
-const contentTitleContainerHeight = 40
+const contentTitleContainerHeight = 40;
 
 const buttonContainerStyles: any = {
     display: 'flex',

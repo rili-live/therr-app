@@ -121,9 +121,9 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
             case 'change-password':
                 return this.props.history.push('/users/change-password');
             case 'view-profile':
-                return this.props.history.push('/');
+                return this.props.history.push('/user/profile');
             case 'edit-profile':
-                return this.props.history.push('/');
+                return this.props.history.push('/user/profile');
             default:
         }
     }

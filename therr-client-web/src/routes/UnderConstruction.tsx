@@ -1,30 +1,29 @@
-/* eslint-disable max-len */
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { IUserState } from 'therr-react/types';
 import translator from '../services/translator';
-import LoginForm from '../components/forms/LoginForm';
-import { shouldRenderLoginForm, ILoginProps, routeAfterLogin } from './Login';
 import UsersActions from '../redux/actions/UsersActions';
 
-interface IHomeRouterProps {
+interface IUnderConstructionAppRouterProps {
+    history: any;
+    location: any;
 }
 
-interface IHomeDispatchProps {
+interface IUnderConstructionAppDispatchProps {
     login: Function;
 }
 
-interface IStoreProps extends IHomeDispatchProps {
+interface IStoreProps extends IUnderConstructionAppDispatchProps {
     user: IUserState;
 }
 
 // Regular component props
-interface IHomeProps extends RouteComponentProps<IHomeRouterProps>, IStoreProps {
+export interface IUnderConstructionAppProps extends RouteComponentProps<IUnderConstructionAppRouterProps>, IStoreProps {
 }
 
-interface IHomeState {
+interface IUnderConstructionAppState {
     inputs: any;
 }
 
@@ -37,20 +36,12 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 }, dispatch);
 
 /**
- * Home
+ * Login
  */
-export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
+export class UnderConstructionAppComponent extends React.Component<IUnderConstructionAppProps, IUnderConstructionAppState> {
     private translate: Function;
 
-    static getDerivedStateFromProps(nextProps: IHomeProps) {
-        if (!shouldRenderLoginForm(nextProps as ILoginProps)) {
-            nextProps.history.push(routeAfterLogin);
-            return null;
-        }
-        return {};
-    }
-
-    constructor(props: IHomeProps) {
+    constructor(props: IUnderConstructionAppProps) {
         super(props);
 
         this.state = {
@@ -61,25 +52,28 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
     }
 
     componentDidMount() { // eslint-disable-line class-methods-use-this
-        document.title = `Therr | ${this.translate('pages.home.pageTitle')}`;
+        document.title = `Therr | ${this.translate('pages.underConstruction.pageTitle')}`;
     }
 
-    login = (credentials: any) => this.props.login(credentials);
+    login = (credentials: any) => this.props.login(credentials)
 
     public render(): JSX.Element | null {
+        const { location } = this.props;
+        const alertSuccessMessage = location.state && (location.state as any).successMessage;
+
         return (
-            <div id="page_home" className="flex-box space-evenly center row wrap-reverse">
-                <div className="login-container info-container">
+            <div id="page_under_construction" className="flex-box center space-evenly row">
+                <div className="margin-top-lg margin-bot-lg">
                     <div className="flex fill max-wide-40">
                         <div className="flex-box fill">
                             <img src="/assets/images/on-the-map.svg" alt="Therr users on the map" />
                         </div>
-                        <h2 className="text-title-medium no-bot-margin fill">
-                            {this.translate('pages.home.welcome')}
+                        <h2 className="text-title-medium text-center no-bot-margin fill">
+                            {this.translate('pages.underConstruction.welcome')}
                         </h2>
-                        <p className="info-text fill">{this.translate('pages.home.info')}</p>
-                        <p className="info-text fill margin-top-lg margin-bot-lg">{this.translate('pages.home.info2')}</p>
-                        <div className="store-image-links margin-top-lg">
+                        <p className="info-text text-center fill">{this.translate('pages.underConstruction.info')}</p>
+                        <p className="info-text text-center fill margin-top-lg margin-bot-lg">{this.translate('pages.home.info2')}</p>
+                        <div className="store-image-links flex-box row space-around margin-top-lg">
                             <a href="https://apps.apple.com/us/app/therr/id1569988763?platform=iphone" target="_blank" rel="noreferrer">
                                 <img src="/assets/images/apple-store-download-button.svg" alt="Download Therr on the App Store" />
                             </a>
@@ -89,10 +83,9 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
                         </div>
                     </div>
                 </div>
-                <LoginForm login={this.login} />
             </div>
         );
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(HomeComponent));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(UnderConstructionAppComponent));

@@ -47,9 +47,6 @@ export default function MarkerIcon({
     area,
     theme,
 }) {
-    return (
-        <MarkerIconNature {...getMarkerConfigs(theme).nature} />
-    );
     // TODO: Add all categories
     if (area.category === 'art') {
         return (
