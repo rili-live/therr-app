@@ -5,7 +5,7 @@ import { getTheme } from '../../themes';
 const areaUserAvatarImgPadding = 4;
 const areaUserAvatarImgWidth = 52 - (2 * areaUserAvatarImgPadding);
 const areaUserAvatarImgRadius = areaUserAvatarImgWidth / 2;
-const contentTitleContainerHeight = 38;
+const contentTitleContainerHeight = 40;
 
 const buttonContainerStyles: any = {
     display: 'flex',
@@ -109,10 +109,10 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
         moreButton: {
             ...buttonStyle,
         },
-        bookmarkButtonContainer: {
+        areaReactionButtonContainer: {
             ...buttonContainerStyles,
         },
-        bookmarkButton: {
+        areaReactionButton: {
             ...buttonStyle,
         },
         areaContentTitleContainer: {

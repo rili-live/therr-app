@@ -15,6 +15,7 @@ const renderItem = ({ item: area }, {
     toggleAreaOptions,
     fetchMedia,
     formattedDate,
+    goToViewMap,
     goToViewUser,
     translate,
     theme,
@@ -41,6 +42,7 @@ const renderItem = ({ item: area }, {
             <AreaDisplay
                 translate={translate}
                 date={formattedDate}
+                goToViewMap={goToViewMap}
                 goToViewUser={goToViewUser}
                 toggleAreaOptions={toggleAreaOptions}
                 hashtags={area.hashTags ? area.hashTags.split(',') : []}
@@ -72,6 +74,7 @@ export default ({
     inspectArea,
     containerRef,
     fetchMedia,
+    goToViewMap,
     goToViewUser,
     handleRefresh,
     isLoading,
@@ -141,6 +144,7 @@ export default ({
                     inspectArea,
                     fetchMedia,
                     formattedDate: formatDate(itemObj.item.createdAt),
+                    goToViewMap,
                     goToViewUser,
                     toggleAreaOptions,
                     translate,

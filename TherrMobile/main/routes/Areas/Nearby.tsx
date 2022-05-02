@@ -223,6 +223,15 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
         navToViewArea(area, user, navigation.navigate);
     };
 
+    goToViewMap = (lat, long) => {
+        const { navigation } = this.props;
+
+        navigation.navigate('Map', {
+            latitude: lat,
+            longitude: long,
+        });
+    }
+
     goToViewUser = (userId) => {
         const { navigation } = this.props;
 
@@ -563,6 +572,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                                 content={content}
                                 fetchMedia={fetchMedia}
                                 inspectArea={this.goToArea}
+                                goToViewMap={this.goToViewMap}
                                 goToViewUser={this.goToViewUser}
                                 toggleAreaOptions={this.toggleAreaOptions}
                                 translate={this.translate}

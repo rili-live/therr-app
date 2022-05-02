@@ -309,12 +309,15 @@
       },
       "categories": {
         "uncategorized": "Select a Category",
+        "art": "Art",
         "geocache": "Geocache",
+        "menu": "Menu",
         "music": "Music",
         "deals": "Deals / Coupons",
         "storefront": "Storefront Promotion",
         "idea": "Idea / Observation",
-        "food": "Food Truck / Restaraunt"
+        "food": "Food",
+        "nature": "Nature/Park"
       },
       "labels": {
         "addImageNote": "Select an existing image or capture a new one!",

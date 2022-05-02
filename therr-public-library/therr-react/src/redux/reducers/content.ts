@@ -147,6 +147,9 @@ const content = (state: IContentState = initialState, action: any) => {
         case ContentActionTypes.MOMENT_DRAFT_DELETED:
             // Remove (deleted draft) moments
             return state.setIn(['myDrafts'], modifiedDraftMoments);
+        case MapActionTypes.MOMENT_UPDATED:
+            // Remove moment updated from draft to complete
+            return state.setIn(['myDrafts'], modifiedDraftMoments);
 
         // Other
         case ContentActionTypes.SET_ACTIVE_AREAS_FILTERS:
