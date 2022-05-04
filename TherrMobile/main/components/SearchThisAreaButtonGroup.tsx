@@ -18,15 +18,14 @@ export default ({
 
     return (
         <View style={themeButtons.styles.buttonGroupTop}>
-            <View style={themeButtons.styles.buttonGroupContainer}>
-                <Button
-                    onPress={() => handleSearchLocation()}
-                    buttonStyle={themeButtons.styles.searchThisAreaButton}
-                    containerStyle={themeButtons.styles.btnGroupButtonContainer}
-                    titleStyle={themeButtons.styles.searchThisAreaTitle}
-                    title={translate('menus.searchThisArea.title')}
-                />
-            </View>
+            <Button
+                onPress={() => handleSearchLocation()}
+                buttonStyle={themeButtons.styles.searchThisAreaButton}
+                containerStyle={themeButtons.styles.btnContainer}
+                titleStyle={themeButtons.styles.searchThisAreaTitle}
+                title={translate('menus.searchThisArea.title')}
+                raised
+            />
         </View>
     );
 };

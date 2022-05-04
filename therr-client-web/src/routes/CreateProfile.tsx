@@ -86,7 +86,6 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
             <>
                 <div id="page_create_profile" className="flex-box space-evenly center row wrap-reverse">
                     <CreateProfileForm onSubmit={this.onSubmit} title={this.translate('pages.createProfile.pageTitle')} />
-
                 </div>
                 {
                     errorMessage

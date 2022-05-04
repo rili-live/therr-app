@@ -112,7 +112,7 @@ export class LoginFormComponent extends React.Component<
         const { password, rememberMe, userName } = this.state.inputs;
 
         let loginArgs: any = {
-            userName: userName?.toLowerCase(),
+            userName: userName?.toLowerCase().trim(),
             password,
             rememberMe,
         };

@@ -14,6 +14,7 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import analytics from '@react-native-firebase/analytics';
 import DropDown from '../components/Input/DropDown';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
@@ -155,13 +156,23 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             },
             {
                 id: 4,
+                label: this.translate('forms.editMoment.categories.art'),
+                value: 'art',
+            },
+            {
+                id: 5,
                 label: this.translate('forms.editMoment.categories.geocache'),
                 value: 'geocache',
             },
             {
-                id: 5,
+                id: 6,
                 label: this.translate('forms.editMoment.categories.idea'),
                 value: 'idea',
+            },
+            {
+                id: 7,
+                label: this.translate('forms.editMoment.categories.nature'),
+                value: 'nature',
             },
         ];
         // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
@@ -295,6 +306,17 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         this.setState({
                             successMsg: this.translate('forms.editMoment.backendSuccessMessage'),
                         });
+
+                        analytics().logEvent('moment_create', {
+                            userId: user.details.id,
+                            momentLongitude: longitude,
+                            momentLatitude: latitude,
+                            radius,
+                            isDraft,
+                            isPublic,
+                            category,
+                        }).catch((err) => console.log(err));
+
                         setTimeout(() => {
                             this.props.navigation.navigate('Map');
                         }, 500);

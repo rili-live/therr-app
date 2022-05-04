@@ -14,6 +14,7 @@ import Login from './Login';
 import UserProfile from './UserProfile';
 import ChangePassword from './ChangePassword';
 import DiscoveredComponent from './Discovered';
+import UnderConstruction from './UnderConstruction';
 
 export interface IRoute extends RouteProps {
     access?: IAccess;
@@ -108,6 +109,16 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
     {
         path: '/discovered',
         render: (routeProps) => <DiscoveredComponent onInitMessaging={routePropsConfig.onInitMessaging} {...routeProps} />,
+        exact: true,
+        access: {
+            type: AccessCheckType.ALL,
+            levels: [AccessLevels.EMAIL_VERIFIED],
+        },
+        redirectPath: '/create-profile',
+    },
+    {
+        path: '/user/go-mobile',
+        render: UnderConstruction, // eslint-disable-line react/display-name
         exact: true,
         access: {
             type: AccessCheckType.ALL,

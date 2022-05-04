@@ -1,4 +1,5 @@
 import React from 'react';
+import { LogBox } from 'react-native';
 import { Provider } from 'react-redux';
 import SplashScreen from 'react-native-bootsplash';
 import LogRocket from '@logrocket/react-native';
@@ -7,6 +8,9 @@ import getStore from './getStore';
 import initInterceptors from './interceptors';
 import Layout from './components/Layout';
 // import { buildStyles } from './styles';
+
+// TODO: This is temporary to ignore the really annoying ViewPropTypes log
+LogBox.ignoreLogs(['ViewPropTypes']);//Ignore all log notifications
 
 class App extends React.Component<any, any> {
     private store;

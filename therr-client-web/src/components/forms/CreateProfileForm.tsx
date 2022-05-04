@@ -152,6 +152,13 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                             id="register"
                             text={this.translate('components.createProfileForm.buttons.submit')} onClick={this.onSubmit} disabled={this.isFormDisabled()} />
                     </div>
+
+                    <div className="form-field">
+                        <h2 className="text-title-medium text-center no-bot-margin fill">
+                            {this.translate('pages.createProfile.infoTitle')}
+                        </h2>
+                        <p className="info-text text-center fill">{this.translate('pages.createProfile.info')}</p>
+                    </div>
                 </div>
             </div>
         );

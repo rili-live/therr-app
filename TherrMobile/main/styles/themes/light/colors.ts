@@ -22,6 +22,7 @@ const colors: ITherrThemeColors = {
 
     // Branding - These colors should remain unchanged regardless of theme
     brandingWhite: '#fcfeff',
+    brandingBlack: '#001226',
     brandingBlueGreen: '#1C7F8A',
     brandingMapYellow: '#ebc300',
     brandingOrange: '#DE6E07',

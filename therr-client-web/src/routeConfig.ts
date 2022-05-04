@@ -48,4 +48,12 @@ export default [
         },
         view: 'index',
     },
+    {
+        route: '/go-mobile',
+        head: {
+            title: 'Go Mobile',
+            description: 'For the best experience, download the mobile version of Therr app',
+        },
+        view: 'index',
+    },
 ];
