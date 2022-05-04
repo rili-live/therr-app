@@ -1,5 +1,6 @@
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
+import { therrFontFamily } from '../font';
 import { buttonMenuHeight } from '../navigation/buttonMenu';
 import { getTheme, ITherrTheme } from '../themes';
 
@@ -36,23 +37,25 @@ const getBtnGroupBtnStyles = (theme: ITherrTheme): any => ({
 });
 
 const getBottomLeftBtnViewStyles = (theme: ITherrTheme): any => ({
-    position: 'absolute',
+    ...getFloatingBtnContainer(theme),
     left: 18,
     bottom: 60 + buttonMenuHeight - collapseOffset,
-    shadowColor: theme.colors.textBlack,
-    shadowOffset: {
-        height: 1,
-        width: 1,
-    },
-    shadowRadius: 4,
-    borderRadius: 100,
-    padding: 0,
 });
 
 const getLeftSmallButton1ViewStyles = (theme: ITherrTheme): any => ({
-    position: 'absolute',
+    ...getFloatingBtnContainer(theme),
     left: 18,
     bottom: 60 + buttonMenuHeight - collapseOffset,
+});
+
+const getLeftSmallButton2ViewStyles = (theme: ITherrTheme): any => ({
+    ...getFloatingBtnContainer(theme),
+    left: 90,
+    bottom: 60 + buttonMenuHeight - collapseOffset,
+});
+
+const getFloatingBtnContainer = (theme: ITherrTheme): any => ({
+    position: 'absolute',
     shadowColor: theme.colors.textBlack,
     shadowOffset: {
         height: 1,
@@ -61,6 +64,10 @@ const getLeftSmallButton1ViewStyles = (theme: ITherrTheme): any => ({
     shadowRadius: 4,
     borderRadius: 100,
     padding: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    display: 'flex',
+    zIndex: 10,
 });
 
 const buttonGroupStyles: any = {
@@ -154,55 +161,29 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: '500',
         },
         claimASpace: {
-            position: 'absolute',
+            ...getFloatingBtnContainer(therrTheme),
             right: 24,
             bottom: 200 + buttonMenuHeight - collapseOffset,
-            shadowColor: therrTheme.colors.textBlack,
-            shadowOffset: {
-                height: 1,
-                width: 1,
-            },
-            shadowRadius: 4,
-            borderRadius: 100,
-            padding: 0,
-            alignItems: 'center',
-            justifyContent: 'center',
-            display: 'flex',
-            flexDirection: 'row',
         },
         uploadMoment: {
-            position: 'absolute',
+            ...getFloatingBtnContainer(therrTheme),
             right: 24,
             bottom: 130 + buttonMenuHeight - collapseOffset,
-            shadowColor: therrTheme.colors.textBlack,
-            shadowOffset: {
-                height: 1,
-                width: 1,
-            },
-            shadowRadius: 4,
-            borderRadius: 100,
-            padding: 0,
-            alignItems: 'center',
-            justifyContent: 'center',
-            display: 'flex',
-            flexDirection: 'row',
         },
         addAMoment: {
-            position: 'absolute',
+            ...getFloatingBtnContainer(therrTheme),
             right: 20,
             bottom: 60 + buttonMenuHeight - collapseOffset,
-            shadowColor: therrTheme.colors.textBlack,
-            shadowOffset: {
-                height: 1,
-                width: 1,
-            },
-            shadowRadius: 4,
-            borderRadius: 100,
-            padding: 0,
-            alignItems: 'center',
-            justifyContent: 'center',
-            display: 'flex',
-            zIndex: 10,
+        },
+        applyFilters: {
+            ...getFloatingBtnContainer(therrTheme),
+            right: 20,
+            bottom: 40 + buttonMenuHeight - collapseOffset,
+        },
+        resetFilters: {
+            ...getFloatingBtnContainer(therrTheme),
+            left: 20,
+            bottom: 40 + buttonMenuHeight - collapseOffset,
         },
         // collapse: {
         //     position: 'absolute',
@@ -237,6 +218,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         locationEnable: {
             ...getLeftSmallButton1ViewStyles(therrTheme),
+        },
+        mapFilters: {
+            ...getLeftSmallButton2ViewStyles(therrTheme),
         },
         recenter: {
             position: 'absolute',
@@ -349,11 +333,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         btnMediumTitle: {
             paddingRight: 12,
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
         },
         btnMediumTitleRight: {
             paddingLeft: 12,
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
         },
         btnLarge: {
             ...btnStyles,
@@ -369,7 +353,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         btnLargeTitle: {
             paddingLeft: 10,
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
         },
         btnClear: {
             ...btnStyles,
@@ -399,6 +383,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         btnTitleBlack: {
             color: therrTheme.colors.accentTextBlack,
+            fontFamily: therrFontFamily,
         },
         labelLeft: {
             marginRight: 8,

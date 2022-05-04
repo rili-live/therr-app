@@ -45,6 +45,17 @@ import BottomSheet from '../components/Modals/BottomSheet';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
+export const spaceCategories = [
+    'uncategorized',
+    'menu',
+    'deals',
+    'storefront',
+    'idea',
+    'food',
+    'music',
+    'nature',
+];
+
 const hapticFeedbackOptions = {
     enableVibrateFallback: true,
     ignoreAndroidSystemSettings: false,
@@ -127,48 +138,11 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
-        this.categoryOptions = [
-            {
-                id: 1,
-                label: this.translate('forms.editMoment.categories.uncategorized'),
-                value: 'uncategorized',
-            },
-            {
-                id: 2,
-                label: this.translate('forms.editMoment.categories.menu'),
-                value: 'menu',
-            },
-            {
-                id: 3,
-                label: this.translate('forms.editMoment.categories.deals'),
-                value: 'deals',
-            },
-            {
-                id: 4,
-                label: this.translate('forms.editMoment.categories.storefront'),
-                value: 'storefront',
-            },
-            {
-                id: 5,
-                label: this.translate('forms.editMoment.categories.idea'),
-                value: 'idea',
-            },
-            {
-                id: 6,
-                label: this.translate('forms.editMoment.categories.food'),
-                value: 'food',
-            },
-            {
-                id: 7,
-                label: this.translate('forms.editMoment.categories.music'),
-                value: 'music',
-            },
-            {
-                id: 8,
-                label: this.translate('forms.editMoment.categories.nature'),
-                value: 'nature',
-            },
-        ];
+        this.categoryOptions = spaceCategories.map((category, index) => ({
+            id: index,
+            label: this.translate(`forms.editMoment.categories.${category}`),
+            value: category,
+        }));
         // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
     }
 

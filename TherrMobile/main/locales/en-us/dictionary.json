@@ -433,6 +433,10 @@
       "uploadAMoment": "Create a Moment",
       "captureAMoment": "Capture a Moment"
     },
+    "filterActions": {
+      "applyFilters": "Apply",
+      "resetFilters": "Reset"
+    },
     "main": {
       "buttons": {
         "account": "Account",
@@ -590,6 +594,21 @@
         "registerSuccess": "Registration success! Check your e-mail for verification."
       }
     },
+    "mapFilteredSearch": {
+      "headerTitle": "Map Search Filters",
+      "h2": {
+        "authorFilters": "Author Filters",
+        "visibilityFilters": "Visibility Filters",
+        "categoryFilters": "Category Filters"
+      },
+      "labels": {
+        "public": "Public",
+        "private": "Private",
+        "selectAll": "Select / Unselect All",
+        "me": "Only My Posts",
+        "notMe": "Not My Posts"
+      }
+    },
     "myDrafts": {
       "headerTitle": "My Drafts",
       "noDraftsFound": "No drafts found. Save an in-progress post as a draft to edit later."
@@ -692,13 +711,19 @@
     "confirmModal": {
       "agree": "Agree",
       "confirm": "Yes",
+      "continue": "Continue",
       "cancel": "Cancel",
+      "notNow": "Not Now",
       "blockUser": "Are you sure you want to block {userName}?",
       "connect": "Send connection request to {userName}?",
       "reportUser": "Are you sure you want to report {userName}?",
       "unconnect": "Remove connection with {userName}? (You will no longer be able to activate new content from this user)",
       "header": {
+        "claimSpace": "Claim a Space",
         "eula": "End-User License Agreement (EULA)"
+      },
+      "body": {
+        "claimSpace": "Spaces are for businesses and promoters. Content is public and helps you leverage custom push notifications, metrics, and location ownership."
       }
     },
     "areaOptions": {
@@ -717,15 +742,16 @@
     },
     "touringModal": {
       "exit": "Exit",
+      "close": "Close",
       "back": "Back",
       "next": "Next",
       "done": "Done",
       "header1": "Tour: Claim a Space",
       "header2": "Tour: Share a Moment",
       "header3": "Tour: Explore the World",
-      "createAMoment": "Curate content on the go. 'Moments' are only available when a user in your network discovers them. Enable location and press the plus icon. Set the geo-radius for activation and customize each moment to your heart's desire!",
-      "claimYourSpaces": "Claim a limited # of spaces. Content is public, and nobody can claim overlapping spaces. Use your space to notify users and share local content.",
-      "exploreTheWorld": "Seek out 'moments' that peak your interests. Check the map for Insights and plan your travels accordingly. Find and post 'Gigs', schedule 'Events', and connect with the community. Some of these features are unlocked only after reaching certain milestones."
+      "createAMoment": "Press the GPS button on the map to start creating content. We require location for all posts to prevent fake users and focus on local-first.",
+      "claimYourSpaces": "Businesses and promoters can claim spaces on the map. Content is public, and nobody can claim overlapping spaces.",
+      "exploreTheWorld": "Use the search bar and filters, then travel to those locations. When you are nearby (w/ location on), content will be added to the 'Discovered' tab."
     }
   },
   "permissions": {

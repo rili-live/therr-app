@@ -5,6 +5,7 @@ import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/
 import { AccessLevels } from 'therr-js-utilities/constants';
 import { IAccess, AccessCheckType } from 'therr-react/types';
 import AdvancedSearch from './AdvancedSearch';
+import MapFilteredSearch from './AdvancedSearch/MapFilteredSearch';
 import BookMarked from './Areas/BookMarked';
 import MyDrafts from './Areas/MyDrafts';
 import Home from './Home';
@@ -262,6 +263,17 @@ const routes: RouteConfig<
     //         },
     //     }),
     // },
+    {
+        name: 'MapFilteredSearch',
+        component: MapFilteredSearch,
+        options: () => ({
+            title: 'Map Search Filters',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
     {
         name: 'Nearby',
         component: Nearby,

@@ -1,5 +1,6 @@
 import { Platform, StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
+import { therrFontFamily } from '../../../styles/font';
 import { getTheme, ITherrTheme } from '../../themes';
 
 
@@ -7,7 +8,7 @@ const dividerHeight = 2;
 
 const getMomentTextStyles = (theme: ITherrTheme) => ({
     color: theme.colors.textBlack,
-    fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+    fontFamily: therrFontFamily,
 });
 
 const androidMomentContainerStyles: any = {
@@ -45,7 +46,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
 
         },
         areaCarouselTabTitle: {
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
         },
         areaCarouselFooter: {
             marginTop: dividerHeight / 2,

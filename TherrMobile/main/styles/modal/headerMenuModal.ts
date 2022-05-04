@@ -1,6 +1,7 @@
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { HEADER_HEIGHT, HEADER_EXTRA_HEIGHT } from '..';
+import { therrFontFamily } from '../font';
 import { getTheme } from '../themes';
 
 const userProfileButtonContainerStyles: any = {
@@ -50,7 +51,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingRight: 10,
             paddingLeft: 10,
             fontSize: 16,
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
         },
         buttonsTitleActive: {
             backgroundColor: 'transparent',
@@ -58,7 +59,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingRight: 10,
             paddingLeft: 10,
             fontSize: 18,
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
         },
         iconStyle: {
             color: therrTheme.colors.accentAlt,
@@ -127,7 +128,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.primary3,
             fontSize: 18,
             letterSpacing: 2,
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
         },
         headerTitleIcon: {
             // color: therrTheme.colors.accentAlt,
@@ -157,7 +158,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         subheaderTitleText: {
             color: therrTheme.colors.brandingWhite,
             fontSize: 15,
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
         },
         subheaderTitleIcon: {
             color: therrTheme.colors.brandingWhite,

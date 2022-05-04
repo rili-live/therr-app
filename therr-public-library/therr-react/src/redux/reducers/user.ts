@@ -50,6 +50,11 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
                 ...state.settings,
                 ...action.data,
             });
+        case UserActionTypes.UPDATE_USER_FTUI:
+            return state.setIn(['settings'], {
+                ...state.settings,
+                ...action.data,
+            });
         case SocketClientActionTypes.LOGOUT:
             return state.setIn(['isAuthenticated'], false)
                 .setIn(['socketDetails'], {})

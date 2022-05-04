@@ -91,6 +91,7 @@ interface IMapDispatchProps {
     updateLocationPermissions: Function;
     updateUser: Function;
     updateTour: Function;
+    updateFirstTimeUI: Function;
 }
 
 interface IStoreProps extends IMapDispatchProps {
@@ -165,6 +166,7 @@ const mapDispatchToProps = (dispatch: any) =>
             updateLocationPermissions: LocationActions.updateLocationPermissions,
             updateUser: UsersActions.update,
             updateTour: UsersActions.updateTour,
+            updateFirstTimeUI: UsersActions.updateFirstTimeUI,
         },
         dispatch
     );
@@ -234,7 +236,14 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     componentDidMount = async () => {
-        const { navigation, route, setSearchDropdownVisibility } = this.props;
+        const { navigation, route, setSearchDropdownVisibility, updateFirstTimeUI, updateTour, user } = this.props;
+
+        if (user.details?.loginCount < 5 && !user.settings?.hasCompletedFTUI) {
+            updateTour(user.details.id, {
+                isTouring: true,
+            });
+            updateFirstTimeUI(true);
+        }
 
         this.unsubscribeNavigationListener = navigation.addListener('state', () => {
             setSearchDropdownVisibility(false);
@@ -249,8 +258,10 @@ class Map extends React.Component<IMapProps, IMapState> {
             setSearchDropdownVisibility(false);
             clearTimeout(this.timeoutId);
 
+            // TODO: Determine why the mapview interferes with this animation
+            // This is sloppy/bad code. We should find a better way
             /** Animate to region when user selection area location from other views (earth icon) */
-            if (route.params?.latitude && route.params?.longitude) {
+            if (Platform.OS === 'ios' && route.params?.latitude && route.params?.longitude) {
                 const loc = {
                     latitude: route.params.latitude,
                     longitude: route.params.longitude,
@@ -258,9 +269,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                     longitudeDelta: route.params.latitudeDelta || PRIMARY_LONGITUDE_DELTA,
                 };
 
-                // TODO: Determine why the mapview interferes with this animation
-                // This is sloppy/bad code. We should find a better way
-                const weirdTimeout = Platform.OS === 'ios' ? 500 : 2000;
+                const weirdTimeout = 512;
 
                 this.timeoutIdGoToArea = setTimeout(() => {
                     this.animateToWithHelp(() => this?.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION));
@@ -420,6 +429,14 @@ class Map extends React.Component<IMapProps, IMapState> {
                 return;
             }
 
+            if (action === 'claim') {
+                navigation.navigate('EditSpace', {
+                    ...circleCenter,
+                    imageDetails: {},
+                });
+                return;
+            }
+
             return requestOSCameraPermissions(storePermissions).then((response) => {
                 const permissionsDenied = Object.keys(response).some((key) => {
                     return response[key] !== 'granted';
@@ -439,11 +456,6 @@ class Map extends React.Component<IMapProps, IMapState> {
                     } else if (action === 'upload') {
                         return ImageCropPicker.openPicker(pickerOptions)
                             .then((cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter));
-                    } else if (action === 'claim') {
-                        navigation.navigate('EditSpace', {
-                            ...circleCenter,
-                            imageDetails: {},
-                        });
                     } else {
                         navigation.navigate('EditMoment', {
                             ...circleCenter,
@@ -657,6 +669,14 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     };
 
+    handleOpenMapFiltersPress = () => {
+        const { navigation } = this.props;
+        navigation.navigate('MapFilteredSearch');
+    }
+
+    /**
+     * On press handler for any map press. Handles pressing an area, and determines when view or bottom-sheet menu to open
+     */
     handleMapPress = ({ nativeEvent }) => {
         const { createOrUpdateMomentReaction, createOrUpdateSpaceReaction, location, map, navigation, setSearchDropdownVisibility, user } = this.props;
         const { circleCenter, layers } = this.state;
@@ -1544,12 +1564,16 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 hasNotifications={hasNotifications}
                                 handleCreate={this.handleCreate}
                                 handleGpsRecenter={this.handleGpsRecenterPress}
+                                handleOpenMapFilters={this.handleOpenMapFiltersPress}
                                 toggleMomentActions={this.toggleMomentActions}
                                 shouldShowCreateActions={shouldShowCreateActions}
                                 isAuthorized={this.isAuthorized}
                                 isGpsEnabled={location?.settings?.isGpsEnabled}
                                 translate={this.translate}
+                                theme={this.theme}
                                 themeButtons={this.themeButtons}
+                                themeConfirmModal={this.themeConfirmModal}
+                                user={user}
                             />
                         }
                         {/* <FiltersButtonGroup
