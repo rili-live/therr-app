@@ -9,16 +9,20 @@
 }
 
 .tile_wrapper {
-  width: 30%;
-  padding: 0 10px;
-  border-bottom: solid;
-  border-width: 2px;
-  border-color: #E7E8E8;
+  width: 29%;
+  padding: 24px 2%;
 }
 
 .tile {
   width: 100%;
   color: #6a7071;
+  background-color: #FFFFFF;
+  padding: 12px;
+  border-color: #E7E8E8;
+  border: solid;
+  border-width: 2px;
+  border-color: #E7E8E8;
+  border-radius: 16px;
 }
 
 .tile_username {
