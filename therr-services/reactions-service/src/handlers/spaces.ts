@@ -93,7 +93,10 @@ const searchActiveSpaces = async (req: any, res: any) => {
                 },
             });
         })
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' }));
+        .catch((err) => {
+            console.log(err.message)
+            return handleHttpError({ err, res, message: 'SQL:SPACE_REACTIONS_ROUTES:ERROR' });
+        })
 };
 
 const searchBookmarkedSpaces = async (req: any, res: any) => {
