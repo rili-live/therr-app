@@ -48,7 +48,8 @@ const canActivateArea = (area, userLocation: IUserlocation) => {
         lat: userLocation.latitude,
     });
 
-    return distToCenter - areaRequiredProximityMeters <= 0;
+    // TODO: We should gradually reduce tempLocationExpansionDistMeters toward zero as more users join
+    return distToCenter - areaRequiredProximityMeters <= parseInt(globalConfig[process.env.NODE_ENV].tempLocationExpansionDistMeters || 0, 10);
 };
 
 const getCachedNearbyAreas = (areaType: IAreaType, userLocationCache: UserLocationCache, {
@@ -82,6 +83,7 @@ const getCachedNearbyAreas = (areaType: IAreaType, userLocationCache: UserLocati
         });
 };
 
+// Find areas within distance that have not been activated and are close enough to activate
 const filterNearbyAreas = (areaType: IAreaType, areas, userLocationCache: UserLocationCache, headers: IHeaders, userLocation: IUserlocation) => {
     if (!areas.length) {
         return Promise.resolve([]);

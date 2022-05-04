@@ -183,16 +183,20 @@ class Map extends React.Component<IMapProps, IMapState> {
     private themeTour = buildTourStyles();
     private themeSearch = buildSearchStyles({ viewPortHeight });
     private timeoutId;
-    private timeoutIdGPSStart;
+    private timeoutIdGoToArea;
     private timeoutIdRefreshMoments;
     private timeoutIdShowMoment;
     private timeoutIdSearchButton;
     private timeoutIdWaitForSearchSelect;
     private translate: Function;
+    private unsubscribeFocusListener: any;
     private unsubscribeNavigationListener: any;
 
     constructor(props) {
         super(props);
+
+        const routeLongitude = props.route?.params?.longitude;
+        const routeLatitude = props.route?.params?.latitude;
 
         this.state = {
             activeMoment: {},
@@ -219,25 +223,18 @@ class Map extends React.Component<IMapProps, IMapState> {
                 connectionsSpaces: true,
             },
             circleCenter: {
-                longitude: -96.4683143,
-                latitude: 32.8102631,
+                longitude: routeLongitude || -99.458829,
+                latitude: routeLatitude || 39.7629981,
             },
         };
 
-        this.theme = buildStyles(props.user.settings?.mobileThemeName);
-        this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
-        this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
-        this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
-        this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
-        this.themeDisclosure = buildDisclosureStyles(props.user.settings?.mobileThemeName);
-        this.themeTour = buildTourStyles(props.user.settings?.mobileThemeName);
-        this.themeSearch = buildSearchStyles({ viewPortHeight }, props.user.settings?.mobileThemeName);
+        this.reloadTheme();
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
 
     componentDidMount = async () => {
-        const { navigation, setSearchDropdownVisibility } = this.props;
+        const { navigation, route, setSearchDropdownVisibility } = this.props;
 
         this.unsubscribeNavigationListener = navigation.addListener('state', () => {
             setSearchDropdownVisibility(false);
@@ -246,6 +243,29 @@ class Map extends React.Component<IMapProps, IMapState> {
                 isMinLoadTimeComplete: true,
                 isLocationReady: true,
             });
+        });
+
+        this.unsubscribeFocusListener = navigation.addListener('focus', () => {
+            setSearchDropdownVisibility(false);
+            clearTimeout(this.timeoutId);
+
+            /** Animate to region when user selection area location from other views (earth icon) */
+            if (route.params?.latitude && route.params?.longitude) {
+                const loc = {
+                    latitude: route.params.latitude,
+                    longitude: route.params.longitude,
+                    latitudeDelta: route.params.longitudeDelta || PRIMARY_LATITUDE_DELTA,
+                    longitudeDelta: route.params.latitudeDelta || PRIMARY_LONGITUDE_DELTA,
+                };
+
+                // TODO: Determine why the mapview interferes with this animation
+                // This is sloppy/bad code. We should find a better way
+                const weirdTimeout = Platform.OS === 'ios' ? 500 : 2000;
+
+                this.timeoutIdGoToArea = setTimeout(() => {
+                    this.animateToWithHelp(() => this?.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION));
+                }, weirdTimeout);
+            }
         });
 
         navigation.setOptions({
@@ -260,15 +280,41 @@ class Map extends React.Component<IMapProps, IMapState> {
         }, MIN_LOAD_TIMEOUT);
     };
 
+    componentDidUpdate(prevProps: IMapProps) {
+        const { user } = this.props;
+
+        if (prevProps.user?.settings?.mobileThemeName !== user?.settings?.mobileThemeName) {
+            this.reloadTheme();
+        }
+    }
+
     componentWillUnmount() {
         Geolocation.clearWatch(this.mapWatchId);
         clearTimeout(this.timeoutId);
-        clearTimeout(this.timeoutIdGPSStart);
+        clearTimeout(this.timeoutIdGoToArea);
         clearTimeout(this.timeoutIdRefreshMoments);
         clearTimeout(this.timeoutIdShowMoment);
         clearTimeout(this.timeoutIdSearchButton);
         clearTimeout(this.timeoutIdWaitForSearchSelect);
         this.unsubscribeNavigationListener();
+        this.unsubscribeFocusListener();
+    }
+
+    reloadTheme = (shouldForceUpdate: boolean = false) => {
+        const themeName = this.props.user.settings?.mobileThemeName;
+        this.theme = buildStyles(themeName);
+        this.themeAlerts = buildAlertStyles(themeName);
+        this.themeConfirmModal = buildConfirmModalStyles(themeName);
+        this.themeButtons = buildButtonStyles(themeName);
+        this.themeLoader = buildLoaderStyles(themeName);
+        this.themeMenu = buildMenuStyles(themeName);
+        this.themeDisclosure = buildDisclosureStyles(themeName);
+        this.themeTour = buildTourStyles(themeName);
+        this.themeSearch = buildSearchStyles({ viewPortHeight }, themeName);
+
+        if (shouldForceUpdate) {
+            this.forceUpdate();
+        }
     }
 
     animateToWithHelp = (doAnimate) => {
@@ -354,20 +400,24 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     }
 
-    handleCreateMoment = (action: ICreateMomentAction = 'camera') => {
+    handleCreate = (action: ICreateMomentAction = 'moment') => {
         const { location, navigation } = this.props;
         const { circleCenter } = this.state;
+
+        this.setState({
+            shouldShowCreateActions: false,
+        });
 
         if (location?.settings?.isGpsEnabled) {
             // TODO: Store permissions in redux
             const storePermissions = () => {};
 
-            // No need to request camera permissions for text only
-            if (action === 'text-only') {
+            if (action === 'moment') {
                 navigation.navigate('EditMoment', {
                     ...circleCenter,
                     imageDetails: {},
                 });
+                return;
             }
 
             return requestOSCameraPermissions(storePermissions).then((response) => {
@@ -390,8 +440,10 @@ class Map extends React.Component<IMapProps, IMapState> {
                         return ImageCropPicker.openPicker(pickerOptions)
                             .then((cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter));
                     } else if (action === 'claim') {
-                        return ImageCropPicker.openPicker(pickerOptions)
-                            .then((cameraResponse) => this.handleImageSelect(cameraResponse, circleCenter, 'spaces'));
+                        navigation.navigate('EditSpace', {
+                            ...circleCenter,
+                            imageDetails: {},
+                        });
                     } else {
                         navigation.navigate('EditMoment', {
                             ...circleCenter,
@@ -413,6 +465,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         } else {
             // TODO: Alert that GPS is required to create a moment
+            this.showAreaAlert();
         }
     };
 
@@ -579,13 +632,25 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     handleGpsRecenter = (coords?, delta?, duration?) => {
-        const { circleCenter } = this.state;
+        const { circleCenter, lastLocationSendForProcessing } = this.state;
+        const { map } = this.props;
         const loc = {
             latitude: coords?.latitude || circleCenter.latitude,
             longitude: coords?.longitude || circleCenter.longitude,
             latitudeDelta: delta?.latitudeDelta || PRIMARY_LATITUDE_DELTA,
             longitudeDelta: delta?.longitudeDelta || PRIMARY_LONGITUDE_DELTA,
         };
+        /**
+         * Send location to backend for processing
+         * This helps ensure first time users post their location and get some initial content
+         */
+        PushNotificationsService.postLocationChange({
+            longitude: loc.longitude,
+            latitude: loc.latitude,
+            lastLocationSendForProcessing,
+            radiusOfAwareness: map.radiusOfAwareness,
+            radiusOfInfluence: map.radiusOfInfluence,
+        });
         this.animateToWithHelp(() => this.mapRef && this.mapRef.animateToRegion(loc, duration || ANIMATE_TO_REGION_DURATION));
         this.setState({
             areLayersVisible: false,
@@ -666,6 +731,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 });
                             } else {
                                 // TODO: Alert that GPS is required to create a space
+                                this.showAreaAlert();
                             }
                         });
                     })
@@ -722,6 +788,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                     });
                                 } else {
                                     // TODO: Alert that GPS is required to create a moment
+                                    this.showAreaAlert();
                                 }
                             });
                         })
@@ -895,7 +962,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         if (lat && long) {
             searchMoments({
                 query: 'connections',
-                itemsPerPage: 50,
+                itemsPerPage: 200,
                 pageNumber: 1,
                 order: 'desc',
                 filterBy: 'fromUserIds',
@@ -917,7 +984,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             });
             searchSpaces({
                 query: 'connections',
-                itemsPerPage: 50,
+                itemsPerPage: 200,
                 pageNumber: 1,
                 order: 'desc',
                 filterBy: 'fromUserIds',
@@ -972,7 +1039,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         // Update user property to show confirmed
         updateUser(user.details.id, { hasAgreedToTerms: true }).then(() => {
-            this.handleCreateMoment('upload');
+            this.handleCreate('upload');
         });
     }
 
@@ -1195,7 +1262,7 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={this.theme.styles.safeAreaView} onStartShouldSetResponder={(event: any) => {
                     event.persist();
                     if (event?.target?._nativeTag) {
@@ -1244,13 +1311,15 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 scrollEnabled={isScrollEnabled}
                                 minZoomLevel={MIN_ZOOM_LEVEL}
                                 /* react-native-map-clustering */
-                                clusterColor={this.theme.colors.primary2}
+                                clusterColor={this.theme.colors.brandingBlueGreen}
+                                clusterFontFamily={this.theme.styles.headerTitleStyle.fontFamily}
+                                clusterTextColor={this.theme.colors.brandingWhite}
                             >
                                 <Circle
                                     center={circleCenter}
                                     radius={DEFAULT_MOMENT_PROXIMITY} /* meters */
                                     strokeWidth={1}
-                                    strokeColor={this.theme.colors.primary2}
+                                    strokeColor={this.theme.colors.brandingBlueGreen}
                                     fillColor={this.theme.colors.map.userCircleFill}
                                     zIndex={0}
                                 />
@@ -1473,7 +1542,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 goToMoments={this.goToMoments}
                                 goToNotifications={this.goToNotifications}
                                 hasNotifications={hasNotifications}
-                                handleCreateMoment={this.handleCreateMoment}
+                                handleCreate={this.handleCreate}
                                 handleGpsRecenter={this.handleGpsRecenterPress}
                                 toggleMomentActions={this.toggleMomentActions}
                                 shouldShowCreateActions={shouldShowCreateActions}
@@ -1527,6 +1596,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                     translate={this.translate}
                     user={user}
                     themeMenu={this.themeMenu}
+                    themeName={this.props.user?.settings?.mobileThemeName}
                 />
             </>
         );

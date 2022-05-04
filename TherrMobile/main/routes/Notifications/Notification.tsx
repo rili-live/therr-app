@@ -7,7 +7,8 @@ import { ITherrThemeColors } from '../../styles/themes';
 interface INotificationProps {
     acknowledgeRequest: any;
     containerStyles?: any;
-    handlePress: ((event: GestureResponderEvent) => void) | null | undefined;
+    handlePress: ((event: GestureResponderEvent) => void) | undefined;
+    handlePressAndNavigate: ((event: GestureResponderEvent) => void) | null | undefined;
     isUnread: boolean;
     notification: any;
     translate: any;
@@ -21,6 +22,7 @@ export default ({
     acknowledgeRequest,
     containerStyles,
     handlePress,
+    handlePressAndNavigate,
     isUnread,
     notification,
     translate,
@@ -37,7 +39,7 @@ export default ({
             android_ripple={{
                 color: themeNotification.colors.primary,
             }}
-            onPress={handlePress}
+            onPress={handlePressAndNavigate}
             style={{
                 ...rootStyle,
                 ...(containerStyles || {}),
@@ -49,19 +51,25 @@ export default ({
                 <Text style={messageStyle}>
                     {notification.message}
                 </Text>
-                {
-                    isUnread ?
-                        <FontAwesomeIcon
-                            name="dot-circle"
-                            size={14}
-                            style={iconStyle}
-                        /> :
-                        <FontAwesomeIcon
-                            name="check"
-                            size={14}
-                            style={iconStyle}
-                        />
-                }
+                <Pressable
+                    onPress={isUnread ? handlePress : () => {}}
+                    style={themeNotification.styles.iconContainerStyle}
+                    hitSlop={20}
+                >
+                    {
+                        isUnread ?
+                            <FontAwesomeIcon
+                                name="dot-circle"
+                                size={20}
+                                style={iconStyle}
+                            /> :
+                            <FontAwesomeIcon
+                                name="check"
+                                size={14}
+                                style={iconStyle}
+                            />
+                    }
+                </Pressable>
             </View>
             {
                 notification.userConnection?.requestStatus === 'pending' &&

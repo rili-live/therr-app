@@ -180,7 +180,7 @@ class DirectMessage extends React.Component<
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={[this.theme.styles.safeAreaView]}>
                     <View style={this.themeMessage.styles.container}>
                         <FlatList

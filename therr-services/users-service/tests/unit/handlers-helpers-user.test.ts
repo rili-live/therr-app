@@ -96,7 +96,7 @@ describe('handlers/helpers/user', () => {
                     .to.be.equal(true);
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`', 'email')`))
                     .to.be.equal(true);
-                expect(mockUserStoreConnection.write.query.args[0][0].includes(`insert into "main"."users" ("accessLevels", "email", "firstName", "lastName", "password", "phoneNumber", "userName", "verificationCodes") values ('["user.default"]', 'testuser@gmail.com', 'bob', 'smith', '`))
+                expect(mockUserStoreConnection.write.query.args[0][0].includes(`insert into "main"."users" ("accessLevels", "email", "firstName", "hasAgreedToTerms", "lastName", "password", "phoneNumber", "userName", "verificationCodes") values ('["user.default"]', 'testuser@gmail.com', 'bob', true, 'smith'`))
                     .to.be.equal(true);
                 expect(mockUserStoreConnection.write.query.args[0][0].includes(`', '+13175448348', 'testuser', '{"email":{"code":"`))
                     .to.be.equal(true);
@@ -142,7 +142,7 @@ describe('handlers/helpers/user', () => {
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`', 'email')`))
                     .to.be.equal(true);
                 // Create User
-                expect(mockUserStoreConnection.write.query.args[0][0].includes(`insert into "main"."users" ("accessLevels", "email", "firstName", "lastName", "password", "phoneNumber", "userName", "verificationCodes") values ('["user.default","user.verified.email.missing.props"]', 'testuser@gmail.com', DEFAULT, DEFAULT, '`))
+                expect(mockUserStoreConnection.write.query.args[0][0].includes(`insert into "main"."users" ("accessLevels", "email", "firstName", "hasAgreedToTerms", "lastName", "password", "phoneNumber", "userName", "verificationCodes") values ('["user.default","user.verified.email.missing.props"]', 'testuser@gmail.com', DEFAULT, true, DEFAULT, '`))
                     .to.be.equal(true);
                 expect(mockUserStoreConnection.write.query.args[0][0].includes(`', DEFAULT, DEFAULT, '{"email":{"code":"`))
                     .to.be.equal(true);
@@ -200,7 +200,7 @@ describe('handlers/helpers/user', () => {
                 expect(mockVerificationCodesStoreConnection.write.query.args[0][0].includes(`', 'email')`))
                     .to.be.equal(true);
                 // Create User
-                expect(mockUserStoreConnection.write.query.args[0][0].includes(`insert into "main"."users" ("accessLevels", "email", "firstName", "lastName", "password", "phoneNumber", "userName", "verificationCodes") values ('["user.default"]', 'test2user@gmail.com', DEFAULT, DEFAULT, '`))
+                expect(mockUserStoreConnection.write.query.args[0][0].includes(`insert into "main"."users" ("accessLevels", "email", "firstName", "hasAgreedToTerms", "lastName", "password", "phoneNumber", "userName", "verificationCodes") values ('["user.default"]', 'test2user@gmail.com', DEFAULT, false, DEFAULT, '`))
                     .to.be.equal(true);
                 expect(mockUserStoreConnection.write.query.args[0][0].includes(`', DEFAULT, DEFAULT, '{"email":{"code":"`))
                     .to.be.equal(true);

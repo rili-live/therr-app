@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, View, Text } from 'react-native';
+import { SafeAreaView, Switch, View, Text } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Button }  from 'react-native-elements';
 import { connect } from 'react-redux';
@@ -46,6 +46,7 @@ interface ISettingsState {
     successMsg: string;
     inputs: any;
     isCropping: boolean;
+    isNightMode: boolean;
     isSubmitting: boolean;
     passwordErrorMessage: string;
 }
@@ -83,15 +84,12 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 shouldHideMatureContent: props.user.details.shouldHideMatureContent,
             },
             isCropping: false,
+            isNightMode: props.user.settings.mobileThemeName === 'retro',
             isSubmitting: false,
             passwordErrorMessage: '',
         };
 
-        this.theme = buildStyles(props.user.settings?.mobileThemeName);
-        this.themeMenu = buildMenuStyles(props.user.settings.buildMenuStyles);
-        this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
-        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
-        this.themeSettingsForm = buildSettingsFormStyles(props.user.settings?.mobileThemeName);
+        this.reloadTheme();
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
@@ -116,6 +114,16 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         );
     }
 
+    reloadTheme = () => {
+        const themeName = this.props.user.settings?.mobileThemeName;
+
+        this.theme = buildStyles(themeName);
+        this.themeMenu = buildMenuStyles(themeName);
+        this.themeAlerts = buildAlertStyles(themeName);
+        this.themeForms = buildFormStyles(themeName);
+        this.themeSettingsForm = buildSettingsFormStyles(themeName);
+    }
+
     onSubmit = () => {
         const {
             firstName,
@@ -127,6 +135,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             repeatPassword,
             shouldHideMatureContent,
         } = this.state.inputs;
+        const { isNightMode } = this.state;
         const { user } = this.props;
 
         if (password && !PasswordRegex.test(password)) {
@@ -145,6 +154,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             firstName,
             lastName,
             userName: userName?.toLowerCase(),
+            settingsThemeName: isNightMode ? 'retro' : 'light',
             shouldHideMatureContent,
         };
 
@@ -157,7 +167,11 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             this.setState({
                 isSubmitting: true,
             });
-            this.requestUserUpdate(user, updateArgs);
+            this.requestUserUpdate(user, updateArgs).finally(() => {
+                this.setState({
+                    isSubmitting: false,
+                });
+            });
         }
     };
 
@@ -167,6 +181,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             this.setState({
                 successMsg: this.translate('forms.settings.backendSuccessMessage'),
             });
+            this.reloadTheme();
         })
         .catch((error: any) => {
             if (
@@ -221,6 +236,12 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             passwordErrorMessage,
         });
     };
+
+    onThemeChange = (isNightMode: boolean) => {
+        this.setState({
+            isNightMode,
+        });
+    }
 
     onDoneCropping = (croppedImageDetails) => {
         if (!croppedImageDetails.didCancel && !croppedImageDetails.errorCode) {
@@ -278,16 +299,17 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
 
     render() {
         const { navigation, user } = this.props;
-        const { croppedImageDetails, errorMsg, successMsg, inputs, passwordErrorMessage } = this.state;
+        const { croppedImageDetails, errorMsg, successMsg, inputs, isNightMode, passwordErrorMessage } = this.state;
         const pageHeaderUser = this.translate('pages.settings.pageHeaderUser');
         const pageHeaderPassword = this.translate('pages.settings.pageHeaderPassword');
+        const pageHeaderDisplaySettings = this.translate('pages.settings.pageHeaderDisplaySettings');
         const pageHeaderSettings = this.translate('pages.settings.pageHeaderSettings');
         const currentUserImageUri = getUserImageUri(user, 200);
         const userImageUri = getImagePreviewPath(croppedImageDetails.path) || currentUserImageUri;
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName} />
                 <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
@@ -295,6 +317,37 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                         style={this.theme.styles.scrollView}
                     >
                         <View style={this.theme.styles.body}>
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionTitle}>
+                                    {pageHeaderDisplaySettings}
+                                </Text>
+                            </View>
+                            <View style={this.themeSettingsForm.styles.settingsContainer}>
+                                <View style={this.themeForms.styles.switchContainer}>
+                                    <Text
+                                        style={this.themeForms.styles.switchLabel}
+                                    >
+                                        {this.translate('pages.settings.labels.nightMode')}
+                                    </Text>
+                                    <View
+                                        style={this.themeForms.styles.switchSubContainer}
+                                    >
+                                        <Switch
+                                            style={this.themeForms.styles.switchButton}
+                                            trackColor={{ false: this.theme.colors.primary2, true: this.theme.colors.primary4 }}
+                                            thumbColor={isNightMode ? this.theme.colors.primary3 : this.theme.colorVariations.primary3Fade}
+                                            ios_backgroundColor={this.theme.colors.primary4}
+                                            onValueChange={this.onThemeChange}
+                                            value={isNightMode}
+                                        />
+                                        <FontAwesomeIcon
+                                            name="moon"
+                                            size={22}
+                                            color={this.theme.colorVariations.primary3Fade}
+                                        />
+                                    </View>
+                                </View>
+                            </View>
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitle}>
                                     {pageHeaderUser}
@@ -318,6 +371,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     label={this.translate(
                                         'forms.settings.labels.userName'
                                     )}
+                                    labelStyle={this.themeForms.styles.inputLabelLightFaded}
                                     value={inputs.userName}
                                     onChangeText={(text) =>
                                         this.onInputChange('userName', text)
@@ -335,6 +389,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     label={this.translate(
                                         'forms.settings.labels.firstName'
                                     )}
+                                    labelStyle={this.themeForms.styles.inputLabelLightFaded}
                                     value={inputs.firstName}
                                     onChangeText={(text) =>
                                         this.onInputChange('firstName', text)
@@ -352,6 +407,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     label={this.translate(
                                         'forms.settings.labels.lastName'
                                     )}
+                                    labelStyle={this.themeForms.styles.inputLabelLightFaded}
                                     value={inputs.lastName}
                                     onChangeText={(text) =>
                                         this.onInputChange('lastName', text)
@@ -370,6 +426,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     label={this.translate(
                                         'forms.settings.labels.email'
                                     )}
+                                    labelStyle={this.themeForms.styles.inputLabelLightFaded}
                                     value={inputs.email}
                                     // onChangeText={(text) =>
                                     //     this.onInputChange('email', text)
@@ -389,6 +446,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     label={this.translate(
                                         'forms.settings.labels.phoneNumber'
                                     )}
+                                    labelStyle={this.themeForms.styles.inputLabelLightFaded}
                                     value={inputs.phoneNumber}
                                     // onChangeText={(text) =>
                                     //     this.onInputChange('phoneNumber', text)
@@ -435,6 +493,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     placeholder={this.translate(
                                         'forms.settings.labels.password'
                                     )}
+                                    placeholderTextColor={this.themeForms.styles.placeholderText.color}
                                     value={inputs.oldPassword}
                                     onChangeText={(text) =>
                                         this.onInputChange('oldPassword', text)
@@ -453,6 +512,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     placeholder={this.translate(
                                         'forms.settings.labels.newPassword'
                                     )}
+                                    placeholderTextColor={this.themeForms.styles.placeholderText.color}
                                     value={inputs.password}
                                     onChangeText={(text) =>
                                         this.onInputChange('password', text)
@@ -471,6 +531,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     placeholder={this.translate(
                                         'forms.settings.labels.repeatPassword'
                                     )}
+                                    placeholderTextColor={this.themeForms.styles.placeholderText.color}
                                     value={inputs.repeatPassword}
                                     onChangeText={(text) =>
                                         this.onInputChange('repeatPassword', text)
@@ -486,21 +547,21 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                     themeForms={this.themeForms}
                                 />
-                                <View style={this.themeSettingsForm.styles.submitButtonContainer}>
-                                    <Button
-                                        buttonStyle={this.themeForms.styles.button}
-                                        title={this.translate(
-                                            'forms.settings.buttons.submit'
-                                        )}
-                                        onPress={this.onSubmit}
-                                        disabled={this.isFormDisabled()}
-                                        raised={true}
-                                    />
-                                </View>
                             </View>
                         </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>
+                <View style={this.themeSettingsForm.styles.submitButtonContainerFloat}>
+                    <Button
+                        buttonStyle={this.themeForms.styles.button}
+                        title={this.translate(
+                            'forms.settings.buttons.submit'
+                        )}
+                        onPress={this.onSubmit}
+                        disabled={this.isFormDisabled()}
+                        raised={true}
+                    />
+                </View>
                 <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}

@@ -6,6 +6,7 @@ import { bindActionCreators } from 'redux';
 import { Content } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import LottieView from 'lottie-react-native';
+import analytics from '@react-native-firebase/analytics';
 import UsersActions from '../redux/actions/UsersActions';
 import translator from '../services/translator';
 import { buildStyles } from '../styles';
@@ -95,9 +96,13 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
     }
 
     componentDidMount() {
+        const { user } = this.props;
         this.props.navigation.setOptions({
             title: this.translate('pages.createProfile.headerTitle'),
         });
+        analytics().logEvent('profile_create_start', {
+            userId: user.details.id,
+        }).catch((err) => console.log(err));
     }
 
     isFormADisabled() {
@@ -172,15 +177,20 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             return;
         }
 
-        const isDisable = (stage === 'A' && this.isFormADisabled()) || (stage === 'B' && this.isFormBDisabled());
+        const isDisabled = (stage === 'A' && this.isFormADisabled()) || (stage === 'B' && this.isFormBDisabled());
 
-        if (!isDisable) {
+        if (!isDisabled) {
             this.setState({
                 isSubmitting: true,
             });
             this.props
                 .updateUser(user.details.id, updateArgs)
                 .then(() => {
+                    if (phoneNumber) {
+                        analytics().logEvent('profile_create_update_phone', {
+                            userId: user.details.id,
+                        }).catch((err) => console.log(err));
+                    }
                     if (stage === 'A') {
                         this.setState({
                             stage: 'C',
@@ -252,7 +262,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"

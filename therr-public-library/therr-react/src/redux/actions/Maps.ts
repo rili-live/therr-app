@@ -1,14 +1,43 @@
 import { MapActionTypes } from '../../types/redux/maps';
 import MapsService, { IPlacesAutoCompleteArgs, ISearchAreasArgs } from '../../services/MapsService';
+import { ContentActionTypes } from '../../types';
 
 const Maps = {
     // Moments
     createMoment: (data: any) => (dispatch: any) => MapsService.createMoment(data).then((response: any) => {
-        dispatch({
-            type: MapActionTypes.MOMENT_CREATED,
-            data: response.data,
-        });
+        if (data.isDraft) {
+            dispatch({
+                type: ContentActionTypes.MOMENT_DRAFT_CREATED,
+                data: response.data,
+            });
+        } else {
+            dispatch({
+                type: MapActionTypes.MOMENT_CREATED,
+                data: response.data,
+            });
+        }
     }),
+    updateMoment: (id: string, data: any, isCompletedDraft: false) => (dispatch: any) => MapsService
+        .updateMoment(id, data).then((response: any) => {
+            if (isCompletedDraft) {
+                dispatch({
+                    type: MapActionTypes.MOMENT_CREATED,
+                    data: {
+                        id: response.data.id,
+                        ...data,
+                    }, // server doesn't return changes, so use request data
+                });
+            }
+
+            // TODO: Not sure if this is necessary if transitioning from draft, but it doesn't hurt
+            dispatch({
+                type: MapActionTypes.MOMENT_UPDATED,
+                data: {
+                    id: response.data.id,
+                    ...data,
+                }, // server doesn't return changes, so use request data
+            });
+        }),
     getMomentDetails: (id: number, data: any) => (dispatch: any) => MapsService.getMomentDetails(id, data)
         .then((response: any) => {
             dispatch({

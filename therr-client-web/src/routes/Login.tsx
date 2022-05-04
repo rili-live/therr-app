@@ -13,6 +13,8 @@ export const shouldRenderLoginForm = (props: ILoginProps) => !props.user
     || !props.user.details.accessLevels
     || !props.user.details.accessLevels.length;
 
+export const routeAfterLogin = '/user/go-mobile';
+
 interface ILoginRouterProps {
     history: any;
     location: any;
@@ -56,7 +58,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                 email: nextProps.user.details.email,
                 // Add your own custom user variables below:
             });
-            nextProps.history.push('/discovered');
+            nextProps.history.push(routeAfterLogin);
             return null;
         }
         return {};

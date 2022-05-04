@@ -54,7 +54,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         buttonsTitleActive: {
             backgroundColor: 'transparent',
-            color: therrTheme.colors.primary,
+            color: therrTheme.colors.brandingBlueGreen,
             paddingRight: 10,
             paddingLeft: 10,
             fontSize: 18,
@@ -67,7 +67,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingRight: 10,
         },
         iconStyleActive: {
-            color: therrTheme.colors.primary,
+            color: therrTheme.colors.brandingBlueGreen,
             // position: 'absolute',
             // left: 20
             paddingRight: 10,
@@ -96,7 +96,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             height: 5,
         },
         overlayContainer: {
-            backgroundColor: therrTheme.colors.textWhite,
+            // backgroundColor: therrTheme.colors.textWhite,
             display: 'flex',
             height: '100%',
             width: '75%',
@@ -107,8 +107,8 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         header: {
             marginTop: HEADER_EXTRA_HEIGHT,
-            marginBottom: 10,
-            paddingBottom: 4,
+            // marginBottom: 10,
+            // paddingBottom: 4,
             display: 'flex',
             flexDirection: 'row',
             color: therrTheme.colors.accent3,
@@ -134,6 +134,36 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginRight: 10,
             height: 30,
             width: 30,
+            borderRadius: 15,
+        },
+        subheader: {
+            marginBottom: 10,
+            display: 'flex',
+            flexDirection: 'row',
+            color: therrTheme.colors.accent3,
+            borderBottomWidth: 2,
+            borderBottomColor: therrTheme.colors.accentDivider,
+            height: HEADER_HEIGHT - HEADER_EXTRA_HEIGHT,
+            backgroundColor: therrTheme.colors.brandingBlueGreen,
+            alignItems: 'center',
+        },
+        subheaderTitle: {
+            display: 'flex',
+            flexDirection: 'row',
+            flex: 1,
+            alignItems: 'center',
+            marginLeft: 2,
+        },
+        subheaderTitleText: {
+            color: therrTheme.colors.brandingWhite,
+            fontSize: 15,
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+        },
+        subheaderTitleIcon: {
+            color: therrTheme.colors.brandingWhite,
+            marginRight: 5,
+            height: 24,
+            width: 24,
             borderRadius: 15,
         },
         body: {

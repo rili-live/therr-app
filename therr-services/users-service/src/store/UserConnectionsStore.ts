@@ -12,7 +12,7 @@ export interface ICreateUserConnectionParams {
     acceptingUserId: string;
     interactionCount?: number;
     isConnectionBroken?: boolean;
-    requestStatus: 'pending';
+    requestStatus: 'pending' | 'complete'; // auto-complete should only be available internally
 }
 
 export interface IUpdateUserConnectionConditions {

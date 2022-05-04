@@ -8,12 +8,17 @@ const getInputContainerBaseStyles = (theme: ITherrTheme): any => ({
     borderBottomWidth: 1,
 });
 
-const platformSpecificInputStyles = Platform.OS !== 'ios' ? {
-    backgroundColor: 'rgba(255,255,255,.15)', // colors.teriary with 70% opacity
+const getPlatformSpecificInputStyles =  (theme: ITherrTheme): any => Platform.OS !== 'ios' ? {
+    backgroundColor: theme.colors.inputBackgroundAndroid, // colors.teriary with 70% opacity
     color: 'black',
 } : {
-    backgroundColor: 'rgba(255,255,255,.1)', // colors.teriary with 70% opacity
+    backgroundColor: theme.colors.inputBackgroundIOS, // colors.teriary with 70% opacity
     color: 'black',
+};
+
+const inputLabelStyles: any = {
+    paddingHorizontal: 2,
+    fontSize: 14,
 };
 
 const buildStyles = (themeName?: IMobileThemeName) => {
@@ -43,7 +48,25 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         placeholderText: {
             fontWeight: '600',
             fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
-            color: 'rgba(255,255,255,.58)',
+            color: therrTheme.colors.placeholderTextColorAlt,
+        },
+        switchContainer: {
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+        },
+        switchLabel: {
+            fontSize: 15,
+            color: therrTheme.colors.textWhite,
+        },
+        switchSubContainer: {
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        switchButton: {
+            marginRight: 10,
         },
         textField: {
             padding: inputStyle.padding,
@@ -68,6 +91,22 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderRadius: 0,
             minHeight: 80,
         },
+        textInputRound: {
+            ...getTextInputStyle(therrTheme),
+            ...getInputContainerBaseStyles(therrTheme),
+            ...getPlatformSpecificInputStyles(therrTheme),
+            color: therrTheme.colors.textWhite,
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            padding: 20,
+            paddingTop: 20,
+            borderRadius: 15,
+            elevation: 0,
+            borderBottomWidth: 0,
+            marginLeft: 0,
+            marginRight: 0,
+            borderWidth: 0,
+            fontWeight: '600',
+        },
         phoneInput: {
             ...inputStyle,
             color: therrTheme.colors.textWhite,
@@ -84,7 +123,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         inputContainerRound: {
             ...getInputContainerBaseStyles(therrTheme),
-            ...platformSpecificInputStyles,
+            ...getPlatformSpecificInputStyles(therrTheme),
             paddingLeft: 10,
             paddingRight: 10,
             borderRadius: 15,
@@ -94,13 +133,15 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingHorizontal: 0,
         },
         inputLabelLight: {
-            paddingHorizontal: 2,
-            fontSize: 14,
+            ...inputLabelStyles,
             color: therrTheme.colors.accentTextWhite,
         },
+        inputLabelLightFaded: {
+            ...inputLabelStyles,
+            color: therrTheme.colorVariations.accentTextWhiteFade,
+        },
         inputLabelDark: {
-            paddingHorizontal: 2,
-            fontSize: 14,
+            ...inputLabelStyles,
             color: therrTheme.colors.accentTextBlack,
         },
         inputSliderContainer: {
@@ -122,6 +163,8 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             flex: 1,
             height: 50,
             color: therrTheme.colors.textWhite,
+            width: '100%',
+            marginBottom: 10,
         },
         pickerItem: {
             height: 50,
@@ -144,6 +187,26 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         button: {
             backgroundColor: therrTheme.colors.primary3,
         },
+        buttonPrimary: {
+            backgroundColor: therrTheme.colors.primary3,
+            display: 'flex',
+            alignItems: 'center',
+            borderRadius: 15,
+            height: 59,
+        },
+        buttonLink: {
+            color: themeName === 'retro' ? therrTheme.colors.textWhite : therrTheme.colors.primary4,
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+        },
+        buttonLinkHeader: {
+            color: themeName === 'retro' ? therrTheme.colors.textWhite : therrTheme.colors.primary3,
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontSize: 14,
+            fontWeight: '600',
+        },
+        buttonLinkHeaderContainer: {
+            paddingBottom: 3,
+        },
         buttonRound: {
             backgroundColor: therrTheme.colors.primary4,
             display: 'flex',
@@ -153,7 +216,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         buttonRoundAlt: {
             backgroundColor: therrTheme.colors.backgroundWhite,
-            borderColor: therrTheme.colors.primary4,
+            borderColor: therrTheme.colors.primary3,
             borderWidth: 2,
             display: 'flex',
             alignItems: 'center',
@@ -173,19 +236,20 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             backgroundColor: therrTheme.colorVariations.primary4Fade,
         },
         buttonTitle: {
+            fontSize: 18,
             fontWeight: '500',
             fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
         },
         buttonTitleAlt: {
             fontWeight: '500',
             fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
-            color: therrTheme.colors.primary4,
+            color: therrTheme.colors.primary3,
         },
         buttonTitleDisabled: {
             color: therrTheme.colors.textGray,
         },
         buttonIcon: {
-            color: therrTheme.colors.textWhite,
+            color: therrTheme.colors.brandingWhite,
             marginRight: 10,
             marginLeft: 10,
         },
@@ -196,25 +260,29 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             padding: 0,
             paddingHorizontal: 9,
             borderRadius: 20,
-            height: 20,
-            backgroundColor: therrTheme.colors.accentTeal,
+            height: 22,
+            borderColor: therrTheme.colors.brandingBlueGreen,
+            backgroundColor: therrTheme.colors.brandingWhite,
+            borderWidth: 1,
         },
         buttonPillIcon: {
             marginLeft: 8,
+            color: therrTheme.colors.brandingBlueGreen,
         },
         buttonPillContainer: {
             padding: 0,
             margin: 0,
             borderRadius: 20,
-            height: 20,
+            height: 22,
             marginHorizontal: 4,
             marginTop: 14,
         },
         buttonPillTitle: {
             fontSize: 13,
+            fontWeight: '600',
             lineHeight: 20,
             paddingTop: 0,
-            color: therrTheme.colors.accentTextBlack,
+            color: therrTheme.colors.brandingBlueGreen,
         },
         orDividerContainer: {
             display: 'flex',
@@ -225,7 +293,8 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.textGray,
             fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
             marginHorizontal: 12,
-            fontSize: 16,
+            fontSize: 18,
+            fontWeight: '600',
         },
         orDividerLines: {
             flexGrow: 1,
@@ -247,6 +316,49 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         userImagePressableContainer: {
             position: 'relative',
+        },
+
+        // SSO Buttons
+        googleButtonContainer: {},
+        googleButton: {
+            backgroundColor: therrTheme.colors.brandingWhite, // Google styles color
+            flex: 1,
+            alignItems: 'center',
+            borderColor: therrTheme.colors.brandingBlueGreen,
+            borderWidth: 2,
+            borderRadius: 15,
+            height: 59,
+            width: '100%',
+            fontSize: 18,
+
+        },
+        googleButtonTitle: {
+            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            color: therrTheme.colors.brandingBlueGreen, // Google styles color
+            fontSize: 18,
+            paddingLeft: 12,
+            paddingRight: 12,
+            fontWeight: '500',
+        },
+        googleButtonIcon: {
+            height: 26,
+            width: 26,
+            padding: 8,
+            marginLeft: 12,
+        },
+        appleButtonContainer: {
+            width: '100%', // You must specify a width
+            borderWidth: themeName === 'retro' ? 0 : 2,
+            borderRadius: themeName === 'retro' ? 0 : 15,
+            height: 52,
+            elevation: 3,
+        },
+        appleTitleStyle: {
+        },
+        appleButtonIcon: {
+            height: 22,
+            width: 18,
+            padding: 8,
         },
     });
 

@@ -83,6 +83,7 @@ class Notifications extends React.Component<
         this.props.navigation.setOptions({
             title: this.translate('pages.notifications.headerTitle'),
         });
+        this.handleRefresh();
     }
 
     handleConnectionRequestAction = (e: any, notification, isAccepted) => {
@@ -99,7 +100,7 @@ class Notifications extends React.Component<
             requestStatus: isAccepted ? 'complete' : 'denied',
         };
 
-        this.markNotificationAsRead(e, notification, updatedUserConnection);
+        this.markNotificationAsRead(e, notification, updatedUserConnection, false);
 
         updateUserConnection({
             connection: {
@@ -110,8 +111,18 @@ class Notifications extends React.Component<
         });
     }
 
-    markNotificationAsRead = (event, notification, userConnection?: any) => {
-        const { navigation } = this.props;
+    onContentSizeChange = () => {
+        const { notifications } = this.props;
+
+        if (notifications.messages?.length) {
+            this.flatListRef?.scrollToIndex({
+                index: 0,
+                animated: true,
+            });
+        }
+    }
+
+    markNotificationAsRead = (event, notification, userConnection?: any, shouldNavigate = true) => {
         if (notification.isUnread || userConnection) {
             const { updateNotification, user } = this.props;
 
@@ -129,8 +140,16 @@ class Notifications extends React.Component<
             updateNotification(message);
         }
 
+        if (shouldNavigate) {
+            this.navigateToNotificationContext(notification);
+        }
+    }
+
+    navigateToNotificationContext = (notification) => {
+        const { navigation } = this.props;
         if (notification.type === NotificationsEmuns.Types.NEW_AREAS_ACTIVATED
-            || notification.type === NotificationsEmuns.Types.NEW_LIKE_RECEIVED) {
+            || notification.type === NotificationsEmuns.Types.NEW_LIKE_RECEIVED
+            || notification.type === NotificationsEmuns.Types.NEW_SUPER_LIKE_RECEIVED) {
             navigation.navigate('Nearby');
         } else if (notification.type === NotificationsEmuns.Types.NEW_DM_RECEIVED) {
             navigation.navigate('ActiveConnections');
@@ -160,37 +179,24 @@ class Notifications extends React.Component<
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView  style={this.theme.styles.safeAreaView}>
-                    {
-                        notifications.messages.length ? (
-                            <FlatList
-                                data={notifications.messages}
-                                keyExtractor={(item) => String(item.id)}
-                                renderItem={({ item, index }) => (
-                                    <Notification
-                                        acknowledgeRequest={this.handleConnectionRequestAction}
-                                        handlePress={(e) => this.markNotificationAsRead(e, item, false)}
-                                        isUnread={item.isUnread}
-                                        notification={item}
-                                        containerStyles={index === 0 ? notificationStyles.firstChildNotification : {}}
-                                        translate={this.translate}
-                                        themeNotification={this.themeNotification}
-                                    />
-                                )}
-                                ref={(component) => (this.flatListRef = component)}
-                                initialScrollIndex={0}
-                                onContentSizeChange={() => this.flatListRef.scrollToIndex({
-                                    index: 0,
-                                    animated: true,
-                                })}
-                                refreshControl={<RefreshControl
-                                    refreshing={isRefreshing}
-                                    onRefresh={this.handleRefresh}
-                                />}
-                                style={notificationStyles.container}
+                    <FlatList
+                        data={notifications.messages || []}
+                        keyExtractor={(item) => String(item.id)}
+                        renderItem={({ item, index }) => (
+                            <Notification
+                                acknowledgeRequest={this.handleConnectionRequestAction}
+                                handlePressAndNavigate={(e) => this.markNotificationAsRead(e, item, false, true)}
+                                handlePress={(e) => this.markNotificationAsRead(e, item, false, false)}
+                                isUnread={item.isUnread}
+                                notification={item}
+                                containerStyles={index === 0 ? notificationStyles.firstChildNotification : {}}
+                                translate={this.translate}
+                                themeNotification={this.themeNotification}
                             />
-                        ) :
+                        )}
+                        ListEmptyComponent={() => (
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionDescription}>
                                     {this.translate(
@@ -198,7 +204,16 @@ class Notifications extends React.Component<
                                     )}
                                 </Text>
                             </View>
-                    }
+                        )}
+                        ref={(component) => (this.flatListRef = component)}
+                        initialScrollIndex={0}
+                        onContentSizeChange={this.onContentSizeChange}
+                        refreshControl={<RefreshControl
+                            refreshing={isRefreshing}
+                            onRefresh={this.handleRefresh}
+                        />}
+                        style={notificationStyles.container}
+                    />
                 </SafeAreaView>
                 <MainButtonMenu
                     navigation={navigation}

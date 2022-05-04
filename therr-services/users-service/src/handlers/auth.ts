@@ -49,6 +49,7 @@ const login: RequestHandler = (req: any, res: any) => {
                     nonce: req.body.nonce,
                     idToken: req.body.idToken,
                     password: req.body.password,
+                    userPhoneNumber: req.body.userPhoneNumber,
                     userEmail: req.body.userEmail,
                     userFirstName: req.body.userFirstName,
                     userLastName: req.body.userLastName,

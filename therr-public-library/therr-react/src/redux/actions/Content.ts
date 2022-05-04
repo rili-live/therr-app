@@ -1,6 +1,8 @@
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { ContentActionTypes } from '../../types/redux/content';
 import ReactionsService, { ISearchActiveAreasParams, ICreateOrUpdateAreaReactionBody } from '../../services/ReactionsService';
+import { ISearchAreasArgs } from '../../services/MapsService';
+import { MapsService } from '../../services';
 
 interface IActiveMomentsFilters {
     order: 'ASC' | 'DESC';
@@ -71,6 +73,21 @@ const Content = {
                 data: response?.data,
             });
         }),
+    searchMyDrafts: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
+        .searchMyMoments(query, data).then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.SEARCH_MY_DRAFTS,
+                data: response.data,
+            });
+        }),
+    deleteDraft: (id: string) => (dispatch: any) => MapsService.deleteMoments({ ids: [id] }).then(() => {
+        dispatch({
+            type: ContentActionTypes.MOMENT_DRAFT_DELETED,
+            data: {
+                id,
+            },
+        });
+    }),
 
     // Spaces
     insertActiveSpaces: (newActiveSpaces: any) => (dispatch: any) => {

@@ -1,7 +1,7 @@
 import React from 'react';
-import { Provider } from 'shared/react-redux';
+import { LogBox } from 'react-native';
+import { Provider } from 'react-redux';
 import SplashScreen from 'react-native-bootsplash';
-import { appleAuth } from '@invertase/react-native-apple-authentication';
 import LogRocket from '@logrocket/react-native';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import getStore from './getStore';
@@ -9,8 +9,10 @@ import initInterceptors from './interceptors';
 import Layout from './components/Layout';
 // import { buildStyles } from './styles';
 
+// TODO: This is temporary to ignore the really annoying ViewPropTypes log
+LogBox.ignoreLogs(['ViewPropTypes']);//Ignore all log notifications
+
 class App extends React.Component<any, any> {
-    private authCredentialListener;
     private store;
     // private theme = buildStyles()''
 
@@ -21,17 +23,11 @@ class App extends React.Component<any, any> {
             isLoading: true,
         };
 
-        this.loadStorage();
         // changeNavigationBarColor(therrTheme.colors.primary, false, true);
     }
 
     componentDidMount() {
-        if (appleAuth.isSupported) {
-            this.authCredentialListener = appleAuth.onCredentialRevoked(async () => {
-                // TODO: Logout user
-                console.warn('Credential Revoked');
-            });
-        }
+        this.loadStorage();
 
         LogRocket.init('pibaqj/therr-app-mobile', {
             network: {
@@ -60,19 +56,17 @@ class App extends React.Component<any, any> {
         });
     }
 
-    componentWillUnmount() {
-        if (this.authCredentialListener) {
-            this.authCredentialListener();
-        }
-    }
+    loadStorage = () => {
+        getStore().then((response) => {
+            this.store = response;
+            initInterceptors(this.store);
 
-    loadStorage = async () => {
-        this.store = await getStore();
-        initInterceptors(this.store);
-
-        this.setState({
-            isLoading: false,
-        }, () => SplashScreen.hide({ fade: true }));
+            this.setState({
+                isLoading: false,
+            }, () => SplashScreen.hide({ fade: true }));
+        }).catch((err) => {
+            console.log(err);
+        });
     };
 
     render() {

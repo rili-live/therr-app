@@ -112,6 +112,17 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
             });
             baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_LIKE_RECEIVED';
             return baseMessage;
+        case PushNotifications.Types.newSuperLikeReceived:
+            baseMessage = createBaseMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.newSuperLikeReceived.title'),
+                notificationBody: translate(config.userLocale, 'notifications.newSuperLikeReceived.body', {
+                    userName: config.fromUserName,
+                }),
+            });
+            baseMessage.android.notification.clickAction = 'app.therrmobile.NEW_SUPER_LIKE_RECEIVED';
+            return baseMessage;
         case PushNotifications.Types.newAreasActivated:
             baseMessage = createBaseMessage({
                 data: modifiedData,

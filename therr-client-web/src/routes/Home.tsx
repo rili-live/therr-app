@@ -6,7 +6,7 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { IUserState } from 'therr-react/types';
 import translator from '../services/translator';
 import LoginForm from '../components/forms/LoginForm';
-import { shouldRenderLoginForm, ILoginProps } from './Login';
+import { shouldRenderLoginForm, ILoginProps, routeAfterLogin } from './Login';
 import UsersActions from '../redux/actions/UsersActions';
 
 interface IHomeRouterProps {
@@ -44,7 +44,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
     static getDerivedStateFromProps(nextProps: IHomeProps) {
         if (!shouldRenderLoginForm(nextProps as ILoginProps)) {
-            nextProps.history.push('/discovered');
+            nextProps.history.push(routeAfterLogin);
             return null;
         }
         return {};

@@ -188,7 +188,9 @@
     "createProfile": {
       "pageTitle": "Create Profile",
       "createProfileSuccess": "Profile successfully updated!",
-      "createProfileError": "Oops, something went wrong"
+      "createProfileError": "Oops, something went wrong",
+      "infoTitle": "Why Require Phone #?",
+      "info": "We are dedicated to preventing fake users, so Multi-Factor Authentication is a must. Requiring an e-mail and phone # along with geo-tag post requirements drastically reduces the impact of scammers or fake users."
     },
     "login": {
       "pageTitle": "Login"
@@ -229,6 +231,11 @@
       "validationErrors": {
         "phoneNumber": "Invalid phone number"
       }
+    },
+    "underConstruction": {
+      "pageTitle": "Go Mobile",
+      "welcome": "Get the Mobile App",
+      "info": "You must be looking for the mobile app! Find it below. For now, the desktop app only supports basic features like updating your password or account details."
     }
   }
 }

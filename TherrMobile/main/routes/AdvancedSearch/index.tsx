@@ -128,7 +128,7 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
 
         return (
             <>
-                <BaseStatusBar />
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
                     <View style={this.theme.styles.body}>
                         <View style={this.theme.styles.sectionContainer}>
