@@ -605,6 +605,7 @@
         "public": "Public",
         "private": "Private",
         "selectAll": "Select / Unselect All",
+        "uncategorized": "Uncategorized",
         "me": "Only My Posts",
         "notMe": "Not My Posts"
       }

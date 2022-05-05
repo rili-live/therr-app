@@ -305,8 +305,12 @@ class Map extends React.Component<IMapProps, IMapState> {
         clearTimeout(this.timeoutIdShowMoment);
         clearTimeout(this.timeoutIdSearchButton);
         clearTimeout(this.timeoutIdWaitForSearchSelect);
-        this.unsubscribeNavigationListener();
-        this.unsubscribeFocusListener();
+        if (this.unsubscribeNavigationListener) {
+            this.unsubscribeNavigationListener();
+        }
+        if (this.unsubscribeFocusListener) {
+            this.unsubscribeFocusListener();
+        }
     }
 
     reloadTheme = (shouldForceUpdate: boolean = false) => {
@@ -1256,10 +1260,92 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     }
 
+    getFilteredAreas = (areas, mapFilters) => {
+        // Filter for duplicates
+        const areasMap = {};
+        areas.forEach(area => areasMap[area.id] = area);
+        let filteredAreas: any = Object.values(areasMap);
+        if (!mapFilters.filtersAuthor.length && !mapFilters.filtersCategory.length && !mapFilters.filtersVisibility.length) {
+            return filteredAreas;
+        }
+
+        const filteredAreasMap = {};
+        // Only requires one loop to check each area
+        filteredAreas.forEach(area => {
+            if (this.shouldRenderArea(area, mapFilters)) {
+                filteredAreasMap[area.id] = area;
+            }
+        });
+
+        return Object.values(filteredAreasMap);
+    };
+
+    shouldRenderArea = (area, mapFilters) => {
+        const { user } = this.props;
+        let passesFilterAuthor = true;
+        let passesFilterCategory = true;
+        let passesFilterVisibility = true;
+
+        // Filters have been populated and "Select All" is not checked
+        if (mapFilters.filtersAuthor.length && !mapFilters.filtersAuthor[0]?.isChecked) {
+            passesFilterAuthor = mapFilters.filtersAuthor.some(filter => {
+                if (!filter.isChecked) {
+                    return false;
+                }
+
+                return (isMyArea(area, user) && filter.name === 'me') || (!isMyArea(area, user) && filter.name === 'notMe');
+            });
+        }
+
+        // Filters have been populated and "Select All" is not checked
+        if (mapFilters.filtersCategory.length && !mapFilters.filtersCategory[0]?.isChecked) {
+            passesFilterCategory = mapFilters.filtersCategory.some(filter => {
+                if (!filter.isChecked) {
+                    return false;
+                }
+
+                return area.category === filter.name;
+            });
+        }
+
+        // Filters have been populated and "Select All" is not checked
+        if (mapFilters.filtersVisibility.length && !mapFilters.filtersVisibility[0]?.isChecked) {
+            passesFilterVisibility = mapFilters.filtersVisibility.some(filter => {
+                if (!filter.isChecked) {
+                    return false;
+                }
+
+                return (area.isPublic && filter.name === 'public') || (!area.isPublic && filter.name === 'private');
+            });
+        }
+
+        return passesFilterAuthor && passesFilterCategory && passesFilterVisibility;
+    }
+
+    getMomentCircleFillColor = (moment) => {
+        const { user } = this.props;
+        const { activeMoment } = this.state;
+
+        if (moment.id === activeMoment.id) {
+            return isMyArea(moment, user) ? this.theme.colors.map.myMomentsCircleFillActive  : this.theme.colors.map.momentsCircleFillActive;
+        }
+
+        return isMyArea(moment, user) ? this.theme.colors.map.myMomentsCircleFill : this.theme.colors.map.momentsCircleFill;
+    }
+
+    getSpaceCircleFillColor = (space) => {
+        const { user } = this.props;
+        const { activeSpace } = this.state;
+
+        if (space.id === activeSpace.id) {
+            return isMyArea(space, user) ? this.theme.colors.map.mySpacesCircleFillActive  : this.theme.colors.map.spacesCircleFillActive;
+        }
+
+        return isMyArea(space, user) ? this.theme.colors.map.mySpacesCircleFill : this.theme.colors.map.spacesCircleFill;
+    }
+
     render() {
         const {
-            activeMoment,
-            activeSpace,
             areButtonsVisible,
             areLayersVisible,
             circleCenter,
@@ -1272,13 +1358,19 @@ class Map extends React.Component<IMapProps, IMapState> {
             isAreaAlertVisible,
             isScrollEnabled,
             isSearchThisLocationBtnVisible,
-            layers,
         } = this.state;
         const { captureClickTarget, location, map, navigation, notifications, user } = this.props;
         const searchPredictionResults = map?.searchPredictions?.results || [];
         const isDropdownVisible = map?.searchPredictions?.isSearchDropdownVisible;
         const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
         const isTouring = !!user?.settings?.isTouring;
+        const mapFilters = {
+            filtersAuthor: map.filtersAuthor,
+            filtersCategory: map.filtersCategory,
+            filtersVisibility: map.filtersVisibility,
+        };
+        const filteredMoments = this.getFilteredAreas(map.moments.concat(map.myMoments), mapFilters);
+        const filteredSpaces = this.getFilteredAreas(map.spaces.concat(map.mySpaces), mapFilters);
 
         return (
             <>
@@ -1344,8 +1436,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                     zIndex={0}
                                 />
                                 {
-                                    layers.connectionsMoments &&
-                                    map.moments.map((moment) => {
+                                    filteredMoments.map((moment) => {
                                         return (
                                             <Marker
                                                 anchor={{
@@ -1360,7 +1451,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 onPress={this.handleMapPress}
                                                 stopPropagation={true}
                                             >
-                                                <View>
+                                                <View style={{ /* transform: [{ translateY: 0 }] */ }}>
                                                     <MarkerIcon area={moment} areaType="moments" theme={this.theme} />
                                                 </View>
                                             </Marker>
@@ -1368,32 +1459,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                     })
                                 }
                                 {
-                                    layers.myMoments &&
-                                    map.myMoments.map((moment) => {
-                                        return (
-                                            <Marker
-                                                anchor={{
-                                                    x: 0.5,
-                                                    y: 0.5,
-                                                }}
-                                                key={moment.id}
-                                                coordinate={{
-                                                    longitude: moment.longitude,
-                                                    latitude: moment.latitude,
-                                                }}
-                                                onPress={this.handleMapPress}
-                                                stopPropagation={true}
-                                            >
-                                                <View style={{ transform: [{ translateY: 0 }] }}>
-                                                    <MarkerIcon area={moment} areaType="moments" theme={this.theme} />
-                                                </View>
-                                            </Marker>
-                                        );
-                                    })
-                                }
-                                {
-                                    layers.connectionsMoments &&
-                                    map.moments.map((moment) => {
+                                    filteredMoments.map((moment) => {
                                         return (
                                             <Circle
                                                 key={moment.id}
@@ -1404,38 +1470,14 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 radius={moment.radius} /* meters */
                                                 strokeWidth={0}
                                                 strokeColor={this.theme.colors.secondary}
-                                                fillColor={moment.id === activeMoment.id ?
-                                                    this.theme.colors.map.momentsCircleFillActive :
-                                                    this.theme.colors.map.momentsCircleFill}
+                                                fillColor={this.getMomentCircleFillColor(moment)}
                                                 zIndex={1}
                                             />
                                         );
                                     })
                                 }
                                 {
-                                    layers.myMoments &&
-                                    map.myMoments.map((moment) => {
-                                        return (
-                                            <Circle
-                                                key={moment.id}
-                                                center={{
-                                                    longitude: moment.longitude,
-                                                    latitude: moment.latitude,
-                                                }}
-                                                radius={moment.radius} /* meters */
-                                                strokeWidth={0}
-                                                strokeColor={this.theme.colors.secondary}
-                                                fillColor={moment.id === activeMoment.id ?
-                                                    this.theme.colors.map.myMomentsCircleFillActive :
-                                                    this.theme.colors.map.myMomentsCircleFill}
-                                                zIndex={1}
-                                            />
-                                        );
-                                    })
-                                }
-                                {
-                                    layers.connectionsSpaces &&
-                                    map.spaces.map((space) => {
+                                    filteredSpaces.map((space) => {
                                         return (
                                             <Marker
                                                 anchor={{
@@ -1450,7 +1492,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 onPress={this.handleMapPress}
                                                 stopPropagation={true}
                                             >
-                                                <View>
+                                                <View style={{ /* transform: [{ translateY: 0 }] */ }}>
                                                     <MarkerIcon area={space} areaType="spaces" theme={this.theme} />
                                                 </View>
                                             </Marker>
@@ -1458,32 +1500,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                     })
                                 }
                                 {
-                                    layers.mySpaces &&
-                                    map.mySpaces.map((space) => {
-                                        return (
-                                            <Marker
-                                                anchor={{
-                                                    x: 0.5,
-                                                    y: 0.5,
-                                                }}
-                                                key={space.id}
-                                                coordinate={{
-                                                    longitude: space.longitude,
-                                                    latitude: space.latitude,
-                                                }}
-                                                onPress={this.handleMapPress}
-                                                stopPropagation={true}
-                                            >
-                                                <View style={{ transform: [{ translateY: 0 }] }}>
-                                                    <MarkerIcon area={space} areaType="spaces" theme={this.theme} />
-                                                </View>
-                                            </Marker>
-                                        );
-                                    })
-                                }
-                                {
-                                    layers.connectionsSpaces &&
-                                    map.spaces.map((space) => {
+                                    filteredSpaces.map((space) => {
                                         return (
                                             <Circle
                                                 key={space.id}
@@ -1494,30 +1511,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 radius={space.radius} /* meters */
                                                 strokeWidth={0}
                                                 strokeColor={this.theme.colors.secondary}
-                                                fillColor={space.id === activeSpace.id ?
-                                                    this.theme.colors.map.spacesCircleFillActive :
-                                                    this.theme.colors.map.spacesCircleFill}
-                                                zIndex={1}
-                                            />
-                                        );
-                                    })
-                                }
-                                {
-                                    layers.mySpaces &&
-                                    map.mySpaces.map((space) => {
-                                        return (
-                                            <Circle
-                                                key={space.id}
-                                                center={{
-                                                    longitude: space.longitude,
-                                                    latitude: space.latitude,
-                                                }}
-                                                radius={space.radius} /* meters */
-                                                strokeWidth={0}
-                                                strokeColor={this.theme.colors.secondary}
-                                                fillColor={space.id === activeSpace.id ?
-                                                    this.theme.colors.map.mySpacesCircleFillActive :
-                                                    this.theme.colors.map.mySpacesCircleFill}
+                                                fillColor={this.getSpaceCircleFillColor(space)}
                                                 zIndex={1}
                                             />
                                         );
@@ -1559,6 +1553,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                         {
                             !areLayersVisible &&
                             <MapActionButtons
+                                filters={mapFilters}
                                 goToMoments={this.goToMoments}
                                 goToNotifications={this.goToNotifications}
                                 hasNotifications={hasNotifications}

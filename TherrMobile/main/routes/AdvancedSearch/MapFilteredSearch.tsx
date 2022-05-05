@@ -4,12 +4,11 @@ import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { ContentActions } from 'therr-react/redux/actions';
-import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import { ContentActions, MapActions } from 'therr-react/redux/actions';
+import { IMapState, IUserState } from 'therr-react/types';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
-import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
@@ -18,25 +17,23 @@ import { momentCategories } from '../EditMoment';
 import { spaceCategories } from '../EditSpace';
 import { ListItem } from 'react-native-elements';
 
-const authorOptions: { title: string; isChecked?: boolean }[] = [{ title: 'selectAll' }, { title: 'me' }, { title: 'notMe' }];
+const authorOptions: { name: string; isChecked?: boolean }[] = [{ name: 'selectAll' }, { name: 'me' }, { name: 'notMe' }];
 
-const categoryOptions: { title: string; isChecked?: boolean }[] = [...new Set([...momentCategories, ...spaceCategories])]
-    .map(cat => ({ title: cat, data: [] }));
+const categoryOptions: { name: string; isChecked?: boolean }[] = [...new Set([...momentCategories, ...spaceCategories])]
+    .map(cat => ({ name: cat, data: [] }));
 
-const visibilityOptions: { title: string; isChecked?: boolean }[] = [{ title: 'selectAll' }, { title: 'public' }, { title: 'private' }];
+export const visibilityOptions: { name: string; isChecked?: boolean }[] = [{ name: 'selectAll' }, { name: 'public' }, { name: 'private' }];
 
 
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
 interface IMapFilteredSearchDispatchProps {
-    setActiveMomentsFilters: Function;
-    updateActiveMoments: Function;
+    setMapFilters: Function;
 }
 
 interface IStoreProps extends IMapFilteredSearchDispatchProps {
-    content: IContentState;
+    map: IMapState;
     user: IUserState;
-    userConnections: IUserConnectionsState;
 }
 
 // Regular component props
@@ -47,35 +44,32 @@ export interface IMapFilteredSearchProps extends IStoreProps {
 interface IMapFilteredSearchState {
     isLoading: boolean;
     hasChanges: boolean;
-    authorFilters: { title: string; isChecked?: boolean }[],
-    categoryFilters: { title: string; isChecked?: boolean }[],
-    visibilityFilters: { title: string; isChecked?: boolean }[],
+    authorFilters: { title: string; name: string; isChecked?: boolean }[],
+    categoryFilters: { title: string; name: string; isChecked?: boolean }[],
+    visibilityFilters: { title: string; name: string; isChecked?: boolean }[],
 }
 
 const mapStateToProps = (state: any) => ({
-    content: state.content,
+    map: state.map,
     user: state.user,
-    userConnections: state.userConnections,
 });
 
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
-            setActiveMomentsFilters: ContentActions.setActiveMomentsFilters,
+            setMapFilters: MapActions.setMapFilters,
             updateActiveMoments: ContentActions.updateActiveMoments,
         },
         dispatch
     );
 
 class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFilteredSearchState> {
-    private carouselRef;
     private initialAuthorFilters;
     private initialCategoryFilters;
     private initialVisibilityFilters;
     private translate: Function;
     private theme = buildStyles();
     private themeButtons = buildButtonStyles();
-    private themeForms = buildFormStyles();
     private themeMenu = buildMenuStyles();
 
     constructor(props) {
@@ -83,26 +77,35 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
 
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
-        this.initialAuthorFilters = authorOptions.map(a => ({ ...a, title: this.translate(`pages.mapFilteredSearch.labels.${a.title}`), isChecked: false }));
-        this.initialCategoryFilters = categoryOptions.map(c => ({
+        this.initialAuthorFilters = authorOptions.map(a => ({ ...a, title: this.translate(`pages.mapFilteredSearch.labels.${a.name}`), isChecked: false }));
+        this.initialCategoryFilters = [{
+            title:  this.translate('pages.mapFilteredSearch.labels.selectAll'),
+            name: 'selectAll',
+        }].concat(categoryOptions.map(c => ({
             ...c,
-            title: c.title === 'uncategorized'
-                ? this.translate('pages.mapFilteredSearch.labels.selectAll')
-                : this.translate(`forms.editMoment.categories.${c.title}`),
-        }));
-        this.initialVisibilityFilters = visibilityOptions.map(v => ({ ...v, title: this.translate(`pages.mapFilteredSearch.labels.${v.title}`) }));
+            title: c.name === 'uncategorized'
+                ? this.translate('pages.mapFilteredSearch.labels.uncategorized')
+                : this.translate(`forms.editMoment.categories.${c.name}`),
+        })));
+        this.initialVisibilityFilters = visibilityOptions.map(v => ({ ...v, title: this.translate(`pages.mapFilteredSearch.labels.${v.name}`) }));
+        const filtersArePopulated = props.map.filtersAuthor?.length && props.map.filtersCategory?.length && props.map.filtersVisibility?.length;
 
         this.state = {
             isLoading: true,
             hasChanges: false,
-            authorFilters: [],
-            categoryFilters: [],
-            visibilityFilters: [],
+            authorFilters: filtersArePopulated
+                ? JSON.parse(JSON.stringify(props.map.filtersAuthor))
+                : this.initialAuthorFilters.map(x => ({ ...x, isChecked: true})),
+            categoryFilters: filtersArePopulated
+                ? JSON.parse(JSON.stringify(props.map.filtersCategory))
+                : this.initialCategoryFilters.map(x => ({ ...x, isChecked: true})),
+            visibilityFilters: filtersArePopulated
+                ? JSON.parse(JSON.stringify(props.map.filtersVisibility))
+                : this.initialVisibilityFilters.map(x => ({ ...x, isChecked: true})),
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonStyles(props.user.settings?.mobileThemeName);
-        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
     }
 
@@ -112,16 +115,34 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
         navigation.setOptions({
             title: this.translate('pages.mapFilteredSearch.headerTitle'),
         });
-
-        this.handleResetFilters();
     }
 
-    handleResetFilters = () => {
-        this.setState({
-            authorFilters: this.initialAuthorFilters.map(x => ({ ...x, isChecked: false})),
-            categoryFilters: this.initialCategoryFilters.map(x => ({ ...x, isChecked: false})),
-            visibilityFilters: this.initialVisibilityFilters.map(x => ({ ...x, isChecked: false})),
+    handleApplyFilters = (shouldNavigate = false) => {
+        const { authorFilters, categoryFilters, visibilityFilters } = this.state;
+        const { setMapFilters } = this.props;
+
+        setMapFilters({
+            filtersAuthor: authorFilters,
+            filtersCategory: categoryFilters,
+            filtersVisibility: visibilityFilters,
         });
+
+        if (shouldNavigate) {
+            const { navigation } = this.props;
+            navigation.goBack();
+        }
+    }
+
+    handleResetFilters = (shouldNavigate = false) => {
+        this.setState({
+            authorFilters: this.initialAuthorFilters.map(x => ({ ...x, isChecked: true})),
+            categoryFilters: this.initialCategoryFilters.map(x => ({ ...x, isChecked: true})),
+            visibilityFilters: this.initialVisibilityFilters.map(x => ({ ...x, isChecked: true})),
+        }, this.handleApplyFilters);
+        if (shouldNavigate) {
+            const { navigation } = this.props;
+            navigation.goBack();
+        }
     }
 
     isSelectAll = (title: string) => {
@@ -137,6 +158,12 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
         modifiedGroup[index].isChecked = !modifiedGroup[index].isChecked;
         if (isSelectAll) {
             modifiedGroup = modifiedGroup.map(x => ({ ...x, isChecked: modifiedGroup[index].isChecked}));
+        } else {
+            // Select All box
+            modifiedGroup[0].isChecked = modifiedGroup.every((item, index) => {
+                if (index === 0) { return true; }
+                item.isChecked;
+            });
         }
 
         this.setState({
@@ -246,7 +273,7 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
                         raised
                         title={this.translate('menus.filterActions.resetFilters')}
                         titleStyle={this.themeButtons.styles.btnMediumTitleRight}
-                        onPress={this.handleResetFilters}
+                        onPress={() => this.handleResetFilters(true)}
                     />
                 </View>
                 <View style={this.themeButtons.styles.applyFilters}>
@@ -264,7 +291,7 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
                         raised
                         title={this.translate('menus.filterActions.applyFilters')}
                         titleStyle={this.themeButtons.styles.btnMediumTitleRight}
-                        onPress={() => null}
+                        onPress={() => this.handleApplyFilters(true)}
                     />
                 </View>
                 {/* <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} /> */}
