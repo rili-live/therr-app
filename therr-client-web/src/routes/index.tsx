@@ -13,7 +13,7 @@ import Home from './Home';
 import Login from './Login';
 import UserProfile from './UserProfile';
 import ChangePassword from './ChangePassword';
-import DiscoveredComponent from './Discovered';
+import Discovered from './Discovered';
 import UnderConstruction from './UnderConstruction';
 
 export interface IRoute extends RouteProps {
@@ -108,7 +108,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
     },
     {
         path: '/discovered',
-        render: (routeProps) => <DiscoveredComponent onInitMessaging={routePropsConfig.onInitMessaging} {...routeProps} />,
+        render: Discovered,
         exact: true,
         access: {
             type: AccessCheckType.ALL,

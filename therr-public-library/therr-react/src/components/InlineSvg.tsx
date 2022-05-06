@@ -9,6 +9,8 @@ const iconMap: { [index: string]: string } = {
     close: require('../svg-icons/close.svg').toString(),
     dashboard: require('../svg-icons/dashboard.svg').toString(),
     door: require('../svg-icons/door.svg').toString(),
+    favorite: require('../svg-icons/favorite.svg').toString(),
+    'favorite-border': require('../svg-icons/favorite-border.svg').toString(),
     forum: require('../svg-icons/forum.svg').toString(),
     home: require('../svg-icons/home.svg').toString(),
     location: require('../svg-icons/location.svg').toString(),

@@ -2,13 +2,10 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import translator from '../../services/translator';
-// import * as globalConfig from '../../../global-config.js';
-
-import Tile from './Tile'
-
 import { ContentActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import translator from '../../services/translator';
+import Tile from './Tile';
 
 interface IDiscoveredRouterProps {
 }
@@ -44,28 +41,26 @@ interface IDiscoveredState {
 // gives access props.content and props.user, etc
 // maps state of redux
 const mapStateToProps = (state: any) => ({
-  content: state.content,
-  user: state.user,
-  userConnections: state.userConnections,
+    content: state.content,
+    user: state.user,
+    userConnections: state.userConnections,
 });
 
 // redux actions
 // trigger reducers
 // gives access to this.props.searchActiveMoments()
-const mapDispatchToProps = (dispatch: any) =>
-  bindActionCreators(
-      {
-          searchActiveMoments: ContentActions.searchActiveMoments,
-          updateActiveMoments: ContentActions.updateActiveMoments,
-          createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
+const mapDispatchToProps = (dispatch: any) => bindActionCreators(
+    {
+        searchActiveMoments: ContentActions.searchActiveMoments,
+        updateActiveMoments: ContentActions.updateActiveMoments,
+        createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
 
-          searchActiveSpaces: ContentActions.searchActiveSpaces,
-          updateActiveSpaces: ContentActions.updateActiveSpaces,
-          createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
-      },
-      dispatch
-  );
-
+        searchActiveSpaces: ContentActions.searchActiveSpaces,
+        updateActiveSpaces: ContentActions.updateActiveSpaces,
+        createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
+    },
+    dispatch,
+);
 
 /**
  * Discovered
@@ -88,33 +83,38 @@ export class DiscoveredComponent extends React.Component<IDiscoveredProps, IDisc
     }
 
     handleRefresh = () => {
-      const { content, updateActiveMoments, updateActiveSpaces, user } = this.props;
-      this.setState({ isLoading: true });
+        const {
+            content,
+            updateActiveMoments,
+            updateActiveSpaces,
+            user,
+        } = this.props;
+        this.setState({ isLoading: true });
 
-      const activeMomentsPromise = updateActiveMoments({
-          withMedia: true,
-          withUser: true,
-          offset: 0,
-          ...content.activeAreasFilters,
-          blockedUsers: user.details.blockedUsers,
-          shouldHideMatureContent: user.details.shouldHideMatureContent,
-      });
+        const activeMomentsPromise = updateActiveMoments({
+            withMedia: true,
+            withUser: true,
+            offset: 0,
+            ...content.activeAreasFilters,
+            blockedUsers: user.details.blockedUsers,
+            shouldHideMatureContent: user.details.shouldHideMatureContent,
+        });
 
-      const activeSpacesPromise = updateActiveSpaces({
-          withMedia: true,
-          withUser: true,
-          offset: 0,
-          ...content.activeAreasFilters,
-          blockedUsers: user.details.blockedUsers,
-          shouldHideMatureContent: user.details.shouldHideMatureContent,
-      });
+        const activeSpacesPromise = updateActiveSpaces({
+            withMedia: true,
+            withUser: true,
+            offset: 0,
+            ...content.activeAreasFilters,
+            blockedUsers: user.details.blockedUsers,
+            shouldHideMatureContent: user.details.shouldHideMatureContent,
+        });
 
-      return Promise.all([activeMomentsPromise, activeSpacesPromise]).finally(() => {
-          // this.loadTimeoutId = setTimeout(() => {
-          //     this.setState({ isLoading: false });
-          // }, 400);
-      });
-  }
+        return Promise.all([activeMomentsPromise, activeSpacesPromise]).finally(() => {
+            // this.loadTimeoutId = setTimeout(() => {
+            //     this.setState({ isLoading: false });
+            // }, 400);
+        });
+    }
 
     public render(): JSX.Element | null {
         // render is a function
@@ -129,9 +129,9 @@ export class DiscoveredComponent extends React.Component<IDiscoveredProps, IDisc
         return (
             <div id="page_discovered">
                 <div id="page_discovered_content">
-                    {content.activeMoments.map(moment => {
-                        return <div className='tile_wrapper' key={moment.id}><Tile moment={moment} /></div>
-                    })}
+                    {content.activeMoments.map((moment) => (
+                        <div className='tile_wrapper' key={moment.id}><Tile moment={moment} /></div>
+                    ))}
                 </div>
             </div>
         );
