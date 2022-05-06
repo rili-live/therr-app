@@ -162,7 +162,7 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
             // Select All box
             modifiedGroup[0].isChecked = modifiedGroup.every((item, index) => {
                 if (index === 0) { return true; }
-                item.isChecked;
+                return item.isChecked;
             });
         }
 

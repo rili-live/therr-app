@@ -137,7 +137,6 @@ interface IMapState {
         longitude: number,
         latitude: number,
     },
-    layers: any
     circleCenter: any;
 }
 
@@ -218,12 +217,6 @@ class Map extends React.Component<IMapProps, IMapState> {
             isSearchThisLocationBtnVisible: false,
             shouldIgnoreSearchThisAreaButton: false,
             shouldShowCreateActions: false,
-            layers: {
-                myMoments: true,
-                mySpaces: true,
-                connectionsMoments: true,
-                connectionsSpaces: true,
-            },
             circleCenter: {
                 longitude: routeLongitude || -99.458829,
                 latitude: routeLatitude || 39.7629981,
@@ -631,7 +624,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                 .then((coords: any) => {
                     Geolocation.clearWatch(this.mapWatchId);
                     Geolocation.stopObserving();
-                    this.handleRefreshMoments(true, coords, true);
+                    this.handleRefreshMoments(true, coords);
                 })
                 .catch((error) => {
                     console.log('requestOSPermissionsError', error);
@@ -682,10 +675,23 @@ class Map extends React.Component<IMapProps, IMapState> {
      * On press handler for any map press. Handles pressing an area, and determines when view or bottom-sheet menu to open
      */
     handleMapPress = ({ nativeEvent }) => {
-        const { createOrUpdateMomentReaction, createOrUpdateSpaceReaction, location, map, navigation, setSearchDropdownVisibility, user } = this.props;
-        const { circleCenter, layers } = this.state;
-        let visibleMoments: any[] = [];
-        let visibleSpaces: any[] = [];
+        const {
+            createOrUpdateMomentReaction,
+            createOrUpdateSpaceReaction,
+            location,
+            map,
+            navigation,
+            setSearchDropdownVisibility,
+            user,
+        } = this.props;
+        const { circleCenter } = this.state;
+        const mapFilters = {
+            filtersAuthor: map.filtersAuthor,
+            filtersCategory: map.filtersCategory,
+            filtersVisibility: map.filtersVisibility,
+        };
+        let visibleMoments: any[] = this.getFilteredAreas(map.moments.concat(map.myMoments), mapFilters);
+        let visibleSpaces: any[] = this.getFilteredAreas(map.spaces.concat(map.mySpaces), mapFilters);
 
         this.setState({
             shouldShowCreateActions: false,
@@ -696,15 +702,6 @@ class Map extends React.Component<IMapProps, IMapState> {
         this.setState({
             areLayersVisible: false,
         });
-
-        if (layers.connectionsMoments) {
-            visibleMoments = visibleMoments.concat(map.moments);
-        }
-        // TODO: Utilize mySpaces layer
-        if (layers.myMoments) {
-            visibleMoments = visibleMoments.concat(map.myMoments);
-            visibleSpaces = visibleSpaces.concat(map.mySpaces);
-        }
 
         const pressedSpaces = visibleSpaces.filter((space) => {
             return insideCircle(nativeEvent.coordinate, {
@@ -831,12 +828,12 @@ class Map extends React.Component<IMapProps, IMapState> {
     };
 
     // TODO: Call this when user has traveled a certain distance from origin
-    handleRefreshMoments = (overrideThrottle = false, coords?: any, shouldSearchAll = false) => {
-        const { isMinLoadTimeComplete, layers } = this.state;
+    handleRefreshMoments = (overrideThrottle = false, coords?: any) => {
+        const { isMinLoadTimeComplete } = this.state;
 
         if (!isMinLoadTimeComplete) {
             this.timeoutIdRefreshMoments = setTimeout(() => {
-                this.handleRefreshMoments(overrideThrottle, coords, shouldSearchAll);
+                this.handleRefreshMoments(overrideThrottle, coords);
             }, 50);
 
             return;
@@ -857,46 +854,38 @@ class Map extends React.Component<IMapProps, IMapState> {
             latitude: map.latitude,
         };
         // TODO: Consider making this one, dynamic request to add efficiency
-        if (shouldSearchAll || layers.myMoments) {
-            searchMoments({
-                query: 'me',
-                itemsPerPage: 50,
-                pageNumber: 1,
-                order: 'desc',
-                filterBy: 'fromUserIds',
-                ...userCoords,
-            });
-        }
-        if (shouldSearchAll || layers.connectionsMoments) {
-            searchMoments({
-                query: 'connections',
-                itemsPerPage: 500,
-                pageNumber: 1,
-                order: 'desc',
-                filterBy: 'fromUserIds',
-                ...userCoords,
-            });
-        }
-        if (shouldSearchAll || layers.mySpaces) {
-            searchSpaces({
-                query: 'me',
-                itemsPerPage: 50,
-                pageNumber: 1,
-                order: 'desc',
-                filterBy: 'fromUserIds',
-                ...userCoords,
-            });
-        }
-        if (shouldSearchAll || layers.connectionsSpaces) {
-            searchSpaces({
-                query: 'connections',
-                itemsPerPage: 500,
-                pageNumber: 1,
-                order: 'desc',
-                filterBy: 'fromUserIds',
-                ...userCoords,
-            });
-        }
+        searchMoments({
+            query: 'me',
+            itemsPerPage: 50,
+            pageNumber: 1,
+            order: 'desc',
+            filterBy: 'fromUserIds',
+            ...userCoords,
+        });
+        searchMoments({
+            query: 'connections',
+            itemsPerPage: 500,
+            pageNumber: 1,
+            order: 'desc',
+            filterBy: 'fromUserIds',
+            ...userCoords,
+        });
+        searchSpaces({
+            query: 'me',
+            itemsPerPage: 50,
+            pageNumber: 1,
+            order: 'desc',
+            filterBy: 'fromUserIds',
+            ...userCoords,
+        });
+        searchSpaces({
+            query: 'connections',
+            itemsPerPage: 500,
+            pageNumber: 1,
+            order: 'desc',
+            filterBy: 'fromUserIds',
+            ...userCoords,
+        });
         this.setState({
             lastMomentsRefresh: Date.now(),
         });
@@ -952,7 +941,6 @@ class Map extends React.Component<IMapProps, IMapState> {
                     latitude: geometry.viewport.northeast.lat,
                 });
                 this.animateToWithHelp(() => this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_SLOW));
-                // TODO: Determine if it would be best to combine these requests. Implement layers filter through filter button
                 this.handleSearchThisLocation(searchRadiusMeters, geometry.location.lat, geometry.location.lng);
             }
         }).catch((error) => {
@@ -1229,30 +1217,6 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     }
 
-    toggleLayers = () => {
-        this.setState({
-            areLayersVisible: !this.state.areLayersVisible,
-            shouldShowCreateActions: false,
-        });
-    }
-
-    toggleLayer = (layerName) => {
-        const { layers } = this.state;
-        layers[layerName] = !layers[layerName];
-
-        if (layerName === 'myMoments') {
-            layers.mySpaces = !layers.mySpaces;
-        }
-
-        if (layerName === 'connectionsMoments') {
-            layers.connectionsSpaces = !layers.connectionsSpaces;
-        }
-
-        this.setState({
-            layers,
-        });
-    }
-
     toggleMomentBtns = () => {
         this.setState({
             areButtonsVisible: !this.state.areButtonsVisible,
@@ -1265,7 +1229,8 @@ class Map extends React.Component<IMapProps, IMapState> {
         const areasMap = {};
         areas.forEach(area => areasMap[area.id] = area);
         let filteredAreas: any = Object.values(areasMap);
-        if (!mapFilters.filtersAuthor.length && !mapFilters.filtersCategory.length && !mapFilters.filtersVisibility.length) {
+        if ((!mapFilters.filtersAuthor.length && !mapFilters.filtersCategory.length && !mapFilters.filtersVisibility.length)
+            || (mapFilters.filtersAuthor[0]?.isChecked && mapFilters.filtersCategory[0]?.isChecked && mapFilters.filtersVisibility[0]?.isChecked)) {
             return filteredAreas;
         }
 
@@ -1571,15 +1536,6 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 user={user}
                             />
                         }
-                        {/* <FiltersButtonGroup
-                            areLayersVisible={areLayersVisible}
-                            layers={layers}
-                            toggleLayer={this.toggleLayer}
-                            toggleLayers={this.toggleLayers}
-                            goToMoments={this.goToMoments}
-                            translate={this.translate}
-                            themeButtons={this.themeButtons}
-                        /> */}
                     </>
                 }
                 <ConfirmModal

@@ -56,7 +56,7 @@ const getLeftSmallButton2ViewStyles = (theme: ITherrTheme): any => ({
 
 const getFloatingBtnContainer = (theme: ITherrTheme): any => ({
     position: 'absolute',
-    shadowColor: theme.colors.textBlack,
+    shadowColor: theme.colors.brandingBlack,
     shadowOffset: {
         height: 1,
         width: 1,
@@ -222,6 +222,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         mapFilters: {
             ...getLeftSmallButton2ViewStyles(therrTheme),
         },
+        mapFiltersCount: {
+            ...getLeftSmallButton2ViewStyles(therrTheme),
+            left: 120,
+            bottom: 90 + buttonMenuHeight - collapseOffset,
+        },
         recenter: {
             position: 'absolute',
             right: 18,
@@ -318,6 +323,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         btn: {
             ...btnStyles,
             backgroundColor: therrTheme.colors.accent1,
+        },
+        btnSmall: {
+            ...btnStyles,
+            backgroundColor: therrTheme.colors.accent2,
+            height: 24,
+            width: 24,
         },
         btnMedium: {
             ...btnStyles,

@@ -14,6 +14,11 @@ import AnimatedLottieView from 'lottie-react-native';
 export type ICreateAction = 'camera' | 'upload' | 'text-only' | 'claim' | 'moment';
 
 interface MapActionButtonsProps {
+    filters: {
+        filtersAuthor: any[],
+        filtersCategory: any[],
+        filtersVisibility: any[],
+    };
     handleCreate: (action: ICreateAction) => any;
     handleGpsRecenter: () => any;
     handleOpenMapFilters: () => any;
@@ -42,6 +47,7 @@ interface MapActionButtonsProps {
 }
 
 export default ({
+    filters,
     handleCreate,
     handleGpsRecenter,
     handleOpenMapFilters,
@@ -80,6 +86,12 @@ export default ({
             style={themeConfirmModal.styles.graphic}
         />
     );
+    let filterCount = 0;
+    Object.keys(filters).forEach(key => {
+        if (filters[key]?.length && !filters[key][0].isChecked) {
+            filterCount += 1;
+        }
+    });
 
     return (
         <>
@@ -116,6 +128,18 @@ export default ({
                                 onPress={handleOpenMapFilters}
                             />
                         </View>
+                        {
+                            filterCount > 0 &&
+                            <View style={themeButtons.styles.mapFiltersCount}>
+                                <Button
+                                    containerStyle={themeButtons.styles.btnContainer}
+                                    buttonStyle={themeButtons.styles.btnSmall}
+                                    raised={true}
+                                    title={filterCount.toString()}
+                                    onPress={handleOpenMapFilters}
+                                />
+                            </View>
+                        }
                         <Button
                             containerStyle={themeButtons.styles.addAMoment}
                             buttonStyle={themeButtons.styles.btnLargeWithText}
