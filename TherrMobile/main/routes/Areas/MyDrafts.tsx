@@ -221,6 +221,8 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
             isForDrafts: true,
         });
 
+        console.log(activeData, content.myDrafts);
+
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>

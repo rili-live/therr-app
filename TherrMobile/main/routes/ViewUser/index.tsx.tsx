@@ -17,6 +17,7 @@ import UsersActions from '../../redux/actions/UsersActions';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildUserStyles } from '../../styles/user-content/user-display';
 import translator from '../../services/translator';
@@ -68,6 +69,7 @@ class ViewUser extends React.Component<
     private themeConfirmModal = buildConfirmModalStyles();
     private themeButtons = buildMenuStyles();
     private themeMenu = buildMenuStyles();
+    private themeForms = buildFormStyles();
     private themeUser = buildUserStyles();
 
     constructor(props) {
@@ -83,6 +85,8 @@ class ViewUser extends React.Component<
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
+        (props.user.settings?.mobileThemeName);
         this.themeUser = buildUserStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
             translator('en-us', key, params);
@@ -96,6 +100,12 @@ class ViewUser extends React.Component<
         });
 
         this.fetchUser();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.route?.params?.userInView?.id !== this.props.route?.params?.userInView?.id) {
+            this.fetchUser();
+        }
     }
 
     fetchUser = () => {
@@ -221,11 +231,13 @@ class ViewUser extends React.Component<
                         isLoading ?
                             <LottieLoader id="therr-black-rolling" theme={this.theme} /> :
                             <UserDisplay
+                                navigation={navigation}
                                 onProfilePicturePress={this.onProfilePicturePress}
                                 onBlockUser={this.onBlockUser}
                                 onConnectionRequest={this.onConnectionRequest}
                                 onMessageUser={this.onMessageUser}
                                 onReportUser={this.onReportUser}
+                                themeForms={this.themeForms}
                                 themeUser={this.themeUser}
                                 translate={this.translate}
                                 user={user}

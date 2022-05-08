@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActivityIndicator, Text, View, Pressable } from 'react-native';
-import { Image } from 'react-native-elements';
+import { Button, Image } from 'react-native-elements';
 import { FlatList } from 'react-native-gesture-handler';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getUserImageUri } from '../../utilities/content';
@@ -124,11 +124,13 @@ const ListItem = ({
 };
 
 export default ({
+    navigation,
     onBlockUser,
     onConnectionRequest,
     onMessageUser,
     onReportUser,
     onProfilePicturePress,
+    themeForms,
     themeUser,
     translate,
     user,
@@ -151,6 +153,18 @@ export default ({
                     transition={false}
                 />
             </Pressable>
+            {
+                isMe &&
+                <View>
+                    <Button
+                        containerStyle={{ marginVertical: 10 }}
+                        buttonStyle={themeForms.styles.buttonPrimary}
+                        titleStyle={themeForms.styles.buttonTitle}
+                        title={translate('user.profile.buttons.editProfile')}
+                        onPress={() => navigation.navigate('Settings')}
+                    />
+                </View>
+            }
             <FlatList
                 style={themeUser.styles.actionMenuContainer}
                 data={actionsList}

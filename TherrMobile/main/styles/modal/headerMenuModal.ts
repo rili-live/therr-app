@@ -125,9 +125,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginLeft: 20,
         },
         headerTitleText: {
-            color: therrTheme.colors.primary3,
+            color: therrTheme.colors.brandingBlack,
             fontSize: 18,
-            letterSpacing: 2,
+            letterSpacing: 1,
             fontFamily: therrFontFamily,
         },
         headerTitleIcon: {

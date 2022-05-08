@@ -1229,7 +1229,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         const areasMap = {};
         areas.forEach(area => areasMap[area.id] = area);
         let filteredAreas: any = Object.values(areasMap);
-        if ((!mapFilters.filtersAuthor.length && !mapFilters.filtersCategory.length && !mapFilters.filtersVisibility.length)
+        if ((!mapFilters.filtersAuthor?.length && !mapFilters.filtersCategory?.length && !mapFilters.filtersVisibility?.length)
             || (mapFilters.filtersAuthor[0]?.isChecked && mapFilters.filtersCategory[0]?.isChecked && mapFilters.filtersVisibility[0]?.isChecked)) {
             return filteredAreas;
         }
@@ -1252,7 +1252,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         let passesFilterVisibility = true;
 
         // Filters have been populated and "Select All" is not checked
-        if (mapFilters.filtersAuthor.length && !mapFilters.filtersAuthor[0]?.isChecked) {
+        if (mapFilters.filtersAuthor?.length && !mapFilters.filtersAuthor[0]?.isChecked) {
             passesFilterAuthor = mapFilters.filtersAuthor.some(filter => {
                 if (!filter.isChecked) {
                     return false;

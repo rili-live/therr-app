@@ -18,7 +18,6 @@ import ActiveConnections from './ActiveConnections';
 import Contacts from './Contacts';
 import CreateConnection from './CreateConnection';
 import PhoneContacts from './Contacts/PhoneContacts';
-import AreaImageCrop from './CropImage/AreaImageCrop';
 import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
 import ForgotPassword from './ForgotPassword';
@@ -155,17 +154,6 @@ const routes: RouteConfig<
         component: MyDrafts,
         options: () => ({
             title: 'My Drafts',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-        }),
-    },
-    {
-        name: 'AreaImageCrop',
-        component: AreaImageCrop,
-        options: () => ({
-            title: 'Crop Image',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
@@ -426,8 +414,8 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            cardStyleInterpolator: undefined,
-            transitionSpec: momentTransitionSpec,
+            // cardStyleInterpolator: undefined,
+            // transitionSpec: momentTransitionSpec,
         }),
     },
 ];

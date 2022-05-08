@@ -244,7 +244,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
 
     handleRefresh = () => {
         const { content, map, updateActiveMoments, updateActiveSpaces, user } = this.props;
-        this.setState({ isLoading: false, isFirstLoad: false });
+        const { activeTab } = this.state;
 
         const activeMomentsPromise = updateActiveMoments({
             userLatitude: map.latitude,
@@ -268,11 +268,21 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
             shouldHideMatureContent: user.details.shouldHideMatureContent,
         });
 
-        return Promise.all([activeMomentsPromise, activeSpacesPromise]).finally(() => {
-            this.loadTimeoutId = setTimeout(() => {
-                this.setState({ isLoading: false });
-            }, 400);
-        });
+        return Promise.all([activeMomentsPromise, activeSpacesPromise])
+            .then(() => {
+                const data = getActiveCarouselData({
+                    activeTab,
+                    content,
+                    isForBookmarks: false,
+                });
+                const hasFoundContent = data.length;
+                this.setState({ isFirstLoad: !hasFoundContent });
+            })
+            .finally(() => {
+                this.loadTimeoutId = setTimeout(() => {
+                    this.setState({ isLoading: false });
+                }, 400);
+            });
     }
 
     tryLoadMore = () => {

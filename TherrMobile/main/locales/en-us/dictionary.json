@@ -451,7 +451,8 @@
         "refresh": "Refresh",
         "settings": "Settings",
         "toggle": "Toggle",
-        "notifications": "Notifications"
+        "notifications": "Notifications",
+        "profile": "Profile"
       }
     },
     "connections": {
@@ -789,6 +790,9 @@
         "pendingConnection": "Connection Request Pending",
         "report": "Report This User?",
         "unconnect": "Remove Connection?"
+      },
+      "buttons": {
+        "editProfile": "Edit Profile"
       }
     }
   }

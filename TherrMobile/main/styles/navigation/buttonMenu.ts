@@ -25,6 +25,17 @@ const getIconStyle = (theme: ITherrTheme) => ({
     // textShadowRadius: 1,
 });
 
+const getButtonContainerStyle: any = () => ( {
+    display: 'flex',
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 0,
+    height: '100%',
+    borderRadius: 0,
+});
+
 const getButtonsTitleStyle = (theme: ITherrTheme) => ({
     backgroundColor: 'transparent',
     fontSize: 10,
@@ -60,14 +71,20 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             ...buttonStyle,
         },
         buttonContainer: {
-            display: 'flex',
-            flex: 1,
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: 0,
-            height: '100%',
-            borderRadius: 0,
+            ...getButtonContainerStyle(therrTheme),
+        },
+        buttonContainerActive: {
+            ...getButtonContainerStyle(therrTheme),
+            borderTopWidth: 4,
+            borderColor: therrTheme.colors.brandingOrange,
+        },
+        buttonContainerUserProfile: {
+            ...getButtonContainerStyle(therrTheme),
+        },
+        buttonContainerUserProfileActive: {
+            ...getButtonContainerStyle(therrTheme),
+            borderTopWidth: 4,
+            borderColor: therrTheme.colors.brandingOrange,
         },
         buttonsTitle: getButtonsTitleStyle(therrTheme),
         buttonsTitleActive: {
@@ -133,6 +150,17 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         notificationCircleAlt: {
             ...getNotificationCircleStyles(therrTheme),
             right: 15,
+        },
+        notificationCircle2: {
+            ...getNotificationCircleStyles(therrTheme),
+            top: 9,
+            right: 15,
+            width: 4,
+            height: 4,
+            position: 'absolute',
+            borderWidth: 4,
+            borderRadius: 3,
+            borderColor: therrTheme.colors.brandingOrange,
         },
         tabsContainer: {
             display: 'flex',
