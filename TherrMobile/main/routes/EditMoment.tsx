@@ -45,6 +45,16 @@ import BottomSheet from '../components/Modals/BottomSheet';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
+export const momentCategories = [
+    'uncategorized',
+    'music',
+    'food',
+    'art',
+    'geocache',
+    'idea',
+    'nature',
+];
+
 
 const hapticFeedbackOptions = {
     enableVibrateFallback: true,
@@ -138,43 +148,11 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
-        this.categoryOptions = [
-            {
-                id: 1,
-                label: this.translate('forms.editMoment.categories.uncategorized'),
-                value: 'uncategorized',
-            },
-            {
-                id: 2,
-                label: this.translate('forms.editMoment.categories.music'),
-                value: 'music',
-            },
-            {
-                id: 3,
-                label: this.translate('forms.editMoment.categories.food'),
-                value: 'food',
-            },
-            {
-                id: 4,
-                label: this.translate('forms.editMoment.categories.art'),
-                value: 'art',
-            },
-            {
-                id: 5,
-                label: this.translate('forms.editMoment.categories.geocache'),
-                value: 'geocache',
-            },
-            {
-                id: 6,
-                label: this.translate('forms.editMoment.categories.idea'),
-                value: 'idea',
-            },
-            {
-                id: 7,
-                label: this.translate('forms.editMoment.categories.nature'),
-                value: 'nature',
-            },
-        ];
+        this.categoryOptions = momentCategories.map((category, index) => ({
+            id: index,
+            label: this.translate(`forms.editMoment.categories.${category}`),
+            value: category,
+        }));
         // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
     }
 

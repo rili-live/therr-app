@@ -15,6 +15,9 @@ export interface IMapState extends Immutable.ImmutableObject<any> {
     radiusOfAwareness: number,
     radiusOfInfluence: number,
     searchPredictions: any;
+    filtersAuthor: any,
+    filtersCategory: any,
+    filtersVisibility: any,
 }
 
 export enum MapActionTypes {
@@ -38,6 +41,9 @@ export enum MapActionTypes {
     USER_LOCATION_DETERMINED = 'USER_LOCATION_DETERMINED',
     UPDATE_COORDS = 'UPDATE_COORDS',
     UPDATE_USER_RADIUS = 'UPDATE_USER_RADIUS',
+
+    // Filters
+    SET_MAP_FILTERS = 'SET_MAP_FILTERS',
 
     // Google API
     AUTOCOMPLETE_UPDATE = 'AUTOCOMPLETE_UPDATE',

@@ -1,9 +1,10 @@
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
+import { therrFontFamily } from '../font';
 import { getTheme, ITherrTheme } from '../themes';
 
 const getTitleStyles = (theme: ITherrTheme): any => ({
-    fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+    fontFamily: therrFontFamily,
     color: theme.colors.textWhite,
     fontSize: 28,
     marginTop: 6,
@@ -32,7 +33,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         titleWithSpacing: {
             ...getTitleStyles(therrTheme),
             fontWeight: '800',
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
             paddingBottom: 20,
             textAlign: 'left',
             letterSpacing: 1,
@@ -40,7 +41,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         titleWithNoSpacing: {
             ...getTitleStyles(therrTheme),
             fontWeight: '800',
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
             paddingBottom: 0,
             marginBottom: 16,
             textAlign: 'left',
@@ -49,7 +50,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         subtitle: {
             fontSize: 18,
             fontWeight: '600',
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
             color: therrTheme.colors.textGray,
             paddingBottom: 20,
             marginBottom: 4,

@@ -10,6 +10,7 @@ interface IConfirmModal {
     isVisible: boolean;
     onCancel: any;
     onConfirm: any;
+    renderImage?: () => React.ReactNode,
     text: string;
     textConfirm?: string;
     textCancel?: string;
@@ -57,6 +58,7 @@ export default ({
     isVisible,
     onCancel,
     onConfirm,
+    renderImage,
     text,
     textConfirm,
     textCancel,
@@ -78,6 +80,9 @@ export default ({
                 onPress={onCancel}
                 style={themeModal.styles.overlay}>
                 <Pressable style={[themeModal.styles.container, extraStyles]}>
+                    {
+                        renderImage && renderImage()
+                    }
                     {
                         headerText ?
                             <>

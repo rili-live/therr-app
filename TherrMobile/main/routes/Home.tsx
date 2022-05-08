@@ -139,7 +139,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                 <SafeAreaView style={this.theme.styles.safeAreaView}>
                     <ScrollView
                         contentInsetAdjustmentBehavior="automatic"
-                        style={this.theme.styles.scrollView}
+                        style={this.theme.styles.scrollViewFull}
                     >
                         <View style={this.theme.styles.body}>
                             <View style={this.theme.styles.sectionContainer}>

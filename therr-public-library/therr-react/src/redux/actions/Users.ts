@@ -60,6 +60,7 @@ class UsersActions {
                 userName,
                 media,
                 settingsThemeName,
+                loginCount,
             } = response.data;
             const userData: IUser = Immutable.from({
                 accessLevels,
@@ -68,6 +69,7 @@ class UsersActions {
                 email,
                 firstName,
                 lastName,
+                loginCount,
                 phoneNumber,
                 userName,
                 media,
@@ -240,6 +242,15 @@ class UsersActions {
                 data,
             });
         });
+
+    updateFirstTimeUI = (hasCompletedFTUI = true) => (dispatch: any) => {
+        dispatch({
+            type: UserActionTypes.UPDATE_USER_FTUI,
+            data: {
+                hasCompletedFTUI,
+            },
+        });
+    };
 }
 
 export default UsersActions;

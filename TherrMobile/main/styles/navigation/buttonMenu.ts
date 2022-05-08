@@ -1,5 +1,6 @@
 import { Platform, StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
+import { therrFontFamily } from '../font';
 import { getTheme, ITherrTheme } from '../themes';
 
 export const buttonMenuHeight = Platform.OS === 'ios' ? 80 : 60;
@@ -29,7 +30,7 @@ const getButtonsTitleStyle = (theme: ITherrTheme) => ({
     fontSize: 10,
     marginTop: 5,
     paddingBottom: Platform.OS === 'ios' ? 10 : 0,
-    fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+    fontFamily: therrFontFamily,
     ...getIconStyle(theme),
 });
 
@@ -159,7 +160,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         tabText: {
             color: therrTheme.colors.textWhite,
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
         },
     });
 
