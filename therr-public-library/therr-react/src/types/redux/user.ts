@@ -37,4 +37,5 @@ export interface IUserState extends Immutable.ImmutableObject<any> {
 export enum UserActionTypes {
   LOGIN = 'LOGIN',
   UPDATE_USER_TOUR = 'UPDATE_USER_TOUR',
+  UPDATE_USER_FTUI = 'UPDATE_USER_FTUI',
 }

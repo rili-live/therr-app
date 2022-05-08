@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, Text, View } from 'react-native';
+import { SafeAreaView, ScrollView, Text, View } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { Picker as ReactPicker } from '@react-native-picker/picker';
@@ -129,28 +129,33 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
         return (
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
-                    <View style={this.theme.styles.body}>
-                        <View style={this.theme.styles.sectionContainer}>
-                            <Text style={this.theme.styles.sectionTitle}>
-                                {this.translate('pages.advancedSearch.labels.searchOrder')}
-                            </Text>
-                            <View style={this.theme.styles.sectionForm}>
-                                <ReactPicker
-                                    selectedValue={content.activeAreasFilters.order}
-                                    style={this.themeForms.styles.picker}
-                                    itemStyle={this.themeForms.styles.pickerItem}
-                                    onValueChange={this.onSearchOrderSelect}>
-                                    <ReactPicker.Item label={this.translate(
-                                        'pages.advancedSearch.labels.desc'
-                                    )} value="DESC" />
-                                    <ReactPicker.Item label={this.translate(
-                                        'pages.advancedSearch.labels.asc'
-                                    )} value="ASC" />
-                                </ReactPicker>
+                <SafeAreaView style={this.theme.styles.safeAreaView}>
+                    <ScrollView
+                        contentInsetAdjustmentBehavior="automatic"
+                        style={this.theme.styles.scrollViewFull}
+                    >
+                        <View style={this.theme.styles.body}>
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionTitle}>
+                                    {this.translate('pages.advancedSearch.labels.searchOrder')}
+                                </Text>
+                                <View style={this.theme.styles.sectionForm}>
+                                    <ReactPicker
+                                        selectedValue={content.activeAreasFilters.order}
+                                        style={this.themeForms.styles.picker}
+                                        itemStyle={this.themeForms.styles.pickerItem}
+                                        onValueChange={this.onSearchOrderSelect}>
+                                        <ReactPicker.Item label={this.translate(
+                                            'pages.advancedSearch.labels.desc'
+                                        )} value="DESC" />
+                                        <ReactPicker.Item label={this.translate(
+                                            'pages.advancedSearch.labels.asc'
+                                        )} value="ASC" />
+                                    </ReactPicker>
+                                </View>
                             </View>
                         </View>
-                    </View>
+                    </ScrollView>
                 </SafeAreaView>
                 {/* <MainButtonMenu navigation={navigation} onActionButtonPress={this.scrollTop} translate={this.translate} user={user} /> */}
                 <MainButtonMenu

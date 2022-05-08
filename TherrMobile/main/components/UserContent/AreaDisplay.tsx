@@ -3,6 +3,7 @@ import React from 'react';
 import {
     ActivityIndicator,
     Dimensions,
+    Platform,
     Pressable,
     Text,
     TouchableWithoutFeedbackComponent,
@@ -158,6 +159,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         viewportWidth={viewportWidth}
                         media={areaMedia}
                         isVisible={!!areaMedia}
+                        isSingleView={isExpanded}
                     />
                 </PresssableWithDoubleTap>
                 <View style={themeViewArea.styles.areaContentTitleContainer}>
@@ -167,20 +169,23 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     >
                         {sanitizeNotificationMsg(area.notificationMsg)}
                     </Text>
-                    <Button
-                        containerStyle={themeViewArea.styles.areaReactionButtonContainer}
-                        buttonStyle={themeViewArea.styles.areaReactionButton}
-                        icon={
-                            <Icon
-                                name="public"
-                                size={24}
-                                color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
-                            />
-                        }
-                        onPress={() => this.onViewMapPress(area)}
-                        type="clear"
-                        TouchableComponent={TouchableWithoutFeedbackComponent}
-                    />
+                    {
+                        Platform.OS !== 'ios' && Platform.OS !== 'android' &&
+                        <Button
+                            containerStyle={themeViewArea.styles.areaReactionButtonContainer}
+                            buttonStyle={themeViewArea.styles.areaReactionButton}
+                            icon={
+                                <Icon
+                                    name="public"
+                                    size={24}
+                                    color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                />
+                            }
+                            onPress={() => this.onViewMapPress(area)}
+                            type="clear"
+                            TouchableComponent={TouchableWithoutFeedbackComponent}
+                        />
+                    }
                     {
                         !area.isDraft &&
                         <>

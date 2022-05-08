@@ -5,6 +5,7 @@ import { StackNavigationEventMap } from '@react-navigation/stack/lib/typescript/
 import { AccessLevels } from 'therr-js-utilities/constants';
 import { IAccess, AccessCheckType } from 'therr-react/types';
 import AdvancedSearch from './AdvancedSearch';
+import MapFilteredSearch from './AdvancedSearch/MapFilteredSearch';
 import BookMarked from './Areas/BookMarked';
 import MyDrafts from './Areas/MyDrafts';
 import Home from './Home';
@@ -17,7 +18,6 @@ import ActiveConnections from './ActiveConnections';
 import Contacts from './Contacts';
 import CreateConnection from './CreateConnection';
 import PhoneContacts from './Contacts/PhoneContacts';
-import AreaImageCrop from './CropImage/AreaImageCrop';
 import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
 import ForgotPassword from './ForgotPassword';
@@ -161,17 +161,6 @@ const routes: RouteConfig<
         }),
     },
     {
-        name: 'AreaImageCrop',
-        component: AreaImageCrop,
-        options: () => ({
-            title: 'Crop Image',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-        }),
-    },
-    {
         name: 'Home',
         component: Home,
         options: () => ({
@@ -262,6 +251,17 @@ const routes: RouteConfig<
     //         },
     //     }),
     // },
+    {
+        name: 'MapFilteredSearch',
+        component: MapFilteredSearch,
+        options: () => ({
+            title: 'Map Search Filters',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
     {
         name: 'Nearby',
         component: Nearby,
@@ -414,8 +414,8 @@ const routes: RouteConfig<
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
             },
-            cardStyleInterpolator: undefined,
-            transitionSpec: momentTransitionSpec,
+            // cardStyleInterpolator: undefined,
+            // transitionSpec: momentTransitionSpec,
         }),
     },
 ];

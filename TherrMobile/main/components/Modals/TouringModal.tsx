@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, Modal, Pressable, View } from 'react-native';
+import { Text, Modal, Pressable, View, GestureResponderEvent } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AnimatedLottieView from 'lottie-react-native';
@@ -51,9 +51,13 @@ export default ({
     translate,
 }: ITouringModal) => {
     const [tab, setTab] = useState(0);
-    const onClose = () => {
-        setTab(0);
-        onRequestClose();
+    const onClose = (e?: GestureResponderEvent) => {
+        e?.stopPropagation();
+        // This is necessary to prevent odd bug where advancing is necessary before closing. Otherwise modal gets stuck open
+        if (tab > 0) {
+            setTab(0);
+            onRequestClose();
+        }
     };
 
     return (
@@ -62,9 +66,9 @@ export default ({
             visible={isVisible}
             onRequestClose={onClose}
             transparent={true}
-            style={{
-                zIndex: 1000,
-            }}
+            // style={{
+            //     zIndex: 1000,
+            // }}
         >
             <Pressable
                 onPress={onClose}
@@ -72,8 +76,8 @@ export default ({
                 {
                     (tab !== 1 && tab !== 2) &&
                     <Pressable style={themeTour.styles.container}>
-                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header1')}</Text>
-                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.claimYourSpaces')}</Text>
+                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header3')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.exploreTheWorld')}</Text>
                         <AnimatedLottieView
                             source={claimASpace}
                             // resizeMode="cover"
@@ -83,13 +87,6 @@ export default ({
                             style={themeTour.styles.graphic}
                         />
                         <View style={themeTour.styles.actionsContainer}>
-                            <ModalButton
-                                iconName="close"
-                                title={translate('modals.touringModal.exit')}
-                                onPress={onClose}
-                                iconRight={false}
-                                themeButtons={themeButtons}
-                            />
                             <ModalButton
                                 iconName="arrow-forward"
                                 title={translate('modals.touringModal.next')}
@@ -134,8 +131,8 @@ export default ({
                 {
                     (tab === 2) &&
                     <Pressable style={themeTour.styles.container}>
-                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header3')}</Text>
-                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.exploreTheWorld')}</Text>
+                        <Text style={themeTour.styles.header}>{translate('modals.touringModal.header1')}</Text>
+                        <Text style={themeTour.styles.text}>{translate('modals.touringModal.claimYourSpaces')}</Text>
                         <AnimatedLottieView
                             source={discover}
                             // resizeMode="cover"

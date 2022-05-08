@@ -3,6 +3,7 @@ import { IMobileThemeName } from 'therr-react/types';
 import { Theme } from '@react-navigation/native';
 import { buttonMenuHeight } from './navigation/buttonMenu';
 import { getTheme, ITherrTheme } from './themes';
+import { therrFontFamily } from './font';
 
 
 const HEADER_HEIGHT_MARGIN = 80;
@@ -13,7 +14,7 @@ const HEADER_HEIGHT = 48 + HEADER_EXTRA_HEIGHT;
 const HEADER_PADDING_BOTTOM = 20;
 
 const sectionTitle: any = {
-    fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+    fontFamily: therrFontFamily,
     marginBottom: 8,
     fontSize: 24,
     fontWeight: '500',
@@ -72,7 +73,7 @@ const getHeaderStyles = (theme: ITherrTheme) => ({
 });
 
 const getSectionDescriptionStyles = (theme: ITherrTheme): any => ({
-    fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+    fontFamily: therrFontFamily,
     marginBottom: 10,
     fontSize: 18,
     fontWeight: '400',

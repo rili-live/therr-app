@@ -10,6 +10,11 @@ const initialState: IMapState = Immutable.from({
     searchPredictions: Immutable.from({}),
     radiusOfAwareness: (Location.MAX_RADIUS_OF_AWARENESS - Location.MIN_RADIUS_OF_AWARENESS) / 2,
     radiusOfInfluence: (Location.MAX_RADIUS_OF_INFLUENCE - Location.MIN_RADIUS_OF_INFLUENCE) / 2,
+
+    // Filters
+    filtersAuthor: Immutable.from([]),
+    filtersCategory: Immutable.from([]),
+    filtersVisibility: Immutable.from([]),
 });
 
 const map = (state: IMapState = initialState, action: any) => {
@@ -130,6 +135,11 @@ const map = (state: IMapState = initialState, action: any) => {
                 .setIn(['searchPredictions', 'isSearchDropdownVisible'], false)
                 .setIn(['hasUserLocationLoaded'], false)
                 .setIn(['myMoments'], Immutable.from([]));
+        // // // // // // // // // // // //
+        case MapActionTypes.SET_MAP_FILTERS:
+            return state.setIn(['filtersAuthor'], action.data.filtersAuthor)
+                .setIn(['filtersCategory'], action.data.filtersCategory)
+                .setIn(['filtersVisibility'], action.data.filtersVisibility);
         default:
             return state;
     }

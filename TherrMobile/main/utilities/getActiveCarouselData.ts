@@ -6,7 +6,7 @@ import { CAROUSEL_TABS } from '../constants';
  * @param spaces a pre-ordered list of spaces (by createdAt)
  * @returns a merged list of moments and spaces
  */
-const mergeAreas = (moments: any[], spaces: any[], sortBy = 'createdAt') => {
+const mergeAreas = (moments: any[], spaces: any[], sortBy = 'createdAt', shouldIncludeDrafts = false) => {
     let mergedAreas: any[] = [];
     let mIndex = 0;
     let sIndex = 0;
@@ -16,12 +16,12 @@ const mergeAreas = (moments: any[], spaces: any[], sortBy = 'createdAt') => {
     } else {
         while (moments[mIndex] || spaces[sIndex]) {
             if (!moments[mIndex]) {
-                if (!spaces[sIndex].isDraft) {
+                if (!spaces[sIndex].isDraft || shouldIncludeDrafts) {
                     mergedAreas.push(spaces[sIndex]);
                 }
                 sIndex++;
             } else if (!spaces[sIndex]) {
-                if (!moments[mIndex].isDraft) {
+                if (!moments[mIndex].isDraft || shouldIncludeDrafts) {
                     mergedAreas.push(moments[mIndex]);
                 }
                 mIndex++;
@@ -29,7 +29,7 @@ const mergeAreas = (moments: any[], spaces: any[], sortBy = 'createdAt') => {
                 const momentOrderByVal = new Date(moments[mIndex].createdAt).getTime();
                 const spaceOrderByVal = new Date(spaces[sIndex].createdAt).getTime();
                 if (momentOrderByVal > spaceOrderByVal) {
-                    if (!moments[mIndex].isDraft) {
+                    if (!moments[mIndex].isDraft || shouldIncludeDrafts) {
                         mergedAreas.push(moments[mIndex]);
                     }
                     mIndex++;
@@ -72,7 +72,7 @@ export default ({
     }
 
     if (isForDrafts) {
-        return mergeAreas(content.myDrafts, [], sortBy);
+        return mergeAreas(content.myDrafts, [], sortBy, isForDrafts);
     }
 
     return mergeAreas(content.activeMoments, content.activeSpaces, sortBy);

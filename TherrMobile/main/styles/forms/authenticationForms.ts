@@ -1,5 +1,6 @@
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
+import { therrFontFamily } from '../font';
 import { getTheme } from '../themes';
 import { containerNoHorizontalStyles, containerStyles } from './base';
 
@@ -29,7 +30,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         buttonLink: {
             color: therrTheme.colors.textGray,
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
         },
         submitButtonContainer: {
             ...containerNoHorizontalStyles,
