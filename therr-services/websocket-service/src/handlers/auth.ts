@@ -43,13 +43,13 @@ const login = ({
             // 30 minutes
             ttl: 60 * 1000 * 30,
             data: {
-                id: data.id,
+                id: data?.id,
                 socketId: socket.id,
                 previousSocketId: null,
-                userName: data.userName,
-                firstName: data.firstName,
-                lastName: data.lastName,
-                idToken: data.idToken,
+                userName: data?.userName,
+                firstName: data?.firstName,
+                lastName: data?.lastName,
+                idToken: data?.idToken,
                 status: UserStatus.ACTIVE,
             },
         }).then((response: any) => {
@@ -73,9 +73,9 @@ const login = ({
                 tracer: beeline,
                 traceArgs: {
                     appName,
-                    ip: (socket.handshake.headers as any).host.split(':')[0],
-                    socketId: socket.id,
-                    userName: data.userName,
+                    ip: (socket?.handshake.headers as any).host.split(':')[0],
+                    socketId: socket?.id,
+                    userName: data?.userName,
                 },
             });
         });
@@ -84,13 +84,13 @@ const login = ({
     printLogs({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
-        messages: `User, ${data.userName} with socketId ${socket.id}, has logged in.`,
+        messages: `User, ${data?.userName} with socketId ${socket.id}, has logged in.`,
         tracer: beeline,
         traceArgs: {
             appName,
             ip: (socket.handshake.headers as any).host.split(':')[0],
             socketId: socket.id,
-            userName: data.userName,
+            userName: data?.userName,
         },
     });
 
@@ -103,7 +103,7 @@ const login = ({
                 time: now,
                 text: 'You have been logged in successfully.',
             },
-            userName: data.userName,
+            userName: data?.userName,
         },
     });
 };

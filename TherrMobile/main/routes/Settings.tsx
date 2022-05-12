@@ -25,6 +25,7 @@ import BaseStatusBar from '../components/BaseStatusBar';
 import UserImage from '../components/UserContent/UserImage';
 import { getImagePreviewPath } from '../utilities/areaUtils';
 import { getUserImageUri, signImageUrl } from '../utilities/content';
+import RoundTextInput from '../components/Input/TextInput/Round';
 
 
 interface ISettingsDispatchProps {
@@ -81,6 +82,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 lastName: props.user.details.lastName,
                 userName: props.user.details.userName,
                 phoneNumber: props.user.details.phoneNumber,
+                settingsBio: props.user.settings.settingsBio,
                 shouldHideMatureContent: props.user.details.shouldHideMatureContent,
             },
             isCropping: false,
@@ -133,6 +135,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             phoneNumber,
             password,
             repeatPassword,
+            settingsBio,
             shouldHideMatureContent,
         } = this.state.inputs;
         const { isNightMode } = this.state;
@@ -154,6 +157,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             firstName,
             lastName,
             userName: userName?.toLowerCase(),
+            settingsBio,
             settingsThemeName: isNightMode ? 'retro' : 'light',
             shouldHideMatureContent,
         };
@@ -460,6 +464,20 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     }
                                     themeForms={this.themeForms}
                                 />
+                                <RoundTextInput
+                                    placeholder={this.translate(
+                                        'forms.settings.labels.bio'
+                                    )}
+                                    value={inputs.settingsBio}
+                                    onChangeText={(text) =>
+                                        this.onInputChange('settingsBio', text)
+                                    }
+                                    minHeight={110}
+                                    numberOfLines={5}
+                                    themeForms={this.themeForms}
+                                    maxLength={80}
+                                />
+                                <Text style={{ textAlign: 'right' }}>{`${inputs.settingsBio?.length}/80`}</Text>
                             </View>
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitle}>

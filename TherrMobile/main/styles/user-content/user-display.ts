@@ -13,8 +13,34 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             flexDirection: 'column',
             alignItems: 'center',
         },
+        profileInfoContainer: {
+            display: 'flex',
+            flexDirection: 'row',
+            marginTop: 21,
+        },
+        profileImageContainer: {
+            marginHorizontal: 17,
+        },
+        profileSummaryContainer: {
+            flex: 1,
+            paddingRight: 14,
+        },
+        profileFullName: {
+            fontSize: 20,
+            fontWeight: '600',
+            marginBottom: 8,
+        },
+        profileBio: {
+            fontSize: 14,
+            fontWeight: '400',
+        },
 
         // Action Menu
+        actionsContainer: {
+            display: 'flex',
+            flexDirection: 'row',
+            marginTop: 15,
+        },
         actionMenuContainer: {
             width: '100%',
             marginTop: 10,
@@ -47,9 +73,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
 
         // Profile Picture
         profileImage: {
-            width: 200,
-            height: 200,
-            borderRadius: 100,
+            width: 100,
+            height: 100,
+            borderRadius: 50,
         },
     });
 
