@@ -34,7 +34,10 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
         id?: string,
         deviceMobileFirebaseToken?: string;
         email?: string;
-    } = {};
+    } = {
+        id: acceptingUserId,
+        email: acceptingUserEmail,
+    };
 
     if (requestingUserId !== userId) {
         return handleHttpError({

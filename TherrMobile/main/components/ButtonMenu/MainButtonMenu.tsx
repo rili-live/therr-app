@@ -114,9 +114,9 @@ class MainButtonMenuAlt extends ButtonMenu {
     }
 
     render() {
-        const { onActionButtonPress, isCompact, notifications, translate, themeMenu, user } = this.props;
+        const { onActionButtonPress, isCompact, translate, themeMenu, user } = this.props;
         const currentScreen = this.getCurrentScreen();
-        const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
+        // const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
         const isConnectViewActive = currentScreen === 'Contacts' || currentScreen === 'ActiveConnections' || currentScreen === 'CreateConnection';
         let imageStyle = {
             height: 30,
@@ -281,9 +281,9 @@ class MainButtonMenuAlt extends ButtonMenu {
                                 title={translate('menus.main.buttons.profile')}
                                 type="clear"
                             />
-                            {
+                            {/* {
                                 hasNotifications && <View style={themeMenu.styles.notificationCircle2} />
-                            }
+                            } */}
                         </View>
                 }
             </ButtonMenu>

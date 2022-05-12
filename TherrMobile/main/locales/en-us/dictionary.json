@@ -411,7 +411,8 @@
         "lastName": "Lastname",
         "userName": "Username",
         "hideReportedContent": "Hide Mature Content",
-        "showReportedContent": "Show Mature Content"
+        "showReportedContent": "Show Mature Content",
+        "bio": "Your bio..."
       },
       "backendSuccessMessage": "User settings successfully updated!",
       "backendErrorMessage": "Connection error. Please try again later."
@@ -785,14 +786,19 @@
     "profile": {
       "actions": {
         "block": "Block This User?",
-        "connect": "Send Connection Request",
+        "connect": "Add Connection",
         "message": "Send Message",
-        "pendingConnection": "Connection Request Pending",
+        "pendingConnection": "Request Pending",
         "report": "Report This User?",
         "unconnect": "Remove Connection?"
       },
       "buttons": {
-        "editProfile": "Edit Profile"
+        "editProfile": "Edit Profile",
+        "message": "Message"
+      },
+      "labels": {
+        "noBioYet": "This user has not updated their bio yet.",
+        "profileIsPublicName": "Profile is Private"
       }
     }
   }
