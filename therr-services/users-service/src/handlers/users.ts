@@ -33,7 +33,7 @@ const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(
     }));
 
 // READ
-const getUser = (req, res) => Store.users.getUsers({ id: req.params.id })
+const getUser = (req, res) => Store.users.getUsers({ id: req.params.id, settingsIsAccountSoftDeleted: false })
     .then((results) => {
         const userId = req.headers['x-userid'];
 
@@ -53,17 +53,27 @@ const getUser = (req, res) => Store.users.getUsers({ id: req.params.id })
             delete user.password;
             delete user.oneTimePassword;
 
+            // TODO: Only send particular information (based on user settings)
             if (connections.length && connections[0].requestStatus === 'complete' && !connections[0].isConnectionBroken) {
-                return res.status(200).send(user);
+                const sanitizedUser = {
+                    ...user,
+                };
+                return res.status(200).send(sanitizedUser);
             }
 
-            // Do not return private info if users are not connected
-            return res.status(200).send({
+            const privateUser = {
                 id: user.id,
                 userName: user.userName,
                 isNotConnected: true,
                 isPendingConnection: connections.length ? (connections[0].requestStatus === 'denied' || connections[0].requestStatus === 'pending') : false,
-            });
+                firstName: user.settingsIsProfilePublic ? user.firstName : '',
+                lastName: user.settingsIsProfilePublic ? user.lastName : '',
+                settingsBio: user.settingsBio,
+                settingsIsProfilePublic: user.settingsIsProfilePublic,
+            };
+
+            // Do not return private info if users are not connected
+            return res.status(200).send(privateUser);
         });
     })
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
@@ -137,6 +147,7 @@ const updateUser = (req, res) => {
                 hasAgreedToTerms: req.body.hasAgreedToTerms,
                 userName: req.body.userName,
                 deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
+                settingsBio: req.body.settingsBio,
                 settingsThemeName: req.body.settingsThemeName,
                 shouldHideMatureContent: req.body.shouldHideMatureContent,
             };

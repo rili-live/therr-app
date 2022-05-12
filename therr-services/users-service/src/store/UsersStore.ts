@@ -203,6 +203,10 @@ export default class UsersStore {
             modifiedParams.wasReportedBy = JSON.stringify(params.wasReportedBy);
         }
 
+        if (params.settingsBio != null) {
+            modifiedParams.settingsBio = params.settingsBio;
+        }
+
         if (params.settingsThemeName != null) {
             modifiedParams.settingsThemeName = params.settingsThemeName;
         }
