@@ -55,7 +55,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             flex: 1,
             overflow: 'hidden',
             paddingBottom: 10,
-            backgroundColor: therrTheme.colorVariations.backgroundNeutralLighter,
+            backgroundColor: therrTheme.colors.brandingWhite,
             marginVertical: dividerHeight / 2,
             marginHorizontal: dividerHeight,
             borderRadius: 2,

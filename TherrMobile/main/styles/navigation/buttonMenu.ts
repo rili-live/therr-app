@@ -115,6 +115,8 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginTop: 100,
             backgroundColor: therrTheme.colors.primary,
             // backgroundColor: therrTheme.colorVariations.backgroundCreamLighten,
+            borderTopWidth: 1,
+            borderTopColor: therrTheme.colors.accentDivider,
 
             // Shadow
             // shadowColor: therrTheme.colors.textBlack,
