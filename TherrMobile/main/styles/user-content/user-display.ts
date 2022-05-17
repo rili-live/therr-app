@@ -1,6 +1,13 @@
 import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
-import { getTheme } from '../themes';
+import { getTheme, ITherrTheme } from '../themes';
+
+const getSocialIndicatorBase: any = (therrTheme: ITherrTheme) => ({
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: therrTheme.colors.backgroundNeutral,
+});
 
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
@@ -34,12 +41,38 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontSize: 14,
             fontWeight: '400',
         },
+        socialIconPressable: {
+            display: 'flex',
+            flexDirection: 'row',
+        },
+        socialIcon: {
+            marginRight: 7,
+        },
+        socialIndicatorsContainer: {
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            width: 26,
+        },
+        socialIndicatorOne: {
+            ...getSocialIndicatorBase(therrTheme),
+            height: 7,
+        },
+        socialIndicatorTwo: {
+            ...getSocialIndicatorBase(therrTheme),
+            height: 14,
+        },
+        socialIndicatorThree: {
+            ...getSocialIndicatorBase(therrTheme),
+            height: 21,
+        },
 
         // Action Menu
         actionsContainer: {
             display: 'flex',
             flexDirection: 'row',
-            marginTop: 15,
+            marginVertical: 24,
         },
         actionMenuContainer: {
             width: '100%',

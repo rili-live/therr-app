@@ -416,6 +416,14 @@
       },
       "backendSuccessMessage": "User settings successfully updated!",
       "backendErrorMessage": "Connection error. Please try again later."
+    },
+    "socialSync": {
+      "labels": {
+        "twitterHandle": "Twitter Handle"
+      },
+      "placeholders": {
+        "twitterHandle": "username"
+      }
     }
   },
   "menus": {
@@ -659,6 +667,11 @@
         "nightMode": "Night Mode?"
       }
     },
+    "socialSync": {
+      "headerTitle": "Social Sync",
+      "pageHeaderSyncList": "Sync Your Social Accounts",
+      "description": "Get recommended to local businesses for collaboration and partnerships."
+    },
     "template": {
       "pageTitle": "Template",
       "helloTemplate": "Hello, Template!"
@@ -790,6 +803,7 @@
         "message": "Send Message",
         "pendingConnection": "Request Pending",
         "report": "Report This User?",
+        "syncSocials": "Sync Socials",
         "unconnect": "Remove Connection?"
       },
       "buttons": {

@@ -40,6 +40,14 @@ interface IChangePasswordArgs {
     userName: string;
 }
 
+interface ISocialSyncs {
+    syncs: {
+        twitter?: {
+            username: string;
+        };
+    };
+}
+
 class UsersService {
     authenticate = (data: ILoginCredentials) => axios({
         method: 'post',
@@ -119,6 +127,12 @@ class UsersService {
         data: {
             feedback,
         },
+    })
+
+    createUpdateSocialSyncs = (socialSyncs: ISocialSyncs) => axios({
+        method: 'post',
+        url: '/users-service/social-sync',
+        data: socialSyncs,
     })
 }
 

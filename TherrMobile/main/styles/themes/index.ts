@@ -78,6 +78,12 @@ export interface ITherrThemeColors {
     accentDivider: string;
     accentLogo: string;
 
+    // Socials
+    instagram: string;
+    twitter: string;
+    tikTok: string;
+    youtube: string;
+
     map: {
         momentsCircleFill: string;
         momentsCircleFillActive: string;

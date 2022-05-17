@@ -64,6 +64,12 @@ const colors: ITherrThemeColors = {
     accentDivider: '#4950571c',
     accentLogo: '#fcfeff',
 
+    // Socials
+    instagram: '#000000',
+    twitter: '#1c9bef',
+    tikTok: '#000000',
+    youtube: 'red',
+
     map: {
         momentsCircleFill: 'rgba(56,130,84,0.2)',
         momentsCircleFillActive: 'rgba(56,130,84,0.5)',

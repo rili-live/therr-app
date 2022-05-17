@@ -110,6 +110,11 @@ spec:
               key: TWILIOAUTHTOKEN
         - name: TWILIO_SENDER_PHONE_NUMBER
           value: "+14783124948"
+        - name: TWITTER_APP_BEARER_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: twitter-app-bearer-token
+              key: TWITTERAPPBEARERTOKEN
       - name: cloud-sql-proxy
         # It is recommended to use the latest version of the Cloud SQL proxy
         # Make sure to update on a regular schedule!

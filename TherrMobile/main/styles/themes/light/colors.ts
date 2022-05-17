@@ -32,7 +32,7 @@ const colors: ITherrThemeColors = {
     backgroundCream: '#575d5d',
     backgroundWhite: '#ffffff',
     backgroundGray: '#f3f4f6',
-    backgroundNeutral: '#e7eaed',
+    backgroundNeutral: '#E7E8E8',
     backgroundBlack: '#ffffff',
     inputBackgroundAndroid: 'rgba(0,0,0,.04)',
     inputBackgroundIOS: 'rgba(0,0,0,.04)',
@@ -63,6 +63,12 @@ const colors: ITherrThemeColors = {
     accentLime: '#00f729',
     accentDivider: '#4950571c',
     accentLogo: '#1E8A96',
+
+    // Socials
+    instagram: '#000000',
+    twitter: '#1c9bef',
+    tikTok: '#000000',
+    youtube: 'red',
 
     map: {
         momentsCircleFill: 'rgba(56,130,84,0.2)',
