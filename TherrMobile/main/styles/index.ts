@@ -231,7 +231,8 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         headerStyle: {
             ...getHeaderStyles(therrTheme),
-            // borderBottomWidth: 2,
+            borderBottomWidth: 1,
+            borderBottomColor: therrTheme.colors.accentDivider,
         },
         headerStyleNoShadow: {
             ...getHeaderStyles(therrTheme),

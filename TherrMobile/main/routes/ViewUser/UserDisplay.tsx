@@ -2,6 +2,7 @@ import BottomSheet from '../../components/Modals/BottomSheet';
 import React, { useState } from 'react';
 import { ActivityIndicator, Text, View, Pressable } from 'react-native';
 import { Button, Image } from 'react-native-elements';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getUserImageUri } from '../../utilities/content';
 
@@ -19,12 +20,12 @@ const actionMenuOptions: IActionItem[] = [
     //     icon: 'question-answer',
     //     title: 'user.profile.actions.message',
     // },
-    // {
-    //     id: '2',
-    //     name: 'send-connection-request',
-    //     icon: 'send',
-    //     title: 'user.profile.actions.connect',
-    // },
+    {
+        id: '2',
+        name: 'sync-socials',
+        icon: 'sync',
+        title: 'user.profile.actions.syncSocials',
+    },
     {
         id: '3',
         name: 'remove-connection-request',
@@ -63,6 +64,11 @@ const getActionableOptions = (isMe: boolean, userInView: any) => {
                 'report-user',
                 'block-user',
             ].includes(option.name));
+    } else {
+        filteredOptions = filteredOptions
+            .filter(option => ![
+                'sync-socials',
+            ].includes(option.name));
     }
 
     if (!userInView.isNotConnected) {
@@ -81,6 +87,7 @@ const getActionableOptions = (isMe: boolean, userInView: any) => {
 
 const ListItem = ({
     item,
+    navigation,
     onBlockUser,
     onConnectionRequest,
     // onMessageUser,
@@ -93,6 +100,12 @@ const ListItem = ({
     let contextOnPress;
 
     switch (item.name) {
+        case 'sync-socials':
+            contextOnPress = () => {
+                onToggleMoreBottomSheet(false);
+                navigation.navigate('SocialSync');
+            };
+            break;
         case 'remove-connection-request':
             contextOnPress = (contxt, userDetails) => {
                 onToggleMoreBottomSheet(false);
@@ -176,6 +189,29 @@ const MainActionButton = ({
     );
 };
 
+const SocialIconLink = ({
+    isMe,
+    iconName,
+    navigation,
+    themeUser,
+}) => {
+    return (
+        <Pressable style={themeUser.styles.socialIconPressable} onPress={() => isMe && navigation.navigate('SocialSync')}>
+            <FontAwesome5
+                name={iconName}
+                size={24}
+                color={themeUser.colors.brandingBlack}
+                style={themeUser.styles.socialIcon}
+            />
+            <View style={themeUser.styles.socialIndicatorsContainer}>
+                <View style={themeUser.styles.socialIndicatorOne}></View>
+                <View style={themeUser.styles.socialIndicatorTwo}></View>
+                <View style={themeUser.styles.socialIndicatorThree}></View>
+            </View>
+        </Pressable>
+    );
+};
+
 const FullName = ({
     isMe,
     themeUser,
@@ -248,6 +284,32 @@ export default ({
                     </Text>
                 </View>
             </View>
+            <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', marginTop: 16, width: '100%' }}>
+                <SocialIconLink
+                    iconName="instagram"
+                    isMe={isMe}
+                    navigation={navigation}
+                    themeUser={themeUser}
+                />
+                <SocialIconLink
+                    iconName="tiktok"
+                    isMe={isMe}
+                    navigation={navigation}
+                    themeUser={themeUser}
+                />
+                <SocialIconLink
+                    iconName="youtube"
+                    isMe={isMe}
+                    navigation={navigation}
+                    themeUser={themeUser}
+                />
+                <SocialIconLink
+                    iconName="twitter"
+                    isMe={isMe}
+                    navigation={navigation}
+                    themeUser={themeUser}
+                />
+            </View>
             <View style={themeUser.styles.actionsContainer}>
                 {
                     isMe &&
@@ -292,6 +354,7 @@ export default ({
                     actionsList.map((item) => <ListItem
                         key={item.id}
                         item={item}
+                        navigation={navigation}
                         onBlockUser={onBlockUser}
                         onConnectionRequest={onConnectionRequest}
                         // onMessageUser={onMessageUser}

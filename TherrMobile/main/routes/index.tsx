@@ -26,6 +26,7 @@ import Nearby from './Areas/Nearby';
 import Notifications from './Notifications';
 import Register from './Register';
 import Settings from './Settings';
+import SocialSync from './SocialSync';
 import ViewMoment from './ViewMoment';
 import EditMoment from './EditMoment';
 import ViewSpace from './ViewSpace';
@@ -313,6 +314,17 @@ const routes: RouteConfig<
         component: Settings,
         options: () => ({
             title: 'Settings',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'SocialSync',
+        component: SocialSync,
+        options: () => ({
+            title: 'Social Sync',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
