@@ -32,10 +32,13 @@ export interface IUserState extends Immutable.ImmutableObject<any> {
   settings: IUserSettings;
   socketDetails: ISocketDetails;
   isAuthenticated: boolean;
+  userInView: IUser;
 }
 
 export enum UserActionTypes {
+  GET_USER = 'GET_USER',
   LOGIN = 'LOGIN',
   UPDATE_USER_TOUR = 'UPDATE_USER_TOUR',
   UPDATE_USER_FTUI = 'UPDATE_USER_FTUI',
+  UPDATE_USER_IN_VIEW = 'UPDATE_USER_IN_VIEW',
 }

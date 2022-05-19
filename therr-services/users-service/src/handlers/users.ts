@@ -11,6 +11,7 @@ import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
 import { createUserHelper, isUserProfileIncomplete } from './helpers/user';
+import { getMappedSocialSyncResults } from './socialSync';
 
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(req.body)
@@ -45,18 +46,30 @@ const getUser = (req, res) => Store.users.getUsers({ id: req.params.id, settings
             });
         }
 
-        return Store.userConnections.getUserConnections({
+        const isMe = userId === req.params.id;
+        const userPromises: Promise<any>[] = [];
+        const countPromise = Store.userConnections.countUserConnections(req.params.id);
+        const syncsPromise = Store.socialSyncs.getSyncs(req.params.id).then((syncResults) => getMappedSocialSyncResults(userId === req.params.id, syncResults));
+        const friendPromise = isMe ? Promise.resolve([{ isMe }]) : Store.userConnections.getUserConnections({
             acceptingUserId: req.params.id,
             requestingUserId: userId,
-        }, true).then((connections) => {
+        }, true);
+
+        userPromises.push(friendPromise, countPromise, syncsPromise);
+
+        return Promise.all(userPromises).then(([connections, countResults, syncs]) => {
             const user = results[0];
             delete user.password;
             delete user.oneTimePassword;
 
             // TODO: Only send particular information (based on user settings)
-            if (connections.length && connections[0].requestStatus === 'complete' && !connections[0].isConnectionBroken) {
+            if (connections[0]?.isMe || (connections[0]?.requestStatus === 'complete' && !connections[0]?.isConnectionBroken)) {
                 const sanitizedUser = {
                     ...user,
+
+                    // More details
+                    followerCount: parseInt(countResults[0]?.count || 0, 10),
+                    socialSyncs: syncs,
                 };
                 return res.status(200).send(sanitizedUser);
             }
@@ -70,6 +83,10 @@ const getUser = (req, res) => Store.users.getUsers({ id: req.params.id, settings
                 lastName: user.settingsIsProfilePublic ? user.lastName : '',
                 settingsBio: user.settingsBio,
                 settingsIsProfilePublic: user.settingsIsProfilePublic,
+
+                // More details
+                followerCount: parseInt(countResults[0]?.count || 0, 10),
+                socialSyncs: syncs,
             };
 
             // Do not return private info if users are not connected

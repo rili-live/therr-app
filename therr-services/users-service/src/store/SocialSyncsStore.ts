@@ -38,4 +38,13 @@ export default class SocialSyncsStore {
 
         return this.db.write.query(queryString).then((response) => response.rows);
     }
+
+    getSyncs(userId: string) {
+        const queryString = knexBuilder.select('*')
+            .from(SOCIAL_SYNCS_TABLE_NAME)
+            .where({ userId })
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
 }

@@ -1,6 +1,6 @@
 import BottomSheet from '../../components/Modals/BottomSheet';
 import React, { useState } from 'react';
-import { ActivityIndicator, Text, View, Pressable } from 'react-native';
+import { ActivityIndicator, Text, View, Pressable, Linking } from 'react-native';
 import { Button, Image } from 'react-native-elements';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -103,7 +103,7 @@ const ListItem = ({
         case 'sync-socials':
             contextOnPress = () => {
                 onToggleMoreBottomSheet(false);
-                navigation.navigate('SocialSync');
+                navigation.navigate('SocialSync', userInView);
             };
             break;
         case 'remove-connection-request':
@@ -194,19 +194,46 @@ const SocialIconLink = ({
     iconName,
     navigation,
     themeUser,
+    userInView,
 }) => {
+    const onPress = () => {
+        if (iconName === 'twitter' && userInView.socialSyncs?.twitter?.link) {
+            return Linking.openURL(userInView.socialSyncs?.twitter?.link);
+        }
+
+        return isMe && navigation.navigate('SocialSync', userInView);
+    };
+
+    let iconColor = themeUser.colors.brandingBlack;
+    const extraStyle1: any = {};
+    const extraStyle2: any = {};
+    const extraStyle3: any = {};
+
+    if (iconName === 'twitter' && userInView.socialSyncs?.twitter?.followerCount) {
+        iconColor = themeUser.colors.twitter;
+        if (userInView.socialSyncs?.twitter?.followerCount > 0) {
+            extraStyle1.backgroundColor = themeUser.colors.accentLime;
+        }
+        if (userInView.socialSyncs?.twitter?.followerCount > 2500) {
+            extraStyle2.backgroundColor = themeUser.colors.accentLime;
+        }
+        if (userInView.socialSyncs?.twitter?.followerCount > 10000) {
+            extraStyle3.backgroundColor = themeUser.colors.accentLime;
+        }
+    }
+
     return (
-        <Pressable style={themeUser.styles.socialIconPressable} onPress={() => isMe && navigation.navigate('SocialSync')}>
+        <Pressable style={themeUser.styles.socialIconPressable} onPress={onPress}>
             <FontAwesome5
                 name={iconName}
                 size={24}
-                color={themeUser.colors.brandingBlack}
+                color={iconColor}
                 style={themeUser.styles.socialIcon}
             />
             <View style={themeUser.styles.socialIndicatorsContainer}>
-                <View style={themeUser.styles.socialIndicatorOne}></View>
-                <View style={themeUser.styles.socialIndicatorTwo}></View>
-                <View style={themeUser.styles.socialIndicatorThree}></View>
+                <View style={[themeUser.styles.socialIndicatorOne, extraStyle1]}></View>
+                <View style={[themeUser.styles.socialIndicatorTwo, extraStyle2]}></View>
+                <View style={[themeUser.styles.socialIndicatorThree, extraStyle3]}></View>
             </View>
         </Pressable>
     );
@@ -290,24 +317,28 @@ export default ({
                     isMe={isMe}
                     navigation={navigation}
                     themeUser={themeUser}
+                    userInView={userInView}
                 />
                 <SocialIconLink
                     iconName="tiktok"
                     isMe={isMe}
                     navigation={navigation}
                     themeUser={themeUser}
+                    userInView={userInView}
                 />
                 <SocialIconLink
                     iconName="youtube"
                     isMe={isMe}
                     navigation={navigation}
                     themeUser={themeUser}
+                    userInView={userInView}
                 />
                 <SocialIconLink
                     iconName="twitter"
                     isMe={isMe}
                     navigation={navigation}
                     themeUser={themeUser}
+                    userInView={userInView}
                 />
             </View>
             <View style={themeUser.styles.actionsContainer}>

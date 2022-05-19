@@ -154,9 +154,13 @@ usersServiceRouter.put('/users/notifications/:notificationId', updateNotificatio
 }));
 
 // Social Sync
-usersServiceRouter.post('/social-sync', feedbackAttemptLimiter, createUpdateSocialSyncsValidation, handleServiceRequest({
+usersServiceRouter.post('/social-sync', createUpdateSocialSyncsValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
+}));
+usersServiceRouter.get('/social-sync/:userId', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
 }));
 
 // Subscribers
