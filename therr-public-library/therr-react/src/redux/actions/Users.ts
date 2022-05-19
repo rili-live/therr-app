@@ -1,7 +1,7 @@
 import * as Immutable from 'seamless-immutable';
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { IUser, IUserSettings, UserActionTypes } from '../../types/redux/user';
-import UsersService from '../../services/UsersService';
+import UsersService, { ISocialSyncs } from '../../services/UsersService';
 
 interface ILoginSSOTokens {
     google?: string;
@@ -46,6 +46,32 @@ class UsersActions {
             });
             return { blockedUsers };
         });
+
+    createUpdateSocialSyncs = (socialSyncs: ISocialSyncs) => (dispatch: any) => UsersService
+        .createUpdateSocialSyncs(socialSyncs).then((response) => {
+            dispatch({
+                type: UserActionTypes.UPDATE_USER_IN_VIEW,
+                data: {
+                    socialSyncs: response?.data,
+                },
+            });
+
+            return response;
+        });
+
+    get = (userId: string) => (dispatch: any) => UsersService.get(userId).then((response) => {
+        dispatch({
+            type: UserActionTypes.GET_USER,
+            data: response?.data,
+        });
+    });
+
+    updateUserInView = (data: any) => (dispatch: any) => {
+        dispatch({
+            type: UserActionTypes.UPDATE_USER_IN_VIEW,
+            data,
+        });
+    };
 
     login = (data: any, idTokens?: ILoginSSOTokens) => async (dispatch: any) => {
         await UsersService.authenticate(data).then(async (response) => {

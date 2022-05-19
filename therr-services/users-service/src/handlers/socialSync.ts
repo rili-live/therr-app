@@ -14,7 +14,7 @@ const twitterBearerToken = process.env.TWITTER_APP_BEARER_TOKEN;
 const socialPlatformApis = {
     twitter: (params: { username: string }) => axios({
         method: 'get',
-        url: `https://api.twitter.com/2/users/by/username/${params.username}?user.fields=public_metrics,url`,
+        url: `https://api.twitter.com/2/users/by/username/${params.username}?user.fields=created_at,verified,location,url,description,public_metrics`,
         headers: { Authorization: `Bearer ${twitterBearerToken}` },
     }),
 };
@@ -24,13 +24,38 @@ const extractPlatformProfileDetails = (platform: IPlatform, responseData) => {
         return {
             platformUsername: responseData.data?.username,
             platformUserId: responseData.data?.id,
-            link: responseData.data?.url,
+            link: `https://twitter.com/${responseData.data?.username}`,
             displayName: 'Twitter',
             followerCount: responseData.data?.public_metrics?.followers_count,
         };
     }
 
     return {};
+};
+
+export const getMappedSocialSyncResults = (isMe: boolean, results: any[]) => {
+    const mappedResults = {};
+
+    results.forEach((result) => {
+        if (isMe) {
+            mappedResults[result.platform] = {
+                ...result,
+                followerCount: parseInt(result.followerCount || 0, 10),
+            };
+        } else {
+            mappedResults[result.platform] = {
+                platform: result.platform,
+                platformUserName: result.platformUserName,
+                displayName: result.displayName,
+                link: result.link,
+                followerCount: parseInt(result.followerCount || 0, 10),
+                customIconName: result.customIconName,
+                updatedAt: result.updatedAt,
+            };
+        }
+    });
+
+    return mappedResults;
 };
 
 // CREATE
@@ -50,9 +75,8 @@ const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
     return Promise.all(socialPlatformPromises).then((responses) => {
         // TODO: Store response details in socialSyncs table
         const dbRecords: ICreateOrUpdateParams[] = [];
-        const response = {};
         Object.keys(socialPlatformApis).forEach((platform, index) => {
-            response[platform] = responses[index]?.data;
+            // NOTE: this is specific to twitter response object
             if (!responses[index]?.data?.errors) {
                 const profileDetails = extractPlatformProfileDetails(platform as IPlatform, responses[index]?.data);
                 const record: any = {
@@ -64,7 +88,7 @@ const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
             }
         });
 
-        return Store.socialSyncs.createOrUpdateSyncs(dbRecords).then(() => res.status(200).send(response));
+        return Store.socialSyncs.createOrUpdateSyncs(dbRecords).then((results) => res.status(200).send(getMappedSocialSyncResults(true, results)));
     }).catch((err) => handleHttpError({
         err,
         res,
@@ -72,6 +96,25 @@ const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
     }));
 };
 
+// GET
+const getSocialSyncs: RequestHandler = (req: any, res: any) => {
+    const authUserId = req.headers['x-userid'];
+    const { userId } = req.params;
+
+    return Store.socialSyncs.getSyncs(userId)
+        .then((results) => {
+            const mappedResults = getMappedSocialSyncResults(userId === authUserId, results);
+
+            return res.status(200).send({ syncs: mappedResults });
+        })
+        .catch((err) => handleHttpError({
+            err,
+            res,
+            message: 'SQL:USER_ROUTES:ERROR',
+        }));
+};
+
 export {
+    getSocialSyncs,
     createUpdateSocialSyncs,
 };

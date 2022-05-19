@@ -7,26 +7,26 @@ import { bindActionCreators } from 'redux';
 // import { Picker as ReactPicker } from '@react-native-picker/picker';
 import { IUserState } from 'therr-react/types';
 // import { Content } from 'therr-js-utilities/constants';
-import { UsersService } from 'therr-react/services';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 // import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 // import RNFB from 'rn-fetch-blob';
-import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
-import UsersActions from '../redux/actions/UsersActions';
+import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
+import UsersActions from '../../redux/actions/UsersActions';
 // import Alert from '../components/Alert';
-import translator from '../services/translator';
-import { buildStyles } from '../styles';
-import { buildStyles as buildMenuStyles } from '../styles/navigation/buttonMenu';
-import { buildStyles as buildAlertStyles } from '../styles/alerts';
-import { buildStyles as buildFormStyles } from '../styles/forms';
-import { buildStyles as buildSettingsFormStyles } from '../styles/forms/socialSyncForm';
-import SquareInput from '../components/Input/Square';
-import BaseStatusBar from '../components/BaseStatusBar';
+import translator from '../../services/translator';
+import { buildStyles } from '../../styles';
+import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
+import { buildStyles as buildAlertStyles } from '../../styles/alerts';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
+import { buildStyles as buildSettingsFormStyles } from '../../styles/forms/socialSyncForm';
+import SquareInput from '../../components/Input/Square';
+import BaseStatusBar from '../../components/BaseStatusBar';
 // import UserImage from '../components/UserContent/UserImage';
 // import { getUserImageUri, signImageUrl } from '../utilities/content';
 
 
 interface ISocialSyncDispatchProps {
+    createUpdateSocialSyncs: Function;
     updateUser: Function;
 }
 
@@ -51,6 +51,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    createUpdateSocialSyncs: UsersActions.createUpdateSocialSyncs,
     updateUser: UsersActions.update,
 }, dispatch);
 
@@ -66,17 +67,15 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
     constructor(props) {
         super(props);
 
+        const userInView = props.route?.params;
+
+        console.log('ZACK_DEBUG', userInView);
+
         this.state = {
             errorMsg: '',
             successMsg: '',
             inputs: {
-                email: props.user.details.email,
-                firstName: props.user.details.firstName,
-                lastName: props.user.details.lastName,
-                userName: props.user.details.userName,
-                phoneNumber: props.user.details.phoneNumber,
-                settingsBio: props.user.settings.settingsBio,
-                shouldHideMatureContent: props.user.details.shouldHideMatureContent,
+                twitterHandle: userInView?.socialSyncs?.twitter?.platformUsername,
             },
             isSubmitting: false,
         };
@@ -93,17 +92,10 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
     }
 
     isFormDisabled() {
-        const { inputs, isSubmitting } = this.state;
+        const { isSubmitting } = this.state;
 
         // TODO: Add message to show when passwords not equal
-        return (
-            (inputs.oldPassword && inputs.password !== inputs.repeatPassword) ||
-            !inputs.userName ||
-            !inputs.firstName ||
-            !inputs.lastName ||
-            !inputs.phoneNumber ||
-            isSubmitting
-        );
+        return isSubmitting;
     }
 
     reloadTheme = () => {
@@ -117,18 +109,19 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
     }
 
     onSubmit = () => {
+        const { createUpdateSocialSyncs, navigation } = this.props;
         const { inputs } = this.state;
-        console.log('Submit', inputs);
-        UsersService.createUpdateSocialSyncs({
+        createUpdateSocialSyncs({
             syncs: {
                 twitter: {
                     username: inputs.twitterHandle,
                 },
             },
-        }).then((response) => console.log(response.data))
-            .catch((err) => {
-                console.log(err);
-            });
+        }).then(() => {
+            navigation.goBack();
+        }).catch((err) => {
+            console.log(err);
+        });
     };
 
     onInputChange = (name: string, value: string) => {

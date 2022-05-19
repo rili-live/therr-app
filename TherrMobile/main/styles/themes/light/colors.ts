@@ -60,7 +60,7 @@ const colors: ITherrThemeColors = {
     accentBlue: '#17657D',
     accentPurple: '#0e01b3',
     accentTeal: '#2BC5D6',
-    accentLime: '#00f729',
+    accentLime: '#26B379',
     accentDivider: '#4950571c',
     accentLogo: '#1E8A96',
 
