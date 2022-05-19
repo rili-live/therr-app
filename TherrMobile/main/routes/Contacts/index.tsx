@@ -106,6 +106,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     };
 
     getConnectionSubtitle = (connectionDetails) => {
+        if (!connectionDetails?.firstName && !connectionDetails?.lastName) {
+            return this.translate('pages.userProfile.anonymous');
+        }
         return `${connectionDetails.firstName || ''} ${
             connectionDetails.lastName || ''
         }`;
@@ -141,6 +144,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                                 getConnectionSubtitle={this.getConnectionSubtitle}
                                 onConnectionPress={this.onConnectionPress}
                                 theme={this.theme}
+                                translate={this.translate}
                             />
                         )}
                         ListEmptyComponent={() => (

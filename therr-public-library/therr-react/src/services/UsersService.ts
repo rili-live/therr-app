@@ -40,7 +40,7 @@ interface IChangePasswordArgs {
     userName: string;
 }
 
-interface ISocialSyncs {
+export interface ISocialSyncs {
     syncs: {
         twitter?: {
             username: string;
@@ -75,7 +75,7 @@ class UsersService {
         data,
     })
 
-    get = (id: number) => axios({
+    get = (id: string) => axios({
         method: 'get',
         url: `/users-service/users/${id}`,
     })
@@ -133,6 +133,11 @@ class UsersService {
         method: 'post',
         url: '/users-service/social-sync',
         data: socialSyncs,
+    })
+
+    getSocialSyncs = (userId: string) => axios({
+        method: 'get',
+        url: `/users-service/social-sync/${userId}`,
     })
 }
 

@@ -677,6 +677,7 @@
       "helloTemplate": "Hello, Template!"
     },
     "userProfile": {
+      "anonymous": "Anonymous",
       "buttons": {
         "createAForum": "Create a Forum",
         "sendRequest": "Send Request",
