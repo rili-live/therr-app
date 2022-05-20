@@ -15,15 +15,19 @@ import UsersActions from '../../redux/actions/UsersActions';
 // import Alert from '../components/Alert';
 import translator from '../../services/translator';
 import { buildStyles } from '../../styles';
+import { buildStyles as buildButtonStyles } from '../../styles/buttons';
+import { buildStyles as buildOAuthModalStyles } from '../../styles/modal/oauthModal';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildSettingsFormStyles } from '../../styles/forms/socialSyncForm';
 import SquareInput from '../../components/Input/Square';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import OAuthModal from '../../components/Modals/OAuthModal';
 // import UserImage from '../components/UserContent/UserImage';
 // import { getUserImageUri, signImageUrl } from '../utilities/content';
 
+const INSTAGRAM_APP_ID = '8038208602859743';
 
 interface ISocialSyncDispatchProps {
     createUpdateSocialSyncs: Function;
@@ -43,6 +47,7 @@ interface ISocialSyncState {
     errorMsg: string;
     successMsg: string;
     inputs: any;
+    isOAuthModalVisible: boolean;
     isSubmitting: boolean;
 }
 
@@ -59,7 +64,9 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
     private scrollViewRef;
     private translate: Function;
     private theme = buildStyles();
+    private themeButtons = buildButtonStyles();
     private themeMenu = buildMenuStyles();
+    private themeOAuthModal = buildOAuthModalStyles();
     private themeAlerts = buildAlertStyles();
     private themeForms = buildFormStyles();
     private themeSocialSyncForm = buildSettingsFormStyles();
@@ -69,14 +76,13 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
 
         const userInView = props.route?.params;
 
-        console.log('ZACK_DEBUG', userInView);
-
         this.state = {
             errorMsg: '',
             successMsg: '',
             inputs: {
                 twitterHandle: userInView?.socialSyncs?.twitter?.platformUsername,
             },
+            isOAuthModalVisible: false,
             isSubmitting: false,
         };
 
@@ -102,7 +108,9 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
         const themeName = this.props.user.settings?.mobileThemeName;
 
         this.theme = buildStyles(themeName);
+        this.themeButtons = buildButtonStyles(themeName);
         this.themeMenu = buildMenuStyles(themeName);
+        this.themeOAuthModal = buildOAuthModalStyles(themeName);
         this.themeAlerts = buildAlertStyles(themeName);
         this.themeForms = buildFormStyles(themeName);
         this.themeSocialSyncForm = buildSettingsFormStyles(themeName);
@@ -141,9 +149,32 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
         });
     };
 
+    onSocialLogin = () => {
+        this.setState({
+            isOAuthModalVisible: true,
+        });
+    }
+
+    onCloseOAuthModal = () => {
+        this.setState({
+            isOAuthModalVisible: false,
+        });
+    }
+
+    onOAuthLoginSuccess = (results) => {
+        this.onCloseOAuthModal();
+        console.log('OAuthSuccess: ', results);
+    }
+
+    onOAuthLoginFailed = (response) => {
+        this.onCloseOAuthModal();
+        console.log('OAuthFailed: ', response);
+    }
+
+
     render() {
         const { navigation, user } = this.props;
-        const { inputs } = this.state;
+        const { inputs, isOAuthModalVisible } = this.state;
         const pageHeaderSocials = this.translate('pages.socialSync.pageHeaderSyncList');
         const descriptionText = this.translate('pages.socialSync.description');
         // const currentUserImageUri = getUserImageUri(user, 200);
@@ -191,6 +222,22 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                     autoCorrect={false}
                                 />
                             </View>
+                            <View style={this.themeSocialSyncForm.styles.socialLinkContainer}>
+                                <Button
+                                    containerStyle={this.themeButtons.styles.btnContainer}
+                                    buttonStyle={[this.themeButtons.styles.btnLargeWithText]}
+                                    titleStyle={this.themeButtons.styles.btnLargeTitle}
+                                    icon={
+                                        <FontAwesome5Icon
+                                            name="plus"
+                                            size={22}
+                                            style={this.themeButtons.styles.btnIcon}
+                                        />
+                                    }
+                                    raised={true}
+                                    onPress={this.onSocialLogin}
+                                />
+                            </View>
                         </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>
@@ -205,6 +252,20 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                         raised={true}
                     />
                 </View>
+                <OAuthModal
+                    appId={INSTAGRAM_APP_ID}
+                    onRequestClose={this.onCloseOAuthModal}
+                    onLoginSuccess={this.onOAuthLoginSuccess}
+                    onLoginFailure={this.onOAuthLoginFailed}
+                    backendRedirectUrl="https://api.therr.com/v1/users-service/social-sync/oauth2-instagram"
+                    frontendRedirectUrl="https://therr.com"
+                    responseType="code"
+                    scopes={['user_profile', 'user_media']}
+                    isVisible={isOAuthModalVisible}
+                    language="en"
+                    incognito={false}
+                    themeModal={this.themeOAuthModal}
+                />
                 <MainButtonMenu
                     navigation={navigation}
                     translate={this.translate}

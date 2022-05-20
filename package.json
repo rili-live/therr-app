@@ -201,6 +201,7 @@
     "password-generator": "^2.3.2",
     "pg": "^8.5.1",
     "prop-types": "^15.7.2",
+    "qs": "^6.10.3",
     "randomcolor": "^0.6.2",
     "rate-limit-redis": "^2.1.0",
     "react": "17.0.2",
