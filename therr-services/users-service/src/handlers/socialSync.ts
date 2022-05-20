@@ -3,6 +3,8 @@ import { RequestHandler } from 'express';
 import axios from 'axios';
 import qs from 'qs';
 import FormData from 'form-data';
+import printLogs from 'therr-js-utilities/print-logs';
+import beeline from '../beeline';
 // import { ErrorCodes } from 'therr-js-utilities/constants';
 // import printLogs from 'therr-js-utilities/print-logs';
 // import beeline from '../beeline';
@@ -123,21 +125,14 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
     const redirectUrl = 'https://api.therr.com/v1/users-service/social-sync/oauth2-instagram';
     const frontendRedirectUrl = 'https://therr.com';
     const {
-        access_token,
         code,
         error,
         error_reason,
         error_description,
-        user_id,
     } = req.query;
 
     if (error) {
         return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error, error_reason, error_description })}` });
-    }
-
-    // Final step
-    if (access_token && user_id) {
-        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ access_token, user_id })}` });
     }
 
     const userAuthCodeSplit = (code || '').split('#_');
@@ -146,7 +141,7 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
     form.append('client_id', appId);
     form.append('client_secret', appSecret);
     form.append('grant_type', 'authorization_code');
-    form.append('redirect_uri', redirectUrl);
+    form.append('redirect_uri', redirectUrl); // Required for IG validation of matching url
     form.append('response_type', 'code');
     form.append('code', userAuthCode);
 
@@ -156,11 +151,33 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
         url: 'https://api.instagram.com/oauth/access_token',
         headers: form.getHeaders(),
         data: form,
+    }).then((response) => {
+        const {
+            access_token,
+            error_message,
+            error_type,
+            user_id,
+        } = response.data;
+        if (error_type) {
+            return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error_type, error_message })}` });
+        }
+        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ access_token, user_id })}` });
     }).catch((errResponse) => {
         const {
             error_message,
             error_type,
         } = errResponse?.response?.data || {};
+
+        printLogs({
+            level: 'info',
+            messageOrigin: 'API_SERVER',
+            messages: ['Failed IG OAuth Request'],
+            tracer: beeline,
+            traceArgs: {
+                error_message,
+                error_type,
+            },
+        });
 
         return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error_type, error_message, handled_error: true })}` });
     });
