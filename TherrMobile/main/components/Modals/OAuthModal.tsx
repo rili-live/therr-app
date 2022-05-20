@@ -126,14 +126,11 @@ export default class OAuthModal extends Component<IOAuthModalProps, IOAuthModalS
         // eslint-disable-next-line max-len
         let ig_uri = `https://api.instagram.com/oauth/authorize/?client_id=${appId}&redirect_uri=${backendRedirectUrl}&response_type=${responseType}&scope=${scopes.join(',')}`;
 
-        console.log(ig_uri);
-
         return (
             <WebView
                 {...this.props}
                 key={key}
                 incognito={incognito}
-                style={[]}
                 containerStyle={themeModal.styles.webView}
                 source={{
                     uri: ig_uri,

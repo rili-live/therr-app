@@ -257,6 +257,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                     onRequestClose={this.onCloseOAuthModal}
                     onLoginSuccess={this.onOAuthLoginSuccess}
                     onLoginFailure={this.onOAuthLoginFailed}
+                    // Note: This must match the redirect url on the backend
                     backendRedirectUrl="https://api.therr.com/v1/users-service/social-sync/oauth2-instagram"
                     frontendRedirectUrl="https://therr.com"
                     responseType="code"
