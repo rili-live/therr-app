@@ -7,8 +7,8 @@ import {
 
 const router = express.Router();
 
-router.get('/:userId', getSocialSyncs);
 router.get('/oauth2-instagram', instagramAppAuth);
+router.get('/:userId', getSocialSyncs);
 
 router.post('/', createUpdateSocialSyncs);
 

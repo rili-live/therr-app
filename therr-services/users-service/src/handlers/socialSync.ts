@@ -2,6 +2,7 @@
 import { RequestHandler } from 'express';
 import axios from 'axios';
 import qs from 'qs';
+import FormData from 'form-data';
 // import { ErrorCodes } from 'therr-js-utilities/constants';
 // import printLogs from 'therr-js-utilities/print-logs';
 // import beeline from '../beeline';
@@ -128,10 +129,11 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
     } = req.query;
 
     if (error) {
-        return res.redirect(`${redirectUrl}?${qs.stringify({ error, error_reason, error_description })}`);
+        return res.status(301).send({ redirectUrl: `${redirectUrl}?${qs.stringify({ error, error_reason, error_description })}` });
     }
 
-    const userAuthCode = code.split('#_')[0];
+    const userAuthCodeSplit = (code || '').split('#_');
+    const userAuthCode = userAuthCodeSplit[0] || code || '';
     const form = new FormData();
     form.append('client_id', appId);
     form.append('client_secret', appSecret);
@@ -155,16 +157,16 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
             user_id,
         } = response.data;
         if (error_type) {
-            return res.redirect(`${redirectUrl}?${qs.stringify({ error_type, error_message })}`);
+            return res.status(301).send({ redirectUrl: `${redirectUrl}?${qs.stringify({ error_type, error_message })}` });
         }
-        return res.redirect(`${redirectUrl}?${qs.stringify({ access_token, user_id })}`);
-    }).catch((response) => {
+        return res.status(301).send({ redirectUrl: `${redirectUrl}?${qs.stringify({ access_token, user_id })}` });
+    }).catch((errResponse) => {
         const {
             error_message,
             error_type,
-        } = response.data;
+        } = errResponse?.response?.data || {};
 
-        return res.redirect(`${redirectUrl}?${qs.stringify({ error_type, error_message, handled_error: true })}`);
+        return res.status(301).send({ redirectUrl: `${redirectUrl}?${qs.stringify({ error_type, error_message, handled_error: true })}` });
     });
 };
 

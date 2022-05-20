@@ -30,9 +30,14 @@ const handleServiceRequest = ({
     return restRequest(config)
         .then((response) => res.send(response.data))
         .catch((error) => {
+            if (error?.response?.status === 301) {
+                return res.status(301).redirect(error.response.data.redirectUrl);
+            }
+
             if (!error.response) {
                 console.log(error);
             }
+
             return handleHttpError({
                 err: error,
                 res,
