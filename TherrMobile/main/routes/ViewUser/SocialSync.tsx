@@ -27,6 +27,7 @@ import OAuthModal from '../../components/Modals/OAuthModal';
 // import UserImage from '../components/UserContent/UserImage';
 // import { getUserImageUri, signImageUrl } from '../utilities/content';
 
+const INSTAGRAM_APP_ID = '8038208602859743';
 
 interface ISocialSyncDispatchProps {
     createUpdateSocialSyncs: Function;
@@ -160,9 +161,9 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
         });
     }
 
-    onOAuthLoginSuccess = (response, results) => {
+    onOAuthLoginSuccess = (results) => {
         this.onCloseOAuthModal();
-        console.log('OAuthSuccess: ', response, results);
+        console.log('OAuthSuccess: ', results);
     }
 
     onOAuthLoginFailed = (response) => {
@@ -252,7 +253,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                     />
                 </View>
                 <OAuthModal
-                    appId="8038208602859743"
+                    appId={INSTAGRAM_APP_ID}
                     onRequestClose={this.onCloseOAuthModal}
                     onLoginSuccess={this.onOAuthLoginSuccess}
                     onLoginFailure={this.onOAuthLoginFailed}

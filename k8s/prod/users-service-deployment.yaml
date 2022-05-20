@@ -50,8 +50,6 @@ spec:
           value: '"Therr, Info" <info@therr.com>'
         - name: AWS_FEEDBACK_EMAIL_ADDRESS
           value: "info@therr.com"
-        - name: AWS_NOTIFY_ADMIN_EMAIL_ADDRESS
-          value: "seanogarydev@gmail.com"
         - name: USERS_SERVICE_API_PORT
           value: "7771"
         - name: URI_WHITELIST
@@ -62,10 +60,7 @@ spec:
               name: honeycomb-writekey
               key: HONEYCOMB
         - name: INSTAGRAM_APP_ID
-          valueFrom:
-            secretKeyRef:
-              name: instagram-app-id
-              key: INSTAGRAMAPPID
+          value: "8038208602859743"
         - name: INSTAGRAM_APP_SECRET
           valueFrom:
             secretKeyRef:
