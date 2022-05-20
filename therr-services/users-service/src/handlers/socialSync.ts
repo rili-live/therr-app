@@ -132,6 +132,17 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
     } = req.query;
 
     if (error) {
+        printLogs({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: ['Failed IG Authorization Request'],
+            tracer: beeline,
+            traceArgs: {
+                error,
+                error_reason,
+                error_description,
+            },
+        });
         return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error, error_reason, error_description })}` });
     }
 
@@ -158,10 +169,15 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
             error_type,
             user_id,
         } = response.data;
+
+        // TODO: Determine if this is necessary
+        const userIdSplit = (user_id || '').split('#_');
+        const userId = userIdSplit[0] || user_id || '';
+
         if (error_type) {
             return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error_type, error_message })}` });
         }
-        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ access_token, user_id })}` });
+        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ access_token, user_id: userId })}` });
     }).catch((errResponse) => {
         const {
             error_message,
@@ -169,7 +185,7 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
         } = errResponse?.response?.data || {};
 
         printLogs({
-            level: 'info',
+            level: 'error',
             messageOrigin: 'API_SERVER',
             messages: ['Failed IG OAuth Request'],
             tracer: beeline,
