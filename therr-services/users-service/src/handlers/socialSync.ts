@@ -120,16 +120,24 @@ const getSocialSyncs: RequestHandler = (req: any, res: any) => {
 const instagramAppAuth: RequestHandler = (req: any, res: any) => {
     const appId = process.env.INSTAGRAM_APP_ID || '';
     const appSecret = process.env.INSTAGRAM_APP_SECRET || '';
-    const redirectUrl = 'https://therr.com/';
+    const redirectUrl = 'https://api.therr.com/v1/users-service/social-sync/oauth2-instagram';
+    const frontendRedirectUrl = 'https://therr.com';
     const {
+        access_token,
         code,
         error,
         error_reason,
         error_description,
+        user_id,
     } = req.query;
 
     if (error) {
-        return res.status(301).send({ redirectUrl: `${redirectUrl}?${qs.stringify({ error, error_reason, error_description })}` });
+        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error, error_reason, error_description })}` });
+    }
+
+    // Final step
+    if (access_token && user_id) {
+        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ access_token, user_id })}` });
     }
 
     const userAuthCodeSplit = (code || '').split('#_');
@@ -142,29 +150,19 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
     form.append('response_type', 'code');
     form.append('code', userAuthCode);
 
+    // Success response should redirect back to this same endpoint
     return axios({
         method: 'post',
         url: 'https://api.instagram.com/oauth/access_token',
         headers: form.getHeaders(),
         data: form,
-    }).then((response) => {
-        const {
-            access_token,
-            error_message,
-            error_type,
-            user_id,
-        } = response.data;
-        if (error_type) {
-            return res.status(301).send({ redirectUrl: `${redirectUrl}?${qs.stringify({ error_type, error_message })}` });
-        }
-        return res.status(301).send({ redirectUrl: `${redirectUrl}?${qs.stringify({ access_token, user_id })}` });
     }).catch((errResponse) => {
         const {
             error_message,
             error_type,
         } = errResponse?.response?.data || {};
 
-        return res.status(301).send({ redirectUrl: `${redirectUrl}?${qs.stringify({ error_type, error_message, handled_error: true })}` });
+        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error_type, error_message, handled_error: true })}` });
     });
 };
 
