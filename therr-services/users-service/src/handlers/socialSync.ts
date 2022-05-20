@@ -145,9 +145,7 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
     return axios({
         method: 'post',
         url: 'https://api.instagram.com/oauth/access_token',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
+        headers: form.getHeaders(),
         data: form,
     }).then((response) => {
         const {
