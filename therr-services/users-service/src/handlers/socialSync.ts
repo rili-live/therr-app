@@ -1,5 +1,7 @@
+/* eslint-disable camelcase */
 import { RequestHandler } from 'express';
 import axios from 'axios';
+import qs from 'qs';
 // import { ErrorCodes } from 'therr-js-utilities/constants';
 // import printLogs from 'therr-js-utilities/print-logs';
 // import beeline from '../beeline';
@@ -114,7 +116,60 @@ const getSocialSyncs: RequestHandler = (req: any, res: any) => {
         }));
 };
 
+const instagramAppAuth: RequestHandler = (req: any, res: any) => {
+    const appId = process.env.INSTAGRAM_APP_ID || '';
+    const appSecret = process.env.INSTAGRAM_APP_SECRET || '';
+    const redirectUrl = 'https://therr.com/';
+    const {
+        code,
+        error,
+        error_reason,
+        error_description,
+    } = req.query;
+
+    if (error) {
+        return res.redirect(`${redirectUrl}?${qs.stringify({ error, error_reason, error_description })}`);
+    }
+
+    const userAuthCode = code.split('#_')[0];
+    const form = new FormData();
+    form.append('client_id', appId);
+    form.append('client_secret', appSecret);
+    form.append('grant_type', 'authorization_code');
+    form.append('redirect_uri', redirectUrl);
+    form.append('response_type', 'code');
+    form.append('code', userAuthCode);
+
+    return axios({
+        method: 'post',
+        url: 'https://api.instagram.com/oauth/access_token',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        data: form,
+    }).then((response) => {
+        const {
+            access_token,
+            error_message,
+            error_type,
+            user_id,
+        } = response.data;
+        if (error_type) {
+            return res.redirect(`${redirectUrl}?${qs.stringify({ error_type, error_message })}`);
+        }
+        return res.redirect(`${redirectUrl}?${qs.stringify({ access_token, user_id })}`);
+    }).catch((response) => {
+        const {
+            error_message,
+            error_type,
+        } = response.data;
+
+        return res.redirect(`${redirectUrl}?${qs.stringify({ error_type, error_message, handled_error: true })}`);
+    });
+};
+
 export {
     getSocialSyncs,
     createUpdateSocialSyncs,
+    instagramAppAuth,
 };
