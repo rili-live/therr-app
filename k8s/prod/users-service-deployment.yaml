@@ -61,6 +61,16 @@ spec:
             secretKeyRef:
               name: honeycomb-writekey
               key: HONEYCOMB
+        - name: INSTAGRAM_APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: instagram-app-id
+              key: INSTAGRAMAPPID
+        - name: INSTAGRAM_APP_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: instagram-app-secret
+              key: INSTAGRAMAPPSECRET
         - name: LOG_LEVEL
           value: "info"
         - name: LOGGING_DATASET
