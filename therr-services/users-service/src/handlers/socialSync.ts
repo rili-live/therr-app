@@ -170,27 +170,10 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
             user_id,
         } = response.data;
 
-        printLogs({
-            level: 'info',
-            messageOrigin: 'API_SERVER',
-            messages: ['Debug info'],
-            tracer: beeline,
-            traceArgs: {
-                access_token,
-                error_message,
-                error_type,
-                user_id,
-            },
-        });
-
-        // TODO: Determine if this is necessary
-        const userIdSplit = (user_id?.toString() || '').split('#_');
-        const userId = userIdSplit[0] || user_id?.toString() || '';
-
         if (error_type) {
             return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error_type, error_message })}` });
         }
-        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ access_token, user_id: userId })}` });
+        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ access_token, user_id })}` });
     }).catch((errResponse) => {
         const {
             error_message,
