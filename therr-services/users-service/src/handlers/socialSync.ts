@@ -192,6 +192,7 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
             traceArgs: {
                 error_message,
                 error_type,
+                ...errResponse?.response?.data,
             },
         });
 
