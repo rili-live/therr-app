@@ -170,9 +170,22 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
             user_id,
         } = response.data;
 
+        printLogs({
+            level: 'info',
+            messageOrigin: 'API_SERVER',
+            messages: ['Debug info'],
+            tracer: beeline,
+            traceArgs: {
+                access_token,
+                error_message,
+                error_type,
+                user_id,
+            },
+        });
+
         // TODO: Determine if this is necessary
-        const userIdSplit = (user_id || '').split('#_');
-        const userId = userIdSplit[0] || user_id || '';
+        const userIdSplit = (user_id?.toString() || '').split('#_');
+        const userId = userIdSplit[0] || user_id?.toString() || '';
 
         if (error_type) {
             return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error_type, error_message })}` });
@@ -193,6 +206,8 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
                 error_message,
                 error_type,
                 ...errResponse?.response?.data,
+                theHell1: errResponse?.toString(),
+                theHell2: errResponse?.response?.toString(),
             },
         });
 
