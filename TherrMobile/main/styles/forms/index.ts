@@ -195,6 +195,13 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderRadius: 15,
             height: 59,
         },
+        buttonPrimarySmall: {
+            backgroundColor: therrTheme.colors.primary3,
+            display: 'flex',
+            alignItems: 'center',
+            borderRadius: 8,
+            height: 42,
+        },
         buttonLink: {
             color: themeName === 'retro' ? therrTheme.colors.textWhite : therrTheme.colors.primary4,
             fontFamily: therrFontFamily,
@@ -224,6 +231,15 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderRadius: 15,
             height: 59,
         },
+        buttonRoundAltSmall: {
+            backgroundColor: therrTheme.colors.backgroundWhite,
+            borderColor: therrTheme.colors.primary3,
+            borderWidth: 2,
+            display: 'flex',
+            alignItems: 'center',
+            borderRadius: 8,
+            height: 42,
+        },
         buttonWarning: {
             backgroundColor: therrTheme.colors.ternary2,
         },
@@ -241,6 +257,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontWeight: '500',
             fontFamily: therrFontFamily,
         },
+        buttonTitleSmall: {
+            fontSize: 14,
+            fontWeight: '500',
+            fontFamily: therrFontFamily,
+        },
         buttonTitleAlt: {
             fontWeight: '500',
             fontFamily: therrFontFamily,
@@ -253,6 +274,21 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.brandingWhite,
             marginRight: 10,
             marginLeft: 10,
+        },
+        buttonIconAlt: {
+            color: therrTheme.colors.primary3,
+            marginRight: 10,
+            marginLeft: 10,
+        },
+        buttonIconSmall: {
+            color: therrTheme.colors.brandingWhite,
+            marginRight: 6,
+            marginLeft: 6,
+        },
+        buttonIconAltSmall: {
+            color: therrTheme.colors.primary3,
+            marginRight: 6,
+            marginLeft: 6,
         },
         buttonPill: {
             display: 'flex',

@@ -69,6 +69,27 @@ const earthLoader = require('../../assets/earth-loader.json');
 const ANIMATE_TO_REGION_DURATION = 750;
 const ANIMATE_TO_REGION_DURATION_SLOW = 1500;
 const ANIMATE_TO_REGION_DURATION_FAST = 500;
+const DEFAULT_MAP_SEARCH = {
+    description: 'United States',
+    matched_substrings: [{
+        length: 13,
+        offset: 0,
+    }],
+    place_id: 'ChIJCzYy5IS16lQRQrfeQ5K5Oxw',
+    reference: 'ChIJCzYy5IS16lQRQrfeQ5K5Oxw',
+    structured_formatting: {
+        main_text: 'United States',
+        main_text_matched_substrings: [{
+            length: 13,
+            offset: 0,
+        }],
+    },
+    terms: [{
+        offset: 0,
+        value: 'United States',
+    }],
+    types: ['country', 'political', 'geocode'],
+};
 
 const hapticFeedbackOptions = {
     enableVibrateFallback: true,
@@ -237,6 +258,8 @@ class Map extends React.Component<IMapProps, IMapState> {
             });
             updateFirstTimeUI(true);
         }
+
+        this.handleSearchSelect(DEFAULT_MAP_SEARCH);
 
         this.unsubscribeNavigationListener = navigation.addListener('state', () => {
             setSearchDropdownVisibility(false);

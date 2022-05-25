@@ -69,15 +69,15 @@ export default class OAuthModal extends Component<IOAuthModalProps, IOAuthModalS
                 key: key + 1,
             });
         }
-        console.log('ZACK_DEBUG-url', url);
         if (url && url.startsWith(frontendRedirectUrl)) {
             this.webView.stopLoading();
-            const queryStringSplit = url.split('?');
+            const urlWithNoHash = url.split('#_');
+            const cleanUrl = urlWithNoHash[0] || url;
+            const queryStringSplit = cleanUrl.split('?');
             if (!queryStringSplit[1]) {
                 return onLoginFailure({ error: 'missing-query-params' });
             }
             const results = qs.parse(queryStringSplit[1]);
-            console.log('ZACK_DEBUG-results', results);
             if (results.access_token) {
                 onLoginSuccess(results);
             } else {

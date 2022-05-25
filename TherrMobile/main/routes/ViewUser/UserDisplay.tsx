@@ -1,10 +1,10 @@
 import BottomSheet from '../../components/Modals/BottomSheet';
 import React, { useState } from 'react';
-import { ActivityIndicator, Text, View, Pressable, Linking } from 'react-native';
+import { ActivityIndicator, Text, View, Pressable } from 'react-native';
 import { Button, Image } from 'react-native-elements';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getUserImageUri } from '../../utilities/content';
+import SocialIconLink from './SocialIconLink';
 
 interface IActionItem {
     id: string;
@@ -172,8 +172,8 @@ const MainActionButton = ({
     return (
         <Button
             containerStyle={{ flex: 1, marginHorizontal: 16 }}
-            buttonStyle={themeForms.styles.buttonPrimary}
-            titleStyle={themeForms.styles.buttonTitle}
+            buttonStyle={themeForms.styles.buttonPrimarySmall}
+            titleStyle={[themeForms.styles.buttonTitleSmall, { paddingRight: 6 }]}
             title={buttonTitle}
             onPress={onPress}
             disabled={isDisabled}
@@ -186,56 +186,6 @@ const MainActionButton = ({
                 />
             }
         />
-    );
-};
-
-const SocialIconLink = ({
-    isMe,
-    iconName,
-    navigation,
-    themeUser,
-    userInView,
-}) => {
-    const onPress = () => {
-        if (iconName === 'twitter' && userInView.socialSyncs?.twitter?.link) {
-            return Linking.openURL(userInView.socialSyncs?.twitter?.link);
-        }
-
-        return isMe && navigation.navigate('SocialSync', userInView);
-    };
-
-    let iconColor = themeUser.colors.brandingBlack;
-    const extraStyle1: any = {};
-    const extraStyle2: any = {};
-    const extraStyle3: any = {};
-
-    if (iconName === 'twitter' && userInView.socialSyncs?.twitter?.followerCount) {
-        iconColor = themeUser.colors.twitter;
-        if (userInView.socialSyncs?.twitter?.followerCount > 0) {
-            extraStyle1.backgroundColor = themeUser.colors.accentLime;
-        }
-        if (userInView.socialSyncs?.twitter?.followerCount > 2500) {
-            extraStyle2.backgroundColor = themeUser.colors.accentLime;
-        }
-        if (userInView.socialSyncs?.twitter?.followerCount > 10000) {
-            extraStyle3.backgroundColor = themeUser.colors.accentLime;
-        }
-    }
-
-    return (
-        <Pressable style={themeUser.styles.socialIconPressable} onPress={onPress}>
-            <FontAwesome5
-                name={iconName}
-                size={24}
-                color={iconColor}
-                style={themeUser.styles.socialIcon}
-            />
-            <View style={themeUser.styles.socialIndicatorsContainer}>
-                <View style={[themeUser.styles.socialIndicatorOne, extraStyle1]}></View>
-                <View style={[themeUser.styles.socialIndicatorTwo, extraStyle2]}></View>
-                <View style={[themeUser.styles.socialIndicatorThree, extraStyle3]}></View>
-            </View>
-        </Pressable>
     );
 };
 
@@ -344,13 +294,36 @@ export default ({
             <View style={themeUser.styles.actionsContainer}>
                 {
                     isMe &&
-                    <Button
-                        containerStyle={{ flex: 1, marginHorizontal: 16 }}
-                        buttonStyle={themeForms.styles.buttonPrimary}
-                        titleStyle={themeForms.styles.buttonTitle}
-                        title={translate('user.profile.buttons.editProfile')}
-                        onPress={() => navigation.navigate('Settings')}
-                    />
+                    <>
+                        <Button
+                            containerStyle={{ flex: 1, marginLeft: 16 }}
+                            buttonStyle={themeForms.styles.buttonPrimarySmall}
+                            titleStyle={[themeForms.styles.buttonTitleSmall, { paddingRight: 6 }]}
+                            title={translate('user.profile.buttons.syncSocials')}
+                            onPress={() => navigation.navigate('SocialSync', userInView)}
+                            icon={
+                                <MaterialIcon
+                                    name="sync"
+                                    size={23}
+                                    style={themeForms.styles.buttonIconSmall}
+                                />
+                            }
+                        />
+                        <Button
+                            containerStyle={{ flex: 1, marginHorizontal: 16 }}
+                            buttonStyle={themeForms.styles.buttonPrimarySmall}
+                            titleStyle={[themeForms.styles.buttonTitleSmall, { paddingRight: 6 }]}
+                            title={translate('user.profile.buttons.editProfile')}
+                            onPress={() => navigation.navigate('Settings')}
+                            icon={
+                                <MaterialIcon
+                                    name="edit"
+                                    size={21}
+                                    style={themeForms.styles.buttonIconSmall}
+                                />
+                            }
+                        />
+                    </>
                 }
                 {
                     !isMe &&
@@ -365,12 +338,12 @@ export default ({
                 }
                 <Button
                     containerStyle={{ marginRight: 16 }}
-                    buttonStyle={[themeForms.styles.buttonRoundAlt, { width: 60 }]}
+                    buttonStyle={[themeForms.styles.buttonRoundAltSmall, { width: 42 }]}
                     onPress={() => onToggleMoreBottomSheet(true)}
                     icon={
                         <MaterialIcon
                             name="more-horiz"
-                            size={30}
+                            size={23}
                             color={themeUser.colors.brandingBlueGreen}
                         />
                     }

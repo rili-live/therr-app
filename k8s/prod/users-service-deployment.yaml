@@ -60,7 +60,7 @@ spec:
               name: honeycomb-writekey
               key: HONEYCOMB
         - name: INSTAGRAM_APP_ID
-          value: "8038208602859743"
+          value: "538207404468066"
         - name: INSTAGRAM_APP_SECRET
           valueFrom:
             secretKeyRef:
