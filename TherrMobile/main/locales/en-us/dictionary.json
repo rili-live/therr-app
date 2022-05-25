@@ -418,6 +418,27 @@
       "backendErrorMessage": "Connection error. Please try again later."
     },
     "socialSync": {
+      "buttons": {
+        "backToProfile": "Back to Profile",
+        "resync": "Resync?",
+        "syncNow": "Sync Now",
+        "sync": "Sync?",
+        "syncInstagram": "Sync Instagram"
+      },
+      "successAlerts": {
+        "syncSuccess": "Successfully synced: {providers}"
+      },
+      "successTitles": {
+        "success": "Success!"
+      },
+      "errorAlerts": {
+        "igNoBusinessAccounts": "Syncing a business or creator account is currently not supported",
+        "twitterNotFound": "Could not find Twitter handle",
+        "unknownError": "An unknown error occured. Please try again later."
+      },
+      "errorTitles": {
+        "oops": "Oops!"
+      },
       "labels": {
         "twitterHandle": "Twitter Handle"
       },
@@ -670,7 +691,7 @@
     "socialSync": {
       "headerTitle": "Social Sync",
       "pageHeaderSyncList": "Sync Your Social Accounts",
-      "description": "Get recommended to local businesses for collaboration and partnerships."
+      "description": "...and get recommended to local businesses for collaboration and partnerships"
     },
     "template": {
       "pageTitle": "Template",
@@ -809,6 +830,7 @@
       },
       "buttons": {
         "editProfile": "Edit Profile",
+        "syncSocials": "Sync Socials",
         "message": "Message"
       },
       "labels": {

@@ -574,8 +574,6 @@ PODS:
     - React-Core
   - RNCAsyncStorage (1.17.3):
     - React-Core
-  - RNCMaskedView (0.1.11):
-    - React
   - RNCPicker (2.2.1):
     - React-Core
   - RNDeviceInfo (6.2.1):
@@ -714,7 +712,6 @@ DEPENDENCIES:
   - RNBackgroundFetch (from `../node_modules/react-native-background-fetch`)
   - RNBootSplash (from `../node_modules/react-native-bootsplash`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
-  - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - "RNFBAnalytics (from `../node_modules/@react-native-firebase/analytics`)"
@@ -888,8 +885,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-bootsplash"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
-  RNCMaskedView:
-    :path: "../node_modules/@react-native-community/masked-view"
   RNCPicker:
     :path: "../node_modules/@react-native-picker/picker"
   RNDeviceInfo:
@@ -1016,7 +1011,6 @@ SPEC CHECKSUMS:
   RNBackgroundFetch: 4ba650701219cf06fdc08336cc0b010242d2d024
   RNBootSplash: 605c94f76180e3f8e5832bcafbe52ff5194a51d0
   RNCAsyncStorage: 005c0e2f09575360f142d0d1f1f15e4ec575b1af
-  RNCMaskedView: 0e1bc4bfa8365eba5fbbb71e07fbdc0555249489
   RNCPicker: cb57c823d5ce8d2d0b5dfb45ad97b737260dc59e
   RNDeviceInfo: 9b6aba9ffaed69ecb72bd13c7bcb0debf277bc9f
   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c

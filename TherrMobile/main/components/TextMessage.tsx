@@ -12,6 +12,7 @@ export default ({
     message,
     theme,
     themeMessage,
+    translate,
 }) => {
     const isYou = () => message.fromUserName?.toLowerCase().includes('you');
     const getName = () => {
@@ -19,7 +20,12 @@ export default ({
             return 'You';
         }
 
-        return `${connectionDetails.firstName} ${connectionDetails.lastName}`;
+        let fullName = `${connectionDetails.firstName} ${connectionDetails.lastName}`;
+        if (fullName.includes('undefined')) {
+            return connectionDetails.userName || translate('pages.userProfile.anonymous');
+        }
+
+        return fullName;
     };
     return (
         <>

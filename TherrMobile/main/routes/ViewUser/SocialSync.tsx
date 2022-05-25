@@ -10,6 +10,7 @@ import { IUserState } from 'therr-react/types';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 // import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 // import RNFB from 'rn-fetch-blob';
+import Toast from 'react-native-toast-message';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
 // import Alert from '../components/Alert';
@@ -21,9 +22,11 @@ import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMe
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildSettingsFormStyles } from '../../styles/forms/socialSyncForm';
+import { buildStyles as buildUserStyles } from '../../styles/user-content/user-display';
 import SquareInput from '../../components/Input/Square';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import OAuthModal from '../../components/Modals/OAuthModal';
+import SocialIconLink from './SocialIconLink';
 // import UserImage from '../components/UserContent/UserImage';
 // import { getUserImageUri, signImageUrl } from '../utilities/content';
 
@@ -41,6 +44,7 @@ interface IStoreProps extends ISocialSyncDispatchProps {
 // Regular component props
 export interface ISocialSyncProps extends IStoreProps {
     navigation: any;
+    route: any;
 }
 
 interface ISocialSyncState {
@@ -70,6 +74,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
     private themeAlerts = buildAlertStyles();
     private themeForms = buildFormStyles();
     private themeSocialSyncForm = buildSettingsFormStyles();
+    private themeUser = buildUserStyles();
 
     constructor(props) {
         super(props);
@@ -114,21 +119,70 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
         this.themeAlerts = buildAlertStyles(themeName);
         this.themeForms = buildFormStyles(themeName);
         this.themeSocialSyncForm = buildSettingsFormStyles(themeName);
+        this.themeUser = buildUserStyles(themeName);
     }
 
-    onSubmit = () => {
+    onSubmit = (syncs) => {
         const { createUpdateSocialSyncs, navigation } = this.props;
-        const { inputs } = this.state;
+
         createUpdateSocialSyncs({
-            syncs: {
-                twitter: {
-                    username: inputs.twitterHandle,
-                },
-            },
-        }).then(() => {
-            navigation.goBack();
+            syncs,
+        }).then((response) => {
+            console.log(response.data?.errors);
+            const errorsByProvider = response.data?.errors || {};
+            if (Object.keys(errorsByProvider).length) {
+                const hasMatch = Object.keys(errorsByProvider).some((provider) => {
+                    if (syncs.instagram && provider === 'instagram' && errorsByProvider[provider].type === 'IGApiException') {
+                        Toast.show({
+                            type: 'errorBig',
+                            text1: 'Instagram',
+                            text2: this.translate('forms.socialSync.errorAlerts.igNoBusinessAccounts'),
+                        });
+                        return true;
+                    }
+                    if (syncs.twitter && provider === 'twitter' && errorsByProvider[provider][0]?.title === 'Not Found Error') {
+                        Toast.show({
+                            type: 'errorBig',
+                            text1: 'Instagram',
+                            text2: this.translate('forms.socialSync.errorAlerts.twitterNotFound'),
+                        });
+                        return true;
+                    }
+                });
+                if (!hasMatch) {
+                    Toast.show({
+                        type: 'errorBig',
+                        text1: this.translate('forms.socialSync.errorTitles.oops'),
+                        text2: this.translate('forms.socialSync.errorAlerts.unknownError'),
+                    });
+                }
+            } else if (Object.keys(syncs).length) {
+                Toast.show({
+                    type: 'success',
+                    text1: this.translate('forms.socialSync.successTitles.success'),
+                    text2: this.translate('forms.socialSync.successAlerts.syncSuccess', {
+                        providers: Object.keys(syncs).join(', '),
+                    }),
+                    visibilityTime: 2000,
+                    onHide: () => navigation.goBack(),
+                });
+            }
         }).catch((err) => {
             console.log(err);
+        });
+    }
+
+    onSaveInstagram = (syncs) => {
+        this.onSubmit(syncs);
+    };
+
+    onSaveTwitter = () => {
+        const { inputs } = this.state;
+
+        this.onSubmit({
+            twitter: {
+                username: inputs.twitterHandle,
+            },
         });
     };
 
@@ -163,7 +217,12 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
 
     onOAuthLoginSuccess = (results) => {
         this.onCloseOAuthModal();
-        console.log('OAuthSuccess: ', results);
+        this.onSaveInstagram({
+            instagram: {
+                accessToken: results.access_token,
+                userId: results.user_id,
+            },
+        });
     }
 
     onOAuthLoginFailed = (response) => {
@@ -173,10 +232,11 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
 
 
     render() {
-        const { navigation, user } = this.props;
-        const { inputs, isOAuthModalVisible } = this.state;
+        const { navigation, route, user } = this.props;
+        const { isOAuthModalVisible, inputs } = this.state;
         const pageHeaderSocials = this.translate('pages.socialSync.pageHeaderSyncList');
         const descriptionText = this.translate('pages.socialSync.description');
+        const userInView = route?.params;
         // const currentUserImageUri = getUserImageUri(user, 200);
 
         return (
@@ -198,10 +258,47 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                 </Text>
                             </View>
                             <View style={this.themeSocialSyncForm.styles.socialLinkContainer}>
+                                <View style={{
+                                    paddingRight: 16,
+                                }}>
+                                    <SocialIconLink
+                                        iconName="instagram"
+                                        isMe={true}
+                                        navigation={navigation}
+                                        themeUser={this.themeUser}
+                                        userInView={userInView}
+                                    />
+                                </View>
+                                <Button
+                                    containerStyle={[{ flex: 1 }]}
+                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt]}
+                                    titleStyle={this.themeForms.styles.buttonTitleAlt}
+                                    title={this.translate('forms.socialSync.buttons.syncInstagram')}
+                                    // icon={
+                                    //     <FontAwesome5Icon
+                                    //         name="sync"
+                                    //         size={22}
+                                    //         style={this.themeForms.styles.buttonIconAlt}
+                                    //     />
+                                    // }
+                                    raised={false}
+                                    onPress={this.onSocialLogin}
+                                />
+                            </View>
+                            <View style={this.themeSocialSyncForm.styles.socialLinkContainer}>
+                                <View style={{
+                                    paddingRight: 16,
+                                }}>
+                                    <SocialIconLink
+                                        iconName="twitter"
+                                        isMe={true}
+                                        navigation={navigation}
+                                        themeUser={this.themeUser}
+                                        userInView={userInView}
+                                    />
+                                </View>
                                 <SquareInput
-                                    label={this.translate(
-                                        'forms.socialSync.labels.twitterHandle'
-                                    )}
+                                    containerStyle={{ flex: 1 }}
                                     labelStyle={this.themeForms.styles.inputLabelLightFaded}
                                     value={inputs.twitterHandle}
                                     onChangeText={(text) =>
@@ -210,32 +307,23 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                     placeholder={this.translate(
                                         'forms.socialSync.placeholders.twitterHandle'
                                     )}
-                                    rightIcon={
-                                        <FontAwesome5Icon
-                                            name="twitter"
-                                            size={22}
-                                            color={this.theme.colors.twitter}
-                                        />
-                                    }
                                     themeForms={this.themeForms}
                                     autoCapitalize="none"
                                     autoCorrect={false}
                                 />
-                            </View>
-                            <View style={this.themeSocialSyncForm.styles.socialLinkContainer}>
                                 <Button
-                                    containerStyle={this.themeButtons.styles.btnContainer}
-                                    buttonStyle={[this.themeButtons.styles.btnLargeWithText]}
-                                    titleStyle={this.themeButtons.styles.btnLargeTitle}
-                                    icon={
-                                        <FontAwesome5Icon
-                                            name="plus"
-                                            size={22}
-                                            style={this.themeButtons.styles.btnIcon}
-                                        />
-                                    }
-                                    raised={true}
-                                    onPress={this.onSocialLogin}
+                                    containerStyle={[]}
+                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt]}
+                                    titleStyle={this.themeForms.styles.buttonTitleAlt}
+                                    title={this.translate('forms.socialSync.buttons.sync')}
+                                    // icon={
+                                    //     <FontAwesome5Icon
+                                    //         name="sync"
+                                    //         size={22}
+                                    //         style={this.themeForms.styles.buttonIconAlt}
+                                    //     />
+                                    // }
+                                    onPress={this.onSaveTwitter}
                                 />
                             </View>
                         </View>
@@ -244,11 +332,18 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                 <View style={this.themeSocialSyncForm.styles.submitButtonContainerFloat}>
                     <Button
                         buttonStyle={this.themeForms.styles.button}
+                        titleStyle={this.themeForms.styles.buttonTitle}
                         title={this.translate(
-                            'forms.settings.buttons.submit'
+                            'forms.socialSync.buttons.backToProfile'
                         )}
-                        onPress={this.onSubmit}
-                        disabled={this.isFormDisabled()}
+                        icon={
+                            <FontAwesome5Icon
+                                name="arrow-left"
+                                size={22}
+                                style={this.themeForms.styles.buttonIcon}
+                            />
+                        }
+                        onPress={navigation.goBack}
                         raised={true}
                     />
                 </View>

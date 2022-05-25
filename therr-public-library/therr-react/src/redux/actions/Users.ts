@@ -52,7 +52,7 @@ class UsersActions {
             dispatch({
                 type: UserActionTypes.UPDATE_USER_IN_VIEW,
                 data: {
-                    socialSyncs: response?.data,
+                    socialSyncs: response?.data?.syncs,
                 },
             });
 
