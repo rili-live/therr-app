@@ -19,6 +19,10 @@ const buildStyles = (themeName?: IMobileThemeName) => {
     const styles = StyleSheet.create({
         socialLinkContainer: {
             ...container,
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
             marginBottom: 4,
             paddingBottom: 4,
         },

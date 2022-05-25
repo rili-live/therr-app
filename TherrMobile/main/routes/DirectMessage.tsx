@@ -197,6 +197,7 @@ class DirectMessage extends React.Component<
                                     isFirstOfMessage={this.isFirstOfMessage(dms, index)}
                                     theme={this.theme}
                                     themeMessage={this.themeMessage}
+                                    translate={this.translate}
                                 />
                             )}
                             ref={(component) => (this.flatListRef = component)}

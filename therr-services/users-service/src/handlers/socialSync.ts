@@ -17,6 +17,15 @@ type IPlatform = 'twitter' | 'instagram' | 'tiktok' | 'youtube';
 const twitterBearerToken = process.env.TWITTER_APP_BEARER_TOKEN;
 
 const socialPlatformApis = {
+    instagram: (params: { userId: string, accessToken: string }) => axios({
+        method: 'get',
+        url: `https://graph.instagram.com/${params.userId}?fields=id,username,account_type&access_token=${params.accessToken}`,
+        headers: { Authorization: `Bearer ${twitterBearerToken}` },
+    }).catch((err) => ({
+        data: {
+            errors: err.response?.data?.error,
+        },
+    })),
     twitter: (params: { username: string }) => axios({
         method: 'get',
         url: `https://api.twitter.com/2/users/by/username/${params.username}?user.fields=created_at,verified,location,url,description,public_metrics`,
@@ -32,6 +41,15 @@ const extractPlatformProfileDetails = (platform: IPlatform, responseData) => {
             link: `https://twitter.com/${responseData.data?.username}`,
             displayName: 'Twitter',
             followerCount: responseData.data?.public_metrics?.followers_count,
+        };
+    }
+    if (platform === 'instagram') {
+        return {
+            platformUsername: responseData?.username,
+            platformUserId: responseData?.id,
+            link: `https://instagram.com/${responseData?.username}`,
+            displayName: 'Instagram',
+            followerCount: 1, // TODO: Need to user IG Graph api to get this
         };
     }
 
@@ -80,20 +98,31 @@ const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
     return Promise.all(socialPlatformPromises).then((responses) => {
         // TODO: Store response details in socialSyncs table
         const dbRecords: ICreateOrUpdateParams[] = [];
+        const errors: any = {};
         Object.keys(socialPlatformApis).forEach((platform, index) => {
             // NOTE: this is specific to twitter response object
-            if (!responses[index]?.data?.errors) {
-                const profileDetails = extractPlatformProfileDetails(platform as IPlatform, responses[index]?.data);
-                const record: any = {
-                    userId,
-                    platform,
-                    ...profileDetails,
-                };
-                dbRecords.push(record);
+            if (responses[index]) {
+                if (!responses[index].data?.errors) {
+                    const profileDetails = extractPlatformProfileDetails(platform as IPlatform, responses[index]?.data);
+                    const record: any = {
+                        userId,
+                        platform,
+                        ...profileDetails,
+                    };
+                    dbRecords.push(record);
+                } else {
+                    errors[platform] = responses[index].data?.errors;
+                }
             }
         });
 
-        return Store.socialSyncs.createOrUpdateSyncs(dbRecords).then((results) => res.status(200).send(getMappedSocialSyncResults(true, results)));
+        return Store.socialSyncs.createOrUpdateSyncs(dbRecords)
+            .then(() => Store.socialSyncs.getSyncs(userId)) // fetch all for user
+            .then((results) => {
+                const mappedResults = getMappedSocialSyncResults(true, results);
+
+                return res.status(200).send({ syncs: mappedResults, errors });
+            });
     }).catch((err) => handleHttpError({
         err,
         res,

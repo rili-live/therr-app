@@ -29,6 +29,7 @@ export default class SocialSyncsStore {
             ...socialSync,
             updatedAt: new Date(),
         }));
+
         const queryString = knexBuilder.insert(sanitizedSyncs)
             .into(SOCIAL_SYNCS_TABLE_NAME)
             .onConflict(['userId', 'link'])
