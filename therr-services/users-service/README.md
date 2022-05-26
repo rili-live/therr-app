@@ -1,3 +1,3 @@
 # users-service
 
-Provides endpoints to query various data from users database
+Provides endpoints to query data from users database
