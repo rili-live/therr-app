@@ -228,6 +228,11 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
     onOAuthLoginFailed = (response) => {
         this.onCloseOAuthModal();
         console.log('OAuthFailed: ', response);
+        Toast.show({
+            type: 'errorBig',
+            text1: this.translate('forms.socialSync.errorTitles.oops'),
+            text2: this.translate('forms.socialSync.errorAlerts.unknownError'),
+        });
     }
 
 
