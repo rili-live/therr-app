@@ -30,7 +30,7 @@ metadata:
         gzip_comp_level 5;
         gzip_buffers 16 128k;
 
-        location ~* "^/[^.]*" {
+        location ~* "^/[^.]*$" {
           if ($host ~ "link.therr.com|go.therr.com")
           {
               rewrite ^ https://therr.com$request_uri permanent;
