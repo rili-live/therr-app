@@ -35,12 +35,14 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         wrapper: {
             display: 'flex',
-            height: '100%',
+            // height: '100%',
+            width: '100%',
             flexDirection: 'column',
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
             boxSizing: 'border-box',
+            flexGrow: 1,
         },
         webView: {
             flex: 1,

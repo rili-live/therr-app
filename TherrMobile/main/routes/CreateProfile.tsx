@@ -23,7 +23,6 @@ import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../constants';
 import { getImagePreviewPath } from '../utilities/areaUtils';
 import { getUserImageUri } from '../utilities/content';
 
-const profileLoader = require('../assets/profile-circling.json');
 const verifyPhoneLoader = require('../assets/verify-phone-shield.json');
 
 interface ICreateProfileDispatchProps {
@@ -255,8 +254,11 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         const { user } = this.props;
         const { croppedImageDetails, errorMsg, inputs, isSubmitting, stage } = this.state;
         const pageHeaderA = this.translate('pages.createProfile.pageHeaderA');
+        const pageSubHeaderA = this.translate('pages.createProfile.pageSubHeaderA');
         const pageHeaderB = this.translate('pages.createProfile.pageHeaderB');
+        const pageSubHeaderB = this.translate('pages.createProfile.pageSubHeaderB');
         const pageHeaderC = this.translate('pages.createProfile.pageHeaderC');
+        const pageSubHeaderC = this.translate('pages.createProfile.pageSubHeaderC');
         const currentUserImageUri = getUserImageUri(user, 200);
         const userImageUri = getImagePreviewPath(croppedImageDetails.path) || currentUserImageUri;
 
@@ -275,36 +277,41 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                             <View style={this.theme.styles.sectionContainer}>
                                 {
                                     stage === 'A' &&
-                                    <Text style={this.themeFTUI.styles.title}>
-                                        {pageHeaderA}
-                                    </Text>
+                                    <>
+                                        <Text style={this.themeFTUI.styles.title}>
+                                            {pageHeaderA}
+                                        </Text>
+                                        <Text style={this.themeFTUI.styles.subtitleCenter}>
+                                            {pageSubHeaderA}
+                                        </Text>
+                                    </>
                                 }
                                 {
                                     stage === 'B' &&
-                                    <Text style={this.themeFTUI.styles.title}>
-                                        {pageHeaderB}
-                                    </Text>
+                                    <>
+                                        <Text style={this.themeFTUI.styles.title}>
+                                            {pageHeaderB}
+                                        </Text>
+                                        <Text style={this.themeFTUI.styles.subtitleCenter}>
+                                            {pageSubHeaderB}
+                                        </Text>
+                                    </>
                                 }
                                 {
                                     stage === 'C' &&
-                                    <Text style={this.themeFTUI.styles.title}>
-                                        {pageHeaderC}
-                                    </Text>
+                                    <>
+                                        <Text style={this.themeFTUI.styles.title}>
+                                            {pageHeaderC}
+                                        </Text>
+                                        <Text style={this.themeFTUI.styles.subtitleCenter}>
+                                            {pageSubHeaderC}
+                                        </Text>
+                                    </>
                                 }
                             </View>
                             {
                                 (stage === 'A' || stage === 'B') &&
                                 <View style={[this.theme.styles.sectionContainer, { height: 100, marginBottom: 20 }]}>
-                                    { stage === 'A' &&
-                                        <LottieView
-                                            source={profileLoader}
-                                            style={this.themeFTUI.styles.formAGraphic}
-                                            resizeMode="cover"
-                                            speed={1.75}
-                                            autoPlay
-                                            loop
-                                        />
-                                    }
                                     { stage === 'B' &&
                                         <LottieView
                                             source={verifyPhoneLoader}
