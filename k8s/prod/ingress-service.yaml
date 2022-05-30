@@ -29,11 +29,18 @@ metadata:
         gzip_proxied any;
         gzip_comp_level 5;
         gzip_buffers 16 128k;
+
+        if ($host ~ "link.therr.com")
+        {
+            rewrite ^ https://therr.com$request_uri permanent;
+        }
 spec:
   tls:
   - hosts:
       - therr.com
       - www.therr.com
+      - link.therr.com
+      - www.link.therr.com
       - api.therr.com
       - www.api.therr.com
       - websocket-service.therr.com
@@ -51,6 +58,26 @@ spec:
               number: 7070
         pathType: ImplementationSpecific
   - host: www.therr.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: client-cluster-ip-service
+            port:
+              number: 7070
+        pathType: ImplementationSpecific
+  - host: link.therr.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: client-cluster-ip-service
+            port:
+              number: 7070
+        pathType: ImplementationSpecific
+  - host: www.link.therr.com
     http:
       paths:
       - path: /?(.*)

@@ -3,7 +3,7 @@ import { IMobileThemeName } from 'therr-react/types';
 import { getTheme, ITherrTheme } from '../themes';
 
 const getSocialIndicatorBase: any = (therrTheme: ITherrTheme) => ({
-    width: 7,
+    width: 6,
     height: 7,
     borderRadius: 4,
     backgroundColor: therrTheme.colors.backgroundNeutral,
@@ -53,19 +53,23 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            width: 26,
+            width: 30,
         },
         socialIndicatorOne: {
             ...getSocialIndicatorBase(therrTheme),
-            height: 7,
+            height: 6,
         },
         socialIndicatorTwo: {
             ...getSocialIndicatorBase(therrTheme),
-            height: 14,
+            height: 12,
         },
         socialIndicatorThree: {
             ...getSocialIndicatorBase(therrTheme),
-            height: 21,
+            height: 18,
+        },
+        socialIndicatorFour: {
+            ...getSocialIndicatorBase(therrTheme),
+            height: 24,
         },
 
         // Action Menu
