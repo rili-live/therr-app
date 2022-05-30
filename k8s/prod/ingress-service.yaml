@@ -30,11 +30,7 @@ metadata:
         gzip_comp_level 5;
         gzip_buffers 16 128k;
 
-        location ^~ /.well-known/acme-challenge/ {
-            # Do nothing. nginx will serve response without rewrite
-            rewrite /.well-known/acme-challenge/(.*) /$1 break;
-        }
-        location / {
+        location ~* "^/[^.]*" {
           if ($host ~ "link.therr.com|go.therr.com")
           {
               rewrite ^ https://therr.com$request_uri permanent;
