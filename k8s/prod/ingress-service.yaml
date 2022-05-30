@@ -32,7 +32,7 @@ metadata:
 
         if ($host ~ "link.therr.com|go.therr.com")
         {
-            location /.well-known/acme-challenge/ {
+            location ^~ /.well-known/acme-challenge/ {
                 # Do nothing. nginx will serve response without rewrite
             }
             location / {
@@ -42,7 +42,7 @@ metadata:
 
         if ($host ~ "www.link.therr.com|www.go.therr.com")
         {
-            location /.well-known/acme-challenge/ {
+            location ^~ /.well-known/acme-challenge/ {
                 # Do nothing. nginx will serve response without rewrite
             }
             location / {
