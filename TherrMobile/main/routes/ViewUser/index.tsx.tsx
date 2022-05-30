@@ -17,7 +17,9 @@ import UsersActions from '../../redux/actions/UsersActions';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
+import { buildStyles as buildModalStyles } from '../../styles/modal';
 import { buildStyles as buildUserStyles } from '../../styles/user-content/user-display';
 import translator from '../../services/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
@@ -27,6 +29,9 @@ import ConfirmModal from '../../components/Modals/ConfirmModal';
 
 interface IViewUserDispatchProps {
     blockUser: Function;
+    getUser: Function;
+    updateUserInView: Function;
+    createUserConnection: Function
     updateUserConnection: Function
 }
 
@@ -45,7 +50,6 @@ interface IViewUserState {
     confirmModalText: string;
     activeConfirmModal: '' | 'report-user' | 'block-user' | 'remove-connection-request' | 'send-connection-request';
     isLoading: boolean;
-    fetchedUserInView: any;
 }
 
 const mapStateToProps = (state) => ({
@@ -55,6 +59,9 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     blockUser: UsersActions.block,
+    getUser: UsersActions.get,
+    updateUserInView: UsersActions.updateUserInView,
+    createUserConnection: UserConnectionsActions.create,
     updateUserConnection: UserConnectionsActions.update,
 }, dispatch);
 
@@ -68,6 +75,8 @@ class ViewUser extends React.Component<
     private themeConfirmModal = buildConfirmModalStyles();
     private themeButtons = buildMenuStyles();
     private themeMenu = buildMenuStyles();
+    private themeModal = buildModalStyles();
+    private themeForms = buildFormStyles();
     private themeUser = buildUserStyles();
 
     constructor(props) {
@@ -77,12 +86,14 @@ class ViewUser extends React.Component<
             confirmModalText: '',
             activeConfirmModal: '',
             isLoading: true,
-            fetchedUserInView: {},
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
+        this.themeModal = buildModalStyles(props.user.settings?.mobileThemeName);
+        this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
+        (props.user.settings?.mobileThemeName);
         this.themeUser = buildUserStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any): string =>
             translator('en-us', key, params);
@@ -98,22 +109,20 @@ class ViewUser extends React.Component<
         this.fetchUser();
     }
 
-    fetchUser = () => {
-        const { route, user } = this.props;
-        const { userInView } = route.params;
-        const getUserPromise = user.details?.id === userInView.id
-            ? Promise.resolve(user.details)
-            : UsersService.get(userInView.id).then((response) => response.data);
+    componentDidUpdate(prevProps) {
+        if (prevProps.route?.params?.userInView?.id !== this.props.route?.params?.userInView?.id) {
+            this.fetchUser();
+        }
+    }
 
-        getUserPromise.then((userResponse) => {
-            this.setState({
-                fetchedUserInView: userResponse,
-            });
+    fetchUser = () => {
+        const { getUser, route, user } = this.props;
+        const { userInView } = route.params;
+
+        getUser(userInView.id).then(() => {
             this.props.navigation.setOptions({
-                title: userResponse.userName,
+                title: user.userInView?.userName,
             });
-        }).catch((e) => {
-            console.log(e);
         }).finally(() => {
             this.setState({
                 isLoading: false,
@@ -179,25 +188,37 @@ class ViewUser extends React.Component<
     }
 
     onAcceptConfirmModal = () => {
-        const { activeConfirmModal, fetchedUserInView } = this.state;
-        const { blockUser, navigation, updateUserConnection, user } = this.props;
+        const { activeConfirmModal } = this.state;
+        const { blockUser, navigation, updateUserConnection, createUserConnection, user, updateUserInView } = this.props;
 
         if (activeConfirmModal === 'report-user') {
-            UsersService.report(fetchedUserInView.id);
+            UsersService.report(user?.userInView.id);
             // TODO: Add success toast
         } else if (activeConfirmModal === 'block-user') {
             // TODO: Add success toast
             // TODO: RMOBILE-35: ...
-            blockUser(fetchedUserInView.id, user.details.blockedUsers);
+            blockUser(user.userInView?.id, user.details.blockedUsers);
             navigation.navigate('Areas');
         } else if (activeConfirmModal === 'send-connection-request') {
-            navigation.navigate('CreateConnection');
+            createUserConnection({
+                requestingUserId: user.details.id,
+                requestingUserFirstName: user.details.firstName,
+                requestingUserLastName: user.details.lastName,
+                requestingUserEmail: user.details.email,
+                acceptingUserId: user?.userInView.id,
+                acceptingUserPhoneNumber: user?.userInView.phoneNumber,
+                acceptingUserEmail: user?.userInView.email,
+            }).then(() => {
+                updateUserInView({
+                    isPendingConnection: true,
+                });
+            });
         } else if (activeConfirmModal === 'remove-connection-request') {
             // TODO: Add success toast
             updateUserConnection({
                 connection: {
                     isConnectionBroken: true,
-                    otherUserId: fetchedUserInView.id,
+                    otherUserId: user.userInView?.id,
                 },
                 user: user.details,
             });
@@ -211,7 +232,7 @@ class ViewUser extends React.Component<
 
     render() {
         const { navigation, user } = this.props;
-        const { activeConfirmModal, confirmModalText, fetchedUserInView, isLoading } = this.state;
+        const { activeConfirmModal, confirmModalText, isLoading } = this.state;
 
         return (
             <>
@@ -221,15 +242,18 @@ class ViewUser extends React.Component<
                         isLoading ?
                             <LottieLoader id="therr-black-rolling" theme={this.theme} /> :
                             <UserDisplay
+                                navigation={navigation}
                                 onProfilePicturePress={this.onProfilePicturePress}
                                 onBlockUser={this.onBlockUser}
                                 onConnectionRequest={this.onConnectionRequest}
                                 onMessageUser={this.onMessageUser}
                                 onReportUser={this.onReportUser}
+                                themeForms={this.themeForms}
+                                themeModal={this.themeModal}
                                 themeUser={this.themeUser}
                                 translate={this.translate}
                                 user={user}
-                                userInView={fetchedUserInView}
+                                userInView={user.userInView || {}}
                             />
                     }
                 </SafeAreaView>

@@ -2,6 +2,7 @@ import { Platform, StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { containerStyles, containerTightStyles, inputStyle, getTextInputStyle } from './base';
 import { getTheme, ITherrTheme } from '../themes';
+import { therrFontFamily } from '../font';
 
 const getInputContainerBaseStyles = (theme: ITherrTheme): any => ({
     borderBottomColor: theme.colors.textDarkGray,
@@ -43,11 +44,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         inputText: {
             fontWeight: '600',
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
         },
         placeholderText: {
             fontWeight: '600',
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
             color: therrTheme.colors.placeholderTextColorAlt,
         },
         switchContainer: {
@@ -96,7 +97,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             ...getInputContainerBaseStyles(therrTheme),
             ...getPlatformSpecificInputStyles(therrTheme),
             color: therrTheme.colors.textWhite,
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
             padding: 20,
             paddingTop: 20,
             borderRadius: 15,
@@ -194,13 +195,20 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderRadius: 15,
             height: 59,
         },
+        buttonPrimarySmall: {
+            backgroundColor: therrTheme.colors.primary3,
+            display: 'flex',
+            alignItems: 'center',
+            borderRadius: 8,
+            height: 42,
+        },
         buttonLink: {
             color: themeName === 'retro' ? therrTheme.colors.textWhite : therrTheme.colors.primary4,
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
         },
         buttonLinkHeader: {
             color: themeName === 'retro' ? therrTheme.colors.textWhite : therrTheme.colors.primary3,
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
             fontSize: 14,
             fontWeight: '600',
         },
@@ -223,6 +231,15 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderRadius: 15,
             height: 59,
         },
+        buttonRoundAltSmall: {
+            backgroundColor: therrTheme.colors.backgroundWhite,
+            borderColor: therrTheme.colors.primary3,
+            borderWidth: 2,
+            display: 'flex',
+            alignItems: 'center',
+            borderRadius: 8,
+            height: 42,
+        },
         buttonWarning: {
             backgroundColor: therrTheme.colors.ternary2,
         },
@@ -238,11 +255,16 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         buttonTitle: {
             fontSize: 18,
             fontWeight: '500',
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
+        },
+        buttonTitleSmall: {
+            fontSize: 14,
+            fontWeight: '500',
+            fontFamily: therrFontFamily,
         },
         buttonTitleAlt: {
             fontWeight: '500',
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
             color: therrTheme.colors.primary3,
         },
         buttonTitleDisabled: {
@@ -252,6 +274,21 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.brandingWhite,
             marginRight: 10,
             marginLeft: 10,
+        },
+        buttonIconAlt: {
+            color: therrTheme.colors.primary3,
+            marginRight: 10,
+            marginLeft: 10,
+        },
+        buttonIconSmall: {
+            color: therrTheme.colors.brandingWhite,
+            marginRight: 6,
+            marginLeft: 6,
+        },
+        buttonIconAltSmall: {
+            color: therrTheme.colors.primary3,
+            marginRight: 6,
+            marginLeft: 6,
         },
         buttonPill: {
             display: 'flex',
@@ -291,7 +328,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         orDividerText: {
             color: therrTheme.colors.textGray,
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
             marginHorizontal: 12,
             fontSize: 18,
             fontWeight: '600',
@@ -333,7 +370,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
 
         },
         googleButtonTitle: {
-            fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+            fontFamily: therrFontFamily,
             color: therrTheme.colors.brandingBlueGreen, // Google styles color
             fontSize: 18,
             paddingLeft: 12,

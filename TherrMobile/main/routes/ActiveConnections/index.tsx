@@ -108,6 +108,9 @@ class ActiveConnectionsComponent extends React.Component<
     };
 
     getConnectionSubtitle = (connection) => {
+        if (!connection?.firstName && !connection?.lastName) {
+            return this.translate('pages.userProfile.anonymous');
+        }
         return `${connection.firstName || ''} ${
             connection.lastName || ''
         }`;
@@ -143,6 +146,7 @@ class ActiveConnectionsComponent extends React.Component<
                                 getConnectionSubtitle={this.getConnectionSubtitle}
                                 onConnectionPress={this.onConnectionPress}
                                 theme={this.theme}
+                                translate={this.translate}
                             />
                         )}
                         ListEmptyComponent={() => (

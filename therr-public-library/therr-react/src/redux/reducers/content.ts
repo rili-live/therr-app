@@ -106,7 +106,7 @@ const content = (state: IContentState = initialState, action: any) => {
         case ContentActionTypes.UPDATE_ACTIVE_MOMENTS:
             // Reset moments from scratch
             return state.setIn(['activeMoments'], action.data.moments)
-                .setIn(['media'], action.data.media)
+                .setIn(['media'], { ...state.media, ...action.data.media }) // local cache existing media
                 .setIn(['activeMomentsPagination'], { ...action.data.pagination });
         case ContentActionTypes.SEARCH_BOOKMARKED_MOMENTS:
             // TODO: Add next offset of moments to end
@@ -131,7 +131,7 @@ const content = (state: IContentState = initialState, action: any) => {
         case ContentActionTypes.UPDATE_ACTIVE_SPACES:
             // Reset spaces from scratch
             return state.setIn(['activeSpaces'], action.data.spaces)
-                .setIn(['media'], action.data.media)
+                .setIn(['media'], { ...state.media, ...action.data.media }) // local cache existing media
                 .setIn(['activeSpacesPagination'], { ...action.data.pagination });
         case ContentActionTypes.SEARCH_BOOKMARKED_SPACES:
             // Add next offset of spaces to end

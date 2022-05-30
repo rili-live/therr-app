@@ -83,7 +83,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderRadius: 15,
         },
         icon: {
-            color: therrTheme.colors.textWhite,
+            color: therrTheme.colors.brandingWhite,
             padding: 0,
             margin: 0,
         },

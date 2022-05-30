@@ -2,6 +2,12 @@ import { MapActionTypes } from '../../types/redux/maps';
 import MapsService, { IPlacesAutoCompleteArgs, ISearchAreasArgs } from '../../services/MapsService';
 import { ContentActionTypes } from '../../types';
 
+interface IMapFilters {
+    filtersAuthor: any[],
+    filtersCategory: any[],
+    filtersVisibility: any[],
+}
+
 const Maps = {
     // Moments
     createMoment: (data: any) => (dispatch: any) => MapsService.createMoment(data).then((response: any) => {
@@ -107,6 +113,12 @@ const Maps = {
                 ids: args.ids,
             },
         });
+    }),
+
+    // Filters
+    setMapFilters: (filters: IMapFilters) => (dispatch: any) => dispatch({
+        type: MapActionTypes.SET_MAP_FILTERS,
+        data: filters,
     }),
 
     // Location

@@ -1,5 +1,6 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
+import { therrFontFamily } from '../font';
 import { getTheme, ITherrTheme } from '../themes';
 
 const containerStyles: any = {
@@ -12,7 +13,7 @@ const containerStyles: any = {
 };
 
 const getTextStyles = (theme: ITherrTheme) => ({
-    fontFamily: Platform.OS === 'ios' ? 'Lexend-Regular' : 'Lexend-Regular',
+    fontFamily: therrFontFamily,
     color: theme.colors.textBlack,
     marginVertical: 50,
     paddingHorizontal: 10,

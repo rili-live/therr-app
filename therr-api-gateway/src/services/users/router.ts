@@ -25,6 +25,7 @@ import {
 } from './validation/subscribers';
 import { updateNotificationValidation } from './validation/notifications';
 import { feedbackAttemptLimiter, loginAttemptLimiter, subscribeAttemptLimiter } from './limitation/auth';
+import { createUpdateSocialSyncsValidation } from './validation/socialSyncs';
 
 const usersServiceRouter = express.Router();
 
@@ -150,6 +151,20 @@ usersServiceRouter.get('/users/notifications', handleServiceRequest({
 usersServiceRouter.put('/users/notifications/:notificationId', updateNotificationValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'put',
+}));
+
+// Social Sync
+usersServiceRouter.post('/social-sync', createUpdateSocialSyncsValidation, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+usersServiceRouter.get('/social-sync/:userId', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+usersServiceRouter.get('/social-sync/oauth2-instagram', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
 }));
 
 // Subscribers

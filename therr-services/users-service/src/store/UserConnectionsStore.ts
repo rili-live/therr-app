@@ -65,6 +65,20 @@ export default class UserConnectionsStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
+    countUserConnections(userId) {
+        const queryString = knexBuilder.count('*')
+            .from(USER_CONNECTIONS_TABLE_NAME)
+            .where({
+                requestingUserId: userId,
+            })
+            .orWhere({
+                acceptingUserId: userId,
+            })
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
     getUserConnections(conditions: any = {}, shouldCheckReverse?: boolean) {
         let queryString;
         if (shouldCheckReverse) {

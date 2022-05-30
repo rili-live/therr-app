@@ -40,6 +40,14 @@ interface IChangePasswordArgs {
     userName: string;
 }
 
+export interface ISocialSyncs {
+    syncs: {
+        twitter?: {
+            username: string;
+        };
+    };
+}
+
 class UsersService {
     authenticate = (data: ILoginCredentials) => axios({
         method: 'post',
@@ -67,7 +75,7 @@ class UsersService {
         data,
     })
 
-    get = (id: number) => axios({
+    get = (id: string) => axios({
         method: 'get',
         url: `/users-service/users/${id}`,
     })
@@ -119,6 +127,17 @@ class UsersService {
         data: {
             feedback,
         },
+    })
+
+    createUpdateSocialSyncs = (socialSyncs: ISocialSyncs) => axios({
+        method: 'post',
+        url: '/users-service/social-sync',
+        data: socialSyncs,
+    })
+
+    getSocialSyncs = (userId: string) => axios({
+        method: 'get',
+        url: `/users-service/social-sync/${userId}`,
     })
 }
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button, Image, Text } from 'react-native-elements';
@@ -224,10 +224,14 @@ class HeaderMenuRight extends React.Component<
     }
 
     viewUser = () => {
-        const { navigation } = this.props;
+        const { navigation, user } = this.props;
 
         this.toggleOverlay();
-        navigation.navigate('Settings');
+        navigation.navigate('ViewUser', {
+            userInView: {
+                id: user.details.id,
+            },
+        });
     }
 
     render() {
@@ -235,7 +239,7 @@ class HeaderMenuRight extends React.Component<
             isVisible,
             isEmailVerifed,
             notifications,
-            styleName,
+            // styleName,
             theme,
             themeButtons,
             themeModal,
@@ -246,29 +250,40 @@ class HeaderMenuRight extends React.Component<
         const { isModalVisible, isPointsInfoModalVisible } = this.state;
         const currentScreen = this.getCurrentScreen();
         const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
-        let imageStyle = themeMenu.styles.toggleIcon;
+        // let imageStyle = themeMenu.styles.toggleIcon;
 
-        if (styleName === 'light') {
-            imageStyle = themeMenu.styles.toggleIcon;
-        }
-        if (styleName === 'dark') {
-            imageStyle = themeMenu.styles.toggleIconDark;
-        }
-        if (styleName === 'accent') {
-            imageStyle = themeMenu.styles.toggleIconDark;
-        }
+        // if (styleName === 'light') {
+        //     imageStyle = themeMenu.styles.toggleIcon;
+        // }
+        // if (styleName === 'dark') {
+        //     imageStyle = themeMenu.styles.toggleIconDark;
+        // }
+        // if (styleName === 'accent') {
+        //     imageStyle = themeMenu.styles.toggleIconDark;
+        // }
         if (isVisible) {
             return (
                 <>
                     {
                         isEmailVerifed ?
                             <View>
-                                <Button
+                                {/* <Button
                                     icon={
                                         <Image
                                             source={{ uri: getUserImageUri(user, 50) }}
                                             style={imageStyle}
                                             PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary} />}
+                                        />}
+                                    onPress={() => this.toggleOverlay()}
+                                    type="clear"
+                                    containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
+                                /> */}
+                                <Button
+                                    icon={
+                                        <Icon
+                                            name="menu"
+                                            size={30}
+                                            color={theme.colors.primary3}
                                         />}
                                     onPress={() => this.toggleOverlay()}
                                     type="clear"

@@ -1,7 +1,7 @@
 import * as Immutable from 'seamless-immutable';
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { IUser, IUserSettings, UserActionTypes } from '../../types/redux/user';
-import UsersService from '../../services/UsersService';
+import UsersService, { ISocialSyncs } from '../../services/UsersService';
 
 interface ILoginSSOTokens {
     google?: string;
@@ -47,6 +47,32 @@ class UsersActions {
             return { blockedUsers };
         });
 
+    createUpdateSocialSyncs = (socialSyncs: ISocialSyncs) => (dispatch: any) => UsersService
+        .createUpdateSocialSyncs(socialSyncs).then((response) => {
+            dispatch({
+                type: UserActionTypes.UPDATE_USER_IN_VIEW,
+                data: {
+                    socialSyncs: response?.data?.syncs,
+                },
+            });
+
+            return response;
+        });
+
+    get = (userId: string) => (dispatch: any) => UsersService.get(userId).then((response) => {
+        dispatch({
+            type: UserActionTypes.GET_USER,
+            data: response?.data,
+        });
+    });
+
+    updateUserInView = (data: any) => (dispatch: any) => {
+        dispatch({
+            type: UserActionTypes.UPDATE_USER_IN_VIEW,
+            data,
+        });
+    };
+
     login = (data: any, idTokens?: ILoginSSOTokens) => async (dispatch: any) => {
         await UsersService.authenticate(data).then(async (response) => {
             const {
@@ -59,7 +85,30 @@ class UsersActions {
                 phoneNumber,
                 userName,
                 media,
+                settingsBio,
                 settingsThemeName,
+                settingsTherrCoinTotal,
+                settingsAreaCoinTotal,
+                settingsBirthdate,
+                settingsGender,
+                settingsLocale,
+                settingsWebsite,
+                settingsPushTopics,
+                settingsEmailMarketing,
+                settingsEmailBackground,
+                settingsEmailInvites,
+                settingsEmailLikes,
+                settingsEmailMentions,
+                settingsEmailMessages,
+                settingsEmailReminders,
+                settingsPushMarketing,
+                settingsPushBackground,
+                settingsPushInvites,
+                settingsPushLikes,
+                settingsPushMentions,
+                settingsPushMessages,
+                settingsPushReminders,
+                loginCount,
             } = response.data;
             const userData: IUser = Immutable.from({
                 accessLevels,
@@ -68,6 +117,7 @@ class UsersActions {
                 email,
                 firstName,
                 lastName,
+                loginCount,
                 phoneNumber,
                 userName,
                 media,
@@ -76,6 +126,28 @@ class UsersActions {
             const userSettingsData: IUserSettings = Immutable.from({
                 locale: 'en-us',
                 mobileThemeName: settingsThemeName || 'retro',
+                settingsBio,
+                settingsTherrCoinTotal,
+                settingsAreaCoinTotal,
+                settingsBirthdate,
+                settingsGender,
+                settingsLocale,
+                settingsWebsite,
+                settingsPushTopics,
+                settingsEmailMarketing,
+                settingsEmailBackground,
+                settingsEmailInvites,
+                settingsEmailLikes,
+                settingsEmailMentions,
+                settingsEmailMessages,
+                settingsEmailReminders,
+                settingsPushMarketing,
+                settingsPushBackground,
+                settingsPushInvites,
+                settingsPushLikes,
+                settingsPushMentions,
+                settingsPushMessages,
+                settingsPushReminders,
             });
             this.socketIO.io.opts.query = {
                 token: idToken,
@@ -180,6 +252,28 @@ class UsersActions {
             firstName,
             hasAgreedToTerms,
             settingsThemeName,
+            settingsBio,
+            settingsTherrCoinTotal,
+            settingsAreaCoinTotal,
+            settingsBirthdate,
+            settingsGender,
+            settingsLocale,
+            settingsWebsite,
+            settingsPushTopics,
+            settingsEmailMarketing,
+            settingsEmailBackground,
+            settingsEmailInvites,
+            settingsEmailLikes,
+            settingsEmailMentions,
+            settingsEmailMessages,
+            settingsEmailReminders,
+            settingsPushMarketing,
+            settingsPushBackground,
+            settingsPushInvites,
+            settingsPushLikes,
+            settingsPushMentions,
+            settingsPushMessages,
+            settingsPushReminders,
             shouldHideMatureContent,
             lastName,
             userName,
@@ -198,6 +292,28 @@ class UsersActions {
             ...userSettings,
             locale: 'en-us',
             mobileThemeName: settingsThemeName || 'retro',
+            settingsBio,
+            settingsTherrCoinTotal,
+            settingsAreaCoinTotal,
+            settingsBirthdate,
+            settingsGender,
+            settingsLocale,
+            settingsWebsite,
+            settingsPushTopics,
+            settingsEmailMarketing,
+            settingsEmailBackground,
+            settingsEmailInvites,
+            settingsEmailLikes,
+            settingsEmailMentions,
+            settingsEmailMessages,
+            settingsEmailReminders,
+            settingsPushMarketing,
+            settingsPushBackground,
+            settingsPushInvites,
+            settingsPushLikes,
+            settingsPushMentions,
+            settingsPushMessages,
+            settingsPushReminders,
         });
         (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
         (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
@@ -219,6 +335,28 @@ class UsersActions {
                 },
                 settings: {
                     mobileThemeName: settingsThemeName || 'retro',
+                    settingsBio,
+                    settingsTherrCoinTotal,
+                    settingsAreaCoinTotal,
+                    settingsBirthdate,
+                    settingsGender,
+                    settingsLocale,
+                    settingsWebsite,
+                    settingsPushTopics,
+                    settingsEmailMarketing,
+                    settingsEmailBackground,
+                    settingsEmailInvites,
+                    settingsEmailLikes,
+                    settingsEmailMentions,
+                    settingsEmailMessages,
+                    settingsEmailReminders,
+                    settingsPushMarketing,
+                    settingsPushBackground,
+                    settingsPushInvites,
+                    settingsPushLikes,
+                    settingsPushMentions,
+                    settingsPushMessages,
+                    settingsPushReminders,
                 },
             },
         });
@@ -240,6 +378,15 @@ class UsersActions {
                 data,
             });
         });
+
+    updateFirstTimeUI = (hasCompletedFTUI = true) => (dispatch: any) => {
+        dispatch({
+            type: UserActionTypes.UPDATE_USER_FTUI,
+            data: {
+                hasCompletedFTUI,
+            },
+        });
+    };
 }
 
 export default UsersActions;

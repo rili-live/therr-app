@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
+import { therrFontFamily } from '../font';
 import { getTheme } from '../themes';
 
 const buildStyles = (themeName?: IMobileThemeName) => {
@@ -17,7 +18,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: therrTheme.colorVariations.backgroundBlackFade,
+            backgroundColor: therrTheme.colors.textGray,
         },
         container: {
             display: 'flex',
@@ -40,12 +41,13 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontSize: 20,
             fontWeight: '800',
             paddingBottom: 8,
-            fontFamily: 'Lexend-Regular',
+            fontFamily: therrFontFamily,
         },
         text: {
             paddingBottom: 5,
             paddingHorizontal: 8,
             fontSize: 16,
+            fontFamily: therrFontFamily,
         },
     });
 

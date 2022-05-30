@@ -10,6 +10,7 @@ const initialState: IUserState = Immutable.from({
     },
     socketDetails: {},
     isAuthenticated: false,
+    userInView: null,
 });
 
 const getUserReducer = (socketIO) => (state: IUserState = initialState, action: any) => {
@@ -31,6 +32,13 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
         case UserActionTypes.LOGIN:
             return state.setIn(['details'], action.data)
                 .setIn(['isAuthenticated'], true);
+        case UserActionTypes.GET_USER:
+            return state.setIn(['userInView'], action.data);
+        case UserActionTypes.UPDATE_USER_IN_VIEW:
+            return state.setIn(['userInView'], {
+                ...state.userInView,
+                ...action.data,
+            });
         case SocketServerActionTypes.SESSION_CREATED:
         case SocketServerActionTypes.SESSION_UPDATED:
             return state.setIn(['socketDetails', 'session'], (actionData && actionData.data) || {});
@@ -46,6 +54,11 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
                 ...action.data.settings,
             });
         case UserActionTypes.UPDATE_USER_TOUR:
+            return state.setIn(['settings'], {
+                ...state.settings,
+                ...action.data,
+            });
+        case UserActionTypes.UPDATE_USER_FTUI:
             return state.setIn(['settings'], {
                 ...state.settings,
                 ...action.data,

@@ -24,6 +24,7 @@ const UserConnections = {
                 user,
             },
         });
+        return Promise.resolve(response?.data);
     }),
     update: (data: any) => (dispatch: any) => {
         dispatch({

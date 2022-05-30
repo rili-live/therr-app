@@ -9,7 +9,8 @@ interface IConnectionItemProps {
     onConnectionPress: any;
     theme: {
         styles: any;
-    }
+    },
+    translate: any;
 }
 
 const ConnectionItem: React.FunctionComponent<IConnectionItemProps> = ({
@@ -17,6 +18,7 @@ const ConnectionItem: React.FunctionComponent<IConnectionItemProps> = ({
     getConnectionSubtitle,
     onConnectionPress,
     theme,
+    translate,
 }) => {
     return (
         <ListItem
@@ -34,7 +36,7 @@ const ConnectionItem: React.FunctionComponent<IConnectionItemProps> = ({
             />
             <ListItem.Content>
                 <ListItem.Title>{connectionDetails.userName}</ListItem.Title>
-                <ListItem.Subtitle>{getConnectionSubtitle(connectionDetails)}</ListItem.Subtitle>
+                <ListItem.Subtitle>{getConnectionSubtitle(connectionDetails) || translate('pages.userProfile.anonymous')}</ListItem.Subtitle>
             </ListItem.Content>
         </ListItem>
     );

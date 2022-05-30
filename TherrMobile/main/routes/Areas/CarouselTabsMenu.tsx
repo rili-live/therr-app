@@ -61,13 +61,14 @@ export class CarouselTabsMenu extends React.Component<ICarouselTabsMenuProps, IC
         const { onButtonPress, themeAreas } = this.props;
         const areaCarouselTab = {
             ...themeAreas.styles.areaCarouselTab,
-            width: '32%',
+            flex: 1,
+            paddingHorizontal: 2,
         };
         const areaCarouselTabButton = {
             backgroundColor: themeAreas.colors.primary3,
             paddingTop: 2,
             paddingBottom: 3,
-            borderRadius: 6,
+            borderRadius: 0,
         };
 
         return (
@@ -79,13 +80,13 @@ export class CarouselTabsMenu extends React.Component<ICarouselTabsMenuProps, IC
                     title="Social"
                     onPress={() => onButtonPress(CAROUSEL_TABS.SOCIAL)}
                 />
-                <Button
+                {/* <Button
                     buttonStyle={[areaCarouselTabButton, this.getButtonStyles(CAROUSEL_TABS.HIRE)]}
                     containerStyle={areaCarouselTab}
                     titleStyle={themeAreas.styles.areaCarouselTabTitle}
                     title="Hire"
                     onPress={() => onButtonPress(CAROUSEL_TABS.HIRE)}
-                />
+                /> */}
                 <Button
                     buttonStyle={[areaCarouselTabButton, this.getButtonStyles(CAROUSEL_TABS.EVENTS)]}
                     containerStyle={areaCarouselTab}

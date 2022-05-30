@@ -1,11 +1,13 @@
 import React from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { connect } from 'react-redux';
-import { Button } from 'react-native-elements';
+import { Button, Image } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { ButtonMenu, mapStateToProps, mapDispatchToProps } from '.';
+import { getUserImageUri } from '../../utilities/content';
 // import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 
 const hapticFeedbackOptions = {
@@ -82,10 +84,45 @@ class MainButtonMenuAlt extends ButtonMenu {
         return translate('menus.main.buttons.refresh');
     }
 
-    render() {
-        const { onActionButtonPress, isCompact, translate, themeMenu } = this.props;
+    goToMyProfile = () => {
+        const { navigation, user } = this.props;
         const currentScreen = this.getCurrentScreen();
+        if (currentScreen === 'ViewUser') {
+            navigation.setParams({
+                userInView: {
+                    id: user.details.id,
+                },
+            });
+        } else {
+            navigation.navigate('ViewUser', {
+                userInView: {
+                    id: user.details.id,
+                },
+            });
+        }
+    }
+
+    onNavPressDynamic = (viewDestinationName: string) => {
+        const { onActionButtonPress } = this.props;
+        const currentScreen = this.getCurrentScreen();
+
+        if (currentScreen === viewDestinationName && onActionButtonPress)     {
+            onActionButtonPress();
+        } else {
+            this.navTo(viewDestinationName);
+        }
+    }
+
+    render() {
+        const { onActionButtonPress, isCompact, translate, themeMenu, user } = this.props;
+        const currentScreen = this.getCurrentScreen();
+        // const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
         const isConnectViewActive = currentScreen === 'Contacts' || currentScreen === 'ActiveConnections' || currentScreen === 'CreateConnection';
+        let imageStyle = {
+            height: 30,
+            width: 30,
+            borderRadius: 15,
+        };
 
         return (
             <ButtonMenu {...this.props}>
@@ -96,7 +133,11 @@ class MainButtonMenuAlt extends ButtonMenu {
                             ? themeMenu.styles.buttonsActive
                             : themeMenu.styles.buttons
                     }
-                    containerStyle={themeMenu.styles.buttonContainer}
+                    containerStyle={
+                        currentScreen === 'Areas'
+                            ? themeMenu.styles.buttonContainerActive
+                            : themeMenu.styles.buttonContainer
+                    }
                     titleStyle={
                         currentScreen === 'Areas'
                             ? themeMenu.styles.buttonsTitleActive
@@ -113,7 +154,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                             }
                         />
                     }
-                    onPress={() => this.navTo('Areas')}
+                    onPress={() => this.onNavPressDynamic('Areas')}
                 />
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.map') : null}
@@ -122,7 +163,11 @@ class MainButtonMenuAlt extends ButtonMenu {
                             ? themeMenu.styles.buttonsActive
                             : themeMenu.styles.buttons
                     }
-                    containerStyle={themeMenu.styles.buttonContainer}
+                    containerStyle={
+                        currentScreen === 'Map'
+                            ? themeMenu.styles.buttonContainerActive
+                            : themeMenu.styles.buttonContainer
+                    }
                     titleStyle={
                         currentScreen === 'Map'
                             ? themeMenu.styles.buttonsTitleActive
@@ -148,7 +193,11 @@ class MainButtonMenuAlt extends ButtonMenu {
                             ? themeMenu.styles.buttonsActive
                             : themeMenu.styles.buttons
                     }
-                    containerStyle={themeMenu.styles.buttonContainer}
+                    containerStyle={
+                        isConnectViewActive
+                            ? themeMenu.styles.buttonContainerActive
+                            : themeMenu.styles.buttonContainer
+                    }
                     titleStyle={
                         isConnectViewActive
                             ? themeMenu.styles.buttonsTitleActive
@@ -174,7 +223,11 @@ class MainButtonMenuAlt extends ButtonMenu {
                             ? themeMenu.styles.buttonsActive
                             : themeMenu.styles.buttons
                     }
-                    containerStyle={themeMenu.styles.buttonContainer}
+                    containerStyle={
+                        currentScreen === 'Nearby'
+                            ? themeMenu.styles.buttonContainerActive
+                            : themeMenu.styles.buttonContainer
+                    }
                     titleStyle={
                         currentScreen === 'Nearby'
                             ? themeMenu.styles.buttonsTitleActive
@@ -191,50 +244,47 @@ class MainButtonMenuAlt extends ButtonMenu {
                             }
                         />
                     }
-                    onPress={() => this.navTo('Nearby')}
+                    onPress={() => this.onNavPressDynamic('Nearby')}
                 />
-                {/* <Button
-                    title={!isCompact ? translate('menus.main.buttons.account') : null}
-                    buttonStyle={
-                        currentScreen === 'Settings'
-                            ? themeMenu.styles.buttonsActive
-                            : themeMenu.styles.buttons
-                    }
-                    containerStyle={themeMenu.styles.buttonContainer}
-                    titleStyle={
-                        currentScreen === 'Settings'
-                            ? themeMenu.styles.buttonsTitleActive
-                            : themeMenu.styles.buttonsTitle
-                    }
-                    icon={
-                        <FontAwesomeIcon
-                            name="user-cog"
-                            size={20}
-                            style={
-                                currentScreen === 'Settings'
-                                    ? themeMenu.styles.buttonIconActive
-                                    : themeMenu.styles.buttonIcon
-                            }
-                        />
-                    }
-                    onPress={() => this.navTo('Settings')}
-                /> */}
                 {
-                    onActionButtonPress &&
-                    <Button
-                        buttonStyle={themeMenu.styles.buttons}
-                        containerStyle={themeMenu.styles.buttonContainer}
-                        titleStyle={themeMenu.styles.buttonsTitle}
-                        title={this.getActionButtonTitle({ currentScreen, isCompact, translate })}
-                        icon={
-                            <FontAwesomeIcon
-                                name={this.getActionButtonIcon(currentScreen)}
-                                size={20}
-                                style={themeMenu.styles.buttonIcon}
+                    (onActionButtonPress && currentScreen === 'Map') ?
+                        <Button
+                            buttonStyle={themeMenu.styles.buttons}
+                            containerStyle={themeMenu.styles.buttonContainer}
+                            titleStyle={themeMenu.styles.buttonsTitle}
+                            title={this.getActionButtonTitle({ currentScreen, isCompact, translate })}
+                            icon={
+                                <FontAwesomeIcon
+                                    name={this.getActionButtonIcon(currentScreen)}
+                                    size={20}
+                                    style={themeMenu.styles.buttonIcon}
+                                />
+                            }
+                            onPress={onActionButtonPress as any}
+                        /> :
+                        <View style={
+                            currentScreen === 'ViewUser'
+                                ? themeMenu.styles.buttonContainerActive
+                                : themeMenu.styles.buttonContainer
+                        }>
+                            <Button
+                                buttonStyle={themeMenu.styles.buttons}
+                                containerStyle={themeMenu.styles.buttonContainerUserProfile}
+                                titleStyle={themeMenu.styles.buttonsTitle}
+                                icon={
+                                    <Image
+                                        source={{ uri: getUserImageUri(user, 50) }}
+                                        style={imageStyle}
+                                        PlaceholderContent={<ActivityIndicator size="small" color={themeMenu.colors.primary} />}
+                                    />}
+                                onPress={() => this.goToMyProfile()}
+                                title={translate('menus.main.buttons.profile')}
+                                type="clear"
                             />
-                        }
-                        onPress={onActionButtonPress as any}
-                    />
+                            {/* {
+                                hasNotifications && <View style={themeMenu.styles.notificationCircle2} />
+                            } */}
+                        </View>
                 }
             </ButtonMenu>
         );
