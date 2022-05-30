@@ -30,19 +30,26 @@ metadata:
         gzip_comp_level 5;
         gzip_buffers 16 128k;
 
-        if ($host ~ "link.therr.com")
+        if ($host ~ "link.therr.com|go.therr.com")
         {
             rewrite ^ https://therr.com$request_uri permanent;
+        }
+
+        if ($host ~ "www.link.therr.com|www.go.therr.com")
+        {
+            rewrite ^ https://www.therr.com$request_uri permanent;
         }
 spec:
   tls:
   - hosts:
       - therr.com
       - www.therr.com
-      - link.therr.com
-      - www.link.therr.com
       - api.therr.com
       - www.api.therr.com
+      - go.therr.com
+      - www.go.therr.com
+      - link.therr.com
+      - www.link.therr.com
       - websocket-service.therr.com
       - www.websocket-service.therr.com
     secretName: therr-network-secret
@@ -58,26 +65,6 @@ spec:
               number: 7070
         pathType: ImplementationSpecific
   - host: www.therr.com
-    http:
-      paths:
-      - path: /?(.*)
-        backend:
-          service:
-            name: client-cluster-ip-service
-            port:
-              number: 7070
-        pathType: ImplementationSpecific
-  - host: link.therr.com
-    http:
-      paths:
-      - path: /?(.*)
-        backend:
-          service:
-            name: client-cluster-ip-service
-            port:
-              number: 7070
-        pathType: ImplementationSpecific
-  - host: www.link.therr.com
     http:
       paths:
       - path: /?(.*)
@@ -106,6 +93,46 @@ spec:
             name: api-gateway-service-loadbalancer-service
             port:
               number: 7770
+        pathType: ImplementationSpecific
+  - host: go.therr.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: client-cluster-ip-service
+            port:
+              number: 7070
+        pathType: ImplementationSpecific
+  - host: www.go.therr.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: client-cluster-ip-service
+            port:
+              number: 7070
+        pathType: ImplementationSpecific
+  - host: link.therr.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: client-cluster-ip-service
+            port:
+              number: 7070
+        pathType: ImplementationSpecific
+  - host: www.link.therr.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: client-cluster-ip-service
+            port:
+              number: 7070
         pathType: ImplementationSpecific
   - host: websocket-service.therr.com
     http:
