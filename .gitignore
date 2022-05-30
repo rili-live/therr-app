@@ -70,3 +70,4 @@ typings/
 build/
 therr-public-library/therr-react/lib/
 therr-public-library/therr-js-utilities/lib/
+terminals.sh
