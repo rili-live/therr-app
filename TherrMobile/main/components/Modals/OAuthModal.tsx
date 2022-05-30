@@ -144,6 +144,8 @@ export default class OAuthModal extends Component<IOAuthModalProps, IOAuthModalS
                 onMessage={this.onMessage}
                 ref={(webView) => { this.webView = webView; }}
                 injectedJavaScript={patchPostMessageJsCode}
+                scrollEnabled
+                nestedScrollEnabled
             />
         );
     }
