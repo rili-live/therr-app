@@ -30,24 +30,18 @@ metadata:
         gzip_comp_level 5;
         gzip_buffers 16 128k;
 
-        if ($host ~ "link.therr.com|go.therr.com")
-        {
-            location ^~ /.well-known/acme-challenge/ {
-                # Do nothing. nginx will serve response without rewrite
-            }
-            location / {
-                rewrite ^ https://therr.com$request_uri permanent;
-            }
+        location ^~ /.well-known/acme-challenge/ {
+            # Do nothing. nginx will serve response without rewrite
         }
-
-        if ($host ~ "www.link.therr.com|www.go.therr.com")
-        {
-            location ^~ /.well-known/acme-challenge/ {
-                # Do nothing. nginx will serve response without rewrite
-            }
-            location / {
-                rewrite ^ https://www.therr.com$request_uri permanent;
-            }
+        location / {
+          if ($host ~ "link.therr.com|go.therr.com")
+          {
+              rewrite ^ https://therr.com$request_uri permanent;
+          }
+          if ($host ~ "www.link.therr.com|www.go.therr.com")
+          {
+              rewrite ^ https://www.therr.com$request_uri permanent;
+          }
         }
 spec:
   tls:
