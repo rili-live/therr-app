@@ -31,6 +31,7 @@ import MessagesMenu from './nav-menu/MessagesMenu';
 import { socketIO, updateSocketToken } from '../socket-io-middleware';
 import { IMessagingContext } from './footer/MessagingContainer';
 import UsersActions from '../redux/actions/UsersActions';
+import { routeAfterLogin } from '../routes/Login';
 
 let _viewListener: any; // eslint-disable-line no-underscore-dangle
 
@@ -226,7 +227,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         if (!isAuthorized) {
             this.props.history.push('/');
         } else {
-            this.props.history.push('/user/profile');
+            this.props.history.push(routeAfterLogin);
         }
     }
 

@@ -99,6 +99,9 @@
     }
   },
   "pages": {
+    "discovered": {
+      "pageTitle": "Discovered"
+    },
     "chatForum": {
       "pageTitle": "Hosted Chat",
       "welcome": "Welcome!",
