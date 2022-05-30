@@ -546,8 +546,11 @@
     "createProfile": {
       "headerTitle": "Therr",
       "pageHeaderA": "Create your profile",
+      "pageSubHeaderA": "You can change your username at any time",
       "pageHeaderB": "Keep it secure",
-      "pageHeaderC": "Profile Picture"
+      "pageSubHeaderB": "2-Factor-Auth also prevents fake accounts",
+      "pageHeaderC": "Profile Picture",
+      "pageSubHeaderC": "Skipping this step defaults to a random robo-image"
     },
     "cropImage": {
       "headerTitle": "Crop Image"

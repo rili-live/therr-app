@@ -14,6 +14,17 @@ const getTitleStyles = (theme: ITherrTheme): any => ({
     letterSpacing: 2,
 });
 
+const getSubTitleStyles = (theme: ITherrTheme): any => ({
+    fontSize: 18,
+    fontWeight: '600',
+    fontFamily: therrFontFamily,
+    color: theme.colors.textGray,
+    paddingBottom: 20,
+    marginBottom: 4,
+    textAlign: 'left',
+    letterSpacing: 1,
+});
+
 const createProfileGraphicStyles: any = {
     display: 'flex',
     justifyContent: 'center',
@@ -48,14 +59,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             letterSpacing: 1,
         },
         subtitle: {
-            fontSize: 18,
-            fontWeight: '600',
-            fontFamily: therrFontFamily,
-            color: therrTheme.colors.textGray,
-            paddingBottom: 20,
-            marginBottom: 4,
-            textAlign: 'left',
-            letterSpacing: 1,
+            ...getSubTitleStyles(therrTheme),
+        },
+        subtitleCenter: {
+            ...getSubTitleStyles(therrTheme),
+            textAlign: 'center',
         },
         formAGraphic: {
             ...createProfileGraphicStyles,
