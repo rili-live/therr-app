@@ -3,6 +3,7 @@
     padding: rem-calc(24px) 1%;
 }
 
+#bookmark_button,
 #like_button {
     min-width: 2.15rem;
     width: 2.15rem;
@@ -40,9 +41,10 @@
 
 .tile-title {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     padding: 0.5rem;
     margin: 0;
+    flex: 1
 }
 
 .tile-message {
@@ -51,7 +53,9 @@
 }
 
 .tile-button-liked,
-.tile-button-unliked {
+.tile-button-unliked,
+.tile-button-bookmarked,
+.tile-button-unbookmarked {
     
 }
 
@@ -67,6 +71,22 @@
     .inline-svg {
         svg {
             fill: $therr-red;
+        }
+    }
+}
+
+.tile-button-bookmarked {
+    .inline-svg {
+        svg {
+            fill: $therr-black;
+        }
+    }
+}
+
+.tile-button-unbookmarked {
+    .inline-svg {
+        svg {
+            fill: $therr-black;
         }
     }
 }

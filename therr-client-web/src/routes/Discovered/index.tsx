@@ -38,17 +38,12 @@ interface IDiscoveredState {
 // Environment Variables
 // const envVars = globalConfig[process.env.NODE_ENV];
 
-// gives access props.content and props.user, etc
-// maps state of redux
 const mapStateToProps = (state: any) => ({
     content: state.content,
     user: state.user,
     userConnections: state.userConnections,
 });
 
-// redux actions
-// trigger reducers
-// gives access to this.props.searchActiveMoments()
 const mapDispatchToProps = (dispatch: any) => bindActionCreators(
     {
         searchActiveMoments: ContentActions.searchActiveMoments,
@@ -109,28 +104,36 @@ export class DiscoveredComponent extends React.Component<IDiscoveredProps, IDisc
             shouldHideMatureContent: user.details.shouldHideMatureContent,
         });
 
-        return Promise.all([activeMomentsPromise, activeSpacesPromise]).finally(() => {
-            // this.loadTimeoutId = setTimeout(() => {
-            //     this.setState({ isLoading: false });
-            // }, 400);
-        });
+        return Promise.all([activeMomentsPromise, activeSpacesPromise])
+            .catch((err) => {
+                console.log(err);
+            })
+            .finally(() => {
+                // this.loadTimeoutId = setTimeout(() => {
+                //     this.setState({ isLoading: false });
+                // }, 400);
+            });
     }
 
     public render(): JSX.Element | null {
         // render is a function
-        const { content } = this.props;
-
-        // define tiles
-        // console.log(content.activeMoments)
-        // console.log(content.activeSpaces)
-
-        // mimic instagram
+        const {
+            content,
+            user,
+            createOrUpdateMomentReaction,
+            createOrUpdateSpaceReaction,
+        } = this.props;
 
         return (
             <div id="page_discovered">
                 <div id="page_discovered_content">
-                    {content.activeMoments.map((moment) => (
-                        <div className='tile_wrapper' key={moment.id}><Tile moment={moment} /></div>
+                    {content.activeMoments.map((area) => (
+                        <Tile
+                            key={area.id}
+                            area={area}
+                            updateAreaReaction={area.areaType === 'spaces' ? createOrUpdateSpaceReaction : createOrUpdateMomentReaction}
+                            userDetails={user.details}
+                        />
                     ))}
                 </div>
             </div>
