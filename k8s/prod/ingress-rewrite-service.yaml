@@ -41,7 +41,7 @@ spec:
   - host: go.therr.com
     http:
       paths:
-      - path: /(/|$)(.*)
+      - path: (\/|$)(.*)
         backend:
           service:
             name: client-cluster-ip-service
@@ -51,7 +51,7 @@ spec:
   - host: www.go.therr.com
     http:
       paths:
-      - path: /(/|$)(.*)
+      - path: (\/|$)(.*)
         backend:
           service:
             name: client-cluster-ip-service
@@ -61,7 +61,7 @@ spec:
   - host: link.therr.com
     http:
       paths:
-      - path: /(/|$)(.*)
+      - path: (\/|$)(.*)
         backend:
           service:
             name: client-cluster-ip-service
@@ -71,7 +71,7 @@ spec:
   - host: www.link.therr.com
     http:
       paths:
-      - path: /(/|$)(.*)
+      - path: (\/|$)(.*)
         backend:
           service:
             name: client-cluster-ip-service
