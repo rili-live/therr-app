@@ -36,7 +36,7 @@ spec:
       - www.go.therr.com
       - link.therr.com
       - www.link.therr.com
-    secretName: therr-network-secret
+    secretName: therr-network-rewrites-secret
   rules:
   - host: go.therr.com
     http:
