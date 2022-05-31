@@ -8,7 +8,6 @@ spec:
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
-  commonName: '*.therr.com'
   dnsNames:
     - 'therr.com'
     - '*.therr.com'
