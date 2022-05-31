@@ -6,7 +6,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: "nginx"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/rewrite-target: https://therr.com/profile/$1$2
+    nginx.ingress.kubernetes.io/rewrite-target: https://therr.com/profile/$1
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-next-upstream: "error timeout http_502"
@@ -41,7 +41,7 @@ spec:
   - host: go.therr.com
     http:
       paths:
-      - path: (\/|$)(.*)
+      - path: /?(.*)
         backend:
           service:
             name: client-cluster-ip-service
@@ -51,7 +51,7 @@ spec:
   - host: www.go.therr.com
     http:
       paths:
-      - path: (\/|$)(.*)
+      - path: /?(.*)
         backend:
           service:
             name: client-cluster-ip-service
@@ -61,7 +61,7 @@ spec:
   - host: link.therr.com
     http:
       paths:
-      - path: (\/|$)(.*)
+      - path: /?(.*)
         backend:
           service:
             name: client-cluster-ip-service
@@ -71,7 +71,7 @@ spec:
   - host: www.link.therr.com
     http:
       paths:
-      - path: (\/|$)(.*)
+      - path: /?(.*)
         backend:
           service:
             name: client-cluster-ip-service
