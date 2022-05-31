@@ -12,4 +12,5 @@ spec:
   dnsNames:
     - 'therr.com'
     - '*.therr.com'
-  renewBefore: 1440h
+  duration: 2160h # 90d
+  renewBefore: 720h # 30d
