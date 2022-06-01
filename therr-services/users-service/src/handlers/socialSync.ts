@@ -20,7 +20,7 @@ const socialPlatformApis = {
     instagram: {
         getProfile: (params: { userId: string, accessToken: string }) => axios({
             method: 'get',
-            url: `https://graph.instagram.com/${params.userId}?fields=id,username,account_type,media_count,media&access_token=${params.accessToken}`,
+            url: `https://graph.instagram.com/v14.0/${params.userId}?fields=id,username,account_type,media_count,media&access_token=${params.accessToken}`,
             headers: { Authorization: `Bearer ${twitterBearerToken}` },
         }).catch((err) => ({
             data: {
@@ -107,6 +107,15 @@ const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
         Object.keys(socialPlatformApis).forEach((platform, index) => {
             // NOTE: this is specific to twitter response object
             if (responses[index]) {
+                printLogs({
+                    level: 'info',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Debug social sync'],
+                    tracer: beeline,
+                    traceArgs: {
+                        ...responses[index],
+                    },
+                });
                 if (!responses[index].data?.errors) {
                     const profileDetails = extractPlatformProfileDetails(platform as IPlatform, responses[index]?.data);
                     const record: any = {
@@ -115,7 +124,7 @@ const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
                         ...profileDetails,
                     };
 
-                    if (platform === 'instagram' && responses[index]?.data?.media) {
+                    if (platform === 'instagram') {
                         instagramMedia = responses[index]?.data?.media;
                     }
 
