@@ -17,20 +17,24 @@ type IPlatform = 'twitter' | 'instagram' | 'tiktok' | 'youtube';
 const twitterBearerToken = process.env.TWITTER_APP_BEARER_TOKEN;
 
 const socialPlatformApis = {
-    instagram: (params: { userId: string, accessToken: string }) => axios({
-        method: 'get',
-        url: `https://graph.instagram.com/${params.userId}?fields=id,username,account_type&access_token=${params.accessToken}`,
-        headers: { Authorization: `Bearer ${twitterBearerToken}` },
-    }).catch((err) => ({
-        data: {
-            errors: err.response?.data?.error,
-        },
-    })),
-    twitter: (params: { username: string }) => axios({
-        method: 'get',
-        url: `https://api.twitter.com/2/users/by/username/${params.username}?user.fields=created_at,verified,location,url,description,public_metrics`,
-        headers: { Authorization: `Bearer ${twitterBearerToken}` },
-    }),
+    instagram: {
+        getProfile: (params: { userId: string, accessToken: string }) => axios({
+            method: 'get',
+            url: `https://graph.instagram.com/${params.userId}?fields=id,username,account_type,media_count,media&access_token=${params.accessToken}`,
+            headers: { Authorization: `Bearer ${twitterBearerToken}` },
+        }).catch((err) => ({
+            data: {
+                errors: err.response?.data?.error,
+            },
+        })),
+    },
+    twitter: {
+        getProfile: (params: { username: string }) => axios({
+            method: 'get',
+            url: `https://api.twitter.com/2/users/by/username/${params.username}?user.fields=created_at,verified,location,url,description,public_metrics`,
+            headers: { Authorization: `Bearer ${twitterBearerToken}` },
+        }),
+    },
 };
 
 const extractPlatformProfileDetails = (platform: IPlatform, responseData) => {
@@ -49,7 +53,7 @@ const extractPlatformProfileDetails = (platform: IPlatform, responseData) => {
             platformUserId: responseData?.id,
             link: `https://instagram.com/${responseData?.username}`,
             displayName: 'Instagram',
-            followerCount: 1, // TODO: Need to user IG Graph api to get this
+            followerCount: responseData?.media_count || 1, // TODO: Need to user IG Graph api to get this
         };
     }
 
@@ -88,8 +92,8 @@ const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
     const { syncs } = req.body;
 
     Object.keys(socialPlatformApis).forEach((key) => {
-        if (syncs[key]) {
-            socialPlatformPromises.push(socialPlatformApis[key](syncs[key]));
+        if (syncs[key]?.getProfile) {
+            socialPlatformPromises.push(socialPlatformApis[key]?.getProfile(syncs[key]));
         } else {
             socialPlatformPromises.push(Promise.resolve());
         }
@@ -99,6 +103,7 @@ const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
         // TODO: Store response details in socialSyncs table
         const dbRecords: ICreateOrUpdateParams[] = [];
         const errors: any = {};
+        let instagramMedia = {};
         Object.keys(socialPlatformApis).forEach((platform, index) => {
             // NOTE: this is specific to twitter response object
             if (responses[index]) {
@@ -109,6 +114,11 @@ const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
                         platform,
                         ...profileDetails,
                     };
+
+                    if (platform === 'instagram' && responses[index]?.data?.media) {
+                        instagramMedia = responses[index]?.data?.media;
+                    }
+
                     dbRecords.push(record);
                 } else {
                     errors[platform] = responses[index].data?.errors;
@@ -121,7 +131,7 @@ const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
             .then((results) => {
                 const mappedResults = getMappedSocialSyncResults(true, results);
 
-                return res.status(200).send({ syncs: mappedResults, errors });
+                return res.status(200).send({ syncs: mappedResults, errors, instagramMedia });
             });
     }).catch((err) => handleHttpError({
         err,
