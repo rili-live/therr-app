@@ -92,7 +92,7 @@ const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
     const { syncs } = req.body;
 
     Object.keys(socialPlatformApis).forEach((key) => {
-        if (syncs[key]?.getProfile) {
+        if (syncs[key]) {
             socialPlatformPromises.push(socialPlatformApis[key]?.getProfile(syncs[key]));
         } else {
             socialPlatformPromises.push(Promise.resolve());
@@ -107,15 +107,6 @@ const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
         Object.keys(socialPlatformApis).forEach((platform, index) => {
             // NOTE: this is specific to twitter response object
             if (responses[index]) {
-                printLogs({
-                    level: 'info',
-                    messageOrigin: 'API_SERVER',
-                    messages: ['Debug social sync'],
-                    tracer: beeline,
-                    traceArgs: {
-                        ...responses[index],
-                    },
-                });
                 if (!responses[index].data?.errors) {
                     const profileDetails = extractPlatformProfileDetails(platform as IPlatform, responses[index]?.data);
                     const record: any = {
