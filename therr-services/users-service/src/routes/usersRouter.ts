@@ -2,6 +2,7 @@ import * as express from 'express';
 import {
     createUser,
     getUser,
+    getUserByUserName,
     getUsers,
     findUsers,
     updateUser,
@@ -23,6 +24,7 @@ router.post('/', createUser);
 // READ
 router.get('/:id', getUser);
 router.get('/', getUsers);
+router.get('/by-username/:userName', getUserByUserName);
 router.post('/find', findUsers);
 
 // UPDATE

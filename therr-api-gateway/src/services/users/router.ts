@@ -1,5 +1,6 @@
 import express from 'express';
 import * as globalConfig from '../../../../global-config';
+import authenticateOptional from '../../middleware/authenticateOptional';
 import handleServiceRequest from '../../middleware/handleServiceRequest';
 import { validate } from '../../validation';
 import {
@@ -57,6 +58,11 @@ usersServiceRouter.post('/users/:id', handleServiceRequest({
 }));
 
 usersServiceRouter.get('/users/:id', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
+usersServiceRouter.get('/users/by-username/:userName', authenticateOptional, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
 }));
