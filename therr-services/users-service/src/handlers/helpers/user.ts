@@ -11,6 +11,8 @@ import sendSSONewUserEmail from '../../api/email/sendSSONewUserEmail';
 import sendNewUserInviteEmail from '../../api/email/sendNewUserInviteEmail';
 import sendNewUserAdminNotificationEmail from '../../api/email/admin/sendNewUserAdminNotificationEmail';
 import * as globalConfig from '../../../../../global-config';
+import handleHttpError from '../../utilities/handleHttpError';
+import { getMappedSocialSyncResults } from '../socialSync';
 
 const googleOAuth2ClientId = `${globalConfig[process.env.NODE_ENV].googleOAuth2WebClientId}`;
 const googleOAuth2Client = new OAuth2Client(googleOAuth2ClientId);
@@ -29,6 +31,122 @@ interface IUserByInviteDetails {
     fromEmail: string;
     toEmail: string;
 }
+
+interface IGetUserHelperArgs {
+    isAuthorized: boolean;
+    requestingUserId?: string;
+    res: any;
+    targetUserParams: {
+        id?: string;
+        userName?: string;
+    };
+}
+
+/**
+ * True if the user profile setting is public or the requesting user is friends with the target user profile
+ * @returns boolean
+ */
+const isUserInfoPublic = (user, connection) => connection?.isMe || user.settingsIsProfilePublic
+    || (connection?.requestStatus === 'complete' && !connection?.isConnectionBroken);
+
+const getUserProfileResponse = (userResult, friendship, connectionCount: number, socialSyncs) => {
+    // Only select specific properties should be returned
+    const sanitizedUserResult: any = {
+        id: userResult.id,
+        userName: userResult.userName,
+        firstName: userResult.firstName,
+        lastName: userResult.lastName,
+        isBusinessAccount: userResult.isBusinessAccount,
+        isBlocked: userResult.isBlocked,
+        createdAt: userResult.createdAt,
+        updatedAt: userResult.updatedAt,
+        settingsBio: userResult.settingsBio,
+        settingsWebsite: userResult.settingsWebsite,
+        settingsIsAccountSoftDeleted: userResult.settingsIsAccountSoftDeleted,
+    };
+
+    // Public User Profile
+    if (isUserInfoPublic(userResult, friendship)) {
+        return {
+            ...sanitizedUserResult,
+
+            // More details
+            isNotConnected: !friendship,
+            isPendingConnection: friendship ? (friendship.requestStatus === 'denied' || friendship.requestStatus === 'pending') : false,
+            connectionCount,
+            socialSyncs,
+        };
+    }
+
+    // Private User Profile
+    return {
+        id: sanitizedUserResult.id,
+        userName: sanitizedUserResult.userName,
+        firstName: sanitizedUserResult.settingsIsProfilePublic ? sanitizedUserResult.firstName : '',
+        lastName: sanitizedUserResult.settingsIsProfilePublic ? sanitizedUserResult.lastName : '',
+        settingsBio: sanitizedUserResult.settingsBio,
+        settingsIsProfilePublic: sanitizedUserResult.settingsIsProfilePublic,
+
+        // More details
+        isNotConnected: true,
+        isPendingConnection: friendship ? (friendship.requestStatus === 'denied' || friendship.requestStatus === 'pending') : false,
+        connectionCount,
+        socialSyncs,
+    };
+};
+
+const getUserFriendship = (isMe, targetUserId, requestingUserId?) => {
+    if (!requestingUserId) {
+        return Promise.resolve(undefined);
+    }
+
+    if (isMe) {
+        return Promise.resolve({ isMe: true });
+    }
+
+    return Store.userConnections.getUserConnections({
+        acceptingUserId: targetUserId,
+        requestingUserId,
+    }, true).then((response) => response[0]);
+};
+
+const getUserHelper = ({
+    isAuthorized,
+    requestingUserId,
+    targetUserParams,
+    res,
+}: IGetUserHelperArgs): Promise<any> => Store.users.getUsers({ ...targetUserParams, settingsIsAccountSoftDeleted: false })
+    .then((results) => {
+        if (!results.length) {
+            return handleHttpError({
+                res,
+                message: `No user found with the provided params: ${targetUserParams.toString()}`,
+                statusCode: 404,
+            });
+        }
+
+        const userResult = results[0];
+        const isMe = Boolean(isAuthorized && requestingUserId && requestingUserId === userResult.id);
+
+        const userPromises: Promise<any>[] = [];
+        const countPromise = Store.userConnections.countUserConnections(userResult.id);
+        const syncsPromise = Store.socialSyncs.getSyncs(userResult.id).then((syncResults) => getMappedSocialSyncResults(isMe, syncResults));
+        const friendPromise = getUserFriendship(isMe, userResult.id, requestingUserId);
+
+        userPromises.push(friendPromise, countPromise, syncsPromise);
+
+        return Promise.all(userPromises).then(([friendship, countResults, syncs]) => {
+            const user = results[0];
+            delete user.password;
+            delete user.oneTimePassword;
+            delete user.verificationCodes;
+
+            // TODO: Only send particular information (based on user privacy settings)
+            const userResponse = getUserProfileResponse(user, friendship, parseInt(countResults[0]?.count || 0, 10), syncs);
+            return res.status(200).send(userResponse);
+        });
+    })
+    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
 const isUserProfileIncomplete = (updateArgs, existingUser?) => {
     if (!existingUser) {
@@ -248,6 +366,7 @@ const validateCredentials = (userSearchResults, {
 };
 
 export {
+    getUserHelper,
     isUserProfileIncomplete,
     createUserHelper,
     validateCredentials,
