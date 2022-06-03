@@ -58,6 +58,7 @@ const getUserProfileResponse = (userResult, friendship, connectionCount: number,
         lastName: userResult.lastName,
         isBusinessAccount: userResult.isBusinessAccount,
         isBlocked: userResult.isBlocked,
+        media: userResult.media, // TODO: Hide alt text if it includes first/lastname
         createdAt: userResult.createdAt,
         updatedAt: userResult.updatedAt,
         settingsBio: userResult.settingsBio,
