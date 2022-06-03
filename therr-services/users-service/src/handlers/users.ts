@@ -10,7 +10,7 @@ import generateOneTimePassword from '../utilities/generateOneTimePassword';
 import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
-import { createUserHelper, isUserProfileIncomplete } from './helpers/user';
+import { createUserHelper, getUserHelper, isUserProfileIncomplete } from './helpers/user';
 import { getMappedSocialSyncResults } from './socialSync';
 
 // CREATE
@@ -34,72 +34,47 @@ const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(
     }));
 
 // READ
-const getUser = (req, res) => Store.users.getUsers({ id: req.params.id, settingsIsAccountSoftDeleted: false })
-    .then((results) => {
-        const userId = req.headers['x-userid'];
+const getUser = (req, res) => {
+    const userId = req.headers['x-userid'];
 
-        if (!results.length) {
-            return handleHttpError({
-                res,
-                message: `No user found with id, ${req.params.id}.`,
-                statusCode: 404,
-            });
-        }
+    return getUserHelper({
+        isAuthorized: true,
+        requestingUserId: userId,
+        targetUserParams: {
+            id: req.params.id,
+        },
+        res,
+    });
+};
 
-        const isMe = userId === req.params.id;
-        const userPromises: Promise<any>[] = [];
-        const countPromise = Store.userConnections.countUserConnections(req.params.id);
-        const syncsPromise = Store.socialSyncs.getSyncs(req.params.id).then((syncResults) => getMappedSocialSyncResults(userId === req.params.id, syncResults));
-        const friendPromise = isMe ? Promise.resolve([{ isMe }]) : Store.userConnections.getUserConnections({
-            acceptingUserId: req.params.id,
-            requestingUserId: userId,
-        }, true);
+// READ
+/**
+ * IMPORTANT - This is a public endpoint without optional authorization
+ * Consider any and all implications of data that is returned
+ */
+const getUserByUserName = (req, res) => {
+    const authHeader = req.headers.authorization; // undefined if user is not logged in
+    const userId = req.headers['x-userid']; // undefined if user is not logged in
+    const { userName } = req.params;
+    // NOTE: authorization may be removed in future since these services are in a secure subnet
+    const isAuthorized = authHeader || userId;
 
-        userPromises.push(friendPromise, countPromise, syncsPromise);
-
-        return Promise.all(userPromises).then(([connections, countResults, syncs]) => {
-            const user = results[0];
-            delete user.password;
-            delete user.oneTimePassword;
-
-            // TODO: Only send particular information (based on user settings)
-            if (connections[0]?.isMe || (connections[0]?.requestStatus === 'complete' && !connections[0]?.isConnectionBroken)) {
-                const sanitizedUser = {
-                    ...user,
-
-                    // More details
-                    followerCount: parseInt(countResults[0]?.count || 0, 10),
-                    socialSyncs: syncs,
-                };
-                return res.status(200).send(sanitizedUser);
-            }
-
-            const privateUser = {
-                id: user.id,
-                userName: user.userName,
-                isNotConnected: true,
-                isPendingConnection: connections.length ? (connections[0].requestStatus === 'denied' || connections[0].requestStatus === 'pending') : false,
-                firstName: user.settingsIsProfilePublic ? user.firstName : '',
-                lastName: user.settingsIsProfilePublic ? user.lastName : '',
-                settingsBio: user.settingsBio,
-                settingsIsProfilePublic: user.settingsIsProfilePublic,
-
-                // More details
-                followerCount: parseInt(countResults[0]?.count || 0, 10),
-                socialSyncs: syncs,
-            };
-
-            // Do not return private info if users are not connected
-            return res.status(200).send(privateUser);
-        });
-    })
-    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+    return getUserHelper({
+        isAuthorized,
+        requestingUserId: userId,
+        targetUserParams: {
+            userName,
+        },
+        res,
+    });
+};
 
 const getUsers: RequestHandler = (req: any, res: any) => Store.users.getUsers()
     .then((results) => {
         res.status(200).send(results.map((user) => {
             delete user.password; // eslint-disable-line no-param-reassign
             delete user.oneTimePassword; // eslint-disable-line no-param-reassign
+            delete user.verificationCodes; // eslint-disable-line no-param-reassign
             return user;
         }));
     })
@@ -110,6 +85,7 @@ const findUsers: RequestHandler = (req: any, res: any) => Store.users.findUsers(
         res.status(200).send(results.map((user) => {
             delete user.password; // eslint-disable-line no-param-reassign
             delete user.oneTimePassword; // eslint-disable-line no-param-reassign
+            delete user.verificationCodes; // eslint-disable-line no-param-reassign
             return user;
         }));
     })
@@ -191,6 +167,8 @@ const updateUser = (req, res) => {
                         const user = results[0];
                         delete user.password;
                         delete user.oneTimePassword;
+                        delete user.verificationCodes;
+
                         // TODO: Investigate security issue
                         // Lockdown updateUser
                         return res.status(202).send({ ...user, id: userId }); // Precaution, always return correct request userID to prevent polution
@@ -285,6 +263,8 @@ const updateUserCoins = (req, res) => {
                         const user = results[0];
                         delete user.password;
                         delete user.oneTimePassword;
+                        delete user.verificationCodes;
+
                         // TODO: Investigate security issue
                         // Lockdown updateUser
                         return res.status(202).send({ ...user, id: userId }); // Precaution, always return correct request userID to prevent polution
@@ -596,6 +576,7 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
 export {
     createUser,
     getUser,
+    getUserByUserName,
     getUsers,
     findUsers,
     updateUser,
