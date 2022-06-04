@@ -1,10 +1,13 @@
 import connection, { IConnection } from './connection';
+import ExternalMediaIntegrationsStore from './ExternalMediaIntegrationsStore';
 import MediaStore from './MediaStore';
 import MomentsStore from './MomentsStore';
 import SpacesStore from './SpacesStore';
 
 class Store {
     db: IConnection;
+
+    externalMediaIntegrations: ExternalMediaIntegrationsStore;
 
     media: MediaStore;
 
@@ -14,6 +17,8 @@ class Store {
 
     constructor(dbConnection) {
         this.db = dbConnection;
+
+        this.externalMediaIntegrations = new ExternalMediaIntegrationsStore(this.db);
 
         this.media = new MediaStore(this.db);
 

@@ -1,10 +1,14 @@
 import BottomSheet from '../../components/Modals/BottomSheet';
 import React, { useState } from 'react';
-import { ActivityIndicator, Text, View, Pressable } from 'react-native';
+import { ActivityIndicator, Dimensions, Text, View, Pressable } from 'react-native';
 import { Button, Image } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getUserImageUri } from '../../utilities/content';
 import SocialIconLink from './SocialIconLink';
+import { ScrollView } from 'react-native-gesture-handler';
+
+const { width: viewportWidth } = Dimensions.get('window');
+const imageWidth = viewportWidth / 3;
 
 interface IActionItem {
     id: string;
@@ -217,6 +221,7 @@ export default ({
     onMessageUser,
     onReportUser,
     onProfilePicturePress,
+    theme,
     themeForms,
     themeModal,
     themeUser,
@@ -349,6 +354,49 @@ export default ({
                     }
                 />
             </View>
+            <ScrollView
+                contentInsetAdjustmentBehavior="automatic"
+                style={theme.styles.scrollViewFull}
+            >
+                <View style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
+                    {
+                        !!Object.keys(userInView.instagramMedia || {}).length ?
+                            Object.keys(userInView.instagramMedia).map((key) => {
+                                const media = userInView.instagramMedia[key];
+                                return (
+                                    <Image
+                                        key={key}
+                                        source={{ uri: media.media_url }}
+                                        style={{
+                                            width: imageWidth,
+                                            height: imageWidth,
+                                        }}
+                                        containerStyle={{}}
+                                        PlaceholderContent={<ActivityIndicator size="large" color={themeUser.colors.primary}/>}
+                                        transition={false}
+                                    />
+                                );
+                            }) :
+                            <View
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    height: 300,
+                                }}>
+                                <Text
+                                    style={{
+                                        fontSize: 20,
+                                        paddingHorizontal: 24,
+                                        textAlign: 'center',
+                                    }}
+                                >
+                                    {translate('user.profile.text.noMedia')}
+                                </Text>
+                            </View>
+                    }
+                </View>
+            </ScrollView>
             <BottomSheet
                 isVisible={isMoreBottomSheetVisible}
                 onRequestClose={() => onToggleMoreBottomSheet(!isMoreBottomSheetVisible)}

@@ -839,6 +839,9 @@
       "labels": {
         "noBioYet": "This user has not updated their bio yet.",
         "profileIsPublicName": "Profile is Private"
+      },
+      "text": {
+        "noMedia": "No media to display. Users can sync their socials to showcase their best content creations."
       }
     }
   }
