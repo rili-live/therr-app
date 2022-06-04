@@ -23,6 +23,14 @@ const Maps = {
             });
         }
     }),
+    createIntegratedMoment: (platform: string, accessToken: string, externalMediaId: string) => (dispatch: any) => MapsService
+        .createIntegratedMoment(platform, accessToken, externalMediaId).then((response: any) => {
+            console.log(response.data);
+            dispatch({
+                type: MapActionTypes.MOMENT_CREATED,
+                data: response.data,
+            });
+        }),
     updateMoment: (id: string, data: any, isCompletedDraft: false) => (dispatch: any) => MapsService
         .updateMoment(id, data).then((response: any) => {
             if (isCompletedDraft) {

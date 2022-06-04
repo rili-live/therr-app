@@ -11,7 +11,6 @@ import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
 import { createUserHelper, getUserHelper, isUserProfileIncomplete } from './helpers/user';
-import { getMappedSocialSyncResults } from './socialSync';
 
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(req.body)

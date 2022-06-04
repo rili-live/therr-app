@@ -1,6 +1,7 @@
 import * as express from 'express';
 import {
     createMoment,
+    createIntegratedMoment,
     updateMoment,
     getMomentDetails,
     searchMoments,
@@ -15,6 +16,7 @@ const router = express.Router();
 
 // WRITE
 router.post('/', createMoment);
+router.post('/integrated', createIntegratedMoment);
 router.put('/:momentId', updateMoment);
 
 // SEARCH

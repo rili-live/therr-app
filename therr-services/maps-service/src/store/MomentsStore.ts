@@ -32,7 +32,7 @@ export interface ICreateMomentParams {
     maxProximity?: number;
     latitude: number;
     longitude: number;
-    radius?: string;
+    radius?: number;
     polygonCoords?: string;
 }
 
@@ -301,7 +301,7 @@ export default class MomentsStore {
                 isPublic: !!params.isPublic,
                 isDraft: !!params.isDraft,
                 message: params.message,
-                notificationMsg,
+                notificationMsg: notificationMsg.replace(/#/g, ''),
                 mediaIds: mediaIds || params.mediaIds || '',
                 mentionsIds: params.mentionsIds || '',
                 hashTags: params.hashTags || '',
