@@ -46,8 +46,14 @@ const createOrUpdateMultiSpaceReactions = (req, res) => {
     const params = { ...req.body };
     delete params.spaceIds;
 
-    return Store.spaceReactions.get({}, spaceIds).then((existing) => {
-        const existingReactions = existing.map((reaction) => [userId, reaction.spaceId]);
+    return Store.spaceReactions.get({
+        userId,
+    }, spaceIds).then((existing) => {
+        const existingMapped = {};
+        const existingReactions = existing.map((reaction) => {
+            existingMapped[reaction.spaceId] = reaction;
+            return [userId, reaction.spaceId];
+        });
         let updatedReactions;
         if (existing?.length) {
             Store.spaceReactions.update({}, {
@@ -61,7 +67,7 @@ const createOrUpdateMultiSpaceReactions = (req, res) => {
         }
 
         const createArray = spaceIds
-            .filter((id) => !existingReactions.find((reaction) => reaction[1] === id))
+            .filter((id) => !existingMapped[id])
             .map((spaceId) => ({
                 userId,
                 spaceId,
