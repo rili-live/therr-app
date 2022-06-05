@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 // import { Picker as ReactPicker } from '@react-native-picker/picker';
 import { IUserState } from 'therr-react/types';
+import { MapActions } from 'therr-react/redux/actions';
 // import { Content } from 'therr-js-utilities/constants';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 // import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -34,6 +35,7 @@ const INSTAGRAM_APP_ID = '8038208602859743';
 
 interface ISocialSyncDispatchProps {
     createUpdateSocialSyncs: Function;
+    createIntegratedMoment: Function;
     updateUser: Function;
 }
 
@@ -61,6 +63,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     createUpdateSocialSyncs: UsersActions.createUpdateSocialSyncs,
+    createIntegratedMoment: MapActions.createIntegratedMoment,
     updateUser: UsersActions.update,
 }, dispatch);
 
@@ -123,12 +126,20 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
     }
 
     onSubmit = (syncs) => {
-        const { createUpdateSocialSyncs, navigation } = this.props;
+        const { createUpdateSocialSyncs, createIntegratedMoment, navigation } = this.props;
 
         createUpdateSocialSyncs({
             syncs,
         }).then((response) => {
-            console.log(response.data?.errors);
+            if (response?.data?.instagramMedia) {
+                const promises: Promise<any>[] = [];
+                response?.data?.instagramMedia.data.forEach((el) => {
+                    promises.push(createIntegratedMoment('instagram', syncs.instagram.accessToken, el.id));
+                });
+                Promise.all(promises).catch((err) => {
+                    console.log(err);
+                });
+            }
             const errorsByProvider = response.data?.errors || {};
             if (Object.keys(errorsByProvider).length) {
                 const hasMatch = Object.keys(errorsByProvider).some((provider) => {

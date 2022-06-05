@@ -1,14 +1,18 @@
 import axios from 'axios';
-import path from 'path';
 import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
-import { ErrorCodes } from 'therr-js-utilities/constants';
+import { Content, ErrorCodes } from 'therr-js-utilities/constants';
 import { RequestHandler } from 'express';
-import { storage } from '../api/aws';
 import * as globalConfig from '../../../../global-config';
 import getReactions from '../utilities/getReactions';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
+import {
+    getSignedUrlResponse,
+    getSupportedIntegrations,
+    guessCategoryFromText,
+    streamUploadFile,
+} from './helpers';
 
 // CREATE
 const createMoment = (req, res) => {
@@ -36,6 +40,145 @@ const createMoment = (req, res) => {
             ...moment,
             reaction,
         })))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
+};
+
+const createIntegratedMoment = (req, res) => {
+    const authorization = req.headers.authorization;
+    const requestId = req.headers['x-requestid'];
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const userId = req.headers['x-userid'];
+
+    const {
+        accessToken,
+        mediaId,
+        platform,
+    } = req.body;
+
+    const externalIntegrationEndpoint = getSupportedIntegrations(platform, {
+        accessToken,
+        mediaId,
+    });
+
+    if (!externalIntegrationEndpoint.length) {
+        return handleHttpError({
+            res,
+            message: `No supported integration for provided request body, ${JSON.stringify({
+                accessToken,
+                mediaId,
+                platform,
+            })}.`,
+            statusCode: 404,
+        });
+    }
+
+    let media: any = {};
+
+    return axios({
+        method: 'get',
+        // eslint-disable-next-line max-len
+        url: externalIntegrationEndpoint,
+    })
+        .then((response) => {
+            media = response?.data;
+
+            return Store.externalMediaIntegrations.get({
+                fromUserId: userId,
+                platform: 'instagram',
+            });
+        })
+        .then((integrations) => {
+            const maxIntegrationsp = 50;
+            if (integrations.length > maxIntegrationsp) {
+                return handleHttpError({
+                    res,
+                    message: `Each user is limited to ${maxIntegrationsp} external media integrations per platform`,
+                    statusCode: 400,
+                });
+            }
+
+            if (integrations.some((integration) => integration.externalId === media.id)) {
+                return handleHttpError({
+                    res,
+                    message: 'This is a duplicate integration',
+                    statusCode: 400,
+                });
+            }
+
+            const fileExtension = 'jpeg';
+            const storageFilename = `content/${((media.caption || 'no_caption')
+                .substring(0, 20))
+                .replace(/[^a-zA-Z0-9]/g, '_')}.${fileExtension}`;
+            const mediaFileUrl = media.media_type === 'IMAGE' ? media.media_url : media.thumbnail_url;
+            // TODO: Abstract and add nudity filter sightengine.com
+            const maybeFileUploadPromise = mediaFileUrl.length
+                ? streamUploadFile(mediaFileUrl, storageFilename, {
+                    requestId,
+                    userId,
+                })
+                : Promise.resolve('');
+
+            return maybeFileUploadPromise
+                .then((mediaUrl: string | void) => {
+                    let hashTags = (media.caption?.match(/#[a-z]+/gi) || []);
+                    hashTags = hashTags.map((tag) => tag.replace('#', '')).toString();
+                    const momentArgs: any = {
+                        areaType: 'moments',
+                        category: guessCategoryFromText(media.caption),
+                        fromUserId: userId,
+                        locale,
+                        isPublic: true,
+                        media: [],
+                        message: media.caption,
+                        hashTags,
+                        latitude: 37.2585862, // default since IG does not allow geotag
+                        // this will require manual update after creation
+                        longitude: -104.6498689, // default since IG does not allow geotag
+                        // this will require manual update after creation
+                        radius: 200,
+                    };
+
+                    if (mediaUrl) {
+                        momentArgs.media[0] = {
+                            path: mediaUrl,
+                            type: Content.mediaTypes.USER_IMAGE_PUBLIC,
+                        };
+                    }
+
+                    return Store.moments.createMoment({
+                        ...momentArgs,
+                        locale,
+                        fromUserId: userId,
+                    });
+                })
+                .then(([moment]) => Promise.all([
+                    Promise.resolve(moment),
+                    axios({ // Create companion reaction for user's own moment
+                        method: 'post',
+                        url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/moment-reactions/${moment.id}`,
+                        headers: {
+                            authorization,
+                            'x-localecode': locale,
+                            'x-userid': userId,
+                        },
+                        data: {
+                            userHasActivated: true,
+                        },
+                    }),
+                    Store.externalMediaIntegrations.create({
+                        fromUserId: userId,
+                        momentId: moment.id,
+                        externalId: media.id,
+                        platform: 'instagram',
+                        permalink: media.permalink,
+                    }),
+                ]))
+                .then(([moment, { data: reaction }, externalIntegration]) => res.status(201).send({
+                    ...moment,
+                    reaction,
+                    externalIntegration,
+                }));
+        })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
 
@@ -244,42 +387,10 @@ const findMoments: RequestHandler = async (req: any, res: any) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
 
-const getSignedUrl = (req, res, bucket) => {
-    const requestId = req.headers['x-requestid'];
-    const userId = req.headers['x-userid'];
-
-    const {
-        action,
-        filename,
-    } = req.query;
-
-    const options: any = {
-        version: 'v4',
-        action,
-        expires: Date.now() + 10 * 60 * 1000, // 10 minutes
-    };
-
-    // TODO: Improve
-    const parsedFileName = path.parse(filename);
-    const directory = parsedFileName.dir ? `${parsedFileName.dir}/` : '';
-
-    const filePath = `${userId}/${directory}${parsedFileName.name}_${requestId}${parsedFileName.ext}`;
-
-    return storage
-        .bucket(bucket)
-        .file(filePath)
-        .getSignedUrl(options)
-        .then((url) => res.status(201).send({
-            url,
-            path: `${filePath}`,
-        }))
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
-};
-
 // TODO: Use Env variables
-const getSignedUrlPrivateBucket = (req, res) => getSignedUrl(req, res, process.env.BUCKET_PRIVATE_USER_DATA);
+const getSignedUrlPrivateBucket = (req, res) => getSignedUrlResponse(req, res, process.env.BUCKET_PRIVATE_USER_DATA);
 
-const getSignedUrlPublicBucket = (req, res) => getSignedUrl(req, res, process.env.BUCKET_PUBLIC_USER_DATA);
+const getSignedUrlPublicBucket = (req, res) => getSignedUrlResponse(req, res, process.env.BUCKET_PUBLIC_USER_DATA);
 
 // DELETE
 const deleteMoments = (req, res) => {
@@ -296,6 +407,7 @@ const deleteMoments = (req, res) => {
 
 export {
     createMoment,
+    createIntegratedMoment,
     updateMoment,
     getMomentDetails,
     searchMoments,

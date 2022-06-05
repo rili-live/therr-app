@@ -201,7 +201,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         // Use public method for public spaces
         return signImageUrl(isPublic, {
             action: 'write',
-            filename: `content/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g,'_')}.${fileExtension}`,
+            filename: `content/${(notificationMsg || message.substring(0, 20)).replace(/[^a-zA-Z0-9]/g, '_')}.${fileExtension}`,
         }).then((response) => {
             const signedUrl = response?.data?.url && response?.data?.url[0];
             createArgs.media = [{}];

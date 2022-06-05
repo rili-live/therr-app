@@ -12,8 +12,8 @@ import {
     deleteAreasValidation,
 } from './validation/areas';
 import {
+    createIntegratedMomentValidation,
     getMomentDetailsValidation,
-
 } from './validation/moments';
 import {
     getSpaceDetailsValidation,
@@ -24,6 +24,11 @@ const mapsServiceRouter = express.Router();
 
 // Moments
 mapsServiceRouter.post('/moments', createAreaValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
+
+mapsServiceRouter.post('/moments/integrated', createIntegratedMomentValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));

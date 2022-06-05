@@ -248,6 +248,7 @@ class ViewUser extends React.Component<
                                 onConnectionRequest={this.onConnectionRequest}
                                 onMessageUser={this.onMessageUser}
                                 onReportUser={this.onReportUser}
+                                theme={this.theme}
                                 themeForms={this.themeForms}
                                 themeModal={this.themeModal}
                                 themeUser={this.themeUser}

@@ -104,6 +104,16 @@ class MapsService {
     // Moments
     createMoment = (data: ICreateAreaBody) => this.createArea('moments', data)
 
+    createIntegratedMoment = (platform: string, accessToken: string, mediaId: string) => axios({
+        method: 'post',
+        url: '/maps-service/moments/integrated',
+        data: {
+            accessToken,
+            mediaId,
+            platform,
+        },
+    })
+
     updateMoment = (id: string, data: ICreateAreaBody) => this.updateArea('moments', id, data)
 
     getMomentDetails = (id: number, args: IGetAreaDetailsArgs) => this.getAreaDetails('moments', id, args)

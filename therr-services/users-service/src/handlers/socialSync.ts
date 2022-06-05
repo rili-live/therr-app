@@ -9,6 +9,7 @@ import beeline from '../beeline';
 // import printLogs from 'therr-js-utilities/print-logs';
 // import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
+import sendSocialSyncAdminNotificationEmail from '../api/email/admin/sendSocialSyncAdminNotificationEmail';
 import Store from '../store';
 import { ICreateOrUpdateParams } from '../store/SocialSyncsStore';
 
@@ -93,6 +94,15 @@ const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
 
     Object.keys(socialPlatformApis).forEach((key) => {
         if (syncs[key]) {
+            if (key === 'instagram') {
+            // Fire and forget: Notify admin of social sync for manual geotagging
+                sendSocialSyncAdminNotificationEmail({
+                    subject: 'New IG Social Sync',
+                    toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+                }, {
+                    userId,
+                });
+            }
             socialPlatformPromises.push(socialPlatformApis[key]?.getProfile(syncs[key]));
         } else {
             socialPlatformPromises.push(Promise.resolve());
