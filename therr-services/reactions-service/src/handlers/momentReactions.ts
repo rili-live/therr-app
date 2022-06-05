@@ -77,8 +77,14 @@ const createOrUpdateMultiMomentReactions = (req, res) => {
     const params = { ...req.body };
     delete params.momentIds;
 
-    return Store.momentReactions.get({}, momentIds).then((existing) => {
-        const existingReactions = existing.map((reaction) => [userId, reaction.momentId]);
+    return Store.momentReactions.get({
+        userId,
+    }, momentIds).then((existing) => {
+        const existingMapped = {};
+        const existingReactions = existing.map((reaction) => {
+            existingMapped[reaction.momentId] = reaction;
+            return [userId, reaction.momentId];
+        });
         let updatedReactions;
         if (existing?.length) {
             Store.momentReactions.update({}, {
@@ -92,7 +98,7 @@ const createOrUpdateMultiMomentReactions = (req, res) => {
         }
 
         const createArray = momentIds
-            .filter((id) => !existingReactions.find((reaction) => reaction[1] === id))
+            .filter((id) => !existingMapped[id])
             .map((momentId) => ({
                 userId,
                 momentId,
