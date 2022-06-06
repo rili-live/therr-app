@@ -15,6 +15,7 @@ export interface IContentState extends Immutable.ImmutableObject<any> {
 }
 
 export enum ContentActionTypes {
+    FETCH_MEDIA = 'FETCH_MEDIA',
     INSERT_ACTIVE_MOMENTS = 'INSERT_ACTIVE_MOMENTS',
     REMOVE_ACTIVE_MOMENTS = 'REMOVE_ACTIVE_MOMENTS',
     SEARCH_ACTIVE_MOMENTS = 'SEARCH_ACTIVE_MOMENTS',

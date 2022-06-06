@@ -4,12 +4,14 @@ import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import {
+    MapActions,
     UserConnectionsActions,
 } from 'therr-react/redux/actions';
 import {
     UsersService,
 } from 'therr-react/services';
 import {
+    IContentState,
     IUserState,
     IUserConnectionsState,
 } from 'therr-react/types';
@@ -18,6 +20,7 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
+import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildModalStyles } from '../../styles/modal';
 import { buildStyles as buildUserStyles } from '../../styles/user-content/user-display';
@@ -29,6 +32,7 @@ import ConfirmModal from '../../components/Modals/ConfirmModal';
 
 interface IViewUserDispatchProps {
     blockUser: Function;
+    getIntegratedMoments: Function;
     getUser: Function;
     updateUserInView: Function;
     createUserConnection: Function
@@ -36,6 +40,7 @@ interface IViewUserDispatchProps {
 }
 
 interface IStoreProps extends IViewUserDispatchProps {
+    content: IContentState;
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
@@ -53,12 +58,14 @@ interface IViewUserState {
 }
 
 const mapStateToProps = (state) => ({
+    content: state.content,
     notifications: state.notifications,
     user: state.user,
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     blockUser: UsersActions.block,
+    getIntegratedMoments: MapActions.getIntegratedMoments,
     getUser: UsersActions.get,
     updateUserInView: UsersActions.updateUserInView,
     createUserConnection: UserConnectionsActions.create,
@@ -74,6 +81,7 @@ class ViewUser extends React.Component<
     private theme = buildStyles();
     private themeConfirmModal = buildConfirmModalStyles();
     private themeButtons = buildMenuStyles();
+    private themeLoader = buildLoaderStyles();
     private themeMenu = buildMenuStyles();
     private themeModal = buildModalStyles();
     private themeForms = buildFormStyles();
@@ -90,6 +98,7 @@ class ViewUser extends React.Component<
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
+        this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeModal = buildModalStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
@@ -116,13 +125,15 @@ class ViewUser extends React.Component<
     }
 
     fetchUser = () => {
-        const { getUser, route, user } = this.props;
+        const { getUser, getIntegratedMoments, route, user } = this.props;
         const { userInView } = route.params;
+
 
         getUser(userInView.id).then(() => {
             this.props.navigation.setOptions({
                 title: user.userInView?.userName,
             });
+            getIntegratedMoments(userInView.id);
         }).finally(() => {
             this.setState({
                 isLoading: false,
@@ -231,7 +242,7 @@ class ViewUser extends React.Component<
     }
 
     render() {
-        const { navigation, user } = this.props;
+        const { content, getIntegratedMoments, navigation, user } = this.props;
         const { activeConfirmModal, confirmModalText, isLoading } = this.state;
 
         return (
@@ -240,8 +251,10 @@ class ViewUser extends React.Component<
                 <SafeAreaView  style={this.theme.styles.safeAreaView}>
                     {
                         isLoading ?
-                            <LottieLoader id="therr-black-rolling" theme={this.theme} /> :
+                            <LottieLoader id="therr-black-rolling" theme={this.themeLoader} /> :
                             <UserDisplay
+                                handleRefresh={() => user.userInView ? getIntegratedMoments(user.userInView.id) : null}
+                                media={content.media}
                                 navigation={navigation}
                                 onProfilePicturePress={this.onProfilePicturePress}
                                 onBlockUser={this.onBlockUser}
