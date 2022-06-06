@@ -3,17 +3,17 @@ import path from 'path';
 import handleHttpError from '../../utilities/handleHttpError';
 import { storage } from '../../api/aws';
 
-const guessCategoryFromText = (text: string) => {
-    if (text.includes('food')) {
+const guessCategoryFromText = (text?: string) => {
+    if (text?.includes('food')) {
         return 'food';
     }
-    if (text.includes('music')) {
+    if (text?.includes('music')) {
         return 'music';
     }
-    if (text.includes('art')) {
+    if (text?.includes('art')) {
         return 'art';
     }
-    if (text.includes('nature')) {
+    if (text?.includes('nature')) {
         return 'nature';
     }
     return 'uncategorized';
