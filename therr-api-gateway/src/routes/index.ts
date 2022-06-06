@@ -16,7 +16,7 @@ router.use(genericRateLimiter);
 
 // READ
 router.use('/user-files', serviceRateLimiter(300), filesRouter);
-router.use('/maps-service', serviceRateLimiter(), mapsServiceRouter);
+router.use('/maps-service', serviceRateLimiter(400), mapsServiceRouter);
 router.use('/messages-service', serviceRateLimiter(), messagesServiceRouter);
 router.use('/push-notifications-service', serviceRateLimiter(), pushNotificationsServiceRouter);
 router.use('/reactions-service', serviceRateLimiter(), reactionsServiceRouter);

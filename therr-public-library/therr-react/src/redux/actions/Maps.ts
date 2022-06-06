@@ -1,4 +1,5 @@
 import { MapActionTypes } from '../../types/redux/maps';
+import { UserActionTypes } from '../../types/redux/user';
 import MapsService, { IPlacesAutoCompleteArgs, ISearchAreasArgs } from '../../services/MapsService';
 import { ContentActionTypes } from '../../types';
 
@@ -25,7 +26,6 @@ const Maps = {
     }),
     createIntegratedMoment: (platform: string, accessToken: string, externalMediaId: string) => (dispatch: any) => MapsService
         .createIntegratedMoment(platform, accessToken, externalMediaId).then((response: any) => {
-            console.log(response.data);
             dispatch({
                 type: MapActionTypes.MOMENT_CREATED,
                 data: response.data,
@@ -57,6 +57,20 @@ const Maps = {
             dispatch({
                 type: MapActionTypes.GET_MOMENT_DETAILS,
                 data: response.data,
+            });
+        }),
+    getIntegratedMoments: (userId: string) => (dispatch: any) => MapsService.getIntegratedMoments(userId)
+        .then((response: any) => {
+            // TODO: Dispatch something
+            dispatch({
+                type: ContentActionTypes.FETCH_MEDIA,
+                data: response.data.media,
+            });
+            dispatch({
+                type: UserActionTypes.UPDATE_USER_IN_VIEW,
+                data: {
+                    externalIntegrations: response.data.externalIntegrations,
+                },
             });
         }),
     searchMoments: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService

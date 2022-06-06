@@ -152,6 +152,8 @@ const content = (state: IContentState = initialState, action: any) => {
             return state.setIn(['myDrafts'], modifiedDraftMoments);
 
         // Other
+        case ContentActionTypes.FETCH_MEDIA:
+            return state.setIn(['media'], { ...state.media, ...action.data });
         case ContentActionTypes.SET_ACTIVE_AREAS_FILTERS:
             return state.setIn(['activeAreasFilters'], { ...action.data });
         case MapActionTypes.GET_MOMENT_DETAILS:

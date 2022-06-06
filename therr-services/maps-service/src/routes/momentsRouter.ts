@@ -4,6 +4,7 @@ import {
     createIntegratedMoment,
     updateMoment,
     getMomentDetails,
+    getIntegratedMoments,
     searchMoments,
     searchMyMoments,
     findMoments,
@@ -20,6 +21,7 @@ router.post('/integrated', createIntegratedMoment);
 router.put('/:momentId', updateMoment);
 
 // SEARCH
+router.get('/integrated/:userId', getIntegratedMoments);
 router.post('/:momentId/details', getMomentDetails);
 router.post('/search', searchMoments);
 router.post('/search/me', searchMyMoments);

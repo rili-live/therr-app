@@ -118,6 +118,11 @@ class MapsService {
 
     getMomentDetails = (id: number, args: IGetAreaDetailsArgs) => this.getAreaDetails('moments', id, args)
 
+    getIntegratedMoments = (userId: string) => axios({
+        method: 'get',
+        url: `/maps-service/moments/integrated/${userId}`,
+    });
+
     searchMoments = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('moments', query, data)
 
     searchMyMoments = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchMyAreas('moments', query, data)

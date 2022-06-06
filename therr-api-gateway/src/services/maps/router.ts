@@ -38,6 +38,11 @@ mapsServiceRouter.put('/moments/:momentId', updateAreaValidation, validate, hand
     method: 'put',
 }));
 
+mapsServiceRouter.get('/moments/integrated/:userId', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'get',
+}));
+
 mapsServiceRouter.post('/moments/:momentId/details', getMomentDetailsValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
