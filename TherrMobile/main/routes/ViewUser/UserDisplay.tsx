@@ -1,6 +1,6 @@
 import BottomSheet from '../../components/Modals/BottomSheet';
 import React, { useState } from 'react';
-import { ActivityIndicator, Dimensions, Text, View, Pressable } from 'react-native';
+import { ActivityIndicator, Dimensions, Text, View, Pressable, RefreshControl } from 'react-native';
 import { Button, Image } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getUserImageUri } from '../../utilities/content';
@@ -215,6 +215,8 @@ const FullName = ({
 };
 
 export default ({
+    handleRefresh,
+    media,
     navigation,
     onBlockUser,
     onConnectionRequest,
@@ -229,10 +231,16 @@ export default ({
     user,
     userInView,
 }) => {
+    const [refreshing, setRefreshing] = React.useState(false);
+    const [isMoreBottomSheetVisible, toggleMoreBottomSheet] = useState(false);
+
     // eslint-disable-next-line eqeqeq
     const isMe = user.details?.id == userInView.id;
     let actionsList = getActionableOptions(isMe, userInView);
-    const [isMoreBottomSheetVisible, toggleMoreBottomSheet] = useState(false);
+    const onRefresh = React.useCallback(() => {
+        setRefreshing(true);
+        handleRefresh().finally(() => setRefreshing(false));
+    }, [handleRefresh]);
     const onToggleMoreBottomSheet = (isVisible: boolean) => {
         if (actionsList.length) {
             toggleMoreBottomSheet(isVisible);
@@ -357,16 +365,20 @@ export default ({
             <ScrollView
                 contentInsetAdjustmentBehavior="automatic"
                 style={theme.styles.scrollViewFull}
+                refreshControl={<RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                />}
             >
                 <View style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
                     {
-                        !!Object.keys(userInView.instagramMedia || {}).length ?
-                            Object.keys(userInView.instagramMedia).map((key) => {
-                                const media = userInView.instagramMedia[key];
+                        !!userInView.externalIntegrations?.length ?
+                            userInView.externalIntegrations.map((integration) => {
+                                const mediaUrl = media[integration.moment?.media && integration.moment?.media[0]?.id];
                                 return (
                                     <Image
-                                        key={key}
-                                        source={{ uri: media.media_url }}
+                                        key={integration.id}
+                                        source={{ uri: mediaUrl }}
                                         style={{
                                             width: imageWidth,
                                             height: imageWidth,

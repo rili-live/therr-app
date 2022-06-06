@@ -14,6 +14,8 @@ import {
     streamUploadFile,
 } from './helpers';
 
+const MAX_INTERGRATIONS_PER_USER = 50;
+
 // CREATE
 const createMoment = (req, res) => {
     const authorization = req.headers.authorization;
@@ -88,11 +90,10 @@ const createIntegratedMoment = (req, res) => {
             });
         })
         .then((integrations) => {
-            const maxIntegrationsp = 50;
-            if (integrations.length > maxIntegrationsp) {
+            if (integrations.length > MAX_INTERGRATIONS_PER_USER) {
                 return handleHttpError({
                     res,
-                    message: `Each user is limited to ${maxIntegrationsp} external media integrations per platform`,
+                    message: `Each user is limited to ${MAX_INTERGRATIONS_PER_USER} external media integrations per platform`,
                     statusCode: 400,
                 });
             }
@@ -258,6 +259,34 @@ const getMomentDetails = (req, res) => {
         }).catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
 
+// NOTE: This should remain a non-public endpoint
+const getIntegratedMoments: RequestHandler = async (req: any, res: any) => {
+    const { userId } = req.params;
+
+    return Store.externalMediaIntegrations.get({
+        fromUserId: userId,
+    })
+        .then((integrations) => {
+            const integrationsMap: any = {};
+            const momentIds = integrations.map((integration) => {
+                integrationsMap[integration.momentId] = integration;
+                return integration.momentId;
+            });
+            return Store.moments.findMoments(momentIds, {
+                limit: MAX_INTERGRATIONS_PER_USER,
+            }, {
+                withMedia: true,
+            }).then(({ moments, media }) => {
+                const externalIntegrations = moments.map((moment) => ({
+                    ...integrationsMap[moment.id],
+                    moment,
+                })).sort((a, b) => a.priority - b.priority);
+                return res.status(200).send({ externalIntegrations, moments, media });
+            });
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
+};
+
 const searchMoments: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
     const {
@@ -410,6 +439,7 @@ export {
     createIntegratedMoment,
     updateMoment,
     getMomentDetails,
+    getIntegratedMoments,
     searchMoments,
     searchMyMoments,
     findMoments,
