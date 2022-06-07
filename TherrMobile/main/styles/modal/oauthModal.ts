@@ -46,7 +46,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         webView: {
             flex: 1,
-            width: '98%',
+            width: '100%',
             overflow: 'scroll',
         },
         text: {

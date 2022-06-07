@@ -4,6 +4,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { Button }  from 'react-native-elements';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import uuid from 'react-native-uuid';
 // import { Picker as ReactPicker } from '@react-native-picker/picker';
 import { IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
@@ -17,25 +18,27 @@ import UsersActions from '../../redux/actions/UsersActions';
 // import Alert from '../components/Alert';
 import translator from '../../services/translator';
 import { buildStyles } from '../../styles';
-import { buildStyles as buildButtonStyles } from '../../styles/buttons';
+import { buildStyles as buildModalStyles } from '../../styles/modal';
 import { buildStyles as buildOAuthModalStyles } from '../../styles/modal/oauthModal';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
-import { buildStyles as buildAlertStyles } from '../../styles/alerts';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildSettingsFormStyles } from '../../styles/forms/socialSyncForm';
 import { buildStyles as buildUserStyles } from '../../styles/user-content/user-display';
 import SquareInput from '../../components/Input/Square';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import WrapperModal from '../../components/Modals/WrapperModal';
 import OAuthModal from '../../components/Modals/OAuthModal';
 import SocialIconLink from './SocialIconLink';
 // import UserImage from '../components/UserContent/UserImage';
 // import { getUserImageUri, signImageUrl } from '../utilities/content';
 
-const INSTAGRAM_APP_ID = '8038208602859743';
+const INSTAGRAM_BASIC_DISPLAY_APP_ID = '8038208602859743';
+const INSTAGRAM_GRAPH_API_APP_ID = '538207404468066';
 
 interface ISocialSyncDispatchProps {
     createUpdateSocialSyncs: Function;
     createIntegratedMoment: Function;
+    getIntegratedMoments: Function;
     updateUser: Function;
 }
 
@@ -50,11 +53,14 @@ export interface ISocialSyncProps extends IStoreProps {
 }
 
 interface ISocialSyncState {
-    errorMsg: string;
-    successMsg: string;
+    activeProvider: 'instagram' | 'facebook';
     inputs: any;
     isOAuthModalVisible: boolean;
+    isAccountTypeModalVisible: boolean;
     isSubmitting: boolean;
+    oAuthAppId: string;
+    oAuthScopes: any;
+    requestId: string;
 }
 
 const mapStateToProps = (state) => ({
@@ -64,6 +70,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     createUpdateSocialSyncs: UsersActions.createUpdateSocialSyncs,
     createIntegratedMoment: MapActions.createIntegratedMoment,
+    getIntegratedMoments: MapActions.getIntegratedMoments,
     updateUser: UsersActions.update,
 }, dispatch);
 
@@ -71,10 +78,9 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
     private scrollViewRef;
     private translate: Function;
     private theme = buildStyles();
-    private themeButtons = buildButtonStyles();
     private themeMenu = buildMenuStyles();
+    private themeModal = buildModalStyles();
     private themeOAuthModal = buildOAuthModalStyles();
-    private themeAlerts = buildAlertStyles();
     private themeForms = buildFormStyles();
     private themeSocialSyncForm = buildSettingsFormStyles();
     private themeUser = buildUserStyles();
@@ -85,13 +91,16 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
         const userInView = props.route?.params;
 
         this.state = {
-            errorMsg: '',
-            successMsg: '',
+            activeProvider: 'instagram',
             inputs: {
                 twitterHandle: userInView?.socialSyncs?.twitter?.platformUsername,
             },
             isOAuthModalVisible: false,
+            isAccountTypeModalVisible: false,
             isSubmitting: false,
+            oAuthAppId: INSTAGRAM_BASIC_DISPLAY_APP_ID,
+            oAuthScopes: ['user_profile', 'user_media'],
+            requestId: uuid.v4().toString(),
         };
 
         this.reloadTheme();
@@ -108,7 +117,6 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
     isFormDisabled() {
         const { isSubmitting } = this.state;
 
-        // TODO: Add message to show when passwords not equal
         return isSubmitting;
     }
 
@@ -116,31 +124,28 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
         const themeName = this.props.user.settings?.mobileThemeName;
 
         this.theme = buildStyles(themeName);
-        this.themeButtons = buildButtonStyles(themeName);
         this.themeMenu = buildMenuStyles(themeName);
+        this.themeModal = buildModalStyles(themeName);
         this.themeOAuthModal = buildOAuthModalStyles(themeName);
-        this.themeAlerts = buildAlertStyles(themeName);
         this.themeForms = buildFormStyles(themeName);
         this.themeSocialSyncForm = buildSettingsFormStyles(themeName);
         this.themeUser = buildUserStyles(themeName);
     }
 
     onSubmit = (syncs) => {
-        const { createUpdateSocialSyncs, createIntegratedMoment, navigation } = this.props;
+        const { createUpdateSocialSyncs, createIntegratedMoment, getIntegratedMoments, navigation, route } = this.props;
+        const userInView = route?.params;
+
+        console.log(syncs);
 
         createUpdateSocialSyncs({
             syncs,
         }).then((response) => {
-            if (response?.data?.instagramMedia) {
-                const promises: Promise<any>[] = [];
-                response?.data?.instagramMedia.data.forEach((el) => {
-                    promises.push(createIntegratedMoment('instagram', syncs.instagram.accessToken, el.id));
-                });
-                Promise.all(promises).catch((err) => {
-                    console.log(err);
-                });
-            }
+            console.log(response?.data);
+            let isOnHideComplete = false;
+            let isPromiseComplete = false;
             const errorsByProvider = response.data?.errors || {};
+
             if (Object.keys(errorsByProvider).length) {
                 const hasMatch = Object.keys(errorsByProvider).some((provider) => {
                     if (syncs.instagram && provider === 'instagram' && errorsByProvider[provider].type === 'IGApiException') {
@@ -168,6 +173,27 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                     });
                 }
             } else if (Object.keys(syncs).length) {
+                if (response?.data?.instagramMedia) {
+                    const promises: Promise<any>[] = [];
+                    response?.data?.instagramMedia.data?.forEach((el) => {
+                        promises.push(createIntegratedMoment('instagram', syncs.instagram.accessToken, el.id));
+                    });
+                    Promise.all(promises)
+                        .then(() => {
+                            getIntegratedMoments(userInView);
+                        })
+                        .catch((err) => {
+                            console.log(err);
+                        })
+                        .finally(() => {
+                            if (isOnHideComplete) {
+                                navigation.goBack();
+                            } else {
+                                isPromiseComplete = true;
+                            }
+                        });
+                }
+
                 Toast.show({
                     type: 'success',
                     text1: this.translate('forms.socialSync.successTitles.success'),
@@ -175,7 +201,13 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                         providers: Object.keys(syncs).join(', '),
                     }),
                     visibilityTime: 2000,
-                    onHide: () => navigation.goBack(),
+                    onHide: () => {
+                        if (isPromiseComplete) {
+                            navigation.goBack();
+                        } else {
+                            isOnHideComplete = true;
+                        }
+                    },
                 });
             }
         }).catch((err) => {
@@ -208,21 +240,41 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                 ...inputs,
                 ...newInputChanges,
             },
-            errorMsg: '',
-            successMsg: '',
             isSubmitting: false,
         });
     };
 
-    onSocialLogin = () => {
+    onSocialLogin = (provider: 'instagram' | 'twitter') => {
+        if (provider === 'instagram') {
+            this.setState({
+                isAccountTypeModalVisible: true,
+            });
+        } else {
+            this.setState({
+                isOAuthModalVisible: true,
+            });
+        }
+    }
+
+    onCloseAccountTypeModal = () => {
         this.setState({
-            isOAuthModalVisible: true,
+            isAccountTypeModalVisible: false,
         });
     }
 
     onCloseOAuthModal = () => {
         this.setState({
             isOAuthModalVisible: false,
+        });
+    }
+
+    onSelectAccountType = (type: 'personal' | 'business') => {
+        this.onCloseAccountTypeModal();
+        this.setState({
+            activeProvider: type === 'personal' ? 'instagram' : 'facebook',
+            isOAuthModalVisible: true,
+            oAuthAppId: type === 'personal' ? INSTAGRAM_BASIC_DISPLAY_APP_ID : INSTAGRAM_GRAPH_API_APP_ID,
+            oAuthScopes: type === 'personal' ? ['user_profile', 'user_media'] : ['instagram_basic'],
         });
     }
 
@@ -246,10 +298,17 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
         });
     }
 
-
     render() {
         const { navigation, route, user } = this.props;
-        const { isOAuthModalVisible, inputs } = this.state;
+        const {
+            activeProvider,
+            isAccountTypeModalVisible,
+            isOAuthModalVisible,
+            inputs,
+            oAuthAppId,
+            oAuthScopes,
+            requestId,
+        } = this.state;
         const pageHeaderSocials = this.translate('pages.socialSync.pageHeaderSyncList');
         const descriptionText = this.translate('pages.socialSync.description');
         const userInView = route?.params;
@@ -298,7 +357,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                     //     />
                                     // }
                                     raised={false}
-                                    onPress={this.onSocialLogin}
+                                    onPress={() => this.onSocialLogin('instagram')}
                                 />
                             </View>
                             <View style={this.themeSocialSyncForm.styles.socialLinkContainer}>
@@ -364,20 +423,53 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                     />
                 </View>
                 <OAuthModal
-                    appId={INSTAGRAM_APP_ID}
+                    appId={oAuthAppId}
                     onRequestClose={this.onCloseOAuthModal}
                     onLoginSuccess={this.onOAuthLoginSuccess}
                     onLoginFailure={this.onOAuthLoginFailed}
                     // Note: This must match the redirect url on the backend
-                    backendRedirectUrl="https://api.therr.com/v1/users-service/social-sync/oauth2-instagram"
+                    backendRedirectUrl={`https://api.therr.com/v1/users-service/social-sync/oauth2-${activeProvider}`}
                     frontendRedirectUrl="https://therr.com"
                     responseType="code"
-                    scopes={['user_profile', 'user_media']}
+                    scopes={oAuthScopes}
                     isVisible={isOAuthModalVisible}
                     language="en"
+                    provider={activeProvider}
                     incognito={false}
                     themeModal={this.themeOAuthModal}
+                    requestId={requestId}
                 />
+                <WrapperModal
+                    isVisible={isAccountTypeModalVisible}
+                    onRequestClose={this.onCloseAccountTypeModal}
+                    themeModal={this.themeModal}
+                >
+                    <View style={this.themeModal.styles.header}>
+                        <Text style={this.themeModal.styles.headerText}>{this.translate('pages.socialSync.modals.accountTypeModalTitle')}</Text>
+                    </View>
+                    <View style={this.themeModal.styles.buttonsWrapper}>
+                        <Button
+                            containerStyle={[this.themeForms.styles.buttonContainer, { width: '100%' }]}
+                            buttonStyle={this.themeForms.styles.button}
+                            titleStyle={this.themeForms.styles.buttonTitle}
+                            title={this.translate(
+                                'pages.socialSync.buttons.personalAccount'
+                            )}
+                            onPress={() => this.onSelectAccountType('personal')}
+                            raised={true}
+                        />
+                        <Button
+                            containerStyle={[this.themeForms.styles.buttonContainer, { width: '100%' }]}
+                            buttonStyle={this.themeForms.styles.button}
+                            titleStyle={this.themeForms.styles.buttonTitle}
+                            title={this.translate(
+                                'pages.socialSync.buttons.businessAccount'
+                            )}
+                            onPress={() => this.onSelectAccountType('business')}
+                            raised={true}
+                        />
+                    </View>
+                </WrapperModal>
                 <MainButtonMenu
                     navigation={navigation}
                     translate={this.translate}

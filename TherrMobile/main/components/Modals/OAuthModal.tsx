@@ -24,6 +24,8 @@ const patchPostMessageJsCode = `(${String(function () {
 
 interface IOAuthModalProps {
     appId: string;
+    provider: 'instagram' | 'facebook';
+    requestId: string;
     onRequestClose: () => void;
     onLoginSuccess: (results: any) => any;
     onLoginFailure: (results: any) => any;
@@ -61,16 +63,16 @@ export default class OAuthModal extends Component<IOAuthModalProps, IOAuthModalS
         const {
             key,
         } = this.state;
-        if (
-            webViewState.title === 'Instagram' &&
-            webViewState.url === 'https://www.instagram.com/'
-        ) {
+        console.log(webViewState);
+        if ((webViewState.title === 'Instagram' && webViewState.url === 'https://www.instagram.com/')) {
             this.setState({
                 key: key + 1,
             });
         }
+
         if (url && url.startsWith(frontendRedirectUrl)) {
             this.webView.stopLoading();
+            console.log('ZACK_DEBUG', url);
             const urlWithNoHash = url.split('#_');
             const cleanUrl = urlWithNoHash[0] || url;
             const queryStringSplit = cleanUrl.split('?');
@@ -113,7 +115,9 @@ export default class OAuthModal extends Component<IOAuthModalProps, IOAuthModalS
         const {
             appId,
             backendRedirectUrl,
+            provider,
             scopes,
+            requestId,
             responseType,
             language = 'en',
             incognito = false,
@@ -123,8 +127,14 @@ export default class OAuthModal extends Component<IOAuthModalProps, IOAuthModalS
             key,
         } = this.state;
 
+        // Instagram
         // eslint-disable-next-line max-len
-        let ig_uri = `https://api.instagram.com/oauth/authorize/?client_id=${appId}&redirect_uri=${backendRedirectUrl}&response_type=${responseType}&scope=${scopes.join(',')}`;
+        let authUrl = `https://api.instagram.com/oauth/authorize/?client_id=${appId}&redirect_uri=${backendRedirectUrl}&response_type=${responseType}&scope=${scopes.join(',')}&state=${requestId}`;
+
+        if (provider === 'facebook') {
+            // eslint-disable-next-line max-len
+            authUrl = `https://www.facebook.com/v14.0/dialog/oauth?client_id=${appId}&redirect_uri=${backendRedirectUrl}&response_type=${responseType}&scope=${scopes.join(',')}&state=${requestId}`;
+        }
 
         return (
             <WebView
@@ -133,7 +143,7 @@ export default class OAuthModal extends Component<IOAuthModalProps, IOAuthModalS
                 incognito={incognito}
                 containerStyle={themeModal.styles.webView}
                 source={{
-                    uri: ig_uri,
+                    uri: authUrl,
                     headers: {
                         'Accept-Language': `${language}`,
                     },
@@ -146,6 +156,7 @@ export default class OAuthModal extends Component<IOAuthModalProps, IOAuthModalS
                 injectedJavaScript={patchPostMessageJsCode}
                 scrollEnabled
                 nestedScrollEnabled
+                // originWhitelist={['about:srcdoc']}
             />
         );
     }
