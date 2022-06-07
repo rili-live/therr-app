@@ -168,6 +168,85 @@ const getSocialSyncs: RequestHandler = (req: any, res: any) => {
         }));
 };
 
+const facebookAppAuth: RequestHandler = (req: any, res: any) => {
+    const appId = process.env.FACEBOOK_APP_ID || '';
+    const appSecret = process.env.FACEBOOK_APP_SECRET || '';
+    const redirectUrl = 'https://api.therr.com/v1/users-service/social-sync/oauth2-facebook';
+    const frontendRedirectUrl = 'https://therr.com';
+    const {
+        code,
+        error,
+        error_reason,
+        error_description,
+    } = req.query;
+
+    if (error) {
+        printLogs({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: ['Failed FB Authorization Request'],
+            tracer: beeline,
+            traceArgs: {
+                error,
+                error_reason,
+                error_description,
+            },
+        });
+        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error, error_reason, error_description })}` });
+    }
+
+    const userAuthCodeSplit = (code || '').split('#_');
+    const userAuthCode = userAuthCodeSplit[0] || code || '';
+    const form = new FormData();
+    form.append('client_id', appId);
+    form.append('client_secret', appSecret);
+    form.append('grant_type', 'authorization_code');
+    form.append('redirect_uri', redirectUrl); // Required for FB validation of matching url
+    form.append('response_type', 'code');
+    form.append('code', userAuthCode);
+
+    // Success response should redirect back to this same endpoint
+    return axios({
+        method: 'post',
+        url: 'https://graph.facebook.com/v14.0/oauth/access_token',
+        headers: form.getHeaders(),
+        data: form,
+    }).then((response) => {
+        const {
+            access_token,
+            error_message,
+            error_type,
+            user_id,
+        } = response.data;
+
+        if (error_type) {
+            return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error_type, error_message })}` });
+        }
+        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ access_token, user_id })}` });
+    }).catch((errResponse) => {
+        const {
+            error_message,
+            error_type,
+        } = errResponse?.response?.data || {};
+
+        printLogs({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: ['Failed FB OAuth Request'],
+            tracer: beeline,
+            traceArgs: {
+                error_message,
+                error_type,
+                ...errResponse?.response?.data,
+                theHell1: errResponse?.toString(),
+                theHell2: errResponse?.response?.toString(),
+            },
+        });
+
+        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error_type, error_message, handled_error: true })}` });
+    });
+};
+
 const instagramAppAuth: RequestHandler = (req: any, res: any) => {
     const appId = process.env.INSTAGRAM_APP_ID || '';
     const appSecret = process.env.INSTAGRAM_APP_SECRET || '';
@@ -250,5 +329,6 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
 export {
     getSocialSyncs,
     createUpdateSocialSyncs,
+    facebookAppAuth,
     instagramAppAuth,
 };
