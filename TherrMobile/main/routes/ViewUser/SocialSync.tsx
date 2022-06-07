@@ -133,10 +133,9 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
     }
 
     onSubmit = (syncs) => {
+        const { activeProvider } = this.state;
         const { createUpdateSocialSyncs, createIntegratedMoment, getIntegratedMoments, navigation, route } = this.props;
         const userInView = route?.params;
-
-        console.log(syncs);
 
         createUpdateSocialSyncs({
             syncs,
@@ -176,7 +175,12 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                 if (response?.data?.instagramMedia) {
                     const promises: Promise<any>[] = [];
                     response?.data?.instagramMedia.data?.forEach((el) => {
-                        promises.push(createIntegratedMoment('instagram', syncs.instagram.accessToken, el.id));
+                        if (activeProvider === 'instagram') {
+                            promises.push(createIntegratedMoment('instagram', syncs.instagram.accessToken, el.id));
+                        }
+                        if (activeProvider === 'facebook') {
+                            promises.push(createIntegratedMoment('facebook-instagram', syncs['facebook-instagram'].accessToken, el.id));
+                        }
                     });
                     Promise.all(promises)
                         .then(() => {
@@ -214,6 +218,10 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
             console.log(err);
         });
     }
+
+    onSaveFacebook = (syncs) => {
+        this.onSubmit(syncs);
+    };
 
     onSaveInstagram = (syncs) => {
         this.onSubmit(syncs);
@@ -274,18 +282,32 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
             activeProvider: type === 'personal' ? 'instagram' : 'facebook',
             isOAuthModalVisible: true,
             oAuthAppId: type === 'personal' ? INSTAGRAM_BASIC_DISPLAY_APP_ID : INSTAGRAM_GRAPH_API_APP_ID,
-            oAuthScopes: type === 'personal' ? ['user_profile', 'user_media'] : ['instagram_basic'],
+            oAuthScopes: type === 'personal'
+                ? ['user_profile', 'user_media']
+                : ['public_profile', 'instagram_basic', 'pages_show_list', 'pages_read_engagement'],
         });
     }
 
     onOAuthLoginSuccess = (results) => {
+        const { activeProvider } = this.state;
         this.onCloseOAuthModal();
-        this.onSaveInstagram({
-            instagram: {
-                accessToken: results.access_token,
-                userId: results.user_id,
-            },
-        });
+        if (activeProvider === 'instagram') {
+            return this.onSaveInstagram({
+                instagram: {
+                    accessToken: results.access_token,
+                    userId: results.user_id,
+                },
+            });
+        }
+
+        if (activeProvider === 'facebook') {
+            return this.onSaveFacebook({
+                'facebook-instagram': {
+                    accessToken: results.access_token,
+                    userId: results.user_id,
+                },
+            });
+        }
     }
 
     onOAuthLoginFailed = (response) => {
