@@ -63,7 +63,6 @@ export default class OAuthModal extends Component<IOAuthModalProps, IOAuthModalS
         const {
             key,
         } = this.state;
-        console.log(webViewState);
         if ((webViewState.title === 'Instagram' && webViewState.url === 'https://www.instagram.com/')) {
             this.setState({
                 key: key + 1,
@@ -72,7 +71,6 @@ export default class OAuthModal extends Component<IOAuthModalProps, IOAuthModalS
 
         if (url && url.startsWith(frontendRedirectUrl)) {
             this.webView.stopLoading();
-            console.log('ZACK_DEBUG', url);
             const urlWithNoHash = url.split('#_');
             const cleanUrl = urlWithNoHash[0] || url;
             const queryStringSplit = cleanUrl.split('?');
