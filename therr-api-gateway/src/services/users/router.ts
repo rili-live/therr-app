@@ -168,6 +168,10 @@ usersServiceRouter.get('/social-sync/:userId', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
 }));
+usersServiceRouter.get('/social-sync/oauth2-facebook', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
 usersServiceRouter.get('/social-sync/oauth2-instagram', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',

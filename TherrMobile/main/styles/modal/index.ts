@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
+import { therrFontFamily } from '../font';
 import { getTheme } from '../themes';
 
 const buildStyles = (themeName?: IMobileThemeName) => {
@@ -10,8 +11,19 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             flex: 1,
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'flex-end',
-            // backgroundColor: 'rgba(0,0,0,0.25)',
+            justifyContent: 'center',
+            backgroundColor: therrTheme.colors.textGray,
+        },
+        container: {
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            maxHeight: '50%',
+            width: '75%',
+            backgroundColor: therrTheme.colors.backgroundGray,
+            elevation: 5,
+            borderRadius: 12,
         },
         bottomSheetContainer: {
             display: 'flex',
@@ -26,6 +38,26 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             // borderTopRightRadius: 15,
             // borderTopLeftRadius: 15,
             elevation: 5,
+        },
+        header: {
+            width: '100%',
+            paddingVertical: 14,
+            paddingHorizontal: 10,
+        },
+        headerText: {
+            fontSize: 22,
+            fontWeight: '600',
+            textAlign: 'center',
+            fontFamily: therrFontFamily,
+        },
+        buttonsWrapper: {
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            paddingHorizontal: 20,
+            marginBottom: 10,
         },
     });
 

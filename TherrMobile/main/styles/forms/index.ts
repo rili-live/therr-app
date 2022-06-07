@@ -188,6 +188,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         button: {
             backgroundColor: therrTheme.colors.primary3,
         },
+        buttonContainer: {
+            ...containerStyles,
+        },
         buttonPrimary: {
             backgroundColor: therrTheme.colors.primary3,
             display: 'flex',

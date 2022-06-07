@@ -432,7 +432,7 @@
         "success": "Success!"
       },
       "errorAlerts": {
-        "igNoBusinessAccounts": "Syncing a business or creator account is currently not supported",
+        "igNoBusinessAccounts": "Be sure to select 'Business/Creator' to sync this account type",
         "twitterNotFound": "Could not find Twitter handle",
         "unknownError": "An unknown error occured. Please try again later."
       },
@@ -694,7 +694,14 @@
     "socialSync": {
       "headerTitle": "Social Sync",
       "pageHeaderSyncList": "Sync Your Social Accounts",
-      "description": "...and get recommended to local businesses for collaboration and partnerships"
+      "description": "...and get recommended to local businesses for collaboration and partnerships",
+      "buttons": {
+        "personalAccount": "Personal",
+        "businessAccount": "Business / Creator"
+      },
+      "modals": {
+        "accountTypeModalTitle": "Instagram Account Type"
+      }
     },
     "template": {
       "pageTitle": "Template",
