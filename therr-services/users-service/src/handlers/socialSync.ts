@@ -13,11 +13,25 @@ import sendSocialSyncAdminNotificationEmail from '../api/email/admin/sendSocialS
 import Store from '../store';
 import { ICreateOrUpdateParams } from '../store/SocialSyncsStore';
 
-type IPlatform = 'twitter' | 'instagram' | 'tiktok' | 'youtube';
+// NOTE: facebook-instagram is an instagram account of type business/creator
+// Login happens through Facebook business manager
+type IPlatform = 'twitter' | 'facebook-instagram' | 'instagram' | 'tiktok' | 'youtube';
 
 const twitterBearerToken = process.env.TWITTER_APP_BEARER_TOKEN;
 
 const socialPlatformApis = {
+    'facebook-instagram': {
+        getProfile: (params: { userId: string, accessToken: string }) => axios({
+            method: 'get',
+            // eslint-disable-next-line max-len
+            url: `https://graph.facebook.com/v14.0/me/accounts?fields=id,name,instagram_business_account{username,media,followers_count,media_count}&access_token=${params.accessToken}`,
+            headers: { Authorization: `Bearer ${twitterBearerToken}` },
+        }).catch((err) => ({
+            data: {
+                errors: err.response?.data?.error,
+            },
+        })),
+    },
     instagram: {
         getProfile: (params: { userId: string, accessToken: string }) => axios({
             method: 'get',
@@ -48,13 +62,23 @@ const extractPlatformProfileDetails = (platform: IPlatform, responseData) => {
             followerCount: responseData.data?.public_metrics?.followers_count,
         };
     }
+    if (platform === 'facebook-instagram') {
+        const igProfile = responseData?.data[0]?.instagram_business_account || {};
+        return {
+            platformUsername: igProfile.username,
+            platformUserId: igProfile.id,
+            link: `https://instagram.com/${igProfile.username}`,
+            displayName: 'Instagram',
+            followerCount: igProfile?.followers_count || 1, // TODO: Create calculation for "Clout Score"
+        };
+    }
     if (platform === 'instagram') {
         return {
             platformUsername: responseData?.username,
             platformUserId: responseData?.id,
             link: `https://instagram.com/${responseData?.username}`,
             displayName: 'Instagram',
-            followerCount: responseData?.media_count || 1, // TODO: Need to user IG Graph api to get this
+            followerCount: responseData?.media_count || 1, // TODO: Create calculation for "Clout Score"
         };
     }
 
@@ -94,10 +118,10 @@ const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
 
     Object.keys(socialPlatformApis).forEach((key) => {
         if (syncs[key]) {
-            if (key === 'instagram') {
+            if (key === 'instagram' || key === 'facebook-instagram') {
             // Fire and forget: Notify admin of social sync for manual geotagging
                 sendSocialSyncAdminNotificationEmail({
-                    subject: 'New IG Social Sync',
+                    subject: key === 'instagram' ? 'New IG Social Sync' : 'New FB-IG Social Sync',
                     toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                 }, {
                     userId,
@@ -127,6 +151,9 @@ const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
 
                     if (platform === 'instagram') {
                         instagramMedia = responses[index]?.data?.media;
+                    }
+                    if (platform === 'facebook-instagram') {
+                        instagramMedia = responses[index]?.data?.data[0]?.instagram_business_account?.media;
                     }
 
                     dbRecords.push(record);

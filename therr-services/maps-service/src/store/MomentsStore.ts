@@ -17,6 +17,7 @@ const maxNotificationMsgLength = 100;
 export interface ICreateMomentParams {
     areaType?: string;
     category?: any;
+    createdAt?: any;
     expiresAt?: any;
     fromUserId: number;
     locale: string;
@@ -295,6 +296,7 @@ export default class MomentsStore {
             const sanitizedParams = {
                 areaType: params.areaType || 'moments',
                 category: params.category || 'uncategorized',
+                createdAt: params.createdAt || undefined, // TODO: make more secure (only for social sync)
                 expiresAt: params.expiresAt,
                 fromUserId: params.fromUserId,
                 locale: params.locale,

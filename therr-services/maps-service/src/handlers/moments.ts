@@ -110,7 +110,7 @@ const createIntegratedMoment = (req, res) => {
             const storageFilename = `content/${((media.caption || 'no_caption')
                 .substring(0, 20))
                 .replace(/[^a-zA-Z0-9]/g, '_')}.${fileExtension}`;
-            const mediaFileUrl = media.media_type === 'IMAGE' ? media.media_url : media.thumbnail_url;
+            const mediaFileUrl = media.media_type === 'VIDEO' ? media.thumbnail_url : media.media_url;
             // TODO: Abstract and add nudity filter sightengine.com
             const maybeFileUploadPromise = mediaFileUrl.length
                 ? streamUploadFile(mediaFileUrl, storageFilename, {
@@ -126,6 +126,7 @@ const createIntegratedMoment = (req, res) => {
                     const momentArgs: any = {
                         areaType: 'moments',
                         category: guessCategoryFromText(media.caption),
+                        createdAt: media.timestamp,
                         fromUserId: userId,
                         locale,
                         isPublic: true,
