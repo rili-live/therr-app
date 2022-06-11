@@ -79,6 +79,7 @@ export interface ITherrThemeColors {
     accentLogo: string;
 
     // Socials
+    facebook: string;
     instagram: string;
     twitter: string;
     tikTok: string;

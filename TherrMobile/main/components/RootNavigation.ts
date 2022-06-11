@@ -12,6 +12,12 @@ export class RootNavigation {
         }
     }
 
+    static replace = (name, params?) => {
+        if (navigationRef.isReady()) {
+            navigationRef.dispatch(StackActions.replace(name as never, params as never));
+        }
+    }
+
     static push = (name, params?) => {
         if (navigationRef.isReady()) {
             navigationRef.dispatch(StackActions.push(name as never, params as never));

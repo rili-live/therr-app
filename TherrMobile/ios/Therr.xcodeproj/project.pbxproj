@@ -1022,7 +1022,7 @@
 				CODE_SIGN_ENTITLEMENTS = Therr/TherrDebug.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 61;
+				CURRENT_PROJECT_VERSION = 64;
 				DEVELOPMENT_TEAM = 22AN4MZ6H5;
 				ENABLE_BITCODE = NO;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
@@ -1204,7 +1204,7 @@
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/toolbar-android\"",
 					"$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)",
 				);
-				MARKETING_VERSION = 1.20.4;
+				MARKETING_VERSION = 1.21.2;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
@@ -1231,7 +1231,7 @@
 				CODE_SIGN_ENTITLEMENTS = Therr/TherrRelease.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 61;
+				CURRENT_PROJECT_VERSION = 64;
 				DEVELOPMENT_TEAM = 22AN4MZ6H5;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
 				HEADER_SEARCH_PATHS = (
@@ -1400,7 +1400,7 @@
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/toolbar-android\"",
 					"$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)",
 				);
-				MARKETING_VERSION = 1.20.4;
+				MARKETING_VERSION = 1.21.2;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"$(inherited)",

@@ -1,5 +1,6 @@
 import React from 'react';
 import axios from 'axios';
+import qs from 'qs';
 import {
     DeviceEventEmitter,
     Linking,
@@ -324,7 +325,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         } else {
             // TODO: Find a way to get data from the push notification that was selected
             // Otherwise the best alternative is to link to a generic, associated view
-            RootNavigation.navigate(targetRouteView);
+            if (targetRouteView) {
+                RootNavigation.navigate(targetRouteView);
+            }
         }
     }
 
@@ -338,7 +341,21 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const viewMomentRegex = RegExp('moments/[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/view', 'i');
         const viewSpaceRegex = RegExp('spaces/[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/view', 'i');
 
-        if (url?.includes('verify-account')) {
+        // Route for 3rd party OAuth (Facebook, Instagram, etc.)
+        if (url?.includes('https://therr.com/?access_token=')) {
+            const urlWithNoHash = url.split('#_');
+            const cleanUrl = urlWithNoHash[0] || url;
+            const queryStringSplit = cleanUrl.split('?');
+            let authResult = {};
+            if (!queryStringSplit[1]) {
+                authResult = { error: 'missing-query-params' };
+            } else {
+                authResult = qs.parse(queryStringSplit[1]);
+            }
+            RootNavigation.replace('SocialSync', {
+                authResult,
+            });
+        } else if (url?.includes('verify-account')) {
             if (urlSplit[1] && urlSplit[1].includes('token=')) {
                 const verificationToken = urlSplit[1]?.split('token=')[1];
                 const isNotAuthorized = UsersService.isAuthorized(
