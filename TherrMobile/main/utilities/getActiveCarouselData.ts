@@ -75,5 +75,5 @@ export default ({
         return mergeAreas(content.myDrafts, [], sortBy, isForDrafts);
     }
 
-    return mergeAreas(content.activeMoments, content.activeSpaces, sortBy);
+    return mergeAreas(content.activeMoments, content.activeSpaces, sortBy, isForDrafts);
 };
