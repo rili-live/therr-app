@@ -12,6 +12,15 @@ export const createIntegratedMomentValidation = [
     body('mediaId').exists(),
 ];
 
+export const dynamicCreateIntegratedMomentValidation = [
+    header('authorization').exists(),
+    header('x-userid').exists(),
+    body('platform').isString().exists(),
+    body('accessToken').exists(),
+    body('mediaId').exists(),
+    body('userId').exists(),
+];
+
 export const getMomentDetailsValidation = [
     header('authorization').exists(),
     header('x-userid').exists(),
