@@ -13,6 +13,7 @@ import {
 } from './validation/areas';
 import {
     createIntegratedMomentValidation,
+    dynamicCreateIntegratedMomentValidation,
     getMomentDetailsValidation,
 } from './validation/moments';
 import {
@@ -29,6 +30,11 @@ mapsServiceRouter.post('/moments', createAreaValidation, validate, handleService
 }));
 
 mapsServiceRouter.post('/moments/integrated', createIntegratedMomentValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
+
+mapsServiceRouter.post('/moments/integrated/dynamic', dynamicCreateIntegratedMomentValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));

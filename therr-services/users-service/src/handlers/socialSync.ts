@@ -243,13 +243,12 @@ const facebookAppAuth: RequestHandler = (req: any, res: any) => {
             access_token,
             error_message,
             error_type,
-            user_id,
         } = response.data;
 
         if (error_type) {
             return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error_type, error_message })}` });
         }
-        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ access_token, user_id })}` });
+        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ access_token, provider: 'facebook-instagram' })}` });
     }).catch((errResponse) => {
         const {
             error_message,

@@ -1,17 +1,18 @@
 import React from 'react';
-import { GestureResponderEvent, Platform, View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { Button }  from 'react-native-elements';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import Alert from '../Alert';
 import SquareInput from '../Input/Square';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
+import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../../constants';
 
 interface ICreateProfileStageAProps {
     errorMsg: string;
     inputs: any;
     isFormDisabled: boolean | undefined;
     onInputChange: Function;
-    onSubmit: ((event: GestureResponderEvent) => void) | undefined;
+    onSubmit: ((event: any) => void) | undefined;
     translate: Function;
     themeAlerts: {
         colorVariations: ITherrThemeColorVariations;
@@ -37,6 +38,12 @@ const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = 
     themeForms,
     themeSettingsForm,
 }) => {
+
+    if (inputs?.firstName !== DEFAULT_FIRSTNAME
+        && inputs?.lastName !== DEFAULT_LASTNAME && onSubmit) {
+        onSubmit(null);
+    }
+
     return (
         <View style={themeSettingsForm.styles.userContainer}>
             <Alert

@@ -152,7 +152,7 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
     goToViewMap = (lat, long) => {
         const { navigation } = this.props;
 
-        navigation.navigate('Map', {
+        navigation.replace('Map', {
             latitude: lat,
             longitude: long,
         });

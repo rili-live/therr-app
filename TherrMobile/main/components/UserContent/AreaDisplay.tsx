@@ -170,7 +170,6 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         {sanitizeNotificationMsg(area.notificationMsg)}
                     </Text>
                     {
-                        Platform.OS !== 'ios' && Platform.OS !== 'android' &&
                         <Button
                             containerStyle={themeViewArea.styles.areaReactionButtonContainer}
                             buttonStyle={themeViewArea.styles.areaReactionButton}
