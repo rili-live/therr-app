@@ -65,6 +65,7 @@ const colors: ITherrThemeColors = {
     accentLogo: '#1E8A96',
 
     // Socials
+    facebook: '#4167b2',
     instagram: '#000000',
     twitter: '#1c9bef',
     tikTok: '#000000',

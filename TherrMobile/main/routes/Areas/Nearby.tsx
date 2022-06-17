@@ -226,7 +226,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
     goToViewMap = (lat, long) => {
         const { navigation } = this.props;
 
-        navigation.navigate('Map', {
+        navigation.replace('Map', {
             latitude: lat,
             longitude: long,
         });
@@ -569,6 +569,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
             activeTab,
             content,
             isForBookmarks: false,
+            isForDrafts: false,
         }, 'distance');
 
         return (

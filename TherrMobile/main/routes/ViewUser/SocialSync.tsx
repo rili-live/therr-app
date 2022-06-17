@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, View, Text } from 'react-native';
+import { Linking, SafeAreaView, View, Text } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Button }  from 'react-native-elements';
 import { connect } from 'react-redux';
@@ -109,7 +109,20 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
     }
 
     componentDidMount() {
-        this.props.navigation.setOptions({
+        const { navigation, route } = this.props;
+        const authResult = route?.params?.authResult;
+        if (authResult) {
+            if (authResult.error) {
+                this.setState({
+                    activeProvider: 'facebook',
+                }, () => this.onOAuthLoginFailed(authResult));
+            } else {
+                this.setState({
+                    activeProvider: 'facebook',
+                }, () => this.onOAuthLoginSuccess(authResult));
+            }
+        }
+        navigation.setOptions({
             title: this.translate('pages.socialSync.headerTitle'),
         });
     }
@@ -134,13 +147,17 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
 
     onSubmit = (syncs) => {
         const { activeProvider } = this.state;
-        const { createUpdateSocialSyncs, createIntegratedMoment, getIntegratedMoments, navigation, route } = this.props;
-        const userInView = route?.params;
+        const { createUpdateSocialSyncs, createIntegratedMoment, getIntegratedMoments, navigation, user } = this.props;
+
+        const goBack = () => navigation.navigate('ViewUser', {
+            userInView: {
+                id: user.details.id,
+            },
+        });
 
         createUpdateSocialSyncs({
             syncs,
         }).then((response) => {
-            console.log(response?.data);
             let isOnHideComplete = false;
             let isPromiseComplete = false;
             const errorsByProvider = response.data?.errors || {};
@@ -184,14 +201,14 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                     });
                     Promise.all(promises)
                         .then(() => {
-                            getIntegratedMoments(userInView);
+                            getIntegratedMoments(user.details.id);
                         })
                         .catch((err) => {
                             console.log(err);
                         })
                         .finally(() => {
                             if (isOnHideComplete) {
-                                navigation.goBack();
+                                goBack();
                             } else {
                                 isPromiseComplete = true;
                             }
@@ -207,7 +224,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                     visibilityTime: 2000,
                     onHide: () => {
                         if (isPromiseComplete) {
-                            navigation.goBack();
+                            goBack();
                         } else {
                             isOnHideComplete = true;
                         }
@@ -277,15 +294,25 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
     }
 
     onSelectAccountType = (type: 'personal' | 'business') => {
+        const { requestId } = this.state;
         this.onCloseAccountTypeModal();
-        this.setState({
-            activeProvider: type === 'personal' ? 'instagram' : 'facebook',
-            isOAuthModalVisible: true,
-            oAuthAppId: type === 'personal' ? INSTAGRAM_BASIC_DISPLAY_APP_ID : INSTAGRAM_GRAPH_API_APP_ID,
-            oAuthScopes: type === 'personal'
-                ? ['user_profile', 'user_media']
-                : ['public_profile', 'instagram_basic', 'pages_show_list', 'pages_read_engagement'],
-        });
+        if (type === 'personal') {
+            this.setState({
+                activeProvider: type === 'personal' ? 'instagram' : 'facebook',
+                isOAuthModalVisible: true,
+                oAuthAppId: type === 'personal' ? INSTAGRAM_BASIC_DISPLAY_APP_ID : INSTAGRAM_GRAPH_API_APP_ID,
+                oAuthScopes: type === 'personal'
+                    ? ['user_profile', 'user_media']
+                    : ['public_profile', 'instagram_basic', 'pages_show_list', 'pages_read_engagement'],
+            });
+        } else {
+            const appId = INSTAGRAM_GRAPH_API_APP_ID;
+            const backendRedirectUrl = 'https://api.therr.com/v1/users-service/social-sync/oauth2-facebook';
+            const responseType = 'code';
+            const scopes = ['public_profile', 'instagram_basic', 'pages_show_list', 'pages_read_engagement'];
+            // eslint-disable-next-line max-len
+            Linking.openURL(`https://www.facebook.com/v14.0/dialog/oauth?client_id=${appId}&redirect_uri=${backendRedirectUrl}&response_type=${responseType}&scope=${scopes.join(',')}&state=${requestId}`);
+        }
     }
 
     onOAuthLoginSuccess = (results) => {
@@ -304,15 +331,14 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
             return this.onSaveFacebook({
                 'facebook-instagram': {
                     accessToken: results.access_token,
-                    userId: results.user_id,
                 },
             });
         }
     }
 
-    onOAuthLoginFailed = (response) => {
+    onOAuthLoginFailed = (results) => {
         this.onCloseOAuthModal();
-        console.log('OAuthFailed: ', response);
+        console.log('OAuthFailed: ', results);
         Toast.show({
             type: 'errorBig',
             text1: this.translate('forms.socialSync.errorTitles.oops'),
@@ -470,23 +496,39 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                         <Text style={this.themeModal.styles.headerText}>{this.translate('pages.socialSync.modals.accountTypeModalTitle')}</Text>
                     </View>
                     <View style={this.themeModal.styles.buttonsWrapper}>
+                        <Text
+                            style={this.themeModal.styles.label}
+                        >{this.translate('pages.socialSync.labels.personalAccount')}</Text>
                         <Button
                             containerStyle={[this.themeForms.styles.buttonContainer, { width: '100%' }]}
-                            buttonStyle={this.themeForms.styles.button}
+                            buttonStyle={[this.themeForms.styles.button, { backgroundColor: this.themeForms.colors.instagram }]}
                             titleStyle={this.themeForms.styles.buttonTitle}
                             title={this.translate(
                                 'pages.socialSync.buttons.personalAccount'
                             )}
+                            icon={<FontAwesome5Icon
+                                name="instagram"
+                                size={22}
+                                style={this.themeForms.styles.buttonIcon}
+                            />}
                             onPress={() => this.onSelectAccountType('personal')}
                             raised={true}
                         />
+                        <Text
+                            style={this.themeModal.styles.label}
+                        >{this.translate('pages.socialSync.labels.businessAccount')}</Text>
                         <Button
                             containerStyle={[this.themeForms.styles.buttonContainer, { width: '100%' }]}
-                            buttonStyle={this.themeForms.styles.button}
+                            buttonStyle={[this.themeForms.styles.button, { backgroundColor: this.themeForms.colors.facebook }]}
                             titleStyle={this.themeForms.styles.buttonTitle}
                             title={this.translate(
                                 'pages.socialSync.buttons.businessAccount'
                             )}
+                            icon={<FontAwesome5Icon
+                                name="facebook"
+                                size={22}
+                                style={this.themeForms.styles.buttonIcon}
+                            />}
                             onPress={() => this.onSelectAccountType('business')}
                             raised={true}
                         />

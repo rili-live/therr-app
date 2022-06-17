@@ -154,7 +154,6 @@ export default class OAuthModal extends Component<IOAuthModalProps, IOAuthModalS
                 injectedJavaScript={patchPostMessageJsCode}
                 scrollEnabled
                 nestedScrollEnabled
-                // originWhitelist={['about:srcdoc']}
             />
         );
     }

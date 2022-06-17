@@ -231,7 +231,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
     goToViewMap = (lat, long) => {
         const { navigation } = this.props;
 
-        navigation.navigate('Map', {
+        navigation.replace('Map', {
             latitude: lat,
             longitude: long,
         });

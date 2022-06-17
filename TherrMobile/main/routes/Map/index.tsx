@@ -32,6 +32,10 @@ import {
     MIN_ZOOM_LEVEL,
     MOMENTS_REFRESH_THROTTLE_MS,
     LOCATION_PROCESSING_THROTTLE_MS,
+    DEFAULT_LONGITUDE,
+    DEFAULT_LATITUDE,
+    SECONDARY_LATITUDE_DELTA,
+    SECONDARY_LONGITUDE_DELTA,
 } from '../../constants';
 import { buildStyles, loaderStyles } from '../../styles';
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
@@ -239,8 +243,8 @@ class Map extends React.Component<IMapProps, IMapState> {
             shouldIgnoreSearchThisAreaButton: false,
             shouldShowCreateActions: false,
             circleCenter: {
-                longitude: routeLongitude || -99.458829,
-                latitude: routeLatitude || 39.7629981,
+                longitude: routeLongitude || DEFAULT_LONGITUDE,
+                latitude: routeLatitude || DEFAULT_LATITUDE,
             },
         };
 
@@ -250,7 +254,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     componentDidMount = async () => {
-        const { navigation, route, setSearchDropdownVisibility, updateFirstTimeUI, updateTour, user } = this.props;
+        const { navigation, setSearchDropdownVisibility, updateFirstTimeUI, updateTour, route, user } = this.props;
 
         if (user.details?.loginCount < 5 && !user.settings?.hasCompletedFTUI) {
             updateTour(user.details.id, {
@@ -259,7 +263,9 @@ class Map extends React.Component<IMapProps, IMapState> {
             updateFirstTimeUI(true);
         }
 
-        this.handleSearchSelect(DEFAULT_MAP_SEARCH);
+        if (!route.params?.longitude || !route.params?.latitude) {
+            this.handleSearchSelect(DEFAULT_MAP_SEARCH);
+        }
 
         this.unsubscribeNavigationListener = navigation.addListener('state', () => {
             setSearchDropdownVisibility(false);
@@ -273,24 +279,6 @@ class Map extends React.Component<IMapProps, IMapState> {
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
             setSearchDropdownVisibility(false);
             clearTimeout(this.timeoutId);
-
-            // TODO: Determine why the mapview interferes with this animation
-            // This is sloppy/bad code. We should find a better way
-            /** Animate to region when user selection area location from other views (earth icon) */
-            if (Platform.OS === 'ios' && route.params?.latitude && route.params?.longitude) {
-                const loc = {
-                    latitude: route.params.latitude,
-                    longitude: route.params.longitude,
-                    latitudeDelta: route.params.longitudeDelta || PRIMARY_LATITUDE_DELTA,
-                    longitudeDelta: route.params.latitudeDelta || PRIMARY_LONGITUDE_DELTA,
-                };
-
-                const weirdTimeout = 512;
-
-                this.timeoutIdGoToArea = setTimeout(() => {
-                    this.animateToWithHelp(() => this?.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION));
-                }, weirdTimeout);
-            }
         });
 
         navigation.setOptions({
@@ -1347,7 +1335,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             isScrollEnabled,
             isSearchThisLocationBtnVisible,
         } = this.state;
-        const { captureClickTarget, location, map, navigation, notifications, user } = this.props;
+        const { captureClickTarget, location, map, navigation, notifications, route, user } = this.props;
         const searchPredictionResults = map?.searchPredictions?.results || [];
         const isDropdownVisible = map?.searchPredictions?.isSearchDropdownVisible;
         const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
@@ -1359,6 +1347,18 @@ class Map extends React.Component<IMapProps, IMapState> {
         };
         const filteredMoments = this.getFilteredAreas(map.moments.concat(map.myMoments), mapFilters);
         const filteredSpaces = this.getFilteredAreas(map.spaces.concat(map.mySpaces), mapFilters);
+        const getLatitudeDelta = () => {
+            if (route.params?.latitude) {
+                return SECONDARY_LATITUDE_DELTA;
+            }
+            return map.hasUserLocationLoaded ? PRIMARY_LATITUDE_DELTA : INITIAL_LATITUDE_DELTA;
+        };
+        const getLongitudeDelta = () => {
+            if (route.params?.longitude) {
+                return SECONDARY_LONGITUDE_DELTA;
+            }
+            return map.hasUserLocationLoaded ? PRIMARY_LONGITUDE_DELTA : INITIAL_LONGITUDE_DELTA;
+        };
 
         return (
             <>
@@ -1396,8 +1396,8 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 initialRegion={{
                                     latitude: circleCenter.latitude,
                                     longitude: circleCenter.longitude,
-                                    latitudeDelta: map.hasUserLocationLoaded ? PRIMARY_LATITUDE_DELTA : INITIAL_LATITUDE_DELTA,
-                                    longitudeDelta: map.hasUserLocationLoaded ? PRIMARY_LONGITUDE_DELTA : INITIAL_LONGITUDE_DELTA,
+                                    latitudeDelta: getLatitudeDelta(),
+                                    longitudeDelta: getLongitudeDelta(),
                                 }}
                                 onPress={this.handleMapPress}
                                 onRegionChange={this.onRegionChange}

@@ -696,6 +696,10 @@
       "pageHeaderSyncList": "Sync Your Social Accounts",
       "description": "...and get recommended to local businesses for collaboration and partnerships",
       "buttons": {
+        "personalAccount": "Log in With Instagram",
+        "businessAccount": "Log in With Facebook"
+      },
+      "labels": {
         "personalAccount": "Personal",
         "businessAccount": "Business / Creator"
       },

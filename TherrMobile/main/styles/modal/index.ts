@@ -20,7 +20,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             justifyContent: 'flex-start',
             alignItems: 'center',
             maxHeight: '50%',
-            width: '75%',
+            width: '80%',
             backgroundColor: therrTheme.colors.backgroundGray,
             elevation: 5,
             borderRadius: 12,
@@ -58,6 +58,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             flexWrap: 'wrap',
             paddingHorizontal: 20,
             marginBottom: 10,
+        },
+        label: {
+            fontSize: 16,
+            fontWeight: '500',
+            fontFamily: therrFontFamily,
         },
     });
 

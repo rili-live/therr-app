@@ -171,7 +171,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     goToViewMap = (lat, long) => {
         const { navigation } = this.props;
 
-        navigation.navigate('Map', {
+        navigation.replace('Map', {
             latitude: lat,
             longitude: long,
         });

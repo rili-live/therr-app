@@ -45,18 +45,15 @@ const createMoment = (req, res) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
 
-const createIntegratedMoment = (req, res) => {
-    const authorization = req.headers.authorization;
-    const requestId = req.headers['x-requestid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const userId = req.headers['x-userid'];
-
-    const {
-        accessToken,
-        mediaId,
-        platform,
-    } = req.body;
-
+const createIntegratedMomentBase = ({
+    authorization,
+    platform,
+    accessToken,
+    locale,
+    mediaId,
+    requestId,
+    userId,
+}, res) => {
     const externalIntegrationEndpoint = getSupportedIntegrations(platform, {
         accessToken,
         mediaId,
@@ -182,6 +179,53 @@ const createIntegratedMoment = (req, res) => {
                 }));
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
+};
+
+const createIntegratedMoment = (req, res) => {
+    const authorization = req.headers.authorization;
+    const requestId = req.headers['x-requestid'];
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const userId = req.headers['x-userid'];
+
+    const {
+        accessToken,
+        mediaId,
+        platform,
+    } = req.body;
+
+    return createIntegratedMomentBase({
+        authorization,
+        accessToken,
+        locale,
+        mediaId,
+        platform,
+        requestId,
+        userId,
+    }, res);
+};
+
+// TODO: Delete this endpoint after it has served its purpose
+const dynamicCreateIntegratedMoment = (req, res) => {
+    const authorization = req.headers.authorization;
+    const requestId = req.headers['x-requestid'];
+    const locale = req.headers['x-localecode'] || 'en-us';
+
+    const {
+        accessToken,
+        mediaId,
+        platform,
+        userId,
+    } = req.body;
+
+    return createIntegratedMomentBase({
+        authorization,
+        accessToken,
+        locale,
+        mediaId,
+        platform,
+        requestId,
+        userId,
+    }, res);
 };
 
 // UPDATE
@@ -438,6 +482,7 @@ const deleteMoments = (req, res) => {
 export {
     createMoment,
     createIntegratedMoment,
+    dynamicCreateIntegratedMoment,
     updateMoment,
     getMomentDetails,
     getIntegratedMoments,
