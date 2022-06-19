@@ -47,13 +47,120 @@ const createMoment = (req, res) => {
 
 const createIntegratedMomentBase = ({
     authorization,
-    platform,
-    accessToken,
     locale,
-    mediaId,
+    platform,
     requestId,
     userId,
-}, res) => {
+    media,
+}, res) => Store.externalMediaIntegrations.get({
+    fromUserId: userId,
+    platform,
+})
+    .then((integrations) => {
+        if (integrations.length > MAX_INTERGRATIONS_PER_USER) {
+            return handleHttpError({
+                res,
+                message: `Each user is limited to ${MAX_INTERGRATIONS_PER_USER} external media integrations per platform`,
+                statusCode: 400,
+            });
+        }
+
+        if (integrations.some((integration) => integration.externalId === media.id)) {
+            return handleHttpError({
+                res,
+                message: 'This is a duplicate integration',
+                statusCode: 400,
+            });
+        }
+
+        const fileExtension = 'jpeg';
+        const storageFilename = `content/${((media.caption || 'no_caption')
+            .substring(0, 20))
+            .replace(/[^a-zA-Z0-9]/g, '_')}.${fileExtension}`;
+        const mediaFileUrl = media.media_type === 'VIDEO' ? media.thumbnail_url : media.media_url;
+        // TODO: Abstract and add nudity filter sightengine.com
+        const maybeFileUploadPromise = mediaFileUrl.length
+            ? streamUploadFile(mediaFileUrl, storageFilename, {
+                requestId,
+                userId,
+            })
+            : Promise.resolve('');
+
+        return maybeFileUploadPromise
+            .then((mediaUrl: string | void) => {
+                let hashTags = (media.caption?.match(/#[a-z]+/gi) || []);
+                hashTags = hashTags.map((tag) => tag.replace('#', '')).toString();
+                const momentArgs: any = {
+                    areaType: 'moments',
+                    category: guessCategoryFromText(media.caption),
+                    createdAt: media.timestamp,
+                    fromUserId: userId,
+                    locale,
+                    isPublic: true,
+                    media: [],
+                    message: media.caption,
+                    hashTags,
+                    latitude: 37.2585862, // default since IG does not allow geotag
+                    // this will require manual update after creation
+                    longitude: -104.6498689, // default since IG does not allow geotag
+                    // this will require manual update after creation
+                    radius: 200,
+                };
+
+                if (mediaUrl) {
+                    momentArgs.media[0] = {
+                        path: mediaUrl,
+                        type: Content.mediaTypes.USER_IMAGE_PUBLIC,
+                    };
+                }
+
+                return Store.moments.createMoment({
+                    ...momentArgs,
+                    locale,
+                    fromUserId: userId,
+                });
+            })
+            .then(([moment]) => Promise.all([
+                Promise.resolve(moment),
+                axios({ // Create companion reaction for user's own moment
+                    method: 'post',
+                    url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/moment-reactions/${moment.id}`,
+                    headers: {
+                        authorization,
+                        'x-localecode': locale,
+                        'x-userid': userId,
+                    },
+                    data: {
+                        userHasActivated: true,
+                    },
+                }),
+                Store.externalMediaIntegrations.create({
+                    fromUserId: userId,
+                    momentId: moment.id,
+                    externalId: media.id,
+                    platform: 'instagram',
+                    permalink: media.permalink,
+                }),
+            ]))
+            .then(([moment, { data: reaction }, externalIntegration]) => res.status(201).send({
+                ...moment,
+                reaction,
+                externalIntegration,
+            }));
+    });
+
+const createIntegratedMoment = (req, res) => {
+    const authorization = req.headers.authorization;
+    const requestId = req.headers['x-requestid'];
+    const locale = req.headers['x-localecode'] || 'en-us';
+    const userId = req.headers['x-userid'];
+
+    const {
+        accessToken,
+        mediaId,
+        platform,
+    } = req.body;
+
     const externalIntegrationEndpoint = getSupportedIntegrations(platform, {
         accessToken,
         mediaId,
@@ -71,137 +178,30 @@ const createIntegratedMomentBase = ({
         });
     }
 
-    let media: any = {};
-
     return axios({
         method: 'get',
         // eslint-disable-next-line max-len
         url: externalIntegrationEndpoint,
     })
-        .then((response) => {
-            media = response?.data;
-
-            return Store.externalMediaIntegrations.get({
-                fromUserId: userId,
-                platform: 'instagram',
-            });
-        })
-        .then((integrations) => {
-            if (integrations.length > MAX_INTERGRATIONS_PER_USER) {
+        .then((response) => createIntegratedMomentBase({
+            authorization,
+            locale,
+            media: response?.data,
+            platform,
+            requestId,
+            userId,
+        }, res))
+        .catch((err) => {
+            if (err?.message?.includes('duplicate key value violates unique constraint')) {
                 return handleHttpError({
+                    err,
                     res,
-                    message: `Each user is limited to ${MAX_INTERGRATIONS_PER_USER} external media integrations per platform`,
+                    message: `Integration with platformId, ${mediaId}, already exists`,
                     statusCode: 400,
                 });
             }
-
-            if (integrations.some((integration) => integration.externalId === media.id)) {
-                return handleHttpError({
-                    res,
-                    message: 'This is a duplicate integration',
-                    statusCode: 400,
-                });
-            }
-
-            const fileExtension = 'jpeg';
-            const storageFilename = `content/${((media.caption || 'no_caption')
-                .substring(0, 20))
-                .replace(/[^a-zA-Z0-9]/g, '_')}.${fileExtension}`;
-            const mediaFileUrl = media.media_type === 'VIDEO' ? media.thumbnail_url : media.media_url;
-            // TODO: Abstract and add nudity filter sightengine.com
-            const maybeFileUploadPromise = mediaFileUrl.length
-                ? streamUploadFile(mediaFileUrl, storageFilename, {
-                    requestId,
-                    userId,
-                })
-                : Promise.resolve('');
-
-            return maybeFileUploadPromise
-                .then((mediaUrl: string | void) => {
-                    let hashTags = (media.caption?.match(/#[a-z]+/gi) || []);
-                    hashTags = hashTags.map((tag) => tag.replace('#', '')).toString();
-                    const momentArgs: any = {
-                        areaType: 'moments',
-                        category: guessCategoryFromText(media.caption),
-                        createdAt: media.timestamp,
-                        fromUserId: userId,
-                        locale,
-                        isPublic: true,
-                        media: [],
-                        message: media.caption,
-                        hashTags,
-                        latitude: 37.2585862, // default since IG does not allow geotag
-                        // this will require manual update after creation
-                        longitude: -104.6498689, // default since IG does not allow geotag
-                        // this will require manual update after creation
-                        radius: 200,
-                    };
-
-                    if (mediaUrl) {
-                        momentArgs.media[0] = {
-                            path: mediaUrl,
-                            type: Content.mediaTypes.USER_IMAGE_PUBLIC,
-                        };
-                    }
-
-                    return Store.moments.createMoment({
-                        ...momentArgs,
-                        locale,
-                        fromUserId: userId,
-                    });
-                })
-                .then(([moment]) => Promise.all([
-                    Promise.resolve(moment),
-                    axios({ // Create companion reaction for user's own moment
-                        method: 'post',
-                        url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/moment-reactions/${moment.id}`,
-                        headers: {
-                            authorization,
-                            'x-localecode': locale,
-                            'x-userid': userId,
-                        },
-                        data: {
-                            userHasActivated: true,
-                        },
-                    }),
-                    Store.externalMediaIntegrations.create({
-                        fromUserId: userId,
-                        momentId: moment.id,
-                        externalId: media.id,
-                        platform: 'instagram',
-                        permalink: media.permalink,
-                    }),
-                ]))
-                .then(([moment, { data: reaction }, externalIntegration]) => res.status(201).send({
-                    ...moment,
-                    reaction,
-                    externalIntegration,
-                }));
-        })
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
-};
-
-const createIntegratedMoment = (req, res) => {
-    const authorization = req.headers.authorization;
-    const requestId = req.headers['x-requestid'];
-    const locale = req.headers['x-localecode'] || 'en-us';
-    const userId = req.headers['x-userid'];
-
-    const {
-        accessToken,
-        mediaId,
-        platform,
-    } = req.body;
-
-    return createIntegratedMomentBase({
-        authorization,
-        accessToken,
-        locale,
-        mediaId,
-        platform,
-        requestId,
-        userId,
-    }, res);
+            handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' });
+        });
 };
 
 // TODO: Delete this endpoint after it has served its purpose
@@ -211,21 +211,30 @@ const dynamicCreateIntegratedMoment = (req, res) => {
     const locale = req.headers['x-localecode'] || 'en-us';
 
     const {
-        accessToken,
-        mediaId,
+        media,
         platform,
         userId,
     } = req.body;
 
     return createIntegratedMomentBase({
         authorization,
-        accessToken,
         locale,
-        mediaId,
+        media,
         platform,
         requestId,
         userId,
-    }, res);
+    }, res)
+        .catch((err) => {
+            if (err?.message?.includes('duplicate key value violates unique constraint')) {
+                return handleHttpError({
+                    err,
+                    res,
+                    message: `Integration with platformId, ${media?.id}, already exists`,
+                    statusCode: 400,
+                });
+            }
+            handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' });
+        });
 };
 
 // UPDATE
