@@ -303,19 +303,20 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                 oAuthAppId: type === 'personal' ? INSTAGRAM_BASIC_DISPLAY_APP_ID : INSTAGRAM_GRAPH_API_APP_ID,
                 oAuthScopes: type === 'personal'
                     ? ['user_profile', 'user_media']
-                    : ['public_profile', 'instagram_basic', 'pages_show_list', 'pages_read_engagement'],
+                    : ['public_profile', 'instagram_basic', 'instagram_manage_insights', 'pages_show_list', 'pages_read_engagement'],
             });
         } else {
             const appId = INSTAGRAM_GRAPH_API_APP_ID;
             const backendRedirectUrl = 'https://api.therr.com/v1/users-service/social-sync/oauth2-facebook';
             const responseType = 'code';
-            const scopes = ['public_profile', 'instagram_basic', 'pages_show_list', 'pages_read_engagement'];
+            const scopes = ['public_profile', 'instagram_basic', 'instagram_manage_insights', 'pages_show_list', 'pages_read_engagement'];
             // eslint-disable-next-line max-len
             Linking.openURL(`https://www.facebook.com/v14.0/dialog/oauth?client_id=${appId}&redirect_uri=${backendRedirectUrl}&response_type=${responseType}&scope=${scopes.join(',')}&state=${requestId}`);
         }
     }
 
     onOAuthLoginSuccess = (results) => {
+        console.log(results);
         const { activeProvider } = this.state;
         this.onCloseOAuthModal();
         if (activeProvider === 'instagram') {

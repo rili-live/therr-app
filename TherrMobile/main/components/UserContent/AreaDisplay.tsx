@@ -3,7 +3,6 @@ import React from 'react';
 import {
     ActivityIndicator,
     Dimensions,
-    Platform,
     Pressable,
     Text,
     TouchableWithoutFeedbackComponent,
