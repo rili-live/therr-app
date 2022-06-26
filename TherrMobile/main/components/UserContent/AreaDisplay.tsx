@@ -127,7 +127,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     <View style={themeViewArea.styles.areaAuthorTextContainer}>
                         {
                             userDetails &&
-                                <Text style={themeViewArea.styles.areaUserName}>
+                                <Text style={themeViewArea.styles.areaUserName} numberOfLines={1}>
                                     {`${userDetails.userName}`}
                                 </Text>
                         }
@@ -174,7 +174,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                             buttonStyle={themeViewArea.styles.areaReactionButton}
                             icon={
                                 <Icon
-                                    name="public"
+                                    name="place"
                                     size={24}
                                     color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
                                 />

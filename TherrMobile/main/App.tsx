@@ -45,6 +45,22 @@ const toastConfig = {
             }}
         />
     ),
+    successBig: (props) => (
+        <BaseToast
+            {...props}
+            style={{ borderLeftColor: '#00A624' }}
+            text1Style={{
+                fontSize: 17,
+                fontWeight: '600',
+                fontFamily: 'Lexend-Regular',
+            }}
+            text2Style={{
+                fontSize: 14,
+                fontFamily: 'Lexend-Regular',
+            }}
+            text2NumberOfLines={3}
+        />
+    ),
     error: (props) => (
         <ErrorToast
             {...props}

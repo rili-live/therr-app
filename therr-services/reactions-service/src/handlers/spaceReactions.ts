@@ -110,7 +110,7 @@ const getReactionsBySpaceId: RequestHandler = async (req: any, res: any) => {
     const locale = req.headers['x-localecode'] || 'en-us';
     const { spaceId } = req.params;
 
-    Store.spaceReactions.get({
+    return Store.spaceReactions.get({
         userId,
         spaceId,
     }).then((spaceReaction: any) => {

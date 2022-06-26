@@ -748,29 +748,30 @@ class Map extends React.Component<IMapProps, IMapState> {
                 createOrUpdateSpaceReaction(selectedSpace.id, {
                     userViewCount: 1,
                     userHasActivated: true,
-                });
-                this.getAreaDetails(selectedSpace)
-                    .then((details) => {
-                        this.setState({
-                            activeSpace: selectedSpace,
-                            activeSpaceDetails: details,
-                        }, () => {
-                            if (location?.settings?.isGpsEnabled) {
-                                navigation.navigate('ViewSpace', {
-                                    isMyArea: isMyArea(selectedSpace, user),
-                                    space: selectedSpace,
-                                    spaceDetails: details,
-                                });
-                            } else {
-                                // TODO: Alert that GPS is required to create a space
-                                this.showAreaAlert();
-                            }
+                }).then(() => {
+                    this.getAreaDetails(selectedSpace)
+                        .then((details) => {
+                            this.setState({
+                                activeSpace: selectedSpace,
+                                activeSpaceDetails: details,
+                            }, () => {
+                                if (location?.settings?.isGpsEnabled) {
+                                    navigation.navigate('ViewSpace', {
+                                        isMyArea: isMyArea(selectedSpace, user),
+                                        space: selectedSpace,
+                                        spaceDetails: details,
+                                    });
+                                } else {
+                                    // TODO: Alert that GPS is required to create a space
+                                    this.showAreaAlert();
+                                }
+                            });
+                        })
+                        .catch(() => {
+                            // TODO: Add error handling
+                            console.log('Failed to get space details!');
                         });
-                    })
-                    .catch(() => {
-                        // TODO: Add error handling
-                        console.log('Failed to get space details!');
-                    });
+                });
             }
         } else {
             this.setState({
