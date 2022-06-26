@@ -29,8 +29,13 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         passwordContainer: {
             ...container,
+            marginBottom: 4,
+            paddingBottom: 4,
+        },
+        advancedContainer: {
+            ...container,
             marginBottom: '4%',
-            paddingBottom: 58,
+            paddingBottom: 38,
         },
         button: {
             backgroundColor: therrTheme.colors.primary3,

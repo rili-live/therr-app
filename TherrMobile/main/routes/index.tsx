@@ -26,6 +26,7 @@ import Nearby from './Areas/Nearby';
 import Notifications from './Notifications';
 import Register from './Register';
 import Settings from './Settings';
+import ManageAccount from './Settings/ManageAccount';
 import SocialSync from './ViewUser/SocialSync';
 import ViewMoment from './ViewMoment';
 import EditMoment from './EditMoment';
@@ -314,6 +315,17 @@ const routes: RouteConfig<
         component: Settings,
         options: () => ({
             title: 'Settings',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'ManageAccount',
+        component: ManageAccount,
+        options: () => ({
+            title: 'ManageAccount',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

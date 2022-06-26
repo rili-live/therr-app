@@ -27,7 +27,7 @@ export default ({
         >
             <Pressable
                 onPress={onRequestClose}
-                style={themeModal.styles.overlay}>
+                style={themeModal.styles.bottomSheetOverlay}>
                 <Pressable style={themeModal.styles.bottomSheetContainer}>
                     {children}
                 </Pressable>
