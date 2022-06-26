@@ -395,7 +395,9 @@
     },
     "settings": {
       "buttons": {
-        "submit": "Save"
+        "submit": "Save",
+        "manageAccount": "Manage Account",
+        "deleteAccount": "Delete Account?"
       },
       "errorMessages": {
         "repeatPassword": "Passwords do not match",
@@ -511,6 +513,16 @@
         "asc": "Oldest to Newest",
         "desc": "Newest to Oldest",
         "searchOrder": "Order Results By: Date"
+      }
+    },
+    "advancedSettings": {
+      "headerTitle": "Manage Account",
+      "pageHeaderAccountActions": "Account Actions",
+      "alertTitles": {
+        "accountDeleted": "Account Deleted"        
+      },
+      "alertMessages": {
+        "accountDeleted": "Your account has been successfully deleted. Logging out."
       }
     },
     "areas": {
@@ -687,8 +699,17 @@
       "pageHeaderUser": "User Profile",
       "pageHeaderPassword": "Update Password",
       "pageHeaderSettings": "Content Settings",
+      "pageHeaderAdvancedSettings": "Advanced Settings",
       "labels": {
         "nightMode": "Night Mode?"
+      },
+      "alertTitles": {
+        "accountUpdated": "Account Updated",
+        "backendErrorMessage": "Oops! Something went wrong.",
+        "insecurePassword": "Insecure Password" 
+      },
+      "alertMessages": {
+        "accountUpdated": "Successfully updated."
       }
     },
     "socialSync": {

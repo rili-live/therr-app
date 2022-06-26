@@ -10,22 +10,21 @@ import { Content, PasswordRegex } from 'therr-js-utilities/constants';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import RNFB from 'rn-fetch-blob';
-import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
-import UsersActions from '../redux/actions/UsersActions';
-import Alert from '../components/Alert';
-import translator from '../services/translator';
-import { buildStyles } from '../styles';
-import { buildStyles as buildMenuStyles } from '../styles/navigation/buttonMenu';
-import { buildStyles as buildAlertStyles } from '../styles/alerts';
-import { buildStyles as buildFormStyles } from '../styles/forms';
-import { buildStyles as buildSettingsFormStyles } from '../styles/forms/settingsForm';
-import SquareInput from '../components/Input/Square';
-import PasswordRequirements from '../components/Input/PasswordRequirements';
-import BaseStatusBar from '../components/BaseStatusBar';
-import UserImage from '../components/UserContent/UserImage';
-import { getImagePreviewPath } from '../utilities/areaUtils';
-import { getUserImageUri, signImageUrl } from '../utilities/content';
-import RoundTextInput from '../components/Input/TextInput/Round';
+import Toast from 'react-native-toast-message';
+import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
+import UsersActions from '../../redux/actions/UsersActions';
+import translator from '../../services/translator';
+import { buildStyles } from '../../styles';
+import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
+import { buildStyles as buildFormStyles } from '../../styles/forms';
+import { buildStyles as buildSettingsFormStyles } from '../../styles/forms/settingsForm';
+import SquareInput from '../../components/Input/Square';
+import PasswordRequirements from '../../components/Input/PasswordRequirements';
+import BaseStatusBar from '../../components/BaseStatusBar';
+import UserImage from '../../components/UserContent/UserImage';
+import { getImagePreviewPath } from '../../utilities/areaUtils';
+import { getUserImageUri, signImageUrl } from '../../utilities/content';
+import RoundTextInput from '../../components/Input/TextInput/Round';
 
 
 interface ISettingsDispatchProps {
@@ -43,8 +42,6 @@ export interface ISettingsProps extends IStoreProps {
 
 interface ISettingsState {
     croppedImageDetails: any;
-    errorMsg: string;
-    successMsg: string;
     inputs: any;
     isCropping: boolean;
     isNightMode: boolean;
@@ -65,7 +62,6 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
     private translate: Function;
     private theme = buildStyles();
     private themeMenu = buildMenuStyles();
-    private themeAlerts = buildAlertStyles();
     private themeForms = buildFormStyles();
     private themeSettingsForm = buildSettingsFormStyles();
 
@@ -74,8 +70,6 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
 
         this.state = {
             croppedImageDetails: {},
-            errorMsg: '',
-            successMsg: '',
             inputs: {
                 email: props.user.details.email,
                 firstName: props.user.details.firstName,
@@ -96,10 +90,16 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             translator('en-us', key, params);
     }
 
-    componentDidMount() {
+    componentDidMount = () => {
         this.props.navigation.setOptions({
             title: this.translate('pages.settings.headerTitle'),
         });
+    }
+
+    goToManageAccount = () => {
+        const { navigation } = this.props;
+
+        navigation.push('ManageAccount');
     }
 
     isFormDisabled() {
@@ -121,7 +121,6 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
 
         this.theme = buildStyles(themeName);
         this.themeMenu = buildMenuStyles(themeName);
-        this.themeAlerts = buildAlertStyles(themeName);
         this.themeForms = buildFormStyles(themeName);
         this.themeSettingsForm = buildSettingsFormStyles(themeName);
     }
@@ -142,8 +141,10 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const { user } = this.props;
 
         if (password && !PasswordRegex.test(password)) {
-            this.setState({
-                errorMsg: this.translate(
+            Toast.show({
+                type: 'errorBig',
+                text1: this.translate('pages.settings.alertTitles.insecurePassword'),
+                text2: this.translate(
                     'forms.settings.errorMessages.passwordInsecure'
                 ),
             });
@@ -182,8 +183,14 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
     requestUserUpdate = (user, updateArgs) => this.props
         .updateUser(user.details.id, updateArgs)
         .then(() => {
-            this.setState({
-                successMsg: this.translate('forms.settings.backendSuccessMessage'),
+            Toast.show({
+                type: 'success',
+                text1: this.translate('pages.settings.alertTitles.accountUpdated'),
+                text2: this.translate('pages.settings.alertMessages.accountUpdated'),
+                visibilityTime: 2000,
+                onHide: () => {
+                    console.log('TODO: LOGOUT');
+                },
             });
             this.reloadTheme();
         })
@@ -193,16 +200,20 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 error.statusCode === 401 ||
                 error.statusCode === 404
             ) {
-                this.setState({
-                    errorMsg: `${error.message}${
+                Toast.show({
+                    type: 'errorBig',
+                    text1: this.translate('forms.settings.alertTitles.backendErrorMessage'),
+                    text2: `${error.message}${
                         error.parameters
                             ? '(' + error.parameters.toString() + ')'
                             : ''
                     }`,
                 });
             } else if (error.statusCode >= 500) {
-                this.setState({
-                    errorMsg: this.translate('forms.settings.backendErrorMessage'),
+                Toast.show({
+                    type: 'errorBig',
+                    text1: this.translate('forms.settings.alertTitles.backendErrorMessage'),
+                    text2: this.translate('forms.settings.backendErrorMessage'),
                 });
             }
         })
@@ -234,8 +245,6 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 ...inputs,
                 ...newInputChanges,
             },
-            errorMsg: '',
-            successMsg: '',
             isSubmitting: false,
             passwordErrorMessage,
         });
@@ -303,11 +312,12 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
 
     render() {
         const { navigation, user } = this.props;
-        const { croppedImageDetails, errorMsg, successMsg, inputs, isNightMode, passwordErrorMessage } = this.state;
+        const { croppedImageDetails, inputs, isNightMode, passwordErrorMessage } = this.state;
         const pageHeaderUser = this.translate('pages.settings.pageHeaderUser');
         const pageHeaderPassword = this.translate('pages.settings.pageHeaderPassword');
         const pageHeaderDisplaySettings = this.translate('pages.settings.pageHeaderDisplaySettings');
         const pageHeaderSettings = this.translate('pages.settings.pageHeaderSettings');
+        // const pageHeaderAdvancedSettings = this.translate('pages.settings.pageHeaderAdvancedSettings');
         const currentUserImageUri = getUserImageUri(user, 200);
         const userImageUri = getImagePreviewPath(croppedImageDetails.path) || currentUserImageUri;
 
@@ -363,13 +373,6 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     theme={this.theme}
                                     themeForms={this.themeForms}
                                     userImageUri={userImageUri}
-                                />
-                                <Alert
-                                    containerStyles={this.themeSettingsForm.styles.alert}
-                                    isVisible={!!(errorMsg || successMsg)}
-                                    message={successMsg || errorMsg}
-                                    type={errorMsg ? 'error' : 'success'}
-                                    themeAlerts={this.themeAlerts}
                                 />
                                 <SquareInput
                                     label={this.translate(
@@ -566,6 +569,18 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     themeForms={this.themeForms}
                                 />
                             </View>
+                            {/* <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionTitle}>
+                                    {pageHeaderAdvancedSettings}
+                                </Text>
+                            </View>
+                            <View style={this.themeSettingsForm.styles.advancedContainer}>
+                                <Text style={this.theme.styles.sectionDescription}>
+                                    <Text
+                                        style={this.themeForms.styles.buttonLink}
+                                        onPress={this.goToManageAccount}>{this.translate('forms.settings.buttons.manageAccount')}</Text>
+                                </Text>
+                            </View> */}
                         </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>
