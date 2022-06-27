@@ -85,10 +85,17 @@ spec:
             secretKeyRef:
               name: therrjwtsecret
               key: THERRJWT_SECRET
+        - name: SIGHTENGINE_API_KEY
+          value: "109708716"
+        - name: SIGHTENGINE_API_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: sightengineapisecret
+              key: SIGHTENGINE_API_SECRET
       - name: cloud-sql-proxy
         # It is recommended to use the latest version of the Cloud SQL proxy
         # Make sure to update on a regular schedule!
-        image: gcr.io/cloudsql-docker/gce-proxy:1.17
+        image: "gcr.io/cloudsql-docker/gce-proxy:1.31.0"
         resources:
           limits:
             memory: "64Mi"
