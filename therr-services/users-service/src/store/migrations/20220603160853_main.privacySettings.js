@@ -20,14 +20,14 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('privacySettin
     table.boolean('isProfileMediaCommentsPublic').notNullable().defaultTo(true);
     table.boolean('isConnectionCountPublic').notNullable().defaultTo(true);
     table.boolean('isConnectionListPublic').notNullable().defaultTo(true);
-    table.string('showActivityTo').notNullable().defaultTo(JSON.stringify(['me']));
+    table.jsonb('showActivityTo').notNullable().defaultTo(JSON.stringify(['me']));
 
     // Global Visibility settings
     table.string('allowCollaborationsFrom').notNullable().defaultTo('everyone');
     table.string('allowTaggingMeFrom').notNullable().defaultTo('everyone');
     table.string('allowTagsOnPostsFrom').notNullable().defaultTo('everyone');
     table.boolean('isSocialSyncPublic').notNullable().defaultTo(true);
-    table.string('showPresenceTo').notNullable().defaultTo('everyone');
+    table.jsonb('showPresenceTo').notNullable().defaultTo(JSON.stringify(['everyone']));
 
     // Audit
     table.timestamp('createdAt', { useTz: true }).notNullable().defaultTo(knex.fn.now());
