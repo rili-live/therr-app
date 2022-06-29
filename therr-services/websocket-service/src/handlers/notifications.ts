@@ -20,7 +20,7 @@ const updateNotification = (socket: Socket, data: IUpdateNotificationData, decod
             socketId: socket.id,
         },
     });
-    restRequest({
+    return restRequest({
         method: 'put',
         url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/notifications/${data.notification.id}`,
         data: {
@@ -34,6 +34,8 @@ const updateNotification = (socket: Socket, data: IUpdateNotificationData, decod
                 ...response.data,
             },
         });
+    }).catch((err) => {
+        console.log(err);
     });
 };
 

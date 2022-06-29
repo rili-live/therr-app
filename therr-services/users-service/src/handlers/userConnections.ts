@@ -97,6 +97,21 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR',
             });
         }
+    } else {
+        try {
+            const userResults = await Store.users.findUser({
+                id: acceptingUserId,
+            }, ['id', 'deviceMobileFirebaseToken', 'email']);
+
+            // 1b. Capture user id for step 2 when found in DB
+            acceptingUser = userResults[0];
+        } catch (err: any) {
+            return handleHttpError({
+                err,
+                res,
+                message: 'SQL:USER_CONNECTIONS_ROUTES:ERROR',
+            });
+        }
     }
 
     // TODO: Make this one DB request
@@ -120,7 +135,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 // Re-create connection after unconnection
                 connectionPromise = Store.userConnections.updateUserConnection({
                     requestingUserId: getResults[0].requestingUserId,
-                    acceptingUserId: getResults[0].acceptingUserId,
+                    acceptingUserId: acceptingUser.id as string,
                 }, {
                     isConnectionBroken: false,
                     requestStatus: 'pending',
@@ -139,9 +154,15 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 fromUserName: fromUserFullName,
                 fromUserId: userId,
                 locale,
-                toUserId: acceptingUser.id,
+                toUserId: acceptingUser.id as string,
                 type: 'new-connection-request',
                 retentionEmailType: PushNotifications.Types.newConnectionRequest,
+            }).catch((err) => {
+                beeline.addContext({
+                    routeName: 'CreateUserConnection',
+                    method: sendPushNotificationAndEmail,
+                    errorMessage: err.stack,
+                });
             });
 
             return connectionPromise.then(([userConnection]) => Store.notifications.createNotification({

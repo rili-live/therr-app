@@ -25,7 +25,7 @@ const createConnection = (socket: socketio.Socket, data: ICreateUserConnectionDa
     printLogs({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
-        messages: `User, ${data.user.userName} with socketId ${socket.id}, created a userConnection`,
+        messages: `User, ${data.user?.userName} with socketId ${socket.id}, created a userConnection`,
         tracer: beeline,
         traceArgs: {
             socketId: socket.id,
@@ -149,6 +149,8 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
         }
 
         return Promise.resolve(connection);
+    }).catch((err) => {
+        console.log(err);
     });
 };
 
