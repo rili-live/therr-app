@@ -1,18 +1,12 @@
 import * as socketio from 'socket.io';
 import printLogs from 'therr-js-utilities/print-logs';
-import moment from 'moment';
 import {
     Notifications,
-    SocketServerActionTypes,
-    SocketClientActionTypes,
-    SOCKET_MIDDLEWARE_ACTION,
 } from 'therr-js-utilities/constants';
 import beeline from '../beeline';
 import restRequest from '../utilities/restRequest';
 import redisHelper from '../utilities/redisHelper';
 import globalConfig from '../../../../global-config';
-import { FORUM_PREFIX } from './rooms';
-import { COMMON_DATE_FORMAT } from '../constants';
 
 const sendReactionPushNotification = (socket: socketio.Socket, data: any, decodedAuthenticationToken: any) => {
     // Send new moment/space reaction notification
@@ -23,7 +17,7 @@ const sendReactionPushNotification = (socket: socketio.Socket, data: any, decode
         redisHelper.throttleReactionNotifications(data.areaUserId, areaReaction.userId)
             .then((shouldCreateNotification) => {
                 if (shouldCreateNotification) { // fire and forget
-                    restRequest({
+                    return restRequest({
                         method: 'post',
                         url: `${globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute}/users/notifications`,
                         data: {
@@ -40,8 +34,12 @@ const sendReactionPushNotification = (socket: socketio.Socket, data: any, decode
                             shouldSendPushNotification: true,
                             fromUserName: data.reactorUserName,
                         },
-                    }, socket, decodedAuthenticationToken);
+                    }, socket, decodedAuthenticationToken).catch((err) => {
+                        console.log(err);
+                    });
                 }
+            }).catch((err) => {
+                console.log(err);
             });
     }
 };

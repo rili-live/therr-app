@@ -68,5 +68,7 @@ export default (socket, userDetails, actionType, shouldReturnActiveConnections =
                 });
             });
         });
+    }).catch((err) => {
+        console.log(err);
     });
 };

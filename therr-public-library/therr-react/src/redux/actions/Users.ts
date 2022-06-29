@@ -64,6 +64,8 @@ class UsersActions {
             type: UserActionTypes.GET_USER,
             data: response?.data,
         });
+
+        return response?.data;
     });
 
     updateUserInView = (data: any) => (dispatch: any) => {

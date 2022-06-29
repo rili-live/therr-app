@@ -6,6 +6,14 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getUserImageUri } from '../../utilities/content';
 import SocialIconLink from './SocialIconLink';
 import { ScrollView } from 'react-native-gesture-handler';
+import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
+import therrIconConfig from '../../assets/therr-font-config.json';
+
+const LogoIcon = createIconSetFromIcoMoon(
+    therrIconConfig,
+    'TherrFont',
+    'TherrFont.ttf'
+);
 
 const { width: viewportWidth } = Dimensions.get('window');
 const imageWidth = viewportWidth / 3;
@@ -272,6 +280,22 @@ export default ({
                     <Text style={themeUser.styles.profileBio} numberOfLines={3}>
                         {userInView.settingsBio || translate('user.profile.labels.noBioYet')}
                     </Text>
+                    {
+                        !!userInView?.connectionCount &&
+                        <View style={themeUser.styles.connectionCountContainer}>
+                            <LogoIcon
+                                name="therr-logo"
+                                size={20}
+                                style={themeUser.styles.connectionCountIcon}
+                            />
+                            <Text style={themeUser.styles.connectionCountNumber} numberOfLines={1}>
+                                {userInView?.connectionCount}
+                            </Text>
+                            <Text style={themeUser.styles.connectionCountText} numberOfLines={1}>
+                                {translate('user.profile.labels.connections')}
+                            </Text>
+                        </View>
+                    }
                 </View>
             </View>
             <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', marginTop: 16, width: '100%' }}>

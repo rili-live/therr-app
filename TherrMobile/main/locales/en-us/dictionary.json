@@ -869,6 +869,7 @@
         "message": "Message"
       },
       "labels": {
+        "connections": "connections",
         "noBioYet": "This user has not updated their bio yet.",
         "profileIsPublicName": "Profile is Private"
       },

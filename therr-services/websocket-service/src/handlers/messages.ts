@@ -74,12 +74,16 @@ const sendDirectMessage = (socket: socketio.Socket, data: any, decodedAuthentica
                                 shouldSendPushNotification: true,
                                 fromUserName: data.userName,
                             },
-                        }, socket, decodedAuthenticationToken);
+                        }, socket, decodedAuthenticationToken).catch((err) => {
+                            console.log(err);
+                        }).catch((err) => {
+                            console.log(err);
+                        });
                     }
                 });
         }
         printLogs({
-            level: 'info',
+            level: 'debug',
             messageOrigin: 'SOCKET_IO_LOGS',
             messages: `${data.userName} said: ${data.message}`,
             tracer: beeline,
