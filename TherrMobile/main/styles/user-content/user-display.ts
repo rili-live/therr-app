@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
+import { therrFontFamily } from '../font';
 import { getTheme, ITherrTheme } from '../themes';
 
 const getSocialIndicatorBase: any = (therrTheme: ITherrTheme) => ({
@@ -31,6 +32,28 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         profileSummaryContainer: {
             flex: 1,
             paddingRight: 14,
+        },
+        connectionCountContainer: {
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginTop: 8,
+        },
+        connectionCountIcon: {
+            color: therrTheme.colors.textWhite,
+            marginRight: 8,
+        },
+        connectionCountNumber: {
+            color: therrTheme.colors.textWhite,
+            marginRight: 4,
+            fontWeight: '600',
+            fontSize: 16,
+        },
+        connectionCountText: {
+            fontFamily: therrFontFamily,
+            color: therrTheme.colors.textWhite,
+            fontSize: 14,
+            fontWeight: '400',
         },
         profileFullName: {
             fontSize: 20,

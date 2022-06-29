@@ -125,15 +125,17 @@ class ViewUser extends React.Component<
     }
 
     fetchUser = () => {
-        const { getUser, getIntegratedMoments, route, user } = this.props;
+        const { getUser, getIntegratedMoments, route } = this.props;
         const { userInView } = route.params;
 
 
-        getUser(userInView.id).then(() => {
+        getUser(userInView.id).then((response) => {
             this.props.navigation.setOptions({
-                title: user.userInView?.userName,
+                title: response?.userName || this.translate('pages.viewUser.headerTitle'),
             });
-            getIntegratedMoments(userInView.id);
+            if (response?.id) {
+                getIntegratedMoments(response?.id);
+            }
         }).finally(() => {
             this.setState({
                 isLoading: false,
