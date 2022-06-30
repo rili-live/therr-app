@@ -1,13 +1,16 @@
 import axios from 'axios';
 import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
 import { Content, ErrorCodes } from 'therr-js-utilities/constants';
+import printLogs from 'therr-js-utilities/print-logs';
 import { RequestHandler } from 'express';
 import * as globalConfig from '../../../../global-config';
 import getReactions from '../utilities/getReactions';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
+import beeline from '../beeline';
 import {
+    checkIsMediaSafeForWork,
     getSignedUrlResponse,
     getSupportedIntegrations,
     guessCategoryFromText,
@@ -21,6 +24,8 @@ const createMoment = (req, res) => {
     const authorization = req.headers.authorization;
     const locale = req.headers['x-localecode'] || 'en-us';
     const userId = req.headers['x-userid'];
+
+    const { media } = req.body;
 
     return Store.moments.createMoment({
         ...req.body,
@@ -38,10 +43,37 @@ const createMoment = (req, res) => {
             data: {
                 userHasActivated: true,
             },
-        }).then(({ data: reaction }) => res.status(201).send({
-            ...moment,
-            reaction,
-        })))
+        }).then(({ data: reaction }) => {
+            // TODO: This technically leaves room for a gap of time where users may fin
+            // explicit content before it's flag has been updated. We should solve this by
+            // marking the content pending before making it available to search
+            // Async - fire and forget to prevent slow request
+            checkIsMediaSafeForWork(media).then((isSafeForWork) => {
+                if (!isSafeForWork) {
+                    const momentArgs = {
+                        ...moment,
+                        isMatureContent: !isSafeForWork,
+                    };
+                    return Store.moments.updateMoment(moment.id, momentArgs).catch((err) => {
+                        printLogs({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['failed to update moment after sightengine check'],
+                            tracer: beeline,
+                            traceArgs: {
+                                errorMessage: err?.message,
+                                errorResponse: err?.response?.data,
+                            },
+                        });
+                    });
+                }
+            });
+
+            return res.status(201).send({
+                ...moment,
+                reaction,
+            });
+        }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
 
@@ -86,11 +118,13 @@ const createIntegratedMomentBase = ({
             })
             : Promise.resolve('');
 
+        let momentArgs: any = {};
+
         return maybeFileUploadPromise
             .then((mediaUrl: string | void) => {
                 let hashTags = (media.caption?.match(/#[a-z]+/gi) || []);
                 hashTags = hashTags.map((tag) => tag.replace('#', '')).toString();
-                const momentArgs: any = {
+                momentArgs = {
                     areaType: 'moments',
                     category: guessCategoryFromText(media.caption),
                     createdAt: media.timestamp,
@@ -120,28 +154,52 @@ const createIntegratedMomentBase = ({
                     fromUserId: userId,
                 });
             })
-            .then(([moment]) => Promise.all([
-                Promise.resolve(moment),
-                axios({ // Create companion reaction for user's own moment
-                    method: 'post',
-                    url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/moment-reactions/${moment.id}`,
-                    headers: {
-                        authorization,
-                        'x-localecode': locale,
-                        'x-userid': userId,
-                    },
-                    data: {
-                        userHasActivated: true,
-                    },
-                }),
-                Store.externalMediaIntegrations.create({
-                    fromUserId: userId,
-                    momentId: moment.id,
-                    externalId: media.id,
-                    platform: 'instagram',
-                    permalink: media.permalink,
-                }),
-            ]))
+            .then(([moment]) => {
+                // TODO: This technically leaves room for a gap of time where users may fin
+                // explicit content before it's flag has been updated. We should solve this by
+                // marking the content pending before making it available to search
+                // Async - fire and forget to prevent slow request
+                checkIsMediaSafeForWork(media).then((isSafeForWork) => {
+                    momentArgs.isMatureContent = !isSafeForWork;
+                    if (!isSafeForWork) {
+                        Store.moments.updateMoment(moment.id, momentArgs).catch((err) => {
+                            printLogs({
+                                level: 'error',
+                                messageOrigin: 'API_SERVER',
+                                messages: ['failed to update moment after sightengine check'],
+                                tracer: beeline,
+                                traceArgs: {
+                                    errorMessage: err?.message,
+                                    errorResponse: err?.response?.data,
+                                },
+                            });
+                        });
+                    }
+                });
+
+                return Promise.all([
+                    Promise.resolve(moment),
+                    axios({ // Create companion reaction for user's own moment
+                        method: 'post',
+                        url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/moment-reactions/${moment.id}`,
+                        headers: {
+                            authorization,
+                            'x-localecode': locale,
+                            'x-userid': userId,
+                        },
+                        data: {
+                            userHasActivated: true,
+                        },
+                    }),
+                    Store.externalMediaIntegrations.create({
+                        fromUserId: userId,
+                        momentId: moment.id,
+                        externalId: media.id,
+                        platform: 'instagram',
+                        permalink: media.permalink,
+                    }),
+                ]);
+            })
             .then(([moment, { data: reaction }, externalIntegration]) => res.status(201).send({
                 ...moment,
                 reaction,
@@ -465,6 +523,7 @@ const findMoments: RequestHandler = async (req: any, res: any) => {
     }, {
         withMedia: !!withMedia,
         withUser: !!withUser,
+        shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
     })
         .then(({ moments, media }) => res.status(200).send({ moments, media }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));

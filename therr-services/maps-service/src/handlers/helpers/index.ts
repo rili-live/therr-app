@@ -1,7 +1,11 @@
+import axios from 'axios';
 import client from 'https';
 import path from 'path';
+import printLogs from 'therr-js-utilities/print-logs';
+import beeline from '../../beeline';
 import handleHttpError from '../../utilities/handleHttpError';
 import { storage } from '../../api/aws';
+import getBucket from '../../utilities/getBucket';
 
 const guessCategoryFromText = (text?: string) => {
     if (text?.includes('food')) {
@@ -97,6 +101,87 @@ const getSignedUrlResponse = (req, res, bucket) => {
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };
 
+const checkIsMediaSafeForWork = (media: { type: string, path: string }[]) => {
+    const startTime = Date.now();
+    // TODO: Fine tune and test with various types of content
+    if (media?.length) {
+        const bucket = getBucket(media[0].type);
+        const imageExpireTime = Date.now() + 60 * 5 * 1000; // 5 minutes
+        if (bucket) {
+            const signingPromises: Promise<any>[] = [];
+            media.forEach((item) => signingPromises.push(
+                storage
+                    .bucket(bucket)
+                    .file(item.path)
+                    .getSignedUrl({
+                        version: 'v4',
+                        action: 'read',
+                        expires: imageExpireTime,
+                    }),
+            ));
+
+            return Promise.all(signingPromises).then((responses) => {
+                const urls = responses.map((response) => response[0]);
+                if (!urls.length) {
+                    return false;
+                }
+
+                const sightenginePromises: Promise<any>[] = [];
+                urls.forEach((url) => sightenginePromises.push(
+                    axios.get('https://api.sightengine.com/1.0/check-workflow.json', {
+                        params: {
+                            url,
+                            // models: 'nudity,wad,offensive,gore',
+                            workflow: 'wfl_c7JoaqX7OFJtnjIpuS3P3',
+                            api_user: process.env.SIGHTENGINE_API_KEY || '',
+                            api_secret: process.env.SIGHTENGINE_API_SECRET || '',
+                        },
+                    }),
+                ));
+
+                return Promise.all(sightenginePromises).then((sightEnginResponses) => {
+                    let isSafeForWork = true;
+                    // Short circuit if any media is unsafe
+                    sightEnginResponses.some((response) => {
+                        if (response?.data?.summary?.action !== 'accept') {
+                            isSafeForWork = false;
+                            return true;
+                        }
+
+                        return false;
+                    });
+                    printLogs({
+                        level: 'info',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['sightengine metrics'],
+                        tracer: beeline,
+                        traceArgs: {
+                            sightengineDurationMs: Date.now() - startTime,
+                        },
+                    });
+                    return isSafeForWork;
+                });
+            }).catch((err) => {
+                // TODO: Send email to admin
+                printLogs({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['sightengine error'],
+                    tracer: beeline,
+                    traceArgs: {
+                        errorMessage: err?.message,
+                        errorResponse: err?.response?.data,
+                    },
+                });
+
+                return false;
+            });
+        }
+    }
+
+    return Promise.resolve(true);
+};
+
 const streamUploadFile = (fileUrl, filename, {
     requestId,
     userId,
@@ -130,6 +215,7 @@ const streamUploadFile = (fileUrl, filename, {
 export {
     guessCategoryFromText,
     fetchSignedUrl,
+    checkIsMediaSafeForWork,
     getSupportedIntegrations,
     getSignedUrlResponse,
     streamUploadFile,

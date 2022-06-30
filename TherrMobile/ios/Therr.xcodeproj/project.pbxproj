@@ -105,6 +105,7 @@
 		65A714420C6F463F8B8A6C0F /* Lexend-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Medium.ttf"; path = "../resources/fonts/Lexend-Medium.ttf"; sourceTree = "<group>"; };
 		68A1BBC0CA244A228C509B6B /* Lexend-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Regular.ttf"; path = "../resources/fonts/Lexend-Regular.ttf"; sourceTree = "<group>"; };
 		6A6DD15A8B4F46CF9D89D9E4 /* bootsplash_logo_original.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = bootsplash_logo_original.png; path = ../main/assets/bootsplash_logo_original.png; sourceTree = "<group>"; };
+		71111816286DDDDE00F6A53B /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../main/assets; sourceTree = "<group>"; };
 		712C1DF325C649470078CB60 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../main/assets; sourceTree = "<group>"; };
 		714AA58026B0911A003E88A1 /* Contacts.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Contacts.framework; path = System/Library/Frameworks/Contacts.framework; sourceTree = SDKROOT; };
 		714EBB2725C6FBEA00910449 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; name = fonts; path = ../main/assets/fonts; sourceTree = "<group>"; };
@@ -272,6 +273,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				71111816286DDDDE00F6A53B /* assets */,
 				71C492CF26A463B5004D33C1 /* File.swift */,
 				715B895E2618EA6300408914 /* GoogleService-Info.plist */,
 				714EBB2725C6FBEA00910449 /* fonts */,
@@ -530,8 +532,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7134E4B425E16E7F00F7A07C /* main.jsbundle in Resources */,
 				71EFC8F225C64E2200F57AB8 /* assets in Resources */,
+				7134E4B425E16E7F00F7A07C /* main.jsbundle in Resources */,
 				71F9E0B6277251A8006CDC68 /* BootSplash.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				715B89602618EA6300408914 /* GoogleService-Info.plist in Resources */,
