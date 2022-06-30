@@ -121,7 +121,7 @@ const getUserHelper = ({
         if (!results.length) {
             return handleHttpError({
                 res,
-                message: `No user found with the provided params: ${targetUserParams.toString()}`,
+                message: `No user found with the provided params: ${JSON.stringify(targetUserParams)}`,
                 statusCode: 404,
             });
         }

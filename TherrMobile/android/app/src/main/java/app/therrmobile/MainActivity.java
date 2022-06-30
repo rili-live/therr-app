@@ -24,12 +24,12 @@ public class MainActivity extends ReactActivity {
   // Store the URL we're receiving from the share system
   public static String importUrl;
 
-//  @Override
-//  protected void onCreate(Bundle savedInstanceState) {
-//      RNBootSplash.show(this);  // here
-//
-//    super.onCreate(savedInstanceState);
-//  }
+
+  // https://github.com/software-mansion/react-native-screens/issues/17#issuecomment-424704067
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+      super.onCreate(null);
+  }
 
   @Override
   protected ReactActivityDelegate createReactActivityDelegate() {
