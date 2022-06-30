@@ -136,11 +136,15 @@ export default class SpacesStore {
         const orderBy = filters.orderBy || `${SPACES_TABLE_NAME}.updatedAt`;
         const order = filters.order || 'DESC';
 
-        const query = knexBuilder
+        let query = knexBuilder
             .from(SPACES_TABLE_NAME)
             .orderBy(orderBy, order)
             .whereIn('id', spaceIds || [])
             .limit(restrictedLimit);
+
+        if (options?.shouldHideMatureContent) {
+            query = query.where({ isMatureContent: false });
+        }
 
         return this.db.read.query(query.toString()).then(async ({ rows: spaces }) => {
             if (options.withMedia || options.withUser) {
@@ -282,6 +286,18 @@ export default class SpacesStore {
 
             return this.db.write.query(queryString).then((response) => response.rows);
         });
+    }
+
+    updateSpace(id: string, isMatureContent: boolean) {
+        const queryString = knexBuilder.update({
+            isMatureContent,
+        })
+            .into(SPACES_TABLE_NAME)
+            .where({ id })
+            .returning(['id'])
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
     }
 
     deleteSpaces(params: IDeleteSpacesParams) {

@@ -3,18 +3,23 @@ import path from 'path';
 import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
 import { ErrorCodes } from 'therr-js-utilities/constants';
 import { RequestHandler } from 'express';
+import printLogs from 'therr-js-utilities/print-logs';
+import beeline from '../beeline';
 import { storage } from '../api/aws';
 import * as globalConfig from '../../../../global-config';
 import getReactions from '../utilities/getReactions';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
+import { checkIsMediaSafeForWork } from './helpers';
 
 // CREATE
 const createSpace = (req, res) => {
     const authorization = req.headers.authorization;
     const locale = req.headers['x-localecode'] || 'en-us';
     const userId = req.headers['x-userid'];
+
+    const { media } = req.body;
 
     return Store.spaces.createSpace({
         ...req.body,
@@ -32,10 +37,33 @@ const createSpace = (req, res) => {
             data: {
                 userHasActivated: true,
             },
-        }).then(({ data: reaction }) => res.status(201).send({
-            ...space,
-            reaction,
-        })))
+        }).then(({ data: reaction }) => {
+            // TODO: This technically leaves room for a gap of time where users may fin
+            // explicit content before it's flag has been updated. We should solve this by
+            // marking the content pending before making it available to search
+            // Async - fire and forget to prevent slow request
+            checkIsMediaSafeForWork(media).then((isSafeForWork) => {
+                if (!isSafeForWork) {
+                    return Store.spaces.updateSpace(space.id, !isSafeForWork).catch((err) => {
+                        printLogs({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['failed to update space after sightengine check'],
+                            tracer: beeline,
+                            traceArgs: {
+                                errorMessage: err?.message,
+                                errorResponse: err?.response?.data,
+                            },
+                        });
+                    });
+                }
+            });
+
+            return res.status(201).send({
+                ...space,
+                reaction,
+            });
+        }))
         .catch((err) => {
             if (err?.constraint === 'no_overlaps') {
                 return handleHttpError({
@@ -70,6 +98,7 @@ const getSpaceDetails = (req, res) => {
     }, {
         withMedia: shouldFetchMedia,
         withUser: shouldFetchUser,
+        shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
     })
         .then(({ spaces, media, users }) => {
             const space = spaces[0];

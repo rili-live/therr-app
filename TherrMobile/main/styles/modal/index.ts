@@ -21,7 +21,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         bottomSheetOverlay: {
             ...containerStyles,
             justifyContent: 'flex-end',
-            backgroundColor: therrTheme.colors.textGray,
+            backgroundColor: 'transparent',
         },
         container: {
             display: 'flex',

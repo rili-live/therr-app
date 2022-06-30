@@ -23,6 +23,7 @@ export interface ICreateMomentParams {
     locale: string;
     isPublic?: boolean;
     isDraft?: boolean;
+    isMatureContent?: boolean;
     message: string;
     notificationMsg?: string;
     mediaIds?: string;
@@ -96,6 +97,7 @@ export default class MomentsStore {
             // NOTE: Cast to a geography type to search distance within n meters
             .where(knexBuilder.raw(`ST_DWithin(geom, ST_MakePoint(${conditions.longitude}, ${conditions.latitude})::geography, ${proximityMax})`)) // eslint-disable-line quotes, max-len
             .andWhere({
+                // TODO: Check user settings to determine if content should be included
                 isMatureContent: false, // content that has been blocked
             });
 
@@ -181,6 +183,10 @@ export default class MomentsStore {
 
         if (filters?.fromUserId) {
             query = query.where({ fromUserId: filters.fromUserId });
+        }
+
+        if (options?.shouldHideMatureContent) {
+            query = query.where({ isMatureContent: false });
         }
 
         return this.db.read.query(query.toString()).then(async ({ rows: moments }) => {
@@ -302,6 +308,7 @@ export default class MomentsStore {
                 locale: params.locale,
                 isPublic: !!params.isPublic,
                 isDraft: !!params.isDraft,
+                isMatureContent: !!params.isMatureContent,
                 message: params.message,
                 notificationMsg: notificationMsg.replace(/#/g, ''),
                 mediaIds: mediaIds || params.mediaIds || '',
@@ -355,6 +362,7 @@ export default class MomentsStore {
                 locale: params.locale,
                 isPublic: !!params.isPublic,
                 isDraft: !!params.isDraft,
+                isMatureContent: !!params.isMatureContent,
                 message: params.message,
                 notificationMsg,
                 mediaIds: mediaIds || params.mediaIds || '',
