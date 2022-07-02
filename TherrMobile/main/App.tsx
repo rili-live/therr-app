@@ -1,7 +1,6 @@
 import React from 'react';
 import { LogBox } from 'react-native';
 import { Provider } from 'react-redux';
-import SplashScreen from 'react-native-bootsplash';
 import LogRocket from '@logrocket/react-native';
 import Toast, { BaseToast, ErrorToast, InfoToast } from 'react-native-toast-message';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
@@ -145,7 +144,7 @@ class App extends React.Component<any, any> {
 
             this.setState({
                 isLoading: false,
-            }, () => SplashScreen.hide({ fade: true }));
+            });
         }).catch((err) => {
             console.log(err);
         });
