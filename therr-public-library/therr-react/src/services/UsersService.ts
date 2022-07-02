@@ -75,6 +75,12 @@ class UsersService {
         data,
     })
 
+    delete = (userId: string, data: IRegisterCredentials) => axios({
+        method: 'delete',
+        url: `/users-service/users/${userId}`,
+        data,
+    })
+
     get = (id: string) => axios({
         method: 'get',
         url: `/users-service/users/${id}`,

@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import { PasswordRegex } from 'therr-js-utilities/constants';
+import { UsersService } from 'therr-react/services';
 import Toast from 'react-native-toast-message';
 import analytics from '@react-native-firebase/analytics';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
@@ -96,14 +97,27 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
         analytics().logEvent('account_delete_start', {
             userId: user.details.id,
         }).catch((err) => console.log(err));
-        Toast.show({
-            type: 'successBig',
-            text1: this.translate('pages.advancedSettings.alertTitles.accountDeleted'),
-            text2: this.translate('pages.advancedSettings.alertMessages.accountDeleted'),
-            visibilityTime: 2000,
-            onHide: () => {
-                console.log('TODO: LOGOUT');
-            },
+
+        // TODO: Add are you sure modal and test
+        UsersService.delete(user.id).then(() => {
+            analytics().logEvent('account_delete_success', {
+                userId: user.details.id,
+            }).catch((err) => console.log(err));
+
+            Toast.show({
+                type: 'successBig',
+                text1: this.translate('pages.advancedSettings.alertTitles.accountDeleted'),
+                text2: this.translate('pages.advancedSettings.alertMessages.accountDeleted'),
+                visibilityTime: 2000,
+                onHide: () => {
+                    console.log('TODO: LOGOUT');
+                },
+            });
+        }).catch((error) => {
+            analytics().logEvent('account_delete_failed', {
+                userId: user.details.id,
+                error: error?.message,
+            }).catch((err) => console.log(err));
         });
     }
 
