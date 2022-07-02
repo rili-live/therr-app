@@ -8,6 +8,7 @@ import getStore from './getStore';
 import initInterceptors from './interceptors';
 import Layout from './components/Layout';
 import { buttonMenuHeight } from './styles/navigation/buttonMenu';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 // import { buildStyles } from './styles';
 
 // TODO: This is temporary to ignore the really annoying ViewPropTypes log
@@ -159,7 +160,9 @@ class App extends React.Component<any, any> {
 
         return (
             <Provider store={this.store}>
-                <Layout />
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                    <Layout />
+                </GestureHandlerRootView>
                 <Toast
                     config={toastConfig}
                     position="bottom"
