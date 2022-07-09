@@ -8,6 +8,7 @@
 
 exports.up = (knex) => knex.schema.withSchema('main').createTable('userStatsAggregations', (table) => {
     table.uuid('userId')
+        .unique()
         .references('id')
         .inTable('main.users')
         .onUpdate('CASCADE')
@@ -44,7 +45,7 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('userStatsAggr
     table.timestamp('updatedAt', { useTz: true }).notNullable().defaultTo(knex.fn.now());
 
     // Indexes
-    table.index(['userId']);
+    table.index('userId');
 });
 
 exports.down = (knex) => knex.schema.dropTable('main.userStatsAggregations');
