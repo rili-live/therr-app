@@ -369,21 +369,39 @@ const updateUserPassword = (req, res) => Store.users.findUser({ id: req.headers[
     .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 
 // DELETE
-const deleteUser = (req, res) => Store.users.deleteUsers({ id: req.params.id })
-    .then((results) => {
-        if (!results.length) {
-            return handleHttpError({
-                res,
-                message: `No user found with id, ${req.params.id}.`,
-                statusCode: 404,
-            });
-        }
+const deleteUser = (req, res) => {
+    const userId = req.headers['x-userid'];
 
-        return res.status(200).send({
-            message: `User with id, ${req.params.id}, was successfully deleted`,
+    // User should only be able to delete self
+    if (userId !== req.params.id) {
+        return handleHttpError({
+            res,
+            message: `Unable to delete user, ${req.params.id}. Does not match requester ID`,
+            statusCode: 400,
         });
-    })
-    .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+    }
+
+    return Store.users.deleteUsers({ id: req.params.id })
+        .then((results) => {
+            if (!results.length) {
+                return handleHttpError({
+                    res,
+                    message: `No user found with id, ${req.params.id}.`,
+                    statusCode: 404,
+                });
+            }
+
+            // TODO: Delete moments/spaces in maps service
+            // TODO: Delete reactions in reactions service
+            // TODO: Delete messages in messages service
+            // TODO: Delete notifications in notifications service
+
+            return res.status(200).send({
+                message: `User with id, ${req.params.id}, was successfully deleted`,
+            });
+        })
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
+};
 
 const createOneTimePassword = (req, res) => {
     const { email } = req.body;

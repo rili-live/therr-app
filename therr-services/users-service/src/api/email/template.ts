@@ -1,6 +1,11 @@
 /* eslint-disable max-len */
 import * as globalConfig from '../../../../../global-config';
 
+// Use production imgaes so we can actually load in email
+const imagesHost = process.env.NODE_ENV === 'development'
+    ? globalConfig.production.hostFull
+    : globalConfig[process.env.NODE_ENV].hostFull;
+
 // TODO: Localize email template
 const template = `
   <!-- <span class="preheader" style="color: transparent; display: none; height: 0; max-height: 0; max-width: 0; opacity: 0; overflow: hidden; mso-hide: all; visibility: hidden; width: 0;">This is preheader text. Some clients will show this text as a preview.</span> -->
@@ -9,7 +14,7 @@ const template = `
       <td>&nbsp;</td>
       <td style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding: 20px 10px 0 40px;">
         <a href="${globalConfig[process.env.NODE_ENV].hostFull}">
-          <img src="${globalConfig[process.env.NODE_ENV].hostFull}/assets/images/therr-splash-logo-200.png" alt="Therr logo" style="height: 50px; width: 50px;" />
+          <img src="${imagesHost}/assets/images/therr-splash-logo-200.png" alt="Therr logo" style="height: 50px; width: 50px;" />
         </a>
       </td>
       <td>&nbsp;</td>
@@ -24,7 +29,7 @@ const template = `
             <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
               <tr>
                 <td class="content-block" style="font-family: sans-serif; vertical-align: top; padding-bottom: 0px; padding-top: 0px; color: #999999; text-align: center; line-height: 0">
-                  <img src="${globalConfig[process.env.NODE_ENV].hostFull}/assets/images/email-header.jpg" alt="Therr email header" style="height: auto; width: 100%" />
+                  <img src="${imagesHost}/assets/images/email-header.jpg" alt="Therr email header" style="height: auto; width: 100%" />
                 </td>
               </tr>
             </table>

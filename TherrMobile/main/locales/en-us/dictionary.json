@@ -682,7 +682,13 @@
     },
     "phoneContacts": {
       "headerTitle": "Phone Contacts",
-      "pageTitle": "Phone Contacts"
+      "pageTitle": "Phone Contacts",
+      "alertTitles": {
+        "contactInvitesSent": "Invite Success"
+      },
+      "alertMessages": {
+        "contactInvitesSent": "Your invites are on the way"
+      }
     },
     "register": {
       "headerTitle": "Therr",

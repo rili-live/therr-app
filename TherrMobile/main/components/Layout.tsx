@@ -14,6 +14,7 @@ import analytics from '@react-native-firebase/analytics';
 import crashlytics from '@react-native-firebase/crashlytics';
 import messaging from '@react-native-firebase/messaging';
 import LogRocket from '@logrocket/react-native';
+import SplashScreen from 'react-native-bootsplash';
 import { UsersService } from 'therr-react/services';
 import { AccessCheckType, IForumsState, INotificationsState, IUserState } from 'therr-react/types';
 import { ContentActions, ForumActions, NotificationActions } from 'therr-react/redux/actions';
@@ -434,6 +435,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 ref={navigationRef}
                 onReady={() => {
                     this.routeNameRef.current = navigationRef?.getCurrentRoute()?.name;
+                    SplashScreen.hide({ fade: true });
                 }}
                 onStateChange={async () => {
                     const previousRouteName = this.routeNameRef.current;

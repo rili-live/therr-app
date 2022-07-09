@@ -6,6 +6,7 @@ import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import { UserConnectionsService } from 'therr-react/services';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
+import Toast from 'react-native-toast-message';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
 import { buildStyles as buildFormsStyles } from '../../styles/forms';
@@ -137,6 +138,13 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
             requestingUserFirstName: user.details.firstName,
             requestingUserLastName: user.details.lastName,
             inviteList: selectedContacts,
+        }).then(() => {
+            Toast.show({
+                type: 'successBig',
+                text1: this.translate('pages.phoneContacts.alertTitles.contactInvitesSent'),
+                text2: this.translate('pages.phoneContacts.alertMessages.contactInvitesSent'),
+                visibilityTime: 3000,
+            });
         }).finally(() => {
             navigation.goBack();
         });
@@ -176,7 +184,7 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
                         )}
                         ListHeaderComponent={<RoundInput
                             autoCapitalize="none"
-                            containerStyle={{ paddingHorizontal: 10, backgroundColor: this.theme.colors.primary }}
+                            containerStyle={{ paddingHorizontal: 10, backgroundColor: this.theme.colors.primary, paddingTop: 10 }}
                             placeholder={this.translate(
                                 'forms.hostedChat.searchPlaceholder'
                             )}
