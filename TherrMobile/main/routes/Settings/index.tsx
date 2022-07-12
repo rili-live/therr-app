@@ -317,7 +317,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const pageHeaderPassword = this.translate('pages.settings.pageHeaderPassword');
         const pageHeaderDisplaySettings = this.translate('pages.settings.pageHeaderDisplaySettings');
         const pageHeaderSettings = this.translate('pages.settings.pageHeaderSettings');
-        const pageHeaderAdvancedSettings = this.translate('pages.settings.pageHeaderAdvancedSettings');
+        // const pageHeaderAdvancedSettings = this.translate('pages.settings.pageHeaderAdvancedSettings');
         const currentUserImageUri = getUserImageUri(user, 200);
         const userImageUri = getImagePreviewPath(croppedImageDetails.path) || currentUserImageUri;
 

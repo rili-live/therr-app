@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { Notifications, PushNotifications } from 'therr-js-utilities/constants';
+import { CurrentSocialValuations, Notifications, PushNotifications } from 'therr-js-utilities/constants';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
 import printLogs from 'therr-js-utilities/print-logs';
 import normalizeEmail from 'normalize-email';
@@ -201,6 +201,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
     const userId = req.headers['x-userid'];
     const fromUserFullName = `${requestingUserFirstName} ${requestingUserLastName}`;
     const locale = req.headers['x-localecode'] || 'en-us';
+    let coinRewardsTotal = 0;
 
     if (requestingUserId !== userId) {
         return handleHttpError({
@@ -247,6 +248,8 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                 // If no email or normal phone number, do nothing
             }
         });
+
+        coinRewardsTotal += (otherUserEmails.length * CurrentSocialValuations.inviteSent) + (otherUserPhoneNumbers.length * CurrentSocialValuations.inviteSent);
 
         // 2. Send email invites if user does not exist
         const emailSendPromises: any[] = [];
@@ -335,6 +338,23 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                         retentionEmailType: PushNotifications.Types.newConnectionRequest,
                     });
                 });
+                // 4b. Reward inviter with coins
+                Store.users.updateUser({
+                    settingsTherrCoinTotal: coinRewardsTotal,
+                }, {
+                    id: userId,
+                }).catch((err) => {
+                    printLogs({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: [err?.message],
+                        tracer: beeline,
+                        traceArgs: {
+                            issue: 'error while updating user coins',
+                        },
+                    });
+                });
+
                 return res.status(201).send({ userConnections });
             }).catch((err) => handleHttpError({
                 err,
