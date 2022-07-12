@@ -106,12 +106,13 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const { inputs, isSubmitting } = this.state;
 
         // TODO: Add message to show when passwords not equal
+        // Phone number is not required for Apple users (due to stupid Apple SSO rule)
+        // ...so we need to add more logic here
         return (
             (inputs.oldPassword && inputs.password !== inputs.repeatPassword) ||
             !inputs.userName ||
             !inputs.firstName ||
             !inputs.lastName ||
-            !inputs.phoneNumber ||
             isSubmitting
         );
     }
@@ -317,7 +318,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const pageHeaderPassword = this.translate('pages.settings.pageHeaderPassword');
         const pageHeaderDisplaySettings = this.translate('pages.settings.pageHeaderDisplaySettings');
         const pageHeaderSettings = this.translate('pages.settings.pageHeaderSettings');
-        const pageHeaderAdvancedSettings = this.translate('pages.settings.pageHeaderAdvancedSettings');
+        // const pageHeaderAdvancedSettings = this.translate('pages.settings.pageHeaderAdvancedSettings');
         const currentUserImageUri = getUserImageUri(user, 200);
         const userImageUri = getImagePreviewPath(croppedImageDetails.path) || currentUserImageUri;
 

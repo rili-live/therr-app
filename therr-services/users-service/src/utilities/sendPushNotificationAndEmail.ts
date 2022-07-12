@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { PushNotifications } from 'therr-js-utilities/constants';
+import printLogs from 'therr-js-utilities/print-logs';
+import beeline from '../beeline'; // eslint-disable-line import/order
 import sendPendingInviteEmail from '../api/email/retention/sendPendingInviteEmail';
 import * as globalConfig from '../../../../global-config';
 import { IFindUserArgs } from '../store/UsersStore';
@@ -50,5 +52,13 @@ export default (findUser: (args: IFindUserArgs, returning: any[]) => Promise<{
         },
     });
 }).catch((error) => {
-    console.log(error);
+    printLogs({
+        level: 'error',
+        messageOrigin: 'API_SERVER',
+        messages: [error?.message],
+        tracer: beeline,
+        traceArgs: {
+            issue: 'error with sendPushNotificationAndEmail',
+        },
+    });
 });
