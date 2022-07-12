@@ -301,7 +301,26 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                 });
             });
 
-        // 4. Send in-app invites to existing users
+        // 4a. Reward inviter with coins
+        if (coinRewardsTotal > 0) {
+            Store.users.updateUser({
+                settingsTherrCoinTotal: coinRewardsTotal,
+            }, {
+                id: userId,
+            }).catch((err) => {
+                printLogs({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: [err?.message],
+                    tracer: beeline,
+                    traceArgs: {
+                        issue: 'error while updating user coins',
+                    },
+                });
+            });
+        }
+
+        // 5. Send in-app invites to existing users
         if (existingUsers.length > 0) {
             // Query db and send connection requests if don't already exist
             return Store.userConnections.findUserConnections(userId, existingUsers.map((user) => user.id)).then((connections) => {
@@ -325,7 +344,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                     newConnectionUsers,
                 }));
             }).then(({ userConnections, newConnectionUsers }) => {
-                // 4a. Send notifications to each new connection request
+                // 5a. Send notifications to each new connection request
                 newConnectionUsers.forEach((acceptingUser) => {
                     // NOTE: no need to refetch user from DB
                     sendPushNotificationAndEmail(() => Promise.resolve([acceptingUser as { deviceMobileFirebaseToken: string; email: string; }]), {
@@ -336,22 +355,6 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                         toUserId: acceptingUser.id,
                         type: 'new-connection-request',
                         retentionEmailType: PushNotifications.Types.newConnectionRequest,
-                    });
-                });
-                // 4b. Reward inviter with coins
-                Store.users.updateUser({
-                    settingsTherrCoinTotal: coinRewardsTotal,
-                }, {
-                    id: userId,
-                }).catch((err) => {
-                    printLogs({
-                        level: 'error',
-                        messageOrigin: 'API_SERVER',
-                        messages: [err?.message],
-                        tracer: beeline,
-                        traceArgs: {
-                            issue: 'error while updating user coins',
-                        },
                     });
                 });
 

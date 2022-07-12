@@ -106,12 +106,13 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const { inputs, isSubmitting } = this.state;
 
         // TODO: Add message to show when passwords not equal
+        // Phone number is not required for Apple users (due to stupid Apple SSO rule)
+        // ...so we need to add more logic here
         return (
             (inputs.oldPassword && inputs.password !== inputs.repeatPassword) ||
             !inputs.userName ||
             !inputs.firstName ||
             !inputs.lastName ||
-            !inputs.phoneNumber ||
             isSubmitting
         );
     }
