@@ -814,6 +814,19 @@
         "report": "Report this content..."
       }
     },
+    "deleteAccountModal": {
+      "exit": "Exit",
+      "close": "Close",
+      "back": "Back",
+      "next": "Next",
+      "done": "Done",
+      "header1": "Delete Account?",
+      "header2": "Deactivate Account?",
+      "header3": "Confirm Permanent Deletion",
+      "createAMoment": "Press the GPS button on the map to start creating content. We require location for all posts to prevent fake users and focus on local-first.",
+      "claimYourSpaces": "Businesses and promoters can claim spaces on the map. Content is public, and nobody can claim overlapping spaces.",
+      "exploreTheWorld": "Use the search bar and filters, then travel to those locations. When you are nearby (w/ location on), content will be added to the 'Discovered' tab."
+    },
     "infoModalPoints": {
       "header": "What are points?",
       "description": "In a future iteration of the app, points will be exchangable for cryptocurrency. Opt in to nearby notifications, and start earning points through various activities like inviting friends and creating quality content. Or, opt out and enjoy the app ad-free!",

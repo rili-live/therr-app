@@ -111,6 +111,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             !inputs.firstName ||
             !inputs.lastName ||
             !inputs.userName ||
+            inputs.userName?.length < 3 ||
             isSubmitting
         );
     }
@@ -151,7 +152,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         });
     }
 
-    onSubmit = (stage: StageType) => {
+    onSubmit = (stage: StageType, shouldSkipAdvance: boolean = false) => {
         const { isPhoneNumberValid } = this.state;
         const {
             firstName,
@@ -190,14 +191,16 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                             userId: user.details.id,
                         }).catch((err) => console.log(err));
                     }
-                    if (stage === 'A') {
-                        this.setState({
-                            stage: 'C',
-                        });
-                    } else if (stage === 'C') {
-                        this.setState({
-                            stage: 'B',
-                        });
+                    if (!shouldSkipAdvance) {
+                        if (stage === 'A') {
+                            this.setState({
+                                stage: 'C',
+                            });
+                        } else if (stage === 'C') {
+                            this.setState({
+                                stage: 'B',
+                            });
+                        }
                     }
                 })
                 .catch((error: any) => {
@@ -330,7 +333,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                     inputs={inputs}
                                     isFormDisabled={this.isFormADisabled()}
                                     onInputChange={this.onInputChange}
-                                    onSubmit={() => this.onSubmit(stage)}
+                                    onSubmit={(shouldSkipAdvance) => this.onSubmit(stage, shouldSkipAdvance)}
                                     translate={this.translate}
                                     themeAlerts={this.themeAlerts}
                                     themeForms={this.themeForms}

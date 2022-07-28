@@ -13,10 +13,13 @@ import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
 import { buildStyles } from '../../styles';
+import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildSettingsFormStyles } from '../../styles/forms/settingsForm';
+import { buildStyles as buildModalStyles } from '../../styles/modal';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import DeleteAccountModal from '../../components/Modals/DeleteAccountModal';
 
 interface IManageAccountDispatchProps {
     updateUser: Function;
@@ -37,6 +40,7 @@ interface IManageAccountState {
     successMsg: string;
     inputs: any;
     isCropping: boolean;
+    isDeleteAccountModalVisible: boolean;
     isNightMode: boolean;
     isSubmitting: boolean;
     passwordErrorMessage: string;
@@ -54,7 +58,9 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
     private scrollViewRef;
     private translate: Function;
     private theme = buildStyles();
+    private themeButtons = buildButtonStyles();
     private themeMenu = buildMenuStyles();
+    private themeModal = buildModalStyles();
     private themeForms = buildFormStyles();
     private themeSettingsForm = buildSettingsFormStyles();
 
@@ -76,6 +82,7 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
             },
             isCropping: false,
             isNightMode: props.user.settings.mobileThemeName === 'retro',
+            isDeleteAccountModalVisible: false,
             isSubmitting: false,
             passwordErrorMessage: '',
         };
@@ -99,7 +106,7 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
         }).catch((err) => console.log(err));
 
         // TODO: Add are you sure modal and test
-        UsersService.delete(user.id).then(() => {
+        UsersService.delete(user.details.id).then(() => {
             analytics().logEvent('account_delete_success', {
                 userId: user.details.id,
             }).catch((err) => console.log(err));
@@ -226,12 +233,19 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
         });
     }
 
+    toggleDeleteAccountModal = (shouldOpen: boolean) => {
+        this.setState({
+            isDeleteAccountModalVisible: shouldOpen,
+        });
+    }
+
     handleRefresh = () => {
         console.log('refresh');
     }
 
     render() {
         const { navigation, user } = this.props;
+        const  { isDeleteAccountModalVisible } = this.state;
         const pageHeaderAdvancedSettings = this.translate('pages.advancedSettings.pageHeaderAccountActions');
 
         return (
@@ -253,29 +267,25 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
                                 <Text style={this.theme.styles.sectionDescription}>
                                     <Text
                                         style={this.themeForms.styles.buttonLink}
-                                        onPress={this.onDeleteAccountPress}>{this.translate('forms.settings.buttons.deleteAccount')}</Text>
+                                        onPress={() => this.toggleDeleteAccountModal(true)}>{this.translate('forms.settings.buttons.deleteAccount')}</Text>
                                 </Text>
                             </View>
                         </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>
-                <View style={this.themeSettingsForm.styles.submitButtonContainerFloat}>
-                    <Button
-                        buttonStyle={this.themeForms.styles.button}
-                        title={this.translate(
-                            'forms.settings.buttons.submit'
-                        )}
-                        onPress={this.onSubmit}
-                        disabled={this.isFormDisabled()}
-                        raised={true}
-                    />
-                </View>
                 <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.handleRefresh}
                     translate={this.translate}
                     user={user}
                     themeMenu={this.themeMenu}
+                />
+                <DeleteAccountModal
+                    isVisible={isDeleteAccountModalVisible}
+                    translate={this.translate}
+                    onRequestClose={() => this.toggleDeleteAccountModal(false)}
+                    themeButtons={this.themeButtons}
+                    themeModal={this.themeModal}
                 />
             </>
         );
