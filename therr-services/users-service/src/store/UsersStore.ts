@@ -207,6 +207,10 @@ export default class UsersStore {
             modifiedParams.settingsBio = params.settingsBio;
         }
 
+        if (params.settingsIsAccountSoftDeleted != null) {
+            modifiedParams.settingsIsAccountSoftDeleted = params.settingsIsAccountSoftDeleted;
+        }
+
         if (params.settingsThemeName != null) {
             modifiedParams.settingsThemeName = params.settingsThemeName;
         }

@@ -141,6 +141,7 @@ const updateUser = (req, res) => {
                 deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
                 settingsBio: req.body.settingsBio,
                 settingsThemeName: req.body.settingsThemeName,
+                settingsIsAccountSoftDeleted: req.body.settingsIsAccountSoftDeleted,
                 shouldHideMatureContent: req.body.shouldHideMatureContent,
             };
 

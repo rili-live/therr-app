@@ -519,9 +519,13 @@
       "headerTitle": "Manage Account",
       "pageHeaderAccountActions": "Account Actions",
       "alertTitles": {
-        "accountDeleted": "Account Deleted"        
+        "accountDeactived": "Account Deactivated",
+        "accountError": "Unknown Error",
+        "accountDeleted": "Account Deleted"
       },
       "alertMessages": {
+        "accountDeactived": "Your account has been deactivated.",
+        "accountDeactivedError": "Oops! Something went wrong.",
         "accountDeleted": "Your account has been successfully deleted. Logging out."
       }
     },
@@ -816,16 +820,19 @@
     },
     "deleteAccountModal": {
       "exit": "Exit",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "continue": "Continue",
+      "deactivate": "Deactivate",
+      "delete": "Delete",
       "close": "Close",
       "back": "Back",
-      "next": "Next",
-      "done": "Done",
       "header1": "Delete Account?",
       "header2": "Deactivate Account?",
       "header3": "Confirm Permanent Deletion",
-      "createAMoment": "Press the GPS button on the map to start creating content. We require location for all posts to prevent fake users and focus on local-first.",
-      "claimYourSpaces": "Businesses and promoters can claim spaces on the map. Content is public, and nobody can claim overlapping spaces.",
-      "exploreTheWorld": "Use the search bar and filters, then travel to those locations. When you are nearby (w/ location on), content will be added to the 'Discovered' tab."
+      "deleteAccountMessage": "Deleting your account is permanent and cannot be undone.",
+      "deactivateAccountMessage": "Would you like to deactivate your account instead? Your profile and content will no longer be searchable, but you can reactivate your account at any time.",
+      "confirmDelete": "Please confirm that you would like to permanently delete your account. You will be logged out immediately and your account will be deleted."
     },
     "infoModalPoints": {
       "header": "What are points?",

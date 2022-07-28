@@ -388,12 +388,20 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.accentTextBlack,
             padding: 0,
         },
+        btnIconRed: {
+            color: therrTheme.colors.accentRed,
+            padding: 0,
+        },
         btnIconInactive: {
             color: therrTheme.colors.primary3,
             padding: 0,
         },
         btnTitleBlack: {
             color: therrTheme.colors.accentTextBlack,
+            fontFamily: therrFontFamily,
+        },
+        btnTitleRed: {
+            color: therrTheme.colors.accentRed,
             fontFamily: therrFontFamily,
         },
         labelLeft: {

@@ -1,11 +1,9 @@
 import React from 'react';
 import { SafeAreaView, View, Text } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { Button }  from 'react-native-elements';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
-import { PasswordRegex } from 'therr-js-utilities/constants';
 import { UsersService } from 'therr-react/services';
 import Toast from 'react-native-toast-message';
 import analytics from '@react-native-firebase/analytics';
@@ -22,6 +20,7 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import DeleteAccountModal from '../../components/Modals/DeleteAccountModal';
 
 interface IManageAccountDispatchProps {
+    logout: Function;
     updateUser: Function;
 }
 
@@ -51,6 +50,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    logout: UsersActions.logout,
     updateUser: UsersActions.update,
 }, dispatch);
 
@@ -98,8 +98,8 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
         });
     }
 
-    onDeleteAccountPress = () => {
-        const { user } = this.props;
+    onDeleteAccountConfirm = () => {
+        const { logout, user } = this.props;
 
         analytics().logEvent('account_delete_start', {
             userId: user.details.id,
@@ -117,7 +117,7 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
                 text2: this.translate('pages.advancedSettings.alertMessages.accountDeleted'),
                 visibilityTime: 2000,
                 onHide: () => {
-                    console.log('TODO: LOGOUT');
+                    logout();
                 },
             });
         }).catch((error) => {
@@ -143,46 +143,12 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
         this.themeSettingsForm = buildSettingsFormStyles(themeName);
     }
 
-    onSubmit = () => {
-        const {
-            firstName,
-            lastName,
-            oldPassword,
-            userName,
-            phoneNumber,
-            password,
-            repeatPassword,
-            settingsBio,
-            shouldHideMatureContent,
-        } = this.state.inputs;
-        const { isNightMode } = this.state;
+    onSubmit = (shouldDeactivateAccount?: boolean) => {
         const { user } = this.props;
 
-        if (password && !PasswordRegex.test(password)) {
-            this.setState({
-                errorMsg: this.translate(
-                    'forms.settings.errorMessages.passwordInsecure'
-                ),
-            });
-            this.scrollViewRef?.scrollToPosition(0, 0);
-            return;
-        }
-
         const updateArgs: any = {
-            email: user.details.email,
-            phoneNumber: user.details.phoneNumber || phoneNumber,
-            firstName,
-            lastName,
-            userName: userName?.toLowerCase(),
-            settingsBio,
-            settingsThemeName: isNightMode ? 'retro' : 'light',
-            shouldHideMatureContent,
+            settingsIsAccountSoftDeleted: !!shouldDeactivateAccount,
         };
-
-        if (oldPassword && password === repeatPassword) {
-            updateArgs.password = password;
-            updateArgs.oldPassword = oldPassword;
-        }
 
         if (!this.isFormDisabled()) {
             this.setState({
@@ -199,29 +165,21 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
     requestUserUpdate = (user, updateArgs) => this.props
         .updateUser(user.details.id, updateArgs)
         .then(() => {
-            this.setState({
-                successMsg: this.translate('forms.settings.backendSuccessMessage'),
+            Toast.show({
+                type: 'success',
+                text1: this.translate('pages.advancedSettings.alertTitles.accountDeactived'),
+                text2: this.translate('pages.advancedSettings.alertMessages.accountDeactived'),
+                visibilityTime: 3000,
             });
-            this.reloadTheme();
         })
         .catch((error: any) => {
-            if (
-                error.statusCode === 400 ||
-                error.statusCode === 401 ||
-                error.statusCode === 404
-            ) {
-                this.setState({
-                    errorMsg: `${error.message}${
-                        error.parameters
-                            ? '(' + error.parameters.toString() + ')'
-                            : ''
-                    }`,
-                });
-            } else if (error.statusCode >= 500) {
-                this.setState({
-                    errorMsg: this.translate('forms.settings.backendErrorMessage'),
-                });
-            }
+            console.log(error);
+            Toast.show({
+                type: 'error',
+                text1: this.translate('pages.advancedSettings.alertTitles.accountError'),
+                text2: this.translate('pages.advancedSettings.alertMessages.accountDeactivedError'),
+                visibilityTime: 3000,
+            });
         })
         .finally(() => {
             this.scrollViewRef?.scrollToPosition(0, 0);
@@ -237,6 +195,18 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
         this.setState({
             isDeleteAccountModalVisible: shouldOpen,
         });
+    }
+
+    onDeleteAccountModalClose = (action?: 'deactivate' | 'delete') => {
+        this.setState({
+            isDeleteAccountModalVisible: false,
+        });
+
+        if (action === 'deactivate') {
+            this.onSubmit(true);
+        } else if (action === 'delete') {
+            this.onDeleteAccountConfirm();
+        }
     }
 
     handleRefresh = () => {
@@ -283,7 +253,7 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
                 <DeleteAccountModal
                     isVisible={isDeleteAccountModalVisible}
                     translate={this.translate}
-                    onRequestClose={() => this.toggleDeleteAccountModal(false)}
+                    onRequestClose={(action) => this.onDeleteAccountModalClose(action)}
                     themeButtons={this.themeButtons}
                     themeModal={this.themeModal}
                 />

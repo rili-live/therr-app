@@ -34,8 +34,8 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         advancedContainer: {
             ...container,
-            marginBottom: '4%',
-            paddingBottom: 38,
+            marginBottom: 4,
+            paddingBottom: 4,
         },
         button: {
             backgroundColor: therrTheme.colors.primary3,
