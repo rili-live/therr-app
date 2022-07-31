@@ -19,6 +19,7 @@ const PATHS = {
 const entry = {};
 utilities.forEach((utilityPath) => {
     if (utilityPath === 'constants/index'
+        || utilityPath === 'config/index'
         || utilityPath === 'db/index'
         || utilityPath === 'http/index'
         || utilityPath === 'middleware/index') {
