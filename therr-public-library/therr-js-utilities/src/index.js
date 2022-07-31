@@ -2,6 +2,9 @@
 // This allows tree-shaking
 
 const utilities = [
+    // Config
+    'config/index',
+
     // Constants
     'constants/index',
 

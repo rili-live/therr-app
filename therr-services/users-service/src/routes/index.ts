@@ -4,6 +4,7 @@ import authRouter from './authRouter';
 import socialSyncRouter from './socialSyncRouter';
 import subscribersRouter from './subscribersRouter';
 import usersRouter from './usersRouter';
+import userAchievementsRouter from './userAchievementsRouter';
 import notificationsRouter from './notificationsRouter';
 import userConnectionsRouter from './userConnectionsRouter';
 
@@ -13,6 +14,7 @@ router.use('/auth', authRouter);
 // router.use('/emails', emailsRouter);
 router.use('/social-sync', socialSyncRouter);
 router.use('/subscribers', subscribersRouter);
+router.use('/users/achievements', userAchievementsRouter);
 router.use('/users/connections', userConnectionsRouter);
 router.use('/users/notifications', notificationsRouter);
 router.use('/users', usersRouter);
