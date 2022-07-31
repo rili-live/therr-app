@@ -10,6 +10,7 @@ import generateOneTimePassword from '../utilities/generateOneTimePassword';
 import translate from '../utilities/translator';
 import { updatePassword } from '../utilities/passwordUtils';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
+import sendUserDeletedEmail from '../api/email/admin/sendUserDeletedEmail';
 import { createUserHelper, getUserHelper, isUserProfileIncomplete } from './helpers/user';
 
 // CREATE
@@ -141,6 +142,7 @@ const updateUser = (req, res) => {
                 deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
                 settingsBio: req.body.settingsBio,
                 settingsThemeName: req.body.settingsThemeName,
+                settingsIsAccountSoftDeleted: req.body.settingsIsAccountSoftDeleted,
                 shouldHideMatureContent: req.body.shouldHideMatureContent,
             };
 
@@ -382,19 +384,17 @@ const deleteUser = (req, res) => {
     }
 
     return Store.users.deleteUsers({ id: req.params.id })
-        .then((results) => {
-            if (!results.length) {
-                return handleHttpError({
-                    res,
-                    message: `No user found with id, ${req.params.id}.`,
-                    statusCode: 404,
-                });
-            }
-
+        .then(() => {
             // TODO: Delete moments/spaces in maps service
             // TODO: Delete reactions in reactions service
             // TODO: Delete messages in messages service
             // TODO: Delete notifications in notifications service
+            sendUserDeletedEmail({
+                subject: '😞 User Account Deleted',
+                toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
+            }, {
+                userId,
+            });
 
             return res.status(200).send({
                 message: `User with id, ${req.params.id}, was successfully deleted`,
