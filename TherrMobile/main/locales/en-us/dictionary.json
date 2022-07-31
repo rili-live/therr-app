@@ -879,6 +879,156 @@
     "numbersOnly": "Input only accepts numeric values"
   },
   "user": {
+    "achievements": {
+      "explorer_1_1": {
+        "title": "Explore",
+        "description": "Activate 10 Moments"
+      },
+      "explorer_1_1_1": {
+        "title": "Discover",
+        "description": "Activate 100 Moments"
+      },
+      "explorer_1_1_2": {
+        "title": "Gather",
+        "description": "Activate 500 Moments"
+      },
+      "explorer_1_1_3": {
+        "title": "Branch Out",
+        "description": "Activate 1,000 Moments"
+      },
+      "explorer_1_1_4": {
+        "title": "New Perspectives",
+        "description": "Activate 2,500 Moments"
+      },
+      "explorer_1_1_5": {
+        "title": "The Great Expansion",
+        "description": "Activate 5,000 Moments"
+      },
+      "explorer_1_1_6": {
+        "title": "Explore the World",
+        "description": "Activate 10,000 Moments"
+      },
+      "explorer_1_2": {
+        "title": "New Discoveries",
+        "description": "Discover 5 Moment Categories"
+      },
+      "explorer_1_2_1": {
+        "title": "Diversity of Mind",
+        "description": "Discover 5 Moment Categories"
+      },
+      "explorer_1_3": {
+        "title": "Network",
+        "description": "Activate 5 Spaces"
+      },
+      "explorer_1_3_1": {
+        "title": "Network Developer",
+        "description": "Activate 15 Spaces"
+      },
+      "explorer_1_3_2": {
+        "title": "Network Expansion",
+        "description": "Activate 50 Spaces"
+      },
+      "explorer_1_3_3": {
+        "title": "Networking Leader",
+        "description": "Activate 100 Spaces"
+      },
+      "explorer_1_3_4": {
+        "title": "Space Wizard",
+        "description": "Activate 500 Spaces"
+      },
+      "explorer_1_4": {
+        "title": "Eventful",
+        "description": "Activate 1 Event"
+      },
+      "explorer_1_4_1": {
+        "title": "Face in the Crowd",
+        "description": "Activate 3 Events"
+      },
+      "explorer_1_4_2": {
+        "title": "Have we met?",
+        "description": "Activate 10 Events"
+      },
+      "explorer_1_4_3": {
+        "title": "Right Place, Right Time",
+        "description": "Activate 100 Events"
+      },
+      "explorer_1_4_4": {
+        "title": "See You Therr",
+        "description": "Activate 250 Events"
+      },
+      "influencer_1_1": {
+        "title": "Likable",
+        "description": "Get 5 likes"
+      },
+      "influencer_1_1_1": {
+        "title": "Very Likable",
+        "description": "Get 20 likes"
+      },
+      "influencer_1_1_2": {
+        "title": "Intriguing",
+        "description": "Get 50 likes"
+      },
+      "influencer_1_1_3": {
+        "title": "Too Cool",
+        "description": "Get 100 likes"
+      },
+      "influencer_1_1_4": {
+        "title": "So Very Likable",
+        "description": "Get 500 likes"
+      },
+      "influencer_1_1_5": {
+        "title": "Regally Liked",
+        "description": "Get 2,500 likes"
+      },
+      "influencer_1_2": {
+        "title": "Super Liked",
+        "description": "Get 1 superlike on a post"
+      },
+      "influencer_1_2_1": {
+        "title": "Super Creative",
+        "description": "Get 5 superlike"
+      },
+      "influencer_1_2_2": {
+        "title": "Super Influencer",
+        "description": "Get 15 superlike"
+      },
+      "influencer_1_2_3": {
+        "title": "Superhuman",
+        "description": "Get 50 superlike"
+      },
+      "influencer_1_3": {
+        "title": "Creator",
+        "description": "Create 1 moment"
+      },
+      "influencer_1_3_1": {
+        "title": "Content Creator",
+        "description": "Create 5 moments"
+      },
+      "influencer_1_3_2": {
+        "title": "In the Moment",
+        "description": "Create 10 moments"
+      },
+      "influencer_1_3_3": {
+        "title": "Expressive",
+        "description": "Create 50 moments"
+      },
+      "influencer_1_3_4": {
+        "title": "Magic Maker",
+        "description": "Create 100 moments"
+      },
+      "influencer_1_3_5": {
+        "title": "Professional Creator",
+        "description": "Create 250 moments"
+      },
+      "influencer_1_3_6": {
+        "title": "Sage Creator",
+        "description": "Create 500 moments"
+      },
+      "influencer_1_3_7": {
+        "title": "Unstoppable Creativity",
+        "description": "Create 1,000 moments"
+      }
+    },
     "profile": {
       "actions": {
         "block": "Block This User?",

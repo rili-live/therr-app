@@ -6,6 +6,9 @@
             "oneTimeExpired": "One-time password has expired",
             "incorrectUserPass": "Incorrect username/password combination"
         },
+        "userAchievements": {
+            "invalidAchievementId": "Invalid achievement ID. Nothing found in config."
+        },
         "userConnections": {
             "alreadyExists": "This user connection already exists",
             "noUserFound": "No user found with the provided criteria",
