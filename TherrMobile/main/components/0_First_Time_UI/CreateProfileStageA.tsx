@@ -5,14 +5,14 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import Alert from '../Alert';
 import SquareInput from '../Input/Square';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
-import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../../constants';
+// import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../../constants';
 
 interface ICreateProfileStageAProps {
     errorMsg: string;
     inputs: any;
     isFormDisabled: boolean | undefined;
     onInputChange: Function;
-    onSubmit: ((event: any) => void) | undefined;
+    onSubmit: ((shouldSkipAdvance: boolean) => void);
     translate: Function;
     themeAlerts: {
         colorVariations: ITherrThemeColorVariations;
@@ -39,10 +39,12 @@ const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = 
     themeSettingsForm,
 }) => {
 
-    if (inputs?.firstName !== DEFAULT_FIRSTNAME
-        && inputs?.lastName !== DEFAULT_LASTNAME && onSubmit) {
-        onSubmit(null);
-    }
+    // TODO: Debug and determine why we need this (Apple SSO BS?)
+    // if (inputs?.firstName !== DEFAULT_FIRSTNAME
+    //     && inputs?.lastName !== DEFAULT_LASTNAME
+    //     && onSubmit) {
+    //     onSubmit(false);
+    // }
 
     return (
         <View style={themeSettingsForm.styles.userContainer}>
@@ -115,7 +117,7 @@ const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = 
                     title={translate(
                         'forms.createProfile.buttons.submit'
                     )}
-                    onPress={onSubmit}
+                    onPress={() => onSubmit(false)}
                     disabled={isFormDisabled}
                     raised={true}
                 />

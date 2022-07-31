@@ -59,6 +59,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             textAlign: 'center',
             fontFamily: therrFontFamily,
         },
+        body: {
+            width: '100%',
+            paddingVertical: 14,
+            paddingHorizontal: 20,
+        },
         buttonsWrapper: {
             display: 'flex',
             justifyContent: 'center',
@@ -72,6 +77,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontSize: 16,
             fontWeight: '500',
             fontFamily: therrFontFamily,
+        },
+        actionsContainer: {
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
         },
     });
 

@@ -318,7 +318,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         const pageHeaderPassword = this.translate('pages.settings.pageHeaderPassword');
         const pageHeaderDisplaySettings = this.translate('pages.settings.pageHeaderDisplaySettings');
         const pageHeaderSettings = this.translate('pages.settings.pageHeaderSettings');
-        // const pageHeaderAdvancedSettings = this.translate('pages.settings.pageHeaderAdvancedSettings');
+        const pageHeaderAdvancedSettings = this.translate('pages.settings.pageHeaderAdvancedSettings');
         const currentUserImageUri = getUserImageUri(user, 200);
         const userImageUri = getImagePreviewPath(croppedImageDetails.path) || currentUserImageUri;
 
@@ -506,6 +506,18 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                             </View>
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitle}>
+                                    {pageHeaderAdvancedSettings}
+                                </Text>
+                            </View>
+                            <View style={this.themeSettingsForm.styles.advancedContainer}>
+                                <Text style={this.theme.styles.sectionDescription}>
+                                    <Text
+                                        style={this.themeForms.styles.buttonLink}
+                                        onPress={this.goToManageAccount}>{this.translate('forms.settings.buttons.manageAccount')}</Text>
+                                </Text>
+                            </View>
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionTitle}>
                                     {pageHeaderPassword}
                                 </Text>
                             </View>
@@ -570,18 +582,6 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     themeForms={this.themeForms}
                                 />
                             </View>
-                            {/* <View style={this.theme.styles.sectionContainer}>
-                                <Text style={this.theme.styles.sectionTitle}>
-                                    {pageHeaderAdvancedSettings}
-                                </Text>
-                            </View>
-                            <View style={this.themeSettingsForm.styles.advancedContainer}>
-                                <Text style={this.theme.styles.sectionDescription}>
-                                    <Text
-                                        style={this.themeForms.styles.buttonLink}
-                                        onPress={this.goToManageAccount}>{this.translate('forms.settings.buttons.manageAccount')}</Text>
-                                </Text>
-                            </View> */}
                         </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>
