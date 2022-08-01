@@ -9,7 +9,10 @@ export const USER_ACHIEVEMENTS_TABLE_NAME = 'main.userAchievements';
 export interface ICreateUserAchievementParams {
     userId: string;
     achievementId: string;
-    progressCount: string;
+    achievementClass: string; // ex. explorer, influencer, etc.
+    achievementTier: string; // ex. 1_1, 1_2, 2_1, etc.
+    completedAt?: Date;
+    progressCount: number;
 }
 
 export default class UserAchievementsStore {
@@ -19,7 +22,7 @@ export default class UserAchievementsStore {
         this.db = dbConnection;
     }
 
-    get(conditions: { achievementId?: string, userId: string }) {
+    get(conditions: { achievementId?: string, achievementClass?: string, achievementTier?: string, userId: string }) {
         const queryString = knexBuilder.select()
             .from(USER_ACHIEVEMENTS_TABLE_NAME)
             .where(conditions)
@@ -28,6 +31,17 @@ export default class UserAchievementsStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
+    getById(id: string) {
+        const getAchievementQueryString = knexBuilder.select()
+            .from(USER_ACHIEVEMENTS_TABLE_NAME)
+            .where({ id })
+            .toString();
+
+        return this.db.read.query(getAchievementQueryString).then((response) => response.rows[0]);
+    }
+
+    // TODO: This should recursively create userAchievements based on the additional progressCount
+    // User transaction, see serverless example
     create(params: ICreateUserAchievementParams) {
         const sanitizedParams = {
             ...params,
@@ -40,23 +54,19 @@ export default class UserAchievementsStore {
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 
+    // TODO: This should recursively update/create userAchievements based on the additional progressCount
+    // User transaction, see serverless example
     update(id: string, additionalCount: number) {
         // This assumes the record already exists which should be done by the consumer of this request
-        const getAchievementQueryString = knexBuilder.select()
-            .from(USER_ACHIEVEMENTS_TABLE_NAME)
-            .where({ id })
-            .toString();
-
-        return this.db.read.query(getAchievementQueryString).then((response) => {
-            const userAchievment = response.rows[0];
+        return this.getById(id).then((userAchievment) => {
             const countToComplete = achievements[userAchievment.achievementId].countToComplete;
             const params: any = {
-                progressCount: response.rows[0].progressCount + additionalCount,
+                progressCount: userAchievment.progressCount + additionalCount,
                 updatedAt: new Date(),
             };
 
             // If achievement completed
-            if (response.rows[0].progressCount + additionalCount >= countToComplete) {
+            if (userAchievment.progressCount + additionalCount >= countToComplete) {
                 params.completedAt = new Date();
             }
 

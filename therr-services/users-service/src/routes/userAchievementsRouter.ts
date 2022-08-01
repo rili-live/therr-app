@@ -1,6 +1,6 @@
 import * as express from 'express';
 import {
-    createUserAchievement,
+    createOrUpdateUserAchievement,
     getUserAchievements,
     updateUserAchievement,
 } from '../handlers/userAchievements';
@@ -8,7 +8,7 @@ import {
 const router = express.Router();
 
 // CREATE
-router.post('/', createUserAchievement);
+router.post('/', createOrUpdateUserAchievement);
 
 // READ
 router.get('/', getUserAchievements);
