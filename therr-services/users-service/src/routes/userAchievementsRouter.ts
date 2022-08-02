@@ -1,19 +1,15 @@
 import * as express from 'express';
 import {
-    createOrUpdateUserAchievement,
+    updateAndCreateUserAchievements,
     getUserAchievements,
-    updateUserAchievement,
 } from '../handlers/userAchievements';
 
 const router = express.Router();
 
 // CREATE
-router.post('/', createOrUpdateUserAchievement);
+router.post('/', updateAndCreateUserAchievements);
 
 // READ
 router.get('/', getUserAchievements);
-
-// UPDATE
-router.put('/:id', updateUserAchievement);
 
 export default router;

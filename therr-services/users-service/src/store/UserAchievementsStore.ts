@@ -1,5 +1,5 @@
 import KnexBuilder, { Knex } from 'knex';
-import { achievements } from 'therr-js-utilities/config';
+import { achievements, IAchievement } from 'therr-js-utilities/config';
 import { IConnection } from './connection';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
@@ -13,6 +13,25 @@ export interface ICreateUserAchievementParams {
     achievementTier: string; // ex. 1_1, 1_2, 2_1, etc.
     completedAt?: Date;
     progressCount: number;
+}
+
+type IResultAction = 'incomplete'
+    | 'achievement-tier-completed'
+    | 'achievement-tier-already-complete'
+    | 'created-first-of-tier'
+    | 'created-next-of-tier'
+    | 'updated-in-progress-tier';
+
+export interface IDBAchievement extends ICreateUserAchievementParams {
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+interface ICreateOrUpdateResponse {
+    created: IDBAchievement[];
+    updated: IDBAchievement[];
+    action: IResultAction;
 }
 
 export default class UserAchievementsStore {
@@ -40,13 +59,8 @@ export default class UserAchievementsStore {
         return this.db.read.query(getAchievementQueryString).then((response) => response.rows[0]);
     }
 
-    // TODO: This should recursively create userAchievements based on the additional progressCount
-    // User transaction, see serverless example
-    create(params: ICreateUserAchievementParams) {
-        const sanitizedParams = {
-            ...params,
-        };
-        const queryString = knexBuilder.insert(sanitizedParams)
+    create(paramsList: ICreateUserAchievementParams[]) {
+        const queryString = knexBuilder.insert(paramsList)
             .into(USER_ACHIEVEMENTS_TABLE_NAME)
             .returning('*')
             .toString();
@@ -54,29 +68,78 @@ export default class UserAchievementsStore {
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 
-    // TODO: This should recursively update/create userAchievements based on the additional progressCount
-    // User transaction, see serverless example
-    update(id: string, additionalCount: number) {
-        // This assumes the record already exists which should be done by the consumer of this request
-        return this.getById(id).then((userAchievment) => {
-            const countToComplete = achievements[userAchievment.achievementId].countToComplete;
-            const params: any = {
-                progressCount: userAchievment.progressCount + additionalCount,
-                updatedAt: new Date(),
-            };
+    updateAndCreateConsecutive(
+        commonProps: {
+            userId: string;
+            achievementClass: string;
+            achievementTier: string;
+        },
+        totalProgressCount: number,
+        tierAchievements: (IAchievement & { id: string })[],
+        latestAch: IDBAchievement | undefined,
+    ): Promise<ICreateOrUpdateResponse> {
+        let updateAchievementPromise: Promise<any[]> = Promise.resolve([]);
+        const achievementsToCreate: ICreateUserAchievementParams[] = [];
+        const currentAchievementIndex = !latestAch ? 0 : tierAchievements.findIndex((ach) => ach.id === latestAch.id);
+        let achievementsIndex = currentAchievementIndex;
+        let remainingCount = totalProgressCount;
 
-            // If achievement completed
-            if (userAchievment.progressCount + additionalCount >= countToComplete) {
-                params.completedAt = new Date();
+        let outcomeTag: IResultAction = 'incomplete';
+
+        if (latestAch) {
+            if (latestAch.completedAt) {
+                achievementsIndex += 1;
+                outcomeTag = 'created-next-of-tier';
+            } else {
+                outcomeTag = 'updated-in-progress-tier';
+                updateAchievementPromise = this.update(latestAch.id, {
+                    progressCount: Math.min(latestAch.progressCount + remainingCount, tierAchievements[achievementsIndex].countToComplete),
+                    completedAt: remainingCount >= tierAchievements[achievementsIndex].countToComplete ? new Date() : undefined,
+                });
+                remainingCount = Math.max(0, (latestAch.progressCount + remainingCount) - tierAchievements[achievementsIndex].countToComplete);
+            }
+        } else {
+            outcomeTag = 'created-first-of-tier';
+        }
+
+        while (remainingCount > 0 && tierAchievements[achievementsIndex]) {
+            const achievement = {
+                userId: commonProps.userId,
+                achievementId: tierAchievements[achievementsIndex].id,
+                achievementClass: commonProps.achievementClass,
+                achievementTier: commonProps.achievementTier,
+                progressCount: Math.min(remainingCount, tierAchievements[achievementsIndex].countToComplete),
+                completedAt: remainingCount >= tierAchievements[achievementsIndex].countToComplete ? new Date() : undefined,
+            };
+            if (achievementsIndex >= tierAchievements.length - 1) {
+                outcomeTag = 'achievement-tier-completed';
+            }
+            achievementsToCreate.push(achievement);
+            remainingCount -= tierAchievements[achievementsIndex].countToComplete;
+            remainingCount = Math.max(0, remainingCount - tierAchievements[achievementsIndex].countToComplete);
+            achievementsIndex += 1;
+        }
+
+        return Promise.all([this.create(achievementsToCreate), updateAchievementPromise]).then(([created, updated]) => {
+            if (!created.length && !updated.length) {
+                outcomeTag = 'achievement-tier-already-complete';
             }
 
-            const queryString = knexBuilder.where({ id })
-                .update(params)
-                .into(USER_ACHIEVEMENTS_TABLE_NAME)
-                .returning('*')
-                .toString();
-
-            return this.db.write.query(queryString).then((updateResponse) => updateResponse.rows);
+            return {
+                created,
+                updated,
+                action: outcomeTag,
+            };
         });
+    }
+
+    update(id: string, params: any) {
+        const queryString = knexBuilder.where({ id })
+            .update(params)
+            .into(USER_ACHIEVEMENTS_TABLE_NAME)
+            .returning('*')
+            .toString();
+
+        return this.db.write.query(queryString).then((updateResponse) => updateResponse.rows);
     }
 }
