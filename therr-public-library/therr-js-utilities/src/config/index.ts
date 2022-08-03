@@ -1,6 +1,7 @@
-import achievements, { IAchievement } from './achievements';
+import achievements, { achievementsByClass, IAchievement } from './achievements';
 
 export {
     achievements,
+    achievementsByClass,
     IAchievement,
 };

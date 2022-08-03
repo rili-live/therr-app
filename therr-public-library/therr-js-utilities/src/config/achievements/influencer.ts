@@ -12,6 +12,7 @@ const influencerAchievements = {
         xp: 10,
         pointReward: 1.00,
         mediaId: 'likable',
+        tier: '1_1',
         version: 1,
     },
     influencer_1_1_1: {
@@ -23,6 +24,7 @@ const influencerAchievements = {
         xp: 10,
         pointReward: 1.00,
         mediaId: 'very-likable',
+        tier: '1_1',
         version: 1,
     },
     influencer_1_1_2: {
@@ -34,6 +36,7 @@ const influencerAchievements = {
         xp: 20,
         pointReward: 2.00,
         mediaId: 'intriguing',
+        tier: '1_1',
         version: 1,
     },
     influencer_1_1_3: {
@@ -45,6 +48,7 @@ const influencerAchievements = {
         xp: 50,
         pointReward: 2.00,
         mediaId: 'too-cool',
+        tier: '1_1',
         version: 1,
     },
     influencer_1_1_4: {
@@ -56,6 +60,7 @@ const influencerAchievements = {
         xp: 100,
         pointReward: 2.00,
         mediaId: 'so-very-likable',
+        tier: '1_1',
         version: 1,
     },
     influencer_1_1_5: {
@@ -67,6 +72,7 @@ const influencerAchievements = {
         xp: 150,
         pointReward: 2.00,
         mediaId: 'regally-liked',
+        tier: '1_1',
         version: 1,
     },
     influencer_1_2: {
@@ -78,6 +84,7 @@ const influencerAchievements = {
         xp: 10,
         pointReward: 1.00,
         mediaId: 'super-liked',
+        tier: '1_2',
         version: 1,
     },
     influencer_1_2_1: {
@@ -89,6 +96,7 @@ const influencerAchievements = {
         xp: 50,
         pointReward: 2.00,
         mediaId: 'super-creative',
+        tier: '1_2',
         version: 1,
     },
     influencer_1_2_2: {
@@ -100,6 +108,7 @@ const influencerAchievements = {
         xp: 100,
         pointReward: 3.00,
         mediaId: 'super-influencer',
+        tier: '1_2',
         version: 1,
     },
     influencer_1_2_3: {
@@ -111,6 +120,7 @@ const influencerAchievements = {
         xp: 100,
         pointReward: 5.00,
         mediaId: 'superhuman',
+        tier: '1_2',
         version: 1,
     },
     influencer_1_3: {
@@ -122,6 +132,7 @@ const influencerAchievements = {
         xp: 10,
         pointReward: 0.50,
         mediaId: 'creator',
+        tier: '1_3',
         version: 1,
     },
     influencer_1_3_1: {
@@ -133,6 +144,7 @@ const influencerAchievements = {
         xp: 25,
         pointReward: 1.00,
         mediaId: 'content-creator',
+        tier: '1_3',
         version: 1,
     },
     influencer_1_3_2: {
@@ -144,6 +156,7 @@ const influencerAchievements = {
         xp: 25,
         pointReward: 1.00,
         mediaId: 'in-the-moment',
+        tier: '1_3',
         version: 1,
     },
     influencer_1_3_3: {
@@ -155,6 +168,7 @@ const influencerAchievements = {
         xp: 30,
         pointReward: 1.00,
         mediaId: 'expressive',
+        tier: '1_3',
         version: 1,
     },
     influencer_1_3_4: {
@@ -166,6 +180,7 @@ const influencerAchievements = {
         xp: 35,
         pointReward: 5.00,
         mediaId: 'magic-maker',
+        tier: '1_3',
         version: 1,
     },
     influencer_1_3_5: {
@@ -177,6 +192,7 @@ const influencerAchievements = {
         xp: 50,
         pointReward: 5.00,
         mediaId: 'professional-creator',
+        tier: '1_3',
         version: 1,
     },
     influencer_1_3_6: {
@@ -188,6 +204,7 @@ const influencerAchievements = {
         xp: 75,
         pointReward: 5.00,
         mediaId: 'sage-creator',
+        tier: '1_3',
         version: 1,
     },
     influencer_1_3_7: {
@@ -199,6 +216,7 @@ const influencerAchievements = {
         xp: 150,
         pointReward: 5.00,
         mediaId: 'unstoppable-creativity',
+        tier: '1_3',
         version: 1,
     },
 };

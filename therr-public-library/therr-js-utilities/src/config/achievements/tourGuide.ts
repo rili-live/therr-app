@@ -12,6 +12,7 @@ const tourGuideAchievements = {
         xp: 1,
         pointReward: 1.00,
         mediaId: '',
+        tier: '1_1',
         version: 1,
     },
 };

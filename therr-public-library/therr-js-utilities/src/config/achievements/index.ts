@@ -19,6 +19,7 @@ export interface IAchievement {
     xp: number;
     pointReward: number;
     mediaId?: string;
+    tier: string;
     version: number;
 }
 
@@ -34,6 +35,20 @@ const achievements: { [key: string]: IAchievement } = {
     ...journalist,
     ...socialite,
     ...tourGuide,
+};
+
+export const achievementsByClass: { [key: string]: { [key: string]: IAchievement } } = {
+    activist,
+    communityLeader,
+    critic,
+    entrepreneur,
+    eventPlanner,
+    explorer,
+    humanitarian,
+    influencer,
+    journalist,
+    socialite,
+    tourGuide,
 };
 
 export default achievements;
