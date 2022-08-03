@@ -6,6 +6,8 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('userAchieveme
         .onUpdate('CASCADE')
         .onDelete('CASCADE');
     table.string('achievementId').notNullable();
+    table.string('achievementClass').notNullable();
+    table.string('achievementTier').notNullable();
     table.integer('progressCount').notNullable().defaultTo(0);
 
     // Audit

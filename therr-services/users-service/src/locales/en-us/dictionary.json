@@ -7,7 +7,9 @@
             "incorrectUserPass": "Incorrect username/password combination"
         },
         "userAchievements": {
-            "invalidAchievementId": "Invalid achievement ID. Nothing found in config."
+            "invalidAchievementClass": "Invalid achievement class. Nothing found in config.",
+            "invalidAchievementId": "Invalid achievement ID. Nothing found in config.",
+            "invalidAchievementTier": "Invalid achievement tier. Nothing found in config."
         },
         "userConnections": {
             "alreadyExists": "This user connection already exists",

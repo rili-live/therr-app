@@ -12,6 +12,7 @@ const explorerAchievements = {
         xp: 10,
         pointReward: 1.00,
         mediaId: 'explore',
+        tier: '1_1',
         version: 1,
     },
     explorer_1_1_1: {
@@ -23,6 +24,7 @@ const explorerAchievements = {
         xp: 20,
         pointReward: 2.00,
         mediaId: 'discover',
+        tier: '1_1',
         version: 1,
     },
     explorer_1_1_2: {
@@ -34,6 +36,7 @@ const explorerAchievements = {
         xp: 25,
         pointReward: 1.00,
         mediaId: 'gather',
+        tier: '1_1',
         version: 1,
     },
     explorer_1_1_3: {
@@ -45,6 +48,7 @@ const explorerAchievements = {
         xp: 45,
         pointReward: 1.00,
         mediaId: 'branch-out',
+        tier: '1_1',
         version: 1,
     },
     explorer_1_1_4: {
@@ -56,6 +60,7 @@ const explorerAchievements = {
         xp: 90,
         pointReward: 2.00,
         mediaId: 'new-perspectives',
+        tier: '1_1',
         version: 1,
     },
     explorer_1_1_5: {
@@ -67,6 +72,7 @@ const explorerAchievements = {
         xp: 100,
         pointReward: 2.00,
         mediaId: 'the-great-expansion',
+        tier: '1_1',
         version: 1,
     },
     explorer_1_1_6: {
@@ -78,6 +84,7 @@ const explorerAchievements = {
         xp: 100,
         pointReward: 5.00,
         mediaId: 'explore-the-world',
+        tier: '1_1',
         version: 1,
     },
     explorer_1_2: {
@@ -89,6 +96,7 @@ const explorerAchievements = {
         xp: 20,
         pointReward: 1.00,
         mediaId: 'new-discoveries',
+        tier: '1_2',
         version: 1,
     },
     explorer_1_2_1: {
@@ -100,6 +108,7 @@ const explorerAchievements = {
         xp: 25,
         pointReward: 1.00,
         mediaId: 'diversity-of-mind',
+        tier: '1_2',
         version: 1,
     },
     explorer_1_3: {
@@ -111,6 +120,7 @@ const explorerAchievements = {
         xp: 10,
         pointReward: 1.00,
         mediaId: 'network',
+        tier: '1_3',
         version: 1,
     },
     explorer_1_3_1: {
@@ -122,6 +132,7 @@ const explorerAchievements = {
         xp: 20,
         pointReward: 2.00,
         mediaId: 'network-developer',
+        tier: '1_3',
         version: 1,
     },
     explorer_1_3_2: {
@@ -133,6 +144,7 @@ const explorerAchievements = {
         xp: 50,
         pointReward: 2.00,
         mediaId: 'network-expansion',
+        tier: '1_3',
         version: 1,
     },
     explorer_1_3_3: {
@@ -144,6 +156,7 @@ const explorerAchievements = {
         xp: 100,
         pointReward: 3.00,
         mediaId: 'networking-leader',
+        tier: '1_3',
         version: 1,
     },
     explorer_1_3_4: {
@@ -155,6 +168,7 @@ const explorerAchievements = {
         xp: 250,
         pointReward: 5.00,
         mediaId: 'space-wizard',
+        tier: '1_3',
         version: 1,
     },
     explorer_1_4: {
@@ -166,6 +180,7 @@ const explorerAchievements = {
         xp: 10,
         pointReward: 1.00,
         mediaId: 'eventful',
+        tier: '1_4',
         version: 1,
     },
     explorer_1_4_1: {
@@ -177,6 +192,7 @@ const explorerAchievements = {
         xp: 50,
         pointReward: 2.00,
         mediaId: 'face-in-the-crowd',
+        tier: '1_4',
         version: 1,
     },
     explorer_1_4_2: {
@@ -188,6 +204,7 @@ const explorerAchievements = {
         xp: 75,
         pointReward: 3.00,
         mediaId: 'have-we-met',
+        tier: '1_4',
         version: 1,
     },
     explorer_1_4_3: {
@@ -199,6 +216,7 @@ const explorerAchievements = {
         xp: 100,
         pointReward: 5.00,
         mediaId: 'right-place-right-time',
+        tier: '1_4',
         version: 1,
     },
     explorer_1_4_4: {
@@ -210,6 +228,7 @@ const explorerAchievements = {
         xp: 250,
         pointReward: 5.00,
         mediaId: 'see-you-therr',
+        tier: '1_4',
         version: 1,
     },
 };
