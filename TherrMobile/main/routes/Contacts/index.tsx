@@ -114,6 +114,16 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         }`;
     };
 
+    goToViewUser = (userId) => {
+        const { navigation } = this.props;
+
+        navigation.navigate('ViewUser', {
+            userInView: {
+                id: userId,
+            },
+        });
+    }
+
     onConnectionPress = (connectionDetails) => {
         const { navigation } = this.props;
 
@@ -142,6 +152,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                                 key={connection.id}
                                 connectionDetails={this.getConnectionDetails(connection)}
                                 getConnectionSubtitle={this.getConnectionSubtitle}
+                                goToViewUser={this.goToViewUser}
                                 onConnectionPress={this.onConnectionPress}
                                 theme={this.theme}
                                 translate={this.translate}

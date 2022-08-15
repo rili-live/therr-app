@@ -1,5 +1,5 @@
 import KnexBuilder, { Knex } from 'knex';
-import { achievements, IAchievement } from 'therr-js-utilities/config';
+import { IAchievement } from 'therr-js-utilities/config';
 import { IConnection } from './connection';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });

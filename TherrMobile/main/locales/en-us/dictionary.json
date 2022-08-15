@@ -272,8 +272,8 @@
         "enableLocation": "Turn On"
       },
       "labels": {
-        "radiusOfAwareness": "Awareness Radius: {meters} meters",
-        "radiusOfInfluence": "Influence Radius: {meters} meters"
+        "radiusOfAwareness": "Awareness Radius: {miles} miles",
+        "radiusOfInfluence": "Influence Radius: {miles} miles"
       }
     },
     "editHostedChat": {
@@ -811,6 +811,7 @@
     },
     "areaOptions": {
       "buttons": {
+        "getDirections": "Get Directions",
         "superLike": "'Super-Like' this",
         "delete": "Delete?",
         "dislike": "'Dislike' this",
