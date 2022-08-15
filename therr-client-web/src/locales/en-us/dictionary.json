@@ -35,7 +35,9 @@
       "buttons": {
         "login": "Log In",
         "signUp": "Create Account",
-        "forgotPassword": "Forgot Password?"
+        "forgotPassword": "Forgot Password?",
+        "privacyPolicy": "Privacy Policy",
+        "toc": "Terms & Conditions"
       },
       "defaultTitle": "Login",
       "labels": {

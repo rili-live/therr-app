@@ -4,7 +4,7 @@ import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { ITherrThemeColors } from '../../styles/themes';
 
-export type ISelectionType = 'like' | 'superLike' | 'dislike' | 'superDislike' | 'report' | 'delete';
+export type ISelectionType = 'getDirections' | 'like' | 'superLike' | 'dislike' | 'superDislike' | 'report' | 'delete';
 
 interface IAreaOptionsModal {
     children?: React.ReactNode,
@@ -64,6 +64,12 @@ export default ({
                     {
                         children ||
                         <>
+                            <ModalButton
+                                iconName="directions"
+                                title={translate('modals.areaOptions.buttons.getDirections')}
+                                onPress={() => onSelect('getDirections')}
+                                themeButtons={themeButtons}
+                            />
                             <ModalButton
                                 iconName="thumb-up"
                                 title={translate('modals.areaOptions.buttons.superLike')}

@@ -30,6 +30,7 @@ import BaseStatusBar from '../components/BaseStatusBar';
 import { isMyArea as checkIsMyMoment } from '../utilities/content';
 import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptionsModal';
 import { getReactionUpdateArgs } from '../utilities/reactions';
+import getDirections from '../utilities/getDirections';
 // import AccentInput from '../components/Input/Accent';
 
 interface IViewMomentDispatchProps {
@@ -211,11 +212,20 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
 
     onMomentOptionSelect = (type: ISelectionType) => {
         const { selectedMoment } = this.state;
-        const requestArgs: any = getReactionUpdateArgs(type);
 
-        this.onUpdateMomentReaction(selectedMoment.id, requestArgs).finally(() => {
-            this.toggleAreaOptions(selectedMoment);
-        });
+        if (type === 'getDirections') {
+            getDirections({
+                latitude: selectedMoment.latitude,
+                longitude: selectedMoment.longitude,
+                title: selectedMoment.notificationMsg,
+            });
+        } else {
+            const requestArgs: any = getReactionUpdateArgs(type);
+
+            this.onUpdateMomentReaction(selectedMoment.id, requestArgs).finally(() => {
+                this.toggleAreaOptions(selectedMoment);
+            });
+        }
     }
 
     goBack = () => {

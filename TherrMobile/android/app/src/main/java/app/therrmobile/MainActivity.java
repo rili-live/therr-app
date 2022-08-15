@@ -50,6 +50,10 @@ public class MainActivity extends ReactActivity {
       WritableMap someEvent = Arguments.createMap();
       String intentAction = intent.getAction();
       someEvent.putString("action", intentAction);
+
+      // Bugfix: https://stackoverflow.com/questions/48445010/send-data-from-android-activity-to-react-native
+      while (getReactInstanceManager().getCurrentReactContext() == null);
+
       getReactInstanceManager().getCurrentReactContext()
           .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
           .emit("new-intent-action", someEvent);

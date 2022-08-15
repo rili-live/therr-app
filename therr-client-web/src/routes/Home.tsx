@@ -1,4 +1,4 @@
-/* eslint-disable max-len */
+/* eslint-disable max-len, react/jsx-no-target-blank */
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -86,6 +86,9 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
                             <a href="https://play.google.com/store/apps/details?id=app.therrmobile" target="_blank" rel="noreferrer">
                                 <img src="/assets/images/play-store-download-button.svg" alt="Download Therr on Google Play" />
                             </a>
+                        </div>
+                        <div className="text-center" style={{ padding: '1.5rem 0 0 1rem' }}>
+                            <a href="https://www.therr.app/privacy-policy.html" target="_blank" className="link-plain-white">{this.translate('components.loginForm.buttons.privacyPolicy')}</a> | <a href="https://www.therr.app/terms-and-conditions.html" target="_blank" className="link-plain-white">{this.translate('components.loginForm.buttons.toc')}</a>
                         </div>
                     </div>
                 </div>

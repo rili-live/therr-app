@@ -37,6 +37,7 @@ import LocationActions from '../../redux/actions/LocationActions';
 import { ILocationState } from '../../types/redux/location';
 import earthLoader from '../../assets/earth-loader.json';
 import LocationUseDisclosureModal from '../../components/Modals/LocationUseDisclosureModal';
+import getDirections from '../../utilities/getDirections';
 
 function getRandomLoaderId(): ILottieId {
     const options: ILottieId[] = ['donut', 'earth', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
@@ -301,13 +302,21 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
         const { selectedArea } = this.state;
         const { createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
 
-        handleAreaReaction(selectedArea, type, {
-            user,
-            getReactionUpdateArgs,
-            createOrUpdateMomentReaction,
-            createOrUpdateSpaceReaction,
-            toggleAreaOptions: this.toggleAreaOptions,
-        });
+        if (type === 'getDirections') {
+            getDirections({
+                latitude: selectedArea.latitude,
+                longitude: selectedArea.longitude,
+                title: selectedArea.notificationMsg,
+            });
+        } else {
+            handleAreaReaction(selectedArea, type, {
+                user,
+                getReactionUpdateArgs,
+                createOrUpdateMomentReaction,
+                createOrUpdateSpaceReaction,
+                toggleAreaOptions: this.toggleAreaOptions,
+            });
+        }
     }
 
     onTabSelect = (tabName: string) => {
@@ -469,21 +478,26 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
     }
 
 
+
     renderHeader = () => {
         const { radiusOfAwareness, radiusOfInfluence } = this.props.map;
+
+        const radiusOfAwarenessMiles = Math.round(radiusOfAwareness * 0.000621371 * 100) / 100;
+        const radiusOfInfluenceMiles = Math.round(radiusOfInfluence * 0.000621371 * 100) / 100;
+
 
         return (
             <View style={this.themeMoments.styles.areaCarouselHeaderSliders}>
                 <View style={this.themeForms.styles.inputSliderContainerTight}>
                     <Text style={this.themeForms.styles.inputLabelDark}>
-                        {`${this.translate('forms.nearbyForm.labels.radiusOfAwareness', { meters: radiusOfAwareness })}`}
+                        {`${this.translate('forms.nearbyForm.labels.radiusOfAwareness', { miles: radiusOfAwarenessMiles })}`}
                     </Text>
                     <Slider
                         value={radiusOfAwareness}
                         onValueChange={(value) => this.onSliderAwarenessChange(value)}
                         maximumValue={Location.MAX_RADIUS_OF_AWARENESS}
                         minimumValue={Location.MIN_RADIUS_OF_AWARENESS}
-                        step={1}
+                        step={10000}
                         thumbStyle={{ backgroundColor: this.theme.colors.accentBlue, height: 20, width: 20 }}
                         thumbTouchSize={{ width: 30, height: 30 }}
                         minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
@@ -493,14 +507,14 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                 </View>
                 <View style={this.themeForms.styles.inputSliderContainerTight}>
                     <Text style={this.themeForms.styles.inputLabelDark}>
-                        {`${this.translate('forms.nearbyForm.labels.radiusOfInfluence', { meters: radiusOfInfluence })}`}
+                        {`${this.translate('forms.nearbyForm.labels.radiusOfInfluence', { miles: radiusOfInfluenceMiles })}`}
                     </Text>
                     <Slider
                         value={radiusOfInfluence}
                         onValueChange={(value) => this.onSliderInfluenceChange(value)}
                         maximumValue={Location.MAX_RADIUS_OF_INFLUENCE}
                         minimumValue={Location.MIN_RADIUS_OF_INFLUENCE}
-                        step={1}
+                        step={1000}
                         thumbStyle={{ backgroundColor: this.theme.colors.brandingOrange, height: 20, width: 20 }}
                         thumbTouchSize={{ width: 30, height: 30 }}
                         minimumTrackTintColor={this.theme.colorVariations.accent1LightFade}

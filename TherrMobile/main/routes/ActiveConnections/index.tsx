@@ -116,6 +116,16 @@ class ActiveConnectionsComponent extends React.Component<
         }`;
     };
 
+    goToViewUser = (userId) => {
+        const { navigation } = this.props;
+
+        navigation.navigate('ViewUser', {
+            userInView: {
+                id: userId,
+            },
+        });
+    }
+
     onConnectionPress = (connection) => {
         const { navigation } = this.props;
 
@@ -143,6 +153,7 @@ class ActiveConnectionsComponent extends React.Component<
                             <ConnectionItem
                                 key={connection.id}
                                 connectionDetails={this.getConnectionDetails(connection)}
+                                goToViewUser={this.goToViewUser}
                                 getConnectionSubtitle={this.getConnectionSubtitle}
                                 onConnectionPress={this.onConnectionPress}
                                 theme={this.theme}

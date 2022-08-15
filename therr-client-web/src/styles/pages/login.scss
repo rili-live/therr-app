@@ -27,6 +27,20 @@
     }
 }
 
+.link-plain-white {
+    color: $therr-white;
+    text-decoration: none;
+
+    &:visited {
+        color: $therr-white;
+        text-decoration: none;
+    }
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
 @media only screen and (min-width: rem-calc(540px)) {
     .content-container-home {
         .login-container,
