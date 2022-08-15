@@ -25,6 +25,7 @@ import getActiveCarouselData from '../../utilities/getActiveCarouselData';
 import { CAROUSEL_TABS } from '../../constants';
 import { handleAreaReaction, loadMoreAreas, navToViewArea } from './areaViewHelpers';
 import CarouselTabsMenu from './CarouselTabsMenu';
+import getDirections from '../../utilities/getDirections';
 
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
@@ -231,13 +232,21 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         const { selectedArea } = this.state;
         const { createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
 
-        handleAreaReaction(selectedArea, type, {
-            user,
-            getReactionUpdateArgs,
-            createOrUpdateMomentReaction,
-            createOrUpdateSpaceReaction,
-            toggleAreaOptions: this.toggleAreaOptions,
-        });
+        if (type === 'getDirections') {
+            getDirections({
+                latitude: selectedArea.latitude,
+                longitude: selectedArea.longitude,
+                title: selectedArea.notificationMsg,
+            });
+        } else {
+            handleAreaReaction(selectedArea, type, {
+                user,
+                getReactionUpdateArgs,
+                createOrUpdateMomentReaction,
+                createOrUpdateSpaceReaction,
+                toggleAreaOptions: this.toggleAreaOptions,
+            });
+        }
     }
 
     onTabSelect = (tabName: string) => {

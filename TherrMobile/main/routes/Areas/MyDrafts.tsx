@@ -20,6 +20,7 @@ import { isMyArea as checkIsMyMoment } from '../../utilities/content';
 import { CAROUSEL_TABS } from '../../constants';
 import AreaOptionsModal, { ISelectionType, ModalButton } from '../../components/Modals/AreaOptionsModal';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
+import getDirections from '../../utilities/getDirections';
 
 function getRandomLoaderId(): ILottieId {
     const options: ILottieId[] = ['donut', 'earth', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
@@ -205,6 +206,12 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
                         this.toggleAreaOptions(selectedArea);
                     });
             }
+        } else if (type === 'getDirections') {
+            getDirections({
+                latitude: selectedArea.latitude,
+                longitude: selectedArea.longitude,
+                title: selectedArea.notificationMsg,
+            });
         }
     }
 
@@ -259,6 +266,12 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
                     themeButtons={this.themeButtons}
                     themeReactionsModal={this.themeReactionsModal}
                 >
+                    <ModalButton
+                        iconName="directions"
+                        title={this.translate('modals.areaOptions.buttons.getDirections')}
+                        onPress={() => this.onAreaOptionSelect('getDirections')}
+                        themeButtons={this.themeButtons}
+                    />
                     <ModalButton
                         iconName="delete"
                         title={this.translate('modals.areaOptions.buttons.delete')}

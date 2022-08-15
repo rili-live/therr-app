@@ -21,6 +21,7 @@ import { CAROUSEL_TABS } from '../../constants';
 import { handleAreaReaction, navToViewArea } from './areaViewHelpers';
 import AreaOptionsModal, { ISelectionType } from '../../components/Modals/AreaOptionsModal';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
+import getDirections from '../../utilities/getDirections';
 
 function getRandomLoaderId(): ILottieId {
     const options: ILottieId[] = ['donut', 'earth', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
@@ -213,13 +214,21 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         const { selectedArea } = this.state;
         const { createOrUpdateSpaceReaction, createOrUpdateMomentReaction, user } = this.props;
 
-        handleAreaReaction(selectedArea, type, {
-            user,
-            getReactionUpdateArgs,
-            createOrUpdateMomentReaction,
-            createOrUpdateSpaceReaction,
-            toggleAreaOptions: this.toggleAreaOptions,
-        });
+        if (type === 'getDirections') {
+            getDirections({
+                latitude: selectedArea.latitude,
+                longitude: selectedArea.longitude,
+                title: selectedArea.notificationMsg,
+            });
+        } else {
+            handleAreaReaction(selectedArea, type, {
+                user,
+                getReactionUpdateArgs,
+                createOrUpdateMomentReaction,
+                createOrUpdateSpaceReaction,
+                toggleAreaOptions: this.toggleAreaOptions,
+            });
+        }
     }
 
     render() {

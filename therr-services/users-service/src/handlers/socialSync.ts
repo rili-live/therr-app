@@ -25,7 +25,6 @@ const socialPlatformApis = {
             method: 'get',
             // eslint-disable-next-line max-len
             url: `https://graph.facebook.com/v14.0/me/accounts?fields=id,name,instagram_business_account{username,media,followers_count,media_count}&access_token=${params.accessToken}`,
-            headers: { Authorization: `Bearer ${twitterBearerToken}` },
         }).catch((err) => ({
             data: {
                 errors: err.response?.data?.error,
@@ -36,7 +35,6 @@ const socialPlatformApis = {
         getProfile: (params: { userId: string, accessToken: string }) => axios({
             method: 'get',
             url: `https://graph.instagram.com/v14.0/${params.userId}?fields=id,username,account_type,media_count,media&access_token=${params.accessToken}`,
-            headers: { Authorization: `Bearer ${twitterBearerToken}` },
         }).catch((err) => ({
             data: {
                 errors: err.response?.data?.error,

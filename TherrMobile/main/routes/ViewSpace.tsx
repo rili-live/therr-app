@@ -30,6 +30,7 @@ import BaseStatusBar from '../components/BaseStatusBar';
 import { isMyArea as checkIsMySpace } from '../utilities/content';
 import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptionsModal';
 import { getReactionUpdateArgs } from '../utilities/reactions';
+import getDirections from '../utilities/getDirections';
 // import AccentInput from '../components/Input/Accent';
 
 interface IViewSpaceDispatchProps {
@@ -211,11 +212,20 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
 
     onSpaceOptionSelect = (type: ISelectionType) => {
         const { selectedSpace } = this.state;
-        const requestArgs: any = getReactionUpdateArgs(type);
 
-        this.onUpdateSpaceReaction(selectedSpace.id, requestArgs).finally(() => {
-            this.toggleAreaOptions(selectedSpace);
-        });
+        if (type === 'getDirections') {
+            getDirections({
+                latitude: selectedSpace.latitude,
+                longitude: selectedSpace.longitude,
+                title: selectedSpace.notificationMsg,
+            });
+        } else {
+            const requestArgs: any = getReactionUpdateArgs(type);
+
+            this.onUpdateSpaceReaction(selectedSpace.id, requestArgs).finally(() => {
+                this.toggleAreaOptions(selectedSpace);
+            });
+        }
     }
 
     goBack = () => {
