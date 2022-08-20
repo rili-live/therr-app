@@ -13,6 +13,7 @@ export interface ICreateUserAchievementParams {
     achievementTier: string; // ex. 1_1, 1_2, 2_1, etc.
     completedAt?: Date;
     progressCount: number;
+    unclaimedRewardPts?: number;
 }
 
 type IResultAction = 'incomplete'
@@ -92,9 +93,12 @@ export default class UserAchievementsStore {
                 outcomeTag = 'created-next-of-tier';
             } else {
                 outcomeTag = 'updated-in-progress-tier';
+                const completedAt = remainingCount >= tierAchievements[achievementsIndex].countToComplete ? new Date() : undefined;
+                const unclaimedRewardPts = completedAt ? tierAchievements[achievementsIndex].pointReward : 0;
                 updateAchievementPromise = this.update(latestAch.id, {
                     progressCount: Math.min(latestAch.progressCount + remainingCount, tierAchievements[achievementsIndex].countToComplete),
-                    completedAt: remainingCount >= tierAchievements[achievementsIndex].countToComplete ? new Date() : undefined,
+                    completedAt,
+                    unclaimedRewardPts,
                 });
                 remainingCount = Math.max(0, (latestAch.progressCount + remainingCount) - tierAchievements[achievementsIndex].countToComplete);
             }
@@ -103,13 +107,17 @@ export default class UserAchievementsStore {
         }
 
         while (remainingCount > 0 && tierAchievements[achievementsIndex]) {
+            const completedAt = remainingCount >= tierAchievements[achievementsIndex].countToComplete ? new Date() : undefined;
+            const unclaimedRewardPts = completedAt ? tierAchievements[achievementsIndex].pointReward : 0;
+
             const achievement = {
                 userId: commonProps.userId,
                 achievementId: tierAchievements[achievementsIndex].id,
                 achievementClass: commonProps.achievementClass,
                 achievementTier: commonProps.achievementTier,
                 progressCount: Math.min(remainingCount, tierAchievements[achievementsIndex].countToComplete),
-                completedAt: remainingCount >= tierAchievements[achievementsIndex].countToComplete ? new Date() : undefined,
+                completedAt,
+                unclaimedRewardPts,
             };
             if (achievementsIndex >= tierAchievements.length - 1) {
                 outcomeTag = 'achievement-tier-completed';

@@ -1,11 +1,10 @@
 import { RequestHandler } from 'express';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
-import { Notifications, PushNotifications } from 'therr-js-utilities/constants';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
+import createSendTotalNotification from '../utilities/createSendTotalNotification';
 // import * as globalConfig from '../../../../global-config';
-import sendPushNotificationAndEmail from '../utilities/sendPushNotificationAndEmail';
 
 export const translateNotification = (notification, locale = 'en-us') => ({
     ...notification,
@@ -13,43 +12,29 @@ export const translateNotification = (notification, locale = 'en-us') => ({
 });
 
 // CREATE
-const createNotification = (req, res) => Store.notifications.createNotification({
-    userId: req.body.userId,
-    type: req.body.type, // DB Notification type
-    associationId: req.body.associationId,
-    isUnread: req.body.isUnread,
-    messageLocaleKey: req.body.messageLocaleKey,
-    messageParams: req.body.messageParams,
-})
-    .then(([notification]) => {
-        const authorization = req.headers.authorization;
-        const locale = req.headers['x-localecode'] || 'en-us';
-        const fromUserId = req.headers['x-userid'];
-        const { shouldSendPushNotification, userId: toUserId, fromUserName } = req.body;
-        const notificationType = req.body.type;
-        let pushNotificationType = PushNotifications.Types.newDirectMessage;
-        if (notificationType === Notifications.Types.NEW_LIKE_RECEIVED) {
-            pushNotificationType = PushNotifications.Types.newLikeReceived;
-        } else if (notificationType === Notifications.Types.NEW_SUPER_LIKE_RECEIVED) {
-            pushNotificationType = PushNotifications.Types.newSuperLikeReceived;
-        }
+const createNotification = (req, res) => {
+    const locale = req.headers['x-localecode'] || 'en-us';
 
-        // TODO: Handle additional notification types (currently only handles DM notification)
-        if (shouldSendPushNotification) {
-            // Fire and forget
-            sendPushNotificationAndEmail(Store.users.findUser, {
-                authorization,
-                fromUserName,
-                fromUserId,
-                locale,
-                toUserId,
-                type: pushNotificationType,
-            });
-        }
-
-        return res.status(202).send(translateNotification(notification, locale));
+    return createSendTotalNotification({
+        authorization: req.headers.authorization,
+        locale,
+    }, {
+        userId: req.body.userId,
+        type: req.body.type, // DB Notification type
+        associationId: req.body.associationId,
+        isUnread: req.body.isUnread,
+        messageLocaleKey: req.body.messageLocaleKey,
+        messageParams: req.body.messageParams,
+    }, {
+        toUserId: req.body.userId,
+        fromUser: {
+            name: req.body.fromUserName,
+            id: req.headers['x-userid'],
+        },
     })
-    .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
+        .then((notification) => res.status(202).send(translateNotification(notification, locale)))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
+};
 
 // READ
 const getNotification = (req, res) => Store.notifications.getNotifications({
