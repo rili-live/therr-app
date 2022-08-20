@@ -81,6 +81,16 @@ spec:
           value: "redis-cluster-ip-service"
         - name: REDIS_PUB_PORT
           value: "6379"
+        - name: TIKTOK_CLIENT_KEY
+          valueFrom:
+            secretKeyRef:
+              name: tiktok-client-key
+              key: TIKTOKCLIENTKEY
+        - name: TIKTOK_APP_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: tiktok-app-secret
+              key: TIKTOKAPPSECRET
         - name: DB_USER_MAIN_WRITE
           value: "therrAppUser"
         - name: DB_HOST_MAIN_WRITE
