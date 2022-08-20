@@ -8,7 +8,7 @@ import { IFindUserArgs } from '../store/UsersStore';
 
 interface ISendPushNotification {
     authorization: any;
-    fromUserName: any;
+    fromUserName?: any;
     fromUserId: any;
     locale: any;
     toUserId: any;
@@ -29,12 +29,24 @@ export default (findUser: (args: IFindUserArgs, returning: any[]) => Promise<{
     retentionEmailType,
 }: ISendPushNotification): Promise<any> => findUser({ id: toUserId }, ['deviceMobileFirebaseToken', 'email']).then(([destinationUser]) => {
     if (retentionEmailType === PushNotifications.Types.newConnectionRequest) {
-        sendPendingInviteEmail({
-            subject: `[New Connection Request] ${fromUserName} sent you a request on Therr App`,
-            toAddresses: [destinationUser.email],
-        }, {
-            fromName: fromUserName,
-        });
+        if (fromUserName) {
+            sendPendingInviteEmail({
+                subject: `[New Connection Request] ${fromUserName} sent you a request on Therr App`,
+                toAddresses: [destinationUser.email],
+            }, {
+                fromName: fromUserName,
+            });
+        } else {
+            printLogs({
+                level: 'warn',
+                messageOrigin: 'API_SERVER',
+                messages: ['"fromUserName" is not defined. Skipping email.'],
+                tracer: beeline,
+                traceArgs: {
+                    issue: 'error with sendPendingInviteEmail',
+                },
+            });
+        }
     }
 
     return axios({

@@ -1,12 +1,15 @@
 import { RequestHandler } from 'express';
 import { achievementsByClass } from 'therr-js-utilities/config';
+import { Notifications } from 'therr-js-utilities/constants';
 import Store from '../store';
 import { IDBAchievement } from '../store/UserAchievementsStore';
+import createSendTotalNotification from '../utilities/createSendTotalNotification';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 
 // CREATE
 const updateAndCreateUserAchievements: RequestHandler = async (req: any, res: any) => {
+    const authorization = req.headers.authorization;
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
     const {
@@ -41,7 +44,28 @@ const updateAndCreateUserAchievements: RequestHandler = async (req: any, res: an
             achievementTier,
         }, progressCount, tierAchievementsArr, latestAch);
     })
-        .then((result) => res.status(201).send(result))
+        .then((result) => {
+            [...result.created, ...result.updated].forEach((achievement) => {
+                // NOTE: Does not include e-mail because scheduler will e-mail users
+                // who have not claimed rewards
+                createSendTotalNotification({
+                    authorization,
+                    locale,
+                }, {
+                    userId,
+                    type: Notifications.Types.ACHIEVEMENT_COMPLETED,
+                    associationId: achievement.id,
+                    isUnread: true,
+                    messageLocaleKey: Notifications.MessageKeys.ACHIEVEMENT_COMPLETED,
+                }, {
+                    toUserId: userId,
+                    fromUser: {
+                        id: userId,
+                    },
+                });
+            });
+            return res.status(201).send(result);
+        })
         .catch((err) => handleHttpError({
             err,
             res,
