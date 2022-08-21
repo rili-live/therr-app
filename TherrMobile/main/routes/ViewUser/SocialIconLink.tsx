@@ -19,6 +19,9 @@ export default ({
         if (iconName === 'instagram' && userInView.socialSyncs?.instagram?.link) {
             return Linking.openURL(userInView.socialSyncs?.instagram?.link);
         }
+        if (iconName === 'youtube' && userInView.socialSyncs?.youtube?.link) {
+            return Linking.openURL(userInView.socialSyncs?.youtube?.link);
+        }
 
         return isMe && navigation.navigate('SocialSync', userInView);
     };
@@ -29,10 +32,10 @@ export default ({
     const extraStyle3: any = {};
     const extraStyle4: any = {};
 
-    ['twitter', 'instagram'].forEach((platform) => {
-        if (iconName === platform && userInView.socialSyncs?.[platform]?.followerCount) {
+    ['twitter', 'instagram', 'youtube'].forEach((platform) => {
+        if (iconName === platform && userInView.socialSyncs?.[platform]?.followerCount != null) {
             iconColor = themeUser.colors[platform];
-            if (userInView.socialSyncs?.[platform]?.followerCount > 0) {
+            if (userInView.socialSyncs?.[platform]?.followerCount >= 0) {
                 extraStyle1.backgroundColor = themeUser.colors.accentLime;
             }
             if (userInView.socialSyncs?.[platform]?.followerCount > 1000) {
