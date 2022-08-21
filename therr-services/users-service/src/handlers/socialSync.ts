@@ -409,20 +409,16 @@ const tiktokAppAuth: RequestHandler = (req: any, res: any) => {
         return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error, error_reason, error_description })}` });
     }
 
-    const userAuthCodeSplit = (code || '').split('#_');
-    const userAuthCode = userAuthCodeSplit[0] || code || '';
-    const form = new FormData();
-    form.append('client_key', clientKey);
-    form.append('client_secret', appSecret);
-    form.append('grant_type', 'authorization_code');
-    form.append('code', userAuthCode);
+    let url_access_token = 'https://open-api.tiktok.com/oauth/access_token/';
+    url_access_token += `?client_key=${clientKey}`;
+    url_access_token += `&client_secret=${appSecret}`;
+    url_access_token += `&code=${code}`;
+    url_access_token += '&grant_type=authorization_code';
 
     // Success response should redirect back to this same endpoint
     return axios({
         method: 'post',
-        url: 'https://open-api.tiktok.com/oauth/access_token',
-        headers: form.getHeaders(),
-        data: form,
+        url: url_access_token,
     }).then((response) => {
         const {
             data,
@@ -445,7 +441,7 @@ const tiktokAppAuth: RequestHandler = (req: any, res: any) => {
         printLogs({
             level: 'error',
             messageOrigin: 'API_SERVER',
-            messages: ['Failed IG OAuth Request'],
+            messages: ['Failed TikTok OAuth Request'],
             tracer: beeline,
             traceArgs: {
                 error_message,
