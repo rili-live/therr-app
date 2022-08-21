@@ -176,6 +176,10 @@ usersServiceRouter.get('/social-sync/oauth2-instagram', handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
 }));
+usersServiceRouter.get('/social-sync/oauth2-tiktok', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
 
 // Subscribers
 usersServiceRouter.post('/subscribers/send-feedback', feedbackAttemptLimiter, sendFeedbackValidation, handleServiceRequest({

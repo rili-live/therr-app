@@ -34,6 +34,7 @@ import SocialIconLink from './SocialIconLink';
 
 const INSTAGRAM_BASIC_DISPLAY_APP_ID = '8038208602859743';
 const INSTAGRAM_GRAPH_API_APP_ID = '538207404468066';
+const TIKTOK_CLIENT_KEY = 'awrccvgslbslon9t';
 
 interface ISocialSyncDispatchProps {
     createUpdateSocialSyncs: Function;
@@ -94,6 +95,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
             activeProvider: 'instagram',
             inputs: {
                 twitterHandle: userInView?.socialSyncs?.twitter?.platformUsername,
+                youtubeChannelId: userInView?.socialSyncs?.youtube?.platformUsername,
             },
             isOAuthModalVisible: false,
             isAccountTypeModalVisible: false,
@@ -111,6 +113,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
     componentDidMount() {
         const { navigation, route } = this.props;
         const authResult = route?.params?.authResult;
+        console.log('authResult', authResult);
         if (authResult) {
             if (authResult.error) {
                 this.setState({
@@ -254,6 +257,16 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
         });
     };
 
+    onSaveYoutube = () => {
+        const { inputs } = this.state;
+
+        this.onSubmit({
+            youtube: {
+                username: inputs.youtubeChannelId,
+            },
+        });
+    };
+
     onInputChange = (name: string, value: string) => {
         const { inputs } = this.state;
         const newInputChanges = {
@@ -269,11 +282,13 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
         });
     };
 
-    onSocialLogin = (provider: 'instagram' | 'twitter') => {
+    onSocialLogin = (provider: 'instagram' | 'twitter' | 'tiktok') => {
         if (provider === 'instagram') {
             this.setState({
                 isAccountTypeModalVisible: true,
             });
+        } else if (provider === 'tiktok') {
+            this.onTikTokSocialLogin();
         } else {
             this.setState({
                 isOAuthModalVisible: true,
@@ -293,7 +308,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
         });
     }
 
-    onSelectAccountType = (type: 'personal' | 'business') => {
+    onSelectMetaAccountType = (type: 'personal' | 'business') => {
         const { requestId } = this.state;
         this.onCloseAccountTypeModal();
         if (type === 'personal') {
@@ -314,6 +329,17 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
             // eslint-disable-next-line max-len
             Linking.openURL(`https://www.facebook.com/v14.0/dialog/oauth?client_id=${appId}&redirect_uri=${backendRedirectUrl}&response_type=${responseType}&scope=${scopes.join(',')}&state=${requestId}`);
         }
+    }
+
+    onTikTokSocialLogin = () => {
+        const { requestId } = this.state;
+        const clientKey = TIKTOK_CLIENT_KEY;
+        const backendRedirectUrl = 'https://api.therr.com/v1/users-service/social-sync/oauth2-tiktok';
+        const responseType = 'code';
+        // const scopes = ['public_profile', 'instagram_basic', 'instagram_manage_insights', 'pages_show_list', 'pages_read_engagement'];
+        const scopes = ['user.info.basic'];
+        // eslint-disable-next-line max-len
+        Linking.openURL(`https://www.tiktok.com/auth/authorize/?client_key=${clientKey}&scope=${scopes.join(',')}&response_type=${responseType}&redirect_uri=${backendRedirectUrl}&state=${requestId}`);
     }
 
     onOAuthLoginSuccess = (results) => {
@@ -415,6 +441,34 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                     paddingRight: 16,
                                 }}>
                                     <SocialIconLink
+                                        iconName="tiktok"
+                                        isMe={true}
+                                        navigation={navigation}
+                                        themeUser={this.themeUser}
+                                        userInView={userInView}
+                                    />
+                                </View>
+                                <Button
+                                    containerStyle={[{ flex: 1 }]}
+                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt]}
+                                    titleStyle={this.themeForms.styles.buttonTitleAlt}
+                                    title={this.translate('forms.socialSync.buttons.syncTikTok')}
+                                    // icon={
+                                    //     <FontAwesome5Icon
+                                    //         name="sync"
+                                    //         size={22}
+                                    //         style={this.themeForms.styles.buttonIconAlt}
+                                    //     />
+                                    // }
+                                    raised={false}
+                                    onPress={() => this.onSocialLogin('tiktok')}
+                                />
+                            </View>
+                            <View style={this.themeSocialSyncForm.styles.socialLinkContainer}>
+                                <View style={{
+                                    paddingRight: 16,
+                                }}>
+                                    <SocialIconLink
                                         iconName="twitter"
                                         isMe={true}
                                         navigation={navigation}
@@ -449,6 +503,47 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                     //     />
                                     // }
                                     onPress={this.onSaveTwitter}
+                                />
+                            </View>
+                            <View style={this.themeSocialSyncForm.styles.socialLinkContainer}>
+                                <View style={{
+                                    paddingRight: 16,
+                                }}>
+                                    <SocialIconLink
+                                        iconName="youtube"
+                                        isMe={true}
+                                        navigation={navigation}
+                                        themeUser={this.themeUser}
+                                        userInView={userInView}
+                                    />
+                                </View>
+                                <SquareInput
+                                    containerStyle={{ flex: 1 }}
+                                    labelStyle={this.themeForms.styles.inputLabelLightFaded}
+                                    value={inputs.youtubeChannelId}
+                                    onChangeText={(text) =>
+                                        this.onInputChange('youtubeChannelId', text)
+                                    }
+                                    placeholder={this.translate(
+                                        'forms.socialSync.placeholders.youtubeChannelId'
+                                    )}
+                                    themeForms={this.themeForms}
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                />
+                                <Button
+                                    containerStyle={[]}
+                                    buttonStyle={[this.themeForms.styles.buttonRoundAlt]}
+                                    titleStyle={this.themeForms.styles.buttonTitleAlt}
+                                    title={this.translate('forms.socialSync.buttons.sync')}
+                                    // icon={
+                                    //     <FontAwesome5Icon
+                                    //         name="sync"
+                                    //         size={22}
+                                    //         style={this.themeForms.styles.buttonIconAlt}
+                                    //     />
+                                    // }
+                                    onPress={this.onSaveYoutube}
                                 />
                             </View>
                         </View>
@@ -513,7 +608,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                 size={22}
                                 style={this.themeForms.styles.buttonIcon}
                             />}
-                            onPress={() => this.onSelectAccountType('personal')}
+                            onPress={() => this.onSelectMetaAccountType('personal')}
                             raised={true}
                         />
                         <Text
@@ -531,7 +626,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                 size={22}
                                 style={this.themeForms.styles.buttonIcon}
                             />}
-                            onPress={() => this.onSelectAccountType('business')}
+                            onPress={() => this.onSelectMetaAccountType('business')}
                             raised={true}
                         />
                     </View>

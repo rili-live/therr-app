@@ -8,6 +8,8 @@ export const createUpdateSocialSyncsValidation = [
     body('syncs.facebook.userId').optional().isString(),
     body('syncs.instagram').optional(),
     body('syncs.instagram.userId').optional().isString(),
+    body('syncs.tiktok').optional(),
+    body('syncs.tiktok.username').optional().isString(),
     body('syncs.twitter').optional(),
     body('syncs.twitter.username').optional().isString(),
 ];
