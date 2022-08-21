@@ -425,7 +425,8 @@
         "resync": "Resync?",
         "syncNow": "Sync Now",
         "sync": "Sync?",
-        "syncInstagram": "Sync Instagram"
+        "syncInstagram": "Sync Instagram",
+        "syncTikTok": "Sync TikTok"
       },
       "successAlerts": {
         "syncSuccess": "Successfully synced: {providers}"
@@ -445,7 +446,8 @@
         "twitterHandle": "Twitter Handle"
       },
       "placeholders": {
-        "twitterHandle": "username"
+        "twitterHandle": "username",
+        "youtubeChannelId": "channel ID"
       }
     }
   },

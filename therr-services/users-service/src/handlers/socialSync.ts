@@ -18,6 +18,7 @@ import { ICreateOrUpdateParams } from '../store/SocialSyncsStore';
 type IPlatform = 'twitter' | 'facebook-instagram' | 'instagram' | 'tiktok' | 'youtube';
 
 const twitterBearerToken = process.env.TWITTER_APP_BEARER_TOKEN;
+const youtubeApiKey = process.env.GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY;
 
 const socialPlatformApis = {
     'facebook-instagram': {
@@ -48,6 +49,27 @@ const socialPlatformApis = {
             headers: { Authorization: `Bearer ${twitterBearerToken}` },
         }),
     },
+    youtube: {
+        getProfile: (params: { username: string }) => axios({
+            method: 'get',
+            url: `https://youtube.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics&id=${params.username}&key=${youtubeApiKey}`,
+        }).then((response) => {
+            console.log(response.data);
+            if (!response.data?.items?.length) {
+                return ({
+                    data: {
+                        errors: 'not found',
+                    },
+                });
+            }
+
+            return response;
+        }).catch((err) => ({
+            data: {
+                errors: err.response?.data?.error,
+            },
+        })),
+    },
 };
 
 const extractPlatformProfileDetails = (platform: IPlatform, responseData) => {
@@ -77,6 +99,16 @@ const extractPlatformProfileDetails = (platform: IPlatform, responseData) => {
             link: `https://instagram.com/${responseData?.username}`,
             displayName: 'Instagram',
             followerCount: responseData?.media_count || 1, // TODO: Create calculation for "Clout Score"
+        };
+    }
+    if (platform === 'youtube') {
+        return {
+            platformUsername: responseData?.items[0]?.id,
+            platformUserId: responseData?.items[0]?.id,
+            // eslint-disable-next-line max-len
+            link: `https://www.youtube.com/channel/${responseData?.items[0]?.id}`,
+            displayName: 'Youtube',
+            followerCount: responseData?.items[0]?.statistics.subscriberCount || 1, // TODO: Create calculation for "Clout Score"
         };
     }
 
@@ -117,7 +149,7 @@ const createUpdateSocialSyncs: RequestHandler = (req: any, res: any) => {
     Object.keys(socialPlatformApis).forEach((key) => {
         if (syncs[key]) {
             if (key === 'instagram' || key === 'facebook-instagram') {
-            // Fire and forget: Notify admin of social sync for manual geotagging
+                // Fire and forget: Notify admin of social sync for manual geotagging
                 sendSocialSyncAdminNotificationEmail({
                     subject: key === 'instagram' ? 'New IG Social Sync' : 'New FB-IG Social Sync',
                     toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
@@ -350,9 +382,88 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
     });
 };
 
+const tiktokAppAuth: RequestHandler = (req: any, res: any) => {
+    const clientKey = process.env.TIKTOK_CLIENT_KEY || '';
+    const appSecret = process.env.TIKTOK_APP_SECRET || '';
+    const frontendRedirectUrl = 'https://therr.com';
+    console.log('query', req.query);
+    const {
+        code,
+        error,
+        error_reason,
+        error_description,
+    } = req.query;
+
+    if (error) {
+        printLogs({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: ['Failed TikTok Authorization Request'],
+            tracer: beeline,
+            traceArgs: {
+                error,
+                error_reason,
+                error_description,
+            },
+        });
+        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error, error_reason, error_description })}` });
+    }
+
+    const userAuthCodeSplit = (code || '').split('#_');
+    const userAuthCode = userAuthCodeSplit[0] || code || '';
+    const form = new FormData();
+    form.append('client_key', clientKey);
+    form.append('client_secret', appSecret);
+    form.append('grant_type', 'authorization_code');
+    form.append('code', userAuthCode);
+
+    // Success response should redirect back to this same endpoint
+    return axios({
+        method: 'post',
+        url: 'https://open-api.tiktok.com/oauth/access_token',
+        headers: form.getHeaders(),
+        data: form,
+    }).then((response) => {
+        const {
+            data,
+            message,
+        } = response.data;
+        const hasError = message === 'error';
+
+        if (hasError) {
+            return res.status(301)
+                .send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error_type: data.error_code, error_message: data.description })}` });
+        }
+        return res.status(301)
+            .send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ access_token: data.access_token, user_id: data.open_id, provider: 'tiktok' })}` });
+    }).catch((errResponse) => {
+        const {
+            error_message,
+            error_type,
+        } = errResponse?.response?.data || {};
+
+        printLogs({
+            level: 'error',
+            messageOrigin: 'API_SERVER',
+            messages: ['Failed IG OAuth Request'],
+            tracer: beeline,
+            traceArgs: {
+                error_message,
+                error_type,
+                ...errResponse?.response?.data,
+                theHell1: errResponse?.toString(),
+                theHell2: errResponse?.response?.toString(),
+            },
+        });
+
+        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error_type, error_message, handled_error: true })}` });
+    });
+};
+
 export {
     getSocialSyncs,
     createUpdateSocialSyncs,
     facebookAppAuth,
     instagramAppAuth,
+    tiktokAppAuth,
 };

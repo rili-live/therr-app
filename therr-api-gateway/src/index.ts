@@ -59,6 +59,7 @@ app.use(authenticate.unless({
         { url: '/v1/users-service/users/forgot-password', methods: ['POST'] }, // one time password
         { url: new RegExp('/v1/users-service/users/verify/.*'), methods: ['POST'] }, // verify account
         { url: new RegExp('/v1/users-service/users/by-username/.*'), methods: ['GET'] }, // Get public/private profile
+        { url: '/v1/users-service/social-sync/oauth2-tiktok', methods: ['GET'] }, // TikTok OAuth
         { url: '/v1/users-service/social-sync/oauth2-facebook', methods: ['GET'] }, // Facebook OAuth
         { url: '/v1/users-service/social-sync/oauth2-instagram', methods: ['GET'] }, // Instagram OAuth
     ],
