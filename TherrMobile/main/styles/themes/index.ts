@@ -97,6 +97,12 @@ export interface ITherrThemeColors {
         mySpacesCircleFill: string;
         mySpacesCircleFillActive: string;
         userCircleFill: string;
+        momentsCircleStroke: string;
+        undiscoveredMomentsCircleStroke: string;
+        spacesCircleStroke: string;
+        undiscoveredSpacesCircleStroke: string;
+        myMomentsCircleStroke: string;
+        mySpacesCircleStroke: string;
     };
 }
 
