@@ -88,8 +88,10 @@ export interface ITherrThemeColors {
     map: {
         momentsCircleFill: string;
         momentsCircleFillActive: string;
+        undiscoveredMomentsCircleFill: string;
         spacesCircleFill: string;
         spacesCircleFillActive: string;
+        undiscoveredSpacesCircleFill: string;
         myMomentsCircleFill: string;
         myMomentsCircleFillActive: string;
         mySpacesCircleFill: string;

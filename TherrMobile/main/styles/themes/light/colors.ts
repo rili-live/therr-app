@@ -74,8 +74,10 @@ const colors: ITherrThemeColors = {
     map: {
         momentsCircleFill: 'rgba(56,130,84,0.2)',
         momentsCircleFillActive: 'rgba(56,130,84,0.5)',
+        undiscoveredMomentsCircleFill: 'rgba(222,110,7,0.2)',
         spacesCircleFill: 'rgba(56,130,84,0.2)',
         spacesCircleFillActive: 'rgba(56,130,84,0.5)',
+        undiscoveredSpacesCircleFill: 'rgba(222,110,7,0.2)',
         myMomentsCircleFill: 'rgba(31,89,125,0.2)',
         myMomentsCircleFillActive: 'rgba(31,89,125,0.5)',
         mySpacesCircleFill: 'rgba(31,89,125,0.2)',

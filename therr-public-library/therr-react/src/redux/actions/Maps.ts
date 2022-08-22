@@ -88,6 +88,9 @@ const Maps = {
                     data: response.data,
                 });
             }
+
+            // Return so we can react by searching for associated reactions
+            return Promise.resolve(response.data);
         }),
     deleteMoment: (args: { ids: string[] }) => (dispatch: any) => MapsService.deleteMoments(args).then(() => {
         dispatch({
@@ -127,6 +130,9 @@ const Maps = {
                     data: response.data,
                 });
             }
+
+            // Return so we can react by searching for associated reactions
+            return Promise.resolve(response.data);
         }),
     deleteSpace: (args: { ids: string[] }) => (dispatch: any) => MapsService.deleteSpaces(args).then(() => {
         dispatch({

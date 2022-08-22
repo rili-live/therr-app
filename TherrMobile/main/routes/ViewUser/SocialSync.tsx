@@ -436,7 +436,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                     onPress={() => this.onSocialLogin('instagram')}
                                 />
                             </View>
-                            <View style={this.themeSocialSyncForm.styles.socialLinkContainer}>
+                            {/* <View style={this.themeSocialSyncForm.styles.socialLinkContainer}>
                                 <View style={{
                                     paddingRight: 16,
                                 }}>
@@ -463,7 +463,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                     raised={false}
                                     onPress={() => this.onSocialLogin('tiktok')}
                                 />
-                            </View>
+                            </View> */}
                             <View style={this.themeSocialSyncForm.styles.socialLinkContainer}>
                                 <View style={{
                                     paddingRight: 16,
