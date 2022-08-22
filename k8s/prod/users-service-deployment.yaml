@@ -113,6 +113,11 @@ spec:
             secretKeyRef:
               name: db-password-app
               key: DB_PASSWORD_APP_READ
+        - name: GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: google-maps-places-server-side-api-key
+              key: GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY
         - name: USERS_SERVICE_DATABASE
           value: "therr_users_service_db"
         - name: JWT_SECRET
