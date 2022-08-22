@@ -45,6 +45,9 @@ export interface ISocialSyncs {
         twitter?: {
             username: string;
         };
+        youtube?: {
+            username: string;
+        };
     };
 }
 
