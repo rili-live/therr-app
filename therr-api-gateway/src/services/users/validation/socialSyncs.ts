@@ -12,4 +12,6 @@ export const createUpdateSocialSyncsValidation = [
     body('syncs.tiktok.username').optional().isString(),
     body('syncs.twitter').optional(),
     body('syncs.twitter.username').optional().isString(),
+    body('syncs.youtube').optional(),
+    body('syncs.youtube.username').optional().isString(),
 ];
