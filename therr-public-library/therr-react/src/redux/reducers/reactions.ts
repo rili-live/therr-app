@@ -3,8 +3,8 @@ import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { IReactionsState, ReactionActionTypes } from '../../types/redux/reactions';
 
 const initialState: IReactionsState = Immutable.from({
-    myMomentReactions: Immutable.from([]),
-    mySpaceReactions: Immutable.from([]),
+    myMomentReactions: Immutable.from({}), // mapMomentIdToReactions
+    mySpaceReactions: Immutable.from({}), // mapSpaceIdToReactions
 });
 
 const reactions = (state: IReactionsState = initialState, action: any) => {
@@ -13,58 +13,28 @@ const reactions = (state: IReactionsState = initialState, action: any) => {
         state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
     }
 
-    let modifiedMomentReactions = [...state.myMomentReactions];
-    let momentReactionExists = false;
+    const modifiedMomentReactions = { ...state.myMomentReactions };
 
-    let modifiedSpaceReactions = [...state.mySpaceReactions];
-    let spaceReactionExists = false;
+    const modifiedSpaceReactions = { ...state.mySpaceReactions };
 
     switch (action.type) {
-        // TODO: Rethink this for possible optimizations
         // Moments
         case ReactionActionTypes.GET_MOMENT_REACTIONS:
             return state.setIn(['myMomentReactions'], action.data);
         case ReactionActionTypes.MOMENT_REACTION_CREATED_OR_UPDATED:
-            modifiedMomentReactions = modifiedMomentReactions.map((reaction) => { // eslint-disable-line no-case-declarations
-                if (reaction.momentId === action.data.momentId) {
-                    momentReactionExists = true;
-                    return {
-                        ...reaction,
-                        ...action.data,
-                    };
-                }
-
-                return reaction;
-            });
-
-            if (!momentReactionExists) {
-                modifiedMomentReactions.unshift(action.data);
-            }
+            modifiedMomentReactions[action.data.momentId] = action.data;
 
             return state.setIn(['myMomentReactions'], modifiedMomentReactions);
+
         // Spaces
         case ReactionActionTypes.GET_SPACE_REACTIONS:
             return state.setIn(['mySpaceReactions'], action.data);
         case ReactionActionTypes.SPACE_REACTION_CREATED_OR_UPDATED:
-            modifiedSpaceReactions = modifiedSpaceReactions.map((reaction) => { // eslint-disable-line no-case-declarations
-                if (reaction.spaceId === action.data.spaceId) {
-                    spaceReactionExists = true;
-                    return {
-                        ...reaction,
-                        ...action.data,
-                    };
-                }
-
-                return reaction;
-            });
-
-            if (!spaceReactionExists) {
-                modifiedSpaceReactions.unshift(action.data);
-            }
+            modifiedSpaceReactions[action.data.momentId] = action.data;
 
             return state.setIn(['mySpaceReactions'], modifiedSpaceReactions);
         case SocketClientActionTypes.LOGOUT:
-            return state.setIn(['myMomentReactions'], Immutable.from([])).setIn(['mySpaceReactions'], Immutable.from([]));
+            return state.setIn(['myMomentReactions'], Immutable.from({})).setIn(['mySpaceReactions'], Immutable.from({}));
         default:
             return state;
     }
