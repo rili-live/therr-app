@@ -386,7 +386,6 @@ const tiktokAppAuth: RequestHandler = (req: any, res: any) => {
     const clientKey = process.env.TIKTOK_CLIENT_KEY || '';
     const appSecret = process.env.TIKTOK_APP_SECRET || '';
     const frontendRedirectUrl = 'https://therr.com';
-    console.log('query', req.query);
     const {
         code,
         error,

@@ -2,7 +2,9 @@ import { ReactionActionTypes } from '../../types/redux/reactions';
 import ReactionsService, {
     ICreateOrUpdateAreaReactionBody,
     IGetMomentReactionParams,
+    IFindMomentReactionParams,
     IGetSpaceReactionParams,
+    IFindSpaceReactionParams,
 } from '../../services/ReactionsService';
 
 const Reactions = {
@@ -21,6 +23,18 @@ const Reactions = {
                 data: response.data,
             });
         }),
+    findMomentReactions: (params: IFindMomentReactionParams) => (dispatch: any) => ReactionsService.findMomentReactions(params)
+        .then((response: any) => {
+            const reactionsById = {};
+
+            (response.data?.reactions || []).forEach((reaction) => {
+                reactionsById[reaction.momentId] = reaction;
+            });
+            dispatch({
+                type: ReactionActionTypes.GET_MOMENT_REACTIONS,
+                data: reactionsById,
+            });
+        }),
 
     // Spaces
     createOrUpdateSpaceReaction: (spaceId: number, data: ICreateOrUpdateAreaReactionBody) => (dispatch: any) => ReactionsService
@@ -37,6 +51,19 @@ const Reactions = {
                 data: response.data,
             });
         }),
+    findSpaceReactions: (query: IFindSpaceReactionParams) => (dispatch: any) => ReactionsService.findSpaceReactions(query)
+        .then((response: any) => {
+            const reactionsById = {};
+
+            (response.data?.reactions || []).forEach((reaction) => {
+                reactionsById[reaction.momentId] = reaction;
+            });
+            dispatch({
+                type: ReactionActionTypes.GET_SPACE_REACTIONS,
+                data: reactionsById,
+            });
+        }),
+
 };
 
 export default Reactions;

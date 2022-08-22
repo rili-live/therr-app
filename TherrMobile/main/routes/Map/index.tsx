@@ -105,6 +105,8 @@ interface IMapDispatchProps {
     captureClickTarget: Function;
     createOrUpdateMomentReaction: Function;
     createOrUpdateSpaceReaction: Function;
+    findMomentReactions: Function;
+    findSpaceReactions: Function;
     updateCoordinates: Function;
     searchMoments: Function;
     searchSpaces: Function;
@@ -185,6 +187,8 @@ const mapDispatchToProps = (dispatch: any) =>
             deleteMoment: MapActions.deleteMoment,
             createOrUpdateMomentReaction: ReactionActions.createOrUpdateMomentReaction,
             createOrUpdateSpaceReaction: ReactionActions.createOrUpdateSpaceReaction,
+            findMomentReactions: ReactionActions.findMomentReactions,
+            findSpaceReactions: ReactionActions.findSpaceReactions,
             updateGpsStatus: LocationActions.updateGpsStatus,
             updateLocationDisclosure: LocationActions.updateLocationDisclosure,
             updateLocationPermissions: LocationActions.updateLocationPermissions,
@@ -860,7 +864,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             (Date.now() - this.state.lastMomentsRefresh <= MOMENTS_REFRESH_THROTTLE_MS)) {
             return;
         }
-        const { map, searchMoments, searchSpaces } = this.props;
+        const { findMomentReactions, findSpaceReactions, map, searchMoments, searchSpaces } = this.props;
         const userCoords = coords || {
             longitude: map.longitude,
             latitude: map.latitude,
@@ -881,6 +885,13 @@ class Map extends React.Component<IMapProps, IMapState> {
             order: 'desc',
             filterBy: 'fromUserIds',
             ...userCoords,
+        }).then((moments) => {
+            if (moments?.results?.length) {
+                findMomentReactions({
+                    momentIds: moments?.results?.map(moment => moment.id),
+                    userHasActivated: true,
+                });
+            }
         });
         searchSpaces({
             query: 'me',
@@ -897,6 +908,13 @@ class Map extends React.Component<IMapProps, IMapState> {
             order: 'desc',
             filterBy: 'fromUserIds',
             ...userCoords,
+        }).then((spaces) => {
+            if (spaces?.results?.length) {
+                findSpaceReactions({
+                    spaceIds: spaces?.results?.map(space => space.id),
+                    userHasActivated: true,
+                });
+            }
         });
         this.setState({
             lastMomentsRefresh: Date.now(),
@@ -961,7 +979,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     handleSearchThisLocation = (searchRadius?, latitude?, longitude?) => {
-        const { searchMoments, searchSpaces } = this.props;
+        const { findMomentReactions, findSpaceReactions, searchMoments, searchSpaces } = this.props;
         const { region } = this.state;
         this.setState({
             isSearchThisLocationBtnVisible: false,
@@ -994,6 +1012,13 @@ class Map extends React.Component<IMapProps, IMapState> {
                 longitude: long,
             }, {
                 distanceOverride: radius,
+            }).then((moments) => {
+                if (moments?.results?.length) {
+                    findMomentReactions({
+                        momentIds: moments?.results?.map(moment => moment.id),
+                        userHasActivated: true,
+                    });
+                }
             });
             searchMoments({
                 query: 'me',
@@ -1016,6 +1041,13 @@ class Map extends React.Component<IMapProps, IMapState> {
                 longitude: long,
             }, {
                 distanceOverride: radius,
+            }).then((spaces) => {
+                if (spaces?.results?.length) {
+                    findSpaceReactions({
+                        spaceIds: spaces?.results?.map(space => space.id),
+                        userHasActivated: true,
+                    });
+                }
             });
             searchSpaces({
                 query: 'me',
@@ -1300,25 +1332,43 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     getMomentCircleFillColor = (moment) => {
-        const { user } = this.props;
+        const { reactions, user } = this.props;
         const { activeMoment } = this.state;
 
-        if (moment.id === activeMoment.id) {
-            return isMyArea(moment, user) ? this.theme.colors.map.myMomentsCircleFillActive  : this.theme.colors.map.momentsCircleFillActive;
+        if (isMyArea(moment, user)) {
+            if (moment.id === activeMoment.id) {
+                return this.theme.colors.map.myMomentsCircleFillActive;
+            }
+
+            return this.theme.colors.map.myMomentsCircleFill;
         }
 
-        return isMyArea(moment, user) ? this.theme.colors.map.myMomentsCircleFill : this.theme.colors.map.momentsCircleFill;
+        if (reactions.myMomentReactions[moment.id]) {
+            return this.theme.colors.map.momentsCircleFill;
+        }
+
+        // Not yet activated/discovered
+        return this.theme.colors.map.undiscoveredMomentsCircleFill;
     }
 
     getSpaceCircleFillColor = (space) => {
-        const { user } = this.props;
+        const { reactions, user } = this.props;
         const { activeSpace } = this.state;
 
-        if (space.id === activeSpace.id) {
-            return isMyArea(space, user) ? this.theme.colors.map.mySpacesCircleFillActive  : this.theme.colors.map.spacesCircleFillActive;
+        if (isMyArea(space, user)) {
+            if (space.id === activeSpace.id) {
+                return this.theme.colors.map.mySpacesCircleFillActive;
+            }
+
+            return this.theme.colors.map.mySpacesCircleFill;
         }
 
-        return isMyArea(space, user) ? this.theme.colors.map.mySpacesCircleFill : this.theme.colors.map.spacesCircleFill;
+        if (reactions.mySpaceReactions[space.id]) {
+            return this.theme.colors.map.spacesCircleFill;
+        }
+
+        // Not yet activated/discovered
+        return this.theme.colors.map.undiscoveredSpacesCircleFill;
     }
 
     render() {

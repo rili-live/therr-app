@@ -30,3 +30,12 @@ export const getSpaceReactionsBySpaceIdValidation = [
     param('spaceId').exists(),
     query('limit').optional(),
 ];
+
+export const findSpaceReactionsDynamicValidation = [
+    header('x-userid').exists(),
+    body('spaceIds').exists(),
+    body('userHasActivated').optional(),
+    body('limit').optional(),
+    body('order').optional(),
+    body('offset').optional(),
+];

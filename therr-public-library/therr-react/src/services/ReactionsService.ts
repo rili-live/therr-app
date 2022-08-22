@@ -42,6 +42,14 @@ export interface IGetMomentReactionParams {
     momentId?: number;
     momentIds?: number[];
 }
+
+export interface IFindMomentReactionParams {
+    limit?: number;
+    offset?: number;
+    order?: number;
+    momentIds?: number[];
+    userHasActivated?: boolean;
+}
 export interface ICreateSpaceReactionBody extends ICreateAreaReactionBody {
     spaceId: number;
 }
@@ -49,6 +57,14 @@ export interface IGetSpaceReactionParams {
     limit?: number;
     spaceId?: number;
     spaceIds?: number[];
+}
+
+export interface IFindSpaceReactionParams {
+    limit?: number;
+    offset?: number;
+    order?: number;
+    spaceIds?: number[];
+    userHasActivated?: boolean;
 }
 
 class ReactionsService {
@@ -115,6 +131,12 @@ class ReactionsService {
         });
     }
 
+    findMomentReactions = (params: IFindMomentReactionParams) => axios({
+        method: 'post',
+        url: '/reactions-service/moment-reactions/find/dynamic',
+        data: params,
+    })
+
     getReactionsByMomentId = (id: number, limit: number) => {
         const queryString = `?limit=${limit || 100}`;
 
@@ -155,6 +177,12 @@ class ReactionsService {
             url: `/reactions-service/space-reactions${queryString}`,
         });
     }
+
+    findSpaceReactions = (params: IFindSpaceReactionParams) => axios({
+        method: 'post',
+        url: '/reactions-service/space-reactions/find/dynamic',
+        data: params,
+    })
 
     getReactionsBySpaceId = (id: number, limit: number) => {
         const queryString = `?limit=${limit || 100}`;

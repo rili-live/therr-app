@@ -7,9 +7,11 @@ import {
     getMomentReactionsValidation,
     getMomentReactionsByMomentIdValidation,
     createOrUpdateMomentReactionValidation,
+    findMomentReactionsDynamicValidation,
 } from './validation/momentReactions';
 import {
     createOrUpdateSpaceReactionValidation,
+    findSpaceReactionsDynamicValidation,
     getSpaceReactionsBySpaceIdValidation,
     getSpaceReactionsValidation,
 } from './validation/spaceReactions';
@@ -30,6 +32,11 @@ reactionsServiceRouter.get('/moment-reactions', getMomentReactionsValidation, va
 reactionsServiceRouter.get('/moment-reactions/:momentId', getMomentReactionsByMomentIdValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
     method: 'get',
+}));
+
+reactionsServiceRouter.post('/moment-reactions/find/dynamic', findMomentReactionsDynamicValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'post',
 }));
 
 reactionsServiceRouter.post('/moments/active/search', searchActiveAreasValidation, validate, handleServiceRequest({
@@ -56,6 +63,11 @@ reactionsServiceRouter.get('/space-reactions', getSpaceReactionsValidation, vali
 reactionsServiceRouter.get('/space-reactions/:spaceId', getSpaceReactionsBySpaceIdValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
     method: 'get',
+}));
+
+reactionsServiceRouter.post('/space-reactions/find/dynamic', findSpaceReactionsDynamicValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'post',
 }));
 
 reactionsServiceRouter.post('/spaces/active/search', searchActiveAreasValidation, validate, handleServiceRequest({

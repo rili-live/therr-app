@@ -30,3 +30,12 @@ export const getMomentReactionsByMomentIdValidation = [
     param('momentId').exists(),
     query('limit').optional(),
 ];
+
+export const findMomentReactionsDynamicValidation = [
+    header('x-userid').exists(),
+    body('momentIds').exists(),
+    body('userHasActivated').optional(),
+    body('limit').optional(),
+    body('order').optional(),
+    body('offset').optional(),
+];
