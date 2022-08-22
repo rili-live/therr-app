@@ -512,6 +512,8 @@ class Map extends React.Component<IMapProps, IMapState> {
             updateLocationPermissions,
         } = this.props;
 
+        ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
+
         this.setState({
             shouldShowCreateActions: false,
         });
@@ -1371,6 +1373,36 @@ class Map extends React.Component<IMapProps, IMapState> {
         return this.theme.colors.map.undiscoveredSpacesCircleFill;
     }
 
+    getMomentCircleStrokeColor = (moment) => {
+        const { reactions, user } = this.props;
+
+        if (isMyArea(moment, user)) {
+            return this.theme.colors.map.myMomentsCircleStroke;
+        }
+
+        if (reactions.myMomentReactions[moment.id]) {
+            return this.theme.colors.map.momentsCircleStroke;
+        }
+
+        // Not yet activated/discovered
+        return this.theme.colors.map.undiscoveredMomentsCircleStroke;
+    }
+
+    getSpaceCircleStrokeColor = (space) => {
+        const { reactions, user } = this.props;
+
+        if (isMyArea(space, user)) {
+            return this.theme.colors.map.mySpacesCircleStroke;
+        }
+
+        if (reactions.mySpaceReactions[space.id]) {
+            return this.theme.colors.map.spacesCircleStroke;
+        }
+
+        // Not yet activated/discovered
+        return this.theme.colors.map.undiscoveredSpacesCircleStroke;
+    }
+
     render() {
         const {
             areButtonsVisible,
@@ -1470,7 +1502,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                     center={circleCenter}
                                     radius={DEFAULT_MOMENT_PROXIMITY} /* meters */
                                     strokeWidth={1}
-                                    strokeColor={this.theme.colors.brandingBlueGreen}
+                                    strokeColor={this.theme.colors.secondary}
                                     fillColor={this.theme.colors.map.userCircleFill}
                                     zIndex={0}
                                 />
@@ -1508,7 +1540,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 }}
                                                 radius={moment.radius} /* meters */
                                                 strokeWidth={0}
-                                                strokeColor={this.theme.colors.secondary}
+                                                strokeColor={this.getMomentCircleStrokeColor(moment)}
                                                 fillColor={this.getMomentCircleFillColor(moment)}
                                                 zIndex={1}
                                             />
@@ -1549,7 +1581,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                                                 }}
                                                 radius={space.radius} /* meters */
                                                 strokeWidth={0}
-                                                strokeColor={this.theme.colors.secondary}
+                                                strokeColor={this.getSpaceCircleStrokeColor(space)}
                                                 fillColor={this.getSpaceCircleFillColor(space)}
                                                 zIndex={1}
                                             />
