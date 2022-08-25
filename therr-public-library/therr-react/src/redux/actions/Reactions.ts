@@ -56,7 +56,7 @@ const Reactions = {
             const reactionsById = {};
 
             (response.data?.reactions || []).forEach((reaction) => {
-                reactionsById[reaction.momentId] = reaction;
+                reactionsById[reaction.spaceId] = reaction;
             });
             dispatch({
                 type: ReactionActionTypes.GET_SPACE_REACTIONS,

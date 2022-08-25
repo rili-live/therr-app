@@ -233,16 +233,13 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
                                     {pageHeaderAdvancedSettings}
                                 </Text>
                             </View>
-                            {
-                                /* This not a requirement for Google Play, so no need to support it yet */
-                                Platform.OS === 'ios' && <View style={this.themeSettingsForm.styles.advancedContainer}>
-                                    <Text style={this.theme.styles.sectionDescription}>
-                                        <Text
-                                            style={this.themeForms.styles.buttonLink}
-                                            onPress={() => this.toggleDeleteAccountModal(true)}>{this.translate('forms.settings.buttons.deleteAccount')}</Text>
-                                    </Text>
-                                </View>
-                            }
+                            <View style={this.themeSettingsForm.styles.advancedContainer}>
+                                <Text style={this.theme.styles.sectionDescription}>
+                                    <Text
+                                        style={this.themeForms.styles.buttonLink}
+                                        onPress={() => this.toggleDeleteAccountModal(true)}>{this.translate('forms.settings.buttons.deleteAccount')}</Text>
+                                </Text>
+                            </View>
                         </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>
