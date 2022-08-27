@@ -42,6 +42,16 @@ const socialPlatformApis = {
             },
         })),
     },
+    tiktok: {
+        getProfile: (params: { username: string, accessToken: string }) => axios({
+            method: 'post',
+            url: 'https://open-api.tiktok.com/user/info/',
+            data: {
+                access_token: params.accessToken,
+                fields: ['open_id', 'union_id', 'avatar_url', 'display_name', 'profile_deep_link'],
+            },
+        }),
+    },
     twitter: {
         getProfile: (params: { username: string }) => axios({
             method: 'get',
@@ -54,7 +64,6 @@ const socialPlatformApis = {
             method: 'get',
             url: `https://youtube.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics&id=${params.username}&key=${youtubeApiKey}`,
         }).then((response) => {
-            console.log(response.data);
             if (!response.data?.items?.length) {
                 return ({
                     data: {
@@ -73,6 +82,15 @@ const socialPlatformApis = {
 };
 
 const extractPlatformProfileDetails = (platform: IPlatform, responseData) => {
+    if (platform === 'tiktok') {
+        return {
+            platformUsername: responseData.data?.user?.display_name,
+            platformUserId: responseData.data?.user?.open_id,
+            link: responseData.data?.user?.profile_deep_link,
+            displayName: 'TikTok',
+            followerCount: responseData?.media_count || 1, // TODO: Create calculation for "Clout Score",
+        };
+    }
     if (platform === 'twitter') {
         return {
             platformUsername: responseData.data?.username,
@@ -84,11 +102,12 @@ const extractPlatformProfileDetails = (platform: IPlatform, responseData) => {
     }
     if (platform === 'facebook-instagram') {
         const igProfile = responseData?.data[0]?.instagram_business_account || {};
+        const facebookProfile = responseData?.data[0] || {};
         return {
-            platformUsername: igProfile.username,
-            platformUserId: igProfile.id,
-            link: `https://instagram.com/${igProfile.username}`,
-            displayName: 'Instagram',
+            platformUsername: igProfile.username || facebookProfile.id,
+            platformUserId: igProfile.id || facebookProfile.id,
+            link: igProfile.username ? `https://instagram.com/${igProfile.username}` : `https://facebook.com/${facebookProfile.id}`,
+            displayName: igProfile.username ? 'Instagram' : 'Facebook',
             followerCount: igProfile?.followers_count || 1, // TODO: Create calculation for "Clout Score"
         };
     }
@@ -249,7 +268,14 @@ const facebookAppAuth: RequestHandler = (req: any, res: any) => {
                 error_description,
             },
         });
-        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error, error_reason, error_description })}` });
+        return res.status(301).send({
+            redirectUrl: `${frontendRedirectUrl}?${qs.stringify({
+                error,
+                error_reason,
+                error_description,
+                provider: 'facebook-instagram',
+            })}`,
+        });
     }
 
     const userAuthCodeSplit = (code || '').split('#_');
@@ -276,7 +302,14 @@ const facebookAppAuth: RequestHandler = (req: any, res: any) => {
         } = response.data;
 
         if (error_type) {
-            return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error_type, error_message })}` });
+            return res.status(301).send({
+                redirectUrl: `${frontendRedirectUrl}?${qs.stringify({
+                    error: true,
+                    error_type,
+                    error_message,
+                    provider: 'facebook-instagram',
+                })}`,
+            });
         }
         return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ access_token, provider: 'facebook-instagram' })}` });
     }).catch((errResponse) => {
@@ -299,7 +332,15 @@ const facebookAppAuth: RequestHandler = (req: any, res: any) => {
             },
         });
 
-        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error_type, error_message, handled_error: true })}` });
+        return res.status(301).send({
+            redirectUrl: `${frontendRedirectUrl}?${qs.stringify({
+                error: true,
+                error_type,
+                error_message,
+                handled_error: true,
+                provider: 'facebook-instagram',
+            })}`,
+        });
     });
 };
 
@@ -327,7 +368,15 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
                 error_description,
             },
         });
-        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error, error_reason, error_description })}` });
+        return res.status(301)
+            .send({
+                redirectUrl: `${frontendRedirectUrl}?${qs.stringify({
+                    error,
+                    error_reason,
+                    error_description,
+                    provider: 'instagram',
+                })}`,
+            });
     }
 
     const userAuthCodeSplit = (code || '').split('#_');
@@ -355,9 +404,16 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
         } = response.data;
 
         if (error_type) {
-            return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error_type, error_message })}` });
+            return res.status(301).send({
+                redirectUrl: `${frontendRedirectUrl}?${qs.stringify({
+                    error: true,
+                    error_type,
+                    error_message,
+                    provider: 'instagram',
+                })}`,
+            });
         }
-        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ access_token, user_id })}` });
+        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ access_token, user_id, provider: 'instagram' })}` });
     }).catch((errResponse) => {
         const {
             error_message,
@@ -378,7 +434,15 @@ const instagramAppAuth: RequestHandler = (req: any, res: any) => {
             },
         });
 
-        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error_type, error_message, handled_error: true })}` });
+        return res.status(301).send({
+            redirectUrl: `${frontendRedirectUrl}?${qs.stringify({
+                error: true,
+                error_type,
+                error_message,
+                handled_error: true,
+                provider: 'instagram',
+            })}`,
+        });
     });
 };
 
@@ -405,7 +469,14 @@ const tiktokAppAuth: RequestHandler = (req: any, res: any) => {
                 error_description,
             },
         });
-        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error, error_reason, error_description })}` });
+        return res.status(301).send({
+            redirectUrl: `${frontendRedirectUrl}?${qs.stringify({
+                error,
+                error_reason,
+                error_description,
+                provider: 'tiktok',
+            })}`,
+        });
     }
 
     let url_access_token = 'https://open-api.tiktok.com/oauth/access_token/';
@@ -427,7 +498,14 @@ const tiktokAppAuth: RequestHandler = (req: any, res: any) => {
 
         if (hasError) {
             return res.status(301)
-                .send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error_type: data.error_code, error_message: data.description })}` });
+                .send({
+                    redirectUrl: `${frontendRedirectUrl}?${qs.stringify({
+                        error: true,
+                        error_type: data.error_code,
+                        error_message: data.description,
+                        provider: 'tiktok',
+                    })}`,
+                });
         }
         return res.status(301)
             .send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ access_token: data.access_token, user_id: data.open_id, provider: 'tiktok' })}` });
@@ -451,7 +529,15 @@ const tiktokAppAuth: RequestHandler = (req: any, res: any) => {
             },
         });
 
-        return res.status(301).send({ redirectUrl: `${frontendRedirectUrl}?${qs.stringify({ error_type, error_message, handled_error: true })}` });
+        return res.status(301).send({
+            redirectUrl: `${frontendRedirectUrl}?${qs.stringify({
+                error: true,
+                error_type,
+                error_message,
+                handled_error: true,
+                provider: 'tiktok',
+            })}`,
+        });
     });
 };
 
