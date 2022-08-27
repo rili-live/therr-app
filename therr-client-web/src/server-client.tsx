@@ -4,11 +4,11 @@ import express from 'express';
 import helmet from 'helmet';
 import * as React from 'react';
 import * as ReactDOMServer from 'react-dom/server'; // eslint-disable-line import/extensions
-import { StaticRouter, matchPath } from 'react-router-dom';
+// import { matchPath } from 'react-router-dom';
+import { StaticRouter } from 'react-router-dom/server';
 import * as ReactGA from 'react-ga';
-import { applyMiddleware, createStore } from 'redux';
+import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
-import thunkMiddleware from 'redux-thunk';
 import printLogs from 'therr-js-utilities/print-logs';
 import routeConfig from './routeConfig';
 import rootReducer from './redux/reducers';
@@ -76,30 +76,27 @@ routeConfig.forEach((config) => {
                 details: {},
             },
         };
-        const store = createStore(
-            rootReducer,
-            initialState,
-            applyMiddleware(
-                socketIOMiddleWare,
-                thunkMiddleware,
-            ),
-        );
-
-        getRoutes().some((route: IRoute) => {
-            const match = matchPath(req.url, route);
-            if (match && route.fetchData) {
-                const Comp = route.component.WrappedComponent;
-                const initData = (Comp && route.fetchData) || (() => Promise.resolve());
-                // fetchData calls a dispatch on the store updating the current state before render
-                promises.push(initData(store));
-            }
-            return !!match;
+        const store = configureStore({
+            reducer: rootReducer,
+            preloadedState: initialState,
+            middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(socketIOMiddleWare),
         });
+
+        // getRoutes().some((route: IRoute) => {
+        //     const match = matchPath(req.url, route);
+        //     if (match && route.fetchData) {
+        //         const Comp = route.component.WrappedComponent;
+        //         const initData = (Comp && route.fetchData) || (() => Promise.resolve());
+        //         // fetchData calls a dispatch on the store updating the current state before render
+        //         promises.push(initData(store));
+        //     }
+        //     return !!match;
+        // });
 
         Promise.all(promises).then(() => {
             const markup = ReactDOMServer.renderToString(
                 <Provider store={store}>
-                    <StaticRouter location={req.url} context={staticContext}>
+                    <StaticRouter location={req.url}>
                         <Layout />
                     </StaticRouter>
                 </Provider>,

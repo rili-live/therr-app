@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
+import { Link, NavigateFunction } from 'react-router-dom';
 import {
     ButtonPrimary,
     Input,
@@ -7,16 +7,19 @@ import {
 import translator from '../services/translator';
 import * as globalConfig from '../../../global-config';
 import VerificationCodesService from '../services/VerificationCodesService';
+import withNavigation from '../wrappers/withNavigation';
 
 interface IResetPasswordRouterProps {
-
+    navigation: {
+        navigate: NavigateFunction;
+    }
 }
-
-type IResetPasswordProps = RouteComponentProps<IResetPasswordRouterProps>
 
 interface IResetPasswordDispatchProps {
 // Add your dispatcher properties here
 }
+
+interface IResetPasswordProps extends IResetPasswordRouterProps, IResetPasswordDispatchProps {}
 
 interface IResetPasswordState {
     email: string;
@@ -30,10 +33,10 @@ const envVars = globalConfig[process.env.NODE_ENV];
 /**
  * ResetPassword
  */
-export class ResetPasswordComponent extends React.Component<IResetPasswordProps & IResetPasswordDispatchProps, IResetPasswordState> {
+export class ResetPasswordComponent extends React.Component<IResetPasswordProps, IResetPasswordState> {
     private translate: Function;
 
-    constructor(props: IResetPasswordProps & IResetPasswordDispatchProps) {
+    constructor(props: IResetPasswordProps) {
         super(props);
 
         this.state = {
@@ -130,4 +133,4 @@ export class ResetPasswordComponent extends React.Component<IResetPasswordProps 
     }
 }
 
-export default withRouter(ResetPasswordComponent);
+export default withNavigation(ResetPasswordComponent);

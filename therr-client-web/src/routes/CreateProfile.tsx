@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { IUserState } from 'therr-react/types';
 import translator from '../services/translator';
 import CreateProfileForm from '../components/forms/CreateProfileForm';
 import UsersActions from '../redux/actions/UsersActions';
+import withNavigation from '../wrappers/withNavigation';
 
 interface ICreateProfileRouterProps {
     history: any;
@@ -18,7 +18,7 @@ interface ICreateProfileDispatchProps {
 type IStoreProps = ICreateProfileDispatchProps
 
 // Regular component props
-interface ICreateProfileProps extends RouteComponentProps<ICreateProfileRouterProps>, IStoreProps {
+interface ICreateProfileProps extends ICreateProfileRouterProps, IStoreProps {
     user?: IUserState;
 }
 
@@ -96,4 +96,4 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(CreateProfileComponent));
+export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(CreateProfileComponent));

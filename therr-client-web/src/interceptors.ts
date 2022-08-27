@@ -1,6 +1,7 @@
 import axios from 'axios';
 // import { AlertActions } from './library/alerts';
 // import { LoaderActions } from './library/loader';
+import { NavigateFunction } from 'react-router-dom';
 import store from './store';
 import * as globalConfig from '../../global-config';
 import UsersActions from './redux/actions/UsersActions';
@@ -13,7 +14,7 @@ let logoutAttemptCount = 0;
 const _timeout = 350; // eslint-disable-line no-underscore-dangle
 
 const initInterceptors = (
-    history: any,
+    navigate: NavigateFunction,
     baseUrl = globalConfig[process.env.NODE_ENV].baseApiGatewayRoute,
     timeout = _timeout,
 ) => {
@@ -77,7 +78,7 @@ const initInterceptors = (
                 // Do not redirect when 401 occurs on a login page
                 // The "home" page is also a login
                 if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
-                    history.replace('/login');
+                    navigate('/login');
                 }
             }
         } else if (error) {
@@ -101,7 +102,7 @@ const initInterceptors = (
                 // Do not redirect when 401 occurs on a login page
                 // The "home" page is also a login
                 if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
-                    history.replace('/login');
+                    navigate('/login');
                 }
             }
         }

@@ -16,7 +16,7 @@ class Status extends React.Component<IStatusProps, any> {
             return children;
         };
 
-        return (<Route render={renderRoute} />);
+        return (<Route element={renderRoute} />);
     }
 }
 

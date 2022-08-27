@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { Route, Redirect, RedirectProps } from 'react-router-dom';
+import { Route, NavigateProps, Navigate } from 'react-router-dom';
 
-interface IRedirectWithStatusProps extends RedirectProps {
+interface IRedirectWithStatusProps extends NavigateProps {
+    from: string;
     statusCode: string | number;
 }
 
@@ -15,11 +16,11 @@ class RedirectWithStatus extends React.Component<IRedirectWithStatusProps, any> 
             }
 
             return (
-                <Redirect from={from} to={to}/>
+                <Route path={from} element={() => <Navigate to={to} replace />} />
             );
         };
 
-        return (<Route render={renderRoute} />);
+        return (<Route element={renderRoute} />);
     }
 }
 

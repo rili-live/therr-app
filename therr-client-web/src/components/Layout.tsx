@@ -2,11 +2,8 @@ import classnames from 'classnames';
 import * as React from 'react';
 import { bindActionCreators, Dispatch } from 'redux';
 import { connect } from 'react-redux';
-import {
-    Switch, Route, withRouter, RouteComponentProps,
-} from 'react-router-dom';
+import { Location, NavigateFunction, useRoutes } from 'react-router-dom';
 import { TransitionGroup } from 'react-transition-group';
-import { Location } from 'history';
 import * as ReactGA from 'react-ga';
 import { IMessagesState, IUserState, AccessCheckType } from 'therr-react/types';
 import {
@@ -32,10 +29,15 @@ import { socketIO, updateSocketToken } from '../socket-io-middleware';
 import { IMessagingContext } from './footer/MessagingContainer';
 import UsersActions from '../redux/actions/UsersActions';
 import { routeAfterLogin } from '../routes/Login';
+import withNavigation from '../wrappers/withNavigation';
 
 let _viewListener: any; // eslint-disable-line no-underscore-dangle
 
 interface ILayoutRouterProps {
+    navigation: {
+        navigate: NavigateFunction;
+    }
+    location: Location;
 }
 
 interface ILayoutDispatchProps {
@@ -51,7 +53,7 @@ interface IStoreProps extends ILayoutDispatchProps {
     user?: IUserState;
 }
 
-interface ILayoutProps extends RouteComponentProps<ILayoutRouterProps>, IStoreProps {
+interface ILayoutProps extends ILayoutRouterProps, IStoreProps {
     // Add your regular properties here
 }
 
@@ -96,7 +98,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
     componentDidMount() {
         const {
-            history,
+            navigation,
             refreshConnection,
             searchNotifications,
             user,
@@ -104,10 +106,10 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 
         // TODO: Check if this should be initialized in index with history passed as argument
         // Initialize global interceptors such as 401, 403
-        initInterceptors(history, undefined, 300);
-        _viewListener = history.listen((location: Location, action: any) => {
-            this.onViewChange(location);
-        });
+        initInterceptors(navigation.navigate, undefined, 300);
+        // _viewListener = location.listen((location: Location, action: any) => {
+        //     this.onViewChange(location);
+        // });
 
         ReactGA.initialize(globalConfig[process.env.NODE_ENV].googleAnalyticsKey);
 
@@ -157,7 +159,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
     }
 
     componentWillUnmount() { // eslint-disable-line
-        _viewListener();
+        // _viewListener();
         document.removeEventListener('click', this.handleClick);
     }
 
@@ -225,9 +227,9 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         );
 
         if (!isAuthorized) {
-            this.props.history.push('/');
+            this.props.navigation.navigate('/');
         } else {
-            this.props.history.push(routeAfterLogin);
+            this.props.navigation.navigate(routeAfterLogin);
         }
     }
 
@@ -275,7 +277,6 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         if (navMenuContext === INavMenuContext.HEADER_PROFILE) {
             return (
                 <UserMenu
-                    history={this.props.history}
                     handleLogout={this.handleLogout}
                     handleWidthResize={this.handleWidthResize}
                     toggleNavMenu={this.toggleNavMenu}
@@ -286,7 +287,6 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         if (navMenuContext === INavMenuContext.FOOTER_MESSAGES) {
             return (
                 <MessagesMenu
-                    history={this.props.history}
                     toggleNavMenu={this.toggleNavMenu}
                     toggleMessaging={this.toggleMessaging}
                     onInitMessaging={this.initMessaging}
@@ -378,26 +378,15 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                         component="div"
                         className={ isLandingStylePage ? 'content-container-home view' : 'content-container view' }
                     >
-                        <Switch>
-                            {
-                                getRoutes({ onInitMessaging: this.initMessaging }).map((route: any, i) => {
-                                    if (route.access) {
-                                        return (
-                                            <AuthRoute
-                                                isAuthorized={UsersService.isAuthorized(route.access, user)}
-                                                location={location}
-                                                key={i}
-                                                {...route}
-                                            />
-                                        );
-                                    }
-                                    return (
-                                        <Route location={location} key={i} {...route} />
-                                    );
-                                })
-                            }
-                            <RedirectWithStatus from="/redirect" to="/" statusCode="301" />
-                        </Switch>
+                        {
+                            useRoutes(
+                                getRoutes({
+                                    onInitMessaging: this.initMessaging,
+                                    isAuthorized: (access) => UsersService.isAuthorized(access, user),
+                                }),
+                            )
+                        }
+                        <RedirectWithStatus from="/redirect" to="/" statusCode="301" />
                     </TransitionGroup>
 
                     {/* <Alerts></Alerts> */}
@@ -417,4 +406,4 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
 }
 
 // export default Layout;
-export default withRouter(connect<any, IStoreProps, {}>(mapStateToProps, mapDispatchToProps)(LayoutComponent as any));
+export default withNavigation(connect<any, IStoreProps, {}>(mapStateToProps, mapDispatchToProps)(LayoutComponent as any));

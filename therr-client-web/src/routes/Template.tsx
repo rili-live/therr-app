@@ -1,20 +1,24 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { NavigateFunction } from 'react-router-dom';
 import translator from '../services/translator';
+import withNavigation from '../wrappers/withNavigation';
 // import * as globalConfig from '../../../global-config.js';
 
 interface ITemplateRouterProps {
+    navigation: {
+        navigate: NavigateFunction;
+    }
 }
 
 interface ITemplateDispatchProps {
 }
 
-type IStoreProps = ITemplateDispatchProps
+interface IStoreProps extends ITemplateDispatchProps, ITemplateRouterProps {}
 
 // Regular component props
-interface ITemplateProps extends RouteComponentProps<ITemplateRouterProps>, IStoreProps {
+interface ITemplateProps extends ITemplateRouterProps, IStoreProps {
 }
 
 interface ITemplateState {
@@ -56,4 +60,4 @@ export class TemplateComponent extends React.Component<ITemplateProps, ITemplate
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(TemplateComponent));
+export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(TemplateComponent));

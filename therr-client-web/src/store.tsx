@@ -1,7 +1,6 @@
 import LogRocket from 'logrocket';
-import thunkMiddleware from 'redux-thunk';
-import { createLogger } from 'redux-logger';
-import { applyMiddleware, compose, createStore } from 'redux';
+import logger from 'redux-logger';
+import { compose, configureStore, applyMiddleware } from '@reduxjs/toolkit';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare, { updateSocketToken } from './socket-io-middleware';
 
@@ -12,8 +11,7 @@ declare global {
     }
 }
 
-const loggerMiddleware = createLogger();
-let preLoadedState;
+let preloadedState;
 const composeEnhancers = typeof window === 'object'
     && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ // eslint-disable-line no-underscore-dangle
     ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({ // eslint-disable-line no-underscore-dangle
@@ -49,33 +47,19 @@ if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
             },
         },
     };
-    preLoadedState = Object.assign(safelyParse(window.__PRELOADED_STATE__), reloadedState); // eslint-disable-line no-underscore-dangle
+    preloadedState = Object.assign(safelyParse(window.__PRELOADED_STATE__), reloadedState); // eslint-disable-line no-underscore-dangle
     if (isAuthenticated) {
         updateSocketToken(reloadedState.user, true);
     }
 }
 
-const store: any = process.env.NODE_ENV !== 'development'
-    ? createStore( // Create Store (Production)
-        rootReducer,
-        preLoadedState,
-        applyMiddleware(
-            socketIOMiddleWare,
-            thunkMiddleware,
-            LogRocket.reduxMiddleware(),
-        ),
-    )
-    : createStore( // Create Store - Redux Development (Chrome Only)
-        rootReducer,
-        preLoadedState,
-        composeEnhancers(
-            applyMiddleware(
-                loggerMiddleware, // middleware that logs actions (development only)
-                socketIOMiddleWare,
-                thunkMiddleware, // let's us dispatch functions
-                LogRocket.reduxMiddleware(),
-            ),
-        ),
-    );
+const store: any = configureStore( // Create Store (Production)
+{
+    reducer: rootReducer,
+    preloadedState,
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware()).concat(logger),
+    devTools: process.env.NODE_ENV === 'development',
+},
+);
 
 export default store;

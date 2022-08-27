@@ -1,7 +1,7 @@
 import * as React from 'react';
 import LogRocket from 'logrocket';
 import setupLogRocketReact from 'logrocket-react';
-import { render } from 'react-dom';
+import { createRoot, hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import Layout from './components/Layout';
@@ -15,17 +15,24 @@ import 'react-phone-number-input/style.css';
 // TODO: RSERV-8-: Use themes endpoint to dynamically load theme styles
 import './styles/themes/retro/index.scss';
 
+const rootEl = document.getElementById('app');
+const root = createRoot(rootEl);
+const RootComponent = () => (
+    <Provider store={store} serverState={store.preloadedState}>
+        <BrowserRouter>
+            <Layout />
+        </BrowserRouter>
+    </Provider>
+);
+
 LogRocket.init('pibaqj/therr-web-app');
 // after calling LogRocket.init()
 setupLogRocketReact(LogRocket);
 
 window.onload = () => {
-    render(
-        <Provider store={store}>
-            <BrowserRouter>
-                <Layout />
-            </BrowserRouter>
-        </Provider>,
-        document.getElementById('app'),
+    hydrateRoot(
+        rootEl,
+        <RootComponent />,
     );
+    // root.render(<RootComponent />);
 };

@@ -1,19 +1,21 @@
 import * as React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { NavigateFunction } from 'react-router-dom';
 import { Status } from 'therr-react/components';
 import translator from '../services/translator';
 import * as globalConfig from '../../../global-config';
+import withNavigation from '../wrappers/withNavigation';
 
 interface IPageNotFoundRouterProps {
-
+    navigation: {
+        navigate: NavigateFunction;
+    }
 }
-
-type IPageNotFoundProps = RouteComponentProps<IPageNotFoundRouterProps>
 
 interface IPageNotFoundDispatchProps {
 // Add your dispatcher properties here
 }
 
+interface IPageNotFoundProps extends IPageNotFoundRouterProps, IPageNotFoundDispatchProps {}
 interface IPageNotFoundState {
 }
 
@@ -23,7 +25,7 @@ const envVars = globalConfig[process.env.NODE_ENV];
 /**
  * PageNotFound
  */
-export class PageNotFoundComponent extends React.Component<IPageNotFoundProps & IPageNotFoundDispatchProps, IPageNotFoundState> {
+export class PageNotFoundComponent extends React.Component<IPageNotFoundProps, IPageNotFoundState> {
     private translate: Function;
 
     constructor(props: IPageNotFoundProps & IPageNotFoundDispatchProps) {
@@ -49,4 +51,4 @@ export class PageNotFoundComponent extends React.Component<IPageNotFoundProps & 
     }
 }
 
-export default withRouter(PageNotFoundComponent);
+export default withNavigation(PageNotFoundComponent);

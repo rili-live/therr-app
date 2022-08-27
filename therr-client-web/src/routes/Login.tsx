@@ -1,12 +1,13 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 import LogRocket from 'logrocket';
 import { IUserState } from 'therr-react/types';
+import { Location, NavigateFunction } from 'react-router-dom';
 import translator from '../services/translator';
 import LoginForm from '../components/forms/LoginForm';
 import UsersActions from '../redux/actions/UsersActions';
+import withNavigation from '../wrappers/withNavigation';
 
 export const shouldRenderLoginForm = (props: ILoginProps) => !props.user
     || !props.user.isAuthenticated
@@ -16,8 +17,10 @@ export const shouldRenderLoginForm = (props: ILoginProps) => !props.user
 export const routeAfterLogin = '/user/go-mobile';
 
 interface ILoginRouterProps {
-    history: any;
-    location: any;
+    location: Location;
+    navigation: {
+        navigate: NavigateFunction;
+    }
 }
 
 interface ILoginDispatchProps {
@@ -29,7 +32,7 @@ interface IStoreProps extends ILoginDispatchProps {
 }
 
 // Regular component props
-export interface ILoginProps extends RouteComponentProps<ILoginRouterProps>, IStoreProps {
+export interface ILoginProps extends ILoginRouterProps, IStoreProps {
 }
 
 interface ILoginState {
@@ -58,7 +61,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                 email: nextProps.user.details.email,
                 // Add your own custom user variables below:
             });
-            nextProps.history.push(routeAfterLogin);
+            nextProps.navigation.navigate(routeAfterLogin);
             return null;
         }
         return {};
@@ -92,4 +95,4 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(LoginComponent));
+export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(LoginComponent));

@@ -1,25 +1,21 @@
 /* eslint-disable no-nested-ternary */
 import * as React from 'react';
-import { Route, withRouter, RouteComponentProps } from 'react-router-dom';
+import { Route, RouteProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
 import RedirectWithStatus from './RedirectWithStatus';
+import withNavigation from '../../wrappers/withNavigation';
 
 // interface IAuthRouteRouterProps {
 // }
 // eslint-disable-next-line @typescript-eslint/ban-types
-interface IAuthRouteProps extends RouteComponentProps<{}> {
-    access: any;
+interface IAuthRouteProps extends RouteProps {
     component?: any;
-    exact: boolean;
     isAuthorized: boolean;
     redirectPath: string;
     render?: any;
     path: any;
 }
-
-// eslint-disable-next-line @typescript-eslint/ban-types
-type IHomeProps = RouteComponentProps<{}>
 
 const mapStateToProps = (state: any) => ({
 });
@@ -44,14 +40,14 @@ class AuthRoute extends React.Component<IAuthRouteProps, any> {
 
     render() {
         const {
-            exact, isAuthorized, location, path,
+            isAuthorized,
+            path,
         } = this.props;
         const routeProps = { ...this.props };
-        delete routeProps.access;
         delete routeProps.component;
 
         return (
-            <Route location={location} path={path} exact={exact} render={(props) => (
+            <Route path={path} element={(props) => (
                 isAuthorized
                     ? (
                         this.props.render ? this.props.render(props) : <this.props.component {...props}/>
@@ -61,8 +57,8 @@ class AuthRoute extends React.Component<IAuthRouteProps, any> {
                             statusCode={307}
                             to={{
                                 pathname: this.redirectPath,
-                                state: { from: props.location },
                             }}
+                            from={props.location}
                         />
                     )
             )}/>
@@ -70,4 +66,4 @@ class AuthRoute extends React.Component<IAuthRouteProps, any> {
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(AuthRoute));
+export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(AuthRoute));
