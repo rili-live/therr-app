@@ -19,6 +19,12 @@ export default ({
         if (iconName === 'instagram' && userInView.socialSyncs?.instagram?.link) {
             return Linking.openURL(userInView.socialSyncs?.instagram?.link);
         }
+        if (iconName === 'instagram' && userInView.socialSyncs?.['facebook-instagram']?.link) {
+            return Linking.openURL(userInView.socialSyncs?.['facebook-instagram']?.link);
+        }
+        if (iconName === 'tiktok' && userInView.socialSyncs?.tiktok?.link) {
+            return Linking.openURL(userInView.socialSyncs?.tiktok?.link);
+        }
         if (iconName === 'youtube' && userInView.socialSyncs?.youtube?.link) {
             return Linking.openURL(userInView.socialSyncs?.youtube?.link);
         }
@@ -32,13 +38,32 @@ export default ({
     const extraStyle3: any = {};
     const extraStyle4: any = {};
 
-    ['twitter', 'instagram', 'youtube'].forEach((platform) => {
+    ['twitter', 'youtube'].forEach((platform) => {
         if (iconName === platform && userInView.socialSyncs?.[platform]?.followerCount != null) {
             iconColor = themeUser.colors[platform];
             if (userInView.socialSyncs?.[platform]?.followerCount >= 0) {
                 extraStyle1.backgroundColor = themeUser.colors.accentLime;
             }
             if (userInView.socialSyncs?.[platform]?.followerCount > 1000) {
+                extraStyle2.backgroundColor = themeUser.colors.accentLime;
+            }
+            if (userInView.socialSyncs?.[platform]?.followerCount > 5000) {
+                extraStyle3.backgroundColor = themeUser.colors.accentLime;
+            }
+            if (userInView.socialSyncs?.[platform]?.followerCount > 10000) {
+                extraStyle4.backgroundColor = themeUser.colors.accentLime;
+            }
+        }
+    });
+
+    ['tiktok', 'instagram'].forEach((platform) => {
+        if ((iconName === platform && userInView.socialSyncs?.[platform]?.followerCount != null) ||
+            (iconName === 'instagram' && userInView.socialSyncs?.['facebook-instagram']?.followerCount != null)) {
+            iconColor = themeUser.colors[platform];
+            if (userInView.socialSyncs?.[platform]?.followerCount >= 0) {
+                extraStyle1.backgroundColor = themeUser.colors.accentLime;
+            }
+            if (userInView.socialSyncs?.[platform]?.followerCount > 0) {
                 extraStyle2.backgroundColor = themeUser.colors.accentLime;
             }
             if (userInView.socialSyncs?.[platform]?.followerCount > 5000) {

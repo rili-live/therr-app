@@ -695,7 +695,6 @@ class Map extends React.Component<IMapProps, IMapState> {
         const {
             createOrUpdateMomentReaction,
             createOrUpdateSpaceReaction,
-            location,
             map,
             navigation,
             setSearchDropdownVisibility,
