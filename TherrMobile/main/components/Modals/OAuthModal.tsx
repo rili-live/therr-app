@@ -24,7 +24,7 @@ const patchPostMessageJsCode = `(${String(function () {
 
 interface IOAuthModalProps {
     appId: string;
-    provider: 'instagram' | 'facebook';
+    provider: 'instagram' | 'facebook-instagram' | 'tiktok';
     requestId: string;
     onRequestClose: () => void;
     onLoginSuccess: (results: any) => any;
@@ -129,7 +129,7 @@ export default class OAuthModal extends Component<IOAuthModalProps, IOAuthModalS
         // eslint-disable-next-line max-len
         let authUrl = `https://api.instagram.com/oauth/authorize/?client_id=${appId}&redirect_uri=${backendRedirectUrl}&response_type=${responseType}&scope=${scopes.join(',')}&state=${requestId}`;
 
-        if (provider === 'facebook') {
+        if (provider === 'facebook-instagram') {
             // eslint-disable-next-line max-len
             authUrl = `https://www.facebook.com/v14.0/dialog/oauth?client_id=${appId}&redirect_uri=${backendRedirectUrl}&response_type=${responseType}&scope=${scopes.join(',')}&state=${requestId}`;
         }

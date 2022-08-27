@@ -695,7 +695,6 @@ class Map extends React.Component<IMapProps, IMapState> {
         const {
             createOrUpdateMomentReaction,
             createOrUpdateSpaceReaction,
-            location,
             map,
             navigation,
             setSearchDropdownVisibility,
@@ -746,7 +745,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             const isProximitySatisfied = distToCenter - selectedSpace.radius <= selectedSpace.maxProximity;
             if (!isProximitySatisfied
                 && !isMyArea(selectedSpace, user)
-                && !(selectedSpace.userHasActivated && !selectedSpace.doesRequireProximityToView)) {
+                && !(this.isAreaActivated('spaces', selectedSpace) && !selectedSpace.doesRequireProximityToView)) {
                 // Deny activation
                 this.showAreaAlert();
             } else {
@@ -761,16 +760,12 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 activeSpace: selectedSpace,
                                 activeSpaceDetails: details,
                             }, () => {
-                                if (location?.settings?.isGpsEnabled) {
-                                    navigation.navigate('ViewSpace', {
-                                        isMyArea: isMyArea(selectedSpace, user),
-                                        space: selectedSpace,
-                                        spaceDetails: details,
-                                    });
-                                } else {
-                                    // TODO: Alert that GPS is required to create a space
-                                    this.showAreaAlert();
-                                }
+                                // TODO: Consider requiring location to view an area
+                                navigation.navigate('ViewSpace', {
+                                    isMyArea: isMyArea(selectedSpace, user),
+                                    space: selectedSpace,
+                                    spaceDetails: details,
+                                });
                             });
                         })
                         .catch(() => {
@@ -804,7 +799,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                 const isProximitySatisfied = distToCenter - selectedMoment.radius <= selectedMoment.maxProximity;
                 if (!isProximitySatisfied
                     && !isMyArea(selectedMoment, user)
-                    && !(selectedMoment.userHasActivated && !selectedMoment.doesRequireProximityToView)) {
+                    && !(this.isAreaActivated('moments', selectedMoment) && !selectedMoment.doesRequireProximityToView)) {
                     // Deny activation
                     this.showAreaAlert();
                 } else {
@@ -819,16 +814,12 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 activeMoment: selectedMoment,
                                 activeMomentDetails: details,
                             }, () => {
-                                if (location?.settings?.isGpsEnabled) {
-                                    navigation.navigate('ViewMoment', {
-                                        isMyArea: isMyArea(selectedMoment, user),
-                                        moment: selectedMoment,
-                                        momentDetails: details,
-                                    });
-                                } else {
-                                    // TODO: Alert that GPS is required to create a moment
-                                    this.showAreaAlert();
-                                }
+                                // TODO: Consider requiring location to view an area
+                                navigation.navigate('ViewMoment', {
+                                    isMyArea: isMyArea(selectedMoment, user),
+                                    moment: selectedMoment,
+                                    momentDetails: details,
+                                });
                             });
                         })
                         .catch(() => {
@@ -880,21 +871,6 @@ class Map extends React.Component<IMapProps, IMapState> {
             filterBy: 'fromUserIds',
             ...userCoords,
         });
-        searchMoments({
-            query: 'connections',
-            itemsPerPage: 500,
-            pageNumber: 1,
-            order: 'desc',
-            filterBy: 'fromUserIds',
-            ...userCoords,
-        }).then((moments) => {
-            if (moments?.results?.length) {
-                findMomentReactions({
-                    momentIds: moments?.results?.map(moment => moment.id),
-                    userHasActivated: true,
-                });
-            }
-        });
         searchSpaces({
             query: 'me',
             itemsPerPage: 50,
@@ -903,20 +879,39 @@ class Map extends React.Component<IMapProps, IMapState> {
             filterBy: 'fromUserIds',
             ...userCoords,
         });
-        searchSpaces({
-            query: 'connections',
-            itemsPerPage: 500,
-            pageNumber: 1,
-            order: 'desc',
-            filterBy: 'fromUserIds',
-            ...userCoords,
-        }).then((spaces) => {
+        Promise.all([
+            searchMoments({
+                query: 'connections',
+                itemsPerPage: 500,
+                pageNumber: 1,
+                order: 'desc',
+                filterBy: 'fromUserIds',
+                ...userCoords,
+            }),
+            searchSpaces({
+                query: 'connections',
+                itemsPerPage: 500,
+                pageNumber: 1,
+                order: 'desc',
+                filterBy: 'fromUserIds',
+                ...userCoords,
+            }),
+        ]).then(([moments, spaces]) => {
+            if (moments?.results?.length) {
+                findMomentReactions({
+                    momentIds: moments?.results?.map(moment => moment.id),
+                    userHasActivated: true,
+                });
+            }
             if (spaces?.results?.length) {
                 findSpaceReactions({
                     spaceIds: spaces?.results?.map(space => space.id),
                     userHasActivated: true,
                 });
             }
+            this.setState({
+                lastMomentsRefresh: Date.now(),
+            });
         });
         this.setState({
             lastMomentsRefresh: Date.now(),
@@ -1005,8 +1000,8 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         if (lat && long) {
             searchMoments({
-                query: 'connections',
-                itemsPerPage: 200,
+                query: 'me',
+                itemsPerPage: 20,
                 pageNumber: 1,
                 order: 'desc',
                 filterBy: 'fromUserIds',
@@ -1014,53 +1009,54 @@ class Map extends React.Component<IMapProps, IMapState> {
                 longitude: long,
             }, {
                 distanceOverride: radius,
-            }).then((moments) => {
+            });
+            searchSpaces({
+                query: 'me',
+                itemsPerPage: 20,
+                pageNumber: 1,
+                order: 'desc',
+                filterBy: 'fromUserIds',
+                latitude: lat,
+                longitude: long,
+            }, {
+                distanceOverride: radius,
+            });
+            Promise.all([
+                searchMoments({
+                    query: 'connections',
+                    itemsPerPage: 200,
+                    pageNumber: 1,
+                    order: 'desc',
+                    filterBy: 'fromUserIds',
+                    latitude: lat,
+                    longitude: long,
+                }, {
+                    distanceOverride: radius,
+                }),
+                searchSpaces({
+                    query: 'connections',
+                    itemsPerPage: 200,
+                    pageNumber: 1,
+                    order: 'desc',
+                    filterBy: 'fromUserIds',
+                    latitude: lat,
+                    longitude: long,
+                }, {
+                    distanceOverride: radius,
+                }),
+            ]).then(([moments, spaces]) => {
                 if (moments?.results?.length) {
                     findMomentReactions({
                         momentIds: moments?.results?.map(moment => moment.id),
                         userHasActivated: true,
                     });
                 }
-            });
-            searchMoments({
-                query: 'me',
-                itemsPerPage: 20,
-                pageNumber: 1,
-                order: 'desc',
-                filterBy: 'fromUserIds',
-                latitude: lat,
-                longitude: long,
-            }, {
-                distanceOverride: radius,
-            });
-            searchSpaces({
-                query: 'connections',
-                itemsPerPage: 200,
-                pageNumber: 1,
-                order: 'desc',
-                filterBy: 'fromUserIds',
-                latitude: lat,
-                longitude: long,
-            }, {
-                distanceOverride: radius,
-            }).then((spaces) => {
                 if (spaces?.results?.length) {
                     findSpaceReactions({
                         spaceIds: spaces?.results?.map(space => space.id),
                         userHasActivated: true,
                     });
                 }
-            });
-            searchSpaces({
-                query: 'me',
-                itemsPerPage: 20,
-                pageNumber: 1,
-                order: 'desc',
-                filterBy: 'fromUserIds',
-                latitude: lat,
-                longitude: long,
-            }, {
-                distanceOverride: radius,
             });
         }
     }
@@ -1070,6 +1066,20 @@ class Map extends React.Component<IMapProps, IMapState> {
         updateTour(user.details.id, {
             isTouring: false,
         });
+    }
+
+    isAreaActivated = (type: IAreaType, area) => {
+        const { reactions, user } = this.props;
+
+        if (isMyArea(area, user)) {
+            return true;
+        }
+
+        if (type === 'moments') {
+            return !!reactions.myMomentReactions[area.id];
+        }
+
+        return !!reactions.mySpaceReactions[area.id];
     }
 
     isAuthorized = () => {
@@ -1334,7 +1344,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     getMomentCircleFillColor = (moment) => {
-        const { reactions, user } = this.props;
+        const { user } = this.props;
         const { activeMoment } = this.state;
 
         if (isMyArea(moment, user)) {
@@ -1345,7 +1355,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             return this.theme.colors.map.myMomentsCircleFill;
         }
 
-        if (reactions.myMomentReactions[moment.id]) {
+        if (this.isAreaActivated('moments', moment)) {
             return this.theme.colors.map.momentsCircleFill;
         }
 
@@ -1354,7 +1364,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     getSpaceCircleFillColor = (space) => {
-        const { reactions, user } = this.props;
+        const { user } = this.props;
         const { activeSpace } = this.state;
 
         if (isMyArea(space, user)) {
@@ -1365,7 +1375,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             return this.theme.colors.map.mySpacesCircleFill;
         }
 
-        if (reactions.mySpaceReactions[space.id]) {
+        if (this.isAreaActivated('spaces', space)) {
             return this.theme.colors.map.spacesCircleFill;
         }
 
@@ -1374,13 +1384,13 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     getMomentCircleStrokeColor = (moment) => {
-        const { reactions, user } = this.props;
+        const { user } = this.props;
 
         if (isMyArea(moment, user)) {
             return this.theme.colors.map.myMomentsCircleStroke;
         }
 
-        if (reactions.myMomentReactions[moment.id]) {
+        if (this.isAreaActivated('moments', moment)) {
             return this.theme.colors.map.momentsCircleStroke;
         }
 
@@ -1389,13 +1399,13 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     getSpaceCircleStrokeColor = (space) => {
-        const { reactions, user } = this.props;
+        const { user } = this.props;
 
         if (isMyArea(space, user)) {
             return this.theme.colors.map.mySpacesCircleStroke;
         }
 
-        if (reactions.mySpaceReactions[space.id]) {
+        if (this.isAreaActivated('spaces', space)) {
             return this.theme.colors.map.spacesCircleStroke;
         }
 
