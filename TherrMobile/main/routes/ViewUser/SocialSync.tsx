@@ -54,7 +54,7 @@ export interface ISocialSyncProps extends IStoreProps {
 }
 
 interface ISocialSyncState {
-    activeProvider: 'instagram' | 'facebook';
+    activeProvider: 'instagram' | 'facebook-instagram' | 'tiktok';
     inputs: any;
     isOAuthModalVisible: boolean;
     isAccountTypeModalVisible: boolean;
@@ -113,15 +113,14 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
     componentDidMount() {
         const { navigation, route } = this.props;
         const authResult = route?.params?.authResult;
-        console.log('authResult', authResult);
         if (authResult) {
             if (authResult.error) {
                 this.setState({
-                    activeProvider: 'facebook',
+                    activeProvider: authResult.provider,
                 }, () => this.onOAuthLoginFailed(authResult));
             } else {
                 this.setState({
-                    activeProvider: 'facebook',
+                    activeProvider: authResult.provider,
                 }, () => this.onOAuthLoginSuccess(authResult));
             }
         }
@@ -193,18 +192,18 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                 }
             } else if (Object.keys(syncs).length) {
                 if (response?.data?.instagramMedia) {
-                    const promises: Promise<any>[] = [];
+                    const promises: Promise<any>[] = [Promise.resolve()];
                     response?.data?.instagramMedia.data?.forEach((el) => {
                         if (activeProvider === 'instagram') {
                             promises.push(createIntegratedMoment('instagram', syncs.instagram.accessToken, el.id));
                         }
-                        if (activeProvider === 'facebook') {
+                        if (activeProvider === 'facebook-instagram') {
                             promises.push(createIntegratedMoment('facebook-instagram', syncs['facebook-instagram'].accessToken, el.id));
                         }
                     });
                     Promise.all(promises)
                         .then(() => {
-                            getIntegratedMoments(user.details.id);
+                            return getIntegratedMoments(user.details.id);
                         })
                         .catch((err) => {
                             console.log(err);
@@ -216,6 +215,8 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                 isPromiseComplete = true;
                             }
                         });
+                } else {
+                    isPromiseComplete = true;
                 }
 
                 Toast.show({
@@ -240,6 +241,10 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
     }
 
     onSaveFacebook = (syncs) => {
+        this.onSubmit(syncs);
+    };
+
+    onSaveTikTok = (syncs) => {
         this.onSubmit(syncs);
     };
 
@@ -313,7 +318,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
         this.onCloseAccountTypeModal();
         if (type === 'personal') {
             this.setState({
-                activeProvider: type === 'personal' ? 'instagram' : 'facebook',
+                activeProvider: type === 'personal' ? 'instagram' : 'facebook-instagram',
                 isOAuthModalVisible: true,
                 oAuthAppId: type === 'personal' ? INSTAGRAM_BASIC_DISPLAY_APP_ID : INSTAGRAM_GRAPH_API_APP_ID,
                 oAuthScopes: type === 'personal'
@@ -343,7 +348,6 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
     }
 
     onOAuthLoginSuccess = (results) => {
-        console.log(results);
         const { activeProvider } = this.state;
         this.onCloseOAuthModal();
         if (activeProvider === 'instagram') {
@@ -355,9 +359,17 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
             });
         }
 
-        if (activeProvider === 'facebook') {
+        if (activeProvider === 'facebook-instagram') {
             return this.onSaveFacebook({
                 'facebook-instagram': {
+                    accessToken: results.access_token,
+                },
+            });
+        }
+
+        if (activeProvider === 'tiktok') {
+            return this.onSaveTikTok({
+                'tiktok': {
                     accessToken: results.access_token,
                 },
             });
@@ -388,6 +400,9 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
         const pageHeaderSocials = this.translate('pages.socialSync.pageHeaderSyncList');
         const descriptionText = this.translate('pages.socialSync.description');
         const userInView = route?.params;
+        const backendRedirectUrl = activeProvider === 'facebook-instagram'
+            ? 'https://api.therr.com/v1/users-service/social-sync/oauth2-facebook'
+            : `https://api.therr.com/v1/users-service/social-sync/oauth2-${activeProvider}`;
         // const currentUserImageUri = getUserImageUri(user, 200);
 
         return (
@@ -436,7 +451,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                     onPress={() => this.onSocialLogin('instagram')}
                                 />
                             </View>
-                            {/* <View style={this.themeSocialSyncForm.styles.socialLinkContainer}>
+                            <View style={this.themeSocialSyncForm.styles.socialLinkContainer}>
                                 <View style={{
                                     paddingRight: 16,
                                 }}>
@@ -463,7 +478,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                     raised={false}
                                     onPress={() => this.onSocialLogin('tiktok')}
                                 />
-                            </View> */}
+                            </View>
                             <View style={this.themeSocialSyncForm.styles.socialLinkContainer}>
                                 <View style={{
                                     paddingRight: 16,
@@ -573,7 +588,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                     onLoginSuccess={this.onOAuthLoginSuccess}
                     onLoginFailure={this.onOAuthLoginFailed}
                     // Note: This must match the redirect url on the backend
-                    backendRedirectUrl={`https://api.therr.com/v1/users-service/social-sync/oauth2-${activeProvider}`}
+                    backendRedirectUrl={backendRedirectUrl}
                     frontendRedirectUrl="https://therr.com"
                     responseType="code"
                     scopes={oAuthScopes}
