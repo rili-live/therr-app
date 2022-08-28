@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { NavigateFunction } from 'react-router-dom';
-import { Status } from 'therr-react/components';
 import translator from '../services/translator';
 import * as globalConfig from '../../../global-config';
 import withNavigation from '../wrappers/withNavigation';
@@ -42,11 +41,9 @@ export class PageNotFoundComponent extends React.Component<IPageNotFoundProps, I
 
     render() {
         return (
-            <Status statusCode={404} {...this.props}>
-                <div id="page_page_not_found">
-                    <h1>404 | {this.translate('pages.pageNotFound.pageTitle')}</h1>
-                </div>
-            </Status>
+            <div id="page_page_not_found">
+                <h1>404 | {this.translate('pages.pageNotFound.pageTitle')}</h1>
+            </div>
         );
     }
 }

@@ -5,6 +5,7 @@ import { createRoot, hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import Layout from './components/Layout';
+import ScrollToTop from './components/ScrollToTop';
 import store from './store';
 
 // Third Party Styles
@@ -16,10 +17,11 @@ import 'react-phone-number-input/style.css';
 import './styles/themes/retro/index.scss';
 
 const rootEl = document.getElementById('app');
-const root = createRoot(rootEl);
+// const root = createRoot(rootEl);
 const RootComponent = () => (
     <Provider store={store} serverState={store.preloadedState}>
         <BrowserRouter>
+            <ScrollToTop />
             <Layout />
         </BrowserRouter>
     </Provider>
@@ -28,11 +30,11 @@ const RootComponent = () => (
 LogRocket.init('pibaqj/therr-web-app');
 // after calling LogRocket.init()
 setupLogRocketReact(LogRocket);
-
-window.onload = () => {
+if (process.env.NODE_ENV === 'development') {
+    createRoot(rootEl).render(<RootComponent />);
+} else {
     hydrateRoot(
         rootEl,
         <RootComponent />,
     );
-    // root.render(<RootComponent />);
-};
+}

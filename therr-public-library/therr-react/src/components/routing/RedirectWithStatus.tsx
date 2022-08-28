@@ -6,22 +6,6 @@ interface IRedirectWithStatusProps extends NavigateProps {
     statusCode: string | number;
 }
 
-class RedirectWithStatus extends React.Component<IRedirectWithStatusProps, any> {
-    render() {
-        const { from, statusCode, to } = this.props;
-
-        const renderRoute = ({ staticContext }: any) => {
-            if (staticContext) {
-                staticContext.statusCode = statusCode;
-            }
-
-            return (
-                <Route path={from} element={() => <Navigate to={to} replace />} />
-            );
-        };
-
-        return (<Route element={renderRoute} />);
-    }
-}
+const RedirectWithStatus = (props: IRedirectWithStatusProps) => <Route path={props.from} element={<Navigate to={props.to} replace />} />;
 
 export default RedirectWithStatus;

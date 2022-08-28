@@ -2,25 +2,21 @@ import classnames from 'classnames';
 import * as React from 'react';
 import { bindActionCreators, Dispatch } from 'redux';
 import { connect } from 'react-redux';
-import { Location, NavigateFunction, useRoutes } from 'react-router-dom';
+import { Location, NavigateFunction } from 'react-router-dom';
 import { TransitionGroup } from 'react-transition-group';
 import * as ReactGA from 'react-ga';
 import { IMessagesState, IUserState, AccessCheckType } from 'therr-react/types';
 import {
     AccessControl,
-    AuthRoute,
-    RedirectWithStatus,
     SvgButton,
 } from 'therr-react/components';
 import { NotificationActions, SocketActions, MessageActions } from 'therr-react/redux/actions';
 import { UsersService } from 'therr-react/services';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
-import scrollTo from 'therr-js-utilities/scroll-to';
 import Header from './Header';
 import initInterceptors from '../interceptors';
 import * as globalConfig from '../../../global-config';
-import getRoutes from '../routes';
 import { INavMenuContext } from '../types';
 import Footer from './footer/Footer';
 import UserMenu from './nav-menu/UserMenu';
@@ -30,8 +26,7 @@ import { IMessagingContext } from './footer/MessagingContainer';
 import UsersActions from '../redux/actions/UsersActions';
 import { routeAfterLogin } from '../routes/Login';
 import withNavigation from '../wrappers/withNavigation';
-
-let _viewListener: any; // eslint-disable-line no-underscore-dangle
+import AppRoutes from './AppRoutes';
 
 interface ILayoutRouterProps {
     navigation: {
@@ -107,9 +102,6 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         // TODO: Check if this should be initialized in index with history passed as argument
         // Initialize global interceptors such as 401, 403
         initInterceptors(navigation.navigate, undefined, 300);
-        // _viewListener = location.listen((location: Location, action: any) => {
-        //     this.onViewChange(location);
-        // });
 
         ReactGA.initialize(globalConfig[process.env.NODE_ENV].googleAnalyticsKey);
 
@@ -159,7 +151,6 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
     }
 
     componentWillUnmount() { // eslint-disable-line
-        // _viewListener();
         document.removeEventListener('click', this.handleClick);
     }
 
@@ -173,14 +164,6 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             if (!isClickInsideNavMenu) {
                 this.toggleNavMenu(event);
             }
-        }
-    }
-
-    onViewChange = (location: Location) => {
-        scrollTo(0, 100);
-        if (typeof window !== 'undefined') {
-            console.log(location?.pathname + window?.location?.search);
-            ReactGA.pageview(location?.pathname + window?.location?.search);
         }
     }
 
@@ -378,15 +361,10 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                         component="div"
                         className={ isLandingStylePage ? 'content-container-home view' : 'content-container view' }
                     >
-                        {
-                            useRoutes(
-                                getRoutes({
-                                    onInitMessaging: this.initMessaging,
-                                    isAuthorized: (access) => UsersService.isAuthorized(access, user),
-                                }),
-                            )
-                        }
-                        <RedirectWithStatus from="/redirect" to="/" statusCode="301" />
+                        <AppRoutes
+                            initMessaging={this.initMessaging}
+                            isAuthorized={(access) => UsersService.isAuthorized(access, user)}
+                        />
                     </TransitionGroup>
 
                     {/* <Alerts></Alerts> */}

@@ -7,6 +7,7 @@ import * as ReactDOMServer from 'react-dom/server'; // eslint-disable-line impor
 // import { matchPath } from 'react-router-dom';
 import { StaticRouter } from 'react-router-dom/server';
 import * as ReactGA from 'react-ga';
+import LogRocket from 'logrocket';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import printLogs from 'therr-js-utilities/print-logs';
@@ -79,7 +80,7 @@ routeConfig.forEach((config) => {
         const store = configureStore({
             reducer: rootReducer,
             preloadedState: initialState,
-            middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(socketIOMiddleWare),
+            middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware()),
         });
 
         // getRoutes().some((route: IRoute) => {
@@ -130,6 +131,8 @@ routeConfig.forEach((config) => {
                     state,
                 });
             }
+        }).catch((err) => {
+            console.log(err);
         });
     });
 });

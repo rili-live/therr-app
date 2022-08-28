@@ -12,6 +12,7 @@ import withNavigation from '../../wrappers/withNavigation';
 interface IAuthRouteProps extends RouteProps {
     component?: any;
     isAuthorized: boolean;
+    location: string;
     redirectPath: string;
     render?: any;
     path: any;
@@ -23,6 +24,22 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators(
     {},
     dispatch,
+);
+
+const TheComponent = (props: IAuthRouteProps) => (
+    props.isAuthorized
+        ? (
+            props.render ? props.render(props) : <props.component {...props}/>
+        )
+        : (
+            <RedirectWithStatus
+                statusCode={307}
+                to={{
+                    pathname: props.redirectPath,
+                }}
+                from={props.location}
+            />
+        )
 );
 
 class AuthRoute extends React.Component<IAuthRouteProps, any> {
@@ -40,28 +57,13 @@ class AuthRoute extends React.Component<IAuthRouteProps, any> {
 
     render() {
         const {
-            isAuthorized,
             path,
         } = this.props;
         const routeProps = { ...this.props };
         delete routeProps.component;
 
         return (
-            <Route path={path} element={(props) => (
-                isAuthorized
-                    ? (
-                        this.props.render ? this.props.render(props) : <this.props.component {...props}/>
-                    )
-                    : (
-                        <RedirectWithStatus
-                            statusCode={307}
-                            to={{
-                                pathname: this.redirectPath,
-                            }}
-                            from={props.location}
-                        />
-                    )
-            )}/>
+            <Route path={path} element={<TheComponent { ...routeProps } redirectPath={this.redirectPath} />}/>
         );
     }
 }

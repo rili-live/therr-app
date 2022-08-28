@@ -91,7 +91,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     },
     {
         path: '/user/profile',
-        element: (routeProps) => <UserProfile onInitMessaging={routePropsConfig.onInitMessaging} {...routeProps} />, // eslint-disable-line react/display-name
+        element: <UserProfile onInitMessaging={routePropsConfig.onInitMessaging} />, // eslint-disable-line react/display-name
         access: {
             type: AccessCheckType.ALL,
             levels: [AccessLevels.EMAIL_VERIFIED],
@@ -119,6 +119,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
 
     // If no route matches, return NotFound component
     {
+        path: '*',
         element: <PageNotFound />,
     },
 ];

@@ -54,12 +54,12 @@ if (typeof (Storage) !== 'undefined' && typeof (window) !== 'undefined') {
 }
 
 const store: any = configureStore( // Create Store (Production)
-{
-    reducer: rootReducer,
-    preloadedState,
-    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware()).concat(logger),
-    devTools: process.env.NODE_ENV === 'development',
-},
+    {
+        reducer: rootReducer,
+        preloadedState,
+        middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(socketIOMiddleWare).concat(LogRocket.reduxMiddleware()).concat(logger),
+        devTools: process.env.NODE_ENV === 'development',
+    },
 );
 
 export default store;
