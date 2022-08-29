@@ -7,6 +7,7 @@
 #import <React/RCTAppSetupUtils.h>
 
 #import <GoogleMaps/GoogleMaps.h>
+#import <ReactNativeConfig.h>
 #import <Firebase.h>
 #import "RNBootSplash.h"
 #import <React/RCTLinkingManager.h>
