@@ -1,7 +1,6 @@
 
-import thunkMiddleware from 'redux-thunk';
-import { createLogger } from 'redux-logger';
-import { applyMiddleware, compose, createStore } from 'redux';
+import logger from 'redux-logger';
+import { configureStore } from '@reduxjs/toolkit';
 import rootReducer from './redux/reducers';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import socketIOMiddleWare, { updateSocketToken } from './socket-io-middleware';
@@ -13,9 +12,7 @@ declare global {
     }
 }
 
-const loggerMiddleware = createLogger();
-let preLoadedState;
-const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+let preloadedState;
 
 const getStore = async () => {
     // Get stored user details from session storage if they are already logged in
@@ -42,27 +39,15 @@ const getStore = async () => {
         updateSocketToken(reloadedState.user, true);
     }
 
-    preLoadedState = { ...reloadedState };
+    preloadedState = { ...reloadedState };
 
-    return __DEV__
-        ? createStore(
-            // Create Store - Redux Development (Chrome Only)
-            rootReducer,
-            preLoadedState,
-            composeEnhancers(
-                applyMiddleware(
-                    loggerMiddleware, // middleware that logs actions (development only)
-                    socketIOMiddleWare,
-                    thunkMiddleware // let's us dispatch functions
-                )
-            )
-        )
-        : createStore(
-            // Create Store (Production)
-            rootReducer,
-            preLoadedState,
-            compose(applyMiddleware(socketIOMiddleWare, thunkMiddleware))
-        );
+    return configureStore({
+        // Create Store - Redux Development (Chrome Only)
+        reducer: rootReducer,
+        preloadedState,
+        middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(socketIOMiddleWare).concat(logger),
+        devTools: !!__DEV__,
+    });
 };
 
 export default getStore;

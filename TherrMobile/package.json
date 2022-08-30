@@ -18,7 +18,7 @@
     "clean:env": "rm -rf node_modules/.cache/babel-loader/*",
     "env:export": "export $(cat .env | xargs)",
     "getSHA": "pushd android && ./gradlew signingReport; popd",
-    "ios": "rm -rf node_modules/.cache/babel-loader/*, && npm run ios:bundle && ./node_modules/.bin/react-native run-ios --scheme 'Therr_Debug'",
+    "ios": "rm -rf node_modules/.cache/babel-loader/*, && npm run ios:bundle && ./node_modules/.bin/react-native run-ios --scheme 'Therr_Debug' --simulator='iPhone 12 - iOS 15.2'",
     "ios:clean": "rm -rf ~/Library/Caches/CocoaPods && rm -rf ./ios/Pods && rm -rf ~/Library/Developer/Xcode/DerivedData/*",
     "ios:bundle": "./node_modules/.bin/react-native bundle --entry-file='index.js' --bundle-output='./ios/main.jsbundle' --assets-dest ./ios",
     "ios:bundle:release": "./node_modules/.bin/react-native bundle --entry-file='index.js' --bundle-output='./ios/main.jsbundle' --assets-dest ./ios --dev=false --platform ios",
@@ -97,11 +97,13 @@
   "devDependencies": {
     "@react-native-community/eslint-config": "^2.0.0",
     "@react-native/normalize-color": "^2.0.0",
-    "@types/react-native": "^0.68.0",
+    "@types/react-native": "^0.69.0",
     "@types/react-native-dotenv": "^0.2.0",
     "@types/react-native-snap-carousel": "^3.8.2",
     "@types/rn-fetch-blob": "^1.2.1",
+    "babel-plugin-module-resolver": "^4.1.0",
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
+    "deprecated-react-native-prop-types": "^2.3.0",
     "metro-react-native-babel-preset": "^0.70.3",
     "patch-package": "^6.2.2",
     "react-devtools": "^4.22.0"

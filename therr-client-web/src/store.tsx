@@ -1,6 +1,6 @@
 import LogRocket from 'logrocket';
 import logger from 'redux-logger';
-import { compose, configureStore, applyMiddleware } from '@reduxjs/toolkit';
+import { configureStore } from '@reduxjs/toolkit';
 import rootReducer from './redux/reducers';
 import socketIOMiddleWare, { updateSocketToken } from './socket-io-middleware';
 
@@ -12,11 +12,6 @@ declare global {
 }
 
 let preloadedState;
-const composeEnhancers = typeof window === 'object'
-    && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ // eslint-disable-line no-underscore-dangle
-    ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({ // eslint-disable-line no-underscore-dangle
-        // Specify extension’s options like name, actionsBlacklist, actionsCreators, serialize...
-    }) : compose;
 
 // Grab the state from a global variable injected into the server-generated HTML
 function safelyParse(input: any) {

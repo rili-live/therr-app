@@ -1,5 +1,4 @@
 import React from 'react';
-import { LogBox } from 'react-native';
 import { Provider } from 'react-redux';
 import LogRocket from '@logrocket/react-native';
 import Toast, { BaseToast, ErrorToast, InfoToast } from 'react-native-toast-message';
@@ -10,9 +9,6 @@ import Layout from './components/Layout';
 import { buttonMenuHeight } from './styles/navigation/buttonMenu';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 // import { buildStyles } from './styles';
-
-// TODO: This is temporary to ignore the really annoying ViewPropTypes log
-LogBox.ignoreLogs(['ViewPropTypes']);//Ignore all log notifications
 
 const toastConfig = {
     info: (props) => (
