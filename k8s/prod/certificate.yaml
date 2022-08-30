@@ -15,6 +15,5 @@ spec:
     - 'www.api.therr.com'
     - 'websocket-service.therr.com'
     - 'www.websocket-service.therr.com'
-    - '*.therr.com'
   duration: 4320h # 180d
   renewBefore: 720h # 30d
