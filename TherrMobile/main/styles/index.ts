@@ -1,6 +1,7 @@
 import { Platform, StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { Theme } from '@react-navigation/native';
+import DeviceInfo from 'react-native-device-info';
 import { buttonMenuHeight } from './navigation/buttonMenu';
 import { getTheme, ITherrTheme } from './themes';
 import { therrFontFamily } from './font';
@@ -9,6 +10,7 @@ import { therrFontFamily } from './font';
 const HEADER_HEIGHT_MARGIN = 80;
 const IOS_STATUS_HEIGHT = 20;
 const IOS_TOP_GAP = 28;
+const ANDROID_TOP_GAP = 25;
 const HEADER_EXTRA_HEIGHT = 4;
 const HEADER_HEIGHT = 48 + HEADER_EXTRA_HEIGHT;
 const HEADER_PADDING_BOTTOM = 20;
@@ -58,15 +60,37 @@ const addMargins = (marginStyles) => {
     return marginStyles;
 };
 
+/**
+ * These devices have a punchout camera so the header needs an offset
+ * @returns boolean
+ */
+const hasCutoutCamera = (): boolean => {
+    const model = DeviceInfo.getModel();
+
+    if (model?.includes('Pixel 6') || model?.includes('Pixel 7') || model?.includes('Pixel 8') || model?.includes('Pixel 9')) {
+        return true;
+    }
+
+    return false;
+};
+
+const getHeaderHeight = () => {
+    if (Platform.OS === 'ios') {
+        return (IOS_STATUS_HEIGHT + IOS_TOP_GAP + HEADER_HEIGHT);
+    }
+
+    if (DeviceInfo.hasNotch() || hasCutoutCamera()) {
+        return (HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + ANDROID_TOP_GAP + 20);
+    }
+
+    return (HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + 20);
+};
+
 const getHeaderStyles = (theme: ITherrTheme) => ({
     backgroundColor: getBodyStyles(theme).backgroundColor,
     borderBottomColor: theme.colorVariations.primary3LightFade,
-    height: Platform.OS === 'ios'
-        ? (IOS_STATUS_HEIGHT + IOS_TOP_GAP + HEADER_HEIGHT)
-        : (HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + 20),
-    minHeight: Platform.OS === 'ios'
-        ? (IOS_STATUS_HEIGHT + IOS_TOP_GAP + HEADER_HEIGHT)
-        : (HEADER_HEIGHT + HEADER_EXTRA_HEIGHT + 20),
+    height: getHeaderHeight(),
+    minHeight: getHeaderHeight(),
     borderBottomWidth: 0,
     elevation: 0,
     shadowColor: 'transparent',
