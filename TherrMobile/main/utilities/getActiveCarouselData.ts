@@ -72,7 +72,8 @@ export default ({
     }
 
     if (isForDrafts) {
-        return mergeAreas(content.myDrafts, [], sortBy, isForDrafts);
+        const drafts = [...content.myDrafts].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+        return mergeAreas(drafts, [], sortBy, isForDrafts);
     }
 
     return mergeAreas(content.activeMoments, content.activeSpaces, sortBy, isForDrafts);

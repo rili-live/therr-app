@@ -269,9 +269,9 @@ PODS:
   - logrocket-react-native (1.5.0):
     - LogRocket (= 1.5.0)
     - React
-  - lottie-ios (3.2.3)
-  - lottie-react-native (4.1.3):
-    - lottie-ios (~> 3.2.3)
+  - lottie-ios (3.4.3)
+  - lottie-react-native (5.1.4):
+    - lottie-ios (~> 3.4.0)
     - React-Core
   - nanopb (2.30909.0):
     - nanopb/decode (= 2.30909.0)
@@ -511,13 +511,13 @@ PODS:
     - React-Core
   - react-native-geolocation-service (5.3.0):
     - React
-  - react-native-google-maps (1.3.0):
+  - react-native-google-maps (1.3.1):
     - Google-Maps-iOS-Utils (= 4.1.0)
     - GoogleMaps (= 7.0.0)
     - React-Core
   - react-native-image-picker (3.8.1):
     - React-Core
-  - react-native-maps (1.3.0):
+  - react-native-maps (1.3.1):
     - React-Core
   - react-native-safe-area-context (3.3.2):
     - React-Core
@@ -602,7 +602,7 @@ PODS:
     - React-Core
   - RNCPicker (2.2.1):
     - React-Core
-  - RNDeviceInfo (6.2.1):
+  - RNDeviceInfo (10.0.2):
     - React-Core
   - RNFBAnalytics (15.3.0):
     - Firebase/Analytics (= 9.4.0)
@@ -1032,8 +1032,8 @@ SPEC CHECKSUMS:
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   LogRocket: 3beacb314e85c75a74c3533771ec88dc47ed9b6c
   logrocket-react-native: 710efb8e658da87bc3520ebbb4f8da2418aea568
-  lottie-ios: c058aeafa76daa4cf64d773554bccc8385d0150e
-  lottie-react-native: b561920bba7ec727ec94a473b683cffba00faece
+  lottie-ios: 9ae750cdc7820fecbd3c2f0cfc493038208fcdc4
+  lottie-react-native: b702fab740cdb952a8e2354713d3beda63ff97b0
   nanopb: b552cce312b6c8484180ef47159bc0f65a1f0431
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   Permission-Camera: 53efcbb755b0e8bdf253dbb27cc7559ccfce8480
@@ -1061,9 +1061,9 @@ SPEC CHECKSUMS:
   react-native-config: 6502b1879f97ed5ac570a029961fc35ea606cd14
   react-native-contacts: 1bff4c47816d611f26b06fa8b3eaf2db4d1b2c86
   react-native-geolocation-service: f32ef48fa665bd710207a3ac39bc127cac9cb993
-  react-native-google-maps: 15a1f54c1dd0173f036059f2b786b144c2f08eee
+  react-native-google-maps: 751f1dd2362c09d4ac45b09970d78f138a109268
   react-native-image-picker: 31971f6184e7c1dcb4fc1f122e1ba2c3fb11ef1e
-  react-native-maps: ca4946228cb514d8f2bca95e0482753b4edde100
+  react-native-maps: f4067ffa5044ade5bf98d6dde15014318a537c2f
   react-native-safe-area-context: 584dc04881deb49474363f3be89e4ca0e854c057
   react-native-webview: 10996be8bcc5e37a30dbc139fc544bb651dc8612
   React-perflogger: a18b4f0bd933b8b24ecf9f3c54f9bf65180f3fe6
@@ -1085,7 +1085,7 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: 005c0e2f09575360f142d0d1f1f15e4ec575b1af
   RNCMaskedView: c298b644a10c0c142055b3ae24d83879ecb13ccd
   RNCPicker: cb57c823d5ce8d2d0b5dfb45ad97b737260dc59e
-  RNDeviceInfo: 9b6aba9ffaed69ecb72bd13c7bcb0debf277bc9f
+  RNDeviceInfo: 0a7c1d2532aa7691f9b9925a27e43af006db4dae
   RNFBAnalytics: 6ea16cce15e2081b26b0727e6520f2f365cf8f9c
   RNFBApp: 39904cebc3958e2d377dccf870b5c5d76cb089a9
   RNFBAuth: 32b9de70bcd7593159b73a81066cd7f9aa919952
@@ -1105,6 +1105,6 @@ SPEC CHECKSUMS:
   Yoga: 99652481fcd320aefa4a7ef90095b95acd181952
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 070d08338e4c94a482ad9b7b543ee7af57662ad9
+PODFILE CHECKSUM: dd97a3c4c84b04d7a778bb6619791b855680a0d0
 
 COCOAPODS: 1.11.3
