@@ -1,13 +1,16 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { NavigateFunction } from 'react-router-dom';
 import translator from '../services/translator';
 import RegisterForm from '../components/forms/RegisterForm';
 import UsersActions from '../redux/actions/UsersActions';
+import withNavigation from '../wrappers/withNavigation';
 
 interface IRegisterRouterProps {
-    history: any;
+    navigation: {
+        navigate: NavigateFunction;
+    }
 }
 
 interface IRegisterDispatchProps {
@@ -17,7 +20,7 @@ interface IRegisterDispatchProps {
 type IStoreProps = IRegisterDispatchProps
 
 // Regular component props
-interface IRegisterProps extends RouteComponentProps<IRegisterRouterProps>, IStoreProps {
+interface IRegisterProps extends IRegisterRouterProps, IStoreProps {
 }
 
 interface IRegisterState {
@@ -55,8 +58,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
 
     register = (credentials: any) => {
         this.props.register(credentials).then((response: any) => {
-            this.props.history.push({
-                pathname: '/login',
+            this.props.navigation.navigate('/login', {
                 state: {
                     successMessage: this.translate('pages.register.registerSuccess'),
                 },
@@ -91,4 +93,4 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(RegisterComponent));
+export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(RegisterComponent));

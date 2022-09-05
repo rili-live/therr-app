@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { bindActionCreators } from 'redux';
 import {
     ButtonPrimary,
@@ -10,6 +9,7 @@ import { UsersService } from 'therr-react/services';
 import { IUserState } from 'therr-react/types';
 import translator from '../services/translator';
 import * as globalConfig from '../../../global-config';
+import withNavigation from '../wrappers/withNavigation';
 
 interface IStoreProps extends IChangePasswordDispatchProps {
     user: IUserState;
@@ -25,7 +25,7 @@ interface IChangePasswordState {
     isSuccess: boolean;
 }
 
-interface IChangePasswordProps extends RouteComponentProps<{}>, IStoreProps {
+interface IChangePasswordProps extends IStoreProps {
     inputs: any;
     errorReason: string;
     isSuccess: boolean;
@@ -188,4 +188,4 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ChangePasswordComponent));
+export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(ChangePasswordComponent));

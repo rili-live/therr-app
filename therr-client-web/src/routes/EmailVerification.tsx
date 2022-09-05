@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
+import { Link, NavigateFunction } from 'react-router-dom';
 import {
     ButtonPrimary,
     Input,
@@ -7,16 +7,19 @@ import {
 import translator from '../services/translator';
 import * as globalConfig from '../../../global-config';
 import VerificationCodesService from '../services/VerificationCodesService';
+import withNavigation from '../wrappers/withNavigation';
 
 interface IEmailVerificationRouterProps {
-
+    navigation: {
+        navigate: NavigateFunction;
+    }
 }
-
-type IEmailVerificationProps = RouteComponentProps<IEmailVerificationRouterProps>
 
 interface IEmailVerificationDispatchProps {
 // Add your dispatcher properties here
 }
+
+interface IEmailVerificationProps extends IEmailVerificationRouterProps, IEmailVerificationDispatchProps {}
 
 interface IEmailVerificationState {
     email: string;
@@ -30,7 +33,7 @@ const envVars = globalConfig[process.env.NODE_ENV];
 /**
  * EmailVerification
  */
-export class EmailVerificationComponent extends React.Component<IEmailVerificationProps & IEmailVerificationDispatchProps, IEmailVerificationState> {
+export class EmailVerificationComponent extends React.Component<IEmailVerificationProps, IEmailVerificationState> {
     private translate: Function;
 
     constructor(props: IEmailVerificationProps & IEmailVerificationDispatchProps) {
@@ -55,8 +58,7 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                 this.setState({
                     verificationStatus: 'success',
                 }, () => {
-                    this.props.history.push({
-                        pathname: '/login',
+                    this.props.navigation.navigate('/login', {
                         state: {
                             successMessage: this.translate('pages.emailVerification.successVerifiedMessage'),
                         },
@@ -79,8 +81,7 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
         event.preventDefault();
         VerificationCodesService.resendVerification(this.state.email)
             .then(() => {
-                this.props.history.push({
-                    pathname: '/login',
+                this.props.navigation.navigate('/login', {
                     state: {
                         successMessage: this.translate('pages.emailVerification.failedMessageVerificationResent', {
                             email: this.state.email,
@@ -90,8 +91,7 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
             })
             .catch((error) => {
                 if (error.message === 'Email already verified') {
-                    this.props.history.push({
-                        pathname: '/login',
+                    this.props.navigation.navigate('/login', {
                         state: {
                             successMessage: this.translate('pages.emailVerification.failedMessageAlreadyVerified'),
                         },
@@ -179,4 +179,4 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
     }
 }
 
-export default withRouter(EmailVerificationComponent);
+export default withNavigation(EmailVerificationComponent);

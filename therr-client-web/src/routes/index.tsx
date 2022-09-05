@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { RouteProps } from 'react-router-dom';
+import { RouteObject } from 'react-router-dom';
 import { AccessCheckType, IAccess } from 'therr-react/types';
 import { AccessLevels } from 'therr-js-utilities/constants';
+import { AuthRoute } from 'therr-react/components';
 import Forum from './Forum';
 import CreateForum from './CreateForum';
 import CreateProfile from './CreateProfile';
@@ -16,40 +17,38 @@ import ChangePassword from './ChangePassword';
 import Discovered from './Discovered';
 import UnderConstruction from './UnderConstruction';
 
-export interface IRoute extends RouteProps {
+export interface IRoute extends RouteObject {
     access?: IAccess;
-    exact?: boolean;
     fetchData?: Function;
     // Overriding this property allows us to add custom paramaters to React components
-    component?: any;
     redirectPath?: string;
-    render?: any;
 }
 
 export interface IRoutePropsConfig {
     onInitMessaging?: any;
+    isAuthorized: Function
 }
 
-const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
+const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     {
         path: '/',
-        component: Home,
-        exact: true,
+        element: <Home />,
     },
     {
         path: '/forums/:roomId',
-        component: Forum,
-        exact: true,
-        access: {
-            type: AccessCheckType.ALL,
-            levels: [AccessLevels.EMAIL_VERIFIED],
-        },
-        redirectPath: '/create-profile',
+        element: <AuthRoute
+            component={Forum}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            path={'/forums/:roomId'}
+            redirectPath={'/create-profile'}
+        />,
     },
     {
         path: '/create-forum',
-        component: CreateForum,
-        exact: true,
+        element: <CreateForum />,
         access: {
             type: AccessCheckType.ALL,
             levels: [AccessLevels.EMAIL_VERIFIED],
@@ -58,8 +57,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
     },
     {
         path: '/create-profile',
-        component: CreateProfile,
-        exact: true,
+        element: <CreateProfile />,
         access: {
             type: AccessCheckType.ALL,
             levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
@@ -68,8 +66,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
     },
     {
         path: '/users/change-password',
-        component: ChangePassword,
-        exact: true,
+        element: <ChangePassword />,
         access: {
             type: AccessCheckType.ANY,
             levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
@@ -78,28 +75,23 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
     },
     {
         path: '/reset-password',
-        component: ResetPassword,
-        exact: true,
+        element: <ResetPassword />,
     },
     {
         path: '/verify-account',
-        component: EmailVerification,
-        exact: true,
+        element: <EmailVerification />,
     },
     {
         path: '/login',
-        component: Login,
-        exact: true,
+        element: <Login />,
     },
     {
         path: '/register',
-        component: Register,
-        exact: true,
+        element: <Register />,
     },
     {
         path: '/user/profile',
-        render: (routeProps) => <UserProfile onInitMessaging={routePropsConfig.onInitMessaging} {...routeProps} />, // eslint-disable-line react/display-name
-        exact: true,
+        element: <UserProfile onInitMessaging={routePropsConfig.onInitMessaging} />, // eslint-disable-line react/display-name
         access: {
             type: AccessCheckType.ALL,
             levels: [AccessLevels.EMAIL_VERIFIED],
@@ -108,8 +100,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
     },
     {
         path: '/discovered',
-        render: Discovered,
-        exact: true,
+        element: <Discovered />,
         access: {
             type: AccessCheckType.ALL,
             levels: [AccessLevels.EMAIL_VERIFIED],
@@ -118,8 +109,7 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
     },
     {
         path: '/user/go-mobile',
-        render: UnderConstruction, // eslint-disable-line react/display-name
-        exact: true,
+        element: <UnderConstruction />, // eslint-disable-line react/display-name
         access: {
             type: AccessCheckType.ALL,
             levels: [AccessLevels.EMAIL_VERIFIED],
@@ -129,7 +119,8 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig = {}): IRoute[] => [
 
     // If no route matches, return NotFound component
     {
-        component: PageNotFound,
+        path: '*',
+        element: <PageNotFound />,
     },
 ];
 

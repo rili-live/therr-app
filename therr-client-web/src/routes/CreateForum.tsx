@@ -1,19 +1,22 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { NavigateFunction } from 'react-router-dom';
 import {
     Input,
     ButtonPrimary,
 } from 'therr-react/components';
 import { ForumActions } from 'therr-react/redux/actions';
 import { IForumsState, IUserState } from 'therr-react/types';
+import withNavigation from '../wrappers/withNavigation';
 import translator from '../services/translator';
 import formatHashtags from '../utilities/formatHashtags';
 // import * as globalConfig from '../../../global-config';
 
 interface ICreateForumRouterProps {
-    history: any;
+    navigation: {
+        navigate: NavigateFunction;
+    }
 }
 
 interface ICreateForumDispatchProps {
@@ -27,7 +30,7 @@ interface IStoreProps extends ICreateForumDispatchProps {
 }
 
 // Regular component props
-interface ICreateForumProps extends RouteComponentProps<ICreateForumRouterProps>, IStoreProps {
+interface ICreateForumProps extends ICreateForumRouterProps, IStoreProps {
 }
 
 interface ICreateForumState {
@@ -199,8 +202,7 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
             this.props
                 .createHostedChat(createArgs)
                 .then((response) => {
-                    this.props.history.push({
-                        pathname: `/forums/${response.id}`,
+                    this.props.navigation.navigate(`/forums/${response.id}`, {
                         state: {
                             roomName: response.title,
                         },
@@ -305,4 +307,4 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(CreateForumComponent));
+export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(CreateForumComponent));

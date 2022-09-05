@@ -13,8 +13,16 @@ import {
     IUserConnectionsState,
 } from 'therr-react/types';
 import { bindActionCreators } from 'redux';
+import { NavigateFunction } from 'react-router-dom';
 import translator from '../../services/translator';
 import CreateConnectionForm from '../forms/CreateConnectionForm';
+import withNavigation from '../../wrappers/withNavigation';
+
+interface IMeassagesRouterProps {
+    navigation: {
+        navigate: NavigateFunction;
+    }
+}
 
 interface IMessagesMenuDispatchProps {
     createUserConnection: Function;
@@ -23,14 +31,13 @@ interface IMessagesMenuDispatchProps {
 }
 
 interface IStoreProps extends IMessagesMenuDispatchProps {
-    history: any;
     forums: IForumsState;
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
 
 // Regular component props
-interface IMessagesMenuProps extends IStoreProps {
+interface IMessagesMenuProps extends IStoreProps, IMeassagesRouterProps {
     toggleMessaging: Function;
     toggleNavMenu: Function;
     onInitMessaging: Function;
@@ -107,10 +114,9 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
 
         switch (destination) {
             case 'create-forum':
-                return this.props.history.push('/create-forum');
+                return this.props.navigation.navigate('/create-forum');
             case 'forums':
-                return this.props.history.push({
-                    pathname: `/forums/${params.roomKey}`,
+                return this.props.navigation.navigate(`/forums/${params.roomKey}`, {
                     state,
                 });
             default:
@@ -274,4 +280,4 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(MessagesMenuComponent);
+export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(MessagesMenuComponent));

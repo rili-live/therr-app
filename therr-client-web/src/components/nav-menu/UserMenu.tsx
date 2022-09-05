@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { NavigateFunction } from 'react-router-dom';
 import {
     ButtonPrimary,
     SvgButton,
@@ -12,6 +13,13 @@ import { IUserState, INotificationsState, INotification } from 'therr-react/type
 import { bindActionCreators } from 'redux';
 import Notification from './Notification';
 import translator from '../../services/translator';
+import withNavigation from '../../wrappers/withNavigation';
+
+interface IUserMenuRouterProps {
+    navigation: {
+        navigate: NavigateFunction;
+    };
+}
 
 interface IUserMenuDispatchProps {
     updateNotification: Function;
@@ -24,10 +32,9 @@ interface IStoreProps extends IUserMenuDispatchProps {
 }
 
 // Regular component props
-interface IUserMenuProps extends IStoreProps {
+interface IUserMenuProps extends IUserMenuRouterProps, IStoreProps {
     handleLogout: any;
     handleWidthResize: Function;
-    history: any;
     toggleNavMenu: Function;
 }
 
@@ -119,11 +126,11 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
 
         switch (destination) {
             case 'change-password':
-                return this.props.history.push('/users/change-password');
+                return this.props.navigation.navigate('/users/change-password');
             case 'view-profile':
-                return this.props.history.push('/user/profile');
+                return this.props.navigation.navigate('/user/profile');
             case 'edit-profile':
-                return this.props.history.push('/user/profile');
+                return this.props.navigation.navigate('/user/profile');
             default:
         }
     }
@@ -268,4 +275,4 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(UserMenuComponent);
+export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(UserMenuComponent));

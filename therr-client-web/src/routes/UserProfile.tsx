@@ -1,14 +1,18 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { NavigateFunction } from 'react-router-dom';
 import { UserConnectionsActions } from 'therr-react/redux/actions';
 import { IUserState, IUserConnectionsState } from 'therr-react/types';
 import CreateConnectionForm from '../components/forms/CreateConnectionForm';
 import translator from '../services/translator';
+import withNavigation from '../wrappers/withNavigation';
 
-// interface IUserProfileRouterProps {
-// }
+interface IUserProfileRouterProps {
+    navigation: {
+        navigate: NavigateFunction;
+    }
+}
 
 interface IUserProfileDispatchProps {
     createUserConnection: Function;
@@ -21,7 +25,7 @@ interface IStoreProps extends IUserProfileDispatchProps {
 }
 
 // Regular component props
-interface IUserProfileProps extends RouteComponentProps<{}>, IStoreProps {
+interface IUserProfileProps extends IUserProfileRouterProps, IStoreProps {
     onInitMessaging?: Function;
 }
 
@@ -82,7 +86,7 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
     }
 
     onCreateForumClick = () => {
-        this.props.history.push('/create-forum');
+        this.props.navigation.navigate('/create-forum');
     }
 
     public render(): JSX.Element | null {
@@ -160,4 +164,4 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(UserProfileComponent));
+export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(UserProfileComponent));

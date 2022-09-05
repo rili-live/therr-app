@@ -26,7 +26,9 @@ const entry = {
 
 // This allows us to output multiple css theme files
 fs.readdirSync(PATHS.themes).forEach((pathName) => {
-    entry[`theme-${pathName}`] = `${PATHS.themes}/${pathName}/index.ts`;
+    if (pathName !== '_sample') {
+        entry[`theme-${pathName}`] = `${PATHS.themes}/${pathName}/index.ts`;
+    }
 });
 
 const common = merge([
