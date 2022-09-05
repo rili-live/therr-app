@@ -2,14 +2,18 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { NavigateFunction } from 'react-router-dom';
 import { IUserState } from 'therr-react/types';
 import translator from '../services/translator';
 import LoginForm from '../components/forms/LoginForm';
 import { shouldRenderLoginForm, ILoginProps, routeAfterLogin } from './Login';
 import UsersActions from '../redux/actions/UsersActions';
+import withNavigation from '../wrappers/withNavigation';
 
 interface IHomeRouterProps {
+    navigation: {
+        navigate: NavigateFunction;
+    }
 }
 
 interface IHomeDispatchProps {
@@ -21,7 +25,7 @@ interface IStoreProps extends IHomeDispatchProps {
 }
 
 // Regular component props
-interface IHomeProps extends RouteComponentProps<IHomeRouterProps>, IStoreProps {
+interface IHomeProps extends IHomeRouterProps, IStoreProps {
 }
 
 interface IHomeState {
@@ -44,7 +48,7 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
     static getDerivedStateFromProps(nextProps: IHomeProps) {
         if (!shouldRenderLoginForm(nextProps as ILoginProps)) {
-            nextProps.history.push(routeAfterLogin);
+            nextProps.navigation.navigate(routeAfterLogin);
             return null;
         }
         return {};
@@ -98,4 +102,4 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(HomeComponent));
+export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(HomeComponent));

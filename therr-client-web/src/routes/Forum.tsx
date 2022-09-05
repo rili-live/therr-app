@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import classnames from 'classnames';
@@ -16,17 +15,18 @@ import {
     IUserState,
 } from 'therr-react/types';
 import translator from '../services/translator';
+import withNavigation from '../wrappers/withNavigation';
 
 const userColors: any = {}; // local state
 
 const verifyAndJoinForum = (props) => {
-    if (!props.location?.state || !props.match.params?.roomId) {
+    if (!props.location?.state || !props.routePrams?.roomId) {
         props.history.push('/create-forum');
         return;
     }
 
     props.joinForum({
-        roomId: props.match.params.roomId,
+        roomId: props.routePrams.roomId,
         roomName: (props.location?.state as any)?.roomName,
         userName: props.user.details.userName,
         userImgSrc: `https://robohash.org/${props.user.details.id}`,
@@ -100,10 +100,12 @@ interface IForumDispatchProps {
 interface IStoreProps extends IForumDispatchProps {
     messages: IMessagesState;
     user: IUserState;
+    routePrams: IForumRouterProps
 }
 
 // Regular component props
-interface IForumProps extends RouteComponentProps<IForumRouterProps>, IStoreProps {
+interface IForumProps extends IStoreProps {
+    location: any;
 }
 
 interface IForumState {
@@ -132,12 +134,12 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
  */
 export class ForumComponent extends React.Component<IForumProps, IForumState> {
     static getDerivedStateFromProps(nextProps: IForumProps, nextState: IForumState) {
-        if (nextState.isFirstLoad || nextProps.match.params.roomId !== nextState.previousRoomId) {
+        if (nextState.isFirstLoad || nextProps.routePrams.roomId !== nextState.previousRoomId) {
             verifyAndJoinForum(nextProps);
 
             return {
                 isFirstLoad: false,
-                previousRoomId: nextProps.match.params.roomId,
+                previousRoomId: nextProps.routePrams.roomId,
             };
         }
         return {};
@@ -155,7 +157,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
         this.state = {
             inputs: {},
             isFirstLoad: true,
-            previousRoomId: props.match.params.roomId,
+            previousRoomId: props.routePrams.roomId,
         };
 
         this.messageInputRef = React.createRef();
@@ -181,7 +183,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
 
     componentWillUnmount() {
         this.props.leaveForum({
-            roomId: this.props.match.params.roomId,
+            roomId: this.props.routePrams.roomId,
             userName: this.props.user.details.userName,
             userImgSrc: `https://robohash.org/${this.props.user.details.id}`,
         });
@@ -272,4 +274,4 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ForumComponent));
+export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(ForumComponent));

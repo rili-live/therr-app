@@ -625,12 +625,28 @@ select .options-list .option-container.ax-active,
   margin: 0.5rem;
 }
 
+.margin-top-sm {
+  margin-top: 1rem;
+}
+
+.margin-top-md {
+  margin-top: 1.5rem;
+}
+
+.margin-top-lg {
+  margin-top: 2rem;
+}
+
 .margin-bot-sm {
   margin-bottom: 0.5rem;
 }
 
 .margin-bot-md {
   margin-bottom: 1.5rem;
+}
+
+.margin-bot-lg {
+  margin-bottom: 2rem;
 }
 
 .margin-md {

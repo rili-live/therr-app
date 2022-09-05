@@ -8,6 +8,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { MapActions } from 'therr-react/redux/actions';
 import { IMapReduxState } from 'therr-react/types';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
+import DeviceInfo from 'react-native-device-info';
 import RoundInput from '.';
 import translator from '../../services/translator';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
@@ -122,12 +123,15 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
         const textStyle = !inputText?.length
             ? [themeForms.styles.placeholderText, { fontSize: 16 }]
             : [themeForms.styles.inputText, { fontSize: 16 }];
+        const containerWidth = DeviceInfo.isTablet()
+            ? screenWidth - 248
+            : screenWidth - 124;
 
         return (
             <RoundInput
                 errorStyle={{ display: 'none' }}
                 style={textStyle}
-                containerStyle={[theme.styles.headerSearchContainer, { width: screenWidth - 124 }]}
+                containerStyle={[theme.styles.headerSearchContainer, { width: containerWidth }]}
                 inputStyle={
                     [
                         Platform.OS !== 'ios'

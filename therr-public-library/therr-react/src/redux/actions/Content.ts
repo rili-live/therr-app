@@ -10,12 +10,10 @@ interface IActiveMomentsFilters {
 
 const Content = {
     // Moments
-    insertActiveMoments: (newActiveMoments: any) => (dispatch: any) => {
-        dispatch({
-            type: ContentActionTypes.INSERT_ACTIVE_MOMENTS,
-            data: newActiveMoments,
-        });
-    },
+    insertActiveMoments: (newActiveMoments: any) => (dispatch: any) => dispatch({
+        type: ContentActionTypes.INSERT_ACTIVE_MOMENTS,
+        data: newActiveMoments,
+    }),
     searchActiveMoments: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
         .searchActiveMoments(options, limit)
         .then((response: any) => {

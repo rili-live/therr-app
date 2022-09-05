@@ -269,6 +269,8 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         if (!route.params?.longitude || !route.params?.latitude) {
             this.handleSearchSelect(DEFAULT_MAP_SEARCH);
+        } else {
+            this.handleSearchThisLocation(undefined, route.params?.latitude, route.params?.longitude);
         }
 
         this.unsubscribeNavigationListener = navigation.addListener('state', () => {
@@ -1237,6 +1239,11 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     }
 
+    onClusterPress = (/* cluster, markers */) => {
+        // if (Platform.OS === 'android') {
+        // }
+    }
+
     showAreaAlert = () => {
         this.setState({
             isAreaAlertVisible: true,
@@ -1507,6 +1514,10 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 clusterColor={this.theme.colors.brandingBlueGreen}
                                 clusterFontFamily={this.theme.styles.headerTitleStyle.fontFamily}
                                 clusterTextColor={this.theme.colors.brandingWhite}
+                                onClusterPress={this.onClusterPress}
+                                // preserveClusterPressBehavior={true}
+                                animationEnabled={false} // iOS Only
+                                spiderLineColor="#FF0000"
                             >
                                 <Circle
                                     center={circleCenter}

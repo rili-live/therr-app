@@ -1,19 +1,20 @@
 import * as React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
-import { Status } from 'therr-react/components';
+import { NavigateFunction } from 'react-router-dom';
 import translator from '../services/translator';
 import * as globalConfig from '../../../global-config';
+import withNavigation from '../wrappers/withNavigation';
 
 interface IPageNotFoundRouterProps {
-
+    navigation: {
+        navigate: NavigateFunction;
+    }
 }
-
-type IPageNotFoundProps = RouteComponentProps<IPageNotFoundRouterProps>
 
 interface IPageNotFoundDispatchProps {
 // Add your dispatcher properties here
 }
 
+interface IPageNotFoundProps extends IPageNotFoundRouterProps, IPageNotFoundDispatchProps {}
 interface IPageNotFoundState {
 }
 
@@ -23,7 +24,7 @@ const envVars = globalConfig[process.env.NODE_ENV];
 /**
  * PageNotFound
  */
-export class PageNotFoundComponent extends React.Component<IPageNotFoundProps & IPageNotFoundDispatchProps, IPageNotFoundState> {
+export class PageNotFoundComponent extends React.Component<IPageNotFoundProps, IPageNotFoundState> {
     private translate: Function;
 
     constructor(props: IPageNotFoundProps & IPageNotFoundDispatchProps) {
@@ -40,13 +41,11 @@ export class PageNotFoundComponent extends React.Component<IPageNotFoundProps & 
 
     render() {
         return (
-            <Status statusCode={404} {...this.props}>
-                <div id="page_page_not_found">
-                    <h1>404 | {this.translate('pages.pageNotFound.pageTitle')}</h1>
-                </div>
-            </Status>
+            <div id="page_page_not_found">
+                <h1>404 | {this.translate('pages.pageNotFound.pageTitle')}</h1>
+            </div>
         );
     }
 }
 
-export default withRouter(PageNotFoundComponent);
+export default withNavigation(PageNotFoundComponent);

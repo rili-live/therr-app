@@ -1,13 +1,17 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { NavigateFunction } from 'react-router-dom';
 import { ContentActions } from 'therr-react/redux/actions';
 import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import translator from '../../services/translator';
 import Tile from './Tile';
+import withNavigation from '../../wrappers/withNavigation';
 
 interface IDiscoveredRouterProps {
+    navigation: {
+        navigate: NavigateFunction;
+    }
 }
 
 interface IDiscoveredDispatchProps {
@@ -29,7 +33,7 @@ interface IStoreProps extends IDiscoveredDispatchProps {
 }
 
 // Regular component props
-interface IDiscoveredProps extends RouteComponentProps<IDiscoveredRouterProps>, IStoreProps {
+interface IDiscoveredProps extends IDiscoveredRouterProps, IStoreProps {
 }
 
 interface IDiscoveredState {
@@ -141,4 +145,4 @@ export class DiscoveredComponent extends React.Component<IDiscoveredProps, IDisc
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(DiscoveredComponent));
+export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(DiscoveredComponent));

@@ -1,26 +1,29 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { Location, NavigateFunction } from 'react-router-dom';
 import { IUserState } from 'therr-react/types';
 import translator from '../services/translator';
 import UsersActions from '../redux/actions/UsersActions';
+import withNavigation from '../wrappers/withNavigation';
 
 interface IUnderConstructionAppRouterProps {
-    history: any;
-    location: any;
+    location: Location;
+    navigation: {
+        navigate: NavigateFunction;
+    }
 }
 
 interface IUnderConstructionAppDispatchProps {
     login: Function;
 }
 
-interface IStoreProps extends IUnderConstructionAppDispatchProps {
+interface IStoreProps extends IUnderConstructionAppDispatchProps, IUnderConstructionAppRouterProps {
     user: IUserState;
 }
 
 // Regular component props
-export interface IUnderConstructionAppProps extends RouteComponentProps<IUnderConstructionAppRouterProps>, IStoreProps {
+export interface IUnderConstructionAppProps extends IUnderConstructionAppRouterProps, IStoreProps {
 }
 
 interface IUnderConstructionAppState {
@@ -88,4 +91,4 @@ export class UnderConstructionAppComponent extends React.Component<IUnderConstru
     }
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(UnderConstructionAppComponent));
+export default withNavigation(connect(mapStateToProps, mapDispatchToProps)(UnderConstructionAppComponent));

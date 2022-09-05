@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-unresolved
 import io from 'socket.io-client';
 import createSocketIoMiddleware from 'redux-socket.io';
 import { SOCKET_MIDDLEWARE_ACTION, SocketClientActionTypes, WEB_CLIENT_PREFIX } from 'therr-js-utilities/constants';
