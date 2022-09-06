@@ -466,6 +466,33 @@ class HeaderMenuRight extends React.Component<
                                             </View>
                                             <Button
                                                 buttonStyle={
+                                                    currentScreen === 'Achievements'
+                                                        ? themeMenu.styles.buttonsActive
+                                                        : themeMenu.styles.buttons
+                                                }
+                                                containerStyle={{ width: '100%' }}
+                                                titleStyle={
+                                                    currentScreen === 'Achievements'
+                                                        ? themeMenu.styles.buttonsTitleActive
+                                                        : themeMenu.styles.buttonsTitle
+                                                }
+                                                title={this.translate('components.headerMenuRight.menuItems.achievements')}
+                                                icon={
+                                                    <FontAwesomeIcon
+                                                        style={
+                                                            currentScreen === 'Achievements'
+                                                                ? themeMenu.styles.iconStyleActive
+                                                                : themeMenu.styles.iconStyle
+                                                        }
+                                                        name={'trophy'}
+                                                        size={18}
+                                                    />
+                                                }
+                                                iconRight
+                                                onPress={() => this.navTo('Achievements')}
+                                            />
+                                            <Button
+                                                buttonStyle={
                                                     currentScreen === 'MyDrafts'
                                                         ? themeMenu.styles.buttonsActive
                                                         : themeMenu.styles.buttons

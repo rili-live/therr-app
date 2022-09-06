@@ -138,6 +138,7 @@ class UsersService {
         },
     })
 
+    // Social Synce
     createUpdateSocialSyncs = (socialSyncs: ISocialSyncs) => axios({
         method: 'post',
         url: '/users-service/social-sync',
@@ -147,6 +148,12 @@ class UsersService {
     getSocialSyncs = (userId: string) => axios({
         method: 'get',
         url: `/users-service/social-sync/${userId}`,
+    })
+
+    // Achievements
+    getMyAchievements = () => axios({
+        method: 'get',
+        url: '/users-service/users/achievements',
     })
 }
 

@@ -13,6 +13,7 @@ import DirectMessage from './DirectMessage';
 import Landing from './Landing';
 import Login from './Login';
 import Map from './Map';
+import Achievements from './Achievements';
 import Areas from './Areas';
 import ActiveConnections from './ActiveConnections';
 import Contacts from './Contacts';
@@ -112,6 +113,17 @@ const routes: RouteConfig<
         component: Map,
         options: () => ({
             title: 'Map',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'Achievements',
+        component: Achievements,
+        options: () => ({
+            title: 'Achievements',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
