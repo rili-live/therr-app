@@ -1,3 +1,1 @@
 # therr-api-gateway
-
-...
