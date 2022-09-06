@@ -392,6 +392,15 @@ class UsersActions {
             },
         });
     };
+
+    getMyAchievements = () => (dispatch: any) => UsersService.getMyAchievements().then((response) => {
+        dispatch({
+            type: UserActionTypes.GET_MY_ACHIEVEMENTS,
+            data: response?.data,
+        });
+
+        return response?.data;
+    });
 }
 
 export default UsersActions;

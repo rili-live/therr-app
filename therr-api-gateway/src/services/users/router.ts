@@ -30,6 +30,12 @@ import { createUpdateSocialSyncsValidation } from './validation/socialSyncs';
 
 const usersServiceRouter = express.Router();
 
+// Achievements
+usersServiceRouter.get('/users/achievements', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
 // Auth
 usersServiceRouter.post('/auth', loginAttemptLimiter, authenticateUserValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,

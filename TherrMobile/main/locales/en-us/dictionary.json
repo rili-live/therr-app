@@ -146,6 +146,7 @@
     },
     "headerMenuRight": {
       "menuItems": {
+        "achievements": "Achievements",
         "account": "Account Settings",
         "addConnection": "Add/Invite Connections",
         "bookmarks": "Bookmarks",
@@ -506,6 +507,13 @@
     }
   },
   "pages": {
+    "achievements": {
+      "headerTitle": "Achievements",
+      "pageHeader": "Achievements",
+      "info": {
+        "noAchievementsFound": "Start using the app to activate new achievements and rewards."
+      }
+    },
     "activeConnections": {
       "headerTitle": "Connections"
     },

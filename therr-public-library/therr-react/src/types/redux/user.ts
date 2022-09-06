@@ -1,4 +1,5 @@
 import * as Immutable from 'seamless-immutable';
+import { IAchievement } from 'therr-js-utilities/config';
 
 type IAccessLevel = Array<string>;
 
@@ -27,7 +28,10 @@ export interface ISocketDetails extends Immutable.ImmutableObject<any> {
   session?: any;
 }
 
+export interface IAchievementsState extends Immutable.ImmutableObject<any> { [key: string]: any }
+
 export interface IUserState extends Immutable.ImmutableObject<any> {
+  achievements: IAchievementsState;
   details: IUser;
   settings: IUserSettings;
   socketDetails: ISocketDetails;
@@ -36,6 +40,7 @@ export interface IUserState extends Immutable.ImmutableObject<any> {
 }
 
 export enum UserActionTypes {
+  GET_MY_ACHIEVEMENTS = 'GET_MY_ACHIEVEMENTS',
   GET_USER = 'GET_USER',
   LOGIN = 'LOGIN',
   UPDATE_USER_TOUR = 'UPDATE_USER_TOUR',
