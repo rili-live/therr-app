@@ -3,6 +3,7 @@ import { SocketClientActionTypes, SocketServerActionTypes } from 'therr-js-utili
 import { IUserState, UserActionTypes } from '../../types/redux/user';
 
 const initialState: IUserState = Immutable.from({
+    achievements: {},
     details: null,
     settings: {
         locale: 'en-us',
@@ -22,6 +23,8 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
     const actionData = { ...action.data };
 
     switch (action.type) {
+        case UserActionTypes.GET_MY_ACHIEVEMENTS:
+            return state.setIn(['achievements'], action.data);
         case SocketServerActionTypes.JOINED_ROOM:
             return state
                 .setIn(['socketDetails', 'currentRoom'], action.data.roomId);

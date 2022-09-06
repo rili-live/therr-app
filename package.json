@@ -4,7 +4,7 @@
   "description": "The main Therr app root",
   "main": "index.js",
   "engines": {
-    "npm": ">=8.5.5"
+    "npm": ">=8.19.1"
   },
   "scripts": {
     "build:all": "npm run prep && _bin/apply-to-all.sh 'npm run build'",
@@ -20,8 +20,8 @@
     "install:base": "npm run prep && npm install && _bin/apply-to-all.sh 'npm install' rootOnly",
     "install:all": "npm run prep && npm install && _bin/apply-to-all.sh 'npm install'",
     "audit:all": "npm run prep && npm audit fix && _bin/apply-to-all.sh 'npm audit fix'",
-    "install:all:ci": "npm run prep && npm ci --no-optional && _bin/apply-to-all.sh 'npm ci --no-optional'",
-    "install:base:ci": "npm run prep && npm ci --no-optional && _bin/apply-to-all.sh 'npm ci --no-optional' rootOnly",
+    "install:all:ci": "npm run prep && npm ci --omit=optional && _bin/apply-to-all.sh 'npm ci --omit=optional'",
+    "install:base:ci": "npm run prep && npm ci --omit=optional --legacy-peer-deps && _bin/apply-to-all.sh 'npm ci --omit=optional' --legacy-peer-deps rootOnly",
     "k8s:apply": "kubectl apply -f k8s/prod --validate=false",
     "k8s:dev": "skaffold dev",
     "seeds:create": "node --require=./node_modules/dotenv/config ./node_modules/.bin/knex --require @babel/register --knexfile ./therr-services/users-service/src/store/knexfile.js seed:make $1 dotenv_config_path=./.env",
@@ -196,8 +196,8 @@
     "ioredis": "^4.28.5",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.95.15",
-    "logrocket": "^2.2.1",
-    "logrocket-react": "^4.0.1",
+    "logrocket": "^3.0.1",
+    "logrocket-react": "^5.0.1",
     "moment": "^2.29.4",
     "normalize-email": "^1.1.1",
     "password-generator": "^2.3.2",

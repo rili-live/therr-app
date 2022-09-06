@@ -52,6 +52,7 @@ const forFade = ({ current }) => ({
 });
 
 interface ILayoutDispatchProps {
+    getMyAchievements: Function;
     logout: Function;
     addNotification: Function;
     insertActiveMoments: Function;
@@ -86,6 +87,7 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
+            getMyAchievements: UsersActions.getMyAchievements,
             logout: UsersActions.logout,
             addNotification: NotificationActions.add,
             searchNotifications: NotificationActions.search,
@@ -141,6 +143,8 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
 
         this.nativeEventListener = PlatformNativeEventEmitter?.addListener('new-intent-action', this.handleNotificationEvent);
         this.urlEventListener = Linking.addEventListener('url', this.handleUrlEvent);
+
+        this.prefetchContent();
     }
 
     componentDidUpdate(prevProps: ILayoutProps) {
@@ -150,7 +154,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             addNotification,
             insertActiveMoments,
             searchCategories,
-            searchNotifications,
             updateLocationPermissions,
             user,
             updateUser,
@@ -182,14 +185,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     });
                 }
 
-                // Pre-load notifications
-                searchNotifications({
-                    filterBy: 'userId',
-                    query: user.details.id,
-                    itemsPerPage: 20,
-                    pageNumber: 1,
-                    order: 'desc',
-                });
+                this.prefetchContent();
 
                 if (!forums?.forumCategories || !forums.forumCategories.length) {
                     searchCategories({
@@ -289,6 +285,27 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         this.themeModal = buildModalStyles(themeName);
         if (shouldForceUpdate) {
             this.forceUpdate();
+        }
+    }
+
+    prefetchContent = () => {
+        const {
+            getMyAchievements,
+            searchNotifications,
+            user,
+        } = this.props;
+        if (user.isAuthenticated) {
+            // Pre-load achievements
+            getMyAchievements();
+
+            // Pre-load notifications
+            searchNotifications({
+                filterBy: 'userId',
+                query: user.details.id,
+                itemsPerPage: 20,
+                pageNumber: 1,
+                order: 'desc',
+            });
         }
     }
 
