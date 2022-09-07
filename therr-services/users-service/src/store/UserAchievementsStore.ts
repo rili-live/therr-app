@@ -42,7 +42,7 @@ export default class UserAchievementsStore {
         this.db = dbConnection;
     }
 
-    get(conditions: { achievementId?: string, achievementClass?: string, achievementTier?: string, userId: string }) {
+    get(conditions: { id?: string, achievementId?: string, achievementClass?: string, achievementTier?: string, userId: string }) {
         const queryString = knexBuilder.select()
             .from(USER_ACHIEVEMENTS_TABLE_NAME)
             .where(conditions)
