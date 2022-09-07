@@ -21,10 +21,16 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
     }
 
     const actionData = { ...action.data };
+    const modifiedAchievements = { ...state.achievements };
 
     switch (action.type) {
         case UserActionTypes.GET_MY_ACHIEVEMENTS:
             return state.setIn(['achievements'], action.data);
+        case UserActionTypes.UPDATE_MY_ACHIEVEMENTS:
+            if (modifiedAchievements[action.data.id]) {
+                modifiedAchievements[action.data.id] = action.data;
+            }
+            return state.setIn(['achievements'], modifiedAchievements);
         case SocketServerActionTypes.JOINED_ROOM:
             return state
                 .setIn(['socketDetails', 'currentRoom'], action.data.roomId);
@@ -66,6 +72,17 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
                 ...state.settings,
                 ...action.data,
             });
+        case UserActionTypes.UPDATE_USER_POINTS:
+            return state
+                .setIn(['details'], {
+                    ...state.details,
+                    settingsTherrCoinTotal: parseFloat(state.details.settingsTherrCoinTotal)
+                        + parseFloat(action.data.settingsTherrCoinTotal),
+                }).setIn(['settings'], {
+                    ...state.settings,
+                    settingsTherrCoinTotal: parseFloat(state.settings.settingsTherrCoinTotal)
+                        + parseFloat(action.data.settingsTherrCoinTotal),
+                });
         case SocketClientActionTypes.LOGOUT:
             return state.setIn(['isAuthenticated'], false)
                 .setIn(['socketDetails'], {})

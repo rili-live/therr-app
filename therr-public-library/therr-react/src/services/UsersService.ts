@@ -151,6 +151,11 @@ class UsersService {
     })
 
     // Achievements
+    claimMyAchievement = (id: string) => axios({
+        method: 'post',
+        url: `/users-service/users/achievements/${id}/claim`,
+    })
+
     getMyAchievements = () => axios({
         method: 'get',
         url: '/users-service/users/achievements',

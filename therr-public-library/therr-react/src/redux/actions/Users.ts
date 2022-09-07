@@ -393,10 +393,41 @@ class UsersActions {
         });
     };
 
+    claimMyAchievement = (id: string, points: number | string) => (dispatch: any) => UsersService
+        .claimMyAchievement(id).then(async (response) => {
+            const userDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || {});
+            const userSettings = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUserSettings') || {});
+            const userData: IUser = Immutable.from({
+                ...userDetails,
+                settingsTherrCoinTotal: parseFloat(points as string) + parseFloat(userDetails.settingsTherrCoinTotal),
+            });
+            const userSettingsData: IUser = Immutable.from({
+                ...userSettings,
+                settingsTherrCoinTotal: parseFloat(points as string) + parseFloat(userDetails.settingsTherrCoinTotal),
+            });
+            (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
+            (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
+
+            dispatch({
+                type: UserActionTypes.UPDATE_MY_ACHIEVEMENTS,
+                data: response?.data,
+            });
+            dispatch({
+                type: UserActionTypes.UPDATE_USER_POINTS,
+                data: {
+                    settingsTherrCoinTotal: points,
+                },
+            });
+
+            return response?.data;
+        });
+
     getMyAchievements = () => (dispatch: any) => UsersService.getMyAchievements().then((response) => {
+        const mapped = {};
+        response.data?.forEach((ach) => { mapped[ach.id] = ach; });
         dispatch({
             type: UserActionTypes.GET_MY_ACHIEVEMENTS,
-            data: response?.data,
+            data: mapped,
         });
 
         return response?.data;

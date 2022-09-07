@@ -36,6 +36,11 @@ usersServiceRouter.get('/users/achievements', handleServiceRequest({
     method: 'get',
 }));
 
+usersServiceRouter.post('/users/achievements/:id/claim', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
 // Auth
 usersServiceRouter.post('/auth', loginAttemptLimiter, authenticateUserValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
