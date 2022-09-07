@@ -232,10 +232,6 @@ export default class UsersStore {
             .where(normalizedConditions)
             .returning('*');
 
-        if (params.settingsTherrCoinTotal != null) {
-            modifiedParams.settingsTherrCoinTotal = params.settingsTherrCoinTotal;
-        }
-
         // TODO: Ensure this is absolutely secure
         // Maybe create a separate method specifically for updating coins
         if (params.settingsTherrCoinTotal != null && params.settingsTherrCoinTotal > 0) {

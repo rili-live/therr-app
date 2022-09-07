@@ -64,7 +64,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         completeText: {
             fontWeight: '500',
-            color: therrTheme.colors.brandingBlack,
+            color: therrTheme.colors.accent3,
             textAlign: 'center',
         },
     });
