@@ -15,11 +15,17 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         achievementTile: {
             width: '100%',
             display: 'flex',
-            flexDirection: 'row',
+            flexDirection: 'column',
             padding: 16,
             backgroundColor: therrTheme.colors.backgroundWhite,
             borderRadius: 8,
             marginBottom: 16,
+        },
+        achievementTileContainer: {
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'row',
+            paddingBottom: 8,
         },
         cardImageContainer: {
             width: '30%',
@@ -37,6 +43,29 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         progressBar: {
             ...getProgressBarStyles(),
             backgroundColor: therrTheme.colors.primary3,
+        },
+        completedContainer: {
+            display: 'flex',
+            width: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingTop: 4,
+        },
+        claimButton: {
+            width: '100%',
+            backgroundColor: therrTheme.colors.accent3,
+            paddingVertical: 6,
+            borderRadius: 3,
+        },
+        claimText: {
+            fontWeight: '500',
+            color: therrTheme.colors.brandingWhite,
+            textAlign: 'center',
+        },
+        completeText: {
+            fontWeight: '500',
+            color: therrTheme.colors.brandingBlack,
+            textAlign: 'center',
         },
     });
 

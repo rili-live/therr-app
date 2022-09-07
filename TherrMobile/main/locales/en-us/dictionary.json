@@ -511,6 +511,8 @@
       "headerTitle": "Achievements",
       "pageHeader": "Achievements",
       "info": {
+        "claimRewards": "Claim Rewards",
+        "completed": "Completed!",
         "noAchievementsFound": "Start using the app to activate new achievements and rewards."
       }
     },
