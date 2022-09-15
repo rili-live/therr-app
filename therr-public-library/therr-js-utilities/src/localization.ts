@@ -34,7 +34,7 @@ export const configureTranslator = (translations: any) => {
             return `${translations[locale].dailyQuotes[index].quote} - ${translations[locale].dailyQuotes[index].author}`; // eslint-disable-line max-len
         }
 
-        if (translatedValue && typeof params === 'object') {
+        if (translatedValue && typeof params === 'object' && params != null) {
             Object.keys(params).forEach((param) => {
                 translatedValue = translatedValue.replace(`{${param}}`, params[param]);
             });
