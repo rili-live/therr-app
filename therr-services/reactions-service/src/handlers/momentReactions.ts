@@ -5,7 +5,7 @@ import Store from '../store';
 import translate from '../utilities/translator';
 import getReactionValuation from '../utilities/getReactionValuation';
 import requestUsersService from '../utilities/requestUsersService';
-import updateAchievements from 'src/utilities/updateAchievements';
+import updateAchievements from '../utilities/updateAchievements';
 // import * as globalConfig from '../../../../global-config';
 
 const sendUserCoinUpdateRequest = (req, currentReaction) => {
