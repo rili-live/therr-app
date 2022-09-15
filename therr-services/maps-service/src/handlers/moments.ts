@@ -16,6 +16,7 @@ import {
     guessCategoryFromText,
     streamUploadFile,
 } from './helpers';
+import updateAchievements from './helpers/updateAchievements';
 
 const MAX_INTERGRATIONS_PER_USER = 50;
 
@@ -44,7 +45,7 @@ const createMoment = (req, res) => {
                 userHasActivated: true,
             },
         }).then(({ data: reaction }) => {
-            // TODO: This technically leaves room for a gap of time where users may fin
+            // TODO: This technically leaves room for a gap of time where users may find
             // explicit content before it's flag has been updated. We should solve this by
             // marking the content pending before making it available to search
             // Async - fire and forget to prevent slow request
@@ -68,6 +69,12 @@ const createMoment = (req, res) => {
                     });
                 }
             });
+
+            updateAchievements({
+                authorization,
+                locale,
+                userId,
+            }, req.body);
 
             return res.status(201).send({
                 ...moment,
