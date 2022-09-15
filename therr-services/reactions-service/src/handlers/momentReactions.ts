@@ -5,6 +5,7 @@ import Store from '../store';
 import translate from '../utilities/translator';
 import getReactionValuation from '../utilities/getReactionValuation';
 import requestUsersService from '../utilities/requestUsersService';
+import updateAchievements from 'src/utilities/updateAchievements';
 // import * as globalConfig from '../../../../global-config';
 
 const sendUserCoinUpdateRequest = (req, currentReaction) => {
@@ -39,6 +40,12 @@ const createOrUpdateMomentReaction = (req, res) => {
         momentId: req.params.momentId,
     }).then((reactionsResponse) => {
         if (reactionsResponse?.length) {
+            updateAchievements({
+                authorization: req.headers.authorization,
+                locale,
+                userId,
+            }, req.body);
+
             return Store.momentReactions.update({
                 userId,
                 momentId: req.params.momentId,

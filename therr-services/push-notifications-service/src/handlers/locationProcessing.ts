@@ -5,6 +5,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import UserLocationCache from '../store/UserLocationCache';
 import beeline from '../beeline';
 import { activateAreasAndNotify, getAllNearbyAreas } from './helpers/areaLocationHelpers';
+import { updateAchievements } from './helpers/updateAchievements';
 // import translate from '../utilities/translator';
 
 // CREATE/UPDATE
@@ -94,6 +95,8 @@ const processUserLocationChange: RequestHandler = (req, res) => {
                         },
                         userLocationCache,
                     );
+
+                    updateAchievements(headers, momentIdsToActivate, spaceIdsToActivate);
 
                     userLocationCache.removeMoments(momentIdsToActivate, {
                         locale,
