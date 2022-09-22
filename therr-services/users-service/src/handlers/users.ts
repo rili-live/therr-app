@@ -25,7 +25,7 @@ const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(
             });
         }
 
-        return createUserHelper(req.body, false).then((user) => res.status(201).send(user));
+        return createUserHelper(req.body, false, undefined, req.headers['x-localecode']).then((user) => res.status(201).send(user));
     })
     .catch((err) => handleHttpError({
         err,
@@ -389,6 +389,7 @@ const deleteUser = (req, res) => {
             // TODO: Delete reactions in reactions service
             // TODO: Delete messages in messages service
             // TODO: Delete notifications in notifications service
+            // TODO: Delete user session from redis in websocket-service
             sendUserDeletedEmail({
                 subject: '😞 User Account Deleted',
                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],

@@ -46,6 +46,10 @@
           <!-- note that the leading "/" is required for pathPrefix-->
         </intent-filter>
         <intent-filter>
+            <action android:name="app.therrmobile.ACHIEVEMENT_COMPLETED" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
             <action android:name="app.therrmobile.NEW_AREAS_ACTIVATED" />
             <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>

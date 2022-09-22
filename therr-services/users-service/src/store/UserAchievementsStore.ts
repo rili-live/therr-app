@@ -29,7 +29,7 @@ export interface IDBAchievement extends ICreateUserAchievementParams {
     updatedAt: Date;
 }
 
-interface ICreateOrUpdateResponse {
+export interface ICreateOrUpdateResponse {
     created: IDBAchievement[];
     updated: IDBAchievement[];
     action: IResultAction;
@@ -81,7 +81,7 @@ export default class UserAchievementsStore {
     ): Promise<ICreateOrUpdateResponse> {
         let updateAchievementPromise: Promise<any[]> = Promise.resolve([]);
         const achievementsToCreate: ICreateUserAchievementParams[] = [];
-        const currentAchievementIndex = !latestAch ? 0 : tierAchievements.findIndex((ach) => ach.id === latestAch.id);
+        const currentAchievementIndex = !latestAch ? 0 : tierAchievements.findIndex((ach) => ach.id === latestAch.achievementId);
         let achievementsIndex = currentAchievementIndex;
         let remainingCount = totalProgressCount;
 
@@ -93,7 +93,7 @@ export default class UserAchievementsStore {
                 outcomeTag = 'created-next-of-tier';
             } else {
                 outcomeTag = 'updated-in-progress-tier';
-                const completedAt = remainingCount >= tierAchievements[achievementsIndex].countToComplete ? new Date() : undefined;
+                const completedAt = (latestAch.progressCount + remainingCount) >= tierAchievements[achievementsIndex].countToComplete ? new Date() : undefined;
                 const unclaimedRewardPts = completedAt ? tierAchievements[achievementsIndex].pointReward : 0;
                 updateAchievementPromise = this.update(latestAch.id, {
                     progressCount: Math.min(latestAch.progressCount + remainingCount, tierAchievements[achievementsIndex].countToComplete),
@@ -101,6 +101,9 @@ export default class UserAchievementsStore {
                     unclaimedRewardPts,
                 });
                 remainingCount = Math.max(0, (latestAch.progressCount + remainingCount) - tierAchievements[achievementsIndex].countToComplete);
+                if (completedAt) {
+                    achievementsIndex += 1;
+                }
             }
         } else {
             outcomeTag = 'created-first-of-tier';

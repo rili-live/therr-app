@@ -53,7 +53,7 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
     printLogs({
         level: 'info',
         messageOrigin: 'SOCKET_IO_LOGS',
-        messages: `User, ${data.user.userName} with socketId ${socket.id}, updated a userConnection`,
+        messages: `User, ${data.user?.userName} with socketId ${socket.id}, updated a userConnection`,
         tracer: beeline,
         traceArgs: {
             socketId: socket.id,
@@ -74,7 +74,7 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
             redisSessions.getUserById(connection.requestingUserId),
             redisSessions.getUserById(connection.acceptingUserId),
         ]).then(([rUserResponse, aUserResponse]) => {
-            const rUserSocketId = rUserResponse && rUserResponse.socketId;
+            const rUserSocketId = rUserResponse?.socketId;
             if (rUserSocketId) {
                 if (connection.isConnectionBroken) {
                     // send socket event to remove connection and content from blocked/connection-removed user
@@ -90,7 +90,7 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
                         data: connection,
                     });
 
-                    if (aUserResponse.user) {
+                    if (aUserResponse?.user) {
                         const acceptingUser = {
                             ...aUserResponse.user,
                         };
@@ -107,7 +107,7 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
                         data: connection,
                     });
 
-                    if (rUserResponse.user) {
+                    if (rUserResponse?.user) {
                         const requestingUser = {
                             ...rUserResponse.user,
                         };
@@ -134,8 +134,8 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
                     isUnread: true,
                     messageLocaleKey: Notifications.MessageKeys.CONNECTION_REQUEST_ACCEPTED,
                     messageParams: {
-                        firstName: data.user.firstName,
-                        lastName: data.user.lastName,
+                        firstName: data.user?.firstName,
+                        lastName: data.user?.lastName,
                     },
                 },
             }, socket, decodedAuthenticationToken).then(({ data: notification }) => {

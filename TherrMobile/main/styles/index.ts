@@ -150,6 +150,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             justifyContent: 'center',
             display: 'flex',
             minHeight: '90%',
+            paddingBottom: 20,
         },
         bodyScrollSmall: {
             backgroundColor: therrTheme.colors.primary,
