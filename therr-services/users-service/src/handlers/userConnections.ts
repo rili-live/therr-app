@@ -13,6 +13,7 @@ import { createUserHelper } from './helpers/user';
 import normalizePhoneNumber from '../utilities/normalizePhoneNumber';
 import sendContactInviteEmail from '../api/email/sendContactInviteEmail';
 import twilioClient from '../api/twilio';
+import { createOrUpdateAchievement } from './helpers/achievements';
 
 // CREATE
 // TODO:RSERV-24: Security, get requestingUserId from user header token
@@ -66,7 +67,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                         fromName: fromUserFullName,
                         fromEmail: requestingUserEmail,
                         toEmail: acceptingUserEmail,
-                    });
+                    }, locale);
 
                     return res.status(201).send({
                         requestRecipientEmail: acceptingUserEmail,
@@ -141,6 +142,26 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                     requestStatus: 'pending',
                 });
             } else {
+                createOrUpdateAchievement({
+                    authorization,
+                    userId,
+                    locale,
+                }, {
+                    achievementClass: 'socialite',
+                    achievementTier: '1_1',
+                    progressCount: 1,
+                }).catch((err) => {
+                    printLogs({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while creating socialite achievements for sent friend requests, tier 1_1'],
+                        tracer: beeline,
+                        traceArgs: {
+                            errMessage: err?.message,
+                        },
+                    });
+                });
+
                 connectionPromise = Store.userConnections.createUserConnection({
                     requestingUserId,
                     acceptingUserId: acceptingUser.id as string,
@@ -278,6 +299,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
         });
 
         // 4. Create db invites for tracking
+        // TODO: Prevent resending email/phone request if invite already exists
         Store.invites.createIfNotExist([...existingUsers, ...otherUserEmails, ...otherUserPhoneNumbers]
             .map((invite) => ({
                 requestingUserId: userId,
@@ -285,7 +307,28 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                 phoneNumber: invite.phoneNumber,
                 isAccepted: false,
             })))
-            .then(() => Promise.all(emailSendPromises))
+            .then((createdIds) => {
+                createOrUpdateAchievement({
+                    authorization,
+                    userId,
+                    locale,
+                }, {
+                    achievementClass: 'socialite',
+                    achievementTier: '1_2',
+                    progressCount: createdIds.length,
+                }).catch((err) => {
+                    printLogs({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while creating socialite achievements for multiple sent friend requests, tier 1_2'],
+                        tracer: beeline,
+                        traceArgs: {
+                            errMessage: err?.message,
+                        },
+                    });
+                });
+                return Promise.all(emailSendPromises);
+            })
             .then(() => Promise.all(phoneSendPromises))
             .catch((err) => { // TODO: change to Promise.allSettled
                 printLogs({
@@ -456,6 +499,40 @@ const updateUserConnection = (req, res) => {
 
             Store.users.getUserById(requestingUserId, ['userName']).then((otherUserRows) => {
                 const fromUserName = otherUserRows[0]?.userName;
+
+                Promise.all([
+                    // For sender
+                    createOrUpdateAchievement({
+                        authorization,
+                        userId,
+                        locale,
+                    }, {
+                        achievementClass: 'socialite',
+                        achievementTier: '1_2',
+                        progressCount: 1,
+                    }),
+
+                    // For accepter
+                    createOrUpdateAchievement({
+                        authorization,
+                        userId: getResults[0].acceptingUserId,
+                        locale,
+                    }, {
+                        achievementClass: 'socialite',
+                        achievementTier: '1_2',
+                        progressCount: 1,
+                    }),
+                ]).catch((err) => {
+                    printLogs({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error while creating socialite achievements for accepted friend requests, tier 1_2'],
+                        tracer: beeline,
+                        traceArgs: {
+                            errMessage: err?.message,
+                        },
+                    });
+                });
 
                 sendPushNotificationAndEmail(Store.users.findUser, {
                     authorization,

@@ -1,4 +1,5 @@
 export enum Types {
+    achievementCompleted = 'achievement-completed',
     connectionRequestAccepted = 'connection-request-accepted',
     newConnectionRequest = 'new-connection-request',
     newDirectMessage = 'new-direct-message',

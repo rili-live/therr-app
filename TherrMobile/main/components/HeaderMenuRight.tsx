@@ -365,7 +365,7 @@ class HeaderMenuRight extends React.Component<
                                                     }
                                                 />
                                                 <Text numberOfLines={1} style={themeMenu.styles.subheaderTitleText}>
-                                                    {`${(user.details?.settingsTherrCoinTotal || 0)} pts`}
+                                                    {`${(user.settings?.settingsTherrCoinTotal || 0)} pts`}
                                                 </Text>
                                             </View>
                                             <Button

@@ -151,6 +151,8 @@ class Notifications extends React.Component<
             || notification.type === NotificationsEmuns.Types.NEW_LIKE_RECEIVED
             || notification.type === NotificationsEmuns.Types.NEW_SUPER_LIKE_RECEIVED) {
             navigation.navigate('Nearby');
+        } else if (notification.type === NotificationsEmuns.Types.ACHIEVEMENT_COMPLETED) {
+            navigation.navigate('Achievements');
         } else if (notification.type === NotificationsEmuns.Types.NEW_DM_RECEIVED) {
             navigation.navigate('ActiveConnections');
         }

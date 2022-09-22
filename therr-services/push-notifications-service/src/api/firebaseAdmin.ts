@@ -68,6 +68,15 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
     Object.keys(data).forEach((key) => { modifiedData[key] = JSON.stringify(data[key]); });
 
     switch (type) {
+        case PushNotifications.Types.achievementCompleted:
+            baseMessage = createBaseMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.achievementCompleted.title'),
+                notificationBody: translate(config.userLocale, 'notifications.achievementCompleted.body'),
+            });
+            baseMessage.android.notification.clickAction = 'app.therrmobile.ACHIEVEMENT_COMPLETED';
+            return baseMessage;
         case PushNotifications.Types.connectionRequestAccepted:
             baseMessage = createBaseMessage({
                 data: modifiedData,

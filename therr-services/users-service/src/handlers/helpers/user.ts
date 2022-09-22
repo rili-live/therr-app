@@ -1,3 +1,5 @@
+import beeline from '../../beeline'; // eslint-disable-line import/order
+import printLogs from 'therr-js-utilities/print-logs';
 import { OAuth2Client } from 'google-auth-library';
 import appleSignin from 'apple-signin-auth';
 import { AccessLevels } from 'therr-js-utilities/constants';
@@ -13,6 +15,7 @@ import sendNewUserAdminNotificationEmail from '../../api/email/admin/sendNewUser
 import * as globalConfig from '../../../../../global-config';
 import handleHttpError from '../../utilities/handleHttpError';
 import { getMappedSocialSyncResults } from '../socialSync';
+import { createOrUpdateAchievement } from './achievements';
 
 const googleOAuth2ClientId = `${globalConfig[process.env.NODE_ENV].googleOAuth2WebClientId}`;
 const googleOAuth2Client = new OAuth2Client(googleOAuth2ClientId);
@@ -168,7 +171,7 @@ const isUserProfileIncomplete = (updateArgs, existingUser?) => {
     return requestDoesNotCompleteProfile;
 };
 
-const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, userByInviteDetails?: IUserByInviteDetails) => {
+const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, userByInviteDetails?: IUserByInviteDetails, locale = 'en-us') => {
     // TODO: Supply user agent to determine if web or mobile
     const codeDetails = generateCode({ email: userDetails.email, type: 'email' });
     const verificationCode = { type: codeDetails.type, code: codeDetails.code };
@@ -211,6 +214,41 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
         .then((results) => {
             user = results[0];
             delete user.password;
+
+            // Fire and forget: Create initial achievement so user is aware of invite rewards
+            Store.userAchievements.create([
+                {
+                    achievementId: 'socialite_1_1',
+                    userId: user.id,
+                    achievementClass: 'socialite',
+                    achievementTier: '1_1',
+                    progressCount: 0,
+                },
+                {
+                    achievementId: 'explorer_1_1',
+                    userId: user.id,
+                    achievementClass: 'explorer',
+                    achievementTier: '1_1',
+                    progressCount: 0,
+                },
+                {
+                    achievementId: 'influencer_1_1',
+                    userId: user.id,
+                    achievementClass: 'influencer',
+                    achievementTier: '1_1',
+                    progressCount: 0,
+                },
+            ]).catch((err) => {
+                printLogs({
+                    level: 'error',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['Error while creating socialite achievements during registration'],
+                    tracer: beeline,
+                    traceArgs: {
+                        errMessage: err?.message,
+                    },
+                });
+            });
 
             if (isSSO || !!userByInviteDetails) {
                 // TODO: RMOBILE-26: Centralize password requirements
@@ -339,7 +377,7 @@ const validateCredentials = (userSearchResults, {
                     firstName: reqBody.userFirstName,
                     lastName: reqBody.userLastName,
                     phoneNumber: reqBody.userPhoneNumber || (reqBody.ssoProvider === 'apple' ? 'apple-sso' : undefined),
-                }, true).then((user) => [true, user]);
+                }, true, undefined, locale).then((user) => [true, user]);
             }
 
             // Verify user because they are using email SSO

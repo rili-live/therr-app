@@ -149,7 +149,7 @@ export class RedisHelper {
         const userId = await this.client.get(`userSockets:${socketId}`);
 
         if (userId) {
-            return this.getUserById(userId).then((response) => response && response.user);
+            return this.getUserById(userId).then((response) => response?.user);
         }
 
         return null;

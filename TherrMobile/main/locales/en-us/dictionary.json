@@ -492,7 +492,7 @@
     },
     "connections": {
       "buttons": {
-        "add": "Add",
+        "add": "Invite",
         "activeConnections": "Active Connections",
         "invite": "Invite",
         "searchContacts": "Search Contacts",
@@ -861,9 +861,9 @@
       "header1": "Tour: Claim a Space",
       "header2": "Tour: Share a Moment",
       "header3": "Tour: Explore the World",
-      "createAMoment": "Press the GPS button on the map to start creating content. We require location for all posts to prevent fake users and focus on local-first.",
+      "createAMoment": "Press the GPS button on the map to start creating content. We require location for all posts to prevent fake users and focus on local-first interactions.",
       "claimYourSpaces": "Businesses and promoters can claim spaces on the map. Content is public, and nobody can claim overlapping spaces.",
-      "exploreTheWorld": "Use the search bar and filters, then travel to those locations. When you are nearby (w/ location on), content will be added to the 'Discovered' tab."
+      "exploreTheWorld": "Start discovering content by enabling location and walking around. Use the search bar and filters, then travel to those locations. The 'Discovered' page shows all activated content."
     }
   },
   "permissions": {
