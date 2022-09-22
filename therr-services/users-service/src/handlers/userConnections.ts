@@ -314,13 +314,13 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                     locale,
                 }, {
                     achievementClass: 'socialite',
-                    achievementTier: '1_2',
+                    achievementTier: '1_1',
                     progressCount: createdIds.length,
                 }).catch((err) => {
                     printLogs({
                         level: 'error',
                         messageOrigin: 'API_SERVER',
-                        messages: ['Error while creating socialite achievements for multiple sent friend requests, tier 1_2'],
+                        messages: ['Error while creating socialite achievements for multiple sent friend requests, tier 1_1'],
                         tracer: beeline,
                         traceArgs: {
                             errMessage: err?.message,
@@ -500,39 +500,41 @@ const updateUserConnection = (req, res) => {
             Store.users.getUserById(requestingUserId, ['userName']).then((otherUserRows) => {
                 const fromUserName = otherUserRows[0]?.userName;
 
-                Promise.all([
-                    // For sender
-                    createOrUpdateAchievement({
-                        authorization,
-                        userId,
-                        locale,
-                    }, {
-                        achievementClass: 'socialite',
-                        achievementTier: '1_2',
-                        progressCount: 1,
-                    }),
+                if (requestStatus === 'complete') {
+                    Promise.all([
+                        // For sender
+                        createOrUpdateAchievement({
+                            authorization,
+                            userId,
+                            locale,
+                        }, {
+                            achievementClass: 'socialite',
+                            achievementTier: '1_2',
+                            progressCount: 1,
+                        }),
 
-                    // For accepter
-                    createOrUpdateAchievement({
-                        authorization,
-                        userId: getResults[0].acceptingUserId,
-                        locale,
-                    }, {
-                        achievementClass: 'socialite',
-                        achievementTier: '1_2',
-                        progressCount: 1,
-                    }),
-                ]).catch((err) => {
-                    printLogs({
-                        level: 'error',
-                        messageOrigin: 'API_SERVER',
-                        messages: ['Error while creating socialite achievements for accepted friend requests, tier 1_2'],
-                        tracer: beeline,
-                        traceArgs: {
-                            errMessage: err?.message,
-                        },
+                        // For accepter
+                        createOrUpdateAchievement({
+                            authorization,
+                            userId: getResults[0].acceptingUserId,
+                            locale,
+                        }, {
+                            achievementClass: 'socialite',
+                            achievementTier: '1_2',
+                            progressCount: 1,
+                        }),
+                    ]).catch((err) => {
+                        printLogs({
+                            level: 'error',
+                            messageOrigin: 'API_SERVER',
+                            messages: ['Error while creating socialite achievements for accepted friend requests, tier 1_2'],
+                            tracer: beeline,
+                            traceArgs: {
+                                errMessage: err?.message,
+                            },
+                        });
                     });
-                });
+                }
 
                 sendPushNotificationAndEmail(Store.users.findUser, {
                     authorization,
