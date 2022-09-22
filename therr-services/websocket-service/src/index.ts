@@ -31,7 +31,7 @@ const leaveAndNotifyRooms = (socket: Socket) => {
     if (activeRooms.length) {
         redisSessions.getUserBySocketId(socket.id).then((user: any) => {
             activeRooms.forEach((room) => {
-                if (user && user.userName) {
+                if (user?.userName) {
                     // TODO: RFRONT-25 - localize dates
                     const now = moment(Date.now()).format('MMMM D/YY, h:mma');
                     socket.broadcast.to(room).emit(SOCKET_MIDDLEWARE_ACTION, {

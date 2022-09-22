@@ -321,8 +321,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         );
 
         let targetRouteView = '';
-        if (event.action === 'app.therrmobile.NEW_AREAS_ACTIVATED') {
-            targetRouteView = 'Notifications';
+        if (event.action === 'app.therrmobile.ACHIEVEMENT_COMPLETED') {
+            targetRouteView = 'Achievements';
+        } else if (event.action === 'app.therrmobile.NEW_CONNECTION') {
+            targetRouteView = 'Contacts';
         } else if (event.action === 'app.therrmobile.NEW_CONNECTION') {
             targetRouteView = 'Contacts';
         } else if (event.action === 'app.therrmobile.NEW_CONNECTION_REQUEST') {

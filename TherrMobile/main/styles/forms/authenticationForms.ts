@@ -44,8 +44,8 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginTop: 6,
             marginBottom: 50,
         },
-        forgotPassowrdInputsContainer: {
-            marginTop: 10,
+        forgotPasswordInputsContainer: {
+            marginVertical: 10,
         },
     });
 
