@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
 import { FlatList, RefreshControl } from 'react-native-gesture-handler';
+// import { achievementsByClass } from 'therr-js-utilities/config';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
 import translator from '../../services/translator';
@@ -78,10 +79,21 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
         });
     }
 
-    handleClaim = (id: string, points: number) => {
+    handleClaim = (userAchievement: any) => {
         const { claimMyAchievement } = this.props;
 
-        claimMyAchievement(id, points);
+        claimMyAchievement(userAchievement.id, userAchievement.unclaimedRewardPts).then(() => {
+            this.onPressAchievement(userAchievement, true);
+        });
+    }
+
+    onPressAchievement = (userAchievement: any, isClaiming: boolean = false) => {
+        const { navigation } = this.props;
+
+        navigation.navigate('AchievementClaim', {
+            userAchievement,
+            isClaiming,
+        });
     }
 
     render() {
@@ -107,7 +119,8 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
                                 renderItem={({ item }) => <AchievementTile
                                     claimText={this.translate('pages.achievements.info.claimRewards')}
                                     completedText={this.translate('pages.achievements.info.completed')}
-                                    handleClaim={() => this.handleClaim(item.id, item.unclaimedRewardPts)}
+                                    handleClaim={() => this.handleClaim(item)}
+                                    onPressAchievement={() => this.onPressAchievement(item)}
                                     themeAchievements={this.themeAchievements}
                                     userAchievement={item}
                                 />}

@@ -178,6 +178,10 @@ const predictAndSendNotification = (
                 return;
             }
 
+            if (type === PushNotifications.Types.achievementCompleted) {
+                return admin.messaging().send(message);
+            }
+
             if (type === PushNotifications.Types.connectionRequestAccepted) {
                 return admin.messaging().send(message);
             }

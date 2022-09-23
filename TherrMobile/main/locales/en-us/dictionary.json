@@ -510,10 +510,23 @@
     "achievements": {
       "headerTitle": "Achievements",
       "pageHeader": "Achievements",
+      "labels":{
+        "coinValue": "Coin Value",
+        "xpValue": "Experience Value"
+      },
       "info": {
         "claimRewards": "Claim Rewards",
+        "congratulations": "Congratulations! You've earned the following rewards.",
+        "congratulationsInfluencer": "Congratulations! The higher your influencer level, the greater your visibility to potential businesses that will want to work with you! You've also earned the following rewards.",
         "completed": "Completed!",
-        "noAchievementsFound": "Start using the app to activate new achievements and rewards."
+        "noAchievementsFound": "Start using the app to activate new achievements and rewards.",
+        "numberOfCoins": "{pointReward} coin(s)",
+        "numberOfXp": "{pointReward} xp",
+        "claimTitle": "{achievementClass} Level Up!",
+        "claimTitleInProgress": "{achievementClass}: {achievementTitle}",
+        "alreadyClaimed": "You have already claimed rewards for this achievement",
+        "unClaimed": "This achievement is complete! Go back and press 'claim rewards' to continue.",
+        "inProgressDescription": "You're almost there! Keep on keepin' on!"
       }
     },
     "activeConnections": {

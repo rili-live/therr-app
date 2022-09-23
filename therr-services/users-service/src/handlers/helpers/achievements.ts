@@ -54,7 +54,7 @@ const createOrUpdateAchievement: (requesterDetails: any, requestBody: any) => Pr
                         fromUser: {
                             id: userId,
                         },
-                    });
+                    }, true);
                 }
             });
 

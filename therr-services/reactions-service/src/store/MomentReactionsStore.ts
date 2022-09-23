@@ -47,7 +47,7 @@ export default class MomentReactionsStore {
     }
 
     get(conditions: any, momentIds?, filters = { limit: 100, offset: 0, order: 'DESC' }, customs: any = {}) {
-        const restrictedLimit = (filters.limit) > 1000 ? 1000 : filters.limit;
+        const restrictedLimit = Math.min(filters.limit || 100, 1000);
 
         let queryString = knexBuilder.select('*')
             .from(MOMENT_REACTIONS_TABLE_NAME)
@@ -69,7 +69,7 @@ export default class MomentReactionsStore {
 
     getByMomentId(conditions: any, limit = 100) {
         // TODO: RSERVE-52 | Remove hard limit and optimize for getting reaction counts
-        const restrictedLimit = limit > 1000 ? 1000 : limit;
+        const restrictedLimit = Math.min(limit || 100, 1000);
 
         const queryString = knexBuilder.select('*')
             .from(MOMENT_REACTIONS_TABLE_NAME)

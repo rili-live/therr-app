@@ -47,7 +47,7 @@ export default class SpaceReactionsStore {
     }
 
     get(conditions: any, spaceIds?, filters = { limit: 100, offset: 0, order: 'DESC' }, customs: any = {}) {
-        const restrictedLimit = (filters.limit) > 1000 ? 1000 : filters.limit;
+        const restrictedLimit = Math.min(filters.limit || 100, 1000);
 
         let queryString = knexBuilder.select('*')
             .from(SPACE_REACTIONS_TABLE_NAME)

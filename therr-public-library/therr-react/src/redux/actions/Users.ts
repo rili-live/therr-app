@@ -399,7 +399,7 @@ class UsersActions {
             const userSettings = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUserSettings') || {});
             const userData: IUser = Immutable.from({
                 ...userDetails,
-                settingsTherrCoinTotal: parseFloat(points as string) + parseFloat(userDetails.settingsTherrCoinTotal),
+                settingsTherrCoinTotal: parseFloat(points as string || '0') + parseFloat(userDetails.settingsTherrCoinTotal || '0'),
             });
             const userSettingsData: IUser = Immutable.from({
                 ...userSettings,
