@@ -31,9 +31,17 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             width: '30%',
             paddingRight: 16,
         },
+        cardImageContainerLarge: {
+            width: '40%',
+            paddingRight: 0,
+        },
         cardImage: {
             resizeMode: 'contain',
             height: 112,
+        },
+        cardImageLarge: {
+            resizeMode: 'contain',
+            height: 212,
         },
         progressBarBackground: {
             ...getProgressBarStyles(),
