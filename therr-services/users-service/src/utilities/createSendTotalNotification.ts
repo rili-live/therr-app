@@ -21,6 +21,8 @@ const getPushNotificationType = (notificationType: Notifications.Types): PushNot
 
     if (notificationType === Notifications.Types.NEW_LIKE_RECEIVED) {
         pushNotificationType = PushNotifications.Types.newLikeReceived;
+    } else if (notificationType === Notifications.Types.ACHIEVEMENT_COMPLETED) {
+        pushNotificationType = PushNotifications.Types.achievementCompleted;
     } else if (notificationType === Notifications.Types.NEW_SUPER_LIKE_RECEIVED) {
         pushNotificationType = PushNotifications.Types.newSuperLikeReceived;
     }

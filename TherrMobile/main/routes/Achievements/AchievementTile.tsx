@@ -9,13 +9,13 @@ const cardImages = {
     socialite: require('../../assets/socialite-card.png'),
 };
 
-const AchievementTile = ({ claimText, completedText, handleClaim, userAchievement, themeAchievements }) => {
+const AchievementTile = ({ claimText, completedText, handleClaim, onPressAchievement, userAchievement, themeAchievements }) => {
     const achievement = achievementsByClass[userAchievement.achievementClass][userAchievement.achievementId];
     const progressPercent = `${userAchievement.progressCount * 100 / achievement.countToComplete}%`;
     const progressText = `${userAchievement.progressCount}/${achievement.countToComplete}`;
 
     return (
-        <View style={themeAchievements.styles.achievementTile}>
+        <Pressable style={themeAchievements.styles.achievementTile} onPress={onPressAchievement}>
             <View style={themeAchievements.styles.achievementTileContainer}>
                 <View style={themeAchievements.styles.cardImageContainer}>
                     <Image
@@ -53,7 +53,7 @@ const AchievementTile = ({ claimText, completedText, handleClaim, userAchievemen
                     }
                 </>
             }
-        </View>
+        </Pressable>
     );
 };
 

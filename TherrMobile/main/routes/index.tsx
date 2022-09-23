@@ -14,6 +14,7 @@ import Landing from './Landing';
 import Login from './Login';
 import Map from './Map';
 import Achievements from './Achievements';
+import AchievementClaim from './Achievements/AchievementClaim';
 import Areas from './Areas';
 import ActiveConnections from './ActiveConnections';
 import Contacts from './Contacts';
@@ -124,6 +125,17 @@ const routes: RouteConfig<
         component: Achievements,
         options: () => ({
             title: 'Achievements',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+        }),
+    },
+    {
+        name: 'AchievementClaim',
+        component: AchievementClaim,
+        options: () => ({
+            title: 'AchievementClaim',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
