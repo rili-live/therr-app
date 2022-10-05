@@ -41,7 +41,7 @@ import BaseStatusBar from '../components/BaseStatusBar';
 import { getImagePreviewPath } from '../utilities/areaUtils';
 import { signImageUrl } from '../utilities/content';
 import { requestOSCameraPermissions } from '../utilities/requestOSPermissions';
-import BottomSheet from '../components/Modals/BottomSheet';
+import BottomSheet from '../components/BottomSheet/BottomSheet';
 
 const { width: viewportWidth } = Dimensions.get('window');
 

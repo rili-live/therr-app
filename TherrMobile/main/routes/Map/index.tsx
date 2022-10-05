@@ -16,6 +16,7 @@ import { distanceTo, insideCircle } from 'geolocation-utils';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
+import { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import MapActionButtons, { ICreateMomentAction } from './MapActionButtons';
 import Alert from '../../components/Alert';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
@@ -39,6 +40,7 @@ import {
 } from '../../constants';
 import { buildStyles, loaderStyles } from '../../styles';
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
+import { buildStyles as buildBottomSheetStyles } from '../../styles/bottom-sheet';
 import { buildStyles as buildButtonStyles } from '../../styles/buttons';
 import { buildStyles as buildConfirmModalStyles } from '../../styles/modal/confirmModal';
 import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
@@ -66,6 +68,8 @@ import ConfirmModal from '../../components/Modals/ConfirmModal';
 import eula from './EULA';
 import UsersActions from '../../redux/actions/UsersActions';
 import TouringModal from '../../components/Modals/TouringModal';
+import BottomSheetPlus from '../../components/BottomSheet/BottomSheetPlus';
+import MapBottomSheetContent from '../../components/BottomSheet/MapBottomSheetContent';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../../assets/earth-loader.json');
@@ -200,12 +204,14 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class Map extends React.Component<IMapProps, IMapState> {
+    private bottomSheetRef: React.RefObject<BottomSheetMethods> | undefined;
     private localeShort = 'en-US'; // TODO: Derive from user locale
     private mapRef: any;
     private mapWatchId;
     private theme = buildStyles();
     private themeAlerts = buildAlertStyles();
     private themeConfirmModal = buildConfirmModalStyles();
+    private themeBottomSheet = buildBottomSheetStyles();
     private themeButtons = buildButtonStyles();
     private themeLoader = buildLoaderStyles();
     private themeMenu = buildMenuStyles();
@@ -283,6 +289,10 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
 
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
+            this.expandBottomSheet(-1);
+            this.setState({
+                areButtonsVisible: true,
+            });
             setSearchDropdownVisibility(false);
             clearTimeout(this.timeoutId);
         });
@@ -328,6 +338,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         this.theme = buildStyles(themeName);
         this.themeAlerts = buildAlertStyles(themeName);
         this.themeConfirmModal = buildConfirmModalStyles(themeName);
+        this.themeBottomSheet = buildBottomSheetStyles(themeName);
         this.themeButtons = buildButtonStyles(themeName);
         this.themeLoader = buildLoaderStyles(themeName);
         this.themeMenu = buildMenuStyles(themeName);
@@ -395,6 +406,18 @@ class Map extends React.Component<IMapProps, IMapState> {
         return resolve(details);
     });
 
+    expandBottomSheet = (index = 1) => {
+        this.setState({
+            areButtonsVisible: false,
+            areLayersVisible: false,
+        });
+        if (index < 0) {
+            this.bottomSheetRef?.current?.close();
+        } else {
+            this.bottomSheetRef?.current?.snapToIndex(index);
+        }
+    }
+
     handleImageSelect = (imageResponse, userCoords, areaType: IAreaType = 'moments') => {
         const { navigation } = this.props;
         const routeName = areaType === 'spaces' ? 'EditSpace' : 'EditMoment';
@@ -405,22 +428,6 @@ class Map extends React.Component<IMapProps, IMapState> {
                 imageDetails: imageResponse,
             });
         }
-    }
-
-    toggleMomentActions = (shouldHide: boolean = false) => {
-        const { user } = this.props;
-        const { shouldShowCreateActions } = this.state;
-
-        if (Platform.OS === 'ios' && !user.details.hasAgreedToTerms) {
-            this.setState({
-                isConfirmModalVisible: true,
-            });
-            return;
-        }
-
-        this.setState({
-            shouldShowCreateActions: shouldHide ? false : !shouldShowCreateActions,
-        });
     }
 
     handleCreate = (action: ICreateMomentAction = 'moment') => {
@@ -736,6 +743,8 @@ class Map extends React.Component<IMapProps, IMapState> {
                 activeMomentDetails: {},
             });
 
+            // this.expandBottomSheet();
+
             const selectedSpace = pressedSpaces[0];
             const distToCenter = distanceTo({
                 lon: circleCenter.longitude,
@@ -791,6 +800,9 @@ class Map extends React.Component<IMapProps, IMapState> {
 
             if (pressedMoments.length) {
                 const selectedMoment = pressedMoments[0];
+
+                // this.expandBottomSheet();
+
                 const distToCenter = distanceTo({
                     lon: circleCenter.longitude,
                     lat: circleCenter.latitude,
@@ -830,6 +842,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                         });
                 }
             } else {
+                this.expandBottomSheet(0);
                 this.setState({
                     activeMoment: {},
                     activeMomentDetails: {},
@@ -1126,13 +1139,6 @@ class Map extends React.Component<IMapProps, IMapState> {
         }
     };
 
-    toggleLocationUseDisclosure = () => {
-        const { isLocationUseDisclosureModalVisible } = this.state;
-        this.setState({
-            isLocationUseDisclosureModalVisible: !isLocationUseDisclosureModalVisible,
-        });
-    }
-
     onUserLocationChange = (event) => {
         const {
             shouldFollowUserLocation,
@@ -1256,6 +1262,29 @@ class Map extends React.Component<IMapProps, IMapState> {
         }, 2000);
     };
 
+    toggleMomentActions = (shouldHide: boolean = false) => {
+        const { user } = this.props;
+        const { shouldShowCreateActions } = this.state;
+
+        if (Platform.OS === 'ios' && !user.details.hasAgreedToTerms) {
+            this.setState({
+                isConfirmModalVisible: true,
+            });
+            return;
+        }
+
+        this.setState({
+            shouldShowCreateActions: shouldHide ? false : !shouldShowCreateActions,
+        });
+    }
+
+    toggleLocationUseDisclosure = () => {
+        const { isLocationUseDisclosureModalVisible } = this.state;
+        this.setState({
+            isLocationUseDisclosureModalVisible: !isLocationUseDisclosureModalVisible,
+        });
+    }
+
     toggleMapFollow = () => {
         const {
             shouldFollowUserLocation,
@@ -1281,8 +1310,40 @@ class Map extends React.Component<IMapProps, IMapState> {
     }
 
     toggleMomentBtns = () => {
+        if (!this.state.areButtonsVisible) {
+            this.bottomSheetRef?.current?.close();
+        } else {
+            this.expandBottomSheet(0);
+        }
+
         this.setState({
             areButtonsVisible: !this.state.areButtonsVisible,
+            areLayersVisible: false,
+        });
+    }
+
+    toggleNearbySheet = (shouldClose = false) => {
+        const { location } = this.props;
+
+        if (!this.state.areButtonsVisible || shouldClose) {
+            this.bottomSheetRef?.current?.close();
+        } else {
+            if (location?.settings?.isGpsEnabled) {
+                this.expandBottomSheet(2);
+            } else {
+                this.expandBottomSheet(3);
+            }
+        }
+
+        this.setState({
+            areButtonsVisible: !this.state.areButtonsVisible,
+            areLayersVisible: false,
+        });
+    }
+
+    onBottomSheetClose = () => {
+        this.setState({
+            areButtonsVisible: true,
             areLayersVisible: false,
         });
     }
@@ -1692,9 +1753,23 @@ class Map extends React.Component<IMapProps, IMapState> {
                     themeButtons={this.themeButtons}
                     themeTour={this.themeTour}
                 />
+                {
+                    <BottomSheetPlus
+                        sheetRef={(sheetRef: React.RefObject<BottomSheetMethods>) => this.bottomSheetRef = sheetRef}
+                        initialIndex={-1}
+                        onClose={this.onBottomSheetClose}
+                        themeBottomSheet={this.themeBottomSheet}
+                    >
+                        <MapBottomSheetContent
+                            navigation={navigation}
+                            translate={this.translate}
+                        />
+                    </BottomSheetPlus>
+                }
                 <MainButtonMenu
                     navigation={navigation}
                     onActionButtonPress={this.toggleMomentBtns}
+                    onNearbyPress={this.toggleNearbySheet}
                     translate={this.translate}
                     user={user}
                     themeMenu={this.themeMenu}

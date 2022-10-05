@@ -1,12 +1,12 @@
 import React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { connect } from 'react-redux';
 import { Button, Image } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import { ButtonMenu, mapStateToProps, mapDispatchToProps } from '.';
+import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';
 import { getUserImageUri } from '../../utilities/content';
 // import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 
@@ -113,6 +113,16 @@ class MainButtonMenuAlt extends ButtonMenu {
         }
     }
 
+    handleNearbyPress = () => {
+        const { onNearbyPress } = this.props;
+
+        if (onNearbyPress) {
+            onNearbyPress();
+        } else {
+            this.onNavPressDynamic('Nearby');
+        }
+    }
+
     render() {
         const { onActionButtonPress, isCompact, translate, themeMenu, user } = this.props;
         const currentScreen = this.getCurrentScreen();
@@ -184,7 +194,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                             }
                         />
                     }
-                    onPress={() => this.navTo('Map')}
+                    onPress={() => this.onNavPressDynamic('Map')}
                 />
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.connect') : null}
@@ -244,7 +254,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                             }
                         />
                     }
-                    onPress={() => this.onNavPressDynamic('Nearby')}
+                    onPress={() => this.handleNearbyPress()}
                 />
                 {
                     (onActionButtonPress && currentScreen === 'Map') ?

@@ -1,9 +1,9 @@
 /* eslint-disable max-len */
 import React from 'react';
 import { SafeAreaView, View, Text } from 'react-native';
-import { Image }  from 'react-native-elements';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import LottieView from 'lottie-react-native';
 import { IUserState } from 'therr-react/types';
 import { achievementsByClass } from 'therr-js-utilities/config';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
@@ -13,15 +13,14 @@ import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildAchievementStyles } from '../../styles/achievements';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import LottieView from 'lottie-react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
-const cardImages = {
-    explorer: require('../../assets/explorer-card.png'),
-    influencer: require('../../assets/influencer-card.png'),
-    socialite: require('../../assets/socialite-card.png'),
-};
 const achievementConfetti = require('../../assets/achievement-confetti-2.json');
+const cardImagesLottie = {
+    explorer: require('../../assets/explorer-card.json'),
+    influencer: require('../../assets/influencer-card.json'),
+    socialite: require('../../assets/socialite-card.json'),
+};
 
 interface IAchievementClaimDispatchProps {
     claimMyAchievement: Function;
@@ -205,19 +204,28 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                                 {pageHeaderAchievements}
                             </Text>
                         </View> */}
-                        <View style={{ display: 'flex', height: 500, width: '100%', justifyContent: 'center', alignItems: 'center' }}>
+                        <View style={{ display: 'flex', height: 420, width: '100%', justifyContent: 'center', alignItems: 'center' }}>
                             <LottieView
                                 source={achievementConfetti}
-                                resizeMode="contain"
+                                resizeMode="cover"
                                 speed={1}
                                 autoPlay
                                 loop
                             />
                             <View style={this.themeAchievements.styles.cardImageContainerLarge}>
-                                <Image
+                                {/* <Image
                                     source={cardImages[userAchievement.achievementClass]}
                                     style={this.themeAchievements.styles.cardImageLarge}
-                                />
+                                /> */}
+                                <View style={this.themeAchievements.styles.cardImageLarge}>
+                                    <LottieView
+                                        source={cardImagesLottie[userAchievement.achievementClass]}
+                                        resizeMode="cover"
+                                        speed={2.4}
+                                        autoPlay
+                                        loop={false}
+                                    />
+                                </View>
                             </View>
                         </View>
                         <View style={this.theme.styles.sectionContainer}>

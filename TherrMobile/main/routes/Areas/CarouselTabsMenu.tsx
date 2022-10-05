@@ -68,7 +68,7 @@ export class CarouselTabsMenu extends React.Component<ICarouselTabsMenuProps, IC
             backgroundColor: themeAreas.colors.primary3,
             paddingTop: 2,
             paddingBottom: 3,
-            borderRadius: 0,
+            borderRadius: 6,
         };
 
         return (

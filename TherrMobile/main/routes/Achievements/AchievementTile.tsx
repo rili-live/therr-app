@@ -1,12 +1,12 @@
 import React from 'react';
 import { Pressable, View, Text } from 'react-native';
-import { Image }  from 'react-native-elements';
+import LottieView from 'lottie-react-native';
 import { achievementsByClass } from 'therr-js-utilities/config';
 
-const cardImages = {
-    explorer: require('../../assets/explorer-card.png'),
-    influencer: require('../../assets/influencer-card.png'),
-    socialite: require('../../assets/socialite-card.png'),
+const cardImagesLottie = {
+    explorer: require('../../assets/explorer-card.json'),
+    influencer: require('../../assets/influencer-card.json'),
+    socialite: require('../../assets/socialite-card.json'),
 };
 
 const AchievementTile = ({ claimText, completedText, handleClaim, onPressAchievement, userAchievement, themeAchievements }) => {
@@ -18,10 +18,14 @@ const AchievementTile = ({ claimText, completedText, handleClaim, onPressAchieve
         <Pressable style={themeAchievements.styles.achievementTile} onPress={onPressAchievement}>
             <View style={themeAchievements.styles.achievementTileContainer}>
                 <View style={themeAchievements.styles.cardImageContainer}>
-                    <Image
-                        source={cardImages[userAchievement.achievementClass]}
-                        style={themeAchievements.styles.cardImage}
-                    />
+                    <View style={themeAchievements.styles.cardImage}>
+                        <LottieView
+                            source={cardImagesLottie[userAchievement.achievementClass]}
+                            resizeMode="cover"
+                            speed={1}
+                            progress={0}
+                        />
+                    </View>
                 </View>
                 <View style={{ display: 'flex', flexDirection: 'column', flex: 1, paddingVertical: 6 }}>
                     <Text style={{ textTransform: 'capitalize', fontWeight: '600', fontSize: 18, paddingBottom: 4 }}>

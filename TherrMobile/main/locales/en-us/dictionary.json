@@ -258,7 +258,7 @@
       "defaultTitle": "Login",
       "labels": {
         "password": "Password",
-        "userName": "Username"
+        "userName": "Email/Phone/Username"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
       "invalidUsernamePassword": "Invalid username/password combination.",
@@ -465,7 +465,7 @@
       "create": "Create",
       "claimASpace": "Claim a Space",
       "shareAThought": "Share a Thought",
-      "uploadAMoment": "Create a Moment",
+      "uploadAMoment": "Share a Moment",
       "captureAMoment": "Capture a Moment"
     },
     "filterActions": {
@@ -669,6 +669,15 @@
         "registerSuccess": "Registration success! Check your e-mail for verification."
       }
     },
+    "map": {
+      "headerTitle": " ",
+      "areaAlerts": {
+        "walkCloser": "Enable location and/or walk closer to activate this moment/space"
+      },
+      "bottomSheet": {
+        "noResults": "No Results"
+      }
+    },
     "mapFilteredSearch": {
       "headerTitle": "Map Search Filters",
       "h2": {
@@ -699,12 +708,6 @@
       "headerTitle": "Notifications",
       "pageTitle": "Notifications",
       "noNotifications": "You have no notifications at this time"
-    },
-    "map": {
-      "headerTitle": " ",
-      "areaAlerts": {
-        "walkCloser": "Enable location and/or walk closer to activate this moment/space"
-      }
     },
     "pageNotFound": {
       "pageTitle": "Page Not Found"

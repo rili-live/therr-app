@@ -1,6 +1,6 @@
 import React from 'react';
 import 'react-native-gesture-handler';
-import BaseInput from '.';
+import BaseInput from './';
 
 export class AccentInput extends BaseInput {
     constructor(props) {

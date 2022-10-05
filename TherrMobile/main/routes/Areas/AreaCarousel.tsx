@@ -1,5 +1,6 @@
 import React from 'react';
 import { RefreshControl, View, Text, /* Platform, */ FlatList, Pressable } from 'react-native';
+import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 // import Carousel from 'react-native-snap-carousel';
 import { buildStyles } from '../../styles/user-content/areas';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
@@ -71,6 +72,7 @@ const renderItem = ({ item: area }, {
 export default ({
     activeData,
     content,
+    displaySize,
     inspectArea,
     containerRef,
     fetchMedia,
@@ -97,6 +99,8 @@ export default ({
     const theme = buildStyles(user.details.mobileThemeName);
     const themeArea = buildAreaStyles(user.details.mobileThemeName, false);
     const themeForms = buildFormStyles(user.details.mobileThemeName);
+    const isUsingBottomSheet = (displaySize === 'small' || displaySize === 'medium');
+    const FlatListComponent = isUsingBottomSheet ? BottomSheetFlatList : FlatList;
 
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
@@ -136,7 +140,7 @@ export default ({
 
     return (
         <>
-            <FlatList
+            <FlatListComponent
                 data={activeData}
                 keyExtractor={(item) => String(item.id)}
                 renderItem={(itemObj) => renderItem(itemObj, {
@@ -162,10 +166,13 @@ export default ({
                     containerRef && containerRef(component);
                     return component;
                 }}
+                // refreshControl is not yet supported by BottomSheet
                 refreshControl={<RefreshControl
                     refreshing={refreshing}
                     onRefresh={onRefresh}
                 />}
+                refreshing={isUsingBottomSheet ? refreshing : undefined}
+                onRefresh={isUsingBottomSheet ? onRefresh : undefined}
                 style={[rootStyles.stretch, theme.styles.areaCarousel]}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={0.5}

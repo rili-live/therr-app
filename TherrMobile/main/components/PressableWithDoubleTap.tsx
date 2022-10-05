@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 
 interface IPressableWithDoubleTapProps {
+    children: React.ReactNode;
     onPress?: () => any;
     onDoubleTap: () => any;
 }
