@@ -41,7 +41,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginBottom: dividerHeight * 2,
         },
         areaCarouselHeaderSliders: {
-            marginTop: 10,
+            borderRadius: 2,
+            paddingVertical: 10,
+            marginBottom: dividerHeight / 2,
         },
         areaCarouselTab: {
 

@@ -10,5 +10,5 @@ export default (unformattedDate) => {
     const amPm = hours >= 12 ? 'PM' : 'AM';
     const minute = date.getMinutes().toString();
 
-    return `${day}-${month}-${year} ${hours}:${minute.padStart(2, '0')} ${amPm}`;
+    return `${day}-${month}-${year}, ${hours}:${minute.padStart(2, '0')} ${amPm}`;
 };

@@ -11,14 +11,14 @@ import {
 import { Button, Image } from 'react-native-elements';
 import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { IUserState } from 'therr-react/types';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import UserMedia from './UserMedia';
 import HashtagsContainer from './HashtagsContainer';
 import { ITherrThemeColors } from '../../styles/themes';
 import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserImageUri } from '../../utilities/content';
-import PresssableWithDoubleTap from '../../components/PressableWithDoubleTap';
+import PresssableWithDoubleTap from '../PressableWithDoubleTap';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -31,13 +31,12 @@ interface IUserDetails {
     userName: string;
 }
 
-interface IAreaDisplayProps {
+interface IAreaDisplayMediumProps {
     translate: Function;
     date: string;
     toggleAreaOptions: Function;
     hashtags: any[];
     isDarkMode: boolean;
-    isExpanded?: boolean;
     area: any;
     areaMedia: string;
     goToViewUser: Function;
@@ -60,11 +59,11 @@ interface IAreaDisplayProps {
     };
 }
 
-interface IAreaDisplayState {
+interface IAreaDisplayMediumState {
 }
 
-export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAreaDisplayState> {
-    constructor(props: IAreaDisplayProps) {
+export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediumProps, IAreaDisplayMediumState> {
+    constructor(props: IAreaDisplayMediumProps) {
         super(props);
 
         this.state = {
@@ -157,90 +156,66 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         TouchableComponent={TouchableWithoutFeedbackComponent}
                     />
                 </View>
-                <PresssableWithDoubleTap
-                    onPress={inspectArea}
-                    onDoubleTap={() => this.onLikePress(area)}
-                >
-                    <UserMedia
-                        viewportWidth={viewportWidth}
-                        media={areaMedia}
-                        isVisible={!!areaMedia}
-                        isSingleView={isExpanded}
-                    />
-                </PresssableWithDoubleTap>
-                <View style={themeViewArea.styles.areaContentTitleContainer}>
-                    <Text
-                        style={themeViewArea.styles.areaContentTitle}
-                        numberOfLines={2}
+                <View style={{ display: 'flex', flexDirection: 'row' }}>
+                    <PresssableWithDoubleTap
+                        onPress={inspectArea}
+                        onDoubleTap={() => this.onLikePress(area)}
+                        style={{ paddingLeft: 14, paddingTop: 8 }}
                     >
-                        {sanitizeNotificationMsg(area.notificationMsg)}
-                    </Text>
-                    {
-                        <Button
-                            containerStyle={themeViewArea.styles.areaReactionButtonContainer}
-                            buttonStyle={themeViewArea.styles.areaReactionButton}
-                            icon={
-                                <Icon
-                                    name="place"
-                                    size={24}
-                                    color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
-                                />
-                            }
-                            onPress={() => this.onViewMapPress(area)}
-                            type="clear"
-                            TouchableComponent={TouchableWithoutFeedbackComponent}
+                        <UserMedia
+                            viewportWidth={viewportWidth / 4}
+                            media={areaMedia}
+                            isVisible={!!areaMedia}
+                            isSingleView={false}
                         />
-                    }
-                    {
-                        !area.isDraft &&
-                        <>
-                            <Button
-                                containerStyle={themeViewArea.styles.areaReactionButtonContainer}
-                                buttonStyle={themeViewArea.styles.areaReactionButton}
-                                icon={
-                                    <Icon
-                                        name={ isBookmarked ? 'bookmark' : 'bookmark-border' }
-                                        size={24}
-                                        color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
-                                    />
+                    </PresssableWithDoubleTap>
+                    <View style={{ flex: 1 }}>
+                        <View style={themeViewArea.styles.areaContentTitleContainer}>
+                            <Text
+                                style={themeViewArea.styles.areaContentTitleMedium
                                 }
-                                onPress={() => this.onBookmarkPress(area)}
-                                type="clear"
-                                TouchableComponent={TouchableWithoutFeedbackComponent}
-                            />
-                            <Button
-                                containerStyle={themeViewArea.styles.areaReactionButtonContainer}
-                                buttonStyle={themeViewArea.styles.areaReactionButton}
-                                icon={
-                                    <Icon
-                                        name={ isLiked ? 'favorite' : 'favorite-border' }
-                                        size={24}
-                                        color={likeColor}
+                                numberOfLines={2}
+                            >
+                                {sanitizeNotificationMsg(area.notificationMsg)}
+                            </Text>
+                            {
+                                !area.isDraft &&
+                                <>
+                                    <Button
+                                        containerStyle={themeViewArea.styles.areaReactionButtonContainer}
+                                        buttonStyle={themeViewArea.styles.areaReactionButton}
+                                        icon={
+                                            <Icon
+                                                name={ isBookmarked ? 'bookmark' : 'bookmark-border' }
+                                                size={24}
+                                                color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                            />
+                                        }
+                                        onPress={() => this.onBookmarkPress(area)}
+                                        type="clear"
+                                        TouchableComponent={TouchableWithoutFeedbackComponent}
                                     />
-                                }
-                                onPress={() => this.onLikePress(area)}
-                                type="clear"
-                                TouchableComponent={TouchableWithoutFeedbackComponent}
+                                </>
+                            }
+                        </View>
+                        <Text style={themeViewArea.styles.areaMessage} numberOfLines={isExpanded ? undefined : 3}>
+                            <Autolink
+                                text={area.message}
+                                linkStyle={theme.styles.link}
+                                phone="sms"
                             />
-                        </>
-                    }
-                </View>
-                <Text style={themeViewArea.styles.areaMessage} numberOfLines={isExpanded ? undefined : 3}>
-                    <Autolink
-                        text={area.message}
-                        linkStyle={theme.styles.link}
-                        phone="sms"
-                    />
-                </Text>
-                <View>
-                    <HashtagsContainer
-                        hasIcon={false}
-                        hashtags={hashtags}
-                        onHashtagPress={() => {}}
-                        visibleCount={isExpanded ? 20 : 5}
-                        right
-                        styles={themeForms.styles}
-                    />
+                        </Text>
+                        <View>
+                            <HashtagsContainer
+                                hasIcon={false}
+                                hashtags={hashtags}
+                                onHashtagPress={() => {}}
+                                visibleCount={3}
+                                right
+                                styles={themeForms.styles}
+                            />
+                        </View>
+                    </View>
                 </View>
                 {
                     area.distance != null &&

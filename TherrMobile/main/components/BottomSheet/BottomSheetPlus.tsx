@@ -4,7 +4,7 @@ import { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { ITherrThemeColors } from '../../styles/themes';
 import { buttonMenuHeight } from '../../styles/navigation/buttonMenu';
 
-const defaultSnapPoints = [buttonMenuHeight + 28, '50%', '75%', '100%'];
+const defaultSnapPoints = [buttonMenuHeight + 28, '50%', '80%'];
 
 interface IBottomSheetPlus {
     sheetRef: (sheetRef: React.RefObject<BottomSheetMethods>) => any;

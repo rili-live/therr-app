@@ -98,7 +98,7 @@
   "devDependencies": {
     "@react-native-community/eslint-config": "^2.0.0",
     "@react-native/normalize-color": "^2.0.0",
-    "@types/react-native": "^0.69.0",
+    "@types/react-native": "^0.70.2",
     "@types/react-native-dotenv": "^0.2.0",
     "@types/react-native-snap-carousel": "^3.8.2",
     "@types/rn-fetch-blob": "^1.2.1",

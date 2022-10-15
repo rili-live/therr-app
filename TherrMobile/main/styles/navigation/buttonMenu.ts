@@ -51,7 +51,7 @@ const getNotificationCircleStyles = (theme: ITherrTheme): any => ({
     borderRadius: 20,
     width: 4,
     height: 4,
-    borderColor: theme.colors.ternary,
+    borderColor: theme.colors.brandingRed,
     top: 12,
 });
 

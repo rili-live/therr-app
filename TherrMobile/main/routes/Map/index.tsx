@@ -77,6 +77,8 @@ const earthLoader = require('../../assets/earth-loader.json');
 const ANIMATE_TO_REGION_DURATION = 750;
 const ANIMATE_TO_REGION_DURATION_SLOW = 1500;
 const ANIMATE_TO_REGION_DURATION_FAST = 500;
+const AREAS_SEARCH_COUNT = Platform.OS === 'android' ? 250 : 400;
+const AREAS_SEARCH_COUNT_ZOOMED = Platform.OS === 'android' ? 100 : 200;
 const DEFAULT_MAP_SEARCH = {
     description: 'United States',
     matched_substrings: [{
@@ -305,6 +307,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             this.setState({
                 isMinLoadTimeComplete: true,
                 isLocationReady: true,
+                isSearchThisLocationBtnVisible: false,
             });
         }, MIN_LOAD_TIMEOUT);
     };
@@ -599,7 +602,6 @@ class Map extends React.Component<IMapProps, IMapState> {
                             }
                             // Get Location Success Handler
                             const positionSuccessCallback = (position) => {
-
                                 const coords = {
                                     latitude:
                                         position.coords
@@ -897,7 +899,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         Promise.all([
             searchMoments({
                 query: 'connections',
-                itemsPerPage: 500,
+                itemsPerPage: AREAS_SEARCH_COUNT,
                 pageNumber: 1,
                 order: 'desc',
                 filterBy: 'fromUserIds',
@@ -905,7 +907,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             }),
             searchSpaces({
                 query: 'connections',
-                itemsPerPage: 500,
+                itemsPerPage: AREAS_SEARCH_COUNT,
                 pageNumber: 1,
                 order: 'desc',
                 filterBy: 'fromUserIds',
@@ -1039,7 +1041,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             Promise.all([
                 searchMoments({
                     query: 'connections',
-                    itemsPerPage: 200,
+                    itemsPerPage: AREAS_SEARCH_COUNT_ZOOMED,
                     pageNumber: 1,
                     order: 'desc',
                     filterBy: 'fromUserIds',
@@ -1050,7 +1052,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                 }),
                 searchSpaces({
                     query: 'connections',
-                    itemsPerPage: 200,
+                    itemsPerPage: AREAS_SEARCH_COUNT_ZOOMED,
                     pageNumber: 1,
                     order: 'desc',
                     filterBy: 'fromUserIds',
@@ -1226,6 +1228,22 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         this.setState({
             isSearchThisLocationBtnVisible: false,
+            // region,
+        });
+
+        // clearTimeout(this.timeoutIdSearchButton);
+        // if (!this.state.shouldIgnoreSearchThisAreaButton) {
+        //     this.timeoutIdSearchButton = setTimeout(() => {
+        //         this.setState({
+        //             isSearchThisLocationBtnVisible: true,
+        //         });
+        //     }, 500);
+        // }
+    }
+
+    onRegionChangeComplete = (region) => {
+        this.setState({
+            isSearchThisLocationBtnVisible: false,
             region,
         });
 
@@ -1235,14 +1253,8 @@ class Map extends React.Component<IMapProps, IMapState> {
                 this.setState({
                     isSearchThisLocationBtnVisible: true,
                 });
-            }, 1000);
+            }, 750);
         }
-    }
-
-    onRegionChangeComplete = () => {
-        this.setState({
-            isSearchThisLocationBtnVisible: false,
-        });
     }
 
     onClusterPress = (/* cluster, markers */) => {
@@ -1329,9 +1341,9 @@ class Map extends React.Component<IMapProps, IMapState> {
             this.bottomSheetRef?.current?.close();
         } else {
             if (location?.settings?.isGpsEnabled) {
-                this.expandBottomSheet(2);
+                this.expandBottomSheet(1);
             } else {
-                this.expandBottomSheet(3);
+                this.expandBottomSheet(2);
             }
         }
 
@@ -1762,6 +1774,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                     >
                         <MapBottomSheetContent
                             navigation={navigation}
+                            theme={this.theme}
                             translate={this.translate}
                         />
                     </BottomSheetPlus>

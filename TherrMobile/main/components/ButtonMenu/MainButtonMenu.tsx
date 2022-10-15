@@ -197,36 +197,6 @@ class MainButtonMenuAlt extends ButtonMenu {
                     onPress={() => this.onNavPressDynamic('Map')}
                 />
                 <Button
-                    title={!isCompact ? translate('menus.main.buttons.connect') : null}
-                    buttonStyle={
-                        isConnectViewActive
-                            ? themeMenu.styles.buttonsActive
-                            : themeMenu.styles.buttons
-                    }
-                    containerStyle={
-                        isConnectViewActive
-                            ? themeMenu.styles.buttonContainerActive
-                            : themeMenu.styles.buttonContainer
-                    }
-                    titleStyle={
-                        isConnectViewActive
-                            ? themeMenu.styles.buttonsTitleActive
-                            : themeMenu.styles.buttonsTitle
-                    }
-                    icon={
-                        <FontAwesomeIcon
-                            name="user-friends"
-                            size={20}
-                            style={
-                                isConnectViewActive
-                                    ? themeMenu.styles.buttonIconActive
-                                    : themeMenu.styles.buttonIcon
-                            }
-                        />
-                    }
-                    onPress={() => this.navTo('Contacts')}
-                />
-                <Button
                     title={!isCompact ? translate('menus.main.buttons.nearby') : null}
                     buttonStyle={
                         currentScreen === 'Nearby'
@@ -256,46 +226,59 @@ class MainButtonMenuAlt extends ButtonMenu {
                     }
                     onPress={() => this.handleNearbyPress()}
                 />
-                {
-                    (onActionButtonPress && currentScreen === 'Map') ?
-                        <Button
-                            buttonStyle={themeMenu.styles.buttons}
-                            containerStyle={themeMenu.styles.buttonContainer}
-                            titleStyle={themeMenu.styles.buttonsTitle}
-                            title={this.getActionButtonTitle({ currentScreen, isCompact, translate })}
-                            icon={
-                                <FontAwesomeIcon
-                                    name={this.getActionButtonIcon(currentScreen)}
-                                    size={20}
-                                    style={themeMenu.styles.buttonIcon}
-                                />
+                <Button
+                    title={!isCompact ? translate('menus.main.buttons.connect') : null}
+                    buttonStyle={
+                        isConnectViewActive
+                            ? themeMenu.styles.buttonsActive
+                            : themeMenu.styles.buttons
+                    }
+                    containerStyle={
+                        isConnectViewActive
+                            ? themeMenu.styles.buttonContainerActive
+                            : themeMenu.styles.buttonContainer
+                    }
+                    titleStyle={
+                        isConnectViewActive
+                            ? themeMenu.styles.buttonsTitleActive
+                            : themeMenu.styles.buttonsTitle
+                    }
+                    icon={
+                        <FontAwesomeIcon
+                            name="user-friends"
+                            size={20}
+                            style={
+                                isConnectViewActive
+                                    ? themeMenu.styles.buttonIconActive
+                                    : themeMenu.styles.buttonIcon
                             }
-                            onPress={onActionButtonPress as any}
-                        /> :
-                        <View style={
-                            currentScreen === 'ViewUser'
-                                ? themeMenu.styles.buttonContainerActive
-                                : themeMenu.styles.buttonContainer
-                        }>
-                            <Button
-                                buttonStyle={themeMenu.styles.buttons}
-                                containerStyle={themeMenu.styles.buttonContainerUserProfile}
-                                titleStyle={themeMenu.styles.buttonsTitle}
-                                icon={
-                                    <Image
-                                        source={{ uri: getUserImageUri(user, 50) }}
-                                        style={imageStyle}
-                                        PlaceholderContent={<ActivityIndicator size="small" color={themeMenu.colors.primary} />}
-                                    />}
-                                onPress={() => this.goToMyProfile()}
-                                title={translate('menus.main.buttons.profile')}
-                                type="clear"
-                            />
-                            {/* {
-                                hasNotifications && <View style={themeMenu.styles.notificationCircle2} />
-                            } */}
-                        </View>
-                }
+                        />
+                    }
+                    onPress={() => this.navTo('Contacts')}
+                />
+                <View style={
+                    currentScreen === 'ViewUser'
+                        ? themeMenu.styles.buttonContainerActive
+                        : themeMenu.styles.buttonContainer
+                }>
+                    <Button
+                        buttonStyle={themeMenu.styles.buttons}
+                        containerStyle={themeMenu.styles.buttonContainerUserProfile}
+                        titleStyle={themeMenu.styles.buttonsTitle}
+                        icon={
+                            <Image
+                                source={{ uri: getUserImageUri(user, 50) }}
+                                style={imageStyle}
+                                PlaceholderContent={<ActivityIndicator size="small" color={themeMenu.colors.primary} />}
+                            />}
+                        onPress={() => this.goToMyProfile()}
+                        title={translate('menus.main.buttons.profile')}
+                        type="clear"
+                    />
+                    {/* {
+                        hasNotifications && <View style={themeMenu.styles.notificationCircle2} />
+                    } */}
+                </View>
             </ButtonMenu>
         );
     }

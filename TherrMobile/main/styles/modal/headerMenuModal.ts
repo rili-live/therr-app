@@ -16,11 +16,15 @@ const getNotificationCircleStyles = (theme): any => ({
     position: 'absolute',
     top: 7,
     right: 14,
-    borderWidth: 4,
+    borderWidth: 1,
     borderRadius: 3,
-    width: 4,
-    height: 4,
-    borderColor: theme.colors.brandingOrange,
+    width: 7,
+    height: 7,
+    backgroundColor: theme.colors.brandingRed,
+    borderColor: theme.colors.brandingRed,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
 });
 
 const buildStyles = (themeName?: IMobileThemeName) => {
@@ -84,10 +88,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         },
         notificationCircle2: {
             ...getNotificationCircleStyles(therrTheme),
-            top: 7,
-            right: 8,
-            width: 5,
-            height: 5,
+            top: 5,
+            right: 5,
+            height: 20,
+            width: 20,
+            borderRadius: 100,
         },
         notificationCircle3: {
             ...getNotificationCircleStyles(therrTheme),
@@ -95,6 +100,11 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             right: 9,
             width: 5,
             height: 5,
+        },
+        notificationsCountText: {
+            color: therrTheme.colors.brandingWhite,
+            fontSize: 13,
+            fontWeight: '500',
         },
         overlayContainer: {
             // backgroundColor: therrTheme.colors.textWhite,

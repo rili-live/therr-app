@@ -249,7 +249,8 @@ class HeaderMenuRight extends React.Component<
 
         const { isModalVisible, isPointsInfoModalVisible } = this.state;
         const currentScreen = this.getCurrentScreen();
-        const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
+        const unreadCount: number = notifications?.messages?.filter(m => m.isUnread)?.length || 0;
+        const hasNotifications = unreadCount > 0;
         // let imageStyle = themeMenu.styles.toggleIcon;
 
         // if (styleName === 'light') {
@@ -290,7 +291,9 @@ class HeaderMenuRight extends React.Component<
                                     containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
                                 />
                                 {
-                                    hasNotifications && <View style={themeMenu.styles.notificationCircle2} />
+                                    hasNotifications && <View style={themeMenu.styles.notificationCircle2}>
+                                        <Text style={themeMenu.styles.notificationsCountText}>{unreadCount.toString()}</Text>
+                                    </View>
                                 }
                             </View>
                             :
@@ -365,7 +368,7 @@ class HeaderMenuRight extends React.Component<
                                                     }
                                                 />
                                                 <Text numberOfLines={1} style={themeMenu.styles.subheaderTitleText}>
-                                                    {`${(user.settings?.settingsTherrCoinTotal || 0)} pts`}
+                                                    {`${(user.settings?.settingsTherrCoinTotal || 0)} coins`}
                                                 </Text>
                                             </View>
                                             <Button
@@ -461,7 +464,9 @@ class HeaderMenuRight extends React.Component<
                                                     onPress={() => this.navTo('Notifications')}
                                                 />
                                                 {
-                                                    hasNotifications && <View style={themeMenu.styles.notificationCircle} />
+                                                    hasNotifications && <View style={themeMenu.styles.notificationCircle}>
+                                                        <Text style={{ color: 'white' }}>{unreadCount.toString}</Text>
+                                                    </View>
                                                 }
                                             </View>
                                             <Button

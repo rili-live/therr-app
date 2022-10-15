@@ -1,5 +1,10 @@
 import React from 'react';
-import { Platform, View } from 'react-native';
+import {
+    Platform,
+    StyleProp,
+    ViewStyle,
+    View,
+} from 'react-native';
 import { WebView } from 'react-native-webview';
 import userContentStyles from '../../styles/user-content';
 
@@ -8,6 +13,7 @@ interface IUserMediaProps {
     isDarkMode?: boolean;
     isSingleView?: boolean;
     isVisible: boolean;
+    moreStyle: StyleProp<ViewStyle>;
     overlayMsg?: string;
     viewportWidth: number;
 }
@@ -16,6 +22,7 @@ export default ({
     media,
     isSingleView,
     isVisible,
+    moreStyle,
     viewportWidth,
 }: IUserMediaProps) => {
     const borderRadius = 0;
@@ -27,6 +34,7 @@ export default ({
             width: viewportWidth,
             overflow: 'hidden',
             height: viewportWidth,
+            ...moreStyle,
         }
         : {
             maxHeight: viewportWidth - (paddingVertical),
@@ -36,6 +44,7 @@ export default ({
             paddingHorizontal,
             paddingVertical,
             borderRadius,
+            ...moreStyle,
         };
     const singleViewStyles: any = isSingleView ? {} : { borderRadius };
     return (

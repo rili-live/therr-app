@@ -174,6 +174,9 @@
       "inputPlaceholder": "Enter a message",
       "welcome": "This is the start of a new conversation..."
     },
+    "nearbyBottomSheet": {
+      "title": "Moments Near You"
+    },
     "notification": {
       "buttons": {
         "accept": "Accept",
@@ -344,7 +347,7 @@
       },
       "labels": {
         "addImageNote": "Select an existing image or capture a new one to represent your space.",
-        "cost": "Cost: {pointCost} points",
+        "cost": "Cost: {pointCost} coins",
         "message": "Describe the location, event, business, promotion, etc...",
         "notificationMsg": "Title or Location Name",
         "hashTags": "Hashtags (ie. my_tag, myTag)",
@@ -864,8 +867,8 @@
       "confirmDelete": "Please confirm that you would like to permanently delete your account. You will be logged out immediately and your account will be deleted."
     },
     "infoModalPoints": {
-      "header": "What are points?",
-      "description": "In a future iteration of the app, points will be exchangable for cryptocurrency. Opt in to nearby notifications, and start earning points through various activities like inviting friends and creating quality content. Or, opt out and enjoy the app ad-free!",
+      "header": "What are coins?",
+      "description": "In a future iteration of the app, coins will be exchangable for cash or cryptocurrency. Opt in to nearby notifications, and start earning coins through various activities like inviting friends and creating quality content. Or, opt out and enjoy the app ad-free!",
       "done": "close"
     },
     "touringModal": {

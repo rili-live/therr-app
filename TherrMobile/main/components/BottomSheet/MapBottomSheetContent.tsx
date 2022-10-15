@@ -1,15 +1,21 @@
 import React from 'react';
 import NearbyWrapper from '../../routes/Areas/Nearby/NearbyWrapper';
-// import { ITherrThemeColors } from '../../styles/themes';
+import { ITherrThemeColors } from '../../styles/themes';
 
 interface IMapBottomSheetContent {
     navigation: any;
+    contentRef: any;
+    theme: {
+        colors: ITherrThemeColors;
+        styles: any;
+    },
     translate: Function;
 }
 
 export default ({
     navigation,
-    // translate,
+    theme,
+    translate,
 }: IMapBottomSheetContent) => {
     return (
         <>

@@ -26,6 +26,7 @@ const colors: ITherrThemeColors = {
     brandingBlueGreen: '#1C7F8A',
     brandingMapYellow: '#ebc300',
     brandingOrange: '#DE6E07',
+    brandingRed: '#ff3041',
     brandingLightBlue: '#d8f0f2',
 
     // Background
@@ -114,6 +115,8 @@ const colorVariations: ITherrThemeColorVariations = {
     accentBlueHeavyFade: new Color(colors.accentBlue).fade(0.7).toString(),
     accentTextBlack: new Color(colors.accentTextBlack).lighten(0.25).toString(),
     accentTextWhiteFade: new Color(colors.accentTextWhite).fade(0.2).toString(),
+    brandingOrangeLightFade: new Color(colors.brandingOrange).fade(0.2).toString(),
+    brandingOrangeHeavyFade: new Color(colors.brandingOrange).fade(0.7).toString(),
 
     // Background
     backgroundNeutral: new Color(colors.backgroundNeutral).darken(0.1).toString(),

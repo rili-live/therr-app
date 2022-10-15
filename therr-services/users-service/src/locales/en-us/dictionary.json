@@ -19,7 +19,7 @@
         }
     },
     "notifications": {
-        "achievementCompleted": "You completed an achievement! Go claim your reward to collect points.",
+        "achievementCompleted": "You completed an achievement! Go claim your reward to collect coins.",
         "connectionRequestAccepted": "{firstName} {lastName} accepted your connection request",
         "connectionRequestReceived": "You have received a new connection request from {firstName} {lastName}",
         "reactionLikeReceived": "{userName} liked your post",
