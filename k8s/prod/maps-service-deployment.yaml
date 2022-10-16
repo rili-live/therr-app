@@ -29,8 +29,8 @@ spec:
         image: therrapp/maps-service:latest
         resources:
           limits:
-            memory: "128Mi"
-            cpu: "50m"
+            memory: "256Mi"
+            cpu: "100m"
         ports:
         - containerPort: 7773
         env:
