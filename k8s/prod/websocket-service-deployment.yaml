@@ -29,7 +29,7 @@ spec:
         image: therrapp/websocket-service:latest
         resources:
           limits:
-            memory: "128Mi"
+            memory: "256Mi"
             cpu: "100m"
         ports:
         - containerPort: 7743
