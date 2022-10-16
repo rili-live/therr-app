@@ -393,17 +393,17 @@ class UsersActions {
         });
     };
 
-    claimMyAchievement = (id: string, points: number | string) => (dispatch: any) => UsersService
+    claimMyAchievement = (id: string, coins: number | string) => (dispatch: any) => UsersService
         .claimMyAchievement(id).then(async (response) => {
             const userDetails = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUser') || {});
             const userSettings = JSON.parse(await (this.NativeStorage || sessionStorage).getItem('therrUserSettings') || {});
             const userData: IUser = Immutable.from({
                 ...userDetails,
-                settingsTherrCoinTotal: parseFloat(points as string || '0') + parseFloat(userDetails.settingsTherrCoinTotal || '0'),
+                settingsTherrCoinTotal: parseFloat(coins as string || '0') + parseFloat(userDetails.settingsTherrCoinTotal || '0'),
             });
             const userSettingsData: IUser = Immutable.from({
                 ...userSettings,
-                settingsTherrCoinTotal: parseFloat(points as string) + parseFloat(userDetails.settingsTherrCoinTotal),
+                settingsTherrCoinTotal: parseFloat(coins as string) + parseFloat(userDetails.settingsTherrCoinTotal),
             });
             (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
             (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
@@ -415,7 +415,7 @@ class UsersActions {
             dispatch({
                 type: UserActionTypes.UPDATE_USER_POINTS,
                 data: {
-                    settingsTherrCoinTotal: points,
+                    settingsTherrCoinTotal: coins,
                 },
             });
 

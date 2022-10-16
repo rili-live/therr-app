@@ -1,4 +1,4 @@
-import BottomSheet from '../../components/Modals/BottomSheet';
+import BottomSheet from '../../components/BottomSheet/BottomSheet';
 import React, { useState } from 'react';
 import { ActivityIndicator, Dimensions, Text, View, Pressable, RefreshControl } from 'react-native';
 import { Button, Image } from 'react-native-elements';

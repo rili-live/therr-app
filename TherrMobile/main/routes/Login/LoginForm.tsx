@@ -210,6 +210,7 @@ export class LoginFormComponent extends React.Component<
                     }
                     themeForms={themeForms}
                     testID="login-username"
+                    inputStyle={{ fontSize: 17 }}
                 />
                 <RoundInput
                     autoCapitalize="none"
@@ -233,6 +234,7 @@ export class LoginFormComponent extends React.Component<
                     }
                     themeForms={themeForms}
                     testID="login-password"
+                    inputStyle={{ fontSize: 17 }}
                 />
                 <View style={themeAuthForm.styles.submitButtonContainer}>
                     <Button

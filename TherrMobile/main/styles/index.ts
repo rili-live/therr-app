@@ -125,6 +125,8 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         safeAreaView: {
             marginTop: Platform.OS === 'ios' ? 0 : 0,
             flex: 1,
+            width: '100%',
+            minWidth: '100%', // helps ensure view within bottomSheet is full width
         },
         scrollView: {
             marginBottom: buttonMenuHeight,
@@ -202,6 +204,14 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginBottom: 12,
             paddingHorizontal: 12,
         },
+        sectionContainerBottomSheet: {
+            display: 'flex',
+            flexDirection: 'row',
+            marginTop: 0,
+            marginBottom: 0,
+            paddingHorizontal: 12,
+            paddingVertical: 4,
+        },
         sectionContainerWide: {
             marginTop: 12,
             marginBottom: 8,
@@ -224,6 +234,14 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         sectionTitleAlt: {
             ...sectionTitle,
             color: therrTheme.colors.textBlack,
+        },
+        sectionTitleBottomSheet: {
+            ...sectionTitle,
+            fontSize: 20,
+            fontWeight: '400',
+            color: therrTheme.colors.brandingBlack,
+            marginBottom: 8,
+            marginTop: 8,
         },
         sectionDescription: {
             ...getSectionDescriptionStyles(therrTheme),

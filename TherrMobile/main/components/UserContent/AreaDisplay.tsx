@@ -11,6 +11,7 @@ import {
 import { Button, Image } from 'react-native-elements';
 import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { IUserState } from 'therr-react/types';
 import UserMedia from './UserMedia';
 import HashtagsContainer from './HashtagsContainer';
@@ -20,6 +21,11 @@ import { getUserImageUri } from '../../utilities/content';
 import PresssableWithDoubleTap from '../../components/PressableWithDoubleTap';
 
 const { width: viewportWidth } = Dimensions.get('window');
+
+const hapticFeedbackOptions = {
+    enableVibrateFallback: true,
+    ignoreAndroidSystemSettings: false,
+};
 
 interface IUserDetails {
     userName: string;
@@ -81,6 +87,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
 
     onLikePress = (area) => {
         if (!area.isDraft) {
+            ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
             const { updateAreaReaction, userDetails } = this.props;
 
             updateAreaReaction(area.id, {
@@ -117,7 +124,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         onPress={() => goToViewUser(area.fromUserId)}
                     >
                         <Image
-                            source={{ uri: getUserImageUri({ details: { media: area.fromUserMedia } }, 52) }}
+                            source={{ uri: getUserImageUri({ details: { media: area.fromUserMedia, id: area.fromUserId } }, 52) }}
                             style={themeViewArea.styles.areaUserAvatarImg}
                             containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
                             PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary}/>}

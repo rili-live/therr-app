@@ -11,7 +11,7 @@ import { version as packageVersion } from '../package.json';
 import authenticate from './middleware/authenticate';
 
 // Axios defaults
-axios.defaults.timeout = 1000 * 10; // 10 Second Request timeout
+axios.defaults.timeout = 1000 * 30; // 30 Second Request timeout
 
 const originWhitelist = (process.env.URI_WHITELIST || '').split(',');
 const corsOptions = {

@@ -2,7 +2,7 @@
   "notifications": {
     "achievementCompleted": {
       "title": "New Unclaimed Rewards",
-      "body": "You completed an achievement! Go claim your reward to collect points."
+      "body": "You completed an achievement! Go claim your reward to collect coins."
     },
     "connectionRequestAccepted": {
       "title": "New Connection",

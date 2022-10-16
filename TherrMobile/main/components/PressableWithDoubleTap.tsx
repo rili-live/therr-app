@@ -3,9 +3,13 @@ import React, {
 } from 'react';
 import {
     Pressable,
+    StyleProp,
+    ViewStyle,
 } from 'react-native';
 
 interface IPressableWithDoubleTapProps {
+    children: React.ReactNode;
+    style: StyleProp<ViewStyle>;
     onPress?: () => any;
     onDoubleTap: () => any;
 }
@@ -72,7 +76,7 @@ export default class DoubleTap extends Component<IPressableWithDoubleTapProps> {
 
     render() {
         return (
-            <Pressable onPress={this._onTap}>
+            <Pressable onPress={this._onTap} style={this.props.style}>
                 {this.props.children}
             </Pressable>
         );

@@ -9,7 +9,7 @@ import { MapActions } from 'therr-react/redux/actions';
 import { IMapReduxState } from 'therr-react/types';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
 import DeviceInfo from 'react-native-device-info';
-import RoundInput from '.';
+import RoundInput from './';
 import translator from '../../services/translator';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
 
