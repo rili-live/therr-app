@@ -27,7 +27,7 @@ spec:
         image: redis:6
         resources:
           limits:
-            memory: "256Mi"
-            cpu: "50m"
+            memory: "512Mi"
+            cpu: "100m"
         ports:
         - containerPort: 6379
