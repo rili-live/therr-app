@@ -30,8 +30,8 @@ spec:
         image: therrapp/client-web:latest
         resources:
           limits:
-            memory: "64Mi"
-            cpu: "50m"
+            memory: "128Mi"
+            cpu: "100m"
         ports:
         - containerPort: 7070
         env:
