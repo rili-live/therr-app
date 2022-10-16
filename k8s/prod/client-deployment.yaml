@@ -48,7 +48,5 @@ spec:
             value: "info"
           - name: LOGGING_DATASET
             value: "production"
-          - name: LOGGING_DATASET
-            value: "production"
           - name: SOCKET_PORT
             value: "7743"
