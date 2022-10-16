@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, Platform, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { connect } from 'react-redux';
 import { Button, Image } from 'react-native-elements';
 import 'react-native-gesture-handler';
@@ -124,7 +124,7 @@ class MainButtonMenuAlt extends ButtonMenu {
     }
 
     render() {
-        const { onActionButtonPress, isCompact, translate, themeMenu, user } = this.props;
+        const { isCompact, translate, themeMenu, user } = this.props;
         const currentScreen = this.getCurrentScreen();
         // const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
         const isConnectViewActive = currentScreen === 'Contacts' || currentScreen === 'ActiveConnections' || currentScreen === 'CreateConnection';

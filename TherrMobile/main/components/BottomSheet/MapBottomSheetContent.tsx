@@ -14,8 +14,8 @@ interface IMapBottomSheetContent {
 
 export default ({
     navigation,
-    theme,
-    translate,
+    // theme,
+    // translate,
 }: IMapBottomSheetContent) => {
     return (
         <>

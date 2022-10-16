@@ -101,7 +101,6 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
             toggleAreaOptions,
             hashtags,
             isDarkMode,
-            isExpanded,
             area,
             areaMedia,
             goToViewUser,
@@ -113,8 +112,6 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
         } = this.props;
 
         const isBookmarked = area.reaction?.userBookmarkCategory;
-        const isLiked = area.reaction?.userHasLiked;
-        const likeColor = isLiked ? theme.colors.accentRed : (isDarkMode ? theme.colors.textWhite : theme.colors.tertiary);
 
         return (
             <>
@@ -198,7 +195,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                                 </>
                             }
                         </View>
-                        <Text style={themeViewArea.styles.areaMessage} numberOfLines={isExpanded ? undefined : 3}>
+                        <Text style={themeViewArea.styles.areaMessage} numberOfLines={3}>
                             <Autolink
                                 text={area.message}
                                 linkStyle={theme.styles.link}
