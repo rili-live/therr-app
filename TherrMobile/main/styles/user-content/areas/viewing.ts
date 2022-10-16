@@ -138,6 +138,17 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             paddingHorizontal: 6,
             height: '100%',
         },
+        areaContentTitleMedium: {
+            flex: 1,
+            color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
+            // position: 'absolute',
+            fontSize: 16,
+            fontWeight: '600',
+            // top: 10,
+            paddingVertical: ((contentTitleContainerHeight - 16) / 2) - 3,
+            paddingHorizontal: 6,
+            height: '100%',
+        },
         areaMessage: {
             fontSize: 16,
             color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,

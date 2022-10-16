@@ -7,7 +7,7 @@ module.exports = {
     dependencies: {
         '@logrocket/react-native': {
             platforms: {
-                // android: null, // current version was not working on android. TODO: try again after update
+                android: null, // current version was not working on android. TODO: try again after update
             },
         },
     },

@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { ButtonMenu, mapStateToProps, mapDispatchToProps } from '.';
+import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';
 
 class CropButtonMenu extends ButtonMenu {
     constructor(props) {

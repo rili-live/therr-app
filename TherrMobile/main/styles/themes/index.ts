@@ -40,6 +40,7 @@ export interface ITherrThemeColors {
     brandingBlueGreen: string;
     brandingMapYellow: string;
     brandingOrange: string;
+    brandingRed: string;
     brandingLightBlue: string;
 
     // Background
@@ -128,6 +129,8 @@ export interface ITherrThemeColorVariations {
     accentBlueHeavyFade: string;
     accentTextBlack: string;
     accentTextWhiteFade: string;
+    brandingOrangeLightFade: string;
+    brandingOrangeHeavyFade: string;
 
     // Background
     backgroundNeutral: string;

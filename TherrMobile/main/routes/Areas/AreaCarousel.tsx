@@ -1,16 +1,19 @@
 import React from 'react';
 import { RefreshControl, View, Text, /* Platform, */ FlatList, Pressable } from 'react-native';
+import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 // import Carousel from 'react-native-snap-carousel';
 import { buildStyles } from '../../styles/user-content/areas';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas/viewing';
 import AreaDisplay from '../../components/UserContent/AreaDisplay';
+import AreaDisplayMedium from '../../components/UserContent/AreaDisplayMedium';
 import formatDate from '../../utilities/formatDate';
 
 // let flatListRef;
 
 const renderItem = ({ item: area }, {
     content,
+    displaySize,
     inspectArea,
     toggleAreaOptions,
     fetchMedia,
@@ -39,25 +42,47 @@ const renderItem = ({ item: area }, {
             style={theme.styles.areaContainer}
             onPress={() => inspectArea(area)}
         >
-            <AreaDisplay
-                translate={translate}
-                date={formattedDate}
-                goToViewMap={goToViewMap}
-                goToViewUser={goToViewUser}
-                toggleAreaOptions={toggleAreaOptions}
-                hashtags={area.hashTags ? area.hashTags.split(',') : []}
-                area={area}
-                inspectArea={() => inspectArea(area)}
-                // TODO: Get username from response
-                user={user}
-                userDetails={userDetails}
-                updateAreaReaction={updateAreaReaction}
-                areaMedia={areaMedia}
-                isDarkMode={false}
-                theme={theme}
-                themeForms={themeForms}
-                themeViewArea={themeArea}
-            />
+            {
+                displaySize === 'medium' ?
+                    <AreaDisplayMedium
+                        translate={translate}
+                        date={formattedDate}
+                        goToViewMap={goToViewMap}
+                        goToViewUser={goToViewUser}
+                        toggleAreaOptions={toggleAreaOptions}
+                        hashtags={area.hashTags ? area.hashTags.split(',') : []}
+                        area={area}
+                        inspectArea={() => inspectArea(area)}
+                        // TODO: Get username from response
+                        user={user}
+                        userDetails={userDetails}
+                        updateAreaReaction={updateAreaReaction}
+                        areaMedia={areaMedia}
+                        isDarkMode={false}
+                        theme={theme}
+                        themeForms={themeForms}
+                        themeViewArea={themeArea}
+                    /> :
+                    <AreaDisplay
+                        translate={translate}
+                        date={formattedDate}
+                        goToViewMap={goToViewMap}
+                        goToViewUser={goToViewUser}
+                        toggleAreaOptions={toggleAreaOptions}
+                        hashtags={area.hashTags ? area.hashTags.split(',') : []}
+                        area={area}
+                        inspectArea={() => inspectArea(area)}
+                        // TODO: Get username from response
+                        user={user}
+                        userDetails={userDetails}
+                        updateAreaReaction={updateAreaReaction}
+                        areaMedia={areaMedia}
+                        isDarkMode={false}
+                        theme={theme}
+                        themeForms={themeForms}
+                        themeViewArea={themeArea}
+                    />
+            }
         </Pressable>
     );
 };
@@ -71,6 +96,7 @@ const renderItem = ({ item: area }, {
 export default ({
     activeData,
     content,
+    displaySize,
     inspectArea,
     containerRef,
     fetchMedia,
@@ -97,6 +123,8 @@ export default ({
     const theme = buildStyles(user.details.mobileThemeName);
     const themeArea = buildAreaStyles(user.details.mobileThemeName, false);
     const themeForms = buildFormStyles(user.details.mobileThemeName);
+    const isUsingBottomSheet = (displaySize === 'small' || displaySize === 'medium');
+    const FlatListComponent = isUsingBottomSheet ? BottomSheetFlatList : FlatList;
 
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
@@ -136,11 +164,12 @@ export default ({
 
     return (
         <>
-            <FlatList
+            <FlatListComponent
                 data={activeData}
                 keyExtractor={(item) => String(item.id)}
                 renderItem={(itemObj) => renderItem(itemObj, {
                     content,
+                    displaySize: displaySize || 'large', // default to large
                     inspectArea,
                     fetchMedia,
                     formattedDate: formatDate(itemObj.item.createdAt),
@@ -162,10 +191,13 @@ export default ({
                     containerRef && containerRef(component);
                     return component;
                 }}
+                // refreshControl is not yet supported by BottomSheet
                 refreshControl={<RefreshControl
                     refreshing={refreshing}
                     onRefresh={onRefresh}
                 />}
+                refreshing={isUsingBottomSheet ? refreshing : undefined}
+                onRefresh={isUsingBottomSheet ? onRefresh : undefined}
                 style={[rootStyles.stretch, theme.styles.areaCarousel]}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={0.5}

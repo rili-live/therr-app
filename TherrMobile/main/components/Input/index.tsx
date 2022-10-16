@@ -15,15 +15,16 @@ export class BaseInput extends React.Component<InputProps & IBaseInputProps, any
         super(props);
     }
 
+
     render() {
         const { themeForms } = this.props;
 
         return (
             <Input
-                inputStyle={themeForms.styles.input}
                 rightIconContainerStyle={themeForms.styles.icon}
                 selectionColor={themeForms.colors.selectionColor}
                 {...this.props}
+                inputStyle={this.props.inputStyle || themeForms.styles.input}
             />
         );
     }

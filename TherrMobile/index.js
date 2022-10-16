@@ -1,3 +1,4 @@
+import React from 'react';
 import 'react-native-gesture-handler';
 import messaging from '@react-native-firebase/messaging';
 import { AppRegistry } from 'react-native';

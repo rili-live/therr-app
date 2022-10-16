@@ -6,7 +6,7 @@ import 'react-native-gesture-handler';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import { ButtonMenu, mapStateToProps, mapDispatchToProps } from '.';
+import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';
 import { getUserImageUri } from '../../utilities/content';
 // import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 
@@ -113,8 +113,18 @@ class MainButtonMenuAlt extends ButtonMenu {
         }
     }
 
+    handleNearbyPress = () => {
+        const { onNearbyPress } = this.props;
+
+        if (onNearbyPress) {
+            onNearbyPress();
+        } else {
+            this.onNavPressDynamic('Nearby');
+        }
+    }
+
     render() {
-        const { onActionButtonPress, isCompact, translate, themeMenu, user } = this.props;
+        const { isCompact, translate, themeMenu, user } = this.props;
         const currentScreen = this.getCurrentScreen();
         // const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
         const isConnectViewActive = currentScreen === 'Contacts' || currentScreen === 'ActiveConnections' || currentScreen === 'CreateConnection';
@@ -184,7 +194,37 @@ class MainButtonMenuAlt extends ButtonMenu {
                             }
                         />
                     }
-                    onPress={() => this.navTo('Map')}
+                    onPress={() => this.onNavPressDynamic('Map')}
+                />
+                <Button
+                    title={!isCompact ? translate('menus.main.buttons.nearby') : null}
+                    buttonStyle={
+                        currentScreen === 'Nearby'
+                            ? themeMenu.styles.buttonsActive
+                            : themeMenu.styles.buttons
+                    }
+                    containerStyle={
+                        currentScreen === 'Nearby'
+                            ? themeMenu.styles.buttonContainerActive
+                            : themeMenu.styles.buttonContainer
+                    }
+                    titleStyle={
+                        currentScreen === 'Nearby'
+                            ? themeMenu.styles.buttonsTitleActive
+                            : themeMenu.styles.buttonsTitle
+                    }
+                    icon={
+                        <MaterialIcon
+                            name="radar"
+                            size={24}
+                            style={
+                                currentScreen === 'Nearby'
+                                    ? themeMenu.styles.buttonIconActive
+                                    : themeMenu.styles.buttonIcon
+                            }
+                        />
+                    }
+                    onPress={() => this.handleNearbyPress()}
                 />
                 <Button
                     title={!isCompact ? translate('menus.main.buttons.connect') : null}
@@ -216,76 +256,29 @@ class MainButtonMenuAlt extends ButtonMenu {
                     }
                     onPress={() => this.navTo('Contacts')}
                 />
-                <Button
-                    title={!isCompact ? translate('menus.main.buttons.nearby') : null}
-                    buttonStyle={
-                        currentScreen === 'Nearby'
-                            ? themeMenu.styles.buttonsActive
-                            : themeMenu.styles.buttons
-                    }
-                    containerStyle={
-                        currentScreen === 'Nearby'
-                            ? themeMenu.styles.buttonContainerActive
-                            : themeMenu.styles.buttonContainer
-                    }
-                    titleStyle={
-                        currentScreen === 'Nearby'
-                            ? themeMenu.styles.buttonsTitleActive
-                            : themeMenu.styles.buttonsTitle
-                    }
-                    icon={
-                        <MaterialIcon
-                            name="radar"
-                            size={24}
-                            style={
-                                currentScreen === 'Nearby'
-                                    ? themeMenu.styles.buttonIconActive
-                                    : themeMenu.styles.buttonIcon
-                            }
-                        />
-                    }
-                    onPress={() => this.onNavPressDynamic('Nearby')}
-                />
-                {
-                    (onActionButtonPress && currentScreen === 'Map') ?
-                        <Button
-                            buttonStyle={themeMenu.styles.buttons}
-                            containerStyle={themeMenu.styles.buttonContainer}
-                            titleStyle={themeMenu.styles.buttonsTitle}
-                            title={this.getActionButtonTitle({ currentScreen, isCompact, translate })}
-                            icon={
-                                <FontAwesomeIcon
-                                    name={this.getActionButtonIcon(currentScreen)}
-                                    size={20}
-                                    style={themeMenu.styles.buttonIcon}
-                                />
-                            }
-                            onPress={onActionButtonPress as any}
-                        /> :
-                        <View style={
-                            currentScreen === 'ViewUser'
-                                ? themeMenu.styles.buttonContainerActive
-                                : themeMenu.styles.buttonContainer
-                        }>
-                            <Button
-                                buttonStyle={themeMenu.styles.buttons}
-                                containerStyle={themeMenu.styles.buttonContainerUserProfile}
-                                titleStyle={themeMenu.styles.buttonsTitle}
-                                icon={
-                                    <Image
-                                        source={{ uri: getUserImageUri(user, 50) }}
-                                        style={imageStyle}
-                                        PlaceholderContent={<ActivityIndicator size="small" color={themeMenu.colors.primary} />}
-                                    />}
-                                onPress={() => this.goToMyProfile()}
-                                title={translate('menus.main.buttons.profile')}
-                                type="clear"
-                            />
-                            {/* {
-                                hasNotifications && <View style={themeMenu.styles.notificationCircle2} />
-                            } */}
-                        </View>
-                }
+                <View style={
+                    currentScreen === 'ViewUser'
+                        ? themeMenu.styles.buttonContainerActive
+                        : themeMenu.styles.buttonContainer
+                }>
+                    <Button
+                        buttonStyle={themeMenu.styles.buttons}
+                        containerStyle={themeMenu.styles.buttonContainerUserProfile}
+                        titleStyle={themeMenu.styles.buttonsTitle}
+                        icon={
+                            <Image
+                                source={{ uri: getUserImageUri(user, 50) }}
+                                style={imageStyle}
+                                PlaceholderContent={<ActivityIndicator size="small" color={themeMenu.colors.primary} />}
+                            />}
+                        onPress={() => this.goToMyProfile()}
+                        title={translate('menus.main.buttons.profile')}
+                        type="clear"
+                    />
+                    {/* {
+                        hasNotifications && <View style={themeMenu.styles.notificationCircle2} />
+                    } */}
+                </View>
             </ButtonMenu>
         );
     }

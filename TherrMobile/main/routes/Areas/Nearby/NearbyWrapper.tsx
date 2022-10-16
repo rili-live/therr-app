@@ -1,43 +1,39 @@
 import React from 'react';
-import { Keyboard, PermissionsAndroid, Platform, SafeAreaView, Text, View } from 'react-native';
-import { Button, Slider } from 'react-native-elements';
+import { Keyboard, PermissionsAndroid, Platform, Text, View } from 'react-native';
+import { Slider } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import LottieView from 'lottie-react-native';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import { PushNotificationsService } from 'therr-react/services';
 import { Location } from 'therr-js-utilities/constants';
 // import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import Geolocation from 'react-native-geolocation-service';
-import { buildStyles } from '../../styles';
-import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
-import { buildStyles as buildDisclosureStyles } from '../../styles/modal/locationDisclosure';
-import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
-import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
-import { buildStyles as buildMomentStyles } from '../../styles/user-content/areas';
-import { buildStyles as buildReactionsModalStyles } from '../../styles/modal/areaReactionsModal';
-import { buildStyles as buildFormStyles } from '../../styles/forms';
-// import { buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
-import translator from '../../services/translator';
-import AreaCarousel from './AreaCarousel';
-import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
-import BaseStatusBar from '../../components/BaseStatusBar';
-import AreaOptionsModal, { ISelectionType } from '../../components/Modals/AreaOptionsModal';
-import { getReactionUpdateArgs } from '../../utilities/reactions';
-import LottieLoader, { ILottieId } from '../../components/LottieLoader';
-import getActiveCarouselData from '../../utilities/getActiveCarouselData';
-import { CAROUSEL_TABS } from '../../constants';
-import { handleAreaReaction, loadMoreAreas, navToViewArea } from './areaViewHelpers';
-import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
-import { checkAndroidPermission, isLocationPermissionGranted, requestOSMapPermissions } from '../../utilities/requestOSPermissions';
-import LocationActions from '../../redux/actions/LocationActions';
-import { ILocationState } from '../../types/redux/location';
-import earthLoader from '../../assets/earth-loader.json';
-import LocationUseDisclosureModal from '../../components/Modals/LocationUseDisclosureModal';
-import getDirections from '../../utilities/getDirections';
+import { buildStyles } from '../../../styles';
+import { buildStyles as buildButtonsStyles } from '../../../styles/buttons';
+import { buildStyles as buildDisclosureStyles } from '../../../styles/modal/locationDisclosure';
+import { buildStyles as buildLoaderStyles } from '../../../styles/loaders';
+import { buildStyles as buildMenuStyles } from '../../../styles/navigation/buttonMenu';
+import { buildStyles as buildMomentStyles } from '../../../styles/user-content/areas';
+import { buildStyles as buildReactionsModalStyles } from '../../../styles/modal/areaReactionsModal';
+import { buildStyles as buildFormStyles } from '../../../styles/forms';
+// import { buttonMenuHeightCompact } from '../../../styles/navigation/buttonMenu';
+import translator from '../../../services/translator';
+import AreaCarousel from '../AreaCarousel';
+import AreaOptionsModal, { ISelectionType } from '../../../components/Modals/AreaOptionsModal';
+import { getReactionUpdateArgs } from '../../../utilities/reactions';
+import LottieLoader, { ILottieId } from '../../../components/LottieLoader';
+import getActiveCarouselData from '../../../utilities/getActiveCarouselData';
+import { CAROUSEL_TABS } from '../../../constants';
+import { handleAreaReaction, loadMoreAreas, navToViewArea } from '../areaViewHelpers';
+import requestLocationServiceActivation from '../../../utilities/requestLocationServiceActivation';
+import { checkAndroidPermission, isLocationPermissionGranted, requestOSMapPermissions } from '../../../utilities/requestOSPermissions';
+import LocationActions from '../../../redux/actions/LocationActions';
+import { ILocationState } from '../../../types/redux/location';
+import LocationUseDisclosureModal from '../../../components/Modals/LocationUseDisclosureModal';
+import getDirections from '../../../utilities/getDirections';
+import GpsEnableButtonDialog from './GPSEnableDialog';
 
 function getRandomLoaderId(): ILottieId {
     const options: ILottieId[] = ['donut', 'earth', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
@@ -45,7 +41,8 @@ function getRandomLoaderId(): ILottieId {
     return options[selected] as ILottieId;
 }
 
-interface INearbyDispatchProps {
+interface INearbyWrapperDispatchProps {
+    updateCoordinates: Function;
     updateUserRadius: Function;
 
     searchActiveMoments: Function;
@@ -59,11 +56,9 @@ interface INearbyDispatchProps {
     updateGpsStatus: Function;
     updateLocationDisclosure: Function;
     updateLocationPermissions: Function;
-
-    logout: Function;
 }
 
-interface IStoreProps extends INearbyDispatchProps {
+interface IStoreProps extends INearbyWrapperDispatchProps {
     content: IContentState;
     location: ILocationState;
     map: IMapState;
@@ -72,18 +67,28 @@ interface IStoreProps extends INearbyDispatchProps {
 }
 
 // Regular component props
-export interface INearbyProps extends IStoreProps {
+export interface INearbyWrapperProps extends IStoreProps {
+    carouselRef?: any;
+    displaySize: 'small' | 'medium' | 'large';
     navigation: any;
+    shouldDisableLocationSendEvent: boolean;
 }
 
-interface INearbyState {
+interface INearbyWrapperState {
     activeTab: string;
     isFirstLoad: boolean;
     isLoading: boolean;
     isLocationUseDisclosureModalVisible: boolean;
+    isNearbyNewsfeedVisible: boolean;
     areAreaOptionsVisible: boolean;
     selectedArea: any;
 }
+
+const shouldRenderNearbyNewsfeed = (location) => {
+    return location?.settings.isGpsEnabled
+        && location?.settings?.isLocationDislosureComplete
+        && isLocationPermissionGranted(location?.permissions);
+};
 
 const mapStateToProps = (state: any) => ({
     content: state.content,
@@ -96,6 +101,7 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
+            updateCoordinates: MapActions.updateCoordinates,
             updateUserRadius: MapActions.updateUserRadius,
 
             searchActiveMoments: ContentActions.searchActiveMoments,
@@ -113,9 +119,9 @@ const mapDispatchToProps = (dispatch: any) =>
         dispatch
     );
 
-class Nearby extends React.Component<INearbyProps, INearbyState> {
+class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperState> {
     private carouselRef;
-    private translate: Function;
+    private translate: (key: string, params?: any) => any;
     private loaderId: ILottieId;
     private loadTimeoutId: any;
     private locationListener: any;
@@ -130,6 +136,17 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
     private themeForms = buildFormStyles();
     private mapWatchId;
 
+    // This allows us to fetch results when the user enables location from the map, then opens the Nearby bottom sheet
+    static getDerivedStateFromProps(nextProps: INearbyWrapperProps, nextState: INearbyWrapperState) {
+        if (!nextState.isNearbyNewsfeedVisible && shouldRenderNearbyNewsfeed(nextProps.location)) {
+            return {
+                isNearbyNewsfeedVisible: true,
+            };
+        }
+
+        return null;
+    }
+
     constructor(props) {
         super(props);
 
@@ -138,6 +155,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
             isFirstLoad: true,
             isLoading: true,
             isLocationUseDisclosureModalVisible: false,
+            isNearbyNewsfeedVisible: false,
             areAreaOptionsVisible: false,
             selectedArea: {},
         };
@@ -156,41 +174,24 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
     }
 
     componentDidMount() {
-        const { activeTab, isFirstLoad } = this.state;
-        const { content, navigation } = this.props;
+        const { navigation } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.nearby.headerTitle'),
         });
 
-        const activeData = getActiveCarouselData({
-            activeTab,
-            content,
-            isForBookmarks: false,
-        });
-
-        if (isFirstLoad || !activeData?.length || activeData.length < 21) {
-            this.handleRefresh();
-        } else {
-            this.setState({
-                isLoading: false,
-            });
-        }
+        this.handleRefreshConditionally();
 
         this.unsubscribeNavigationListener = navigation.addListener('focus', () => {
-            const data = getActiveCarouselData({
-                activeTab,
-                content,
-                isForBookmarks: false,
-            });
-            if (isFirstLoad || !data?.length || data.length < 21) {
-                this.handleRefresh();
-            } else {
-                this.setState({
-                    isLoading: false,
-                });
-            }
+            this.handleRefreshConditionally();
         });
+    }
+
+    // This allows us to fetch results when the user enables location from the map, then opens the Nearby bottom sheet
+    componentDidUpdate(prevProps: Readonly<INearbyWrapperProps>, prevState: Readonly<INearbyWrapperState>): void {
+        if (!prevState.isNearbyNewsfeedVisible && this.state.isNearbyNewsfeedVisible) {
+            this.handleRefreshConditionally(true);
+        }
     }
 
     componentWillUnmount() {
@@ -204,14 +205,6 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
     }
 
     getEmptyListMessage = () => this.translate('pages.areas.noNearbyAreasFound');
-
-    shouldRenderNearbyNewsfeed = () => {
-        const { location } = this.props;
-
-        return location?.settings.isGpsEnabled
-            && location?.settings?.isLocationDislosureComplete
-            && isLocationPermissionGranted(location?.permissions);
-    }
 
     goToMap = () => {
         const { navigation } = this.props;
@@ -243,9 +236,41 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
         });
     }
 
-    handleRefresh = () => {
+    handleRefreshConditionally = (shouldShowLoader = false) => {
+        const { activeTab, isFirstLoad } = this.state;
+        const { content, location } = this.props;
+
+        if (shouldShowLoader) {
+            this.setState({
+                isLoading: true,
+            });
+        }
+
+        const activeData = getActiveCarouselData({
+            activeTab,
+            content,
+            isForBookmarks: false,
+        });
+
+        if (shouldRenderNearbyNewsfeed(location) && (isFirstLoad || !activeData?.length || activeData.length < 21)) {
+            return this.handleRefresh(false);
+        } else {
+            this.setState({
+                isLoading: false,
+            });
+            return Promise.resolve();
+        }
+    }
+
+    handleRefresh = (shouldShowLoader = false) => {
         const { content, map, updateActiveMoments, updateActiveSpaces, user } = this.props;
         const { activeTab } = this.state;
+
+        if (shouldShowLoader) {
+            this.setState({
+                isLoading: true,
+            });
+        }
 
         const activeMomentsPromise = updateActiveMoments({
             userLatitude: map.latitude,
@@ -276,8 +301,8 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                     content,
                     isForBookmarks: false,
                 });
-                const hasFoundContent = data.length;
-                this.setState({ isFirstLoad: !hasFoundContent });
+                const hasRenderedFirstContent = data.length;
+                this.setState({ isFirstLoad: !hasRenderedFirstContent });
             })
             .finally(() => {
                 this.loadTimeoutId = setTimeout(() => {
@@ -356,15 +381,24 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
     }
 
     positionSuccessCallback = (position) => {
-        const { map } = this.props;
+        const { shouldDisableLocationSendEvent, map, updateCoordinates } = this.props;
+        const { isFirstLoad } = this.state;
         // TODO: Throttle to prevent too many requests
-        PushNotificationsService.postLocationChange({
-            longitude: position.coords.longitude,
-            latitude: position.coords.latitude,
-            // lastLocationSendForProcessing,
-            radiusOfAwareness: map.radiusOfAwareness,
-            radiusOfInfluence: map.radiusOfInfluence,
-        });
+        // Only update when Map is not already handling this in the background
+        if (isFirstLoad || !shouldDisableLocationSendEvent) {
+            const coords = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+            };
+            updateCoordinates(coords);
+            PushNotificationsService.postLocationChange({
+                longitude: position.coords.longitude,
+                latitude: position.coords.latitude,
+                // lastLocationSendForProcessing,
+                radiusOfAwareness: map.radiusOfAwareness,
+                radiusOfInfluence: map.radiusOfInfluence,
+            });
+        }
     };
 
     positionErrorCallback = (error) => {
@@ -487,94 +521,71 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
 
 
         return (
-            <View style={this.themeMoments.styles.areaCarouselHeaderSliders}>
-                <View style={this.themeForms.styles.inputSliderContainerTight}>
-                    <Text style={this.themeForms.styles.inputLabelDark}>
-                        {`${this.translate('forms.nearbyForm.labels.radiusOfAwareness', { miles: radiusOfAwarenessMiles })}`}
+            <>
+                <View style={[this.theme.styles.sectionContainerBottomSheet, { backgroundColor: this.theme.colors.brandingWhite }]}>
+                    <Text style={this.theme.styles.sectionTitleBottomSheet}>
+                        {this.translate('components.nearbyBottomSheet.title')}
                     </Text>
-                    <Slider
-                        value={radiusOfAwareness}
-                        onValueChange={(value) => this.onSliderAwarenessChange(value)}
-                        maximumValue={Location.MAX_RADIUS_OF_AWARENESS}
-                        minimumValue={Location.MIN_RADIUS_OF_AWARENESS}
-                        step={10000}
-                        thumbStyle={{ backgroundColor: this.theme.colors.accentBlue, height: 20, width: 20 }}
-                        thumbTouchSize={{ width: 30, height: 30 }}
-                        minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
-                        maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
-                        onSlidingStart={Keyboard.dismiss}
-                    />
                 </View>
-                <View style={this.themeForms.styles.inputSliderContainerTight}>
-                    <Text style={this.themeForms.styles.inputLabelDark}>
-                        {`${this.translate('forms.nearbyForm.labels.radiusOfInfluence', { miles: radiusOfInfluenceMiles })}`}
-                    </Text>
-                    <Slider
-                        value={radiusOfInfluence}
-                        onValueChange={(value) => this.onSliderInfluenceChange(value)}
-                        maximumValue={Location.MAX_RADIUS_OF_INFLUENCE}
-                        minimumValue={Location.MIN_RADIUS_OF_INFLUENCE}
-                        step={1000}
-                        thumbStyle={{ backgroundColor: this.theme.colors.brandingOrange, height: 20, width: 20 }}
-                        thumbTouchSize={{ width: 30, height: 30 }}
-                        minimumTrackTintColor={this.theme.colorVariations.accent1LightFade}
-                        maximumTrackTintColor={this.theme.colorVariations.accent1HeavyFade}
-                        onSlidingStart={Keyboard.dismiss}
-                    />
-                </View>
-            </View>
-        );
-    }
-
-    renderGpsEnableButton = () => {
-        return (
-            <KeyboardAwareScrollView
-                contentInsetAdjustmentBehavior="automatic"
-                style={this.theme.styles.bodyFlex}
-                contentContainerStyle={this.theme.styles.bodyScroll}
-            >
-                <View style={this.theme.styles.sectionContainer}>
-                    <View style={{ flex: 1, height: 100, marginBottom: 30 }}>
-                        <LottieView
-                            source={earthLoader}
-                            // resizeMode="cover"
-                            speed={1}
-                            autoPlay
-                            loop
+                <View style={[this.themeMoments.styles.areaCarouselHeaderSliders, { backgroundColor: this.theme.colors.backgroundWhite }]}>
+                    <View style={this.themeForms.styles.inputSliderContainerTight}>
+                        <Text style={this.themeForms.styles.inputLabelDark}>
+                            {`${this.translate('forms.nearbyForm.labels.radiusOfAwareness', { miles: radiusOfAwarenessMiles })}`}
+                        </Text>
+                        <Slider
+                            value={radiusOfAwareness}
+                            // onValueChange={(value) => this.onSliderAwarenessChange(value)}
+                            maximumValue={Location.MAX_RADIUS_OF_AWARENESS}
+                            minimumValue={Location.MIN_RADIUS_OF_AWARENESS}
+                            step={2500}
+                            thumbStyle={{ backgroundColor: this.theme.colors.accentBlue, height: 20, width: 20 }}
+                            thumbTouchSize={{ width: 30, height: 30 }}
+                            minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
+                            maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
+                            onSlidingStart={Keyboard.dismiss}
+                            onSlidingComplete={(value) => this.onSliderAwarenessChange(value)}
                         />
                     </View>
-                    <Text style={this.theme.styles.sectionTitleCenter}>
-                        {this.translate('pages.nearby.headerTitle')}
-                    </Text>
-                    <Text style={this.theme.styles.sectionDescriptionCentered}>
-                        {this.translate('pages.nearby.locationDescription1')}
-                    </Text>
-                    <Text style={this.theme.styles.sectionDescriptionCentered}>
-                        {this.translate('pages.nearby.locationDescription2')}
-                    </Text>
-                    <Text style={this.theme.styles.sectionDescriptionCentered}>
-                        {this.translate('pages.nearby.locationDescription3')}
-                    </Text>
-                    <Text style={[this.theme.styles.sectionDescriptionCentered, { marginBottom: 40 }]} />
-                    <Button
-                        buttonStyle={this.themeForms.styles.button}
-                        titleStyle={this.themeForms.styles.buttonTitle}
-                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                        disabledStyle={this.themeForms.styles.buttonDisabled}
-                        title={this.translate(
-                            'forms.nearbyForm.buttons.enableLocation'
-                        )}
-                        onPress={() => this.handleEnableLocationPress()}
-                        iconRight
-                    />
+                    <View style={this.themeForms.styles.inputSliderContainerTight}>
+                        <Text style={this.themeForms.styles.inputLabelDark}>
+                            {`${this.translate('forms.nearbyForm.labels.radiusOfInfluence', { miles: radiusOfInfluenceMiles })}`}
+                        </Text>
+                        <Slider
+                            value={radiusOfInfluence}
+                            // onValueChange={(value) => this.onSliderInfluenceChange(value)}
+                            maximumValue={Location.MAX_RADIUS_OF_INFLUENCE}
+                            minimumValue={Location.MIN_RADIUS_OF_INFLUENCE}
+                            step={250}
+                            thumbStyle={{ backgroundColor: this.theme.colors.brandingOrange, height: 20, width: 20 }}
+                            thumbTouchSize={{ width: 30, height: 30 }}
+                            minimumTrackTintColor={this.theme.colorVariations.brandingOrangeLightFade}
+                            maximumTrackTintColor={this.theme.colorVariations.brandingOrangeHeavyFade}
+                            onSlidingStart={Keyboard.dismiss}
+                            onSlidingComplete={(value) => this.onSliderInfluenceChange(value)}
+                        />
+                    </View>
                 </View>
-            </KeyboardAwareScrollView>
+            </>
         );
     }
 
     render() {
-        const { activeTab, areAreaOptionsVisible, isLocationUseDisclosureModalVisible, isLoading, selectedArea } = this.state;
-        const { createOrUpdateMomentReaction, createOrUpdateSpaceReaction, content, navigation, user } = this.props;
+        const {
+            activeTab,
+            areAreaOptionsVisible,
+            isLocationUseDisclosureModalVisible,
+            isLoading,
+            selectedArea,
+        } = this.state;
+        const {
+            carouselRef,
+            createOrUpdateMomentReaction,
+            createOrUpdateSpaceReaction,
+            content,
+            displaySize,
+            location,
+            user,
+        } = this.props;
 
         // TODO: Fetch missing media
         const fetchMedia = () => {};
@@ -588,38 +599,41 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
 
         return (
             <>
-                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
-                    {
-                        this.shouldRenderNearbyNewsfeed() &&
-                            <AreaCarousel
-                                activeData={activeData}
-                                content={content}
-                                fetchMedia={fetchMedia}
-                                inspectArea={this.goToArea}
-                                goToViewMap={this.goToViewMap}
-                                goToViewUser={this.goToViewUser}
-                                toggleAreaOptions={this.toggleAreaOptions}
-                                translate={this.translate}
-                                containerRef={(component) => this.carouselRef = component}
-                                handleRefresh={this.handleRefresh}
-                                isLoading={isLoading}
-                                onEndReached={this.tryLoadMore}
-                                updateMomentReaction={createOrUpdateMomentReaction}
-                                updateSpaceReaction={createOrUpdateSpaceReaction}
-                                emptyListMessage={this.getEmptyListMessage()}
-                                renderHeader={this.renderHeader}
-                                renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
-                                user={user}
-                                rootStyles={this.theme.styles}
-                                // viewportHeight={viewportHeight}
-                                // viewportWidth={viewportWidth}
-                            />
-                    }
-                    {
-                        !this.shouldRenderNearbyNewsfeed() && this.renderGpsEnableButton()
-                    }
-                </SafeAreaView>
+                {
+                    shouldRenderNearbyNewsfeed(location) &&
+                        <AreaCarousel
+                            activeData={activeData}
+                            content={content}
+                            displaySize={displaySize}
+                            fetchMedia={fetchMedia}
+                            inspectArea={this.goToArea}
+                            goToViewMap={this.goToViewMap}
+                            goToViewUser={this.goToViewUser}
+                            toggleAreaOptions={this.toggleAreaOptions}
+                            translate={this.translate}
+                            containerRef={(component) => { this.carouselRef = component; carouselRef && carouselRef(component); }}
+                            handleRefresh={this.handleRefresh}
+                            isLoading={isLoading}
+                            onEndReached={this.tryLoadMore}
+                            updateMomentReaction={createOrUpdateMomentReaction}
+                            updateSpaceReaction={createOrUpdateSpaceReaction}
+                            emptyListMessage={this.getEmptyListMessage()}
+                            renderHeader={this.renderHeader}
+                            renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
+                            user={user}
+                            rootStyles={this.theme.styles}
+                            // viewportHeight={viewportHeight}
+                            // viewportWidth={viewportWidth}
+                        />
+                }
+                {
+                    !shouldRenderNearbyNewsfeed(location) && <GpsEnableButtonDialog
+                        handleEnableLocationPress={this.handleEnableLocationPress}
+                        theme={this.theme}
+                        themeForms={this.themeForms}
+                        translate={this.translate}
+                    />
+                }
                 <AreaOptionsModal
                     isVisible={areAreaOptionsVisible}
                     onRequestClose={() => this.toggleAreaOptions(selectedArea)}
@@ -636,16 +650,9 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
                     themeButtons={this.themeButtons}
                     themeDisclosure={this.themeDisclosure}
                 />
-                <MainButtonMenu
-                    navigation={navigation}
-                    onActionButtonPress={this.scrollTop}
-                    translate={this.translate}
-                    user={user}
-                    themeMenu={this.themeMenu}
-                />
             </>
         );
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Nearby);
+export default connect(mapStateToProps, mapDispatchToProps)(NearbyWrapper);
