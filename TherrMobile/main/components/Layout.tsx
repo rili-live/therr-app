@@ -321,20 +321,23 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         );
 
         let targetRouteView = '';
-        if (event.action === 'app.therrmobile.ACHIEVEMENT_COMPLETED') {
+        if (event.action === 'app.therrmobile.ACHIEVEMENT_COMPLETED'
+            || event.action === 'app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER') {
             targetRouteView = 'Achievements';
         } else if (event.action === 'app.therrmobile.NEW_CONNECTION') {
             targetRouteView = 'Contacts';
-        } else if (event.action === 'app.therrmobile.NEW_CONNECTION') {
-            targetRouteView = 'Contacts';
-        } else if (event.action === 'app.therrmobile.NEW_CONNECTION_REQUEST') {
+        } else if (event.action === 'app.therrmobile.CREATE_A_MOMENT_REMINDER') {
+            targetRouteView = 'Map';
+        } else if (event.action === 'app.therrmobile.LATEST_POST_LIKES_STATS'
+            || event.action === 'app.therrmobile.LATEST_POST_VIEWCOUNT_STATS') {
+            targetRouteView = 'ViewUser';
+        } else if (event.action === 'app.therrmobile.NEW_CONNECTION_REQUEST'
+            || event.action === 'app.therrmobile.UNREAD_NOTIFICATIONS_REMINDER'
+            || event.action === 'app.therrmobile.NEW_SUPER_LIKE_RECEIVED'
+            || event.action === 'app.therrmobile.NEW_LIKE_RECEIVED') {
             targetRouteView = 'Notifications';
         } else if (event.action === 'app.therrmobile.NEW_DIRECT_MESSAGE') {
             targetRouteView = 'Contacts';
-        } else if (event.action === 'app.therrmobile.NEW_LIKE_RECEIVED') {
-            targetRouteView = 'Notifications';
-        } else if (event.action === 'app.therrmobile.NEW_SUPER_LIKE_RECEIVED') {
-            targetRouteView = 'Notifications';
         }
 
         if (isNotAuthorized) {

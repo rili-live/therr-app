@@ -1,4 +1,5 @@
 export enum Types {
+    // Event Driven
     achievementCompleted = 'achievement-completed',
     connectionRequestAccepted = 'connection-request-accepted',
     newConnectionRequest = 'new-connection-request',
@@ -8,4 +9,12 @@ export enum Types {
     newAreasActivated = 'new-moments-activated',
     proximityRequiredMoment = 'proximity-required-moment',
     proximityRequiredSpace = 'proximity-required-space',
+
+    // Automation
+    createYourProfileReminder = 'create-your-profile-reminder',
+    createAMomentReminder = 'create-a-moment-reminder',
+    latestPostLikesStats = 'latest-post-likes-stats',
+    latestPostViewcountStats = 'latest-post-viewcount-stats',
+    unreadNotificationsReminder = 'unread-notifications-reminder',
+    unclaimedAchievementsReminder = 'unclaimed-achievements-reminder',
 }
