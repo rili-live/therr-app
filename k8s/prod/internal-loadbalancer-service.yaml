@@ -8,9 +8,9 @@ spec:
   type: LoadBalancer
   externalTrafficPolicy: Cluster
   selector:
-    component: server-loadbalancer
+    component: server-push-notifications
   ports:
   - name: tcp-port
     protocol: TCP
-    port: 8080
+    port: 7775
     targetPort: 7775 # Push Notifications Service
