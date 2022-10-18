@@ -12,5 +12,5 @@ spec:
   ports:
   - name: tcp-port
     protocol: TCP
-    port: 7775
+    port: 8080
     targetPort: 7775 # Push Notifications Service
