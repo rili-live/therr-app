@@ -6,7 +6,7 @@ import {
 
 const router = express.Router();
 
-// Process User Location Change
+// Send a push notification
 router.post('/send', predictAndSendPushNotification);
 
 // For local testing

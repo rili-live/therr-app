@@ -13,11 +13,15 @@ admin.initializeApp({
 });
 
 interface ICreateMessageConfig {
+    achievementsCount?: number;
+    likeCount?: number;
+    notificationsCount?: number;
     totalAreasActivated?: number;
     deviceToken: any;
     fromUserName?: string;
     userId: string | string[];
     userLocale: string;
+    viewCount?: number;
 }
 
 interface INotificationMetrics {
@@ -68,6 +72,71 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
     Object.keys(data).forEach((key) => { modifiedData[key] = JSON.stringify(data[key]); });
 
     switch (type) {
+        // Automation
+        case PushNotifications.Types.createYourProfileReminder:
+            baseMessage = createBaseMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.createYourProfileReminder.title'),
+                notificationBody: translate(config.userLocale, 'notifications.createYourProfileReminder.body'),
+            });
+            baseMessage.android.notification.clickAction = 'app.therrmobile.CREATE_YOUR_PROFILE_REMINDER';
+            return baseMessage;
+        case PushNotifications.Types.createAMomentReminder:
+            baseMessage = createBaseMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.createAMomentReminder.title'),
+                notificationBody: translate(config.userLocale, 'notifications.createAMomentReminder.body'),
+            });
+            baseMessage.android.notification.clickAction = 'app.therrmobile.CREATE_A_MOMENT_REMINDER';
+            return baseMessage;
+        case PushNotifications.Types.latestPostLikesStats:
+            baseMessage = createBaseMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.latestPostLikesStats.title'),
+                notificationBody: translate(config.userLocale, 'notifications.latestPostLikesStats.body', {
+                    likeCount: config.likeCount,
+                }),
+            });
+            baseMessage.android.notification.clickAction = 'app.therrmobile.LATEST_POST_LIKES_STATS';
+            return baseMessage;
+        case PushNotifications.Types.latestPostViewcountStats:
+            baseMessage = createBaseMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.latestPostViewcountStats.title'),
+                notificationBody: translate(config.userLocale, 'notifications.latestPostViewcountStats.body', {
+                    viewCount: config.viewCount,
+                }),
+            });
+            baseMessage.android.notification.clickAction = 'app.therrmobile.LATEST_POST_VIEWCOUNT_STATS';
+            return baseMessage;
+        case PushNotifications.Types.unreadNotificationsReminder:
+            baseMessage = createBaseMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.unreadNotificationsReminder.title'),
+                notificationBody: translate(config.userLocale, 'notifications.unreadNotificationsReminder.body', {
+                    notificationsCount: config.notificationsCount,
+                }),
+            });
+            baseMessage.android.notification.clickAction = 'app.therrmobile.UNREAD_NOTIFICATIONS_REMINDER';
+            return baseMessage;
+        case PushNotifications.Types.unclaimedAchievementsReminder:
+            baseMessage = createBaseMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.unclaimedAchievementsReminder.title'),
+                notificationBody: translate(config.userLocale, 'notifications.unclaimedAchievementsReminder.body', {
+                    achievementsCount: config.achievementsCount,
+                }),
+            });
+            baseMessage.android.notification.clickAction = 'app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER';
+            return baseMessage;
+
+        // Event Driven
         case PushNotifications.Types.achievementCompleted:
             baseMessage = createBaseMessage({
                 data: modifiedData,

@@ -8,6 +8,14 @@
       "title": "New Connection",
       "body": "Your connection request was accepted! Check the app to start a new conversation"
     },
+    "createAMomentReminder": {
+      "title": "Create a Moment to Make Connections",
+      "body": "The first step to making new connections is to share a moment while you're on the go. It could be a review, observation, fun fact, or just something funny."
+    },
+    "createYourProfileReminder": {
+      "title": "Login to Create Your Profile",
+      "body": "Your profile is incomplete. Login to choose your username and set a profile picture."
+    },
     "discoveredUniqueMoment": {
       "title": "You found a unique moment!",
       "body": "Check the map to activate a moment with special attributes"
@@ -15,6 +23,14 @@
     "discoveredUniqueSpace": {
       "title": "You found a unique space!",
       "body": "Check the map to activate a space with special attributes"
+    },
+    "latestPostLikesStats": {
+      "title": "New Likes",
+      "body": "Your latest post has {likeCount} total likes. Share moments to earn achievements, make connections, and grow a following."
+    },
+    "latestPostViewcountStats": {
+      "title": "Your Post Has New Views",
+      "body": "Your latest post has {viewCount} total views."
     },
     "newConnectionRequest": {
       "title": "New Connection Request",
@@ -33,8 +49,16 @@
       "body": "{userName} super-liked your post"
     },
     "newAreasActivated": {
-      "title": "New areas activated",
+      "title": "New Areas Activated",
       "body": "You recently activated {totalAreasActivated} new areas(s)"
+    },
+    "unclaimedAchievementsReminder": {
+      "title": "You have unclaimed achievements",
+      "body": "You have {achievementsCount} unclaimed achievements"
+    },
+    "unreadNotificationsReminder": {
+      "title": "You have unread notifications",
+      "body": "You have {notificationsCount} unread notifications"
     }
   },
   "validation": "The required parameters were not provided."
