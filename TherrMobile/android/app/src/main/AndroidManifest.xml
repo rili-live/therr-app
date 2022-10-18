@@ -50,6 +50,22 @@
             <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
         <intent-filter>
+            <action android:name="app.therrmobile.CREATE_YOUR_PROFILE_REMINDER" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+            <action android:name="app.therrmobile.CREATE_A_MOMENT_REMINDER" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+            <action android:name="app.therrmobile.LATEST_POST_LIKES_STATS" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+            <action android:name="app.therrmobile.LATEST_POST_VIEWCOUNT_STATS" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
             <action android:name="app.therrmobile.NEW_AREAS_ACTIVATED" />
             <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
@@ -71,6 +87,14 @@
         </intent-filter>
         <intent-filter>
             <action android:name="app.therrmobile.NEW_SUPER_LIKE_RECEIVED" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+            <action android:name="app.therrmobile.UNREAD_NOTIFICATIONS_REMINDER" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        <intent-filter>
+            <action android:name="app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER" />
             <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
       </activity>
