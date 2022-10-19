@@ -3,7 +3,7 @@ import Svg, { Rect, Path, G } from 'react-native-svg';
 
 export default function MarkerIconThinking(props) {
     return (
-        <Svg width={30} height={30} enable-background="new 0 0 24 24" viewBox="0 0 24 24" {...props}>
+        <Svg width={30} height={30} enableBackground="new 0 0 24 24" viewBox="0 0 24 24" {...props}>
             <G>
                 <Rect fill="none" height={24} width={24}/>
             </G>

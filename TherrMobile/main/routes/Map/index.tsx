@@ -268,7 +268,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     componentDidMount = async () => {
         const { navigation, setSearchDropdownVisibility, updateFirstTimeUI, updateTour, route, user } = this.props;
 
-        if (user.details?.loginCount < 5 && !user.settings?.hasCompletedFTUI) {
+        if (user.details?.loginCount < 3 && !user.settings?.hasCompletedFTUI) {
             updateTour(user.details.id, {
                 isTouring: true,
             });

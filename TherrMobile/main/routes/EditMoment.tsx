@@ -45,14 +45,20 @@ import BottomSheet from '../components/BottomSheet/BottomSheet';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
+// NOTE: When updating this list, be sure to update the MarkerIcon configs to include the new value(s)
 export const momentCategories = [
     'uncategorized',
     'music',
     'food',
+    'drinks',
     'art',
-    'geocache',
-    'idea',
     'nature',
+    'fitness',
+    'idea',
+    'nightLife',
+    'geocache',
+    'seasonal',
+    'warning',
 ];
 
 
