@@ -247,6 +247,27 @@ const predictAndSendNotification = (
                 return;
             }
 
+            // Automation
+            if (type === PushNotifications.Types.createYourProfileReminder) {
+                return admin.messaging().send(message);
+            }
+            if (type === PushNotifications.Types.createAMomentReminder) {
+                return admin.messaging().send(message);
+            }
+            if (type === PushNotifications.Types.latestPostLikesStats) {
+                return admin.messaging().send(message);
+            }
+            if (type === PushNotifications.Types.latestPostViewcountStats) {
+                return admin.messaging().send(message);
+            }
+            if (type === PushNotifications.Types.unreadNotificationsReminder) {
+                return admin.messaging().send(message);
+            }
+            if (type === PushNotifications.Types.unclaimedAchievementsReminder) {
+                return admin.messaging().send(message);
+            }
+
+            // Event Driven
             if (type === PushNotifications.Types.achievementCompleted) {
                 return admin.messaging().send(message);
             }
