@@ -20,6 +20,13 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
         fromUserName,
         toUserDeviceToken,
         type,
+
+        // optional
+        achievementsCount,
+        likeCount,
+        notificationsCount,
+        totalAreasActivated,
+        viewCount,
     } = req.body;
 
     return predictAndSendNotification(
@@ -35,6 +42,11 @@ const predictAndSendPushNotification: RequestHandler = (req, res) => {
             userId: headers.userId,
             userLocale: headers.locale,
             fromUserName,
+            achievementsCount,
+            likeCount,
+            notificationsCount,
+            totalAreasActivated,
+            viewCount,
         },
     )
         .then(() => res.status(201).send({}))
