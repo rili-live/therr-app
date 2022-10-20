@@ -291,9 +291,9 @@ class HeaderMenuRight extends React.Component<
                                     containerStyle={themeMenu.styles.userProfileButtonContainerVerified}
                                 />
                                 {
-                                    hasNotifications && <View style={themeMenu.styles.notificationCircle2}>
+                                    hasNotifications && <Pressable onPress={() => this.toggleOverlay()} style={themeMenu.styles.notificationCircle2}>
                                         <Text style={themeMenu.styles.notificationsCountText}>{unreadCount.toString()}</Text>
-                                    </View>
+                                    </Pressable>
                                 }
                             </View>
                             :
