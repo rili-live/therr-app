@@ -97,7 +97,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.latestPostLikesStats.title'),
                 notificationBody: translate(config.userLocale, 'notifications.latestPostLikesStats.body', {
-                    likeCount: config.likeCount,
+                    likeCount: config.likeCount || 0,
                 }),
             });
             baseMessage.android.notification.clickAction = 'app.therrmobile.LATEST_POST_LIKES_STATS';
@@ -108,7 +108,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.latestPostViewcountStats.title'),
                 notificationBody: translate(config.userLocale, 'notifications.latestPostViewcountStats.body', {
-                    viewCount: config.viewCount,
+                    viewCount: config.viewCount || 0,
                 }),
             });
             baseMessage.android.notification.clickAction = 'app.therrmobile.LATEST_POST_VIEWCOUNT_STATS';
@@ -119,7 +119,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.unreadNotificationsReminder.title'),
                 notificationBody: translate(config.userLocale, 'notifications.unreadNotificationsReminder.body', {
-                    notificationsCount: config.notificationsCount,
+                    notificationsCount: config.notificationsCount || 0,
                 }),
             });
             baseMessage.android.notification.clickAction = 'app.therrmobile.UNREAD_NOTIFICATIONS_REMINDER';
@@ -130,7 +130,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                 deviceToken: config.deviceToken,
                 notificationTitle: translate(config.userLocale, 'notifications.unclaimedAchievementsReminder.title'),
                 notificationBody: translate(config.userLocale, 'notifications.unclaimedAchievementsReminder.body', {
-                    achievementsCount: config.achievementsCount,
+                    achievementsCount: config.achievementsCount || 0,
                 }),
             });
             baseMessage.android.notification.clickAction = 'app.therrmobile.UNCLAIMED_ACHIEVEMENTS_REMINDER';

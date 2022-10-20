@@ -4,11 +4,16 @@ import MarkerIconArt from './MarkerIconArt';
 import MarkerIconGeocache from './MarkerIconGeocache';
 import MarkerIconCamera from './MarkerIconCamera';
 import MarkerIconDiscount from './MarkerIconDiscount';
+import MarkerIconDrinks from './MarkerIconDrinks';
+import MarkerIconFitness from './MarkerIconFitness';
 import MarkerIconFood from './MarkerIconFood';
 import MarkerIconMusic from './MarkerIconMusic';
 import MarkerIconNature from './MarkerIconNature';
 import MarkerIconStorefront from './MarkerIconStorefront';
 import MarkerIconThinking from './MarkerIconThinking';
+import MarkerIconNightLife from './MarkerIconNightLife';
+import MarkerIconSeasonal from './MarkerIconSeasonal';
+import MarkerIconWarning from './MarkerIconWarning';
 
 const getMarkerConfigs = (theme: ITherrTheme) => ({
     art: {
@@ -23,11 +28,23 @@ const getMarkerConfigs = (theme: ITherrTheme) => ({
     thought: {
         fill: theme.colors.brandingMapYellow,
     },
+    drinks: {
+        fill: theme.colors.brandingBlack,
+    },
+    fitness: {
+        fill: theme.colors.brandingBlack,
+    },
+    nightLife: {
+        fill: theme.colors.brandingBlack,
+    },
     food: {
         fill: theme.colors.brandingBlack,
     },
     music: {
         fill: theme.colors.brandingBlack,
+    },
+    seasonal: {
+        fill: theme.colors.accentTeal,
     },
     storefront: {
         fill: theme.colors.accentBlue,
@@ -39,6 +56,9 @@ const getMarkerConfigs = (theme: ITherrTheme) => ({
     },
     nature: {
         fill: theme.colors.accent3,
+    },
+    warning: {
+        fill: theme.colors.brandingRed,
     },
 });
 
@@ -58,6 +78,16 @@ export default function MarkerIcon({
             <MarkerIconDiscount {...getMarkerConfigs(theme).deals} />
         );
     }
+    if (area.category === 'drinks') {
+        return (
+            <MarkerIconDrinks {...getMarkerConfigs(theme).drinks} />
+        );
+    }
+    if (area.category === 'fitness') {
+        return (
+            <MarkerIconFitness {...getMarkerConfigs(theme).fitness} />
+        );
+    }
     if (area.category === 'food') {
         return (
             <MarkerIconFood {...getMarkerConfigs(theme).food} />
@@ -66,6 +96,11 @@ export default function MarkerIcon({
     if (area.category === 'music') {
         return (
             <MarkerIconMusic {...getMarkerConfigs(theme).music} />
+        );
+    }
+    if (area.category === 'seasonal') {
+        return (
+            <MarkerIconSeasonal {...getMarkerConfigs(theme).seasonal} />
         );
     }
     if (area.category === 'storefront') {
@@ -86,6 +121,16 @@ export default function MarkerIcon({
     if (area.category === 'nature') {
         return (
             <MarkerIconNature {...getMarkerConfigs(theme).nature} />
+        );
+    }
+    if (area.category === 'nightLife') {
+        return (
+            <MarkerIconNightLife {...getMarkerConfigs(theme).nightLife} />
+        );
+    }
+    if (area.category === 'warning') {
+        return (
+            <MarkerIconWarning {...getMarkerConfigs(theme).warning} />
         );
     }
 

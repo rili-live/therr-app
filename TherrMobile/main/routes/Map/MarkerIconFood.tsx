@@ -3,7 +3,7 @@ import Svg, { Path } from 'react-native-svg';
 
 export default function MarkerIconFood(props) {
     return (
-        <Svg width={30} height={30} enable-background="new 0 0 24 24"  viewBox="0 0 24 24" {...props}>
+        <Svg width={30} height={30} enableBackground="new 0 0 24 24"  viewBox="0 0 24 24" {...props}>
             <Path
                 d="M0 0h24v24H0V0z" fill="none"
             />

@@ -318,10 +318,15 @@
         "menu": "Menu",
         "music": "Music",
         "deals": "Deals / Coupons",
+        "fitness": "Sports / Fitness",
         "storefront": "Storefront Promotion",
         "idea": "Idea / Observation",
         "food": "Food",
-        "nature": "Nature/Park"
+        "nature": "Nature / Park",
+        "warning": "Warning / Alert",
+        "seasonal": "Seasonal / Holidays",
+        "drinks": "Happy Hour / Drinks",
+        "nightLife": "Night Life / Social"
       },
       "labels": {
         "addImageNote": "Select an existing image or capture a new one!",

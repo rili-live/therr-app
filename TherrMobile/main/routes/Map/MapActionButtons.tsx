@@ -66,7 +66,7 @@ export default ({
     const shouldShowCreateButton = isAuthorized() && isGpsEnabled;
     const [isModalVisible, setModalVisibility] = useState(false);
     const onShowModal = () => {
-        if (user.details.loginCount && user.details.loginCount < 5) {
+        if (user.details.loginCount && user.details.loginCount < 4) {
             setModalVisibility(true);
         } else {
             handleCreate('claim');
