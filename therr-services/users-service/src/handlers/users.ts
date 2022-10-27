@@ -12,6 +12,7 @@ import { updatePassword } from '../utilities/passwordUtils';
 import sendOneTimePasswordEmail from '../api/email/sendOneTimePasswordEmail';
 import sendUserDeletedEmail from '../api/email/admin/sendUserDeletedEmail';
 import { createUserHelper, getUserHelper, isUserProfileIncomplete } from './helpers/user';
+import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 
 // CREATE
 const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(req.body)
@@ -385,11 +386,12 @@ const deleteUser = (req, res) => {
 
     return Store.users.deleteUsers({ id: req.params.id })
         .then(() => {
-            // TODO: Delete moments/spaces in maps service
-            // TODO: Delete reactions in reactions service
             // TODO: Delete messages in messages service
             // TODO: Delete notifications in notifications service
+            requestToDeleteUserData(req.headers);
+
             // TODO: Delete user session from redis in websocket-service
+            // TODO: Delete user media data from cloud storage
             sendUserDeletedEmail({
                 subject: '😞 User Account Deleted',
                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
