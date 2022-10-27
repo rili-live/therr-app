@@ -300,6 +300,15 @@ export default class SpacesStore {
         return this.db.write.query(queryString).then((response) => response.rows);
     }
 
+    delete(fromUserId: string) {
+        const queryString = knexBuilder.delete()
+            .from(SPACES_TABLE_NAME)
+            .where('fromUserId', fromUserId)
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
+
     deleteSpaces(params: IDeleteSpacesParams) {
         // TODO: RSERV-52 | Consider archiving only, and delete associated reactions from reactions-service
         const queryString = knexBuilder.delete()

@@ -103,4 +103,13 @@ export default class SpaceReactionsStore {
 
         return this.db.write.query(queryString.toString()).then((response) => response.rows);
     }
+
+    delete(userId: string) {
+        const queryString = knexBuilder.delete()
+            .from(SPACE_REACTIONS_TABLE_NAME)
+            .where('userId', userId)
+            .toString();
+
+        return this.db.write.query(queryString).then((response) => response.rows);
+    }
 }
