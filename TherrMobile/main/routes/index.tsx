@@ -35,6 +35,7 @@ import EditMoment from './EditMoment';
 import ViewSpace from './ViewSpace';
 import EditSpace from './EditSpace';
 import EditChat from './HostedChat/EditChat';
+import ExchangePointsDisclaimer from './Rewards/ExchangePointsDisclaimer';
 import ViewChat from './HostedChat/ViewChat';
 import ViewUser from './ViewUser/index.tsx';
 
@@ -380,6 +381,17 @@ const routes: RouteConfig<
             headerTitleAlign: 'left',
             cardStyleInterpolator: undefined,
             transitionSpec: momentTransitionSpec,
+        }),
+    },
+    {
+        name: 'ExchangePointsDisclaimer',
+        component: ExchangePointsDisclaimer,
+        options: () => ({
+            title: 'Exchange Points',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
         }),
     },
     {

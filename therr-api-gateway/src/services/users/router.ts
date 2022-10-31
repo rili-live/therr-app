@@ -9,6 +9,9 @@ import {
     authenticateUserTokenValidation,
 } from './validation/auth';
 import {
+    createRewardsRequestValidation,
+} from './validation/rewards';
+import {
     changePasswordValidation,
     createUserValidation,
     forgotPasswordValidation,
@@ -25,7 +28,12 @@ import {
     subscribersSignupValidation,
 } from './validation/subscribers';
 import { updateNotificationValidation } from './validation/notifications';
-import { feedbackAttemptLimiter, loginAttemptLimiter, subscribeAttemptLimiter } from './limitation/auth';
+import {
+    feedbackAttemptLimiter,
+    loginAttemptLimiter,
+    rewardRequestAttemptLimiter,
+    subscribeAttemptLimiter,
+} from './limitation/auth';
 import { createUpdateSocialSyncsValidation } from './validation/socialSyncs';
 
 const usersServiceRouter = express.Router();
@@ -53,6 +61,12 @@ usersServiceRouter.post('/auth/logout', logoutUserValidation, validate, handleSe
 }));
 
 usersServiceRouter.post('/auth/user-token/validate', authenticateUserTokenValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+// Rewards
+usersServiceRouter.post('/rewards', rewardRequestAttemptLimiter, createRewardsRequestValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));

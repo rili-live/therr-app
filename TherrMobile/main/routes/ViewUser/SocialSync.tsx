@@ -564,7 +564,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                         </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>
-                <View style={this.themeSocialSyncForm.styles.submitButtonContainerFloat}>
+                <View style={this.themeMenu.styles.submitButtonContainerFloat}>
                     <Button
                         buttonStyle={this.themeForms.styles.button}
                         titleStyle={this.themeForms.styles.buttonTitle}

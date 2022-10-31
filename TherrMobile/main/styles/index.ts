@@ -246,6 +246,10 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         sectionDescription: {
             ...getSectionDescriptionStyles(therrTheme),
         },
+        sectionDescription16: {
+            ...getSectionDescriptionStyles(therrTheme),
+            fontSize: 16,
+        },
         sectionDescriptionNote: {
             ...getSectionDescriptionStyles(therrTheme),
             textAlign: 'center',
