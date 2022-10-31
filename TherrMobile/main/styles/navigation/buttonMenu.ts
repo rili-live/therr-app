@@ -192,6 +192,14 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             color: therrTheme.colors.textWhite,
             fontFamily: therrFontFamily,
         },
+        submitButtonContainerFloat: {
+            width: '100%',
+            position: 'absolute',
+            marginBottom: 20,
+            marginTop: 20,
+            paddingHorizontal: 20,
+            bottom: buttonMenuHeight,
+        },
     });
 
     return ({

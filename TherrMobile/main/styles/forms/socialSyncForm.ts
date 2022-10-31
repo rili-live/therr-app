@@ -1,7 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { getTheme } from '../themes';
-import { buttonMenuHeight } from '../navigation/buttonMenu';
 
 const container: any = {
     backgroundColor: 'transparent',
@@ -32,14 +31,6 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         submitButtonContainer: {
             marginBottom: 20,
             marginTop: 20,
-        },
-        submitButtonContainerFloat: {
-            width: '100%',
-            position: 'absolute',
-            marginBottom: 20,
-            marginTop: 20,
-            paddingHorizontal: 20,
-            bottom: buttonMenuHeight,
         },
         alert: {
             marginBottom: 24,

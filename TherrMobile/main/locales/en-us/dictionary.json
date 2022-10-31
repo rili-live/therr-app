@@ -145,6 +145,9 @@
       "signUp": "Sign up?"
     },
     "headerMenuRight": {
+      "buttons": {
+        "exchange": "Exchange?"
+      },
       "menuItems": {
         "achievements": "Achievements",
         "account": "Account Settings",
@@ -402,6 +405,11 @@
         "phoneNumber": "Invalid phone number"
       }
     },
+    "rewards": {
+      "buttons": {
+        "submit": "Exchange Now"
+      }
+    },
     "settings": {
       "buttons": {
         "submit": "Save",
@@ -637,6 +645,18 @@
       "returnToLogin": "Return to login page",
       "successMessage": "Your!",
       "successVerifiedMessage": "Your account has been verified. Log in to continue."
+    },
+    "exchangePointsDisclaimer": {
+      "headerTitle": "Therr Rewards",
+      "pageHeader": "Exchange Coins",
+      "pageHeaderHow": "How It Works",
+      "pageHeaderYourCoins": "Your Coins",
+      "info": {
+        "earlyAccess": "Our rewards program is still a work in progress. For the time being we are offering an Amazon.com eGift Card.",
+        "stepOne": "To earn coins, first complete achievements. Each achievement allows you to claim coins.",
+        "stepTwo": "After you have at least $5 in coins, you are eligible to exchange.",
+        "stepThree": "Click the 'Exchange Now' button below and you will receive an eGift Card to your account e-mail."
+      }
     },
     "forgotPassword": {
       "headerTitle": "Password Reset",

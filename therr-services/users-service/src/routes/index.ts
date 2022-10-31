@@ -6,6 +6,7 @@ import subscribersRouter from './subscribersRouter';
 import usersRouter from './usersRouter';
 import userAchievementsRouter from './userAchievementsRouter';
 import notificationsRouter from './notificationsRouter';
+import rewardsRouter from './rewardsRouter';
 import userConnectionsRouter from './userConnectionsRouter';
 
 const router = express.Router();
@@ -13,6 +14,7 @@ const router = express.Router();
 router.use('/auth', authRouter);
 // router.use('/emails', emailsRouter);
 router.use('/social-sync', socialSyncRouter);
+router.use('/rewards', rewardsRouter);
 router.use('/subscribers', subscribersRouter);
 router.use('/users/achievements', userAchievementsRouter);
 router.use('/users/connections', userConnectionsRouter);
