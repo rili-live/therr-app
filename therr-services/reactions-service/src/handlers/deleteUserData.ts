@@ -9,11 +9,9 @@ const deleteUserData = (req, res) => {
     const userId = req.headers['x-userid'];
     // TODO: RSERV-52 | Consider archiving only, and delete/archive associated reactions from reactions-service
 
-    const momentsPromise = Store.momentReactions.delete(userId)
-        .then(([moments]) => res.status(202).send(moments));
+    const momentsPromise = Store.momentReactions.delete(userId);
 
-    const spacesPromise = Store.spaceReactions.delete(userId)
-        .then(([spaces]) => res.status(202).send(spaces));
+    const spacesPromise = Store.spaceReactions.delete(userId);
 
     const promises = [momentsPromise, spacesPromise];
 
