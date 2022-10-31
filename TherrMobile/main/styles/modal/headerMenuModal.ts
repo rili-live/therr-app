@@ -170,6 +170,10 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontSize: 15,
             fontFamily: therrFontFamily,
         },
+        subheaderLinkText: {
+            textDecorationLine: 'underline',
+            color: therrTheme.colors.brandingWhite,
+        },
         subheaderTitleIcon: {
             color: therrTheme.colors.brandingWhite,
             marginRight: 5,

@@ -585,7 +585,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                         </View>
                     </KeyboardAwareScrollView>
                 </SafeAreaView>
-                <View style={this.themeSettingsForm.styles.submitButtonContainerFloat}>
+                <View style={this.themeMenu.styles.submitButtonContainerFloat}>
                     <Button
                         buttonStyle={this.themeForms.styles.button}
                         title={this.translate(

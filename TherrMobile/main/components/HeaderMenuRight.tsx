@@ -371,6 +371,11 @@ class HeaderMenuRight extends React.Component<
                                                     {`${(user.settings?.settingsTherrCoinTotal || 0)} coins`}
                                                 </Text>
                                             </View>
+                                            <Pressable onPress={() => this.navTo('ExchangePointsDisclaimer')}>
+                                                <Text style={themeMenu.styles.subheaderLinkText}>
+                                                    {this.translate('components.headerMenuRight.buttons.exchange')}
+                                                </Text>
+                                            </Pressable>
                                             <Button
                                                 icon={
                                                     <Icon

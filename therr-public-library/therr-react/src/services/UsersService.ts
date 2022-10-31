@@ -160,6 +160,14 @@ class UsersService {
         method: 'get',
         url: '/users-service/users/achievements',
     })
+
+    requestRewardsExchange = (amount: number) => axios({
+        method: 'post',
+        url: '/users-service/rewards',
+        data: {
+            amount,
+        },
+    })
 }
 
 export default new UsersService();
