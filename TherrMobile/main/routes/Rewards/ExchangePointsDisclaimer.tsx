@@ -4,8 +4,10 @@ import { Button } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import { UsersService } from 'therr-react/services';
 import { IUserState } from 'therr-react/types';
+import Toast from 'react-native-toast-message';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../../redux/actions/UsersActions';
@@ -29,7 +31,9 @@ export interface IExchangePointsDisclaimerProps extends IStoreProps {
     navigation: any;
 }
 
-interface IExchangePointsDisclaimerState {}
+interface IExchangePointsDisclaimerState {
+    isSubmitting: boolean;
+}
 
 const mapStateToProps = (state) => ({
     user: state.user,
@@ -49,7 +53,9 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
     constructor(props) {
         super(props);
 
-        this.state = {};
+        this.state = {
+            isSubmitting: false,
+        };
 
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
@@ -66,17 +72,37 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
     }
 
     isFormDisabled = () => {
+        const { isSubmitting } = this.state;
         const { user } = this.props;
 
-        return (user.settings?.settingsTherrCoinTotal || 0) < 5;
+        return isSubmitting || (user.settings?.settingsTherrCoinTotal || 0) < 5;
     }
 
     onSubmit = () => {
         const { user } = this.props;
+        this.setState({
+            isSubmitting: true,
+        });
 
         // TODO: Allow user to specify an amount
-        UsersService.requestRewardsExchange(user.settings?.settingsTherrCoinTotal).catch((err) => {
-            console.log(err);
+        UsersService.requestRewardsExchange(user.settings?.settingsTherrCoinTotal).then(() => {
+            Toast.show({
+                type: 'successBig',
+                text1: this.translate('pages.exchangePointsDisclaimer.alertTitles.requestSent'),
+                text2: this.translate('pages.exchangePointsDisclaimer.alertMessages.requestSent'),
+                visibilityTime: 3000,
+            });
+        }).catch(() => {
+            Toast.show({
+                type: 'errorBig',
+                text1: this.translate('pages.exchangePointsDisclaimer.alertTitles.requestFailed'),
+                text2: this.translate('pages.exchangePointsDisclaimer.alertMessages.requestFailed'),
+                visibilityTime: 3000,
+            });
+        }).finally(() => {
+            this.setState({
+                isSubmitting: false,
+            });
         });
     }
 
@@ -165,6 +191,13 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
                         onPress={this.onSubmit}
                         disabled={this.isFormDisabled()}
                         raised={true}
+                        icon={
+                            <FontAwesomeIcon
+                                name="exchange"
+                                size={23}
+                                style={this.themeForms.styles.buttonIcon}
+                            />
+                        }
                     />
                 </View>
                 <MainButtonMenu
