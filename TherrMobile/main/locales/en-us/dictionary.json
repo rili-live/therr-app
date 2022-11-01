@@ -656,6 +656,14 @@
         "stepOne": "To earn coins, first complete achievements. Each achievement allows you to claim coins.",
         "stepTwo": "After you have at least $5 in coins, you are eligible to exchange.",
         "stepThree": "Click the 'Exchange Now' button below and you will receive an eGift Card to your account e-mail."
+      },
+      "alertTitles": {
+        "requestSent": "Successfully Sent!",
+        "requestFailed": "Oops Something Went Wrong"
+      },
+      "alertMessages": {
+        "requestSent": "Your request has been sent. Please allow a few days for a response.",
+        "requestFailed": "Please try again later."
       }
     },
     "forgotPassword": {
