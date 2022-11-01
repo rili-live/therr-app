@@ -56,33 +56,31 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 email: acceptingUserEmail,
             }, ['id', 'deviceMobileFirebaseToken', 'email']);
 
+            let unverifiedUser;
+
             // 1a. Send email invite when user does not exist
             if (!userResults.length) {
                 if (acceptingUserEmail) {
                     // TODO: Ratelimit this to prevent spamming new user email
                     // fire and forget
-                    createUserHelper({
+                    unverifiedUser = await createUserHelper({
                         email: acceptingUserEmail,
                     }, false, {
                         fromName: fromUserFullName,
                         fromEmail: requestingUserEmail,
                         toEmail: acceptingUserEmail,
                     }, locale);
-
-                    return res.status(201).send({
-                        requestRecipientEmail: acceptingUserEmail,
+                } else {
+                    return handleHttpError({
+                        res,
+                        message: translate(locale, 'errorMessages.userConnections.noUserFound'),
+                        statusCode: 404,
                     });
                 }
-
-                return handleHttpError({
-                    res,
-                    message: translate(locale, 'errorMessages.userConnections.noUserFound'),
-                    statusCode: 404,
-                });
             }
 
-            // 1b. Capture user id for step 2 when found in DB
-            acceptingUser = userResults[0];
+            // 1b. Capture user id for step 2 when found in DB or use the unverified user that is created by invite
+            acceptingUser = unverifiedUser || userResults[0];
 
             if (acceptingUser.id === requestingUserId) {
                 return handleHttpError({
@@ -505,7 +503,7 @@ const updateUserConnection = (req, res) => {
                         // For sender
                         createOrUpdateAchievement({
                             authorization,
-                            userId,
+                            userId: getResults[0].requestingUserId,
                             locale,
                         }, {
                             achievementClass: 'socialite',
