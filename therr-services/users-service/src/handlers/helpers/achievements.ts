@@ -4,6 +4,12 @@ import Store from '../../store';
 import { ICreateOrUpdateResponse, IDBAchievement } from '../../store/UserAchievementsStore';
 import createSendTotalNotification from '../../utilities/createSendTotalNotification';
 
+const getAchIdNumber = (id: string) => {
+    const arr = id.split('_');
+    arr.shift();
+    return parseInt(arr.join(''), 10);
+};
+
 const createOrUpdateAchievement: (requesterDetails: any, requestBody: any) => Promise<ICreateOrUpdateResponse> = ({
     authorization,
     userId,
@@ -22,7 +28,7 @@ const createOrUpdateAchievement: (requesterDetails: any, requestBody: any) => Pr
         achievementTier,
         achievementClass,
     }).then((results) => {
-        const sortedResults = results.sort((a, b) => a.achievementTier - b.achievementTier);
+        const sortedResults = results.sort((a, b) => getAchIdNumber(a.achievementId) - getAchIdNumber(b.achievementId));
         const latestAch: IDBAchievement = sortedResults[sortedResults.length - 1];
         const achievementsInClass = achievementsByClass[achievementClass];
         const tierAchievementKeys = Object.keys(achievementsInClass)
