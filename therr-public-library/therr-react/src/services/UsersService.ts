@@ -89,6 +89,11 @@ class UsersService {
         url: `/users-service/users/${id}`,
     })
 
+    getMe = () => axios({
+        method: 'get',
+        url: '/users-service/users/me',
+    })
+
     report = (userId: string) => axios({
         method: 'put',
         url: `/users-service/users/${userId}/report`,

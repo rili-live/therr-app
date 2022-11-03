@@ -23,6 +23,89 @@ class UsersActions {
 
     private NativeStorage;
 
+
+    extractUserData = (userResponseData): { userData: IUser, userSettingsData: IUserSettings } => {
+        const {
+            accessLevels,
+            id,
+            idToken,
+            email,
+            firstName,
+            lastName,
+            phoneNumber,
+            userName,
+            media,
+            settingsBio,
+            settingsThemeName,
+            settingsTherrCoinTotal,
+            settingsAreaCoinTotal,
+            settingsBirthdate,
+            settingsGender,
+            settingsLocale,
+            settingsWebsite,
+            settingsPushTopics,
+            settingsEmailMarketing,
+            settingsEmailBackground,
+            settingsEmailInvites,
+            settingsEmailLikes,
+            settingsEmailMentions,
+            settingsEmailMessages,
+            settingsEmailReminders,
+            settingsPushMarketing,
+            settingsPushBackground,
+            settingsPushInvites,
+            settingsPushLikes,
+            settingsPushMentions,
+            settingsPushMessages,
+            settingsPushReminders,
+            loginCount,
+        } = userResponseData;
+        const userData: IUser = Immutable.from({
+            accessLevels,
+            id,
+            idToken,
+            email,
+            firstName,
+            lastName,
+            loginCount,
+            phoneNumber,
+            userName,
+            media,
+        });
+        // TODO: Get user settings data from db response
+        const userSettingsData: IUserSettings = Immutable.from({
+            locale: 'en-us',
+            mobileThemeName: settingsThemeName || 'retro',
+            settingsBio,
+            settingsTherrCoinTotal,
+            settingsAreaCoinTotal,
+            settingsBirthdate,
+            settingsGender,
+            settingsLocale,
+            settingsWebsite,
+            settingsPushTopics,
+            settingsEmailMarketing,
+            settingsEmailBackground,
+            settingsEmailInvites,
+            settingsEmailLikes,
+            settingsEmailMentions,
+            settingsEmailMessages,
+            settingsEmailReminders,
+            settingsPushMarketing,
+            settingsPushBackground,
+            settingsPushInvites,
+            settingsPushLikes,
+            settingsPushMentions,
+            settingsPushMessages,
+            settingsPushReminders,
+        });
+
+        return {
+            userData,
+            userSettingsData,
+        };
+    }
+
     block = (userIdToBlock: string, alreadyBlockedUsers: number[]) => (dispatch: any) => UsersService
         .block(userIdToBlock, alreadyBlockedUsers).then(async (response) => {
             const {
@@ -78,79 +161,10 @@ class UsersActions {
     login = (data: any, idTokens?: ILoginSSOTokens) => async (dispatch: any) => {
         await UsersService.authenticate(data).then(async (response) => {
             const {
-                accessLevels,
-                id,
                 idToken,
-                email,
-                firstName,
-                lastName,
-                phoneNumber,
-                userName,
-                media,
-                settingsBio,
-                settingsThemeName,
-                settingsTherrCoinTotal,
-                settingsAreaCoinTotal,
-                settingsBirthdate,
-                settingsGender,
-                settingsLocale,
-                settingsWebsite,
-                settingsPushTopics,
-                settingsEmailMarketing,
-                settingsEmailBackground,
-                settingsEmailInvites,
-                settingsEmailLikes,
-                settingsEmailMentions,
-                settingsEmailMessages,
-                settingsEmailReminders,
-                settingsPushMarketing,
-                settingsPushBackground,
-                settingsPushInvites,
-                settingsPushLikes,
-                settingsPushMentions,
-                settingsPushMessages,
-                settingsPushReminders,
-                loginCount,
             } = response.data;
-            const userData: IUser = Immutable.from({
-                accessLevels,
-                id,
-                idToken,
-                email,
-                firstName,
-                lastName,
-                loginCount,
-                phoneNumber,
-                userName,
-                media,
-            });
-            // TODO: Get user settings data from db response
-            const userSettingsData: IUserSettings = Immutable.from({
-                locale: 'en-us',
-                mobileThemeName: settingsThemeName || 'retro',
-                settingsBio,
-                settingsTherrCoinTotal,
-                settingsAreaCoinTotal,
-                settingsBirthdate,
-                settingsGender,
-                settingsLocale,
-                settingsWebsite,
-                settingsPushTopics,
-                settingsEmailMarketing,
-                settingsEmailBackground,
-                settingsEmailInvites,
-                settingsEmailLikes,
-                settingsEmailMentions,
-                settingsEmailMessages,
-                settingsEmailReminders,
-                settingsPushMarketing,
-                settingsPushBackground,
-                settingsPushInvites,
-                settingsPushLikes,
-                settingsPushMentions,
-                settingsPushMessages,
-                settingsPushReminders,
-            });
+
+            const { userData, userSettingsData } = this.extractUserData(response.data);
             this.socketIO.io.opts.query = {
                 token: idToken,
             };
@@ -185,6 +199,24 @@ class UsersActions {
             (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
             (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
             if (data.rememberMe && !this.NativeStorage) {
+                localStorage.setItem('therrUser', JSON.stringify(userData));
+                localStorage.setItem('therrUserSettings', JSON.stringify(userSettingsData));
+            }
+        });
+    };
+
+    getMe = () => async (dispatch: any) => {
+        await UsersService.getMe().then(async (response) => {
+            const { userData, userSettingsData } = this.extractUserData(response.data);
+            dispatch({
+                type: SocketClientActionTypes.UPDATE_USER,
+                data: {
+                    settings: userSettingsData,
+                },
+            });
+            (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
+            (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
+            if (!this.NativeStorage) {
                 localStorage.setItem('therrUser', JSON.stringify(userData));
                 localStorage.setItem('therrUserSettings', JSON.stringify(userSettingsData));
             }

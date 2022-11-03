@@ -19,6 +19,7 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 
 
 interface IExchangePointsDisclaimerDispatchProps {
+    getMe: Function;
     updateUser: Function;
 }
 
@@ -40,6 +41,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    getMe: UsersActions.getMe,
     updateUser: UsersActions.update,
 }, dispatch);
 
@@ -65,6 +67,7 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
         this.props.navigation.setOptions({
             title: this.translate('pages.exchangePointsDisclaimer.headerTitle'),
         });
+        this.props.getMe().catch((err) => console.log(`Failed to fetch me: ${err.message}`));
     }
 
     handleRefresh = () => {

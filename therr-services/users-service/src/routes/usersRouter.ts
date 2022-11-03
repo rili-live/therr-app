@@ -1,6 +1,7 @@
 import * as express from 'express';
 import {
     createUser,
+    getMe,
     getUser,
     getUserByUserName,
     getUsers,
@@ -22,6 +23,7 @@ const router = express.Router();
 router.post('/', createUser);
 
 // READ
+router.get('/me', getMe);
 router.get('/:id', getUser);
 router.get('/', getUsers);
 router.get('/by-username/:userName', getUserByUserName);
