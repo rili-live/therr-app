@@ -35,6 +35,35 @@ const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(
     }));
 
 // READ
+const getMe = (req, res) => {
+    const userId = req.headers['x-userid'];
+
+    return Store.users.getUsers({ id: userId, settingsIsAccountSoftDeleted: false })
+        .then((results) => {
+            if (!results.length) {
+                return handleHttpError({
+                    res,
+                    message: `No user found with the provided params: ${JSON.stringify({ id: userId })}`,
+                    statusCode: 404,
+                });
+            }
+
+            const userResult = results[0];
+            delete userResult.password;
+            delete userResult.oneTimePassword;
+            delete userResult.verificationCodes;
+
+            return userResult;
+        })
+        .then((user) => res.status(200).send(user))
+        .catch((err) => handleHttpError({
+            err,
+            res,
+            message: 'SQL:USER_ROUTES:ERROR',
+        }));
+};
+
+// READ
 const getUser = (req, res) => {
     const userId = req.headers['x-userid'];
 
@@ -595,6 +624,7 @@ const resendVerification: RequestHandler = (req: any, res: any) => {
 
 export {
     createUser,
+    getMe,
     getUser,
     getUserByUserName,
     getUsers,
