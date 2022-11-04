@@ -215,6 +215,14 @@ export default class UsersStore {
             modifiedParams.settingsThemeName = params.settingsThemeName;
         }
 
+        if (params.settingsPushMarketing != null) {
+            modifiedParams.settingsPushMarketing = params.settingsPushMarketing;
+        }
+
+        if (params.settingsPushBackground != null) {
+            modifiedParams.settingsPushBackground = params.settingsPushBackground;
+        }
+
         if (params.shouldHideMatureContent != null) {
             modifiedParams.shouldHideMatureContent = params.shouldHideMatureContent;
         }

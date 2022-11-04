@@ -23,7 +23,6 @@ class UsersActions {
 
     private NativeStorage;
 
-
     extractUserData = (userResponseData): { userData: IUser, userSettingsData: IUserSettings } => {
         const {
             accessLevels,
