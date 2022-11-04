@@ -45,6 +45,7 @@ interface ISettingsState {
     inputs: any;
     isCropping: boolean;
     isNightMode: boolean;
+    isOptedInToAds: boolean;
     isSubmitting: boolean;
     passwordErrorMessage: string;
 }
@@ -81,6 +82,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             },
             isCropping: false,
             isNightMode: props.user.settings.mobileThemeName === 'retro',
+            isOptedInToAds: props.user.settings.settingsPushBackground && props.user.settings.settingsPushMarketing,
             isSubmitting: false,
             passwordErrorMessage: '',
         };
@@ -138,7 +140,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             settingsBio,
             shouldHideMatureContent,
         } = this.state.inputs;
-        const { isNightMode } = this.state;
+        const { isNightMode, isOptedInToAds } = this.state;
         const { user } = this.props;
 
         if (password && !PasswordRegex.test(password)) {
@@ -161,6 +163,8 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
             userName: userName?.toLowerCase(),
             settingsBio,
             settingsThemeName: isNightMode ? 'retro' : 'light',
+            settingsPushMarketing: isOptedInToAds,
+            settingsPushBackground: isOptedInToAds,
             shouldHideMatureContent,
         };
 
@@ -257,6 +261,12 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         });
     }
 
+    onRewardSettingsChange = (isOptedInToAds: boolean) => {
+        this.setState({
+            isOptedInToAds,
+        });
+    }
+
     onDoneCropping = (croppedImageDetails) => {
         if (!croppedImageDetails.didCancel && !croppedImageDetails.errorCode) {
             const { user } = this.props;
@@ -313,10 +323,11 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
 
     render() {
         const { navigation, user } = this.props;
-        const { croppedImageDetails, inputs, isNightMode, passwordErrorMessage } = this.state;
+        const { croppedImageDetails, inputs, isNightMode, isOptedInToAds, passwordErrorMessage } = this.state;
         const pageHeaderUser = this.translate('pages.settings.pageHeaderUser');
         const pageHeaderPassword = this.translate('pages.settings.pageHeaderPassword');
         const pageHeaderDisplaySettings = this.translate('pages.settings.pageHeaderDisplaySettings');
+        const pageHeaderRewardsSettings = this.translate('pages.settings.pageHeaderRewardsSettings');
         const pageHeaderSettings = this.translate('pages.settings.pageHeaderSettings');
         const pageHeaderAdvancedSettings = this.translate('pages.settings.pageHeaderAdvancedSettings');
         const currentUserImageUri = getUserImageUri(user, 200);
@@ -356,9 +367,40 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                             value={isNightMode}
                                         />
                                         <FontAwesomeIcon
-                                            name="moon"
+                                            name={isNightMode ? 'moon' : 'sun'}
                                             size={22}
-                                            color={this.theme.colorVariations.primary3Fade}
+                                            color={isNightMode ? this.theme.colorVariations.primary3Fade : this.theme.colors.primary3}
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={this.theme.styles.sectionTitle}>
+                                    {pageHeaderRewardsSettings}
+                                </Text>
+                            </View>
+                            <View style={this.themeSettingsForm.styles.settingsContainer}>
+                                <View style={this.themeForms.styles.switchContainer}>
+                                    <Text
+                                        style={this.themeForms.styles.switchLabel}
+                                    >
+                                        {this.translate('pages.settings.labels.enableRewards')}
+                                    </Text>
+                                    <View
+                                        style={this.themeForms.styles.switchSubContainer}
+                                    >
+                                        <Switch
+                                            style={this.themeForms.styles.switchButton}
+                                            trackColor={{ false: this.theme.colors.primary2, true: this.theme.colors.primary4 }}
+                                            thumbColor={isOptedInToAds ? this.theme.colors.primary3 : this.theme.colorVariations.primary3Fade}
+                                            ios_backgroundColor={this.theme.colors.primary4}
+                                            onValueChange={this.onRewardSettingsChange}
+                                            value={isOptedInToAds}
+                                        />
+                                        <FontAwesomeIcon
+                                            name="trophy"
+                                            size={22}
+                                            color={isOptedInToAds ? this.theme.colors.primary3 : this.theme.colorVariations.primary3Fade}
                                         />
                                     </View>
                                 </View>

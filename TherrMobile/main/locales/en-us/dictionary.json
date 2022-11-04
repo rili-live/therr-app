@@ -770,12 +770,14 @@
     "settings": {
       "headerTitle": "Settings",
       "pageHeaderDisplaySettings": "Display",
+      "pageHeaderRewardsSettings": "Therr Rewards",
       "pageHeaderUser": "User Profile",
       "pageHeaderPassword": "Update Password",
       "pageHeaderSettings": "Content Settings",
       "pageHeaderAdvancedSettings": "Advanced Settings",
       "labels": {
-        "nightMode": "Night Mode?"
+        "nightMode": "Night Mode?",
+        "enableRewards": "Opt-In?"
       },
       "alertTitles": {
         "accountUpdated": "Account Updated",
