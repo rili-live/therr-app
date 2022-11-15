@@ -21,7 +21,7 @@ const getNotificationCircleStyles = (theme): any => ({
     width: 7,
     height: 7,
     backgroundColor: theme.colors.brandingRed,
-    borderColor: theme.colors.brandingRed,
+    borderColor: theme.colors.primary,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',

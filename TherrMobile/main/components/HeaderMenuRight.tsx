@@ -11,7 +11,6 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 // import therrIconConfig from '../assets/therr-font-config.json';
 // import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import { INotificationsState } from 'therr-react/types';
-import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import translator from '../services/translator';
 import { ILocationState } from '../types/redux/location';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
@@ -19,13 +18,7 @@ import { ITherrThemeColors } from '../styles/themes';
 import { getUserImageUri } from '../utilities/content';
 import UsersActions from '../redux/actions/UsersActions';
 import InfoModal from './Modals/InfoModal';
-import therrIconConfig from '../assets/therr-font-config.json';
-
-const LogoIcon = createIconSetFromIcoMoon(
-    therrIconConfig,
-    'TherrFont',
-    'TherrFont.ttf'
-);
+import TherrIcon from './TherrIcon';
 
 const ANIMATION_DURATION = 180;
 
@@ -281,7 +274,7 @@ class HeaderMenuRight extends React.Component<
                                 /> */}
                                 <Button
                                     icon={
-                                        <Icon
+                                        <TherrIcon
                                             name="menu"
                                             size={30}
                                             color={theme.colors.primary3}
@@ -360,7 +353,7 @@ class HeaderMenuRight extends React.Component<
                                                 <Button
                                                     type="clear"
                                                     icon={
-                                                        <LogoIcon
+                                                        <TherrIcon
                                                             name="therr-logo"
                                                             size={24}
                                                             style={themeMenu.styles.subheaderTitleIcon}
@@ -378,7 +371,7 @@ class HeaderMenuRight extends React.Component<
                                             </Pressable>
                                             <Button
                                                 icon={
-                                                    <Icon
+                                                    <TherrIcon
                                                         name="info"
                                                         size={24}
                                                         color={theme.colors.brandingWhite}
@@ -455,14 +448,14 @@ class HeaderMenuRight extends React.Component<
                                                     }
                                                     title={this.translate('components.headerMenuRight.menuItems.notifications')}
                                                     icon={
-                                                        <FontAwesomeIcon
+                                                        <TherrIcon
                                                             style={
                                                                 currentScreen === 'Notifications'
                                                                     ? themeMenu.styles.iconStyleActive
                                                                     : themeMenu.styles.iconStyle
                                                             }
-                                                            name={hasNotifications ? 'bell' : 'bell-slash'}
-                                                            size={18}
+                                                            name={hasNotifications ? 'bell' : 'bell'}
+                                                            size={24}
                                                         />
                                                     }
                                                     iconRight
@@ -488,14 +481,14 @@ class HeaderMenuRight extends React.Component<
                                                 }
                                                 title={this.translate('components.headerMenuRight.menuItems.achievements')}
                                                 icon={
-                                                    <FontAwesomeIcon
+                                                    <TherrIcon
                                                         style={
                                                             currentScreen === 'Achievements'
                                                                 ? themeMenu.styles.iconStyleActive
                                                                 : themeMenu.styles.iconStyle
                                                         }
-                                                        name={'trophy'}
-                                                        size={18}
+                                                        name={'achievement'}
+                                                        size={24}
                                                     />
                                                 }
                                                 iconRight
@@ -515,14 +508,14 @@ class HeaderMenuRight extends React.Component<
                                                 }
                                                 title={this.translate('components.headerMenuRight.menuItems.myDrafts')}
                                                 icon={
-                                                    <FontAwesomeIcon
+                                                    <TherrIcon
                                                         style={
                                                             currentScreen === 'MyDrafts'
                                                                 ? themeMenu.styles.iconStyleActive
                                                                 : themeMenu.styles.iconStyle
                                                         }
-                                                        name={'pencil-alt'}
-                                                        size={18}
+                                                        name={'edit'}
+                                                        size={24}
                                                     />
                                                 }
                                                 iconRight
@@ -542,14 +535,14 @@ class HeaderMenuRight extends React.Component<
                                                 }
                                                 title={this.translate('components.headerMenuRight.menuItems.bookmarks')}
                                                 icon={
-                                                    <FontAwesomeIcon
+                                                    <TherrIcon
                                                         style={
                                                             currentScreen === 'BookMarked'
                                                                 ? themeMenu.styles.iconStyleActive
                                                                 : themeMenu.styles.iconStyle
                                                         }
                                                         name={'bookmark'}
-                                                        size={18}
+                                                        size={24}
                                                     />
                                                 }
                                                 iconRight
@@ -568,14 +561,14 @@ class HeaderMenuRight extends React.Component<
                                                 }
                                                 title={this.translate('components.headerMenuRight.menuItems.chat')}
                                                 icon={
-                                                    <FontAwesomeIcon
+                                                    <TherrIcon
                                                         style={
                                                             currentScreen === 'ActiveConnections'
                                                                 ? themeMenu.styles.iconStyleActive
                                                                 : themeMenu.styles.iconStyle
                                                         }
-                                                        name="comments"
-                                                        size={18}
+                                                        name="chat-smile"
+                                                        size={24}
                                                     />
                                                 }
                                                 iconRight
@@ -594,14 +587,14 @@ class HeaderMenuRight extends React.Component<
                                                 }
                                                 title={this.translate('components.headerMenuRight.menuItems.addConnection')}
                                                 icon={
-                                                    <FontAwesomeIcon
+                                                    <TherrIcon
                                                         style={
                                                             currentScreen === 'CreateConnection'
                                                                 ? themeMenu.styles.iconStyleActive
                                                                 : themeMenu.styles.iconStyle
                                                         }
-                                                        name="user-plus"
-                                                        size={18}
+                                                        name="key-plus"
+                                                        size={24}
                                                     />
                                                 }
                                                 iconRight
@@ -670,14 +663,14 @@ class HeaderMenuRight extends React.Component<
                                                 }
                                                 title={this.translate('components.headerMenuRight.menuItems.account')}
                                                 icon={
-                                                    <FontAwesomeIcon
+                                                    <TherrIcon
                                                         style={
                                                             currentScreen === 'Settings'
                                                                 ? themeMenu.styles.iconStyleActive
                                                                 : themeMenu.styles.iconStyle
                                                         }
-                                                        name="user-cog"
-                                                        size={18}
+                                                        name="settings"
+                                                        size={24}
                                                     />
                                                 }
                                                 iconRight
@@ -696,14 +689,14 @@ class HeaderMenuRight extends React.Component<
                                                 }
                                                 title={this.translate('components.headerMenuRight.menuItems.feedback')}
                                                 icon={
-                                                    <FontAwesomeIcon
+                                                    <TherrIcon
                                                         style={
                                                             currentScreen === 'Home'
                                                                 ? themeMenu.styles.iconStyleActive
                                                                 : themeMenu.styles.iconStyle
                                                         }
-                                                        name="question-circle"
-                                                        size={18}
+                                                        name="question"
+                                                        size={24}
                                                     />
                                                 }
                                                 iconRight
@@ -730,10 +723,10 @@ class HeaderMenuRight extends React.Component<
                                                 title={this.translate('components.headerMenuRight.menuItems.logout')}
                                                 iconRight
                                                 icon={
-                                                    <FontAwesomeIcon
+                                                    <TherrIcon
                                                         style={themeMenu.styles.iconStyle}
-                                                        name="sign-out-alt"
-                                                        size={18}
+                                                        name="door-open"
+                                                        size={24}
                                                     />
                                                 }
                                                 onPress={() => this.handleLogout(hideModal)}

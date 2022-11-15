@@ -12,6 +12,7 @@ import AppleSignInButton from '../../components/LoginButtons/AppleSignInButton';
 import GoogleSignInButton from '../../components/LoginButtons/GoogleSignInButton';
 import { ITherrThemeColors } from '../../styles/themes';
 import OrDivider from '../../components/Input/OrDivider';
+import TherrIcon from '../../components/TherrIcon';
 
 export interface ISSOUserDetails {
     isSSO: boolean;
@@ -226,8 +227,8 @@ export class LoginFormComponent extends React.Component<
                     onSubmitEditing={() => this.onSubmit()}
                     secureTextEntry={true}
                     rightIcon={
-                        <MaterialIcon
-                            name="vpn-key"
+                        <TherrIcon
+                            name="key"
                             size={24}
                             color={themeAlerts.colors.placeholderTextColorAlt}
                         />

@@ -1,4 +1,5 @@
 import { CAROUSEL_TABS } from '../constants';
+import { SELECT_ALL } from './categories';
 
 /**
  * Merges multiple lists of areas together and orders them by createdAt time
@@ -58,7 +59,7 @@ export default ({
     content,
     isForBookmarks,
     isForDrafts,
-}: IGetActiveDataArgs, sortBy = 'createdAt') => {
+}: IGetActiveDataArgs, sortBy = 'createdAt', categories: string[] = [SELECT_ALL]) => {
     if (activeTab === CAROUSEL_TABS.HIRE) {
         return [];
     }
@@ -76,5 +77,9 @@ export default ({
         return mergeAreas(drafts, [], sortBy, isForDrafts);
     }
 
-    return mergeAreas(content.activeMoments, content.activeSpaces, sortBy, isForDrafts);
+    const withoutCategoryFilters = mergeAreas(content.activeMoments, content.activeSpaces, sortBy, isForDrafts);
+
+    return categories.includes(SELECT_ALL) ?
+        withoutCategoryFilters :
+        withoutCategoryFilters.filter(area => categories.includes(area.category));
 };

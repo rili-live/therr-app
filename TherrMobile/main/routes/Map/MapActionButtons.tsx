@@ -2,12 +2,10 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-import OctIcon from 'react-native-vector-icons/Octicons';
 import { IUserState } from 'therr-react/types';
 import { ITherrThemeColors } from '../../styles/themes';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
-
+import TherrIcon from '../../components/TherrIcon';
 import claimASpace from '../../assets/claim-a-space.json';
 import AnimatedLottieView from 'lottie-react-native';
 
@@ -100,11 +98,17 @@ export default ({
                     containerStyle={themeButtons.styles.btnContainer}
                     buttonStyle={themeButtons.styles.btnLarge}
                     icon={
-                        <MaterialIcon
-                            name={ isGpsEnabled ? 'gps-fixed' : 'gps-off' }
-                            size={32}
-                            style={themeButtons.styles.btnIcon}
-                        />
+                        isGpsEnabled ?
+                            <TherrIcon
+                                name={'map-follow-filled'}
+                                size={32}
+                                style={themeButtons.styles.btnIcon}
+                            /> :
+                            <MaterialIcon
+                                name={ isGpsEnabled ? 'gps-fixed' : 'gps-off' }
+                                size={32}
+                                style={themeButtons.styles.btnIcon}
+                            />
                     }
                     raised={true}
                     onPress={handleGpsRecenter}
@@ -118,9 +122,9 @@ export default ({
                                 containerStyle={themeButtons.styles.btnContainer}
                                 buttonStyle={themeButtons.styles.btnLarge}
                                 icon={
-                                    <MaterialIcon
-                                        name="tune"
-                                        size={32}
+                                    <TherrIcon
+                                        name="filters"
+                                        size={30}
                                         style={themeButtons.styles.btnIcon}
                                     />
                                 }
@@ -133,7 +137,7 @@ export default ({
                             <View style={themeButtons.styles.mapFiltersCount}>
                                 <Button
                                     containerStyle={themeButtons.styles.btnContainer}
-                                    buttonStyle={themeButtons.styles.btnSmall}
+                                    buttonStyle={[themeButtons.styles.btnSmall, { backgroundColor: themeButtons.colors.tertiary }]}
                                     raised={true}
                                     title={filterCount.toString()}
                                     onPress={handleOpenMapFilters}
@@ -144,8 +148,8 @@ export default ({
                             containerStyle={themeButtons.styles.addAMoment}
                             buttonStyle={themeButtons.styles.btnLargeWithText}
                             icon={
-                                <OctIcon
-                                    name={ shouldShowCreateActions ? 'dash' : 'plus' }
+                                <TherrIcon
+                                    name={ shouldShowCreateActions ? 'minus' : 'plus' }
                                     size={22}
                                     style={themeButtons.styles.btnIcon}
                                 />
@@ -164,8 +168,8 @@ export default ({
                                             containerStyle={themeButtons.styles.btnContainer}
                                             buttonStyle={themeButtons.styles.btnLargeWithText}
                                             icon={
-                                                <FontAwesome5Icon
-                                                    name="map-marked"
+                                                <TherrIcon
+                                                    name="map-marker-user"
                                                     size={24}
                                                     style={themeButtons.styles.btnIcon}
                                                 />
@@ -182,8 +186,8 @@ export default ({
                                             containerStyle={themeButtons.styles.btnContainer}
                                             buttonStyle={themeButtons.styles.btnLargeWithText}
                                             icon={
-                                                <FontAwesome5Icon
-                                                    name="images"
+                                                <TherrIcon
+                                                    name="map-marker-clock"
                                                     size={24}
                                                     style={themeButtons.styles.btnIcon}
                                                 />

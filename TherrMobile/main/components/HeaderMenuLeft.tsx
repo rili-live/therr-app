@@ -1,14 +1,7 @@
 import React from 'react';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
-import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
-import therrIconConfig from '../assets/therr-font-config.json';
-
-const LogoIcon = createIconSetFromIcoMoon(
-    therrIconConfig,
-    'TherrFont',
-    'TherrFont.ttf'
-);
+import TherrIcon from '../components/TherrIcon';
 
 interface IHeaderMenuLeftDispatchProps {}
 
@@ -66,7 +59,7 @@ class HeaderMenuLeft extends React.Component<
             <Button
                 type="clear"
                 icon={
-                    <LogoIcon
+                    <TherrIcon
                         name="therr-logo"
                         size={28}
                         style={logoStyle}

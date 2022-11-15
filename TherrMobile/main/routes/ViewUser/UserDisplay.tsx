@@ -8,6 +8,7 @@ import SocialIconLink from './SocialIconLink';
 import { ScrollView } from 'react-native-gesture-handler';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import therrIconConfig from '../../assets/therr-font-config.json';
+import TherrIcon from '../../components/TherrIcon';
 
 const LogoIcon = createIconSetFromIcoMoon(
     therrIconConfig,
@@ -339,8 +340,8 @@ export default ({
                             title={translate('user.profile.buttons.syncSocials')}
                             onPress={() => navigation.navigate('SocialSync', userInView)}
                             icon={
-                                <MaterialIcon
-                                    name="sync"
+                                <TherrIcon
+                                    name="refresh"
                                     size={23}
                                     style={themeForms.styles.buttonIconSmall}
                                 />
@@ -353,7 +354,7 @@ export default ({
                             title={translate('user.profile.buttons.editProfile')}
                             onPress={() => navigation.navigate('Settings')}
                             icon={
-                                <MaterialIcon
+                                <TherrIcon
                                     name="edit"
                                     size={21}
                                     style={themeForms.styles.buttonIconSmall}
@@ -378,8 +379,8 @@ export default ({
                     buttonStyle={[themeForms.styles.buttonRoundAltSmall, { width: 42 }]}
                     onPress={() => onToggleMoreBottomSheet(true)}
                     icon={
-                        <MaterialIcon
-                            name="more-horiz"
+                        <TherrIcon
+                            name="dots-horiz"
                             size={23}
                             color={themeUser.colors.brandingBlueGreen}
                         />

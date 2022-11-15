@@ -19,6 +19,7 @@ import { ITherrThemeColors } from '../../styles/themes';
 import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserImageUri } from '../../utilities/content';
 import PresssableWithDoubleTap from '../../components/PressableWithDoubleTap';
+import TherrIcon from '../TherrIcon';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -212,9 +213,9 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 containerStyle={themeViewArea.styles.areaReactionButtonContainer}
                                 buttonStyle={themeViewArea.styles.areaReactionButton}
                                 icon={
-                                    <Icon
-                                        name={ isLiked ? 'favorite' : 'favorite-border' }
-                                        size={24}
+                                    <TherrIcon
+                                        name={ isLiked ? 'heart-filled' : 'heart' }
+                                        size={22}
                                         color={likeColor}
                                     />
                                 }

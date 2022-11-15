@@ -226,7 +226,7 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
             activeTab,
             content,
             isForDrafts: true,
-        });
+        }, 'createdAt');
 
         return (
             <>
