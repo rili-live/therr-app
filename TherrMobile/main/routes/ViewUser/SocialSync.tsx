@@ -29,6 +29,7 @@ import BaseStatusBar from '../../components/BaseStatusBar';
 import WrapperModal from '../../components/Modals/WrapperModal';
 import OAuthModal from '../../components/Modals/OAuthModal';
 import SocialIconLink from './SocialIconLink';
+import TherrIcon from '../../components/TherrIcon';
 // import UserImage from '../components/UserContent/UserImage';
 // import { getUserImageUri, signImageUrl } from '../utilities/content';
 
@@ -572,8 +573,8 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                             'forms.socialSync.buttons.backToProfile'
                         )}
                         icon={
-                            <FontAwesome5Icon
-                                name="arrow-left"
+                            <TherrIcon
+                                name="go-back"
                                 size={22}
                                 style={this.themeForms.styles.buttonIcon}
                             />

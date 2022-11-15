@@ -137,9 +137,9 @@ const map = (state: IMapState = initialState, action: any) => {
                 .setIn(['myMoments'], Immutable.from([]));
         // // // // // // // // // // // //
         case MapActionTypes.SET_MAP_FILTERS:
-            return state.setIn(['filtersAuthor'], action.data.filtersAuthor)
-                .setIn(['filtersCategory'], action.data.filtersCategory)
-                .setIn(['filtersVisibility'], action.data.filtersVisibility);
+            return state.setIn(['filtersAuthor'], action.data.filtersAuthor || state.filtersAuthor)
+                .setIn(['filtersCategory'], action.data.filtersCategory || state.filtersCategory)
+                .setIn(['filtersVisibility'], action.data.filtersVisibility || state.filtersVisibility);
         default:
             return state;
     }

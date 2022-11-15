@@ -158,7 +158,7 @@
         "home": "Home",
         "feedback": "Share Feedback",
         "hostedChat": "Hosted Chat",
-        "logout": "Logout",
+        "logout": "Log Out",
         "map": "Map",
         "moments": "Moments",
         "myDrafts": "My Drafts",
@@ -481,7 +481,7 @@
       "create": "Create",
       "claimASpace": "Claim a Space",
       "shareAThought": "Share a Thought",
-      "uploadAMoment": "Share a Moment",
+      "uploadAMoment": "Create a Moment",
       "captureAMoment": "Capture a Moment"
     },
     "filterActions": {
@@ -553,6 +553,7 @@
       "labels": {
         "asc": "Oldest to Newest",
         "desc": "Newest to Oldest",
+        "categories": "Category Filters",
         "searchOrder": "Order Results By: Date"
       }
     },
@@ -724,6 +725,7 @@
       "labels": {
         "public": "Public",
         "private": "Private",
+        "showAll": "Show All Categories",
         "selectAll": "Select / Unselect All",
         "uncategorized": "Uncategorized",
         "me": "Only My Posts",
@@ -913,7 +915,7 @@
       "next": "Next",
       "done": "Done",
       "header1": "Tour: Claim a Space",
-      "header2": "Tour: Share a Moment",
+      "header2": "Tour: Create a Moment",
       "header3": "Tour: Explore the World",
       "createAMoment": "Press the GPS button on the map to start creating content. We require location for all posts to prevent fake users and focus on local-first interactions.",
       "claimYourSpaces": "Businesses and promoters can claim spaces on the map. Content is public, and nobody can claim overlapping spaces.",

@@ -31,6 +31,7 @@ import { isMyArea as checkIsMyMoment } from '../utilities/content';
 import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptionsModal';
 import { getReactionUpdateArgs } from '../utilities/reactions';
 import getDirections from '../utilities/getDirections';
+import TherrIcon from '../components/TherrIcon';
 // import AccentInput from '../components/Input/Accent';
 
 interface IViewMomentDispatchProps {
@@ -343,8 +344,8 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 buttonStyle={this.themeAccentForms.styles.backButton}
                                 onPress={() => this.goBack()}
                                 icon={
-                                    <FontAwesome5Icon
-                                        name="arrow-left"
+                                    <TherrIcon
+                                        name="go-back"
                                         size={25}
                                         color={'black'}
                                     />

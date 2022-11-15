@@ -508,7 +508,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         }
                         if (isAreas) {
                             headerTitle = () => (<HeaderSearchInput
-                                icon="tune"
                                 isAdvancedSearch
                                 navigation={navigation}
                                 theme={this.theme}
@@ -517,7 +516,6 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         }
                         if (isMap) {
                             headerTitle = () => (<HeaderSearchInput
-                                icon="search"
                                 navigation={navigation}
                                 theme={this.theme}
                                 themeForms={this.themeForms}

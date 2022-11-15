@@ -242,7 +242,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
             activeTab,
             content,
             isForBookmarks: true,
-        });
+        }, 'createdAt');
 
         return (
             <>

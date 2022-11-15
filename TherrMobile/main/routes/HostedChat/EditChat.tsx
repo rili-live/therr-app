@@ -20,6 +20,7 @@ import AccentTextInput from '../../components/Input/TextInput/Accent';
 import HashtagsContainer from '../../components/UserContent/HashtagsContainer';
 import ChatCategories from './ChatCategories';
 import BaseStatusBar from '../../components/BaseStatusBar';
+import TherrIcon from '../../components/TherrIcon';
 
 interface IEditChatDispatchProps {
     logout: Function;
@@ -333,8 +334,8 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
                             buttonStyle={this.themeAccentForms.styles.backButton}
                             onPress={() => navigation.navigate('HostedChat')}
                             icon={
-                                <FontAwesome5Icon
-                                    name="arrow-left"
+                                <TherrIcon
+                                    name="go-back"
                                     size={25}
                                     color={'black'}
                                 />

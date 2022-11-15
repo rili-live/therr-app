@@ -338,6 +338,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         textCenter: {
             textAlign: 'center',
         },
+        therrFont: {
+            fontFamily: therrFontFamily,
+        },
         footer: {
             color: therrTheme.colors.textWhite,
             fontSize: 12,

@@ -55,6 +55,10 @@ const createMoment = (req, res) => {
                         ...moment,
                         isMatureContent: !isSafeForWork,
                     };
+                    // NOTE: For now make this content private to reduce public, mature content
+                    if (!isSafeForWork) {
+                        momentArgs.isPublic = false;
+                    }
                     return Store.moments.updateMoment(moment.id, momentArgs).catch((err) => {
                         printLogs({
                             level: 'error',
@@ -168,6 +172,10 @@ const createIntegratedMomentBase = ({
                 // Async - fire and forget to prevent slow request
                 checkIsMediaSafeForWork(media).then((isSafeForWork) => {
                     momentArgs.isMatureContent = !isSafeForWork;
+                    // NOTE: For now make this content private to reduce public, mature content
+                    if (!isSafeForWork) {
+                        momentArgs.isPublic = false;
+                    }
                     if (!isSafeForWork) {
                         Store.moments.updateMoment(moment.id, momentArgs).catch((err) => {
                             printLogs({

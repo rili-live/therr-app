@@ -10,7 +10,6 @@ import { IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
 import { Content } from 'therr-js-utilities/constants';
 import ImageCropPicker from 'react-native-image-crop-picker';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -42,6 +41,7 @@ import { getImagePreviewPath } from '../utilities/areaUtils';
 import { signImageUrl } from '../utilities/content';
 import { requestOSCameraPermissions } from '../utilities/requestOSPermissions';
 import BottomSheet from '../components/BottomSheet/BottomSheet';
+import TherrIcon from '../components/TherrIcon';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -690,8 +690,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             buttonStyle={this.themeAccentForms.styles.backButton}
                             onPress={() => navigation.goBack()}
                             icon={
-                                <FontAwesome5Icon
-                                    name="arrow-left"
+                                <TherrIcon
+                                    name="go-back"
                                     size={25}
                                     color={'black'}
                                 />
@@ -708,8 +708,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 'forms.editMoment.buttons.draft'
                             )}
                             icon={
-                                <FontAwesome5Icon
-                                    name="pencil-alt"
+                                <TherrIcon
+                                    name="edit"
                                     size={20}
                                     color={this.isFormDisabled() ? 'grey' : 'black'}
                                     style={this.themeAccentForms.styles.submitButtonIcon}
@@ -728,7 +728,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 'forms.editMoment.buttons.submit'
                             )}
                             icon={
-                                <FontAwesome5Icon
+                                <TherrIcon
                                     name="paper-plane"
                                     size={20}
                                     color={this.isFormDisabled() ? 'grey' : 'black'}
