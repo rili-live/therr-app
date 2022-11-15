@@ -2,9 +2,8 @@ import React from 'react';
 import { Dimensions, Platform } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { InputProps } from 'react-native-elements';
+import { Badge, InputProps } from 'react-native-elements';
 import 'react-native-gesture-handler';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { MapActions } from 'therr-react/redux/actions';
 import { IMapReduxState } from 'therr-react/types';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
@@ -12,6 +11,8 @@ import DeviceInfo from 'react-native-device-info';
 import RoundInput from './';
 import translator from '../../services/translator';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
+import TherrIcon from '../TherrIcon';
+
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -44,7 +45,6 @@ interface IHeaderSearchInputStoreProps extends IHeaderSearchInputDispatchProps {
 interface IHeaderSearchInputProps extends IHeaderSearchInputStoreProps {
     isAdvancedSearch?: Boolean;
     navigation: any;
-    icon: string;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -119,42 +119,63 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
     // TODO: Display red dot to show filters enabled
     render() {
         const { inputText } = this.state;
-        const { icon, theme, themeForms } = this.props;
+        const { isAdvancedSearch, map, theme, themeForms } = this.props;
         const textStyle = !inputText?.length
             ? [themeForms.styles.placeholderText, { fontSize: 16 }]
             : [themeForms.styles.inputText, { fontSize: 16 }];
         const containerWidth = DeviceInfo.isTablet()
             ? screenWidth - 248
             : screenWidth - 124;
+        const mapFilters = {
+            filtersAuthor: map.filtersAuthor,
+            filtersCategory: map.filtersCategory,
+            filtersVisibility: map.filtersVisibility,
+        };
+        let filterCount = 0;
+        Object.keys(mapFilters).forEach(key => {
+            if (mapFilters[key]?.length && !mapFilters[key][0].isChecked) {
+                filterCount += 1;
+            }
+        });
 
         return (
-            <RoundInput
-                errorStyle={{ display: 'none' }}
-                style={textStyle}
-                containerStyle={[theme.styles.headerSearchContainer, { width: containerWidth }]}
-                inputStyle={
-                    [
-                        Platform.OS !== 'ios'
-                            ? themeForms.styles.input
-                            : themeForms.styles.inputAlt,
-                        { fontSize: Platform.OS !== 'ios' ? 16 : 19 },
-                    ]
-                }
-                inputContainerStyle={[themeForms.styles.inputContainerRound, theme.styles.headerSearchInputContainer]}
-                onChangeText={this.onInputChange}
-                onFocus={this.handlePress}
-                placeholder={this.translate('components.header.searchInput.placeholder')}
-                placeholderTextColor={theme.colorVariations.textGrayFade}
-                rightIcon={
-                    <MaterialIcon
-                        name={icon}
-                        size={22}
-                        color={theme.colors.primary3}
+            <>
+                <RoundInput
+                    errorStyle={{ display: 'none' }}
+                    style={textStyle}
+                    containerStyle={[theme.styles.headerSearchContainer, { width: containerWidth }]}
+                    inputStyle={
+                        [
+                            Platform.OS !== 'ios'
+                                ? themeForms.styles.input
+                                : themeForms.styles.inputAlt,
+                            { fontSize: Platform.OS !== 'ios' ? 16 : 19 },
+                        ]
+                    }
+                    inputContainerStyle={[themeForms.styles.inputContainerRound, theme.styles.headerSearchInputContainer]}
+                    onChangeText={this.onInputChange}
+                    onFocus={this.handlePress}
+                    placeholder={this.translate('components.header.searchInput.placeholder')}
+                    placeholderTextColor={theme.colorVariations.textGrayFade}
+                    rightIcon={
+                        <TherrIcon
+                            name={isAdvancedSearch ? 'filters' : 'search'}
+                            size={18}
+                            color={theme.colors.primary3}
+                        />
+                    }
+                    themeForms={themeForms}
+                    value={inputText}
+                />
+                {
+                    isAdvancedSearch && filterCount > 0 &&
+                    <Badge
+                        value={filterCount}
+                        badgeStyle={themeForms.styles.headerInputBadge}
+                        containerStyle={themeForms.styles.headerInputBadgeContainer}
                     />
                 }
-                themeForms={themeForms}
-                value={inputText}
-            />
+            </>
         );
     }
 }

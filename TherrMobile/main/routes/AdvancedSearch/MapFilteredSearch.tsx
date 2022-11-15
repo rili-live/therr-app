@@ -13,16 +13,14 @@ import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMe
 import translator from '../../services/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
-import { momentCategories } from '../EditMoment';
-import { spaceCategories } from '../EditSpace';
+import { allCategories, SELECT_ALL } from '../../utilities/categories';
 import { ListItem } from 'react-native-elements';
 
-const authorOptions: { name: string; isChecked?: boolean }[] = [{ name: 'selectAll' }, { name: 'me' }, { name: 'notMe' }];
+const authorOptions: { name: string; isChecked?: boolean }[] = [{ name: SELECT_ALL }, { name: 'me' }, { name: 'notMe' }];
 
-const categoryOptions: { name: string; isChecked?: boolean }[] = [...new Set([...momentCategories, ...spaceCategories])]
-    .map(cat => ({ name: cat, data: [] }));
+const categoryOptions: { name: string; isChecked?: boolean }[] = allCategories.map(cat => ({ name: cat, data: [] }));
 
-export const visibilityOptions: { name: string; isChecked?: boolean }[] = [{ name: 'selectAll' }, { name: 'public' }, { name: 'private' }];
+export const visibilityOptions: { name: string; isChecked?: boolean }[] = [{ name: SELECT_ALL }, { name: 'public' }, { name: 'private' }];
 
 
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
@@ -80,7 +78,7 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
         this.initialAuthorFilters = authorOptions.map(a => ({ ...a, title: this.translate(`pages.mapFilteredSearch.labels.${a.name}`), isChecked: false }));
         this.initialCategoryFilters = [{
             title:  this.translate('pages.mapFilteredSearch.labels.selectAll'),
-            name: 'selectAll',
+            name: SELECT_ALL,
         }].concat(categoryOptions.map(c => ({
             ...c,
             title: c.name === 'uncategorized'

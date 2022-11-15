@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Platform, View } from 'react-native';
 import { Button, Text } from 'react-native-elements';
 import { PasswordRegex } from 'therr-js-utilities/constants';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
 import translator from '../../services/translator';
 import { addMargins } from '../../styles';
@@ -14,6 +13,7 @@ import OrDivider from '../../components/Input/OrDivider';
 import AppleSignInButton from '../../components/LoginButtons/AppleSignInButton';
 import GoogleSignInButton from '../../components/LoginButtons/GoogleSignInButton';
 import { ISSOUserDetails } from '../Login/LoginForm';
+import TherrIcon from '../../components/TherrIcon';
 
 // Regular component props
 interface IRegisterFormProps {
@@ -268,8 +268,8 @@ export class RegisterFormComponent extends React.Component<
                         this.onInputChange('email', text)
                     }
                     rightIcon={
-                        <MaterialIcon
-                            name="email"
+                        <TherrIcon
+                            name="mail"
                             size={24}
                             color={themeAlerts.colors.placeholderTextColorAlt}
                         />
@@ -293,8 +293,8 @@ export class RegisterFormComponent extends React.Component<
                     }
                     secureTextEntry={true}
                     rightIcon={
-                        <MaterialIcon
-                            name="vpn-key"
+                        <TherrIcon
+                            name="key"
                             size={26}
                             color={themeAlerts.colors.placeholderTextColorAlt}
                         />
@@ -316,8 +316,8 @@ export class RegisterFormComponent extends React.Component<
                     secureTextEntry={true}
                     onSubmitEditing={this.onSubmit}
                     rightIcon={
-                        <MaterialIcon
-                            name="lock"
+                        <TherrIcon
+                            name="secure"
                             size={26}
                             color={themeAlerts.colors.placeholderTextColorAlt}
                         />

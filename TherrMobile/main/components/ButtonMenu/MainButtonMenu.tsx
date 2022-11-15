@@ -3,9 +3,8 @@ import { ActivityIndicator, View } from 'react-native';
 import { connect } from 'react-redux';
 import { Button, Image } from 'react-native-elements';
 import 'react-native-gesture-handler';
-import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import TherrIcon from '../../components/TherrIcon';
 import { ButtonMenu, mapStateToProps, mapDispatchToProps } from './';
 import { getUserImageUri } from '../../utilities/content';
 // import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
@@ -23,31 +22,8 @@ class MainButtonMenuAlt extends ButtonMenu {
     }
 
     navTo = (routeName) => {
-        // const { location, navigation, translate, updateGpsStatus } = this.props;
         ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
         const { navigation } = this.props;
-
-        // if (routeName === 'Map') {
-        //     requestLocationServiceActivation({
-        //         isGpsEnabled: location.settings.isGpsEnabled,
-        //         translate,
-        //         shouldIgnoreRequirement: true,
-        //     }).then((response: any) => {
-        //         if (response?.status) {
-        //             return updateGpsStatus(response.status); // wait for redux state to update
-        //         }
-
-        //         return Promise.resolve();
-        //     }).then(() => {
-        //         navigation.navigate(routeName);
-        //     }).catch((error) => {
-        //         // TODO: Allow viewing map when gps is disable
-        //         // but disallow GPS required actions like viewing/deleting moments
-        //         console.log(error);
-        //     });
-        // } else {
-        //     navigation.navigate(routeName);
-        // }
 
         navigation.navigate(routeName);
     };
@@ -129,8 +105,8 @@ class MainButtonMenuAlt extends ButtonMenu {
         // const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
         const isConnectViewActive = currentScreen === 'Contacts' || currentScreen === 'ActiveConnections' || currentScreen === 'CreateConnection';
         let imageStyle = {
-            height: 30,
-            width: 30,
+            height: 26,
+            width: 26,
             borderRadius: 15,
         };
 
@@ -154,9 +130,9 @@ class MainButtonMenuAlt extends ButtonMenu {
                             : themeMenu.styles.buttonsTitle
                     }
                     icon={
-                        <FontAwesomeIcon
-                            name="list"
-                            size={20}
+                        <TherrIcon
+                            name="ul-list"
+                            size={22}
                             style={
                                 currentScreen === 'Areas'
                                     ? themeMenu.styles.buttonIconActive
@@ -184,9 +160,9 @@ class MainButtonMenuAlt extends ButtonMenu {
                             : themeMenu.styles.buttonsTitle
                     }
                     icon={
-                        <FontAwesomeIcon
-                            name="globe-americas"
-                            size={20}
+                        <TherrIcon
+                            name="map"
+                            size={22}
                             style={
                                 currentScreen === 'Map'
                                     ? themeMenu.styles.buttonIconActive
@@ -214,8 +190,8 @@ class MainButtonMenuAlt extends ButtonMenu {
                             : themeMenu.styles.buttonsTitle
                     }
                     icon={
-                        <MaterialIcon
-                            name="radar"
+                        <TherrIcon
+                            name="nearby"
                             size={24}
                             style={
                                 currentScreen === 'Nearby'
@@ -244,9 +220,9 @@ class MainButtonMenuAlt extends ButtonMenu {
                             : themeMenu.styles.buttonsTitle
                     }
                     icon={
-                        <FontAwesomeIcon
-                            name="user-friends"
-                            size={20}
+                        <TherrIcon
+                            name="key-user"
+                            size={22}
                             style={
                                 isConnectViewActive
                                     ? themeMenu.styles.buttonIconActive

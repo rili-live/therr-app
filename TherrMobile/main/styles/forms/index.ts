@@ -22,6 +22,26 @@ const inputLabelStyles: any = {
     fontSize: 14,
 };
 
+const buttonPillStyles: any = {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 0,
+    paddingHorizontal: 9,
+    borderRadius: 20,
+    height: 22,
+    borderWidth: 1,
+};
+
+const buttonPillTitleStyles: any = {
+    fontSize: 13,
+    fontWeight: '600',
+    lineHeight: 20,
+    paddingTop: 0,
+};
+
+const backButtonDimension = 42;
+
 const buildStyles = (themeName?: IMobileThemeName) => {
     const therrTheme = getTheme(themeName);
 
@@ -185,6 +205,32 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             ...getTextInputStyle(therrTheme),
             color: therrTheme.colors.textBlack,
         },
+        backButton: {
+            // borderRadius: 50,
+            backgroundColor: therrTheme.colors.accent1,
+            height: backButtonDimension,
+            width: backButtonDimension,
+        },
+        leftButtonContainer: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'absolute',
+            left: 20,
+            bottom: 20,
+            elevation: 3,
+            borderRadius: backButtonDimension / 2,
+        },
+        rightButtonContainer: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'absolute',
+            right: 20,
+            bottom: 20,
+            elevation: 3,
+            borderRadius: backButtonDimension / 2,
+        },
         button: {
             backgroundColor: therrTheme.colors.primary3,
         },
@@ -294,16 +340,14 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginLeft: 6,
         },
         buttonPill: {
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: 0,
-            paddingHorizontal: 9,
-            borderRadius: 20,
-            height: 22,
+            ...buttonPillStyles,
             borderColor: therrTheme.colors.brandingBlueGreen,
             backgroundColor: therrTheme.colors.brandingWhite,
-            borderWidth: 1,
+        },
+        buttonPillInvert: {
+            ...buttonPillStyles,
+            backgroundColor: therrTheme.colors.brandingBlueGreen,
+            borderColor: therrTheme.colors.brandingWhite,
         },
         buttonPillIcon: {
             marginLeft: 8,
@@ -318,11 +362,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginTop: 14,
         },
         buttonPillTitle: {
-            fontSize: 13,
-            fontWeight: '600',
-            lineHeight: 20,
-            paddingTop: 0,
+            ...buttonPillTitleStyles,
             color: therrTheme.colors.brandingBlueGreen,
+        },
+        buttonPillTitleInvert: {
+            ...buttonPillTitleStyles,
+            color: therrTheme.colors.brandingWhite,
         },
         orDividerContainer: {
             display: 'flex',
@@ -399,6 +444,13 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             height: 22,
             width: 18,
             padding: 8,
+        },
+        headerInputBadgeContainer: {
+            position: 'absolute',
+            right: 0,
+        },
+        headerInputBadge: {
+            backgroundColor: therrTheme.colors.tertiary,
         },
     });
 

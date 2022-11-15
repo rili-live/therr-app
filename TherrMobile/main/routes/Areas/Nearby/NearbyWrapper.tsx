@@ -250,7 +250,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             activeTab,
             content,
             isForBookmarks: false,
-        });
+        }, 'createdAt');
 
         if (shouldRenderNearbyNewsfeed(location) && (isFirstLoad || !activeData?.length || activeData.length < 21)) {
             return this.handleRefresh(false);
@@ -300,7 +300,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
                     activeTab,
                     content,
                     isForBookmarks: false,
-                });
+                }, 'distance');
                 const hasRenderedFirstContent = data.length;
                 this.setState({ isFirstLoad: !hasRenderedFirstContent });
             })

@@ -5,7 +5,7 @@ import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions } from 'therr-react/redux/actions';
-import { IContentState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import { IContentState, IMapState, IUserState, IUserConnectionsState } from 'therr-react/types';
 // import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas';
@@ -26,6 +26,7 @@ import { CAROUSEL_TABS } from '../../constants';
 import { handleAreaReaction, loadMoreAreas, navToViewArea } from './areaViewHelpers';
 import CarouselTabsMenu from './CarouselTabsMenu';
 import getDirections from '../../utilities/getDirections';
+import { SELECT_ALL } from '../../utilities/categories';
 
 // const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
@@ -51,6 +52,7 @@ interface IAreasDispatchProps {
 
 interface IStoreProps extends IAreasDispatchProps {
     content: IContentState;
+    map: IMapState;
     user: IUserState;
     userConnections: IUserConnectionsState;
 }
@@ -69,6 +71,7 @@ interface IAreasState {
 
 const mapStateToProps = (state: any) => ({
     content: state.content,
+    map: state.map,
     user: state.user,
     userConnections: state.userConnections,
 });
@@ -131,7 +134,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             activeTab: defaultActiveTab,
             content,
             isForBookmarks: false,
-        });
+        }, 'createdAt');
         if (!activeData?.length || activeData.length < 21) {
             this.handleRefresh();
         } else {
@@ -269,12 +272,13 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
 
     render() {
         const { activeTab, areAreaOptionsVisible, isLoading, selectedArea } = this.state;
-        const { content, navigation, createOrUpdateMomentReaction, createOrUpdateSpaceReaction, user } = this.props;
+        const { content, map, navigation, createOrUpdateMomentReaction, createOrUpdateSpaceReaction, user } = this.props;
+        const categoriesFilter = map.filtersCategory?.filter(c => c.isChecked).map(c => c.name) || [SELECT_ALL];
         const activeData = isLoading ? [] : getActiveCarouselData({
             activeTab,
             content,
             isForBookmarks: false,
-        });
+        }, 'createdAt', categoriesFilter);
 
         // TODO: Fetch missing media
         const fetchMedia = () => {};
