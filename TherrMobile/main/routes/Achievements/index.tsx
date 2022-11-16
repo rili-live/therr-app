@@ -112,35 +112,33 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
                                 {pageHeaderAchievements}
                             </Text>
                         </View> */}
-                        <View style={this.theme.styles.sectionContainer}>
-                            <FlatList
-                                data={userAchievements}
-                                keyExtractor={(item) => String(item.id)}
-                                renderItem={({ item }) => <AchievementTile
-                                    claimText={this.translate('pages.achievements.info.claimRewards')}
-                                    completedText={this.translate('pages.achievements.info.completed')}
-                                    handleClaim={() => this.handleClaim(item)}
-                                    onPressAchievement={() => this.onPressAchievement(item)}
-                                    themeAchievements={this.themeAchievements}
-                                    userAchievement={item}
-                                />}
-                                refreshControl={<RefreshControl
-                                    refreshing={isRefreshing}
-                                    onRefresh={this.handleRefresh}
-                                />}
-                                ListEmptyComponent={() => (
-                                    <View style={this.theme.styles.sectionContainer}>
-                                        <Text style={this.theme.styles.sectionDescriptionCentered}>
-                                            {this.translate(
-                                                'pages.achievements.info.noAchievementsFound'
-                                            )}
-                                        </Text>
-                                    </View>
-                                )}
-                                // stickyHeaderIndices={[0]}
-                                // onContentSizeChange={() => connections.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
-                            />
-                        </View>
+                        <FlatList
+                            data={userAchievements}
+                            keyExtractor={(item) => String(item.id)}
+                            renderItem={({ item }) => <AchievementTile
+                                claimText={this.translate('pages.achievements.info.claimRewards')}
+                                completedText={this.translate('pages.achievements.info.completed')}
+                                handleClaim={() => this.handleClaim(item)}
+                                onPressAchievement={() => this.onPressAchievement(item)}
+                                themeAchievements={this.themeAchievements}
+                                userAchievement={item}
+                            />}
+                            refreshControl={<RefreshControl
+                                refreshing={isRefreshing}
+                                onRefresh={this.handleRefresh}
+                            />}
+                            ListEmptyComponent={() => (
+                                <View style={this.theme.styles.sectionContainer}>
+                                    <Text style={this.theme.styles.sectionDescriptionCentered}>
+                                        {this.translate(
+                                            'pages.achievements.info.noAchievementsFound'
+                                        )}
+                                    </Text>
+                                </View>
+                            )}
+                            // stickyHeaderIndices={[0]}
+                            // onContentSizeChange={() => connections.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
+                        />
                     </View>
                 </SafeAreaView>
                 <MainButtonMenu

@@ -2,7 +2,6 @@ import React from 'react';
 import { SafeAreaView, FlatList, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
-import Icon from 'react-native-vector-icons/MaterialIcons';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { MessageActions, SocketActions } from 'therr-react/redux/actions';
@@ -14,6 +13,7 @@ import translator from '../services/translator';
 import TextMessage from '../components/TextMessage';
 import RoundInput from '../components/Input/Round';
 import BaseStatusBar from '../components/BaseStatusBar';
+import TherrIcon from '../components/TherrIcon';
 
 const ITEMS_PER_PAGE = 50;
 
@@ -219,7 +219,7 @@ class DirectMessage extends React.Component<
                                 themeForms={this.themeForms}
                             />
                             <Button
-                                icon={<Icon name="send" size={26} style={this.themeMessage.styles.icon} />}
+                                icon={<TherrIcon name="send" size={26} style={this.themeMessage.styles.icon} />}
                                 buttonStyle={this.themeMessage.styles.sendBtn}
                                 containerStyle={this.themeMessage.styles.sendBtnContainer}
                                 onPress={this.handleSend}

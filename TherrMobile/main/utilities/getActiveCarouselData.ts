@@ -60,11 +60,11 @@ export default ({
     isForBookmarks,
     isForDrafts,
 }: IGetActiveDataArgs, sortBy = 'createdAt', categories: string[] = [SELECT_ALL]) => {
-    if (activeTab === CAROUSEL_TABS.HIRE) {
+    if (activeTab === CAROUSEL_TABS.EVENTS) {
         return [];
     }
 
-    if (activeTab === CAROUSEL_TABS.EVENTS) {
+    if (activeTab === CAROUSEL_TABS.NEWS) {
         return [];
     }
 

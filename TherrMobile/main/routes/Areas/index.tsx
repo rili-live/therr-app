@@ -1,12 +1,12 @@
 import React from 'react';
-import { SafeAreaView } from 'react-native';
+import { Dimensions, SafeAreaView, View } from 'react-native';
 // import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions } from 'therr-react/redux/actions';
 import { IContentState, IMapState, IUserState, IUserConnectionsState } from 'therr-react/types';
-// import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
+import { TabBar, TabView } from 'react-native-tab-view';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas';
 import { buildStyles as buildButtonsStyles } from '../../styles/buttons';
@@ -15,7 +15,6 @@ import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMe
 import { buildStyles as buildReactionsModalStyles } from '../../styles/modal/areaReactionsModal';
 // import { buttonMenuHeightCompact } from '../../styles/navigation/buttonMenu';
 import translator from '../../services/translator';
-import AreaCarousel from './AreaCarousel';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import AreaOptionsModal, { ISelectionType } from '../../components/Modals/AreaOptionsModal';
@@ -24,11 +23,13 @@ import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
 import { CAROUSEL_TABS } from '../../constants';
 import { handleAreaReaction, loadMoreAreas, navToViewArea } from './areaViewHelpers';
-import CarouselTabsMenu from './CarouselTabsMenu';
 import getDirections from '../../utilities/getDirections';
 import { SELECT_ALL } from '../../utilities/categories';
+import LazyPlaceholder from './components/LazyPlaceholder';
+import AreaCarousel from './AreaCarousel';
+import { Text } from 'react-native-elements';
 
-// const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
+const { width: viewportWidth } = Dimensions.get('window');
 
 const defaultActiveTab = CAROUSEL_TABS.SOCIAL;
 
@@ -63,10 +64,11 @@ export interface IAreasProps extends IStoreProps {
 }
 
 interface IAreasState {
-    activeTab: string;
+    activeTabIndex: number;
     isLoading: boolean;
     areAreaOptionsVisible: boolean;
     selectedArea: any;
+    tabRoutes: { key: string; title: string }[]
 }
 
 const mapStateToProps = (state: any) => ({
@@ -91,7 +93,9 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class Areas extends React.Component<IAreasProps, IAreasState> {
-    private carouselRef;
+    private carouselSocialRef;
+    private carouselEventsRef;
+    private carouselNewsRef;
     private translate: Function;
     private loaderId: ILottieId;
     private loadTimeoutId: any;
@@ -105,11 +109,19 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     constructor(props) {
         super(props);
 
+        this.translate = (key: string, params: any) =>
+            translator('en-us', key, params);
+
         this.state = {
-            activeTab: defaultActiveTab,
+            activeTabIndex: 0,
             isLoading: true,
             areAreaOptionsVisible: false,
             selectedArea: {},
+            tabRoutes: [
+                { key: CAROUSEL_TABS.SOCIAL, title: this.translate('menus.headerTabs.social') },
+                { key: CAROUSEL_TABS.EVENTS, title: this.translate('menus.headerTabs.events') },
+                { key: CAROUSEL_TABS.NEWS, title: this.translate('menus.headerTabs.news') },
+            ],
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -118,8 +130,6 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         this.themeLoader = buildLoaderStyles(props.user.settings?.mobileThemeName);
         this.themeMenu = buildMenuStyles(props.user.settings?.mobileThemeName);
         this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
-        this.translate = (key: string, params: any) =>
-            translator('en-us', key, params);
         this.loaderId = getRandomLoaderId();
     }
 
@@ -153,8 +163,8 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             return this.translate('pages.areas.noSocialAreasFound');
         }
 
-        if (activeTab === CAROUSEL_TABS.HIRE) {
-            return this.translate('pages.areas.noHireAreasFound');
+        if (activeTab === CAROUSEL_TABS.NEWS) {
+            return this.translate('pages.areas.noNewsAreasFound');
         }
 
         // CAROUSEL_TABS.EVENTS
@@ -252,14 +262,27 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         }
     }
 
-    onTabSelect = (tabName: string) => {
+    onTabSelect = (index: number) => {
         this.setState({
-            activeTab: tabName,
+            activeTabIndex: index,
         });
     }
 
     scrollTop = () => {
-        this.carouselRef?.scrollToOffset({ animated: true, offset: 0 });
+        const { activeTabIndex } = this.state;
+        switch (Object.values(CAROUSEL_TABS)[activeTabIndex]) {
+            case CAROUSEL_TABS.SOCIAL:
+                this.carouselSocialRef?.scrollToOffset({ animated: true, offset: 0 });
+                break;
+            case CAROUSEL_TABS.EVENTS:
+                this.carouselEventsRef?.scrollToOffset({ animated: true, offset: 0 });
+                break;
+            case CAROUSEL_TABS.NEWS:
+                this.carouselNewsRef?.scrollToOffset({ animated: true, offset: 0 });
+                break;
+            default:
+                break;
+        }
     }
 
     toggleAreaOptions = (area) => {
@@ -270,25 +293,44 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         });
     }
 
-    render() {
-        const { activeTab, areAreaOptionsVisible, isLoading, selectedArea } = this.state;
-        const { content, map, navigation, createOrUpdateMomentReaction, createOrUpdateSpaceReaction, user } = this.props;
-        const categoriesFilter = map.filtersCategory?.filter(c => c.isChecked).map(c => c.name) || [SELECT_ALL];
-        const activeData = isLoading ? [] : getActiveCarouselData({
-            activeTab,
-            content,
-            isForBookmarks: false,
-        }, 'createdAt', categoriesFilter);
+    renderTabBar = props => {
+        return (
+            <TabBar
+                {...props}
+                indicatorStyle={this.themeMenu.styles.tabFocusedIndicator}
+                style={this.themeMenu.styles.tabBar}
+                renderLabel={this.renderTabLabel}
+            />
+        );
+    };
+
+    renderTabLabel = ({ route, focused }) => {
+        return (
+            <Text style={focused ? this.themeMenu.styles.tabTextFocused : this.themeMenu.styles.tabText}>
+                {route.title}
+            </Text>
+        );
+    }
+
+    renderSceneMap = ({ route }) => {
+        const { isLoading } = this.state;
+        const { content, map, createOrUpdateMomentReaction, createOrUpdateSpaceReaction, user } = this.props;
 
         // TODO: Fetch missing media
         const fetchMedia = () => {};
 
-        return (
-            <>
-                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
-                <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
+        switch (route.key) {
+            case CAROUSEL_TABS.SOCIAL:
+                const categoriesFilter = (map.filtersCategory?.length && map.filtersCategory?.filter(c => c.isChecked).map(c => c.name)) || [SELECT_ALL];
+                const socialData = isLoading ? [] : getActiveCarouselData({
+                    activeTab: route.key,
+                    content,
+                    isForBookmarks: false,
+                }, 'createdAt', categoriesFilter);
+
+                return (
                     <AreaCarousel
-                        activeData={activeData}
+                        activeData={socialData}
                         content={content}
                         inspectArea={this.goToArea}
                         isLoading={isLoading}
@@ -297,26 +339,108 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                         goToViewUser={this.goToViewUser}
                         toggleAreaOptions={this.toggleAreaOptions}
                         translate={this.translate}
-                        containerRef={(component) => this.carouselRef = component}
+                        containerRef={(component) => this.carouselSocialRef = component}
                         handleRefresh={this.handleRefresh}
                         onEndReached={this.tryLoadMore}
                         updateMomentReaction={createOrUpdateMomentReaction}
                         updateSpaceReaction={createOrUpdateSpaceReaction}
-                        emptyListMessage={this.getEmptyListMessage(activeTab)}
-                        renderHeader={() => (
-                            <CarouselTabsMenu
-                                activeTab={activeTab}
-                                onButtonPress={this.onTabSelect}
-                                themeAreas={this.themeAreas}
-                                translate={this.translate}
-                                user={user}
-                            />
-                        )}
+                        emptyListMessage={this.getEmptyListMessage(CAROUSEL_TABS.SOCIAL)}
+                        renderHeader={() => null}
                         renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
                         user={user}
                         rootStyles={this.theme.styles}
                         // viewportHeight={viewportHeight}
                         // viewportWidth={viewportWidth}
+                    />
+                );
+            case CAROUSEL_TABS.EVENTS:
+                const eventsData = [];
+                return (
+                    (<AreaCarousel
+                        activeData={eventsData}
+                        content={content}
+                        inspectArea={this.goToArea}
+                        isLoading={isLoading}
+                        fetchMedia={fetchMedia}
+                        goToViewMap={this.goToViewMap}
+                        goToViewUser={this.goToViewUser}
+                        toggleAreaOptions={this.toggleAreaOptions}
+                        translate={this.translate}
+                        containerRef={(component) => this.carouselEventsRef = component}
+                        handleRefresh={this.handleRefresh}
+                        onEndReached={this.tryLoadMore}
+                        updateMomentReaction={createOrUpdateMomentReaction}
+                        updateSpaceReaction={createOrUpdateSpaceReaction}
+                        emptyListMessage={this.getEmptyListMessage(CAROUSEL_TABS.EVENTS)}
+                        renderHeader={() => null}
+                        renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
+                        user={user}
+                        rootStyles={this.theme.styles}
+                        // viewportHeight={viewportHeight}
+                        // viewportWidth={viewportWidth}
+                    />)
+                );
+            case CAROUSEL_TABS.NEWS:
+                const newsData = [];
+                return (
+                    <AreaCarousel
+                        activeData={newsData}
+                        content={content}
+                        inspectArea={this.goToArea}
+                        isLoading={isLoading}
+                        fetchMedia={fetchMedia}
+                        goToViewMap={this.goToViewMap}
+                        goToViewUser={this.goToViewUser}
+                        toggleAreaOptions={this.toggleAreaOptions}
+                        translate={this.translate}
+                        containerRef={(component) => this.carouselNewsRef = component}
+                        handleRefresh={this.handleRefresh}
+                        onEndReached={this.tryLoadMore}
+                        updateMomentReaction={createOrUpdateMomentReaction}
+                        updateSpaceReaction={createOrUpdateSpaceReaction}
+                        emptyListMessage={this.getEmptyListMessage(CAROUSEL_TABS.NEWS)}
+                        renderHeader={() => null}
+                        renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
+                        user={user}
+                        rootStyles={this.theme.styles}
+                        // viewportHeight={viewportHeight}
+                        // viewportWidth={viewportWidth}
+                    />
+                );
+        }
+    }
+
+    render() {
+        const { activeTabIndex, areAreaOptionsVisible, selectedArea, tabRoutes } = this.state;
+        const { navigation, user } = this.props;
+
+        return (
+            <>
+                <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
+                <SafeAreaView style={[this.theme.styles.safeAreaView, { backgroundColor: this.theme.colorVariations.backgroundNeutral }]}>
+                    <TabView
+                        lazy
+                        lazyPreloadDistance={1}
+                        navigationState={{
+                            index: activeTabIndex,
+                            routes: tabRoutes,
+                        }}
+                        renderTabBar={this.renderTabBar}
+                        renderScene={this.renderSceneMap}
+                        renderLazyPlaceholder={() => (
+                            <View style={this.theme.styles.sectionContainer}>
+                                <LazyPlaceholder />
+                                <LazyPlaceholder />
+                                <LazyPlaceholder />
+                                <LazyPlaceholder />
+                                <LazyPlaceholder />
+                                <LazyPlaceholder />
+                                <LazyPlaceholder />
+                            </View>
+                        )}
+                        onIndexChange={this.onTabSelect}
+                        initialLayout={{ width: viewportWidth }}
+                        // style={styles.container}
                     />
                 </SafeAreaView>
                 <AreaOptionsModal

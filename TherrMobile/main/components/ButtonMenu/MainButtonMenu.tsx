@@ -230,7 +230,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                             }
                         />
                     }
-                    onPress={() => this.navTo('Contacts')}
+                    onPress={() => this.navTo('CreateConnection')}
                 />
                 <View style={
                     currentScreen === 'ViewUser'

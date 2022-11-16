@@ -162,6 +162,7 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                             name={isAdvancedSearch ? 'filters' : 'search'}
                             size={18}
                             color={theme.colors.primary3}
+                            onPress={this.handlePress}
                         />
                     }
                     themeForms={themeForms}

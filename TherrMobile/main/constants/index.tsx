@@ -1,8 +1,8 @@
 // CAROUSEL Constants
 const CAROUSEL_TABS = {
     SOCIAL: 'social',
-    HIRE: 'hire',
     EVENTS: 'events',
+    NEWS: 'news',
 };
 
 // Area Constants

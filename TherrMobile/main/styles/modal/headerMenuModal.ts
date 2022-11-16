@@ -98,8 +98,8 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             ...getNotificationCircleStyles(therrTheme),
             top: 2,
             right: 9,
-            width: 5,
-            height: 5,
+            width: 7,
+            height: 7,
         },
         notificationsCountText: {
             color: therrTheme.colors.brandingWhite,
