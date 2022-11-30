@@ -183,14 +183,24 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         tab: {
             ...tabStyles,
         },
+        tabBar: {
+            backgroundColor: therrTheme.colors.primary,
+        },
         tabActive: {
             ...tabStyles,
             borderBottomWidth: 2,
             borderBottomColor: therrTheme.colors.backgroundCream,
         },
         tabText: {
+            color: therrTheme.colorVariations.textWhiteLightFade,
+            fontFamily: therrFontFamily,
+        },
+        tabTextFocused: {
             color: therrTheme.colors.textWhite,
             fontFamily: therrFontFamily,
+        },
+        tabFocusedIndicator: {
+            backgroundColor: therrTheme.colors.primary3,
         },
         submitButtonContainerFloat: {
             width: '100%',

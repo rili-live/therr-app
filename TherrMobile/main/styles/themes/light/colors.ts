@@ -105,6 +105,7 @@ const colorVariations: ITherrThemeColorVariations = {
     backgroundCreamLighten: new Color(colors.backgroundCream).lighten(0.02).toString(),
     backgroundBlackFade: new Color(colors.backgroundBlack).fade(0.85).toString(),
     textBlackFade: new Color(colors.textBlack).fade(0.75).toString(),
+    textWhiteLightFade: new Color(colors.textWhite).fade(0.25).toString(),
     textWhiteFade: new Color(colors.textWhite).fade(0.75).toString(),
     textGrayDarken: new Color(colors.textGray).darken(0.15).toString(),
     textGrayFade: new Color(colors.textGray).fade(0.35).toString(),

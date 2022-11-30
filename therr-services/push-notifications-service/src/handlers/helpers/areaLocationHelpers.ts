@@ -386,6 +386,8 @@ const activateAreasAndNotify = (
                         isUnread: true,
                         messageLocaleKey: Notifications.MessageKeys.NEW_AREAS_ACTIVATED,
                         messageParams: {
+                            activatedMomentIds,
+                            activatedSpaceIds,
                             totalAreasActivated: activatedMomentIds.length + activatedSpaceIds.length,
                         },
                     },

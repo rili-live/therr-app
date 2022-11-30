@@ -10,7 +10,7 @@ interface ISearchThisAreaButtonGroupProps {
     };
 }
 
-export default ({
+const SearchThisAreaButtonGroup = ({
     handleSearchLocation,
     translate,
     themeButtons,
@@ -29,3 +29,5 @@ export default ({
         </View>
     );
 };
+
+export default React.memo(SearchThisAreaButtonGroup);

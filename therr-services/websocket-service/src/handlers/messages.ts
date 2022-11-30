@@ -69,6 +69,7 @@ const sendDirectMessage = (socket: socketio.Socket, data: any, decodedAuthentica
                                 isUnread: true,
                                 messageLocaleKey: Notifications.MessageKeys.NEW_DM_RECEIVED,
                                 messageParams: {
+                                    userId: data.userId,
                                     userName: data.userName,
                                 },
                                 shouldSendPushNotification: true,

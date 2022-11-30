@@ -183,7 +183,8 @@
     "notification": {
       "buttons": {
         "accept": "Accept",
-        "reject": "Reject"
+        "reject": "Reject",
+        "view": "View"
       }
     },
     "userMenu": {
@@ -477,6 +478,11 @@
         "rotate": "Rotate"
       }
     },
+    "headerTabs": {
+      "social": "Social",
+      "events": "Events",
+      "news": "News"
+    },
     "mapActions": {
       "create": "Create",
       "claimASpace": "Claim a Space",
@@ -574,16 +580,18 @@
     "areas": {
       "headerTitle": "Area",
       "pageTitle": "Areas",
-      "noNearbyAreasFound": "Nothing yet. Start the conversation by posting from the Map or increase the Awareness Radius to discover nearby content.",
-      "noSocialAreasFound": "You have not yet activated any moments/spaces. Enable location from the map, and active areas will start to appear in this view as you travel.",
+      "noEventsAreasFound": "No current or upcoming events found. Invite friends and grow your connections to increase visibility and receive invites to exclusive events.",
       "noHireAreasFound": "No freelancer postings found in your area. Check back soon to find local freelancers in range of your location.",
-      "noEventsAreasFound": "No current or upcoming events found. Invite friends and grow your connections to increase visibility and receive invites to exclusive events."
+      "noNearbyAreasFound": "Nothing yet. Start the conversation by posting from the Map or increase the Awareness Radius to discover nearby content.",
+      "noNewsAreasFound": "Local News stream coming soon!",
+      "noSocialAreasFound": "You have not yet activated any moments/spaces. Enable location from the map, and active areas will start to appear in this view as you travel."
     },
     "bookmarked": {
       "headerTitle": "Favorited",
       "noSocialBookmarksFound": "No bookmarks to display. Mark content as favorited by clicking the bookmark icon on a post.",
+      "noEventsBookmarksFound": "No bookmarks to display. Bookmark an event by clicking the bookmark icon on an invite.",
       "noHireBookmarksFound": "No bookmarks to display. Bookmark a freelancer by clicking the bookmark icon on a listing.",
-      "noEventsBookmarksFound": "No bookmarks to display. Bookmark an event by clicking the bookmark icon on an invite."
+      "noNewsBookmarksFound": "No bookmarks to display. Bookmark news posts by clicking the bookmark icon on an article."
     },
     "chatForum": {
       "pageTitle": "Forums",
@@ -842,8 +850,8 @@
       "pageTitle": "User Profile",
       "siteDescription1": "Welcome to Therr app. As we gather feedback and develop new features, let us know how we can improve the experience.",
       "siteDescription2": "So how does it work?",
-      "siteDescription3": "Share a moment with your connections on the map or send a quick DM. Moments are proximity activated and entirely customizable.",
-      "siteDescription4": "Then, check your feed for moments posted by others in the spaces you travel to. Get to know the local culture by searching content that was shared nearby (recently or historically), and filter your interests with hashtags, keywords, etc.",
+      "siteDescription3": "Share a moment with your connections on the map (private or public). Moments are proximity activated and entirely customizable.",
+      "siteDescription4": "Then, check your feed for moments posted by others in the locales you travel to most often. Get to know the local culture by searching content that was shared nearby (recently or historically), and filter your interests with hashtags, keywords, etc.",
       "noActiveConnections": "There are currently no active connections in your network",
       "requestRecommendation": "Send a request to make connections and build a network",
       "validationErrors": {

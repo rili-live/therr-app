@@ -29,6 +29,7 @@ const sendReactionPushNotification = (socket: socketio.Socket, data: any, decode
                                 ? Notifications.MessageKeys.NEW_SUPER_LIKE_RECEIVED
                                 : Notifications.MessageKeys.NEW_LIKE_RECEIVED,
                             messageParams: {
+                                areaId: areaReaction.momentId || areaReaction.spaceId,
                                 userName: data.reactorUserName,
                             },
                             shouldSendPushNotification: true,
