@@ -650,8 +650,8 @@ PODS:
     - RNFBApp
   - RNGestureHandler (2.7.0):
     - React-Core
-  - RNGoogleSignin (8.0.0):
-    - GoogleSignIn (~> 6.2.2)
+  - RNGoogleSignin (8.2.1):
+    - GoogleSignIn (~> 6.2)
     - React-Core
   - RNImageCropPicker (0.37.2):
     - React-Core
@@ -1135,7 +1135,7 @@ SPEC CHECKSUMS:
   RNFBCrashlytics: bb410a988e8660fbbe5a7032ff4ecec267dbd4f7
   RNFBMessaging: a006029b26c2d7b34c93c45ff1b8fedb5fae35d5
   RNGestureHandler: 7673697e7c0e9391adefae4faa087442bc04af33
-  RNGoogleSignin: b2179ba653c759b936404a7746fc5302f9de6a5a
+  RNGoogleSignin: 3db2d849581299f425f5b61b90cb482a9e68c7af
   RNImageCropPicker: 448d3c6e923fde3466b49caf3c2457c2a0ba02dd
   RNPermissions: f7ebe52db07c00901127966ca080b4ec6a6ceb0a
   RNReactNativeHapticFeedback: b83bfb4b537bdd78eb4f6ffe63c6884f7b049ead

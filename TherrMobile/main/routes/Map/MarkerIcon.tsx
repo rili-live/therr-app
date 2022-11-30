@@ -62,7 +62,7 @@ const getMarkerConfigs = (theme: ITherrTheme) => ({
     },
 });
 
-export default function MarkerIcon({
+const MarkerIcon = function MarkerIcon({
     areaType,
     area,
     theme,
@@ -150,4 +150,6 @@ export default function MarkerIcon({
     return (
         <MarkerIconStorefront {...getMarkerConfigs(theme).area} />
     );
-}
+};
+
+export default React.memo(MarkerIcon);

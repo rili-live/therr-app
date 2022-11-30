@@ -27,7 +27,10 @@ const CategoryPills = ({ filters, onPillPress, themeForms }: ICategoryPills) => 
                             key={category.name}
                             value={category.title}
                             textStyle={[(category.isChecked ? themeForms.styles.buttonPillTitleInvert : themeForms.styles.buttonPillTitle), { fontSize: 15 }]}
-                            badgeStyle={[(category.isChecked ? themeForms.styles.buttonPillInvert : themeForms.styles.buttonPill), { width: '100%' }]}
+                            badgeStyle={[
+                                (category.isChecked ? themeForms.styles.buttonPillInvert : themeForms.styles.buttonPill),
+                                { height: 25, width: '100%' },
+                            ]}
                             containerStyle={[themeForms.styles.buttonPillContainer, { width: '100%' }]}
                             onPress={() => onPillPress('categoryFilters', 0, true)}
                         />
@@ -41,7 +44,10 @@ const CategoryPills = ({ filters, onPillPress, themeForms }: ICategoryPills) => 
                             key={category.name}
                             value={category.title}
                             textStyle={[(category.isChecked ? themeForms.styles.buttonPillTitleInvert : themeForms.styles.buttonPillTitle), { fontSize: 14 }]}
-                            badgeStyle={(category.isChecked ? themeForms.styles.buttonPillInvert : themeForms.styles.buttonPill)}
+                            badgeStyle={[
+                                (category.isChecked ? themeForms.styles.buttonPillInvert : themeForms.styles.buttonPill),
+                                { height: 25, width: '100%' },
+                            ]}
                             containerStyle={themeForms.styles.buttonPillContainer}
                             onPress={() => onPillPress('categoryFilters', index + 1, false)}
                         />
@@ -52,4 +58,4 @@ const CategoryPills = ({ filters, onPillPress, themeForms }: ICategoryPills) => 
     );
 };
 
-export default CategoryPills;
+export default React.memo(CategoryPills);

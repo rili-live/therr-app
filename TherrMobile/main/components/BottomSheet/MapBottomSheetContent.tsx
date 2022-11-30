@@ -12,7 +12,7 @@ interface IMapBottomSheetContent {
     translate: Function;
 }
 
-export default ({
+const MapBottomSheetContent = ({
     navigation,
     // theme,
     // translate,
@@ -25,3 +25,5 @@ export default ({
         </>
     );
 };
+
+export default React.memo(MapBottomSheetContent);

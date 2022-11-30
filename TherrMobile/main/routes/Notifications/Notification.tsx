@@ -74,6 +74,22 @@ export default ({
             {
                 notification.userConnection?.requestStatus === 'pending' &&
                 <View style={themeNotification.styles.actionsContainer}>
+                    {
+                        notification.messageParams?.userId &&
+                        <Button
+                            title={translate('components.notification.buttons.view')}
+                            type="clear"
+                            buttonStyle={themeNotification.styles.actionButton}
+                            titleStyle={themeNotification.styles.actionButtonText}
+                            icon={
+                                <FontAwesomeIcon
+                                    name="eye"
+                                    size={18}
+                                />
+                            }
+                            onPress={(e) => handlePressAndNavigate && handlePressAndNavigate(e)}
+                        />
+                    }
                     <Button
                         title={translate('components.notification.buttons.accept')}
                         type="clear"

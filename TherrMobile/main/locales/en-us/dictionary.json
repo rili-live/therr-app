@@ -183,7 +183,8 @@
     "notification": {
       "buttons": {
         "accept": "Accept",
-        "reject": "Reject"
+        "reject": "Reject",
+        "view": "View"
       }
     },
     "userMenu": {

@@ -1,8 +1,7 @@
 import React, { Ref } from 'react';
-import { Dimensions, PermissionsAndroid, Keyboard, Platform, SafeAreaView, View } from 'react-native';
+import { Dimensions, PermissionsAndroid, Keyboard, Platform, SafeAreaView } from 'react-native';
 import { StackActions } from '@react-navigation/native';
 import MapView from 'react-native-map-clustering';
-import { PROVIDER_GOOGLE, Circle, Marker } from 'react-native-maps';
 import AnimatedOverlay from 'react-native-modal-overlay';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -12,31 +11,26 @@ import { MapActions, ReactionActions, UserInterfaceActions } from 'therr-react/r
 import { AccessLevels, Location } from 'therr-js-utilities/constants';
 import Geolocation from 'react-native-geolocation-service';
 import AnimatedLoader from 'react-native-animated-loader';
-import { distanceTo, insideCircle } from 'geolocation-utils';
+import { distanceTo } from 'geolocation-utils';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { GOOGLE_APIS_ANDROID_KEY, GOOGLE_APIS_IOS_KEY } from 'react-native-dotenv';
 import { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
-import MapActionButtons, { ICreateMomentAction } from './MapActionButtons';
+import MapActionButtons, { ICreateAction as ICreateMomentAction } from './MapActionButtons';
 import Alert from '../../components/Alert';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import { ILocationState } from '../../types/redux/location';
 import LocationActions from '../../redux/actions/LocationActions';
 import translator from '../../services/translator';
 import {
-    INITIAL_LATITUDE_DELTA,
-    INITIAL_LONGITUDE_DELTA,
+    ANIMATE_TO_REGION_DURATION,
+    ANIMATE_TO_REGION_DURATION_SLOW,
     PRIMARY_LATITUDE_DELTA,
     PRIMARY_LONGITUDE_DELTA,
     MIN_LOAD_TIMEOUT,
-    DEFAULT_MOMENT_PROXIMITY,
-    MIN_ZOOM_LEVEL,
     MOMENTS_REFRESH_THROTTLE_MS,
-    LOCATION_PROCESSING_THROTTLE_MS,
     DEFAULT_LONGITUDE,
     DEFAULT_LATITUDE,
-    SECONDARY_LATITUDE_DELTA,
-    SECONDARY_LONGITUDE_DELTA,
 } from '../../constants';
 import { buildStyles, loaderStyles } from '../../styles';
 import { buildStyles as buildAlertStyles } from '../../styles/alerts';
@@ -49,7 +43,6 @@ import { buildStyles as buildDisclosureStyles } from '../../styles/modal/locatio
 import { buildStyles as buildTourStyles } from '../../styles/modal/tourModal';
 import { buildStyles as buildSearchStyles } from '../../styles/modal/typeAhead';
 import mapStyles from '../../styles/map';
-import mapCustomStyle from '../../styles/map/googleCustom';
 import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
 import {
     requestOSMapPermissions,
@@ -61,8 +54,6 @@ import {
 import BaseStatusBar from '../../components/BaseStatusBar';
 import SearchTypeAheadResults from '../../components/SearchTypeAheadResults';
 import SearchThisAreaButtonGroup from '../../components/SearchThisAreaButtonGroup';
-import MarkerIcon from './MarkerIcon';
-import { isMyArea } from '../../utilities/content';
 import LocationUseDisclosureModal from '../../components/Modals/LocationUseDisclosureModal';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
 import eula from './EULA';
@@ -70,15 +61,13 @@ import UsersActions from '../../redux/actions/UsersActions';
 import TouringModal from '../../components/Modals/TouringModal';
 import BottomSheetPlus from '../../components/BottomSheet/BottomSheetPlus';
 import MapBottomSheetContent from '../../components/BottomSheet/MapBottomSheetContent';
+import TherrMapView from './TherrMapView';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../../assets/earth-loader.json');
-
-const ANIMATE_TO_REGION_DURATION = 750;
-const ANIMATE_TO_REGION_DURATION_SLOW = 1500;
-const ANIMATE_TO_REGION_DURATION_FAST = 500;
 const AREAS_SEARCH_COUNT = Platform.OS === 'android' ? 250 : 400;
 const AREAS_SEARCH_COUNT_ZOOMED = Platform.OS === 'android' ? 100 : 200;
+// TODO: Cache users last location and default there
 const DEFAULT_MAP_SEARCH = {
     description: 'United States',
     matched_substrings: [{
@@ -142,10 +131,6 @@ export interface IMapProps extends IStoreProps {
 }
 
 interface IMapState {
-    activeMoment: any;
-    activeMomentDetails: any;
-    activeSpace: any;
-    activeSpaceDetails: any;
     areButtonsVisible: boolean;
     areLayersVisible: boolean;
     region: {
@@ -170,7 +155,7 @@ interface IMapState {
         longitude: number,
         latitude: number,
     },
-    circleCenter: any;
+    circleCenter: {longitude: number, latitude: number};
 }
 
 const mapStateToProps = (state: any) => ({
@@ -220,13 +205,13 @@ class Map extends React.Component<IMapProps, IMapState> {
     private themeDisclosure = buildDisclosureStyles();
     private themeTour = buildTourStyles();
     private themeSearch = buildSearchStyles({ viewPortHeight });
-    private timeoutId;
-    private timeoutIdGoToArea;
+    private timeoutIdLocationReady;
     private timeoutIdRefreshMoments;
-    private timeoutIdShowMoment;
+    private timeoutIdShowMomentAlert;
     private timeoutIdSearchButton;
     private timeoutIdWaitForSearchSelect;
     private translate: Function;
+    private unsubscribeBlurListener: any;
     private unsubscribeFocusListener: any;
     private unsubscribeNavigationListener: any;
 
@@ -237,10 +222,6 @@ class Map extends React.Component<IMapProps, IMapState> {
         const routeLatitude = props.route?.params?.latitude;
 
         this.state = {
-            activeMoment: {},
-            activeMomentDetails: {},
-            activeSpace: {},
-            activeSpaceDetails: {},
             areButtonsVisible: true,
             areLayersVisible: false,
             region: {},
@@ -283,11 +264,15 @@ class Map extends React.Component<IMapProps, IMapState> {
 
         this.unsubscribeNavigationListener = navigation.addListener('state', () => {
             setSearchDropdownVisibility(false);
-            clearTimeout(this.timeoutId);
+            clearTimeout(this.timeoutIdLocationReady);
             this.setState({
                 isMinLoadTimeComplete: true,
                 isLocationReady: true,
             });
+        });
+
+        this.unsubscribeBlurListener = navigation.addListener('blur', () => {
+            this.clearTimeouts();
         });
 
         this.unsubscribeFocusListener = navigation.addListener('focus', () => {
@@ -296,14 +281,14 @@ class Map extends React.Component<IMapProps, IMapState> {
                 areButtonsVisible: true,
             });
             setSearchDropdownVisibility(false);
-            clearTimeout(this.timeoutId);
+            clearTimeout(this.timeoutIdLocationReady);
         });
 
         navigation.setOptions({
             title: this.translate('pages.map.headerTitle'),
         });
 
-        this.timeoutId = setTimeout(() => {
+        this.timeoutIdLocationReady = setTimeout(() => {
             this.setState({
                 isMinLoadTimeComplete: true,
                 isLocationReady: true,
@@ -322,18 +307,24 @@ class Map extends React.Component<IMapProps, IMapState> {
 
     componentWillUnmount() {
         Geolocation.clearWatch(this.mapWatchId);
-        clearTimeout(this.timeoutId);
-        clearTimeout(this.timeoutIdGoToArea);
-        clearTimeout(this.timeoutIdRefreshMoments);
-        clearTimeout(this.timeoutIdShowMoment);
-        clearTimeout(this.timeoutIdSearchButton);
-        clearTimeout(this.timeoutIdWaitForSearchSelect);
+        this.clearTimeouts();
         if (this.unsubscribeNavigationListener) {
             this.unsubscribeNavigationListener();
+        }
+        if (this.unsubscribeBlurListener) {
+            this.unsubscribeBlurListener();
         }
         if (this.unsubscribeFocusListener) {
             this.unsubscribeFocusListener();
         }
+    }
+
+    clearTimeouts = () => {
+        clearTimeout(this.timeoutIdLocationReady);
+        clearTimeout(this.timeoutIdSearchButton);
+        clearTimeout(this.timeoutIdRefreshMoments);
+        clearTimeout(this.timeoutIdShowMomentAlert);
+        clearTimeout(this.timeoutIdWaitForSearchSelect);
     }
 
     reloadTheme = (shouldForceUpdate: boolean = false) => {
@@ -358,9 +349,9 @@ class Map extends React.Component<IMapProps, IMapState> {
         this.setState({
             shouldIgnoreSearchThisAreaButton: true,
         });
-        doAnimate();
         clearTimeout(this.timeoutIdSearchButton);
         clearTimeout(this.timeoutIdWaitForSearchSelect);
+        doAnimate();
         this.timeoutIdWaitForSearchSelect = setTimeout(() => {
             this.setState({
                 shouldIgnoreSearchThisAreaButton: false,
@@ -397,17 +388,6 @@ class Map extends React.Component<IMapProps, IMapState> {
             isAreaAlertVisible: false,
         });
     }
-
-    getAreaDetails = (area) => new Promise((resolve) => {
-        const { user } = this.props;
-        const details: any = {};
-
-        if (isMyArea(area, user)) {
-            details.userDetails = user.details;
-        }
-
-        return resolve(details);
-    });
 
     expandBottomSheet = (index = 1) => {
         this.setState({
@@ -505,14 +485,6 @@ class Map extends React.Component<IMapProps, IMapState> {
         }
     };
 
-    // TODO: Ask for location permissions if not enabled
-    handleCompassRealign = () => {
-        this.mapRef && this.mapRef.animateCamera({ heading: 0 });
-        this.setState({
-            areLayersVisible: false,
-        });
-    };
-
     handleGpsRecenterPress = () => {
         const {
             location,
@@ -530,7 +502,8 @@ class Map extends React.Component<IMapProps, IMapState> {
             shouldShowCreateActions: false,
         });
 
-        this.timeoutId = setTimeout(() => {
+        clearTimeout(this.timeoutIdLocationReady);
+        this.timeoutIdLocationReady = setTimeout(() => {
             this.setState({
                 isMinLoadTimeComplete: true,
             });
@@ -699,163 +672,11 @@ class Map extends React.Component<IMapProps, IMapState> {
         navigation.navigate('MapFilteredSearch');
     }
 
-    /**
-     * On press handler for any map press. Handles pressing an area, and determines when view or bottom-sheet menu to open
-     */
-    handleMapPress = ({ nativeEvent }) => {
-        const {
-            createOrUpdateMomentReaction,
-            createOrUpdateSpaceReaction,
-            map,
-            navigation,
-            setSearchDropdownVisibility,
-            user,
-        } = this.props;
-        const { circleCenter } = this.state;
-        const mapFilters = {
-            filtersAuthor: map.filtersAuthor,
-            filtersCategory: map.filtersCategory,
-            filtersVisibility: map.filtersVisibility,
-        };
-        let visibleMoments: any[] = this.getFilteredAreas(map.moments.concat(map.myMoments), mapFilters);
-        let visibleSpaces: any[] = this.getFilteredAreas(map.spaces.concat(map.mySpaces), mapFilters);
-
-        this.setState({
-            shouldShowCreateActions: false,
-        });
-
-        setSearchDropdownVisibility(false);
-
-        this.setState({
-            areLayersVisible: false,
-        });
-
-        const pressedSpaces = visibleSpaces.filter((space) => {
-            return insideCircle(nativeEvent.coordinate, {
-                lon: space.longitude,
-                lat: space.latitude,
-            }, space.radius);
-        });
-
-        if (pressedSpaces.length) {
-            ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
-
-            this.setState({
-                activeMoment: {},
-                activeMomentDetails: {},
-            });
-
-            // this.expandBottomSheet();
-
-            const selectedSpace = pressedSpaces[0];
-            const distToCenter = distanceTo({
-                lon: circleCenter.longitude,
-                lat: circleCenter.latitude,
-            }, {
-                lon: selectedSpace.longitude,
-                lat: selectedSpace.latitude,
-            });
-            const isProximitySatisfied = distToCenter - selectedSpace.radius <= selectedSpace.maxProximity;
-            if (!isProximitySatisfied
-                && !isMyArea(selectedSpace, user)
-                && !(this.isAreaActivated('spaces', selectedSpace) && !selectedSpace.doesRequireProximityToView)) {
-                // Deny activation
-                this.showAreaAlert();
-            } else {
-                // Activate space
-                createOrUpdateSpaceReaction(selectedSpace.id, {
-                    userViewCount: 1,
-                    userHasActivated: true,
-                }).then(() => {
-                    this.getAreaDetails(selectedSpace)
-                        .then((details) => {
-                            this.setState({
-                                activeSpace: selectedSpace,
-                                activeSpaceDetails: details,
-                            }, () => {
-                                // TODO: Consider requiring location to view an area
-                                navigation.navigate('ViewSpace', {
-                                    isMyArea: isMyArea(selectedSpace, user),
-                                    space: selectedSpace,
-                                    spaceDetails: details,
-                                });
-                            });
-                        })
-                        .catch(() => {
-                            // TODO: Add error handling
-                            console.log('Failed to get space details!');
-                        });
-                });
-            }
-        } else {
-            this.setState({
-                activeSpace: {},
-                activeSpaceDetails: {},
-            });
-
-            const pressedMoments = visibleMoments.filter((moment) => {
-                return insideCircle(nativeEvent.coordinate, {
-                    lon: moment.longitude,
-                    lat: moment.latitude,
-                }, moment.radius);
-            });
-
-            if (pressedMoments.length) {
-                const selectedMoment = pressedMoments[0];
-
-                // this.expandBottomSheet();
-
-                const distToCenter = distanceTo({
-                    lon: circleCenter.longitude,
-                    lat: circleCenter.latitude,
-                }, {
-                    lon: selectedMoment.longitude,
-                    lat: selectedMoment.latitude,
-                });
-                const isProximitySatisfied = distToCenter - selectedMoment.radius <= selectedMoment.maxProximity;
-                if (!isProximitySatisfied
-                    && !isMyArea(selectedMoment, user)
-                    && !(this.isAreaActivated('moments', selectedMoment) && !selectedMoment.doesRequireProximityToView)) {
-                    // Deny activation
-                    this.showAreaAlert();
-                } else {
-                    // Activate moment
-                    createOrUpdateMomentReaction(selectedMoment.id, {
-                        userViewCount: 1,
-                        userHasActivated: true,
-                    }, selectedMoment.fromUserId, user.details.userName);
-                    this.getAreaDetails(selectedMoment)
-                        .then((details) => {
-                            this.setState({
-                                activeMoment: selectedMoment,
-                                activeMomentDetails: details,
-                            }, () => {
-                                // TODO: Consider requiring location to view an area
-                                navigation.navigate('ViewMoment', {
-                                    isMyArea: isMyArea(selectedMoment, user),
-                                    moment: selectedMoment,
-                                    momentDetails: details,
-                                });
-                            });
-                        })
-                        .catch(() => {
-                            // TODO: Add error handling
-                            console.log('Failed to get moment details!');
-                        });
-                }
-            } else {
-                this.expandBottomSheet(0);
-                this.setState({
-                    activeMoment: {},
-                    activeMomentDetails: {},
-                });
-            }
-        }
-    };
-
     // TODO: Call this when user has traveled a certain distance from origin
     handleRefreshMoments = (overrideThrottle = false, coords?: any) => {
         const { isMinLoadTimeComplete } = this.state;
+
+        clearTimeout(this.timeoutIdRefreshMoments);
 
         if (!isMinLoadTimeComplete) {
             this.timeoutIdRefreshMoments = setTimeout(() => {
@@ -864,8 +685,6 @@ class Map extends React.Component<IMapProps, IMapState> {
 
             return;
         }
-
-        clearTimeout(this.timeoutIdRefreshMoments);
 
         this.setState({
             areLayersVisible: false,
@@ -1085,20 +904,6 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     }
 
-    isAreaActivated = (type: IAreaType, area) => {
-        const { reactions, user } = this.props;
-
-        if (isMyArea(area, user)) {
-            return true;
-        }
-
-        if (type === 'moments') {
-            return !!reactions.myMomentReactions[area.id];
-        }
-
-        return !!reactions.mySpaceReactions[area.id];
-    }
-
     isAuthorized = () => {
         const { user } = this.props;
         return UsersService.isAuthorized(
@@ -1128,135 +933,6 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     }
 
-    onDeleteMoment = (moment) => {
-        const { deleteMoment, user } = this.props;
-        if (isMyArea(moment, user)) {
-            deleteMoment({ ids: [moment.id] })
-                .then(() => {
-                    console.log('Moment successfully deleted');
-                })
-                .catch((err) => {
-                    console.log('Error deleting moment', err);
-                });
-        }
-    };
-
-    onUserLocationChange = (event) => {
-        const {
-            shouldFollowUserLocation,
-            lastLocationSendForProcessing,
-            lastLocationSendForProcessingCoords,
-        } = this.state;
-        const {
-            map,
-            updateCoordinates,
-        } = this.props;
-        const coords = {
-            latitude: event.nativeEvent.coordinate.latitude,
-            longitude: event.nativeEvent.coordinate.longitude,
-        };
-        // TODO: Add throttle
-        updateCoordinates(coords);
-        this.setState({
-            circleCenter: coords,
-        });
-
-        if (shouldFollowUserLocation) {
-            const loc = {
-                latitude: coords.latitude,
-                longitude: coords.longitude,
-                latitudeDelta: PRIMARY_LATITUDE_DELTA,
-                longitudeDelta: PRIMARY_LONGITUDE_DELTA,
-            };
-            this.animateToWithHelp(() => this.mapRef && this.mapRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_FAST));
-        }
-
-
-        if (!map.hasUserLocationLoaded) {
-            return;
-        }
-
-        if (lastLocationSendForProcessing) {
-            if (Date.now() - lastLocationSendForProcessing <= LOCATION_PROCESSING_THROTTLE_MS) {
-                return;
-            }
-
-            if (lastLocationSendForProcessingCoords) {
-                const timeOfTravel = Date.now() - lastLocationSendForProcessing;
-                const distanceTraveledMeters = distanceTo({
-                    lon: coords.longitude,
-                    lat: coords.latitude,
-                }, {
-                    lon: lastLocationSendForProcessingCoords.longitude,
-                    lat: lastLocationSendForProcessingCoords.latitude,
-                });
-                const kmPerHour = distanceTraveledMeters / (timeOfTravel * 60 * 60);
-
-                if (distanceTraveledMeters < 5) {
-                    return;
-                }
-
-                if (kmPerHour > 15) { // Don't send location until user slows down to a walking pace
-                    return;
-                }
-            }
-        }
-
-        // Send location to backend for processing
-        PushNotificationsService.postLocationChange({
-            longitude: coords.longitude,
-            latitude: coords.latitude,
-            lastLocationSendForProcessing,
-            radiusOfAwareness: map.radiusOfAwareness,
-            radiusOfInfluence: map.radiusOfInfluence,
-        });
-
-        this.setState({
-            lastLocationSendForProcessing: Date.now(),
-            lastLocationSendForProcessingCoords: {
-                longitude: coords.longitude,
-                latitude: coords.latitude,
-            },
-        });
-    };
-
-    onRegionChange = (region) => {
-        if (region.latitude.toFixed(6) === this.state.region?.latitude?.toFixed(6)
-            && region.longitude.toFixed(6) === this.state.region?.longitude?.toFixed(6)) {
-            return;
-        }
-
-        this.setState({
-            isSearchThisLocationBtnVisible: false,
-            // region,
-        });
-
-        // clearTimeout(this.timeoutIdSearchButton);
-        // if (!this.state.shouldIgnoreSearchThisAreaButton) {
-        //     this.timeoutIdSearchButton = setTimeout(() => {
-        //         this.setState({
-        //             isSearchThisLocationBtnVisible: true,
-        //         });
-        //     }, 500);
-        // }
-    }
-
-    onRegionChangeComplete = (region) => {
-        this.setState({
-            isSearchThisLocationBtnVisible: false,
-            region,
-        });
-
-        clearTimeout(this.timeoutIdSearchButton);
-        if (!this.state.shouldIgnoreSearchThisAreaButton) {
-            this.timeoutIdSearchButton = setTimeout(() => {
-                this.setState({
-                    isSearchThisLocationBtnVisible: true,
-                });
-            }, 750);
-        }
-    }
-
     onClusterPress = (/* cluster, markers */) => {
         // if (Platform.OS === 'android') {
         // }
@@ -1267,7 +943,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             isAreaAlertVisible: true,
         });
 
-        this.timeoutIdShowMoment = setTimeout(() => {
+        this.timeoutIdShowMomentAlert = setTimeout(() => {
             this.setState({
                 isAreaAlertVisible: false,
             });
@@ -1297,6 +973,7 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     }
 
+    // Currently not implemented
     toggleMapFollow = () => {
         const {
             shouldFollowUserLocation,
@@ -1360,137 +1037,47 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     }
 
-    getFilteredAreas = (areas, mapFilters) => {
-        // Filter for duplicates
-        const areasMap = {};
-        areas.forEach(area => areasMap[area.id] = area);
-        let filteredAreas: any = Object.values(areasMap);
-        if ((!mapFilters.filtersAuthor?.length && !mapFilters.filtersCategory?.length && !mapFilters.filtersVisibility?.length)
-            || (mapFilters.filtersAuthor[0]?.isChecked && mapFilters.filtersCategory[0]?.isChecked && mapFilters.filtersVisibility[0]?.isChecked)) {
-            return filteredAreas;
+    onRegionChange = (region) => {
+        if (region.latitude.toFixed(6) === this.state.region?.latitude?.toFixed(6)
+            && region.longitude.toFixed(6) === this.state.region?.longitude?.toFixed(6)) {
+            return;
         }
 
-        const filteredAreasMap = {};
-        // Only requires one loop to check each area
-        filteredAreas.forEach(area => {
-            if (this.shouldRenderArea(area, mapFilters)) {
-                filteredAreasMap[area.id] = area;
-            }
+        this.setState({
+            isSearchThisLocationBtnVisible: false,
+            // region,
         });
 
-        return Object.values(filteredAreasMap);
-    };
-
-    shouldRenderArea = (area, mapFilters) => {
-        const { user } = this.props;
-        let passesFilterAuthor = true;
-        let passesFilterCategory = true;
-        let passesFilterVisibility = true;
-
-        // Filters have been populated and "Select All" is not checked
-        if (mapFilters.filtersAuthor?.length && !mapFilters.filtersAuthor[0]?.isChecked) {
-            passesFilterAuthor = mapFilters.filtersAuthor.some(filter => {
-                if (!filter.isChecked) {
-                    return false;
-                }
-
-                return (isMyArea(area, user) && filter.name === 'me') || (!isMyArea(area, user) && filter.name === 'notMe');
-            });
-        }
-
-        // Filters have been populated and "Select All" is not checked
-        if (mapFilters.filtersCategory.length && !mapFilters.filtersCategory[0]?.isChecked) {
-            passesFilterCategory = mapFilters.filtersCategory.some(filter => {
-                if (!filter.isChecked) {
-                    return false;
-                }
-
-                return area.category === filter.name;
-            });
-        }
-
-        // Filters have been populated and "Select All" is not checked
-        if (mapFilters.filtersVisibility.length && !mapFilters.filtersVisibility[0]?.isChecked) {
-            passesFilterVisibility = mapFilters.filtersVisibility.some(filter => {
-                if (!filter.isChecked) {
-                    return false;
-                }
-
-                return (area.isPublic && filter.name === 'public') || (!area.isPublic && filter.name === 'private');
-            });
-        }
-
-        return passesFilterAuthor && passesFilterCategory && passesFilterVisibility;
+        // clearTimeout(this.timeoutIdSearchButton);
+        // if (!this.state.shouldIgnoreSearchThisAreaButton) {
+        //     this.timeoutIdSearchButton = setTimeout(() => {
+        //         this.setState({
+        //             isSearchThisLocationBtnVisible: true,
+        //         });
+        //     }, 500);
+        // }
     }
 
-    getMomentCircleFillColor = (moment) => {
-        const { user } = this.props;
-        const { activeMoment } = this.state;
+    onRegionChangeComplete = (region) => {
+        this.setState({
+            isSearchThisLocationBtnVisible: false,
+            region,
+        });
 
-        if (isMyArea(moment, user)) {
-            if (moment.id === activeMoment.id) {
-                return this.theme.colors.map.myMomentsCircleFillActive;
-            }
-
-            return this.theme.colors.map.myMomentsCircleFill;
+        clearTimeout(this.timeoutIdSearchButton);
+        if (!this.state.shouldIgnoreSearchThisAreaButton) {
+            this.timeoutIdSearchButton = setTimeout(() => {
+                this.setState({
+                    isSearchThisLocationBtnVisible: true,
+                });
+            }, 750);
         }
-
-        if (this.isAreaActivated('moments', moment)) {
-            return this.theme.colors.map.momentsCircleFill;
-        }
-
-        // Not yet activated/discovered
-        return this.theme.colors.map.undiscoveredMomentsCircleFill;
     }
 
-    getSpaceCircleFillColor = (space) => {
-        const { user } = this.props;
-        const { activeSpace } = this.state;
-
-        if (isMyArea(space, user)) {
-            if (space.id === activeSpace.id) {
-                return this.theme.colors.map.mySpacesCircleFillActive;
-            }
-
-            return this.theme.colors.map.mySpacesCircleFill;
-        }
-
-        if (this.isAreaActivated('spaces', space)) {
-            return this.theme.colors.map.spacesCircleFill;
-        }
-
-        // Not yet activated/discovered
-        return this.theme.colors.map.undiscoveredSpacesCircleFill;
-    }
-
-    getMomentCircleStrokeColor = (moment) => {
-        const { user } = this.props;
-
-        if (isMyArea(moment, user)) {
-            return this.theme.colors.map.myMomentsCircleStroke;
-        }
-
-        if (this.isAreaActivated('moments', moment)) {
-            return this.theme.colors.map.momentsCircleStroke;
-        }
-
-        // Not yet activated/discovered
-        return this.theme.colors.map.undiscoveredMomentsCircleStroke;
-    }
-
-    getSpaceCircleStrokeColor = (space) => {
-        const { user } = this.props;
-
-        if (isMyArea(space, user)) {
-            return this.theme.colors.map.mySpacesCircleStroke;
-        }
-
-        if (this.isAreaActivated('spaces', space)) {
-            return this.theme.colors.map.spacesCircleStroke;
-        }
-
-        // Not yet activated/discovered
-        return this.theme.colors.map.undiscoveredSpacesCircleStroke;
+    updateCircleCenter = (center: { longitude: number, latitude: number }) => {
+        this.setState({
+            circleCenter: center,
+        });
     }
 
     render() {
@@ -1498,15 +1085,15 @@ class Map extends React.Component<IMapProps, IMapState> {
             areButtonsVisible,
             areLayersVisible,
             circleCenter,
-            shouldFollowUserLocation,
             shouldShowCreateActions,
             isConfirmModalVisible,
             isLocationReady,
             isLocationUseDisclosureModalVisible,
             isMinLoadTimeComplete,
             isAreaAlertVisible,
-            isScrollEnabled,
             isSearchThisLocationBtnVisible,
+            isScrollEnabled,
+            shouldFollowUserLocation,
         } = this.state;
         const { captureClickTarget, location, map, navigation, notifications, route, user } = this.props;
         const searchPredictionResults = map?.searchPredictions?.results || [];
@@ -1517,20 +1104,6 @@ class Map extends React.Component<IMapProps, IMapState> {
             filtersAuthor: map.filtersAuthor,
             filtersCategory: map.filtersCategory,
             filtersVisibility: map.filtersVisibility,
-        };
-        const filteredMoments = this.getFilteredAreas(map.moments.concat(map.myMoments), mapFilters);
-        const filteredSpaces = this.getFilteredAreas(map.spaces.concat(map.mySpaces), mapFilters);
-        const getLatitudeDelta = () => {
-            if (route.params?.latitude) {
-                return SECONDARY_LATITUDE_DELTA;
-            }
-            return map.hasUserLocationLoaded ? PRIMARY_LATITUDE_DELTA : INITIAL_LATITUDE_DELTA;
-        };
-        const getLongitudeDelta = () => {
-            if (route.params?.longitude) {
-                return SECONDARY_LONGITUDE_DELTA;
-            }
-            return map.hasUserLocationLoaded ? PRIMARY_LONGITUDE_DELTA : INITIAL_LONGITUDE_DELTA;
         };
 
         return (
@@ -1561,128 +1134,24 @@ class Map extends React.Component<IMapProps, IMapState> {
                                     themeSearch={this.themeSearch}
                                 />
                             }
-                            <MapView
+                            <TherrMapView
+                                animateToWithHelp={this.animateToWithHelp}
+                                circleCenter={circleCenter}
+                                expandBottomSheet={this.expandBottomSheet}
+                                route={route}
                                 mapRef={(ref: Ref<MapView>) => { this.mapRef = ref; }}
-                                provider={PROVIDER_GOOGLE}
-                                style={mapStyles.mapView}
-                                customMapStyle={mapCustomStyle}
-                                initialRegion={{
-                                    latitude: circleCenter.latitude,
-                                    longitude: circleCenter.longitude,
-                                    latitudeDelta: getLatitudeDelta(),
-                                    longitudeDelta: getLongitudeDelta(),
-                                }}
-                                onPress={this.handleMapPress}
+                                navigation={navigation}
                                 onRegionChange={this.onRegionChange}
                                 onRegionChangeComplete={this.onRegionChangeComplete}
-                                onUserLocationChange={this.onUserLocationChange}
-                                showsUserLocation={true}
-                                showsBuildings={true}
-                                showsMyLocationButton={false}
-                                showsCompass={false}
-                                followsUserLocation={shouldFollowUserLocation}
-                                scrollEnabled={isScrollEnabled}
-                                minZoomLevel={MIN_ZOOM_LEVEL}
-                                /* react-native-map-clustering */
-                                clusterColor={this.theme.colors.brandingBlueGreen}
-                                clusterFontFamily={this.theme.styles.headerTitleStyle.fontFamily}
-                                clusterTextColor={this.theme.colors.brandingWhite}
-                                onClusterPress={this.onClusterPress}
-                                // preserveClusterPressBehavior={true}
-                                animationEnabled={false} // iOS Only
-                                spiderLineColor="#FF0000"
-                            >
-                                <Circle
-                                    center={circleCenter}
-                                    radius={DEFAULT_MOMENT_PROXIMITY} /* meters */
-                                    strokeWidth={1}
-                                    strokeColor={this.theme.colors.secondary}
-                                    fillColor={this.theme.colors.map.userCircleFill}
-                                    zIndex={0}
-                                />
-                                {
-                                    filteredMoments.map((moment) => {
-                                        return (
-                                            <Marker
-                                                anchor={{
-                                                    x: 0.5,
-                                                    y: 0.5,
-                                                }}
-                                                key={moment.id}
-                                                coordinate={{
-                                                    longitude: moment.longitude,
-                                                    latitude: moment.latitude,
-                                                }}
-                                                onPress={this.handleMapPress}
-                                                stopPropagation={true}
-                                            >
-                                                <View style={{ /* transform: [{ translateY: 0 }] */ }}>
-                                                    <MarkerIcon area={moment} areaType="moments" theme={this.theme} />
-                                                </View>
-                                            </Marker>
-                                        );
-                                    })
-                                }
-                                {
-                                    filteredMoments.map((moment) => {
-                                        return (
-                                            <Circle
-                                                key={moment.id}
-                                                center={{
-                                                    longitude: moment.longitude,
-                                                    latitude: moment.latitude,
-                                                }}
-                                                radius={moment.radius} /* meters */
-                                                strokeWidth={0}
-                                                strokeColor={this.getMomentCircleStrokeColor(moment)}
-                                                fillColor={this.getMomentCircleFillColor(moment)}
-                                                zIndex={1}
-                                            />
-                                        );
-                                    })
-                                }
-                                {
-                                    filteredSpaces.map((space) => {
-                                        return (
-                                            <Marker
-                                                anchor={{
-                                                    x: 0.5,
-                                                    y: 0.5,
-                                                }}
-                                                key={space.id}
-                                                coordinate={{
-                                                    longitude: space.longitude,
-                                                    latitude: space.latitude,
-                                                }}
-                                                onPress={this.handleMapPress}
-                                                stopPropagation={true}
-                                            >
-                                                <View style={{ /* transform: [{ translateY: 0 }] */ }}>
-                                                    <MarkerIcon area={space} areaType="spaces" theme={this.theme} />
-                                                </View>
-                                            </Marker>
-                                        );
-                                    })
-                                }
-                                {
-                                    filteredSpaces.map((space) => {
-                                        return (
-                                            <Circle
-                                                key={space.id}
-                                                center={{
-                                                    longitude: space.longitude,
-                                                    latitude: space.latitude,
-                                                }}
-                                                radius={space.radius} /* meters */
-                                                strokeWidth={0}
-                                                strokeColor={this.getSpaceCircleStrokeColor(space)}
-                                                fillColor={this.getSpaceCircleFillColor(space)}
-                                                zIndex={1}
-                                            />
-                                        );
-                                    })
-                                }
-                            </MapView>
+                                showAreaAlert={this.showAreaAlert}
+                                shouldFollowUserLocation={shouldFollowUserLocation}
+                                hideCreateActions={() => this.toggleMomentActions(true)}
+                                isScrollEnabled={isScrollEnabled}
+                                // /* react-native-map-clustering */
+                                // onClusterPress={this.onClusterPress}
+                                // // preserveClusterPressBehavior={true}
+                                updateCircleCenter={this.updateCircleCenter}
+                            />
                             <AnimatedOverlay
                                 animationType="swing"
                                 animationDuration={500}
