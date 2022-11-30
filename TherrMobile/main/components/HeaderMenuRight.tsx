@@ -332,7 +332,7 @@ class HeaderMenuRight extends React.Component<
                                                     }
                                                 </Pressable>
                                                 <Text numberOfLines={1} style={themeMenu.styles.headerTitleText}>
-                                                    {user.details?.userName}
+                                                    {user.details?.userName || ''}
                                                 </Text>
                                             </View>
                                             <Button
@@ -550,12 +550,12 @@ class HeaderMenuRight extends React.Component<
                                             />
                                             <Button
                                                 buttonStyle={
-                                                    currentScreen === 'ActiveConnections'
+                                                    currentScreen === 'Contacts'
                                                         ? themeMenu.styles.buttonsActive
                                                         : themeMenu.styles.buttons
                                                 }
                                                 titleStyle={
-                                                    currentScreen === 'ActiveConnections'
+                                                    currentScreen === 'Contacts'
                                                         ? themeMenu.styles.buttonsTitleActive
                                                         : themeMenu.styles.buttonsTitle
                                                 }
@@ -563,7 +563,7 @@ class HeaderMenuRight extends React.Component<
                                                 icon={
                                                     <TherrIcon
                                                         style={
-                                                            currentScreen === 'ActiveConnections'
+                                                            currentScreen === 'Contacts'
                                                                 ? themeMenu.styles.iconStyleActive
                                                                 : themeMenu.styles.iconStyle
                                                         }
@@ -572,7 +572,7 @@ class HeaderMenuRight extends React.Component<
                                                     />
                                                 }
                                                 iconRight
-                                                onPress={() => this.navTo('ActiveConnections')}
+                                                onPress={() => this.navTo('Contacts')}
                                             />
                                             <Button
                                                 buttonStyle={
@@ -752,4 +752,4 @@ class HeaderMenuRight extends React.Component<
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(HeaderMenuRight);
+export default connect(mapStateToProps, mapDispatchToProps)(React.memo(HeaderMenuRight));

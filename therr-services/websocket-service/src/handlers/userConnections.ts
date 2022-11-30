@@ -134,6 +134,7 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
                     isUnread: true,
                     messageLocaleKey: Notifications.MessageKeys.CONNECTION_REQUEST_ACCEPTED,
                     messageParams: {
+                        userId: connection.acceptingUserId,
                         firstName: data.user?.firstName,
                         lastName: data.user?.lastName,
                     },

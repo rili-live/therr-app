@@ -150,11 +150,28 @@ class Notifications extends React.Component<
         if (notification.type === NotificationsEmuns.Types.NEW_AREAS_ACTIVATED
             || notification.type === NotificationsEmuns.Types.NEW_LIKE_RECEIVED
             || notification.type === NotificationsEmuns.Types.NEW_SUPER_LIKE_RECEIVED) {
+            // TODO: Fetch area by notification.messageParams?.areaId and navigate to view moment/space
             navigation.navigate('Nearby');
         } else if (notification.type === NotificationsEmuns.Types.ACHIEVEMENT_COMPLETED) {
             navigation.navigate('Achievements');
+        } else if (notification.type === NotificationsEmuns.Types.CONNECTION_REQUEST_ACCEPTED) {
+            if (notification.messageParams?.userId) {
+                navigation.navigate('ViewUser', {
+                    userInView: {
+                        id: notification.messageParams?.userId,
+                    },
+                });
+            }
+        } else if (notification.type === NotificationsEmuns.Types.CONNECTION_REQUEST_RECEIVED) {
+            if (notification.messageParams?.userId) {
+                navigation.navigate('ViewUser', {
+                    userInView: {
+                        id: notification.messageParams?.userId,
+                    },
+                });
+            }
         } else if (notification.type === NotificationsEmuns.Types.NEW_DM_RECEIVED) {
-            navigation.navigate('ActiveConnections');
+            navigation.navigate('Contacts');
         }
     }
 

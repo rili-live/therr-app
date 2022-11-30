@@ -165,8 +165,8 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
             return this.translate('pages.bookmarked.noSocialBookmarksFound');
         }
 
-        if (activeTab === CAROUSEL_TABS.HIRE) {
-            return this.translate('pages.bookmarked.noHireBookmarksFound');
+        if (activeTab === CAROUSEL_TABS.NEWS) {
+            return this.translate('pages.bookmarked.noNewsBookmarksFound');
         }
 
         // CAROUSEL_TABS.EVENTS

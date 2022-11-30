@@ -63,6 +63,9 @@ class MainButtonMenuAlt extends ButtonMenu {
     goToMyProfile = () => {
         const { navigation, user } = this.props;
         const currentScreen = this.getCurrentScreen();
+
+        ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
+
         if (currentScreen === 'ViewUser') {
             navigation.setParams({
                 userInView: {
@@ -230,7 +233,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                             }
                         />
                     }
-                    onPress={() => this.navTo('Contacts')}
+                    onPress={() => this.navTo('CreateConnection')}
                 />
                 <View style={
                     currentScreen === 'ViewUser'
@@ -260,4 +263,4 @@ class MainButtonMenuAlt extends ButtonMenu {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(MainButtonMenuAlt);
+export default (connect(mapStateToProps, mapDispatchToProps)(React.memo(MainButtonMenuAlt)));

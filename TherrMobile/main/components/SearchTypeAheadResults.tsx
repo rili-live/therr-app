@@ -24,7 +24,7 @@ const renderListItem = (item, { handleSelect, styles }) => {
     );
 };
 
-export default ({
+const SearchTypeAheadResults = ({
     handleSelect,
     searchPredictionResults,
     themeSearch,
@@ -49,3 +49,4 @@ export default ({
     );
 };
 
+export default React.memo(SearchTypeAheadResults);

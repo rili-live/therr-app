@@ -15,6 +15,7 @@ import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import MessagesContactsTabs from '../../components/FlatListHeaderTabs/MessagesContactsTabs';
 import ConnectionItem from '../ActiveConnections/ConnectionItem';
 import CreateConnectionButton from '../../components/CreateConnectionButton';
+import { RefreshControl } from 'react-native-gesture-handler';
 
 interface IContactsDispatchProps {
     logout: Function;
@@ -31,7 +32,9 @@ export interface IContactsProps extends IStoreProps {
     navigation: any;
 }
 
-interface IContactsState {}
+interface IContactsState {
+    isRefreshing: boolean;
+}
 
 const mapStateToProps = (state) => ({
     user: state.user,
@@ -55,7 +58,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     constructor(props) {
         super(props);
 
-        this.state = {};
+        this.state = {
+            isRefreshing: false,
+        };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
@@ -65,27 +70,14 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     }
 
     componentDidMount() {
-        const { navigation, user, userConnections } = this.props;
+        const { navigation, userConnections } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.contacts.headerTitle'),
         });
 
         if (!userConnections.connections.length) {
-            this.props
-                .searchUserConnections(
-                    {
-                        filterBy: 'acceptingUserId',
-                        query: user.details && user.details.id,
-                        itemsPerPage: 50,
-                        pageNumber: 1,
-                        orderBy: 'interactionCount',
-                        order: 'desc',
-                        shouldCheckReverse: true,
-                    },
-                    user.details && user.details.id
-                )
-                .catch(() => {});
+            this.handleRefresh();
         }
     }
 
@@ -133,11 +125,36 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
     };
 
     handleRefresh = () => {
-        console.log('refresh');
+        const { user } = this.props;
+
+        this.setState({
+            isRefreshing: true,
+        });
+
+        this.props
+            .searchUserConnections(
+                {
+                    filterBy: 'acceptingUserId',
+                    query: user.details && user.details.id,
+                    itemsPerPage: 50,
+                    pageNumber: 1,
+                    orderBy: 'interactionCount',
+                    order: 'desc',
+                    shouldCheckReverse: true,
+                },
+                user.details && user.details.id
+            )
+            .catch(() => {})
+            .finally(() => {
+                this.setState({
+                    isRefreshing: false,
+                });
+            });
     }
 
     render() {
         const { navigation, user, userConnections } = this.props;
+        const {isRefreshing } = this.state;
         const connections = userConnections?.connections || [];
 
         return (
@@ -177,6 +194,10 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                             />
                         )}
                         stickyHeaderIndices={[0]}
+                        refreshControl={<RefreshControl
+                            refreshing={isRefreshing}
+                            onRefresh={this.handleRefresh}
+                        />}
                         // onContentSizeChange={() => connections.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
                     />
                 </SafeAreaView>

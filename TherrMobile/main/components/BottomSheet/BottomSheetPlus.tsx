@@ -17,7 +17,7 @@ interface IBottomSheetPlus {
     };
 }
 
-export default ({ children, sheetRef, initialIndex, onClose, themeBottomSheet }: IBottomSheetPlus) => {
+const BottomSheetPlus = ({ children, sheetRef, initialIndex, onClose, themeBottomSheet }: IBottomSheetPlus) => {
     // ref
     const bottomSheetRef = useRef<BottomSheet>(null);
     sheetRef(bottomSheetRef);
@@ -59,3 +59,5 @@ export default ({ children, sheetRef, initialIndex, onClose, themeBottomSheet }:
         </BottomSheet>
     );
 };
+
+export default React.memo(BottomSheetPlus);

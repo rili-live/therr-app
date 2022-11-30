@@ -203,6 +203,24 @@ class MapsService {
             googleDynamicSessionToken = uuid.v4(); // This must be updated after each call to get place details
         });
     }
+
+    getPlaceNearbySearch = ({
+        apiKey,
+        placeId,
+        sessiontoken,
+    }: IPlaceDetailsArgs) => {
+        let url = '/maps-service/place/nearbysearch/json?fields=geometry&';
+
+        url = `${url}place_id=${placeId}&sessiontoken=${sessiontoken || googleDynamicSessionToken}`;
+
+        return axios({
+            method: 'get',
+            url,
+            headers: {},
+        }).finally(() => {
+            googleDynamicSessionToken = uuid.v4(); // This must be updated after each call to get place details
+        });
+    }
 }
 
 export default new MapsService();

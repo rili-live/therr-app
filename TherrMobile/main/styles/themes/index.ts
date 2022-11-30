@@ -120,6 +120,7 @@ export interface ITherrThemeColorVariations {
     backgroundBlackFade: string;
     textBlackFade: string;
     textWhiteFade: string;
+    textWhiteLightFade: string;
     textGrayDarken: string;
     textGrayFade: string;
     accent1Fade: string;

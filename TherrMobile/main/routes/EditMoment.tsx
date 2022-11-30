@@ -729,7 +729,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             )}
                             icon={
                                 <TherrIcon
-                                    name="paper-plane"
+                                    name="send"
                                     size={20}
                                     color={this.isFormDisabled() ? 'grey' : 'black'}
                                     style={this.themeAccentForms.styles.submitButtonIcon}

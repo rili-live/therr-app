@@ -190,7 +190,11 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 associationId: userConnection.id,
                 isUnread: true,
                 messageLocaleKey: Notifications.MessageKeys.CONNECTION_REQUEST_RECEIVED,
-                messageParams: { firstName: requestingUserFirstName, lastName: requestingUserLastName },
+                messageParams: {
+                    userId: requestingUserId,
+                    firstName: requestingUserFirstName,
+                    lastName: requestingUserLastName,
+                },
             }).then(([notification]) => ({
                 ...userConnection,
                 notification: translateNotification(notification, locale),

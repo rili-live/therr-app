@@ -18,7 +18,7 @@ interface ITouringModal {
     };
 }
 
-export default ({
+const TouringModal = ({
     isVisible,
     onRequestClose,
     themeButtons,
@@ -138,3 +138,5 @@ export default ({
         </Modal>
     );
 };
+
+export default React.memo(TouringModal);

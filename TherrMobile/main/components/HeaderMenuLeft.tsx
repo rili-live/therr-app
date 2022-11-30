@@ -71,4 +71,4 @@ class HeaderMenuLeft extends React.Component<
     }
 }
 
-export default HeaderMenuLeft;
+export default React.memo(HeaderMenuLeft);
