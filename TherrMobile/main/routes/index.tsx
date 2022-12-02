@@ -16,9 +16,7 @@ import Map from './Map';
 import Achievements from './Achievements';
 import AchievementClaim from './Achievements/AchievementClaim';
 import Areas from './Areas';
-import ActiveConnections from './ActiveConnections';
 import Contacts from './Contacts';
-import CreateConnection from './CreateConnection';
 import PhoneContacts from './Contacts/PhoneContacts';
 import CreateProfile from './CreateProfile';
 import EmailVerification from './EmailVerification';
@@ -199,32 +197,10 @@ const routes: RouteConfig<
         }),
     },
     {
-        name: 'ActiveConnections',
-        component: ActiveConnections,
-        options: () => ({
-            title: 'Active Connections',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-        }),
-    },
-    {
         name: 'Contacts',
         component: Contacts,
         options: () => ({
             title: 'Contacts',
-            access: {
-                type: AccessCheckType.ALL,
-                levels: [AccessLevels.EMAIL_VERIFIED],
-            },
-        }),
-    },
-    {
-        name: 'CreateConnection',
-        component: CreateConnection,
-        options: () => ({
-            title: 'Create Connection',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],

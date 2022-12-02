@@ -164,22 +164,6 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderRadius: 3,
             borderColor: therrTheme.colors.brandingOrange,
         },
-        tabsContainer: {
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: therrTheme.colors.primary,
-            shadowColor: 'black',
-            shadowOffset: {
-                height: 2,
-                width: 0,
-            },
-            shadowRadius: 4,
-            elevation: 1,
-            shadowOpacity: 0.25,
-            paddingHorizontal: 20,
-        },
         tab: {
             ...tabStyles,
         },

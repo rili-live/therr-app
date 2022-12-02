@@ -4,7 +4,7 @@ import restRequest from './restRequest';
 import redisSessions from '../store/redisSessions';
 import globalConfig from '../../../../global-config';
 
-// TODO: Optimizing for performance
+// TODO: Optimize for performance
 export default (socket, userDetails, actionType, shouldReturnActiveConnections = false, decodedAuthenticationToken: any) => {
     const query = {
         filterBy: 'acceptingUserId',
