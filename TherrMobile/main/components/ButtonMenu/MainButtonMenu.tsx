@@ -21,11 +21,11 @@ class MainButtonMenuAlt extends ButtonMenu {
         this.state = {};
     }
 
-    navTo = (routeName) => {
+    navTo = (routeName, params = {}) => {
         ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
         const { navigation } = this.props;
 
-        navigation.navigate(routeName);
+        navigation.navigate(routeName, params);
     };
 
     getActionButtonIcon = (currentScreen) => {
@@ -106,7 +106,7 @@ class MainButtonMenuAlt extends ButtonMenu {
         const { isCompact, translate, themeMenu, user } = this.props;
         const currentScreen = this.getCurrentScreen();
         // const hasNotifications = notifications.messages && notifications.messages.some(m => m.isUnread);
-        const isConnectViewActive = currentScreen === 'Contacts' || currentScreen === 'ActiveConnections' || currentScreen === 'CreateConnection';
+        const isConnectViewActive = currentScreen === 'Contacts';
         let imageStyle = {
             height: 26,
             width: 26,
@@ -233,7 +233,9 @@ class MainButtonMenuAlt extends ButtonMenu {
                             }
                         />
                     }
-                    onPress={() => this.navTo('CreateConnection')}
+                    onPress={() => this.navTo('Contacts', {
+                        activeTab: 'connections',
+                    })}
                 />
                 <View style={
                     currentScreen === 'ViewUser'

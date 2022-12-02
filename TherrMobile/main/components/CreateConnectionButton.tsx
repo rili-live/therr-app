@@ -3,14 +3,10 @@ import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 
 export default ({
-    navigation,
     themeButtons,
     translate,
+    onPress,
 }) => {
-    const goToAddConnection = () => {
-        navigation.navigate('CreateConnection');
-    };
-
     return (
         <Button
             containerStyle={themeButtons.styles.buttonFloatBottomRightContainer}
@@ -25,7 +21,7 @@ export default ({
             }
             raised={true}
             title={translate('menus.connections.buttons.add')}
-            onPress={goToAddConnection}
+            onPress={onPress}
         />
     );
 };
