@@ -15,7 +15,7 @@ import translator from '../../services/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import RoundInput from '../../components/Input/Round';
-import PhoneContactItem from './PhoneContactItem';
+import PhoneContactItem from './components/PhoneContactItem';
 import { Button } from 'react-native-elements';
 
 interface IPhoneContactsDispatchProps {

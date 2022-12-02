@@ -170,7 +170,10 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             borderRadius: 75,
         },
         listItemCard: {
-            backgroundColor: therrTheme.colors.backgroundGray,
+            display: 'flex',
+            flexDirection: 'row',
+            width: '100%',
+            backgroundColor: therrTheme.colors.backgroundWhite,
         },
         logoIcon: {
             color: therrTheme.colors.accentLogo,

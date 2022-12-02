@@ -111,7 +111,7 @@ class HeaderMenuRight extends React.Component<
         });
     };
 
-    navTo = (routeName) => {
+    navTo = (routeName, params = {}) => {
         const { location, navigation, updateGpsStatus } = this.props;
         const currentScreen = this.getCurrentScreen();
 
@@ -128,7 +128,7 @@ class HeaderMenuRight extends React.Component<
             }).then(() => {
                 return this.toggleOverlay();
             }).then(() => {
-                navigation.navigate(routeName);
+                navigation.navigate(routeName, params);
             }).catch((error) => {
                 // TODO: Allow viewing map when gps is disable
                 // but disallow GPS required actions like viewing/deleting moments
@@ -140,14 +140,14 @@ class HeaderMenuRight extends React.Component<
 
             if (currentScreen === 'Map') {
                 navigation.dispatch(
-                    StackActions.replace(routeName, {})
+                    StackActions.replace(routeName, params)
                 );
                 navigation.dispatch(
                     CommonActions.reset({
                         index: 1,
                         routes: [
                             { name: 'Home' },
-                            { name: routeName },
+                            { name: routeName, params },
                         ],
                     })
                 );
@@ -155,7 +155,7 @@ class HeaderMenuRight extends React.Component<
                 return;
             }
 
-            navigation.navigate(routeName);
+            navigation.navigate(routeName, params);
         }
     };
 
@@ -576,12 +576,12 @@ class HeaderMenuRight extends React.Component<
                                             />
                                             <Button
                                                 buttonStyle={
-                                                    currentScreen === 'CreateConnection'
+                                                    currentScreen === 'Contacts'
                                                         ? themeMenu.styles.buttonsActive
                                                         : themeMenu.styles.buttons
                                                 }
                                                 titleStyle={
-                                                    currentScreen === 'CreateConnection'
+                                                    currentScreen === 'Contacts'
                                                         ? themeMenu.styles.buttonsTitleActive
                                                         : themeMenu.styles.buttonsTitle
                                                 }
@@ -589,7 +589,7 @@ class HeaderMenuRight extends React.Component<
                                                 icon={
                                                     <TherrIcon
                                                         style={
-                                                            currentScreen === 'CreateConnection'
+                                                            currentScreen === 'Contacts'
                                                                 ? themeMenu.styles.iconStyleActive
                                                                 : themeMenu.styles.iconStyle
                                                         }
@@ -598,7 +598,9 @@ class HeaderMenuRight extends React.Component<
                                                     />
                                                 }
                                                 iconRight
-                                                onPress={() => this.navTo('CreateConnection')}
+                                                onPress={() => this.navTo('Contacts', {
+                                                    activeTab: 'invite',
+                                                })}
                                             />
                                             {/* <Button
                                                 buttonStyle={
@@ -624,31 +626,6 @@ class HeaderMenuRight extends React.Component<
                                                     />
                                                 }
                                                 onPress={() => this.navTo('HostedChat')}
-                                            /> */}
-                                            {/* <Button
-                                                buttonStyle={
-                                                    currentScreen === 'ActiveConnections'
-                                                        ? themeMenu.styles.buttonsActive
-                                                        : themeMenu.styles.buttons
-                                                }
-                                                titleStyle={
-                                                    currentScreen === 'ActiveConnections'
-                                                        ? themeMenu.styles.buttonsTitleActive
-                                                        : themeMenu.styles.buttonsTitle
-                                                }
-                                                title={this.translate('components.headerMenuRight.menuItems.connections')}
-                                                icon={
-                                                    <FontAwesomeIcon
-                                                        style={
-                                                            currentScreen === 'ActiveConnections'
-                                                                ? themeMenu.styles.iconStyleActive
-                                                                : themeMenu.styles.iconStyle
-                                                        }
-                                                        name="users"
-                                                        size={18}
-                                                    />
-                                                }
-                                                onPress={() => this.navTo('ActiveConnections')}
                                             /> */}
                                             <Button
                                                 buttonStyle={

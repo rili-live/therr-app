@@ -479,8 +479,10 @@
       }
     },
     "headerTabs": {
+      "connections": "Connections",
       "social": "Social",
       "events": "Events",
+      "invite": "Invite",
       "news": "News"
     },
     "mapActions": {
@@ -599,7 +601,7 @@
       "inputPlaceholder": "Enter a message"
     },
     "contacts": {
-      "headerTitle": "Connections"
+      "headerTitle": "Connect"
     },
     "createForum": {
       "labels": {
