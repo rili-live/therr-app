@@ -8,6 +8,8 @@ import initInterceptors from './interceptors';
 import Layout from './components/Layout';
 import { buttonMenuHeight } from './styles/navigation/buttonMenu';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import spacingStyles from './styles/layouts/spacing';
+
 // import { buildStyles } from './styles';
 
 const toastConfig = {
@@ -156,7 +158,7 @@ class App extends React.Component<any, any> {
 
         return (
             <Provider store={this.store}>
-                <GestureHandlerRootView style={{ flex: 1 }}>
+                <GestureHandlerRootView style={spacingStyles.flexOne}>
                     <Layout />
                 </GestureHandlerRootView>
                 <Toast

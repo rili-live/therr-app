@@ -4,6 +4,7 @@ import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { ScrollView } from 'react-native-gesture-handler';
 import { ITherrThemeColors } from '../../styles/themes';
+import spacingStyles from '../../styles/layouts/spacing';
 
 interface IConfirmModal {
     headerText?: string;
@@ -36,7 +37,7 @@ const ModalButton = ({ title, hasBorderRight, iconName, onPress, themeButtons, t
     return (
         <Button
             containerStyle={[themeModal.styles.buttonContainer, extraStyles]}
-            buttonStyle={[themeButtons.styles.btnClear, { padding: 10 }]}
+            buttonStyle={[themeButtons.styles.btnClear, spacingStyles.padMd]}
             titleStyle={themeButtons.styles.btnTitleBlack}
             icon={
                 <MaterialIcon

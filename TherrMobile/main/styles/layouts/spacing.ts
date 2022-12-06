@@ -34,6 +34,33 @@ const styles = StyleSheet.create({
     padLtLg: {
         paddingLeft: large,
     },
+    padTopSm: {
+        paddingTop: small,
+    },
+    padTopMd: {
+        paddingTop: medium,
+    },
+    padTopLg: {
+        paddingTop: large,
+    },
+    padBotSm: {
+        paddingBottom: small,
+    },
+    padBotMd: {
+        paddingBottom: medium,
+    },
+    padBotLg: {
+        paddingBottom: large,
+    },
+    padSm: {
+        padding: small,
+    },
+    padMd: {
+        padding: medium,
+    },
+    padLg: {
+        padding: large,
+    },
     padHorizSm: {
         paddingHorizontal: small,
     },
@@ -71,6 +98,33 @@ const styles = StyleSheet.create({
     },
     marginLtLg: {
         marginLeft: large,
+    },
+    marginTopSm: {
+        marginTop: small,
+    },
+    marginTopMd: {
+        marginTop: medium,
+    },
+    marginTopLg: {
+        marginTop: large,
+    },
+    marginBotSm: {
+        marginBottom: small,
+    },
+    marginBotMd: {
+        marginBottom: medium,
+    },
+    marginBotLg: {
+        marginBottom: large,
+    },
+    marginSm: {
+        margin: small,
+    },
+    marginMd: {
+        margin: medium,
+    },
+    marginLg: {
+        margin: large,
     },
     marginHorizSm: {
         marginHorizontal: small,

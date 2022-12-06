@@ -3,6 +3,7 @@ import { Text, Modal, Pressable, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AnimatedLottieView from 'lottie-react-native';
+import spacingStyles from '../../styles/layouts/spacing';
 
 // import shareAMoment from '../../assets/share-a-moment.json';
 import shareAMoment from '../../assets/coin-wallet.json';
@@ -23,8 +24,8 @@ const ModalButton = ({ title, iconName, onPress, iconRight, themeButtons }) => {
     const iconStyle = iconRight ? { paddingLeft: 7 } : { paddingRight: 7 };
     return (
         <Button
-            containerStyle={{ flex: 1 }}
-            buttonStyle={[themeButtons.styles.btnClear, { padding: 10 }]}
+            containerStyle={spacingStyles.flexOne}
+            buttonStyle={[themeButtons.styles.btnClear, spacingStyles.padMd]}
             titleStyle={themeButtons.styles.btnTitleBlack}
             icon={
                 <MaterialIcon

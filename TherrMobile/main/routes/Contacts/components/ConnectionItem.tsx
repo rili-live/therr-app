@@ -4,6 +4,7 @@ import { Avatar, Badge, ListItem } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { getUserImageUri } from '../../../utilities/content';
 import { ITherrThemeColors } from '../../../styles/themes';
+import spacingStyles from '../../../styles/layouts/spacing';
 
 interface IConnectionItemProps {
     connectionDetails: any;
@@ -45,7 +46,7 @@ const ConnectionItem: React.FunctionComponent<IConnectionItemProps> = ({
                     size="small"
                 />
             </Pressable>
-            <View style={{ flex: 1 }}>
+            <View style={spacingStyles.flexOne}>
                 <ListItem.Title>{connectionDetails.userName}</ListItem.Title>
                 <ListItem.Subtitle>{getConnectionSubtitle(connectionDetails) || translate('pages.userProfile.anonymous')}</ListItem.Subtitle>
             </View>

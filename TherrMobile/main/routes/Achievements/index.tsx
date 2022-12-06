@@ -127,7 +127,7 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
                                 refreshing={isRefreshing}
                                 onRefresh={this.handleRefresh}
                             />}
-                            ListEmptyComponent={() => (
+                            ListEmptyComponent={
                                 <View style={this.theme.styles.sectionContainer}>
                                     <Text style={this.theme.styles.sectionDescriptionCentered}>
                                         {this.translate(
@@ -135,7 +135,7 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
                                         )}
                                     </Text>
                                 </View>
-                            )}
+                            }
                             // stickyHeaderIndices={[0]}
                             // onContentSizeChange={() => connections.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
                         />
