@@ -233,8 +233,12 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
 
     onInputChange = (name: string, value: string) => {
         const { inputs } = this.state;
+        let sanitizedValue = value;
+        if (name === 'userName') {
+            sanitizedValue = value.replace(/[^\w.]/g, '').replace(/\.\./, '.').replace(/__/, '.');
+        }
         const newInputChanges = {
-            [name]: value,
+            [name]: sanitizedValue,
         };
 
         this.setState({
