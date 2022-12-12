@@ -167,6 +167,7 @@
     "aws-sdk": "^2.1203.0",
     "axios": "^0.21.4",
     "babel-plugin-add-react-displayname": "^0.0.5",
+    "bad-words": "^3.0.4",
     "bcrypt": "^5.0.1",
     "classnames": "^2.3.1",
     "color": "^3.2.1",

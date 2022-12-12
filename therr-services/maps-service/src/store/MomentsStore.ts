@@ -7,6 +7,7 @@ import { storage } from '../api/aws';
 import MediaStore, { ICreateMediaParams } from './MediaStore';
 import getBucket from '../utilities/getBucket';
 import findUsers from '../utilities/findUsers';
+import { isTextUnsafe } from '../utilities/contentSafety';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -298,6 +299,8 @@ export default class MomentsStore {
             ? this.mediaStore.create(params.media[0]).then((mediaIds) => mediaIds.toString())
             : Promise.resolve(undefined);
 
+        const isTextMature = isTextUnsafe([notificationMsg, params.message]);
+
         return mediaPromise.then((mediaIds: string | undefined) => {
             const sanitizedParams = {
                 areaType: params.areaType || 'moments',
@@ -306,9 +309,9 @@ export default class MomentsStore {
                 expiresAt: params.expiresAt,
                 fromUserId: params.fromUserId,
                 locale: params.locale,
-                isPublic: !!params.isPublic,
+                isPublic: isTextMature ? false : !!params.isPublic, // NOTE: For now make this content private to reduce public, mature content
                 isDraft: !!params.isDraft,
-                isMatureContent: !!params.isMatureContent,
+                isMatureContent: isTextMature || !!params.isMatureContent,
                 message: params.message,
                 notificationMsg: notificationMsg.replace(/#/g, ''),
                 mediaIds: mediaIds || params.mediaIds || '',
@@ -353,6 +356,8 @@ export default class MomentsStore {
             ? this.mediaStore.create(params.media[0]).then((mediaIds) => mediaIds.toString())
             : Promise.resolve(undefined);
 
+        const isTextMature = isTextUnsafe([notificationMsg, params.message]);
+
         return mediaPromise.then((mediaIds: string | undefined) => {
             const sanitizedParams = {
                 areaType: params.areaType || 'moments',
@@ -360,9 +365,9 @@ export default class MomentsStore {
                 expiresAt: params.expiresAt,
                 fromUserId: params.fromUserId,
                 locale: params.locale,
-                isPublic: !!params.isPublic,
+                isPublic: isTextMature ? false : !!params.isPublic, // NOTE: For now make this content private to reduce public, mature content
                 isDraft: !!params.isDraft,
-                isMatureContent: !!params.isMatureContent,
+                isMatureContent: isTextMature || !!params.isMatureContent,
                 message: params.message,
                 notificationMsg,
                 mediaIds: mediaIds || params.mediaIds || '',
