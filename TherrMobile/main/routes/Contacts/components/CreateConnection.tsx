@@ -20,6 +20,7 @@ import PhoneNumberInput from '../../../components/Input/PhoneNumberInput';
 import { buildStyles, addMargins } from '../../../styles';
 import { buildStyles as buildAlertStyles } from '../../../styles/alerts';
 import { buildStyles as buildFormStyles } from '../../../styles/forms';
+import spacingStyles from '../../../styles/layouts/spacing';
 import { DEFAULT_FIRSTNAME, DEFAULT_LASTNAME } from '../../../constants';
 import OrDivider from '../../../components/Input/OrDivider';
 import { requestOSContactsPermissions } from '../../../utilities/requestOSPermissions';
@@ -357,7 +358,7 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
                                     raised={false}
                                 />
                                 <Button
-                                    containerStyle={{ marginBottom: 10 }}
+                                    containerStyle={spacingStyles.marginBotMd}
                                     buttonStyle={this.themeForms.styles.buttonRoundAlt}
                                     // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                                     disabledStyle={this.themeForms.styles.buttonRoundDisabled}
@@ -446,8 +447,8 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
                                         marginTop: 24,
                                     })}
                                     isVisible={!!prevConnReqSuccess || !!prevConnReqError}
-                                    message={!!prevConnReqSuccess ? prevConnReqSuccess : prevConnReqError}
-                                    type={!!prevConnReqSuccess ? 'success' : 'error'}
+                                    message={prevConnReqSuccess ? prevConnReqSuccess : prevConnReqError}
+                                    type={prevConnReqSuccess ? 'success' : 'error'}
                                     themeAlerts={this.themeAlerts}
                                 />
                             </View>

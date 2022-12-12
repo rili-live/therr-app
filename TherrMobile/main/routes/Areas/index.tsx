@@ -339,7 +339,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                         goToViewUser={this.goToViewUser}
                         toggleAreaOptions={this.toggleAreaOptions}
                         translate={this.translate}
-                        containerRef={(component) => this.carouselSocialRef = component}
+                        containerRef={(component) => { this.carouselSocialRef = component; }}
                         handleRefresh={this.handleRefresh}
                         onEndReached={this.tryLoadMore}
                         updateMomentReaction={createOrUpdateMomentReaction}
@@ -366,7 +366,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                         goToViewUser={this.goToViewUser}
                         toggleAreaOptions={this.toggleAreaOptions}
                         translate={this.translate}
-                        containerRef={(component) => this.carouselEventsRef = component}
+                        containerRef={(component) => { this.carouselEventsRef = component; }}
                         handleRefresh={this.handleRefresh}
                         onEndReached={this.tryLoadMore}
                         updateMomentReaction={createOrUpdateMomentReaction}
@@ -393,7 +393,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                         goToViewUser={this.goToViewUser}
                         toggleAreaOptions={this.toggleAreaOptions}
                         translate={this.translate}
-                        containerRef={(component) => this.carouselNewsRef = component}
+                        containerRef={(component) => { this.carouselNewsRef = component; }}
                         handleRefresh={this.handleRefresh}
                         onEndReached={this.tryLoadMore}
                         updateMomentReaction={createOrUpdateMomentReaction}

@@ -253,7 +253,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
                         content={content}
                         inspectArea={this.goToArea}
                         translate={this.translate}
-                        containerRef={(component) => this.carouselRef = component}
+                        containerRef={(component) => { this.carouselRef = component; }}
                         fetchMedia={fetchMedia}
                         goToViewMap={this.goToViewMap}
                         goToViewUser={this.goToViewUser}

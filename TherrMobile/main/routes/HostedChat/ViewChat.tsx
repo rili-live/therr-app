@@ -50,6 +50,7 @@ const renderMessage = (item, theme, themeChat, themeMessage) => {
         : (userColors[item.fromUserName] || theme.colors.accentBlue);
 
     return (
+        // eslint-disable-next-line react-native/no-inline-styles
         <View style={[themeChat.styles.messageContainer, {
             borderLeftColor: messageColor,
             paddingLeft: item.isAnnouncement ? 18 : 10,

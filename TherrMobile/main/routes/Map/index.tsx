@@ -367,7 +367,7 @@ class Map extends React.Component<IMapProps, IMapState> {
     getFilteredAreas = (areas, mapFilters) => {
         // Filter for duplicates
         const areasMap = {};
-        areas.forEach(area => areasMap[area.id] = area);
+        areas.forEach(area => { areasMap[area.id] = area; });
         let filteredAreas: any = Object.values(areasMap);
         if ((!mapFilters.filtersAuthor?.length && !mapFilters.filtersCategory?.length && !mapFilters.filtersVisibility?.length)
             || (mapFilters.filtersAuthor[0]?.isChecked && mapFilters.filtersCategory[0]?.isChecked && mapFilters.filtersVisibility[0]?.isChecked)) {
@@ -1322,7 +1322,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                 />
                 {
                     <BottomSheetPlus
-                        sheetRef={(sheetRef: React.RefObject<BottomSheetMethods>) => this.bottomSheetRef = sheetRef}
+                        sheetRef={(sheetRef: React.RefObject<BottomSheetMethods>) => { this.bottomSheetRef = sheetRef; }}
                         initialIndex={-1}
                         onClose={this.onBottomSheetClose}
                         themeBottomSheet={this.themeBottomSheet}

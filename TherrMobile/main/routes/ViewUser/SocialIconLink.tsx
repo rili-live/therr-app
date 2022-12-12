@@ -3,6 +3,7 @@ import { Linking, Pressable, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import spacingStyles from '../../styles/layouts/spacing';
 
 export default ({
     isMe,
@@ -84,11 +85,7 @@ export default ({
                             style={{ flex: 1, flexDirection: 'row', height: iconSize }}
                             maskElement={
                                 <View
-                                    style={{
-                                        backgroundColor: 'transparent',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                    }}>
+                                    style={themeUser.styles.socialIconInstaContainer}>
                                     <FontAwesome5
                                         name={iconName}
                                         size={iconSize}
@@ -100,7 +97,7 @@ export default ({
                                 angle={45}
                                 useAngle={true}
                                 colors={['#feda75', '#fa7e1e', '#d62976', '#962fbf', '#e1306c', '#4f5bd5']}
-                                style={{ flex: 1 }}
+                                style={spacingStyles.flexOne}
                             />
                         </MaskedView>
                     </View>
@@ -113,10 +110,10 @@ export default ({
                     />
             }
             <View style={themeUser.styles.socialIndicatorsContainer}>
-                <View style={[themeUser.styles.socialIndicatorOne, extraStyle1]}></View>
-                <View style={[themeUser.styles.socialIndicatorTwo, extraStyle2]}></View>
-                <View style={[themeUser.styles.socialIndicatorThree, extraStyle3]}></View>
-                <View style={[themeUser.styles.socialIndicatorFour, extraStyle4]}></View>
+                <View style={[themeUser.styles.socialIndicatorOne, extraStyle1]} />
+                <View style={[themeUser.styles.socialIndicatorTwo, extraStyle2]} />
+                <View style={[themeUser.styles.socialIndicatorThree, extraStyle3]} />
+                <View style={[themeUser.styles.socialIndicatorFour, extraStyle4]} />
             </View>
         </Pressable>
     );

@@ -15,6 +15,7 @@ import translator from '../../services/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
+import spacingStyles from '../../styles/layouts/spacing';
 import BaseStatusBar from '../../components/BaseStatusBar';
 
 
@@ -153,7 +154,7 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
                                             style={{ color: this.theme.colors.primary4 }}
                                         />
                                     </View>
-                                    <Text style={[this.theme.styles.sectionDescription16, { flex: 1 }]}>
+                                    <Text style={[this.theme.styles.sectionDescription16, spacingStyles.flexOne]}>
                                         {this.translate('pages.exchangePointsDisclaimer.info.stepOne')}
                                     </Text>
                                 </View>
@@ -165,7 +166,7 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
                                             style={{ color: this.theme.colors.primary4 }}
                                         />
                                     </View>
-                                    <Text style={[this.theme.styles.sectionDescription16, { flex: 1 }]}>
+                                    <Text style={[this.theme.styles.sectionDescription16, spacingStyles.flexOne]}>
                                         {this.translate('pages.exchangePointsDisclaimer.info.stepTwo')}
                                     </Text>
                                 </View>
@@ -177,7 +178,7 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
                                             style={{ color: this.theme.colors.primary4 }}
                                         />
                                     </View>
-                                    <Text style={[this.theme.styles.sectionDescription16, { flex: 1 }]}>
+                                    <Text style={[this.theme.styles.sectionDescription16, spacingStyles.flexOne]}>
                                         {this.translate('pages.exchangePointsDisclaimer.info.stepThree')}
                                     </Text>
                                 </View>

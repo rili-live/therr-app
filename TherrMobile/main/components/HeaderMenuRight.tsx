@@ -15,6 +15,7 @@ import translator from '../services/translator';
 import { ILocationState } from '../types/redux/location';
 import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
 import { ITherrThemeColors } from '../styles/themes';
+import spacingStyles from '../styles/layouts/spacing';
 import { getUserImageUri } from '../utilities/content';
 import UsersActions from '../redux/actions/UsersActions';
 import InfoModal from './Modals/InfoModal';
@@ -440,7 +441,7 @@ class HeaderMenuRight extends React.Component<
                                                             ? themeMenu.styles.buttonsActive
                                                             : themeMenu.styles.buttons
                                                     }
-                                                    containerStyle={{ width: '100%' }}
+                                                    containerStyle={spacingStyles.fullWidth}
                                                     titleStyle={
                                                         currentScreen === 'Notifications'
                                                             ? themeMenu.styles.buttonsTitleActive
@@ -473,7 +474,7 @@ class HeaderMenuRight extends React.Component<
                                                         ? themeMenu.styles.buttonsActive
                                                         : themeMenu.styles.buttons
                                                 }
-                                                containerStyle={{ width: '100%' }}
+                                                containerStyle={spacingStyles.fullWidth}
                                                 titleStyle={
                                                     currentScreen === 'Achievements'
                                                         ? themeMenu.styles.buttonsTitleActive
@@ -500,7 +501,7 @@ class HeaderMenuRight extends React.Component<
                                                         ? themeMenu.styles.buttonsActive
                                                         : themeMenu.styles.buttons
                                                 }
-                                                containerStyle={{ width: '100%' }}
+                                                containerStyle={spacingStyles.fullWidth}
                                                 titleStyle={
                                                     currentScreen === 'MyDrafts'
                                                         ? themeMenu.styles.buttonsTitleActive
@@ -527,7 +528,7 @@ class HeaderMenuRight extends React.Component<
                                                         ? themeMenu.styles.buttonsActive
                                                         : themeMenu.styles.buttons
                                                 }
-                                                containerStyle={{ width: '100%' }}
+                                                containerStyle={spacingStyles.fullWidth}
                                                 titleStyle={
                                                     currentScreen === 'BookMarked'
                                                         ? themeMenu.styles.buttonsTitleActive

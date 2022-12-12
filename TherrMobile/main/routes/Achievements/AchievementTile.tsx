@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, View, Text } from 'react-native';
 import LottieView from 'lottie-react-native';
 import { achievementsByClass } from 'therr-js-utilities/config';
+import spacingStyles from '../../styles/layouts/spacing';
 
 const cardImagesLottie = {
     explorer: require('../../assets/explorer-card.json'),
@@ -31,11 +32,11 @@ const AchievementTile = ({ claimText, completedText, handleClaim, onPressAchieve
                     <Text style={{ textTransform: 'capitalize', fontWeight: '600', fontSize: 18, paddingBottom: 4 }}>
                         {userAchievement.achievementClass}: <Text style={{ fontWeight: '400' }}>{achievement.title}</Text>
                     </Text>
-                    <Text style={{ flex: 1 }}>{achievement.description}</Text>
+                    <Text style={spacingStyles.flexOne}>{achievement.description}</Text>
                     <View style={{ width: '100%', display: 'flex', flexDirection: 'row' }}>
                         <View style={{ position: 'relative', flex: 1 }}>
-                            <View style={themeAchievements.styles.progressBarBackground}></View>
-                            <View style={[themeAchievements.styles.progressBar, { width: progressPercent }]}></View>
+                            <View style={themeAchievements.styles.progressBarBackground} />
+                            <View style={[themeAchievements.styles.progressBar, { width: progressPercent }]} />
                         </View>
                         <Text style={{ fontSize: 14, fontWeight: '600', paddingLeft: 8 }}>
                             {userAchievement.completedAt ? '✓' : progressText}

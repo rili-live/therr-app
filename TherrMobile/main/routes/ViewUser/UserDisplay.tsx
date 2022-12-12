@@ -7,6 +7,7 @@ import { getUserImageUri } from '../../utilities/content';
 import SocialIconLink from './SocialIconLink';
 import { ScrollView } from 'react-native-gesture-handler';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
+import spacingStyles from '../../styles/layouts/spacing';
 import therrIconConfig from '../../assets/therr-font-config.json';
 import TherrIcon from '../../components/TherrIcon';
 
@@ -184,9 +185,9 @@ const MainActionButton = ({
 
     return (
         <Button
-            containerStyle={{ flex: 1, marginHorizontal: 16 }}
+            containerStyle={[spacingStyles.marginHorizLg, spacingStyles.flexOne]}
             buttonStyle={themeForms.styles.buttonPrimarySmall}
-            titleStyle={[themeForms.styles.buttonTitleSmall, { paddingRight: 6 }]}
+            titleStyle={[themeForms.styles.buttonTitleSmall, spacingStyles.padRtSm]}
             title={buttonTitle}
             onPress={onPress}
             disabled={isDisabled}
@@ -299,7 +300,7 @@ export default ({
                     }
                 </View>
             </View>
-            <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', marginTop: 16, width: '100%' }}>
+            <View style={themeUser.styles.socialLinksContainer}>
                 <SocialIconLink
                     iconName="instagram"
                     isMe={isMe}
@@ -334,9 +335,9 @@ export default ({
                     isMe &&
                     <>
                         <Button
-                            containerStyle={{ flex: 1, marginLeft: 16 }}
+                            containerStyle={[spacingStyles.marginLtLg, spacingStyles.flexOne]}
                             buttonStyle={themeForms.styles.buttonPrimarySmall}
-                            titleStyle={[themeForms.styles.buttonTitleSmall, { paddingRight: 6 }]}
+                            titleStyle={[themeForms.styles.buttonTitleSmall, spacingStyles.padRtSm]}
                             title={translate('user.profile.buttons.syncSocials')}
                             onPress={() => navigation.navigate('SocialSync', userInView)}
                             icon={
@@ -348,9 +349,9 @@ export default ({
                             }
                         />
                         <Button
-                            containerStyle={{ flex: 1, marginHorizontal: 16 }}
+                            containerStyle={[spacingStyles.marginHorizLg, spacingStyles.flexOne]}
                             buttonStyle={themeForms.styles.buttonPrimarySmall}
-                            titleStyle={[themeForms.styles.buttonTitleSmall, { paddingRight: 6 }]}
+                            titleStyle={[themeForms.styles.buttonTitleSmall, spacingStyles.padRtSm]}
                             title={translate('user.profile.buttons.editProfile')}
                             onPress={() => navigation.navigate('Settings')}
                             icon={
@@ -375,7 +376,7 @@ export default ({
                     />
                 }
                 <Button
-                    containerStyle={{ marginRight: 16 }}
+                    containerStyle={spacingStyles.marginRtLg}
                     buttonStyle={[themeForms.styles.buttonRoundAltSmall, { width: 42 }]}
                     onPress={() => onToggleMoreBottomSheet(true)}
                     icon={
@@ -395,9 +396,9 @@ export default ({
                     onRefresh={onRefresh}
                 />}
             >
-                <View style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
+                <View style={themeUser.styles.contentPostsContainer}>
                     {
-                        !!userInView.externalIntegrations?.length ?
+                        userInView.externalIntegrations?.length ?
                             userInView.externalIntegrations.map((integration) => {
                                 const mediaUrl = media[integration.moment?.media && integration.moment?.media[0]?.id];
                                 return (
@@ -415,18 +416,9 @@ export default ({
                                 );
                             }) :
                             <View
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                    height: 300,
-                                }}>
+                                style={themeUser.styles.noPostsContainer}>
                                 <Text
-                                    style={{
-                                        fontSize: 20,
-                                        paddingHorizontal: 24,
-                                        textAlign: 'center',
-                                    }}
+                                    style={themeUser.styles.noPostsText}
                                 >
                                     {translate('user.profile.text.noMedia')}
                                 </Text>

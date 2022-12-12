@@ -3,6 +3,8 @@ import { Modal, Pressable } from 'react-native';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { ITherrThemeColors } from '../../styles/themes';
+import spacingStyles from '../../styles/layouts/spacing';
+
 
 export type ISelectionType = 'getDirections' | 'like' | 'superLike' | 'dislike' | 'superDislike' | 'report' | 'delete';
 
@@ -24,8 +26,8 @@ interface IAreaOptionsModal {
 
 export const ModalButton = ({ title, iconName, onPress, themeButtons }) => (
     <Button
-        containerStyle={{ width: '100%' }}
-        buttonStyle={[themeButtons.styles.btnClear, { padding: 10 }]}
+        containerStyle={spacingStyles.fullWidth}
+        buttonStyle={[themeButtons.styles.btnClear, spacingStyles.padMd]}
         titleStyle={themeButtons.styles.btnTitleBlack}
         icon={
             <MaterialIcon

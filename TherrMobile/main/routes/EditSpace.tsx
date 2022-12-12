@@ -26,6 +26,7 @@ import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEdit
 import { buildStyles as buildModalStyles } from '../styles/modal';
 import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/editing';
 import userContentStyles from '../styles/user-content';
+import spacingStyles from '../styles/layouts/spacing';
 import {
     youtubeLinkRegex,
     DEFAULT_RADIUS_PRIVATE,
@@ -488,7 +489,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                 </View>
                             }
                             <Button
-                                containerStyle={{ marginBottom: 10 }}
+                                containerStyle={spacingStyles.marginBotMd}
                                 buttonStyle={this.themeForms.styles.buttonPrimary}
                                 // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                                 disabledStyle={this.themeForms.styles.buttonRoundDisabled}
@@ -686,7 +687,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                             }
                         />
                         <Button
-                            containerStyle={{ width: '100%' }}
+                            containerStyle={spacingStyles.fullWidth}
                             buttonStyle={this.themeForms.styles.buttonRound}
                             // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
                             disabledStyle={this.themeForms.styles.buttonRoundDisabled}

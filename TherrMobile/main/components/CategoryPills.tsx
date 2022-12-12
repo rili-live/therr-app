@@ -2,6 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { Badge } from 'react-native-elements';
 import { ITherrThemeColors } from '../styles/themes';
+import spacingStyles from '../styles/layouts/spacing';
 
 interface ICategoryPills {
     filters: {
@@ -31,7 +32,7 @@ const CategoryPills = ({ filters, onPillPress, themeForms }: ICategoryPills) => 
                                 (category.isChecked ? themeForms.styles.buttonPillInvert : themeForms.styles.buttonPill),
                                 { height: 25, width: '100%' },
                             ]}
-                            containerStyle={[themeForms.styles.buttonPillContainer, { width: '100%' }]}
+                            containerStyle={[themeForms.styles.buttonPillContainer, spacingStyles.fullWidth]}
                             onPress={() => onPillPress('categoryFilters', 0, true)}
                         />
                     ))

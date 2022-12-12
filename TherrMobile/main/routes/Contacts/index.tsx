@@ -19,6 +19,7 @@ import { RefreshControl } from 'react-native-gesture-handler';
 import LazyPlaceholder from './components/LazyPlaceholder';
 import CreateConnection from './components/CreateConnection';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
+import ListEmpty from '../../components/ListEmpty';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -265,15 +266,9 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                                 translate={this.translate}
                             />
                         )}
-                        ListEmptyComponent={() => (
-                            <View style={this.theme.styles.sectionContainer}>
-                                <Text style={this.theme.styles.sectionDescription}>
-                                    {this.translate(
-                                        'components.contactsSearch.noContactsFound'
-                                    )}
-                                </Text>
-                            </View>
-                        )}
+                        ListEmptyComponent={<ListEmpty theme={this.theme} text={this.translate(
+                            'components.contactsSearch.noContactsFound'
+                        )} />}
                         stickyHeaderIndices={[]}
                         refreshControl={<RefreshControl
                             refreshing={isRefreshing}
