@@ -12,6 +12,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
 import { checkIsMediaSafeForWork } from './helpers';
+import { isTextUnsafe } from '../utilities/contentSafety';
 
 // CREATE
 const createSpace = (req, res) => {
@@ -19,7 +20,9 @@ const createSpace = (req, res) => {
     const locale = req.headers['x-localecode'] || 'en-us';
     const userId = req.headers['x-userid'];
 
-    const { media } = req.body;
+    const { media, message, notificationMsg } = req.body;
+
+    const isTextMature = isTextUnsafe([notificationMsg, message]);
 
     return Store.spaces.createSpace({
         ...req.body,
@@ -38,26 +41,29 @@ const createSpace = (req, res) => {
                 userHasActivated: true,
             },
         }).then(({ data: reaction }) => {
-            // TODO: This technically leaves room for a gap of time where users may fin
+            // TODO: This technically leaves room for a gap of time where users may find
             // explicit content before it's flag has been updated. We should solve this by
             // marking the content pending before making it available to search
+            // This check is redundant and unnecessary if the text already marked the content as "mature"
             // Async - fire and forget to prevent slow request
-            checkIsMediaSafeForWork(media).then((isSafeForWork) => {
-                if (!isSafeForWork) {
-                    return Store.spaces.updateSpace(space.id, !isSafeForWork).catch((err) => {
-                        printLogs({
-                            level: 'error',
-                            messageOrigin: 'API_SERVER',
-                            messages: ['failed to update space after sightengine check'],
-                            tracer: beeline,
-                            traceArgs: {
-                                errorMessage: err?.message,
-                                errorResponse: err?.response?.data,
-                            },
+            if (!isTextMature) {
+                checkIsMediaSafeForWork(media).then((isSafeForWork) => {
+                    if (!isSafeForWork) {
+                        return Store.spaces.updateSpace(space.id, !isSafeForWork).catch((err) => {
+                            printLogs({
+                                level: 'error',
+                                messageOrigin: 'API_SERVER',
+                                messages: ['failed to update space after sightengine check'],
+                                tracer: beeline,
+                                traceArgs: {
+                                    errorMessage: err?.message,
+                                    errorResponse: err?.response?.data,
+                                },
+                            });
                         });
-                    });
-                }
-            });
+                    }
+                });
+            }
 
             return res.status(201).send({
                 ...space,
