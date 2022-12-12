@@ -7,6 +7,7 @@ import { storage } from '../api/aws';
 import MediaStore, { ICreateMediaParams } from './MediaStore';
 import getBucket from '../utilities/getBucket';
 import findUsers from '../utilities/findUsers';
+import { isTextUnsafe } from '../utilities/contentSafety';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -21,6 +22,7 @@ export interface ICreateSpaceParams {
     fromUserId: number;
     locale: string;
     isPublic?: boolean;
+    isMatureContent?: boolean;
     message: string;
     notificationMsg?: string;
     mediaIds?: string;
@@ -255,6 +257,8 @@ export default class SpacesStore {
             ? this.mediaStore.create(params.media[0]).then((mediaIds) => mediaIds.toString())
             : Promise.resolve(undefined);
 
+        const isTextMature = isTextUnsafe([notificationMsg, params.message]);
+
         return mediaPromise.then((mediaIds: string | undefined) => {
             const sanitizedParams = {
                 areaType: params.areaType || 'spaces',
@@ -262,7 +266,8 @@ export default class SpacesStore {
                 expiresAt: params.expiresAt,
                 fromUserId: params.fromUserId,
                 locale: params.locale,
-                isPublic: !!params.isPublic,
+                isPublic: isTextMature ? false : !!params.isPublic, // NOTE: For now make this content private to reduce public, mature content
+                isMatureContent: isTextMature || !!params.isMatureContent,
                 message: params.message,
                 notificationMsg,
                 mediaIds: mediaIds || params.mediaIds || '',
@@ -291,6 +296,7 @@ export default class SpacesStore {
     updateSpace(id: string, isMatureContent: boolean) {
         const queryString = knexBuilder.update({
             isMatureContent,
+            isPublic: !isMatureContent, // NOTE: For now make this content private to reduce public, mature content
         })
             .into(SPACES_TABLE_NAME)
             .where({ id })

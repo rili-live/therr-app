@@ -57,6 +57,8 @@ export interface ITherrMapViewProps extends IStoreProps {
     animateToWithHelp: (doAnimate: any) => any;
     circleCenter: {longitude: number, latitude: number};
     expandBottomSheet: any;
+    filteredMoments: any;
+    filteredSpaces: any;
     hideCreateActions: () => any;
     isScrollEnabled: boolean;
     mapRef: any;
@@ -64,6 +66,7 @@ export interface ITherrMapViewProps extends IStoreProps {
     route: any;
     showAreaAlert: () => any;
     shouldFollowUserLocation: boolean;
+    shouldRenderMapCircles: boolean;
     updateCircleCenter: (center: {longitude: number, latitude: number}) => any;
 }
 
@@ -141,24 +144,18 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
             circleCenter,
             createOrUpdateMomentReaction,
             createOrUpdateSpaceReaction,
-            map,
+            filteredMoments,
+            filteredSpaces,
             navigation,
             setSearchDropdownVisibility,
             user,
         } = this.props;
-        const mapFilters = {
-            filtersAuthor: map.filtersAuthor,
-            filtersCategory: map.filtersCategory,
-            filtersVisibility: map.filtersVisibility,
-        };
-        let visibleMoments: any[] = this.getFilteredAreas(map.moments.concat(map.myMoments), mapFilters);
-        let visibleSpaces: any[] = this.getFilteredAreas(map.spaces.concat(map.mySpaces), mapFilters);
 
         this.props.hideCreateActions();
 
         setSearchDropdownVisibility(false);
 
-        const pressedSpaces = visibleSpaces.filter((space) => {
+        const pressedSpaces = filteredSpaces.filter((space) => {
             return insideCircle(nativeEvent.coordinate, {
                 lon: space.longitude,
                 lat: space.latitude,
@@ -221,7 +218,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
                 activeSpaceDetails: {},
             });
 
-            const pressedMoments = visibleMoments.filter((moment) => {
+            const pressedMoments = filteredMoments.filter((moment) => {
                 return insideCircle(nativeEvent.coordinate, {
                     lon: moment.longitude,
                     lat: moment.latitude,
@@ -378,69 +375,6 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
         // }
     }
 
-    getFilteredAreas = (areas, mapFilters) => {
-        // Filter for duplicates
-        const areasMap = {};
-        areas.forEach(area => areasMap[area.id] = area);
-        let filteredAreas: any = Object.values(areasMap);
-        if ((!mapFilters.filtersAuthor?.length && !mapFilters.filtersCategory?.length && !mapFilters.filtersVisibility?.length)
-            || (mapFilters.filtersAuthor[0]?.isChecked && mapFilters.filtersCategory[0]?.isChecked && mapFilters.filtersVisibility[0]?.isChecked)) {
-            return filteredAreas;
-        }
-
-        const filteredAreasMap = {};
-        // Only requires one loop to check each area
-        filteredAreas.forEach(area => {
-            if (this.shouldRenderArea(area, mapFilters)) {
-                filteredAreasMap[area.id] = area;
-            }
-        });
-
-        return Object.values(filteredAreasMap);
-    };
-
-    shouldRenderArea = (area, mapFilters) => {
-        const { user } = this.props;
-        let passesFilterAuthor = true;
-        let passesFilterCategory = true;
-        let passesFilterVisibility = true;
-
-        // Filters have been populated and "Select All" is not checked
-        if (mapFilters.filtersAuthor?.length && !mapFilters.filtersAuthor[0]?.isChecked) {
-            passesFilterAuthor = mapFilters.filtersAuthor.some(filter => {
-                if (!filter.isChecked) {
-                    return false;
-                }
-
-                return (isMyArea(area, user) && filter.name === 'me') || (!isMyArea(area, user) && filter.name === 'notMe');
-            });
-        }
-
-        // Filters have been populated and "Select All" is not checked
-        if (mapFilters.filtersCategory.length && !mapFilters.filtersCategory[0]?.isChecked) {
-            passesFilterCategory = mapFilters.filtersCategory.some(filter => {
-                if (!filter.isChecked) {
-                    return false;
-                }
-
-                return area.category === filter.name;
-            });
-        }
-
-        // Filters have been populated and "Select All" is not checked
-        if (mapFilters.filtersVisibility.length && !mapFilters.filtersVisibility[0]?.isChecked) {
-            passesFilterVisibility = mapFilters.filtersVisibility.some(filter => {
-                if (!filter.isChecked) {
-                    return false;
-                }
-
-                return (area.isPublic && filter.name === 'public') || (!area.isPublic && filter.name === 'private');
-            });
-        }
-
-        return passesFilterAuthor && passesFilterCategory && passesFilterVisibility;
-    }
-
     getMomentCircleFillColor = (moment) => {
         const { user } = this.props;
         const { activeMoment } = this.state;
@@ -512,14 +446,16 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
     }
 
     render() {
-        const { circleCenter, isScrollEnabled, map, route, shouldFollowUserLocation } = this.props;
-        const mapFilters = {
-            filtersAuthor: map.filtersAuthor,
-            filtersCategory: map.filtersCategory,
-            filtersVisibility: map.filtersVisibility,
-        };
-        const filteredMoments = this.getFilteredAreas(map.moments.concat(map.myMoments), mapFilters);
-        const filteredSpaces = this.getFilteredAreas(map.spaces.concat(map.mySpaces), mapFilters);
+        const {
+            circleCenter,
+            filteredMoments,
+            filteredSpaces,
+            isScrollEnabled,
+            map,
+            route,
+            shouldFollowUserLocation,
+            shouldRenderMapCircles,
+        } = this.props;
         const getLatitudeDelta = () => {
             if (route.params?.latitude) {
                 return SECONDARY_LATITUDE_DELTA;
@@ -599,6 +535,9 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
                 }
                 {
                     filteredMoments.map((moment) => {
+                        if (!shouldRenderMapCircles) {
+                            return null;
+                        }
                         return (
                             <Circle
                                 key={moment.id}
@@ -641,6 +580,9 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
                 }
                 {
                     filteredSpaces.map((space) => {
+                        if (!shouldRenderMapCircles) {
+                            return null;
+                        }
                         return (
                             <Circle
                                 key={space.id}

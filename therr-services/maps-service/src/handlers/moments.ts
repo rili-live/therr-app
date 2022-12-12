@@ -17,6 +17,7 @@ import {
     streamUploadFile,
 } from './helpers';
 import updateAchievements from './helpers/updateAchievements';
+import { isTextUnsafe } from '../utilities/contentSafety';
 
 const MAX_INTERGRATIONS_PER_USER = 50;
 
@@ -26,7 +27,9 @@ const createMoment = (req, res) => {
     const locale = req.headers['x-localecode'] || 'en-us';
     const userId = req.headers['x-userid'];
 
-    const { media } = req.body;
+    const { media, message, notificationMsg } = req.body;
+
+    const isTextMature = isTextUnsafe([notificationMsg, message]);
 
     return Store.moments.createMoment({
         ...req.body,
@@ -47,32 +50,32 @@ const createMoment = (req, res) => {
         }).then(({ data: reaction }) => {
             // TODO: This technically leaves room for a gap of time where users may find
             // explicit content before it's flag has been updated. We should solve this by
-            // marking the content pending before making it available to search
+            // marking the content pending before making it available to search.
+            // This check is redundant and unnecessary if the text already marked the content as "mature"
             // Async - fire and forget to prevent slow request
-            checkIsMediaSafeForWork(media).then((isSafeForWork) => {
-                if (!isSafeForWork) {
-                    const momentArgs = {
-                        ...moment,
-                        isMatureContent: !isSafeForWork,
-                    };
-                    // NOTE: For now make this content private to reduce public, mature content
+            if (!isTextMature) {
+                checkIsMediaSafeForWork(media).then((isSafeForWork) => {
                     if (!isSafeForWork) {
-                        momentArgs.isPublic = false;
-                    }
-                    return Store.moments.updateMoment(moment.id, momentArgs).catch((err) => {
-                        printLogs({
-                            level: 'error',
-                            messageOrigin: 'API_SERVER',
-                            messages: ['failed to update moment after sightengine check'],
-                            tracer: beeline,
-                            traceArgs: {
-                                errorMessage: err?.message,
-                                errorResponse: err?.response?.data,
-                            },
+                        const momentArgs = {
+                            ...moment,
+                            isMatureContent: true,
+                            isPublic: false, // NOTE: For now make this content private to reduce public, mature content
+                        };
+                        return Store.moments.updateMoment(moment.id, momentArgs).catch((err) => {
+                            printLogs({
+                                level: 'error',
+                                messageOrigin: 'API_SERVER',
+                                messages: ['failed to update moment after sightengine check'],
+                                tracer: beeline,
+                                traceArgs: {
+                                    errorMessage: err?.message,
+                                    errorResponse: err?.response?.data,
+                                },
+                            });
                         });
-                    });
-                }
-            });
+                    }
+                });
+            }
 
             updateAchievements({
                 authorization,

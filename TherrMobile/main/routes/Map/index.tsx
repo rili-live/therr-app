@@ -62,11 +62,14 @@ import TouringModal from '../../components/Modals/TouringModal';
 import BottomSheetPlus from '../../components/BottomSheet/BottomSheetPlus';
 import MapBottomSheetContent from '../../components/BottomSheet/MapBottomSheetContent';
 import TherrMapView from './TherrMapView';
+import { isMyArea } from '../../utilities/content';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../../assets/earth-loader.json');
 const AREAS_SEARCH_COUNT = Platform.OS === 'android' ? 250 : 400;
 const AREAS_SEARCH_COUNT_ZOOMED = Platform.OS === 'android' ? 100 : 200;
+const MAX_RENDERED_CIRCLES = (2 * AREAS_SEARCH_COUNT_ZOOMED) - 1;
+
 // TODO: Cache users last location and default there
 const DEFAULT_MAP_SEARCH = {
     description: 'United States',
@@ -148,6 +151,7 @@ interface IMapState {
     isMinLoadTimeComplete: boolean;
     isSearchThisLocationBtnVisible: boolean;
     shouldIgnoreSearchThisAreaButton: boolean;
+    shouldRenderMapCircles: boolean;
     shouldShowCreateActions: boolean;
     lastMomentsRefresh?: number,
     lastLocationSendForProcessing?: number,
@@ -234,6 +238,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             isMinLoadTimeComplete: false,
             isSearchThisLocationBtnVisible: false,
             shouldIgnoreSearchThisAreaButton: false,
+            shouldRenderMapCircles: false,
             shouldShowCreateActions: false,
             circleCenter: {
                 longitude: routeLongitude || DEFAULT_LONGITUDE,
@@ -359,6 +364,69 @@ class Map extends React.Component<IMapProps, IMapState> {
         }, ANIMATE_TO_REGION_DURATION_SLOW + 2000); // Add some buffer room
     }
 
+    getFilteredAreas = (areas, mapFilters) => {
+        // Filter for duplicates
+        const areasMap = {};
+        areas.forEach(area => areasMap[area.id] = area);
+        let filteredAreas: any = Object.values(areasMap);
+        if ((!mapFilters.filtersAuthor?.length && !mapFilters.filtersCategory?.length && !mapFilters.filtersVisibility?.length)
+            || (mapFilters.filtersAuthor[0]?.isChecked && mapFilters.filtersCategory[0]?.isChecked && mapFilters.filtersVisibility[0]?.isChecked)) {
+            return filteredAreas;
+        }
+
+        const filteredAreasMap = {};
+        // Only requires one loop to check each area
+        filteredAreas.forEach(area => {
+            if (this.shouldRenderArea(area, mapFilters)) {
+                filteredAreasMap[area.id] = area;
+            }
+        });
+
+        return Object.values(filteredAreasMap);
+    };
+
+    shouldRenderArea = (area, mapFilters) => {
+        const { user } = this.props;
+        let passesFilterAuthor = true;
+        let passesFilterCategory = true;
+        let passesFilterVisibility = true;
+
+        // Filters have been populated and "Select All" is not checked
+        if (mapFilters.filtersAuthor?.length && !mapFilters.filtersAuthor[0]?.isChecked) {
+            passesFilterAuthor = mapFilters.filtersAuthor.some(filter => {
+                if (!filter.isChecked) {
+                    return false;
+                }
+
+                return (isMyArea(area, user) && filter.name === 'me') || (!isMyArea(area, user) && filter.name === 'notMe');
+            });
+        }
+
+        // Filters have been populated and "Select All" is not checked
+        if (mapFilters.filtersCategory.length && !mapFilters.filtersCategory[0]?.isChecked) {
+            passesFilterCategory = mapFilters.filtersCategory.some(filter => {
+                if (!filter.isChecked) {
+                    return false;
+                }
+
+                return area.category === filter.name;
+            });
+        }
+
+        // Filters have been populated and "Select All" is not checked
+        if (mapFilters.filtersVisibility.length && !mapFilters.filtersVisibility[0]?.isChecked) {
+            passesFilterVisibility = mapFilters.filtersVisibility.some(filter => {
+                if (!filter.isChecked) {
+                    return false;
+                }
+
+                return (area.isPublic && filter.name === 'public') || (!area.isPublic && filter.name === 'private');
+            });
+        }
+
+        return passesFilterAuthor && passesFilterCategory && passesFilterVisibility;
+    }
+
     goToMoments = () => {
         const { navigation } = this.props;
 
@@ -426,17 +494,19 @@ class Map extends React.Component<IMapProps, IMapState> {
             const storePermissions = () => {};
 
             if (action === 'moment') {
-                navigation.navigate('EditMoment', {
+                navigation.replace('EditMoment', {
                     ...circleCenter,
                     imageDetails: {},
+                    area: {},
                 });
                 return;
             }
 
             if (action === 'claim') {
-                navigation.navigate('EditSpace', {
+                navigation.replace('EditSpace', {
                     ...circleCenter,
                     imageDetails: {},
+                    area: {},
                 });
                 return;
             }
@@ -1058,10 +1128,11 @@ class Map extends React.Component<IMapProps, IMapState> {
         // }
     }
 
-    onRegionChangeComplete = (region) => {
+    onRegionChangeComplete = (region, filteredAreasCount: number) => {
         this.setState({
             isSearchThisLocationBtnVisible: false,
             region,
+            shouldRenderMapCircles: this.shouldRenderCircles(region, filteredAreasCount),
         });
 
         clearTimeout(this.timeoutIdSearchButton);
@@ -1072,6 +1143,14 @@ class Map extends React.Component<IMapProps, IMapState> {
                 });
             }, 750);
         }
+    }
+
+    shouldRenderCircles = (region, filteredAreasCount: number) => {
+        if (filteredAreasCount > MAX_RENDERED_CIRCLES) {
+            return false;
+        }
+
+        return region.longitudeDelta <= 0.15 || region.latitudeDelta <= 0.1;
     }
 
     updateCircleCenter = (center: { longitude: number, latitude: number }) => {
@@ -1094,6 +1173,7 @@ class Map extends React.Component<IMapProps, IMapState> {
             isSearchThisLocationBtnVisible,
             isScrollEnabled,
             shouldFollowUserLocation,
+            shouldRenderMapCircles,
         } = this.state;
         const { captureClickTarget, location, map, navigation, notifications, route, user } = this.props;
         const searchPredictionResults = map?.searchPredictions?.results || [];
@@ -1105,6 +1185,9 @@ class Map extends React.Component<IMapProps, IMapState> {
             filtersCategory: map.filtersCategory,
             filtersVisibility: map.filtersVisibility,
         };
+        const filteredMoments = this.getFilteredAreas(map.moments.concat(map.myMoments), mapFilters);
+        const filteredSpaces = this.getFilteredAreas(map.spaces.concat(map.mySpaces), mapFilters);
+        const filteredAreasCount = filteredMoments.length + filteredSpaces.length;
 
         return (
             <>
@@ -1139,12 +1222,15 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 circleCenter={circleCenter}
                                 expandBottomSheet={this.expandBottomSheet}
                                 route={route}
+                                filteredMoments={filteredMoments}
+                                filteredSpaces={filteredSpaces}
                                 mapRef={(ref: Ref<MapView>) => { this.mapRef = ref; }}
                                 navigation={navigation}
                                 onRegionChange={this.onRegionChange}
-                                onRegionChangeComplete={this.onRegionChangeComplete}
+                                onRegionChangeComplete={(region) => this.onRegionChangeComplete(region, filteredAreasCount)}
                                 showAreaAlert={this.showAreaAlert}
                                 shouldFollowUserLocation={shouldFollowUserLocation}
+                                shouldRenderMapCircles={shouldRenderMapCircles}
                                 hideCreateActions={() => this.toggleMomentActions(true)}
                                 isScrollEnabled={isScrollEnabled}
                                 // /* react-native-map-clustering */
