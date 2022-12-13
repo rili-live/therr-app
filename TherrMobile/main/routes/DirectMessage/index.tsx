@@ -6,14 +6,15 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { MessageActions, SocketActions } from 'therr-react/redux/actions';
 import { IUserState, IMessagesState } from 'therr-react/types';
-import { buildStyles } from '../styles';
-import { buildStyles as buildFormsStyles } from '../styles/forms';
-import { buildStyles as buildMessageStyles } from '../styles/user-content/messages';
-import translator from '../services/translator';
-import TextMessage from '../components/TextMessage';
-import RoundInput from '../components/Input/Round';
-import BaseStatusBar from '../components/BaseStatusBar';
-import TherrIcon from '../components/TherrIcon';
+import { buildStyles } from '../../styles';
+import { buildStyles as buildFormsStyles } from '../../styles/forms';
+import { buildStyles as buildMessageStyles } from '../../styles/user-content/messages';
+import translator from '../../services/translator';
+import TextMessage from '../../components/TextMessage';
+import RoundInput from '../../components/Input/Round';
+import BaseStatusBar from '../../components/BaseStatusBar';
+import TherrIcon from '../../components/TherrIcon';
+import LoadingPlaceholder from './LoadingPlaceholder';
 
 const ITEMS_PER_PAGE = 50;
 
@@ -34,6 +35,7 @@ export interface IDirectMessageProps extends IStoreProps {
 }
 
 interface IDirectMessageState {
+    isLoading: boolean;
     msgInputVal: string;
     msgScrollPosition: number;
     pageNumber: number;
@@ -67,6 +69,7 @@ class DirectMessage extends React.Component<
         super(props);
 
         this.state = {
+            isLoading: false,
             msgInputVal: '',
             msgScrollPosition: 0,
             pageNumber: 1,
@@ -107,6 +110,9 @@ class DirectMessage extends React.Component<
         const { connectionDetails } = route.params;
 
         if (connectionDetails) {
+            this.setState({
+                isLoading: true,
+            });
             searchDms(
                 {
                     filterBy: 'fromUserId',
@@ -118,7 +124,11 @@ class DirectMessage extends React.Component<
                     shouldCheckReverse: true,
                 },
                 connectionDetails
-            );
+            ).finally(() => {
+                this.setState({
+                    isLoading: false,
+                });
+            });
         }
     }
 
@@ -173,7 +183,7 @@ class DirectMessage extends React.Component<
     }
 
     render() {
-        const { msgInputVal } = this.state;
+        const { isLoading, msgInputVal } = this.state;
         const { messages, route, user } = this.props;
         const { connectionDetails } = route.params;
         const dms = messages.dms ? (messages.dms[connectionDetails.id] || []) : [];
@@ -183,29 +193,38 @@ class DirectMessage extends React.Component<
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={[this.theme.styles.safeAreaView]}>
                     <View style={this.themeMessage.styles.container}>
-                        <FlatList
-                            data={dms}
-                            inverted
-                            keyExtractor={(item) => String(item.key)}
-                            renderItem={({ item, index }) => (
-                                <TextMessage
-                                    connectionDetails={connectionDetails}
-                                    goToUser={this.goToUser}
-                                    userDetails={user.details}
-                                    message={item}
-                                    isLeft={!item.fromUserName?.toLowerCase().includes('you')}
-                                    isFirstOfMessage={this.isFirstOfMessage(dms, index)}
-                                    theme={this.theme}
-                                    themeMessage={this.themeMessage}
-                                    translate={this.translate}
+                        {
+                            isLoading ?
+                                <>
+                                    <LoadingPlaceholder />
+                                    <LoadingPlaceholder />
+                                    <LoadingPlaceholder />
+                                    <LoadingPlaceholder />
+                                </> :
+                                <FlatList
+                                    data={dms}
+                                    inverted
+                                    keyExtractor={(item) => String(item.key)}
+                                    renderItem={({ item, index }) => (
+                                        <TextMessage
+                                            connectionDetails={connectionDetails}
+                                            goToUser={this.goToUser}
+                                            userDetails={user.details}
+                                            message={item}
+                                            isLeft={!item.fromUserName?.toLowerCase().includes('you')}
+                                            isFirstOfMessage={this.isFirstOfMessage(dms, index)}
+                                            theme={this.theme}
+                                            themeMessage={this.themeMessage}
+                                            translate={this.translate}
+                                        />
+                                    )}
+                                    ref={(component) => (this.flatListRef = component)}
+                                    style={this.theme.styles.stretch}
+                                    // onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}
+                                    onEndReached={this.tryLoadMore}
+                                    onEndReachedThreshold={0.5}
                                 />
-                            )}
-                            ref={(component) => (this.flatListRef = component)}
-                            style={this.theme.styles.stretch}
-                            // onContentSizeChange={() => dms.length && this.flatListRef.scrollToEnd({ animated: true })}
-                            onEndReached={this.tryLoadMore}
-                            onEndReachedThreshold={0.5}
-                        />
+                        }
                         <View style={this.themeMessage.styles.sendInputsContainer}>
                             <RoundInput
                                 value={msgInputVal}

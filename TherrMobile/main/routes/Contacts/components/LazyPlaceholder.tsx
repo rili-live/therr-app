@@ -6,10 +6,12 @@ import {
     Shine,
 } from 'rn-placeholder';
 
+const ShineComponent = props => <Shine {...props} reverse />;
+
 const LazyPlaceholder = () => {
     return (
         <Placeholder
-            Animation={props => <Shine {...props} reverse />}
+            Animation={ShineComponent}
             Left={PlaceholderMedia}
         >
             <PlaceholderLine width={80} />

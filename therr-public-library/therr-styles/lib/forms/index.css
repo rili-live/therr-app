@@ -120,7 +120,7 @@
   font-size: rem-calc(13px);
   margin: rem-calc(2px);
   margin-bottom: 0;
-  background: #fbfeffbf;
+  background: rgba(251, 254, 255, 0.7490196078);
   padding: 0.25rem;
   border-radius: 0.25rem;
   box-sizing: border-box;
@@ -171,8 +171,7 @@ label.required::before {
   margin: 0;
 }
 
-::placeholder {
-  /* Chrome, Firefox, Opera, Safari 10.1+ */
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
   font-size: rem-calc("18px");
 }
 

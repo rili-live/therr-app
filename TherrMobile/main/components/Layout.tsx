@@ -504,37 +504,35 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             headerStyle = this.theme.styles.headerStyleAccent;
                         }
                         if (hasLogoHeaderTitle) {
-                            headerTitle = () => (<HeaderTherrLogo navigation={navigation} theme={this.theme} />);
+                            headerTitle = () => <HeaderTherrLogo navigation={navigation} theme={this.theme} />;
                         }
                         if (isAreas) {
-                            headerTitle = () => (<HeaderSearchInput
+                            headerTitle = () => <HeaderSearchInput
                                 isAdvancedSearch
                                 navigation={navigation}
                                 theme={this.theme}
                                 themeForms={this.themeForms}
-                            />);
+                            />;
                         }
                         if (isMap) {
-                            headerTitle = () => (<HeaderSearchInput
+                            headerTitle = () => <HeaderSearchInput
                                 navigation={navigation}
                                 theme={this.theme}
                                 themeForms={this.themeForms}
-                            />);
+                            />;
                         }
 
                         return ({
                             animationEnabled: true,
                             cardStyleInterpolator: forFade,
-                            headerLeft: () => (
-                                <HeaderMenuLeft
-                                    styleName={headerStyleName}
-                                    navigation={navigation}
-                                    isAuthenticated={user.isAuthenticated}
-                                    isEmailVerifed={this.isUserEmailVerified()}
-                                    theme={this.theme}
-                                />
-                            ),
-                            headerRight: this.shouldShowTopRightMenu() ? () => (
+                            headerLeft: () => <HeaderMenuLeft
+                                styleName={headerStyleName}
+                                navigation={navigation}
+                                isAuthenticated={user.isAuthenticated}
+                                isEmailVerifed={this.isUserEmailVerified()}
+                                theme={this.theme}
+                            />,
+                            headerRight: () => this.shouldShowTopRightMenu() ?
                                 <HeaderMenuRight
                                     navigation={navigation}
                                     notifications={notifications}
@@ -549,8 +547,12 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                     themeButtons={this.themeButtons}
                                     themeModal={this.themeModal}
                                     themeMenu={this.themeMenu}
-                                />
-                            ) : () => (<HeaderLinkRight navigation={navigation} themeForms={this.themeForms} styleName={headerStyleName} />),
+                                /> :
+                                <HeaderLinkRight
+                                    navigation={navigation}
+                                    themeForms={this.themeForms}
+                                    styleName={headerStyleName}
+                                />,
                             headerTitleStyle: {
                                 ...this.theme.styles.headerTitleStyle,
                                 color: headerTitleColor,

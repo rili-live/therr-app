@@ -4,7 +4,6 @@ import { ITherrThemeColors } from '../../styles/themes';
 
 interface IMapBottomSheetContent {
     navigation: any;
-    contentRef: any;
     theme: {
         colors: ITherrThemeColors;
         styles: any;
