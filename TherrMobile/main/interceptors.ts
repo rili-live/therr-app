@@ -37,7 +37,7 @@ const initInterceptors = (
             modifiedConfig.headers['x-localecode'] = userSettings.locale || 'en-us';
         } else {
             delete modifiedConfig.headers.authorization;
-            delete axios.defaults.headers.common['authorization'];
+            delete axios.defaults.headers.common.authorization;
         }
 
         numLoadings += 1;

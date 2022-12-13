@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, SafeAreaView, Text, View } from 'react-native';
+import { FlatList, SafeAreaView } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -15,6 +15,7 @@ import translator from '../../services/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import RoundInput from '../../components/Input/Round';
+import ListEmpty from '../../components/ListEmpty';
 import PhoneContactItem from './components/PhoneContactItem';
 import { Button } from 'react-native-elements';
 
@@ -173,15 +174,9 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
                                 theme={this.theme}
                             />
                         )}
-                        ListEmptyComponent={() => (
-                            <View style={this.theme.styles.sectionContainer}>
-                                <Text style={this.theme.styles.sectionDescription}>
-                                    {this.translate(
-                                        'components.contactsSearch.noContactsFound'
-                                    )}
-                                </Text>
-                            </View>
-                        )}
+                        ListEmptyComponent={<ListEmpty theme={this.theme} text={this.translate(
+                            'components.contactsSearch.noContactsFound'
+                        )} />}
                         ListHeaderComponent={<RoundInput
                             autoCapitalize="none"
                             containerStyle={{ paddingHorizontal: 10, backgroundColor: this.theme.colors.primary, paddingTop: 10 }}

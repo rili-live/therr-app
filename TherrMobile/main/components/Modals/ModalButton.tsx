@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import spacingStyles from '../../styles/layouts/spacing';
 
 interface IModalButtonProps {
     color?: string;
@@ -15,8 +16,8 @@ const ModalButton = ({ color, title, iconName, onPress, iconRight, themeButtons 
     const iconStyle = iconRight ? { paddingLeft: 7 } : { paddingRight: 7 };
     return (
         <Button
-            containerStyle={{ flex: 1 }}
-            buttonStyle={[themeButtons.styles.btnClear, { padding: 10 }]}
+            containerStyle={spacingStyles.flexOne}
+            buttonStyle={[themeButtons.styles.btnClear, spacingStyles.padMd]}
             titleStyle={color ? themeButtons.styles.btnTitleRed : themeButtons.styles.btnTitleBlack}
             icon={
                 <MaterialIcon

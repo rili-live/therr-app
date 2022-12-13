@@ -16,6 +16,7 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import UserMedia from './UserMedia';
 import HashtagsContainer from './HashtagsContainer';
 import { ITherrThemeColors } from '../../styles/themes';
+import spacingStyles from '../../styles/layouts/spacing';
 import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserImageUri } from '../../utilities/content';
 import PresssableWithDoubleTap from '../PressableWithDoubleTap';
@@ -166,7 +167,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                             isSingleView={false}
                         />
                     </PresssableWithDoubleTap>
-                    <View style={{ flex: 1 }}>
+                    <View style={spacingStyles.flexOne}>
                         <View style={themeViewArea.styles.areaContentTitleContainer}>
                             <Text
                                 style={themeViewArea.styles.areaContentTitleMedium

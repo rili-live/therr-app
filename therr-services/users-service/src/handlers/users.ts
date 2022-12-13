@@ -168,6 +168,7 @@ const updateUser = (req, res) => {
                 media: req.body.media,
                 phoneNumber: req.body.phoneNumber,
                 hasAgreedToTerms: req.body.hasAgreedToTerms,
+                isBusinessAccount: req.body.isBusinessAccount,
                 userName: req.body.userName,
                 deviceMobileFirebaseToken: req.body.deviceMobileFirebaseToken,
                 settingsBio: req.body.settingsBio,

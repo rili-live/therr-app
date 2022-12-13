@@ -12,6 +12,7 @@ import translator from '../../services/translator';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildAchievementStyles } from '../../styles/achievements';
+import textStyles from '../../styles/text';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -132,7 +133,7 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
             if (parseFloat(userAchievement.unclaimedRewardPts || '0') !== 0) {
                 if (isClaiming) {
                     return (
-                        <Text style={[this.theme.styles.sectionTitleCenter, { textTransform: 'capitalize' }]}>
+                        <Text style={[this.theme.styles.sectionTitleCenter, textStyles.capitalize]}>
                             {this.translate('pages.achievements.info.claimTitle', {
                                 achievementClass: userAchievement.achievementClass,
                                 achievementTitle: achievement.title,
@@ -141,7 +142,7 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                     );
                 }
                 return (
-                    <Text style={[this.theme.styles.sectionTitleCenter, { textTransform: 'capitalize' }]}>
+                    <Text style={[this.theme.styles.sectionTitleCenter, textStyles.capitalize]}>
                         {this.translate('pages.achievements.info.claimTitleInProgress', {
                             achievementClass: userAchievement.achievementClass,
                             achievementTitle: achievement.title,
@@ -152,7 +153,7 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
         }
 
         return (
-            <Text style={[this.theme.styles.sectionTitleCenter, { textTransform: 'capitalize' }]}>
+            <Text style={[this.theme.styles.sectionTitleCenter, textStyles.capitalize]}>
                 {this.translate('pages.achievements.info.claimTitleInProgress', {
                     achievementClass: userAchievement.achievementClass,
                     achievementTitle: achievement.title,

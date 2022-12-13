@@ -24,6 +24,7 @@ import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMe
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildSettingsFormStyles } from '../../styles/forms/socialSyncForm';
 import { buildStyles as buildUserStyles } from '../../styles/user-content/user-display';
+import spacingStyles from '../../styles/layouts/spacing';
 import SquareInput from '../../components/Input/Square';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import WrapperModal from '../../components/Modals/WrapperModal';
@@ -425,9 +426,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                 </Text>
                             </View>
                             <View style={this.themeSocialSyncForm.styles.socialLinkContainer}>
-                                <View style={{
-                                    paddingRight: 16,
-                                }}>
+                                <View style={spacingStyles.padRtLg}>
                                     <SocialIconLink
                                         iconName="instagram"
                                         isMe={true}
@@ -437,7 +436,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                     />
                                 </View>
                                 <Button
-                                    containerStyle={[{ flex: 1 }]}
+                                    containerStyle={[spacingStyles.flexOne]}
                                     buttonStyle={[this.themeForms.styles.buttonRoundAlt]}
                                     titleStyle={this.themeForms.styles.buttonTitleAlt}
                                     title={this.translate('forms.socialSync.buttons.syncInstagram')}
@@ -453,9 +452,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                 />
                             </View>
                             <View style={this.themeSocialSyncForm.styles.socialLinkContainer}>
-                                <View style={{
-                                    paddingRight: 16,
-                                }}>
+                                <View style={spacingStyles.padRtLg}>
                                     <SocialIconLink
                                         iconName="tiktok"
                                         isMe={true}
@@ -465,7 +462,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                     />
                                 </View>
                                 <Button
-                                    containerStyle={[{ flex: 1 }]}
+                                    containerStyle={[spacingStyles.flexOne]}
                                     buttonStyle={[this.themeForms.styles.buttonRoundAlt]}
                                     titleStyle={this.themeForms.styles.buttonTitleAlt}
                                     title={this.translate('forms.socialSync.buttons.syncTikTok')}
@@ -481,9 +478,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                 />
                             </View>
                             <View style={this.themeSocialSyncForm.styles.socialLinkContainer}>
-                                <View style={{
-                                    paddingRight: 16,
-                                }}>
+                                <View style={spacingStyles.padRtLg}>
                                     <SocialIconLink
                                         iconName="twitter"
                                         isMe={true}
@@ -493,7 +488,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                     />
                                 </View>
                                 <SquareInput
-                                    containerStyle={{ flex: 1 }}
+                                    containerStyle={spacingStyles.flexOne}
                                     labelStyle={this.themeForms.styles.inputLabelLightFaded}
                                     value={inputs.twitterHandle}
                                     onChangeText={(text) =>
@@ -522,9 +517,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                 />
                             </View>
                             <View style={this.themeSocialSyncForm.styles.socialLinkContainer}>
-                                <View style={{
-                                    paddingRight: 16,
-                                }}>
+                                <View style={spacingStyles.padRtLg}>
                                     <SocialIconLink
                                         iconName="youtube"
                                         isMe={true}
@@ -534,7 +527,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                                     />
                                 </View>
                                 <SquareInput
-                                    containerStyle={{ flex: 1 }}
+                                    containerStyle={spacingStyles.flexOne}
                                     labelStyle={this.themeForms.styles.inputLabelLightFaded}
                                     value={inputs.youtubeChannelId}
                                     onChangeText={(text) =>
@@ -613,7 +606,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                             style={this.themeModal.styles.label}
                         >{this.translate('pages.socialSync.labels.personalAccount')}</Text>
                         <Button
-                            containerStyle={[this.themeForms.styles.buttonContainer, { width: '100%' }]}
+                            containerStyle={[this.themeForms.styles.buttonContainer, spacingStyles.fullWidth]}
                             buttonStyle={[this.themeForms.styles.button, { backgroundColor: this.themeForms.colors.instagram }]}
                             titleStyle={this.themeForms.styles.buttonTitle}
                             title={this.translate(
@@ -631,7 +624,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                             style={this.themeModal.styles.label}
                         >{this.translate('pages.socialSync.labels.businessAccount')}</Text>
                         <Button
-                            containerStyle={[this.themeForms.styles.buttonContainer, { width: '100%' }]}
+                            containerStyle={[this.themeForms.styles.buttonContainer, spacingStyles.fullWidth]}
                             buttonStyle={[this.themeForms.styles.button, { backgroundColor: this.themeForms.colors.facebook }]}
                             titleStyle={this.themeForms.styles.buttonTitle}
                             title={this.translate(

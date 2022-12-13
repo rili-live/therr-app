@@ -1,5 +1,5 @@
 import React from 'react';
-import { RefreshControl, SafeAreaView, FlatList, View, Text } from 'react-native';
+import { RefreshControl, SafeAreaView, FlatList } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -20,6 +20,7 @@ import { notifications as notificationStyles, buildStyles as buildNotificationSt
 import translator from '../../services/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import Notification from './Notification';
+import ListEmpty from '../../components/ListEmpty';
 
 interface INotificationsDispatchProps {
     logout: Function;
@@ -215,15 +216,9 @@ class Notifications extends React.Component<
                                 themeNotification={this.themeNotification}
                             />
                         )}
-                        ListEmptyComponent={() => (
-                            <View style={this.theme.styles.sectionContainer}>
-                                <Text style={this.theme.styles.sectionDescription}>
-                                    {this.translate(
-                                        'pages.notifications.noNotifications'
-                                    )}
-                                </Text>
-                            </View>
-                        )}
+                        ListEmptyComponent={<ListEmpty theme={this.theme} text={this.translate(
+                            'pages.notifications.noNotifications'
+                        )} />}
                         ref={(component) => (this.flatListRef = component)}
                         initialScrollIndex={0}
                         onContentSizeChange={this.onContentSizeChange}

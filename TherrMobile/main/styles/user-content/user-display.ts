@@ -64,12 +64,24 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontSize: 14,
             fontWeight: '400',
         },
+        socialLinksContainer: {
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+            marginTop: 16,
+            width: '100%',
+        },
         socialIconPressable: {
             display: 'flex',
             flexDirection: 'row',
         },
         socialIcon: {
             marginRight: 7,
+        },
+        socialIconInstaContainer: {
+            backgroundColor: 'transparent',
+            justifyContent: 'center',
+            alignItems: 'center',
         },
         socialIndicatorsContainer: {
             display: 'flex',
@@ -136,6 +148,24 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             width: 100,
             height: 100,
             borderRadius: 50,
+        },
+
+        // Content
+        contentPostsContainer: {
+            display: 'flex',
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+        },
+        noPostsContainer: {
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: 300,
+        },
+        noPostsTexts: {
+            fontSize: 20,
+            paddingHorizontal: 24,
+            textAlign: 'center',
         },
     });
 

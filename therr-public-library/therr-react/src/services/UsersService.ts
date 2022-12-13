@@ -26,6 +26,7 @@ interface IRegisterCredentials {
 interface IUpdateUser {
     firstName: string;
     lastName: string;
+    isBusinessAccount: boolean;
     phoneNumber: string;
     userName: string;
     password?: string;

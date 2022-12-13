@@ -11,14 +11,14 @@ const deprecatedProps = {
 
 const imgProx = new Proxy(StandardModule.Image, {
     get(obj, prop) {
-        if (prop === 'propTypes') return deprecatedProps.ImagePropTypes;
+        if (prop === 'propTypes') { return deprecatedProps.ImagePropTypes; }
         return Reflect.get(...arguments);
     },
 });
 
 const txtProx = new Proxy(StandardModule.Text, {
     get(obj, prop) {
-        if (prop === 'propTypes') return deprecatedProps.TextPropTypes;
+        if (prop === 'propTypes') { return deprecatedProps.TextPropTypes; }
         return Reflect.get(...arguments);
     },
 });

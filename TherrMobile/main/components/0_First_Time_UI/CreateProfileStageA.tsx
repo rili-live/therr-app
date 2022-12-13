@@ -1,7 +1,8 @@
 import React from 'react';
 import { Platform, View } from 'react-native';
-import { Button }  from 'react-native-elements';
+import { Button, Text }  from 'react-native-elements';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
+import { Picker as ReactPicker } from '@react-native-picker/picker';
 import Alert from '../Alert';
 import SquareInput from '../Input/Square';
 import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/themes';
@@ -12,8 +13,12 @@ interface ICreateProfileStageAProps {
     inputs: any;
     isFormDisabled: boolean | undefined;
     onInputChange: Function;
+    onPickerChange: Function;
     onSubmit: ((shouldSkipAdvance: boolean) => void);
     translate: Function;
+    theme: {
+        styles: any;
+    };
     themeAlerts: {
         colorVariations: ITherrThemeColorVariations;
         styles: any;
@@ -32,8 +37,10 @@ const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = 
     inputs,
     isFormDisabled,
     onInputChange,
+    onPickerChange,
     onSubmit,
     translate,
+    theme,
     themeAlerts,
     themeForms,
     themeSettingsForm,
@@ -55,6 +62,27 @@ const CreateProfileStageA: React.FunctionComponent<ICreateProfileStageAProps> = 
                 type="error"
                 themeAlerts={themeAlerts}
             />
+            <View style={{ marginBottom: 50 }}>
+                <Text style={theme.styles.sectionTitleSmallCenter}>
+                    {translate(
+                        'forms.settings.labels.accountTypeLabel'
+                    )}
+                </Text>
+                <ReactPicker
+                    selectedValue={inputs.isBusinessAccount}
+                    style={themeForms.styles.picker}
+                    itemStyle={themeForms.styles.pickerItem}
+                    onValueChange={(itemValue) =>
+                        onPickerChange('isBusinessAccount', itemValue)
+                    }>
+                    <ReactPicker.Item label={translate(
+                        'forms.settings.labels.personalAccount'
+                    )} value={false} />
+                    <ReactPicker.Item label={translate(
+                        'forms.settings.labels.businessAccount'
+                    )} value={true} />
+                </ReactPicker>
+            </View>
             <SquareInput
                 placeholder={translate(
                     'forms.settings.labels.userName'

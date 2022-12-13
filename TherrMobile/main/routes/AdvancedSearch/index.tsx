@@ -152,8 +152,8 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
             modifiedGroup = modifiedGroup.map(x => ({ ...x, isChecked: modifiedGroup[index].isChecked}));
         } else {
             // Select All box
-            modifiedGroup[0].isChecked = modifiedGroup.every((item, index) => {
-                if (index === 0) { return true; }
+            modifiedGroup[0].isChecked = modifiedGroup.every((item, i) => {
+                if (i === 0) { return true; }
                 return item.isChecked;
             });
         }

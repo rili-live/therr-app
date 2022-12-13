@@ -18,6 +18,7 @@ import { buildStyles } from '../../styles';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildSettingsFormStyles } from '../../styles/forms/settingsForm';
+import textStyles from '../../styles/text';
 import SquareInput from '../../components/Input/Square';
 import PasswordRequirements from '../../components/Input/PasswordRequirements';
 import BaseStatusBar from '../../components/BaseStatusBar';
@@ -521,9 +522,9 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     minHeight={110}
                                     numberOfLines={5}
                                     themeForms={this.themeForms}
-                                    maxLength={80}
+                                    maxLength={255}
                                 />
-                                <Text style={{ textAlign: 'right' }}>{`${inputs.settingsBio?.length}/80`}</Text>
+                                <Text style={textStyles.textRight}>{`${inputs.settingsBio?.length}/255`}</Text>
                             </View>
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitle}>
