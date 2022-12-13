@@ -422,6 +422,7 @@
         "passwordInsecure": "New password does not meet minimum security requirements"
       },
       "labels": {
+        "accountTypeLabel": "Account Type: ",
         "email": "E-mail",
         "phoneNumber": "Phone #",
         "password": "Password",
@@ -432,7 +433,9 @@
         "userName": "Username",
         "hideReportedContent": "Hide Mature Content",
         "showReportedContent": "Show Mature Content",
-        "bio": "Your bio..."
+        "bio": "Your bio...",
+        "businessAccount": "Business",
+        "personalAccount": "Personal"
       },
       "backendSuccessMessage": "User settings successfully updated!",
       "backendErrorMessage": "Connection error. Please try again later."

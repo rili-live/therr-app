@@ -163,6 +163,10 @@ export default class UsersStore {
             modifiedParams.lastName = params.lastName;
         }
 
+        if (params.isBusinessAccount) {
+            modifiedParams.isBusinessAccount = params.isBusinessAccount;
+        }
+
         if (params.media) {
             modifiedParams.media = JSON.stringify(params.media);
         }

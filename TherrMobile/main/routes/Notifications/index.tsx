@@ -216,7 +216,7 @@ class Notifications extends React.Component<
                                 themeNotification={this.themeNotification}
                             />
                         )}
-                        ListEmptyComponent={<ListEmpty theme={this.theme} text={translate(
+                        ListEmptyComponent={<ListEmpty theme={this.theme} text={this.translate(
                             'pages.notifications.noNotifications'
                         )} />}
                         ref={(component) => (this.flatListRef = component)}

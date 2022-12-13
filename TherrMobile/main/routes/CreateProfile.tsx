@@ -159,6 +159,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             lastName,
             userName,
             phoneNumber,
+            isBusinessAccount,
         } = this.state.inputs;
         const { user } = this.props;
 
@@ -168,6 +169,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             firstName,
             lastName,
             userName: userName?.toLowerCase(),
+            isBusinessAccount,
         };
 
         if (stage === 'B' && !isPhoneNumberValid) {
@@ -251,6 +253,23 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
         });
     };
 
+    onPickerChange = (name: string, value: boolean) => {
+        const { inputs } = this.state;
+
+        const newInputChanges = {
+            [name]: value,
+        };
+
+        this.setState({
+            inputs: {
+                ...inputs,
+                ...newInputChanges,
+            },
+            errorMsg: '',
+            isSubmitting: false,
+        });
+    };
+
     onPhoneInputChange = (name: string, value: string, isValid: boolean) => {
         this.setState({
             isPhoneNumberValid: isValid,
@@ -318,7 +337,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                             </View>
                             {
                                 (stage === 'A' || stage === 'B') &&
-                                <View style={[this.theme.styles.sectionContainer, { height: 100, marginBottom: 20 }]}>
+                                <View style={[this.theme.styles.sectionContainer, { height: 50, marginBottom: 20 }]}>
                                     { stage === 'B' &&
                                         <LottieView
                                             source={verifyPhoneLoader}
@@ -337,8 +356,10 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                                     inputs={inputs}
                                     isFormDisabled={this.isFormADisabled()}
                                     onInputChange={this.onInputChange}
+                                    onPickerChange={this.onPickerChange}
                                     onSubmit={(shouldSkipAdvance) => this.onSubmit(stage, shouldSkipAdvance)}
                                     translate={this.translate}
+                                    theme={this.theme}
                                     themeAlerts={this.themeAlerts}
                                     themeForms={this.themeForms}
                                     themeSettingsForm={this.themeSettingsForm}

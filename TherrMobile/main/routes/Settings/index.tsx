@@ -522,9 +522,9 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                                     minHeight={110}
                                     numberOfLines={5}
                                     themeForms={this.themeForms}
-                                    maxLength={80}
+                                    maxLength={255}
                                 />
-                                <Text style={textStyles.textRight}>{`${inputs.settingsBio?.length}/80`}</Text>
+                                <Text style={textStyles.textRight}>{`${inputs.settingsBio?.length}/255`}</Text>
                             </View>
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitle}>

@@ -15,9 +15,9 @@ import translator from '../../services/translator';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import RoundInput from '../../components/Input/Round';
+import ListEmpty from '../../components/ListEmpty';
 import PhoneContactItem from './components/PhoneContactItem';
 import { Button } from 'react-native-elements';
-import ListEmpty from 'main/components/ListEmpty';
 
 interface IPhoneContactsDispatchProps {
     logout: Function;

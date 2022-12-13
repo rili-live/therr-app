@@ -504,10 +504,10 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             headerStyle = this.theme.styles.headerStyleAccent;
                         }
                         if (hasLogoHeaderTitle) {
-                            headerTitle = <HeaderTherrLogo navigation={navigation} theme={this.theme} />;
+                            headerTitle = () => <HeaderTherrLogo navigation={navigation} theme={this.theme} />;
                         }
                         if (isAreas) {
-                            headerTitle = <HeaderSearchInput
+                            headerTitle = () => <HeaderSearchInput
                                 isAdvancedSearch
                                 navigation={navigation}
                                 theme={this.theme}
@@ -515,7 +515,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                             />;
                         }
                         if (isMap) {
-                            headerTitle = <HeaderSearchInput
+                            headerTitle = () => <HeaderSearchInput
                                 navigation={navigation}
                                 theme={this.theme}
                                 themeForms={this.themeForms}
@@ -525,14 +525,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         return ({
                             animationEnabled: true,
                             cardStyleInterpolator: forFade,
-                            headerLeft: <HeaderMenuLeft
+                            headerLeft: () => <HeaderMenuLeft
                                 styleName={headerStyleName}
                                 navigation={navigation}
                                 isAuthenticated={user.isAuthenticated}
                                 isEmailVerifed={this.isUserEmailVerified()}
                                 theme={this.theme}
                             />,
-                            headerRight: this.shouldShowTopRightMenu() ?
+                            headerRight: () => this.shouldShowTopRightMenu() ?
                                 <HeaderMenuRight
                                     navigation={navigation}
                                     notifications={notifications}
