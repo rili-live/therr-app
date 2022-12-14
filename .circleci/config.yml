@@ -124,7 +124,7 @@ jobs:
           gcloud --quiet config set project therr-app
           gcloud --quiet config set compute/zone us-central1-a
           gcloud container clusters get-credentials cluster-1
-          kubectl get pods | grep NodeAffinity | awk '{print $1}' | xargs kubectl delete pod
+          kubectl get pods | grep NodeAffinity | awk '{print $1}' || true | xargs kubectl delete pod
       - add_ssh_keys:
           fingerprints:
             - "7a:7c:76:bd:7b:be:2a:cd:de:90:c4:16:78:e1:eb:f6"
