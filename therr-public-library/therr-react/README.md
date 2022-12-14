@@ -9,6 +9,4 @@ etc.
 ```
 
 ## Nomenclature
-* Area: A generic term refering to a moment, space, thought, etc. This is anything with a geographic area on the map
-
-...
+* Area: A generic term referring to a moment, space, thought, etc. This is anything with a geographic area on the map
