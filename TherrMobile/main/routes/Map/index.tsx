@@ -494,19 +494,47 @@ class Map extends React.Component<IMapProps, IMapState> {
             const storePermissions = () => {};
 
             if (action === 'moment') {
-                navigation.replace('EditMoment', {
-                    ...circleCenter,
-                    imageDetails: {},
-                    area: {},
+                navigation.reset({
+                    index: 1,
+                    routes: [
+                        {
+                            name: 'Map',
+                            params: {
+                                ...circleCenter,
+                            },
+                        },
+                        {
+                            name: 'EditMoment',
+                            params: {
+                                ...circleCenter,
+                                imageDetails: {},
+                                area: {},
+                            },
+                        },
+                    ],
                 });
                 return;
             }
 
             if (action === 'claim') {
-                navigation.replace('EditSpace', {
-                    ...circleCenter,
-                    imageDetails: {},
-                    area: {},
+                navigation.reset({
+                    index: 1,
+                    routes: [
+                        {
+                            name: 'Map',
+                            params: {
+                                ...circleCenter,
+                            },
+                        },
+                        {
+                            name: 'EditSpace',
+                            params: {
+                                ...circleCenter,
+                                imageDetails: {},
+                                area: {},
+                            },
+                        },
+                    ],
                 });
                 return;
             }
