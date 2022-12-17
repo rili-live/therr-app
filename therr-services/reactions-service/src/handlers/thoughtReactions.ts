@@ -8,14 +8,14 @@ import sendUserCoinUpdateRequest from '../utilities/sendUserCoinUpdateRequest';
 // import * as globalConfig from '../../../../global-config';
 
 // CREATE/UPDATE
-const createOrUpdateMomentReaction = (req, res) => {
-    // TODO: This endpoint should be secure/non-public so user's cannot activate moments on demand
+const createOrUpdateThoughtReaction = (req, res) => {
+    // TODO: This endpoint should be secure/non-public so user's cannot activate thoughts on demand
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
 
-    return Store.momentReactions.get({
+    return Store.thoughtReactions.get({
         userId,
-        momentId: req.params.momentId,
+        thoughtId: req.params.thoughtId,
     }).then((reactionsResponse) => {
         if (reactionsResponse?.length) {
             updateAchievements({
@@ -24,133 +24,133 @@ const createOrUpdateMomentReaction = (req, res) => {
                 userId,
             }, req.body);
 
-            return Store.momentReactions.update({
+            return Store.thoughtReactions.update({
                 userId,
-                momentId: req.params.momentId,
+                thoughtId: req.params.thoughtId,
             }, {
                 ...req.body,
                 userLocale: locale,
                 userViewCount: reactionsResponse[0].userViewCount + (req.body.userViewCount || 0),
             })
-                .then(([momentReaction]) => {
+                .then(([thoughtReaction]) => {
                     // TODO: Should this be a blocking request to ensure update?
                     sendUserCoinUpdateRequest(req, reactionsResponse[0]);
 
-                    res.status(200).send(momentReaction);
+                    res.status(200).send(thoughtReaction);
                 });
         }
 
         // TODO: Should this be a blocking request to ensure update?
         sendUserCoinUpdateRequest(req, {});
 
-        return Store.momentReactions.create({
+        return Store.thoughtReactions.create({
             userId,
-            momentId: req.params.momentId,
+            thoughtId: req.params.thoughtId,
             ...req.body,
             userLocale: locale,
         }).then(([reaction]) => res.status(200).send(reaction));
-    }).catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
+    }).catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHT_REACTIONS_ROUTES:ERROR' }));
 };
 
 // CREATE/UPDATE
-const createOrUpdateMultiMomentReactions = (req, res) => {
-    // TODO: This endpoint should be secure/non-public so user's cannot activate moments on demand
+const createOrUpdateMultiThoughtReactions = (req, res) => {
+    // TODO: This endpoint should be secure/non-public so user's cannot activate thoughts on demand
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
 
-    const { momentIds } = req.body;
+    const { thoughtIds } = req.body;
     const params = { ...req.body };
-    delete params.momentIds;
+    delete params.thoughtIds;
 
-    return Store.momentReactions.get({
+    return Store.thoughtReactions.get({
         userId,
-    }, momentIds).then((existing) => {
+    }, thoughtIds).then((existing) => {
         const existingMapped = {};
         const existingReactions = existing.map((reaction) => {
-            existingMapped[reaction.momentId] = reaction;
-            return [userId, reaction.momentId];
+            existingMapped[reaction.thoughtId] = reaction;
+            return [userId, reaction.thoughtId];
         });
         let updatedReactions;
         if (existing?.length) {
-            Store.momentReactions.update({}, {
+            Store.thoughtReactions.update({}, {
                 ...params,
                 userLocale: locale,
             }, {
-                columns: ['userId', 'momentId'],
+                columns: ['userId', 'thoughtId'],
                 whereInArray: existingReactions,
             })
-                .then((momentReactions) => { updatedReactions = momentReactions; });
+                .then((thoughtReactions) => { updatedReactions = thoughtReactions; });
         }
 
-        const createArray = momentIds
+        const createArray = thoughtIds
             .filter((id) => !existingMapped[id])
-            .map((momentId) => ({
+            .map((thoughtId) => ({
                 userId,
-                momentId,
+                thoughtId,
                 ...params,
                 userLocale: locale,
             }));
 
-        return Store.momentReactions.create(createArray).then((createdReactions) => res.status(200).send({
+        return Store.thoughtReactions.create(createArray).then((createdReactions) => res.status(200).send({
             created: createdReactions,
             updated: updatedReactions,
         }));
-    }).catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
+    }).catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHT_REACTIONS_ROUTES:ERROR' }));
 };
 
 // READ
-const getMomentReactions: RequestHandler = async (req: any, res: any) => {
+const getThoughtReactions: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
-    const momentIds = req.query?.momentIds?.split(',');
+    const thoughtIds = req.query?.thoughtIds?.split(',');
     const queryParams: any = {
         userId,
     };
 
-    if (queryParams.momentId) {
-        queryParams.momentId = parseInt(queryParams.momentId, 10);
+    if (queryParams.thoughtId) {
+        queryParams.thoughtId = parseInt(queryParams.thoughtId, 10);
     }
 
-    delete queryParams.momentIds;
+    delete queryParams.thoughtIds;
 
-    return Store.momentReactions.get(queryParams, momentIds, {
+    return Store.thoughtReactions.get(queryParams, thoughtIds, {
         limit: parseInt(req.query.limit, 10),
         offset: 0,
         order: req.query.order || 'DESC',
     })
-        .then(([moments]) => res.status(200).send(moments))
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
+        .then(([thoughts]) => res.status(200).send(thoughts))
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHT_REACTIONS_ROUTES:ERROR' }));
 };
 
-const getReactionsByMomentId: RequestHandler = async (req: any, res: any) => {
+const getReactionsByThoughtId: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
-    const { momentId } = req.params;
+    const { thoughtId } = req.params;
 
-    Store.momentReactions.get({
+    Store.thoughtReactions.get({
         userId,
-        momentId,
-    }).then((momentReaction: any) => {
-        if (!momentReaction?.length || !momentReaction[0].userHasActivated) {
+        thoughtId,
+    }).then((thoughtReaction: any) => {
+        if (!thoughtReaction?.length || !thoughtReaction[0].userHasActivated) {
             return handleHttpError({
                 res,
-                message: translate(locale, 'momentReactions.momentNotActivated'),
+                message: translate(locale, 'thoughtReactions.thoughtNotActivated'),
                 statusCode: 403,
             });
         }
 
-        return Store.momentReactions.getByMomentId({
-            momentId,
+        return Store.thoughtReactions.getByThoughtId({
+            thoughtId,
         }, parseInt(req.query.limit || 100, 10))
             .then(([reaction]) => res.status(200).send(reaction))
-            .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
+            .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHT_REACTIONS_ROUTES:ERROR' }));
     });
 };
 
-const findMomentReactions: RequestHandler = async (req: any, res: any) => {
+const findThoughtReactions: RequestHandler = async (req: any, res: any) => {
     const userId = req.headers['x-userid'];
     // const locale = req.headers['x-localecode'] || 'en-us';
     const {
-        momentIds,
+        thoughtIds,
         userHasActivated,
         limit,
         offset,
@@ -165,7 +165,7 @@ const findMomentReactions: RequestHandler = async (req: any, res: any) => {
         conditions.userHasActivated = userHasActivated;
     }
 
-    return Store.momentReactions.get(conditions, momentIds, {
+    return Store.thoughtReactions.get(conditions, thoughtIds, {
         limit,
         offset,
         order,
@@ -173,13 +173,13 @@ const findMomentReactions: RequestHandler = async (req: any, res: any) => {
         .then((reactions) => res.status(200).send({
             reactions,
         }))
-        .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENT_REACTIONS_ROUTES:ERROR' }));
+        .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHT_REACTIONS_ROUTES:ERROR' }));
 };
 
 export {
-    getMomentReactions,
-    getReactionsByMomentId,
-    createOrUpdateMomentReaction,
-    createOrUpdateMultiMomentReactions,
-    findMomentReactions,
+    getThoughtReactions,
+    getReactionsByThoughtId,
+    createOrUpdateThoughtReaction,
+    createOrUpdateMultiThoughtReactions,
+    findThoughtReactions,
 };

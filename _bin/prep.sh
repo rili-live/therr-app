@@ -10,8 +10,9 @@ popd
 npmVersion=$(npm -v)
 echo "This environment's npm version is $npmVersion"
 if [[ "$npmVersion" != "$NPM_VERSION"  ]]; then
+    source ~/.nvm/nvm.sh
     echo "NPM version is incorrect, expected npm v$NPM_VERSION, installing..."
-    ! command -v nvm &> /dev/null || { echo "nvm is not installed. Using npm install -g instead"; npm install -g npm@$NPM_VERSION; }
+    (! command -v nvm &> /dev/null) || { echo "nvm is not installed. Using npm install -g instead"; npm install -g npm@$NPM_VERSION; }
     nvm install-latest-npm
 else
     echo "NPM is correct"
