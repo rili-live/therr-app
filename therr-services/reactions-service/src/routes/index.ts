@@ -3,6 +3,8 @@ import momentReactionsRouter from './momentReactionsRouter';
 import momentsRouter from './momentsRouter';
 import spaceReactionsRouter from './spaceReactionsRouter';
 import spacesRouter from './spacesRouter';
+import thoughtReactionsRouter from './thoughtReactionsRouter';
+import thoughtsRouter from './thoughtsRouter';
 import deleteUserData from '../handlers/deleteUserData';
 
 const router = express.Router();
@@ -10,8 +12,10 @@ const router = express.Router();
 router.delete('/delete-user-data', deleteUserData);
 
 router.use('/moment-reactions', momentReactionsRouter);
-router.use('/space-reactions', spaceReactionsRouter);
 router.use('/moments', momentsRouter);
+router.use('/space-reactions', spaceReactionsRouter);
 router.use('/spaces', spacesRouter);
+router.use('/thought-reactions', thoughtReactionsRouter);
+router.use('/thoughts', thoughtsRouter);
 
 export default router;
