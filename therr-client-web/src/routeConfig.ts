@@ -3,8 +3,8 @@ export default [
     {
         route: '/',
         head: {
-            title: 'Home',
-            description: 'A nearby newsfeed app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.',
+            title: 'Local Social Network',
+            description: 'A local-first community app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.',
         },
         view: 'index',
     },
@@ -12,7 +12,7 @@ export default [
         route: '/forums',
         head: {
             title: 'Forums',
-            description: 'A nearby newsfeed app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.',
+            description: 'A local-first community app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.',
         },
         view: 'index',
     },
@@ -20,7 +20,7 @@ export default [
         route: '/create-forum',
         head: {
             title: 'Join Forum',
-            description: 'A nearby newsfeed app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.',
+            description: 'A local-first community app & social network that allows connections through the space around us. Users and local businesses creating authentic connections.',
         },
         view: 'index',
     },
