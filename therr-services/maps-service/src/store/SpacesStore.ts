@@ -151,7 +151,7 @@ export default class SpacesStore {
         return this.db.read.query(query.toString()).then(async ({ rows: spaces }) => {
             if (options.withMedia || options.withUser) {
                 const mediaIds: string[] = [];
-                const userIds: number[] = [];
+                const userIds: string[] = [];
                 const signingPromises: any = [];
                 const imageExpireTime = Date.now() + 60 * 60 * 1000; // 60 minutes
                 const spaceDetailsPromises: Promise<any>[] = [];
