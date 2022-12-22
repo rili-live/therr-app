@@ -3,6 +3,7 @@ import InvitesStore from './InvitesStore';
 import NotificationsStore from './NotificationsStore';
 import SocialSyncsStore from './SocialSyncsStore';
 import SubscribersStore from './SubscribersStore';
+import ThoughtsStore from './ThoughtsStore';
 import UserAchievementsStore from './UserAchievementsStore';
 import UserConnectionsStore from './UserConnectionsStore';
 import UsersStore from './UsersStore';
@@ -14,6 +15,8 @@ class Store {
     subscribers: SubscribersStore;
 
     socialSyncs: SocialSyncsStore;
+
+    thoughts: ThoughtsStore;
 
     users: UsersStore;
 
@@ -35,6 +38,7 @@ class Store {
         this.userConnections = new UserConnectionsStore(this.db);
         this.subscribers = new SubscribersStore(this.db);
         this.socialSyncs = new SocialSyncsStore(this.db);
+        this.thoughts = new ThoughtsStore(this.db, this.users);
         this.invites = new InvitesStore(this.db);
         this.notifications = new NotificationsStore(this.db);
         this.verificationCodes = new VerificationCodesStore(this.db);
