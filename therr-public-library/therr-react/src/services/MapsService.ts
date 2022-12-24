@@ -35,6 +35,32 @@ interface IDeleteAreasBody {
     ids: string[];
 }
 
+interface ICreateThoughtBody {
+    parentId?: string;
+    category?: string;
+    expiresAt?: any;
+    fromUserId: number;
+    locale: string;
+    isPublic?: boolean;
+    isRepost?: boolean;
+    message: string;
+    mediaIds?: string;
+    mentionsIds?: string;
+    hashTags?: string;
+    maxViews?: number;
+}
+
+interface IGetThoughtDetailsArgs {
+    withUser?: boolean;
+}
+
+interface IDeleteThoughtsBody {
+    ids: string[];
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ISearchThoughtsArgs {}
+
 export interface IPlacesAutoCompleteArgs {
     longitude: string;
     latitude: string;
@@ -137,6 +163,35 @@ class MapsService {
     searchSpaces = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('spaces', query, data)
 
     deleteSpaces = (data: IDeleteAreasBody) => this.deleteAreas('spaces', data)
+
+    // Thoughts
+    createThought = (data: ICreateThoughtBody) => axios({
+        method: 'post',
+        url: '/maps-service/thoughts',
+        data,
+    })
+
+    getThoughtDetails = (id: number, args: IGetThoughtDetailsArgs) => axios({
+        method: 'post',
+        url: `/maps-service/thoughts/${id}/details`,
+        data: args,
+    })
+
+    searchThoughts = (query: ISearchQuery, data: ISearchThoughtsArgs = {}) => {
+        const queryString = getSearchQueryString(query);
+
+        return axios({
+            method: 'post',
+            url: `/maps-service/thoughts/search${queryString}`,
+            data,
+        });
+    }
+
+    deleteThoughts = (data: IDeleteThoughtsBody) => axios({
+        method: 'delete',
+        url: '/maps-service/thoughts',
+        data,
+    })
 
     // Media
     getSignedUrlPublicBucket = (args: ISignedUrlArgs) => {

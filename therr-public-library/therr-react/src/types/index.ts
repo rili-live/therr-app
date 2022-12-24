@@ -5,6 +5,7 @@ import {
 
     // Maps
     IAreaType,
+    IPostType,
     IMapState,
     MapActionTypes,
 
@@ -89,6 +90,7 @@ export {
 
     // Maps
     IAreaType,
+    IPostType,
     IMapState,
     MapActionTypes,
 

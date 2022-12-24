@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { IAreaType } from '../types';
+import { IAreaType, IPostType } from '../types';
 
 export interface ICreateAreaReactionBody {
     userId: number;
@@ -67,9 +67,23 @@ export interface IFindSpaceReactionParams {
     userHasActivated?: boolean;
 }
 
+export interface IGetThoughtReactionParams {
+    limit?: number;
+    thoughtId?: number;
+    thoughtIds?: number[];
+}
+
+export interface IFindThoughtReactionParams {
+    limit?: number;
+    offset?: number;
+    order?: number;
+    thoughtIds?: number[];
+    userHasActivated?: boolean;
+}
+
 class ReactionsService {
-    createOrUpdateAreaReaction = (areaType: IAreaType, id: number, data: ICreateOrUpdateAreaReactionBody) => {
-        const typeSingular = areaType === 'moments' ? 'moment' : 'space';
+    createOrUpdatePostReaction = (postType: IPostType, id: number, data: ICreateOrUpdateAreaReactionBody) => {
+        const typeSingular = postType.replace(/s$/, '');
 
         return axios({
             method: 'post',
@@ -78,9 +92,9 @@ class ReactionsService {
         });
     }
 
-    searchActiveAreas = (areaType: IAreaType, options: ISearchActiveAreasParams, limit = 21) => axios({
+    searchActivePosts = (postType: IPostType, options: ISearchActiveAreasParams, limit = 21) => axios({
         method: 'post',
-        url: `/reactions-service/${areaType}/active/search`,
+        url: `/reactions-service/${postType}/active/search`,
         data: {
             offset: options.offset,
             limit,
@@ -108,7 +122,7 @@ class ReactionsService {
     })
 
     // Moments
-    createOrUpdateMomentReaction = (id: number, data: ICreateOrUpdateAreaReactionBody) => this.createOrUpdateAreaReaction(
+    createOrUpdateMomentReaction = (id: number, data: ICreateOrUpdateAreaReactionBody) => this.createOrUpdatePostReaction(
         'moments',
         id,
         data,
@@ -146,7 +160,7 @@ class ReactionsService {
         });
     }
 
-    searchActiveMoments = (options: ISearchActiveAreasParams, limit = 21) => this.searchActiveAreas('moments', options, limit);
+    searchActiveMoments = (options: ISearchActiveAreasParams, limit = 21) => this.searchActivePosts('moments', options, limit);
 
     searchBookmarkedMoments = (options: ISearchBookmarkedAreasParams, limit = 21) => this.searchBookmarkedAreas(
         'moments',
@@ -155,7 +169,7 @@ class ReactionsService {
     );
 
     // Spaces
-    createOrUpdateSpaceReaction = (id: number, data: ICreateOrUpdateAreaReactionBody) => this.createOrUpdateAreaReaction(
+    createOrUpdateSpaceReaction = (id: number, data: ICreateOrUpdateAreaReactionBody) => this.createOrUpdatePostReaction(
         'spaces',
         id,
         data,
@@ -193,13 +207,66 @@ class ReactionsService {
         });
     }
 
-    searchActiveSpaces = (options: ISearchActiveAreasParams, limit = 21) => this.searchActiveAreas('spaces', options, limit);
+    searchActiveSpaces = (options: ISearchActiveAreasParams, limit = 21) => this.searchActivePosts('spaces', options, limit);
 
     searchBookmarkedSpaces = (options: ISearchBookmarkedAreasParams, limit = 21) => this.searchBookmarkedAreas(
         'spaces',
         options,
         limit,
     );
+
+    // Thoughts
+    createOrUpdateThoughtReaction = (id: number, data: ICreateOrUpdateAreaReactionBody) => this.createOrUpdatePostReaction(
+        'thoughts',
+        id,
+        data,
+    );
+
+    getThoughtReactions = (queryParams: IGetThoughtReactionParams) => {
+        let queryString = `?limit=${queryParams.limit || 100}`;
+
+        if (queryParams.thoughtId) {
+            queryString = `${queryString}&thoughtId=${queryParams.thoughtId}`;
+        }
+
+        if (queryParams.thoughtIds) {
+            queryString = `${queryString}&thoughtIds=${queryParams.thoughtIds.join(',')}`;
+        }
+
+        return axios({
+            method: 'get',
+            url: `/reactions-service/thought-reactions${queryString}`,
+        });
+    }
+
+    findThoughtReactions = (params: IFindThoughtReactionParams) => axios({
+        method: 'post',
+        url: '/reactions-service/thought-reactions/find/dynamic',
+        data: params,
+    })
+
+    getReactionsByThoughtId = (id: number, limit: number) => {
+        const queryString = `?limit=${limit || 100}`;
+
+        return axios({
+            method: 'get',
+            url: `/reactions-service/thought-reactions/${id}${queryString}`,
+        });
+    }
+
+    searchActiveThoughts = (options: ISearchActiveAreasParams, limit = 21) => this.searchActivePosts('thoughts', options, limit);
+
+    searchBookmarkedThoughts = (options: ISearchBookmarkedAreasParams, limit = 21) => axios({
+        method: 'post',
+        url: '/reactions-service/thoughts/bookmarked/search',
+        data: {
+            offset: options.offset,
+            limit,
+            withUser: options.withUser,
+            blockedUsers: options.blockedUsers || [],
+            shouldHideMatureContent: !!options.shouldHideMatureContent,
+        },
+    })
 }
 
 export default new ReactionsService();
