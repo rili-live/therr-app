@@ -3,6 +3,8 @@ import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { IUser, IUserSettings, UserActionTypes } from '../../types/redux/user';
 import UsersService, { ISocialSyncs } from '../../services/UsersService';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ISearchThoughtsArgs {}
 interface ILoginSSOTokens {
     google?: string;
 }
@@ -464,6 +466,51 @@ class UsersActions {
         });
 
         return response?.data;
+    });
+
+    // Thoughts
+    createThought = (data: any) => (dispatch: any) => UsersService.createThought(data).then((response: any) => {
+        dispatch({
+            type: UserActionTypes.THOUGHT_CREATED,
+            data: response.data,
+        });
+    });
+
+    getThoughtDetails = (id: number, data: any) => (dispatch: any) => UsersService.getThoughtDetails(id, data)
+        .then((response: any) => {
+            dispatch({
+                type: UserActionTypes.GET_THOUGHT_DETAILS,
+                data: response.data,
+            });
+        });
+
+    searchThoughts = (query: any, data: ISearchThoughtsArgs = {}) => (dispatch: any) => UsersService
+        .searchThoughts(query, data).then((response: any) => {
+            if (query.query === 'connections') {
+                dispatch({
+                    type: UserActionTypes.GET_THOUGHTS,
+                    data: response.data,
+                });
+            }
+
+            if (query.query === 'me') {
+                dispatch({
+                    type: UserActionTypes.GET_MY_THOUGHTS,
+                    data: response.data,
+                });
+            }
+
+            // Return so we can react by searching for associated reactions
+            return Promise.resolve(response.data);
+        });
+
+    deleteThought = (args: { ids: string[] }) => (dispatch: any) => UsersService.deleteThoughts(args).then(() => {
+        dispatch({
+            type: UserActionTypes.THOUGHT_DELETED,
+            data: {
+                ids: args.ids,
+            },
+        });
     });
 }
 

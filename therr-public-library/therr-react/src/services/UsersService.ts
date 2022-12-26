@@ -1,7 +1,9 @@
 import axios from 'axios';
+import { getSearchQueryString } from 'therr-js-utilities/http';
 import {
     IAccess,
     AccessCheckType,
+    ISearchQuery,
     IUserState,
 } from '../types';
 
@@ -40,6 +42,32 @@ interface IChangePasswordArgs {
     email: string;
     userName: string;
 }
+
+interface ICreateThoughtBody {
+    parentId?: string;
+    category?: string;
+    expiresAt?: any;
+    fromUserId: number;
+    locale: string;
+    isPublic?: boolean;
+    isRepost?: boolean;
+    message: string;
+    mediaIds?: string;
+    mentionsIds?: string;
+    hashTags?: string;
+    maxViews?: number;
+}
+
+interface IGetThoughtDetailsArgs {
+    withUser?: boolean;
+}
+
+interface IDeleteThoughtsBody {
+    ids: string[];
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ISearchThoughtsArgs {}
 
 export interface ISocialSyncs {
     syncs: {
@@ -144,7 +172,7 @@ class UsersService {
         },
     })
 
-    // Social Synce
+    // Social Sync
     createUpdateSocialSyncs = (socialSyncs: ISocialSyncs) => axios({
         method: 'post',
         url: '/users-service/social-sync',
@@ -173,6 +201,35 @@ class UsersService {
         data: {
             amount,
         },
+    })
+
+    // Thoughts
+    createThought = (data: ICreateThoughtBody) => axios({
+        method: 'post',
+        url: '/users-service/thoughts',
+        data,
+    })
+
+    getThoughtDetails = (id: number, args: IGetThoughtDetailsArgs) => axios({
+        method: 'post',
+        url: `/users-service/thoughts/${id}/details`,
+        data: args,
+    })
+
+    searchThoughts = (query: ISearchQuery, data: ISearchThoughtsArgs = {}) => {
+        const queryString = getSearchQueryString(query);
+
+        return axios({
+            method: 'post',
+            url: `/users-service/thoughts/search${queryString}`,
+            data,
+        });
+    }
+
+    deleteThoughts = (data: IDeleteThoughtsBody) => axios({
+        method: 'delete',
+        url: '/users-service/thoughts',
+        data,
     })
 }
 

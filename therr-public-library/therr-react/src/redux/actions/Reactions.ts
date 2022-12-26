@@ -5,6 +5,8 @@ import ReactionsService, {
     IFindMomentReactionParams,
     IGetSpaceReactionParams,
     IFindSpaceReactionParams,
+    IGetThoughtReactionParams,
+    IFindThoughtReactionParams,
 } from '../../services/ReactionsService';
 
 const Reactions = {
@@ -64,6 +66,33 @@ const Reactions = {
             });
         }),
 
+    // Thoughts
+    createOrUpdateThoughtReaction: (thoughtId: number, data: ICreateOrUpdateAreaReactionBody) => (dispatch: any) => ReactionsService
+        .createOrUpdateThoughtReaction(thoughtId, data).then((response: any) => {
+            dispatch({
+                type: ReactionActionTypes.THOUGHT_REACTION_CREATED_OR_UPDATED,
+                data: response.data,
+            });
+        }),
+    getThoughtReactions: (query: IGetThoughtReactionParams) => (dispatch: any) => ReactionsService.getThoughtReactions(query)
+        .then((response: any) => {
+            dispatch({
+                type: ReactionActionTypes.GET_THOUGHT_REACTIONS,
+                data: response.data,
+            });
+        }),
+    findThoughtReactions: (query: IFindThoughtReactionParams) => (dispatch: any) => ReactionsService.findThoughtReactions(query)
+        .then((response: any) => {
+            const reactionsById = {};
+
+            (response.data?.reactions || []).forEach((reaction) => {
+                reactionsById[reaction.thoughtId] = reaction;
+            });
+            dispatch({
+                type: ReactionActionTypes.GET_THOUGHT_REACTIONS,
+                data: reactionsById,
+            });
+        }),
 };
 
 export default Reactions;
