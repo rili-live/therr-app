@@ -7,6 +7,7 @@ import usersRouter from './usersRouter';
 import userAchievementsRouter from './userAchievementsRouter';
 import notificationsRouter from './notificationsRouter';
 import rewardsRouter from './rewardsRouter';
+import thoughtsRouter from './thoughtsRouter';
 import userConnectionsRouter from './userConnectionsRouter';
 
 const router = express.Router();
@@ -19,6 +20,7 @@ router.use('/subscribers', subscribersRouter);
 router.use('/users/achievements', userAchievementsRouter);
 router.use('/users/connections', userConnectionsRouter);
 router.use('/users/notifications', notificationsRouter);
+router.use('/users/thoughts', thoughtsRouter);
 router.use('/users', usersRouter);
 
 export default router;

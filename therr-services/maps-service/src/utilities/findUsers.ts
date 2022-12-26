@@ -4,7 +4,7 @@ import * as globalConfig from '../../../../global-config';
 const baseUsersServiceRoute = globalConfig[process.env.NODE_ENV || 'development'].baseUsersServiceRoute;
 
 interface IFindUsersArgs {
-    ids: number[];
+    ids: string[];
 }
 
 export default (args: IFindUsersArgs) => axios({

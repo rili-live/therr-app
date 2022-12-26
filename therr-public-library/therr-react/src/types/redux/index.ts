@@ -10,6 +10,7 @@ import {
 } from './forums';
 import {
     IAreaType,
+    IPostType,
     IMapState,
     MapActionTypes,
 } from './maps';
@@ -59,6 +60,7 @@ export {
 
     // Maps
     IAreaType,
+    IPostType,
     IMapState,
     MapActionTypes,
 
