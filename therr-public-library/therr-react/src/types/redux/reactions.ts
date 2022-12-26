@@ -3,6 +3,7 @@ import * as Immutable from 'seamless-immutable';
 export interface IReactionsState extends Immutable.ImmutableObject<any> {
     myMomentReactions: any;
     mySpaceReactions: any;
+    myThoughtReactions: any;
 }
 
 export enum ReactionActionTypes {
@@ -10,4 +11,6 @@ export enum ReactionActionTypes {
     MOMENT_REACTION_CREATED_OR_UPDATED = 'MOMENT_REACTION_CREATED_OR_UPDATED',
     GET_SPACE_REACTIONS = 'GET_SPACE_REACTIONS',
     SPACE_REACTION_CREATED_OR_UPDATED = 'SPACE_REACTION_CREATED_OR_UPDATED',
+    THOUGHT_REACTION_CREATED_OR_UPDATED = 'THOUGHT_REACTION_CREATED_OR_UPDATED',
+    GET_THOUGHT_REACTIONS = 'GET_THOUGHT_REACTIONS',
 }

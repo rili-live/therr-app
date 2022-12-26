@@ -12,6 +12,8 @@ const initialState: IUserState = Immutable.from({
     socketDetails: {},
     isAuthenticated: false,
     userInView: null,
+    thoughts: Immutable.from([]),
+    myThoughts: Immutable.from([]),
 });
 
 const getUserReducer = (socketIO) => (state: IUserState = initialState, action: any) => {
@@ -22,6 +24,8 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
 
     const actionData = { ...action.data };
     const modifiedAchievements = { ...state.achievements };
+    const modifiedThought = [...(state.thoughts || [])];
+    let modifiedMyThought = [...(state.myThoughts || [])];
 
     switch (action.type) {
         case UserActionTypes.GET_MY_ACHIEVEMENTS:
@@ -87,6 +91,49 @@ const getUserReducer = (socketIO) => (state: IUserState = initialState, action: 
             return state.setIn(['isAuthenticated'], false)
                 .setIn(['socketDetails'], {})
                 .setIn(['details'], { id: state.details.id, userName: state.details.userName, media: state.details.media });
+
+        // THOUGHTS //
+        case UserActionTypes.GET_THOUGHTS:
+            return state.setIn(['thoughts'], action.data.results);
+        case UserActionTypes.GET_THOUGHT_DETAILS:
+            modifiedThought.some((thought, index) => { // eslint-disable-line no-case-declarations
+                if (thought.id === action.data.thought?.id) {
+                    modifiedThought[index] = {
+                        ...thought,
+                        ...action.data.thought,
+                    };
+                    return true;
+                }
+
+                return false;
+            });
+            return state.setIn(['thoughts'], modifiedThought);
+        case UserActionTypes.GET_MY_THOUGHTS:
+            return state.setIn(['myThoughts'], action.data.results);
+        case UserActionTypes.THOUGHT_CREATED:
+            modifiedMyThought.unshift(action.data);
+            return state.setIn(['myThoughts'], modifiedMyThought);
+            // case UserActionTypes.THOUGHT_UPDATED:
+            //     modifiedMyThought.some((thought, index) => {
+            //         if (thought.id === action.data.id) {
+            //             modifiedMyThought[index] = {
+            //                 ...thought,
+            //                 ...action.data,
+            //             };
+            //             return true;
+            //         }
+
+            //         return false;
+            //     });
+            //     return state.setIn(['myThoughts'], modifiedMyThought);
+        case UserActionTypes.THOUGHT_DELETED:
+            modifiedMyThought = state.myThoughts.filter((thought) => { // eslint-disable-line no-case-declarations
+                if (!action.data || !action.data.ids) {
+                    return true;
+                }
+                return !action.data.ids.includes(thought.id);
+            });
+            return state.setIn(['myThoughts'], modifiedMyThought);
         default:
             return state;
     }

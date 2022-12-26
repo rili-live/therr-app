@@ -5,6 +5,7 @@ import { IReactionsState, ReactionActionTypes } from '../../types/redux/reaction
 const initialState: IReactionsState = Immutable.from({
     myMomentReactions: Immutable.from({}), // mapMomentIdToReactions
     mySpaceReactions: Immutable.from({}), // mapSpaceIdToReactions
+    myThoughtReactions: Immutable.from({}), // mapThoughtIdToReactions
 });
 
 const reactions = (state: IReactionsState = initialState, action: any) => {
@@ -16,6 +17,8 @@ const reactions = (state: IReactionsState = initialState, action: any) => {
     const modifiedMomentReactions = { ...state.myMomentReactions };
 
     const modifiedSpaceReactions = { ...state.mySpaceReactions };
+
+    const modifiedThoughtReactions = { ...state.myThoughtReactions };
 
     switch (action.type) {
         // Moments
@@ -33,8 +36,21 @@ const reactions = (state: IReactionsState = initialState, action: any) => {
             modifiedSpaceReactions[action.data.momentId] = action.data;
 
             return state.setIn(['mySpaceReactions'], modifiedSpaceReactions);
+
+        // Thoughts
+        case ReactionActionTypes.GET_THOUGHT_REACTIONS:
+            return state.setIn(['myThoughtReactions'], action.data);
+        case ReactionActionTypes.THOUGHT_REACTION_CREATED_OR_UPDATED:
+            modifiedThoughtReactions[action.data.thoughtId] = action.data;
+
+            return state.setIn(['myThoughtReactions'], modifiedThoughtReactions);
+
+        // Logout
         case SocketClientActionTypes.LOGOUT:
-            return state.setIn(['myMomentReactions'], Immutable.from({})).setIn(['mySpaceReactions'], Immutable.from({}));
+            return state
+                .setIn(['myMomentReactions'], Immutable.from({}))
+                .setIn(['mySpaceReactions'], Immutable.from({}))
+                .setIn(['myThoughtReactions'], Immutable.from({}));
         default:
             return state;
     }
