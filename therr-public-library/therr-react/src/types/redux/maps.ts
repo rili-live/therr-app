@@ -1,8 +1,9 @@
 import * as Immutable from 'seamless-immutable';
 
 type IAreaType = 'moments' | 'spaces';
+type IPostType = 'thoughts' | IAreaType;
 
-export { IAreaType };
+export { IAreaType, IPostType };
 
 export interface IMapState extends Immutable.ImmutableObject<any> {
     hasUserLocationLoaded?: boolean;

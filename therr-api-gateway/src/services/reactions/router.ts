@@ -15,10 +15,18 @@ import {
     getSpaceReactionsBySpaceIdValidation,
     getSpaceReactionsValidation,
 } from './validation/spaceReactions';
+import {
+    createOrUpdateThoughtReactionValidation,
+    findThoughtReactionsDynamicValidation,
+    getThoughtReactionsByThoughtIdValidation,
+    getThoughtReactionsValidation,
+    searchActiveThoughtsValidation,
+    searchBookmarkedThoughtsValidation,
+} from './validation/thoughtReactions';
 
 const reactionsServiceRouter = express.Router();
 
-// Moment - Reactions
+// Moment Reactions
 reactionsServiceRouter.post('/moment-reactions/:momentId', createOrUpdateMomentReactionValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
     method: 'post',
@@ -49,7 +57,7 @@ reactionsServiceRouter.post('/moments/bookmarked/search', searchBookmarkedAreasV
     method: 'post',
 }));
 
-// Moment - Spaces
+// Space Reactions
 reactionsServiceRouter.post('/space-reactions/:spaceId', createOrUpdateSpaceReactionValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
     method: 'post',
@@ -76,6 +84,37 @@ reactionsServiceRouter.post('/spaces/active/search', searchActiveAreasValidation
 }));
 
 reactionsServiceRouter.post('/spaces/bookmarked/search', searchBookmarkedAreasValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'post',
+}));
+
+// Thought Reactions
+reactionsServiceRouter.post('/thought-reactions/:thoughtId', createOrUpdateThoughtReactionValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'post',
+}));
+
+reactionsServiceRouter.get('/thought-reactions', getThoughtReactionsValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'get',
+}));
+
+reactionsServiceRouter.get('/thought-reactions/:thoughtId', getThoughtReactionsByThoughtIdValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'get',
+}));
+
+reactionsServiceRouter.post('/thought-reactions/find/dynamic', findThoughtReactionsDynamicValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'post',
+}));
+
+reactionsServiceRouter.post('/thoughts/active/search', searchActiveThoughtsValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
+    method: 'post',
+}));
+
+reactionsServiceRouter.post('/thoughts/bookmarked/search', searchBookmarkedThoughtsValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}`,
     method: 'post',
 }));

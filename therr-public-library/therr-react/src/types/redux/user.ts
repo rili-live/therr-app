@@ -1,5 +1,4 @@
 import * as Immutable from 'seamless-immutable';
-import { IAchievement } from 'therr-js-utilities/config';
 
 type IAccessLevel = Array<string>;
 
@@ -37,6 +36,8 @@ export interface IUserState extends Immutable.ImmutableObject<any> {
   socketDetails: ISocketDetails;
   isAuthenticated: boolean;
   userInView: IUser;
+  thoughts: any;
+  myThoughts: any;
 }
 
 export enum UserActionTypes {
@@ -48,4 +49,9 @@ export enum UserActionTypes {
   UPDATE_USER_FTUI = 'UPDATE_USER_FTUI',
   UPDATE_USER_POINTS = 'UPDATE_USER_POINTS',
   UPDATE_USER_IN_VIEW = 'UPDATE_USER_IN_VIEW',
+  THOUGHT_CREATED = 'THOUGHT_CREATED',
+  GET_THOUGHT_DETAILS = 'GET_THOUGHT_DETAILS',
+  GET_THOUGHTS = 'GET_THOUGHTS',
+  GET_MY_THOUGHTS = 'GET_MY_THOUGHTS',
+  THOUGHT_DELETED = 'THOUGHT_DELETED'
 }

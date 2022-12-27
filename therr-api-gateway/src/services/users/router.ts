@@ -35,6 +35,12 @@ import {
     subscribeAttemptLimiter,
 } from './limitation/auth';
 import { createUpdateSocialSyncsValidation } from './validation/socialSyncs';
+import {
+    createThoughtValidation,
+    getThoughtDetailsValidation,
+    searchThoughtsValidation,
+    deleteThoughtsValidation,
+} from './validation/thoughts';
 
 const usersServiceRouter = express.Router();
 
@@ -220,6 +226,27 @@ usersServiceRouter.post('/subscribers/send-feedback', feedbackAttemptLimiter, se
 usersServiceRouter.post('/subscribers/signup', subscribeAttemptLimiter, subscribersSignupValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
+}));
+
+// Thoughts
+usersServiceRouter.post('/thoughts', createThoughtValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
+
+usersServiceRouter.post('/thoughts/:thoughtId/details', getThoughtDetailsValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
+
+usersServiceRouter.post('/thoughts/search', searchThoughtsValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
+
+usersServiceRouter.delete('/thoughts', deleteThoughtsValidation, validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'delete',
 }));
 
 export default usersServiceRouter;
