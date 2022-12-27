@@ -10,6 +10,9 @@ const initialState: IContentState = Immutable.from({
     activeSpaces: Immutable.from([]),
     activeSpacesPagination: Immutable.from({}),
     bookmarkedSpaces: Immutable.from([]),
+    activeThoughts: Immutable.from([]),
+    activeThoughtsPagination: Immutable.from({}),
+    bookmarkedThoughts: Immutable.from([]),
     myDrafts: Immutable.from([]),
     myDraftsPagination: Immutable.from({}),
 
@@ -27,8 +30,10 @@ const content = (state: IContentState = initialState, action: any) => {
 
     let modifiedActiveMoments = [];
     let modifiedActiveSpaces = [];
+    let modifiedActiveThoughts = [];
     let modifiedBookmarkedMoments = [];
     let modifiedBookmarkedSpaces = [];
+    let modifiedBookmarkedThoughts = [];
     let modifiedDraftMoments = [];
     let moddedActiveIndex = -1;
     let moddedBookmarkedIndex = -1;
@@ -86,6 +91,26 @@ const content = (state: IContentState = initialState, action: any) => {
         }
     }
 
+    // Thoughts
+    if (state.activeThoughts) {
+        modifiedActiveThoughts = JSON.parse(JSON.stringify(state.activeThoughts));
+        modifiedBookmarkedThoughts = JSON.parse(JSON.stringify(state.bookmarkedThoughts));
+        moddedActiveIndex = modifiedActiveThoughts.findIndex((space) => space.id === action.data?.spaceId);
+        moddedBookmarkedIndex = modifiedBookmarkedThoughts.findIndex((space) => space.id === action.data?.spaceId);
+
+        if (moddedActiveIndex !== -1) {
+            if (action.type === ContentActionTypes.UPDATE_ACTIVE_THOUGHT_REACTION) {
+                modifiedActiveThoughts[moddedActiveIndex].reaction = { ...action.data };
+            } else if (action.type === ContentActionTypes.REMOVE_ACTIVE_THOUGHTS) {
+                modifiedActiveThoughts.splice(moddedActiveIndex, 1);
+            }
+        }
+
+        if (moddedBookmarkedIndex !== -1 && action.type === ContentActionTypes.UPDATE_ACTIVE_THOUGHT_REACTION) {
+            modifiedBookmarkedThoughts[moddedBookmarkedIndex].reaction = { ...action.data };
+        }
+    }
+
     // TODO: consider storing as Set to prevent duplicates
     switch (action.type) {
         // Moments
@@ -112,6 +137,19 @@ const content = (state: IContentState = initialState, action: any) => {
             // TODO: Add next offset of moments to end
             return state.setIn(['bookmarkedMoments'], action.data.moments)
                 .setIn(['media'], { ...state.media, ...action.data.media });
+        case ContentActionTypes.SEARCH_MY_DRAFTS:
+            // Add next offset of spaces to end
+            return state.setIn(['myDrafts'], [...action.data.results])
+                .setIn(['myDraftsPagination'], { ...action.data.pagination });
+        case ContentActionTypes.MOMENT_DRAFT_CREATED:
+            modifiedDraftMoments.unshift(action.data);
+            return state.setIn(['myDrafts'], modifiedDraftMoments);
+        case ContentActionTypes.MOMENT_DRAFT_DELETED:
+            // Remove (deleted draft) moments
+            return state.setIn(['myDrafts'], modifiedDraftMoments);
+        case MapActionTypes.MOMENT_UPDATED:
+            // Remove moment updated from draft to complete
+            return state.setIn(['myDrafts'], modifiedDraftMoments);
 
         // Spaces
         case ContentActionTypes.INSERT_ACTIVE_SPACES:
@@ -137,19 +175,29 @@ const content = (state: IContentState = initialState, action: any) => {
             // Add next offset of spaces to end
             return state.setIn(['bookmarkedSpaces'], action.data.spaces)
                 .setIn(['media'], { ...state.media, ...action.data.media });
-        case ContentActionTypes.SEARCH_MY_DRAFTS:
-            // Add next offset of spaces to end
-            return state.setIn(['myDrafts'], [...action.data.results])
-                .setIn(['myDraftsPagination'], { ...action.data.pagination });
-        case ContentActionTypes.MOMENT_DRAFT_CREATED:
-            modifiedDraftMoments.unshift(action.data);
-            return state.setIn(['myDrafts'], modifiedDraftMoments);
-        case ContentActionTypes.MOMENT_DRAFT_DELETED:
-            // Remove (deleted draft) moments
-            return state.setIn(['myDrafts'], modifiedDraftMoments);
-        case MapActionTypes.MOMENT_UPDATED:
-            // Remove moment updated from draft to complete
-            return state.setIn(['myDrafts'], modifiedDraftMoments);
+
+        // Thoughts
+        case ContentActionTypes.INSERT_ACTIVE_THOUGHTS:
+            // Add latest thoughts to start
+            return state.setIn(['activeThoughts'], [...action.data, ...state.activeThoughts]);
+        case ContentActionTypes.REMOVE_ACTIVE_THOUGHTS:
+            // Remove (reported) thoughts
+            return state.setIn(['activeThoughts'], modifiedActiveThoughts);
+        case ContentActionTypes.UPDATE_ACTIVE_THOUGHT_REACTION:
+            return state.setIn(['activeThoughts'], modifiedActiveThoughts)
+                .setIn(['bookmarkedThoughts'], modifiedBookmarkedThoughts);
+        case ContentActionTypes.SEARCH_ACTIVE_THOUGHTS:
+            // Add next offset of thoughts to end
+            return state.setIn(['activeThoughts'], [...state.activeThoughts, ...action.data.thoughts])
+                .setIn(['activeThoughtsPagination'], { ...action.data.pagination });
+        case ContentActionTypes.UPDATE_ACTIVE_THOUGHTS:
+            // Reset thoughts from scratch
+            return state.setIn(['activeThoughts'], action.data.thoughts)
+                .setIn(['activeThoughtsPagination'], { ...action.data.pagination });
+        case ContentActionTypes.SEARCH_BOOKMARKED_THOUGHTS:
+            // Add next offset of thoughts to end
+            return state.setIn(['bookmarkedThoughts'], action.data.thoughts)
+                .setIn(['media'], { ...state.media, ...action.data.media });
 
         // Other
         case ContentActionTypes.FETCH_MEDIA:

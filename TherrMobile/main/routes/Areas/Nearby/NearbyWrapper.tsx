@@ -26,7 +26,7 @@ import { getReactionUpdateArgs } from '../../../utilities/reactions';
 import LottieLoader, { ILottieId } from '../../../components/LottieLoader';
 import getActiveCarouselData from '../../../utilities/getActiveCarouselData';
 import { CAROUSEL_TABS } from '../../../constants';
-import { handleAreaReaction, loadMoreAreas, navToViewArea } from '../areaViewHelpers';
+import { handleAreaReaction, loadMoreAreas, navToViewArea } from '../postViewHelpers';
 import requestLocationServiceActivation from '../../../utilities/requestLocationServiceActivation';
 import { checkAndroidPermission, isLocationPermissionGranted, requestOSMapPermissions } from '../../../utilities/requestOSPermissions';
 import LocationActions from '../../../redux/actions/LocationActions';

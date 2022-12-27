@@ -8,11 +8,12 @@ import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas/
 import AreaDisplay from '../../components/UserContent/AreaDisplay';
 import AreaDisplayMedium from '../../components/UserContent/AreaDisplayMedium';
 import formatDate from '../../utilities/formatDate';
+import ThoughtDisplay from '../../components/UserContent/ThoughtDisplay';
 
 // let flatListRef;
 
-const renderItem = ({ item: area }, {
-    content,
+const renderItem = ({ item: post }, {
+    media,
     displaySize,
     inspectArea,
     toggleAreaOptions,
@@ -27,20 +28,47 @@ const renderItem = ({ item: area }, {
     updateAreaReaction,
     user,
 }) => {
-    if (area.media && !content?.media[area.media[0]?.id]) {
-        fetchMedia(area.media[0]?.id);
+    if (post.media && (!media || !media[post.media[0]?.id])) {
+        fetchMedia(post.media[0]?.id);
     }
-    const areaMedia = content?.media[area.media && area.media[0]?.id];
-    const userDetails = area.fromUserName ? {
-        userName: area.fromUserName,
+    const postMedia = media && media[post.media && post.media[0]?.id];
+    const userDetails = post.fromUserName ? {
+        userName: post.fromUserName,
     } : {
-        userName: user.details.id === area.fromUserId ? user.details.userName : area.fromUserId,
+        userName: user.details.id === post.fromUserId ? user.details.userName : post.fromUserId,
     };
+
+    if (!post.areaType) {
+        return (
+            <Pressable
+                style={theme.styles.areaContainer}
+                onPress={() => inspectArea(post)}
+            >
+                <ThoughtDisplay
+                    translate={translate}
+                    date={formattedDate}
+                    goToViewUser={goToViewUser}
+                    toggleThoughtOptions={toggleAreaOptions} // TODO
+                    hashtags={post.hashTags ? post.hashTags.split(',') : []}
+                    thought={post}
+                    inspectThought={() => inspectArea(post)}
+                    // TODO: Get username from response
+                    user={user}
+                    userDetails={userDetails}
+                    updateThoughtReaction={updateAreaReaction}// TODO
+                    isDarkMode={false}
+                    theme={theme}
+                    themeForms={themeForms}
+                    themeViewArea={themeArea}
+                />
+            </Pressable>
+        );
+    }
 
     return (
         <Pressable
             style={theme.styles.areaContainer}
-            onPress={() => inspectArea(area)}
+            onPress={() => inspectArea(post)}
         >
             {
                 displaySize === 'medium' ?
@@ -50,14 +78,14 @@ const renderItem = ({ item: area }, {
                         goToViewMap={goToViewMap}
                         goToViewUser={goToViewUser}
                         toggleAreaOptions={toggleAreaOptions}
-                        hashtags={area.hashTags ? area.hashTags.split(',') : []}
-                        area={area}
-                        inspectArea={() => inspectArea(area)}
+                        hashtags={post.hashTags ? post.hashTags.split(',') : []}
+                        area={post}
+                        inspectArea={() => inspectArea(post)}
                         // TODO: Get username from response
                         user={user}
                         userDetails={userDetails}
                         updateAreaReaction={updateAreaReaction}
-                        areaMedia={areaMedia}
+                        areaMedia={postMedia}
                         isDarkMode={false}
                         theme={theme}
                         themeForms={themeForms}
@@ -69,14 +97,14 @@ const renderItem = ({ item: area }, {
                         goToViewMap={goToViewMap}
                         goToViewUser={goToViewUser}
                         toggleAreaOptions={toggleAreaOptions}
-                        hashtags={area.hashTags ? area.hashTags.split(',') : []}
-                        area={area}
-                        inspectArea={() => inspectArea(area)}
+                        hashtags={post.hashTags ? post.hashTags.split(',') : []}
+                        area={post}
+                        inspectArea={() => inspectArea(post)}
                         // TODO: Get username from response
                         user={user}
                         userDetails={userDetails}
                         updateAreaReaction={updateAreaReaction}
-                        areaMedia={areaMedia}
+                        areaMedia={postMedia}
                         isDarkMode={false}
                         theme={theme}
                         themeForms={themeForms}
@@ -168,7 +196,7 @@ export default ({
                 data={activeData}
                 keyExtractor={(item) => String(item.id)}
                 renderItem={(itemObj) => renderItem(itemObj, {
-                    content,
+                    media: content?.media,
                     displaySize: displaySize || 'large', // default to large
                     inspectArea,
                     fetchMedia,

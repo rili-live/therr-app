@@ -18,7 +18,7 @@ import AreaCarousel from './AreaCarousel';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
 import { getReactionUpdateArgs } from '../../utilities/reactions';
 import { CAROUSEL_TABS } from '../../constants';
-import { handleAreaReaction, navToViewArea } from './areaViewHelpers';
+import { handleAreaReaction, navToViewArea } from './postViewHelpers';
 import AreaOptionsModal, { ISelectionType } from '../../components/Modals/AreaOptionsModal';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import getDirections from '../../utilities/getDirections';

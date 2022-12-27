@@ -33,6 +33,8 @@ const getStore = async () => {
             socketDetails: {
                 session: storedSocketDetails,
             },
+            thoughts: [],
+            myThoughts: [],
         },
     };
     if (isAuthenticated) {

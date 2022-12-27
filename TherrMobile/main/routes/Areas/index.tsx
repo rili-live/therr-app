@@ -22,7 +22,7 @@ import { getReactionUpdateArgs } from '../../utilities/reactions';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
 import { CAROUSEL_TABS } from '../../constants';
-import { handleAreaReaction, loadMoreAreas, navToViewArea } from './areaViewHelpers';
+import { handleAreaReaction, loadMorePosts, navToViewArea } from './postViewHelpers';
 import getDirections from '../../utilities/getDirections';
 import { SELECT_ALL } from '../../utilities/categories';
 import LazyPlaceholder from './components/LazyPlaceholder';
@@ -47,6 +47,10 @@ interface IAreasDispatchProps {
     searchActiveSpaces: Function;
     updateActiveSpaces: Function;
     createOrUpdateSpaceReaction: Function;
+
+    searchActiveThoughts: Function;
+    updateActiveThoughts: Function;
+    createOrUpdateThoughtReaction: Function;
 
     logout: Function;
 }
@@ -88,6 +92,10 @@ const mapDispatchToProps = (dispatch: any) =>
             searchActiveSpaces: ContentActions.searchActiveSpaces,
             updateActiveSpaces: ContentActions.updateActiveSpaces,
             createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
+
+            searchActiveThoughts: ContentActions.searchActiveThoughts,
+            updateActiveThoughts: ContentActions.updateActiveThoughts,
+            createOrUpdateThoughtReaction: ContentActions.createOrUpdateThoughtReaction,
         },
         dispatch
     );
@@ -144,6 +152,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             activeTab: defaultActiveTab,
             content,
             isForBookmarks: false,
+            shouldIncludeThoughts: true,
         }, 'createdAt');
         if (!activeData?.length || activeData.length < 21) {
             this.handleRefresh();
@@ -202,7 +211,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     }
 
     handleRefresh = () => {
-        const { content, updateActiveMoments, updateActiveSpaces, user } = this.props;
+        const { content, updateActiveMoments, updateActiveSpaces, updateActiveThoughts, user } = this.props;
         this.setState({ isLoading: true });
 
         const activeMomentsPromise = updateActiveMoments({
@@ -223,7 +232,15 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             shouldHideMatureContent: user.details.shouldHideMatureContent,
         });
 
-        return Promise.all([activeMomentsPromise, activeSpacesPromise]).finally(() => {
+        const activeThoughtsPromise = updateActiveThoughts({
+            withUser: true,
+            offset: 0,
+            // ...content.activeAreasFilters,
+            blockedUsers: user.details.blockedUsers,
+            shouldHideMatureContent: user.details.shouldHideMatureContent,
+        });
+
+        return Promise.all([activeMomentsPromise, activeSpacesPromise, activeThoughtsPromise]).finally(() => {
             this.loadTimeoutId = setTimeout(() => {
                 this.setState({ isLoading: false });
             }, 400);
@@ -231,13 +248,14 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     }
 
     tryLoadMore = () => {
-        const { content, searchActiveMoments, searchActiveSpaces, user } = this.props;
+        const { content, searchActiveMoments, searchActiveSpaces, searchActiveThoughts, user } = this.props;
 
-        loadMoreAreas({
+        loadMorePosts({
             content,
             user,
             searchActiveMoments,
             searchActiveSpaces,
+            searchActiveThoughts,
         });
     }
 
@@ -326,6 +344,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                     activeTab: route.key,
                     content,
                     isForBookmarks: false,
+                    shouldIncludeThoughts: true,
                 }, 'createdAt', categoriesFilter);
 
                 return (

@@ -147,6 +147,67 @@ const Content = {
                 data: response?.data,
             });
         }),
+
+    // Thoughts
+    insertActiveThoughts: (newActiveThoughts: any) => (dispatch: any) => {
+        dispatch({
+            type: ContentActionTypes.INSERT_ACTIVE_THOUGHTS,
+            data: newActiveThoughts,
+        });
+    },
+    searchActiveThoughts: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
+        .searchActiveThoughts(options, limit)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.SEARCH_ACTIVE_THOUGHTS,
+                data: response?.data,
+            });
+        }),
+    updateActiveThoughts: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
+        .searchActiveThoughts(options, limit)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.UPDATE_ACTIVE_THOUGHTS,
+                data: response?.data,
+            });
+        }),
+    createOrUpdateThoughtReaction: (
+        spaceId: number,
+        params: ICreateOrUpdateAreaReactionBody,
+        spaceUserId: string,
+        reactorUserName: string,
+    ) => (dispatch: any) => ReactionsService
+        .createOrUpdateThoughtReaction(spaceId, params)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.UPDATE_ACTIVE_THOUGHT_REACTION,
+                data: response?.data,
+            });
+            dispatch({
+                type: SocketClientActionTypes.CREATE_OR_UPDATE_REACTION,
+                data: {
+                    areaUserId: spaceUserId,
+                    reactorUserName,
+                    spaceReaction: response?.data,
+                },
+            });
+            if (params?.userHasReported) {
+                dispatch({
+                    type: ContentActionTypes.REMOVE_ACTIVE_THOUGHTS,
+                    data: {
+                        spaceId,
+                    },
+                });
+            }
+        }),
+    searchBookmarkedThoughts: (options: ISearchActiveAreasParams) => (dispatch: any) => ReactionsService
+        .searchBookmarkedThoughts(options, 100)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.SEARCH_BOOKMARKED_THOUGHTS,
+                data: response?.data,
+            });
+        }),
 };
 
 export default Content;

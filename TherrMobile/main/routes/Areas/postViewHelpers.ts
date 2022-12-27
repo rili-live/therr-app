@@ -30,6 +30,10 @@ interface ILoadMoreAreas {
     searchActiveSpaces: any;
 }
 
+interface ILoadMorePosts extends ILoadMoreAreas{
+    searchActiveThoughts: any;
+}
+
 const loadMoreAreas = ({
     content,
     map,
@@ -38,7 +42,7 @@ const loadMoreAreas = ({
     searchActiveSpaces,
 }: ILoadMoreAreas) => {
     if (!content.activeMomentsPagination.isLastPage) {
-        return searchActiveMoments({
+        searchActiveMoments({
             userLatitude: map?.latitude,
             userLongitude: map?.longitude,
             withMedia: true,
@@ -51,13 +55,40 @@ const loadMoreAreas = ({
     }
 
     if (!content.activeSpacesPagination.isLastPage) {
-        return searchActiveSpaces({
+        searchActiveSpaces({
             userLatitude: map?.latitude,
             userLongitude: map?.longitude,
             withMedia: true,
             withUser: true,
             offset: content.activeSpacesPagination.offset + content.activeSpacesPagination.itemsPerPage,
             ...content.activeAreasFilters,
+            blockedUsers: user.details.blockedUsers,
+            shouldHideMatureContent: user.details.shouldHideMatureContent,
+        });
+    }
+};
+
+const loadMorePosts = ({
+    content,
+    map,
+    user,
+    searchActiveMoments,
+    searchActiveSpaces,
+    searchActiveThoughts,
+}: ILoadMorePosts) => {
+    loadMoreAreas({
+        content,
+        map,
+        user,
+        searchActiveMoments,
+        searchActiveSpaces,
+    });
+
+    if (!content.activeThoughtsPagination.isLastPage) {
+        searchActiveThoughts({
+            withUser: true,
+            offset: content.activeThoughtsPagination.offset + content.activeThoughtsPagination.itemsPerPage,
+            // ...content.activeAreasFilters,
             blockedUsers: user.details.blockedUsers,
             shouldHideMatureContent: user.details.shouldHideMatureContent,
         });
@@ -85,5 +116,6 @@ const navToViewArea = (area, user, navigate) => {
 export {
     handleAreaReaction,
     loadMoreAreas,
+    loadMorePosts,
     navToViewArea,
 };
