@@ -172,12 +172,12 @@ const Content = {
             });
         }),
     createOrUpdateThoughtReaction: (
-        spaceId: number,
+        thoughtId: number,
         params: ICreateOrUpdateAreaReactionBody,
-        spaceUserId: string,
+        thoughtUserId: string,
         reactorUserName: string,
     ) => (dispatch: any) => ReactionsService
-        .createOrUpdateThoughtReaction(spaceId, params)
+        .createOrUpdateThoughtReaction(thoughtId, params)
         .then((response: any) => {
             dispatch({
                 type: ContentActionTypes.UPDATE_ACTIVE_THOUGHT_REACTION,
@@ -186,16 +186,16 @@ const Content = {
             dispatch({
                 type: SocketClientActionTypes.CREATE_OR_UPDATE_REACTION,
                 data: {
-                    areaUserId: spaceUserId,
+                    thoughtUserId,
                     reactorUserName,
-                    spaceReaction: response?.data,
+                    thoughtReaction: response?.data,
                 },
             });
             if (params?.userHasReported) {
                 dispatch({
                     type: ContentActionTypes.REMOVE_ACTIVE_THOUGHTS,
                     data: {
-                        spaceId,
+                        thoughtId,
                     },
                 });
             }

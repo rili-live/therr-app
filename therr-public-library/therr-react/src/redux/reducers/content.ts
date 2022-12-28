@@ -95,8 +95,8 @@ const content = (state: IContentState = initialState, action: any) => {
     if (state.activeThoughts) {
         modifiedActiveThoughts = JSON.parse(JSON.stringify(state.activeThoughts));
         modifiedBookmarkedThoughts = JSON.parse(JSON.stringify(state.bookmarkedThoughts));
-        moddedActiveIndex = modifiedActiveThoughts.findIndex((space) => space.id === action.data?.spaceId);
-        moddedBookmarkedIndex = modifiedBookmarkedThoughts.findIndex((space) => space.id === action.data?.spaceId);
+        moddedActiveIndex = modifiedActiveThoughts.findIndex((thought) => thought.id === action.data?.thoughtId);
+        moddedBookmarkedIndex = modifiedBookmarkedThoughts.findIndex((thought) => thought.id === action.data?.thoughtId);
 
         if (moddedActiveIndex !== -1) {
             if (action.type === ContentActionTypes.UPDATE_ACTIVE_THOUGHT_REACTION) {

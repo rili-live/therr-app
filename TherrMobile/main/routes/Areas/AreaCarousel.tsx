@@ -5,10 +5,35 @@ import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { buildStyles } from '../../styles/user-content/areas';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas/viewing';
+import { buildStyles as buildThoughtStyles } from '../../styles/user-content/thoughts/viewing';
 import AreaDisplay from '../../components/UserContent/AreaDisplay';
 import AreaDisplayMedium from '../../components/UserContent/AreaDisplayMedium';
 import formatDate from '../../utilities/formatDate';
 import ThoughtDisplay from '../../components/UserContent/ThoughtDisplay';
+
+interface IAreaCarouselProps {
+    activeData: any;
+    content: any;
+    displaySize: any;
+    inspectArea: any;
+    containerRef: any;
+    fetchMedia: any;
+    goToViewMap: any;
+    goToViewUser: any;
+    handleRefresh: any;
+    isLoading: any;
+    onEndReached: any;
+    toggleAreaOptions: any;
+    translate: any;
+    updateMomentReaction: any;
+    updateSpaceReaction: any;
+    updateThoughtReaction?: any;
+    emptyListMessage: any;
+    renderHeader: any;
+    renderLoader: any;
+    rootStyles: any;
+    user: any;
+}
 
 // let flatListRef;
 
@@ -23,9 +48,9 @@ const renderItem = ({ item: post }, {
     goToViewUser,
     translate,
     theme,
-    themeArea,
+    themeViewPost,
     themeForms,
-    updateAreaReaction,
+    updateReaction,
     user,
 }) => {
     if (post.media && (!media || !media[post.media[0]?.id])) {
@@ -55,11 +80,11 @@ const renderItem = ({ item: post }, {
                     // TODO: Get username from response
                     user={user}
                     userDetails={userDetails}
-                    updateThoughtReaction={updateAreaReaction}// TODO
+                    updateThoughtReaction={updateReaction}// TODO
                     isDarkMode={false}
                     theme={theme}
                     themeForms={themeForms}
-                    themeViewArea={themeArea}
+                    themeViewArea={themeViewPost}
                 />
             </Pressable>
         );
@@ -84,12 +109,12 @@ const renderItem = ({ item: post }, {
                         // TODO: Get username from response
                         user={user}
                         userDetails={userDetails}
-                        updateAreaReaction={updateAreaReaction}
+                        updateAreaReaction={updateReaction}
                         areaMedia={postMedia}
                         isDarkMode={false}
                         theme={theme}
                         themeForms={themeForms}
-                        themeViewArea={themeArea}
+                        themeViewArea={themeViewPost}
                     /> :
                     <AreaDisplay
                         translate={translate}
@@ -103,12 +128,12 @@ const renderItem = ({ item: post }, {
                         // TODO: Get username from response
                         user={user}
                         userDetails={userDetails}
-                        updateAreaReaction={updateAreaReaction}
+                        updateAreaReaction={updateReaction}
                         areaMedia={postMedia}
                         isDarkMode={false}
                         theme={theme}
                         themeForms={themeForms}
-                        themeViewArea={themeArea}
+                        themeViewArea={themeViewPost}
                     />
             }
         </Pressable>
@@ -137,6 +162,7 @@ export default ({
     translate,
     updateMomentReaction,
     updateSpaceReaction,
+    updateThoughtReaction,
     emptyListMessage,
     renderHeader,
     renderLoader,
@@ -144,12 +170,13 @@ export default ({
     user,
     // viewportHeight,
     // viewportWidth,
-}) => {
+}: IAreaCarouselProps) => {
     const [refreshing, setRefreshing] = React.useState(false);
 
     // TODO: Move to top level
     const theme = buildStyles(user.details.mobileThemeName);
     const themeArea = buildAreaStyles(user.details.mobileThemeName, false);
+    const themeThought = buildThoughtStyles(user.details.mobileThemeName, false);
     const themeForms = buildFormStyles(user.details.mobileThemeName);
     const isUsingBottomSheet = (displaySize === 'small' || displaySize === 'medium');
     const FlatListComponent = isUsingBottomSheet ? BottomSheetFlatList : FlatList;
@@ -195,22 +222,27 @@ export default ({
             <FlatListComponent
                 data={activeData}
                 keyExtractor={(item) => String(item.id)}
-                renderItem={(itemObj) => renderItem(itemObj, {
-                    media: content?.media,
-                    displaySize: displaySize || 'large', // default to large
-                    inspectArea,
-                    fetchMedia,
-                    formattedDate: formatDate(itemObj.item.createdAt),
-                    goToViewMap,
-                    goToViewUser,
-                    toggleAreaOptions,
-                    translate,
-                    theme,
-                    themeArea,
-                    themeForms,
-                    updateAreaReaction: itemObj.item.areaType === 'spaces' ? updateSpaceReaction : updateMomentReaction,
-                    user,
-                })}
+                renderItem={(itemObj) => {
+                    const updateReaction = (!itemObj.item.areaType && !!updateThoughtReaction)
+                        ? updateThoughtReaction
+                        : (itemObj.item.areaType === 'spaces' ? updateSpaceReaction : updateMomentReaction);
+                    return renderItem(itemObj, {
+                        media: content?.media,
+                        displaySize: displaySize || 'large', // default to large
+                        inspectArea,
+                        fetchMedia,
+                        formattedDate: formatDate(itemObj.item.createdAt),
+                        goToViewMap,
+                        goToViewUser,
+                        toggleAreaOptions,
+                        translate,
+                        theme,
+                        themeViewPost: itemObj.item.areaType ? themeArea : themeThought,
+                        themeForms,
+                        updateReaction,
+                        user,
+                    });
+                }}
                 initialNumToRender={1}
                 ListEmptyComponent={<Text style={theme.styles.noAreasFoundText}>{emptyListMessage}</Text>}
                 ListHeaderComponent={renderHeader()}

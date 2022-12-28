@@ -16,6 +16,8 @@ import HashtagsContainer from './HashtagsContainer';
 import { ITherrThemeColors } from '../../styles/themes';
 import spacingStyles from '../../styles/layouts/spacing';
 import { getUserImageUri } from '../../utilities/content';
+import TherrIcon from '../TherrIcon';
+
 
 const hapticFeedbackOptions = {
     enableVibrateFallback: true,
@@ -98,91 +100,108 @@ export default class ThoughtDisplay extends React.Component<IThoughtDisplayProps
         } = this.props;
 
         const isBookmarked = thought.reaction?.userBookmarkCategory;
+        const isLiked = thought.reaction?.userHasLiked;
+        const likeColor = isLiked ? theme.colors.accentRed : (isDarkMode ? theme.colors.textWhite : theme.colors.tertiary);
 
         return (
             <>
-                <View style={themeViewArea.styles.areaAuthorContainer}>
-                    <Pressable
-                        onPress={() => goToViewUser(thought.fromUserId)}
-                    >
-                        <Image
-                            source={{ uri: getUserImageUri({ details: { media: thought.fromUserMedia, id: thought.fromUserId } }, 52) }}
-                            style={themeViewArea.styles.areaUserAvatarImg}
-                            containerStyle={themeViewArea.styles.areaUserAvatarImgContainer}
-                            PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary}/>}
-                            transition={false}
-                        />
-                    </Pressable>
-                    <View style={themeViewArea.styles.areaAuthorTextContainer}>
-                        {
-                            userDetails &&
-                                <Text style={themeViewArea.styles.areaUserName} numberOfLines={1}>
-                                    {`${userDetails.userName}`}
-                                </Text>
-                        }
-                        <Text style={themeViewArea.styles.dateTime}>
-                            {date}
-                        </Text>
+                <View style={themeViewArea.styles.thoughtContainer} >
+                    <View style={themeViewArea.styles.thoughtLeftContainer}>
+                        <Pressable
+                            onPress={() => goToViewUser(thought.fromUserId)}
+                        >
+                            <Image
+                                source={{ uri: getUserImageUri({ details: { media: thought.fromUserMedia, id: thought.fromUserId } }, 52) }}
+                                style={themeViewArea.styles.thoughtUserAvatarImg}
+                                containerStyle={themeViewArea.styles.thoughtUserAvatarImgContainer}
+                                PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary}/>}
+                                transition={false}
+                            />
+                        </Pressable>
                     </View>
-                    <Button
-                        containerStyle={themeViewArea.styles.moreButtonContainer}
-                        buttonStyle={themeViewArea.styles.moreButton}
-                        icon={
-                            <Icon
-                                name="more-horiz"
-                                size={24}
-                                color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
-                            />
-                        }
-                        onPress={() => toggleThoughtOptions(thought)}
-                        type="clear"
-                        TouchableComponent={TouchableWithoutFeedbackComponent}
-                    />
-                </View>
-                <View style={{ display: 'flex', flexDirection: 'row' }}>
-                    <View style={spacingStyles.flexOne}>
-                        <View style={themeViewArea.styles.areaContentTitleContainer}>
-                            <Text
-                                style={themeViewArea.styles.areaContentTitleMedium
+                    <View style={themeViewArea.styles.thoughtRightContainer}>
+                        <View style={themeViewArea.styles.thoughtAuthorContainer}>
+                            <View style={themeViewArea.styles.thoughtAuthorTextContainer}>
+                                {
+                                    userDetails &&
+                                        <Text style={themeViewArea.styles.thoughtUserName} numberOfLines={1}>
+                                            {`${userDetails.userName}`}
+                                        </Text>
                                 }
-                                numberOfLines={2}
-                            ></Text>
-                            {
-                                !thought.isDraft &&
-                                <>
-                                    <Button
-                                        containerStyle={themeViewArea.styles.areaReactionButtonContainer}
-                                        buttonStyle={themeViewArea.styles.areaReactionButton}
-                                        icon={
-                                            <Icon
-                                                name={ isBookmarked ? 'bookmark' : 'bookmark-border' }
-                                                size={24}
-                                                color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
-                                            />
-                                        }
-                                        onPress={() => this.onBookmarkPress(thought)}
-                                        type="clear"
-                                        TouchableComponent={TouchableWithoutFeedbackComponent}
+                                <Text style={themeViewArea.styles.dateTime}>
+                                    {date}
+                                </Text>
+                            </View>
+                            <Button
+                                containerStyle={themeViewArea.styles.moreButtonContainer}
+                                buttonStyle={themeViewArea.styles.moreButton}
+                                icon={
+                                    <Icon
+                                        name="more-horiz"
+                                        size={24}
+                                        color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
                                     />
-                                </>
-                            }
+                                }
+                                onPress={() => toggleThoughtOptions(thought)}
+                                type="clear"
+                                TouchableComponent={TouchableWithoutFeedbackComponent}
+                            />
                         </View>
-                        <Text style={themeViewArea.styles.areaMessage} numberOfLines={3}>
-                            <Autolink
-                                text={thought.message}
-                                linkStyle={theme.styles.link}
-                                phone="sms"
-                            />
-                        </Text>
-                        <View>
-                            <HashtagsContainer
-                                hasIcon={false}
-                                hashtags={hashtags}
-                                onHashtagPress={() => {}}
-                                visibleCount={3}
-                                right
-                                styles={themeForms.styles}
-                            />
+                        <View style={themeViewArea.styles.thoughtContentContainer}>
+                            <View style={spacingStyles.flexOne}>
+                                <Text style={themeViewArea.styles.thoughtMessage} numberOfLines={7}>
+                                    <Autolink
+                                        text={thought.message}
+                                        linkStyle={theme.styles.link}
+                                        phone="sms"
+                                    />
+                                </Text>
+                                <View>
+                                    <HashtagsContainer
+                                        hasIcon={false}
+                                        hashtags={hashtags}
+                                        onHashtagPress={() => {}}
+                                        visibleCount={4}
+                                        right
+                                        styles={themeForms.styles}
+                                    />
+                                </View>
+                                <View style={themeViewArea.styles.thoughtReactionsContainer}>
+                                    {
+                                        !thought.isDraft &&
+                                        <>
+                                            <Button
+                                                containerStyle={themeViewArea.styles.thoughtReactionButtonContainer}
+                                                buttonStyle={themeViewArea.styles.thoughtReactionButton}
+                                                icon={
+                                                    <Icon
+                                                        name={ isBookmarked ? 'bookmark' : 'bookmark-border' }
+                                                        size={24}
+                                                        color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                                    />
+                                                }
+                                                onPress={() => this.onBookmarkPress(thought)}
+                                                type="clear"
+                                                TouchableComponent={TouchableWithoutFeedbackComponent}
+                                            />
+                                            <Button
+                                                containerStyle={themeViewArea.styles.areaReactionButtonContainer}
+                                                buttonStyle={themeViewArea.styles.areaReactionButton}
+                                                icon={
+                                                    <TherrIcon
+                                                        name={ isLiked ? 'heart-filled' : 'heart' }
+                                                        size={22}
+                                                        color={likeColor}
+                                                    />
+                                                }
+                                                onPress={() => this.onLikePress(thought)}
+                                                type="clear"
+                                                TouchableComponent={TouchableWithoutFeedbackComponent}
+                                            />
+                                        </>
+                                    }
+                                </View>
+                            </View>
                         </View>
                     </View>
                 </View>

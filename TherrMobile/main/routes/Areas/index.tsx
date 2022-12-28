@@ -332,7 +332,14 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
 
     renderSceneMap = ({ route }) => {
         const { isLoading } = this.state;
-        const { content, map, createOrUpdateMomentReaction, createOrUpdateSpaceReaction, user } = this.props;
+        const {
+            content,
+            map,
+            createOrUpdateMomentReaction,
+            createOrUpdateSpaceReaction,
+            createOrUpdateThoughtReaction,
+            user,
+        } = this.props;
 
         // TODO: Fetch missing media
         const fetchMedia = () => {};
@@ -363,6 +370,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                         onEndReached={this.tryLoadMore}
                         updateMomentReaction={createOrUpdateMomentReaction}
                         updateSpaceReaction={createOrUpdateSpaceReaction}
+                        updateThoughtReaction={createOrUpdateThoughtReaction}
                         emptyListMessage={this.getEmptyListMessage(CAROUSEL_TABS.SOCIAL)}
                         renderHeader={() => null}
                         renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
