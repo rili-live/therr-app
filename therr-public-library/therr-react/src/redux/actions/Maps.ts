@@ -99,6 +99,14 @@ const Maps = {
                 ids: args.ids,
             },
         });
+        args.ids.forEach((id) => {
+            dispatch({
+                type: ContentActionTypes.REMOVE_ACTIVE_MOMENTS,
+                data: {
+                    momentId: id,
+                },
+            });
+        });
     }),
 
     // Spaces
@@ -140,6 +148,14 @@ const Maps = {
             data: {
                 ids: args.ids,
             },
+        });
+        args.ids.forEach((id) => {
+            dispatch({
+                type: ContentActionTypes.REMOVE_ACTIVE_SPACES,
+                data: {
+                    spaceId: id,
+                },
+            });
         });
     }),
 

@@ -32,11 +32,12 @@ import ViewMoment from './ViewMoment';
 import EditMoment from './EditMoment';
 import ViewSpace from './ViewSpace';
 import EditSpace from './EditSpace';
+import EditThought from './EditThought';
 import EditChat from './HostedChat/EditChat';
 import ExchangePointsDisclaimer from './Rewards/ExchangePointsDisclaimer';
 import ViewChat from './HostedChat/ViewChat';
 import ViewThought from './ViewThought';
-import ViewUser from './ViewUser/index.tsx';
+import ViewUser from './ViewUser';
 
 const momentTransitionSpec: any = {
     open: {
@@ -432,6 +433,21 @@ const routes: RouteConfig<
         component: EditSpace,
         options: () => ({
             title: 'Edit Space',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+            headerLeft: () => null,
+            headerTitleAlign: 'left',
+            cardStyleInterpolator: undefined,
+            transitionSpec: momentTransitionSpec,
+        }),
+    },
+    {
+        name: 'EditThought',
+        component: EditThought,
+        options: () => ({
+            title: 'Edit Thought',
             access: {
                 type: AccessCheckType.ALL,
                 levels: [AccessLevels.EMAIL_VERIFIED],
