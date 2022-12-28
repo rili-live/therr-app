@@ -367,6 +367,29 @@
       "backendSuccessMessage": "You have successfully claimed this space!",
       "backendErrorMessage": "Connection error. Please try again later."
     },
+    "editThought": {
+      "buttons": {
+        "addImage": "Attach an Image",
+        "captureNew": "Capture a New Photo",
+        "selectExisting": "Select an Existing Photo",
+        "submit": "Send",
+        "delete": "Delete?",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      },
+      "labels": {
+        "addImageNote": "Select an existing image or capture a new one to represent your thought.",
+        "cost": "Cost: {pointCost} coins",
+        "message": "Describe the location, event, business, promotion, etc...",
+        "notificationMsg": "Title or Location Name",
+        "hashTags": "Hashtags (ie. my_tag, myTag)",
+        "maxViews": "Max views (per person)",
+        "expiresAt": "Countdown",
+        "radius": "Radius: {meters} meters"
+      },
+      "backendSuccessMessage": "You have shared a thought!",
+      "backendErrorMessage": "Connection error. Please try again later."
+    },
     "forgotPassword": {
       "buttons": {
         "submit": "Send E-mail"
@@ -869,6 +892,9 @@
     },
     "viewUser": {
       "headerTitle": "View User"
+    },
+    "viewThought": {
+      "headerTitle": "Thoughts"
     }
   },
   "modals": {
@@ -890,7 +916,7 @@
         "claimSpace": "Spaces are for businesses and promoters. Content is public and helps you leverage custom push notifications, metrics, and location ownership."
       }
     },
-    "areaOptions": {
+    "contentOptions": {
       "buttons": {
         "getDirections": "Get Directions",
         "superLike": "'Super-Like' this",

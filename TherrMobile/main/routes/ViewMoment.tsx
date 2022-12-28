@@ -27,7 +27,7 @@ import { youtubeLinkRegex } from '../constants';
 import AreaDisplay from '../components/UserContent/AreaDisplay';
 import formatDate from '../utilities/formatDate';
 import BaseStatusBar from '../components/BaseStatusBar';
-import { isMyArea as checkIsMyMoment } from '../utilities/content';
+import { isMyContent as checkIsMyMoment } from '../utilities/content';
 import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptionsModal';
 import { getReactionUpdateArgs } from '../utilities/reactions';
 import getDirections from '../utilities/getDirections';
@@ -126,9 +126,9 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
 
     componentDidMount() {
         const { content, getMomentDetails, navigation, route, user } = this.props;
-        const { isMyArea, moment } = route.params;
+        const { isMyContent, moment } = route.params;
 
-        const momentUserName = isMyArea ? user.details.userName : moment.fromUserName;
+        const momentUserName = isMyContent ? user.details.userName : moment.fromUserName;
         const mediaId = (moment.media && moment.media[0]?.id) || (moment.mediaIds?.length && moment.mediaIds?.split(',')[0]);
         const momentMedia = content?.media[mediaId];
 
@@ -285,11 +285,11 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     render() {
         const { areAreaOptionsVisible, isDeleting, isVerifyingDelete, previewLinkId, previewStyleState, selectedMoment } = this.state;
         const { content, route, user } = this.props;
-        const { moment, isMyArea } = route.params;
+        const { moment, isMyContent } = route.params;
         // TODO: Fetch moment media
         const mediaId = (moment.media && moment.media[0]?.id) || (moment.mediaIds?.length && moment.mediaIds?.split(',')[0]);
         const momentMedia = content?.media[mediaId];
-        const momentUserName = isMyArea ? user.details.userName : moment.fromUserName;
+        const momentUserName = isMyContent ? user.details.userName : moment.fromUserName;
 
         return (
             <>
@@ -309,7 +309,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 hashtags={this.hashtags}
                                 isDarkMode={true}
                                 isExpanded={true}
-                                inspectArea={() => null}
+                                inspectContent={() => null}
                                 area={moment}
                                 goToViewMap={this.goToViewMap}
                                 goToViewUser={this.goToViewUser}
@@ -353,7 +353,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 type="clear"
                             />
                             {
-                                isMyArea &&
+                                isMyContent &&
                                 <>
                                     {
                                         !isVerifyingDelete &&

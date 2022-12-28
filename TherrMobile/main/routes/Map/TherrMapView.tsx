@@ -27,7 +27,7 @@ import { buildStyles } from '../../styles';
 import mapStyles from '../../styles/map';
 import mapCustomStyle from '../../styles/map/googleCustom';
 import MarkerIcon from './MarkerIcon';
-import { isMyArea } from '../../utilities/content';
+import { isMyContent } from '../../utilities/content';
 
 const hapticFeedbackOptions = {
     enableVibrateFallback: true,
@@ -129,7 +129,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
         const { user } = this.props;
         const details: any = {};
 
-        if (isMyArea(area, user)) {
+        if (isMyContent(area, user)) {
             details.userDetails = user.details;
         }
 
@@ -182,7 +182,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
             });
             const isProximitySatisfied = distToCenter - selectedSpace.radius <= selectedSpace.maxProximity;
             if (!isProximitySatisfied
-                && !isMyArea(selectedSpace, user)
+                && !isMyContent(selectedSpace, user)
                 && !(this.isAreaActivated('spaces', selectedSpace) && !selectedSpace.doesRequireProximityToView)) {
                 // Deny activation
                 this.props.showAreaAlert();
@@ -200,7 +200,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
                             }, () => {
                                 // TODO: Consider requiring location to view an area
                                 navigation.navigate('ViewSpace', {
-                                    isMyArea: isMyArea(selectedSpace, user),
+                                    isMyContent: isMyContent(selectedSpace, user),
                                     space: selectedSpace,
                                     spaceDetails: details,
                                 });
@@ -239,7 +239,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
                 });
                 const isProximitySatisfied = distToCenter - selectedMoment.radius <= selectedMoment.maxProximity;
                 if (!isProximitySatisfied
-                    && !isMyArea(selectedMoment, user)
+                    && !isMyContent(selectedMoment, user)
                     && !(this.isAreaActivated('moments', selectedMoment) && !selectedMoment.doesRequireProximityToView)) {
                     // Deny activation
                     this.props.showAreaAlert();
@@ -257,7 +257,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
                             }, () => {
                                 // TODO: Consider requiring location to view an area
                                 navigation.navigate('ViewMoment', {
-                                    isMyArea: isMyArea(selectedMoment, user),
+                                    isMyContent: isMyContent(selectedMoment, user),
                                     moment: selectedMoment,
                                     momentDetails: details,
                                 });
@@ -281,7 +281,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
     isAreaActivated = (type: IAreaType, area) => {
         const { reactions, user } = this.props;
 
-        if (isMyArea(area, user)) {
+        if (isMyContent(area, user)) {
             return true;
         }
 
@@ -379,7 +379,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
         const { user } = this.props;
         const { activeMoment } = this.state;
 
-        if (isMyArea(moment, user)) {
+        if (isMyContent(moment, user)) {
             if (moment.id === activeMoment.id) {
                 return this.theme.colors.map.myMomentsCircleFillActive;
             }
@@ -399,7 +399,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
         const { user } = this.props;
         const { activeSpace } = this.state;
 
-        if (isMyArea(space, user)) {
+        if (isMyContent(space, user)) {
             if (space.id === activeSpace.id) {
                 return this.theme.colors.map.mySpacesCircleFillActive;
             }
@@ -418,7 +418,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
     getMomentCircleStrokeColor = (moment) => {
         const { user } = this.props;
 
-        if (isMyArea(moment, user)) {
+        if (isMyContent(moment, user)) {
             return this.theme.colors.map.myMomentsCircleStroke;
         }
 
@@ -433,7 +433,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
     getSpaceCircleStrokeColor = (space) => {
         const { user } = this.props;
 
-        if (isMyArea(space, user)) {
+        if (isMyContent(space, user)) {
             return this.theme.colors.map.mySpacesCircleStroke;
         }
 

@@ -18,8 +18,6 @@ const searchActiveThoughts = async (req: any, res: any) => {
         withMedia,
         withUser,
         withBookmark,
-        userLatitude,
-        userLongitude, // TODO: Fetch coords from user redis store instead?
     } = req.body;
 
     const conditions: any = {
@@ -50,7 +48,7 @@ const searchActiveThoughts = async (req: any, res: any) => {
 
             return axios({
                 method: 'post',
-                url: `${globalConfig[process.env.NODE_ENV].baseMessagesServiceRoute}/thoughts/find`,
+                url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/thoughts/find`,
                 headers: {
                     authorization,
                     'x-localecode': locale,

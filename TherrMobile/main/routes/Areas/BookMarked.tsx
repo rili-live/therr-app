@@ -18,7 +18,7 @@ import AreaCarousel from './AreaCarousel';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
 import { getReactionUpdateArgs } from '../../utilities/reactions';
 import { CAROUSEL_TABS } from '../../constants';
-import { handleAreaReaction, navToViewArea } from './areaViewHelpers';
+import { handleAreaReaction, navToViewContent } from './postViewHelpers';
 import AreaOptionsModal, { ISelectionType } from '../../components/Modals/AreaOptionsModal';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import getDirections from '../../utilities/getDirections';
@@ -176,7 +176,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
     goToArea = (area) => {
         const { navigation, user } = this.props;
 
-        navToViewArea(area, user, navigation.navigate);
+        navToViewContent(area, user, navigation.navigate);
     };
 
     goToViewMap = (lat, long) => {
@@ -251,7 +251,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
                     <AreaCarousel
                         activeData={activeData}
                         content={content}
-                        inspectArea={this.goToArea}
+                        inspectContent={this.goToArea}
                         translate={this.translate}
                         containerRef={(component) => { this.carouselRef = component; }}
                         fetchMedia={fetchMedia}

@@ -230,22 +230,22 @@ usersServiceRouter.post('/subscribers/signup', subscribeAttemptLimiter, subscrib
 
 // Thoughts
 usersServiceRouter.post('/thoughts', createThoughtValidation, validate, handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
 
 usersServiceRouter.post('/thoughts/:thoughtId/details', getThoughtDetailsValidation, validate, handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
 
 usersServiceRouter.post('/thoughts/search', searchThoughtsValidation, validate, handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
 
 usersServiceRouter.delete('/thoughts', deleteThoughtsValidation, validate, handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'delete',
 }));
 

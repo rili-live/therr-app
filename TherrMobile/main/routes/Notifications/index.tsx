@@ -152,6 +152,7 @@ class Notifications extends React.Component<
             || notification.type === NotificationsEmuns.Types.NEW_LIKE_RECEIVED
             || notification.type === NotificationsEmuns.Types.NEW_SUPER_LIKE_RECEIVED) {
             // TODO: Fetch area by notification.messageParams?.areaId and navigate to view moment/space
+            // TODO: Fetch thought by notification.messageParams?.thoughtId and navigate to view thought
             navigation.navigate('Nearby');
         } else if (notification.type === NotificationsEmuns.Types.ACHIEVEMENT_COMPLETED) {
             navigation.navigate('Achievements');

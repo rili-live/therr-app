@@ -35,6 +35,7 @@ import EditSpace from './EditSpace';
 import EditChat from './HostedChat/EditChat';
 import ExchangePointsDisclaimer from './Rewards/ExchangePointsDisclaimer';
 import ViewChat from './HostedChat/ViewChat';
+import ViewThought from './ViewThought';
 import ViewUser from './ViewUser/index.tsx';
 
 const momentTransitionSpec: any = {
@@ -452,6 +453,19 @@ const routes: RouteConfig<
             },
             // cardStyleInterpolator: undefined,
             // transitionSpec: momentTransitionSpec,
+        }),
+    },
+    {
+        name: 'ViewThought',
+        component: ViewThought,
+        options: () => ({
+            title: 'View Thought',
+            access: {
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            },
+            headerLeft: () => null,
+            headerTitleAlign: 'left',
         }),
     },
 ];
