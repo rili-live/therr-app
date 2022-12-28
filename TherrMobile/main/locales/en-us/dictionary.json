@@ -375,12 +375,31 @@
         "submit": "Send",
         "delete": "Delete?",
         "confirm": "Delete",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "visibilityPublic": "Visibility: Public",
+        "visibilityPrivate": "Visibility: Friends Only"
+      },
+      "categories": {
+        "uncategorized": "Select a Category",
+        "art": "Art",
+        "geocache": "Geocache",
+        "menu": "Menu",
+        "music": "Music",
+        "deals": "Deals / Coupons",
+        "fitness": "Sports / Fitness",
+        "storefront": "Storefront Promotion",
+        "idea": "Idea / Observation",
+        "food": "Food",
+        "nature": "Nature / Park",
+        "warning": "Warning / Alert",
+        "seasonal": "Seasonal / Holidays",
+        "drinks": "Happy Hour / Drinks",
+        "nightLife": "Night Life / Social"
       },
       "labels": {
         "addImageNote": "Select an existing image or capture a new one to represent your thought.",
         "cost": "Cost: {pointCost} coins",
-        "message": "Describe the location, event, business, promotion, etc...",
+        "message": "Have an idea...?",
         "notificationMsg": "Title or Location Name",
         "hashTags": "Hashtags (ie. my_tag, myTag)",
         "maxViews": "Max views (per person)",
@@ -663,6 +682,9 @@
     "editSpace": {
       "headerTitle": "Claim a Space",
       "previewHeader": "Preview:"
+    },
+    "editThought": {
+      "headerTitle": "Share a Thought"
     },
     "emailVerification": {
       "buttons": {

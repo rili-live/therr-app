@@ -180,7 +180,6 @@ export default class ThoughtsStore {
         const isTextMature = isTextUnsafe([params.message]);
 
         const sanitizedParams = {
-            areaType: params.areaType || 'thoughts',
             category: params.category || 'uncategorized',
             expiresAt: params.expiresAt,
             fromUserId: params.fromUserId,
