@@ -3,8 +3,8 @@ import getConfig from './getConfig';
 
 const globalConfig = getConfig();
 
-const isMyArea = (selectedMoment, user) => {
-    return String(selectedMoment.fromUserId) === String(user.details.id);
+const isMyContent = (content, user) => {
+    return String(content.fromUserId) === String(user.details.id);
 };
 
 const getUserImageUri = (user, size = 200) => {
@@ -31,6 +31,6 @@ const signImageUrl = (isPublic: boolean, {
 
 export {
     getUserImageUri,
-    isMyArea,
+    isMyContent,
     signImageUrl,
 };

@@ -13,7 +13,7 @@ const router = express.Router();
 router.post('/', createThought);
 
 // SEARCH
-router.post('/:spaceId/details', getThoughtDetails);
+router.post('/:thoughtId/details', getThoughtDetails);
 router.post('/search', searchThoughts);
 router.post('/find', findThoughts);
 

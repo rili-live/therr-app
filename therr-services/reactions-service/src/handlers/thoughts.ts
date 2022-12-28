@@ -48,7 +48,7 @@ const searchActiveThoughts = async (req: any, res: any) => {
 
             return axios({
                 method: 'post',
-                url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/thoughts/find`,
+                url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/thoughts/find`,
                 headers: {
                     authorization,
                     'x-localecode': locale,

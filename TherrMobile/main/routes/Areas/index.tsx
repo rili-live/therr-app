@@ -22,12 +22,13 @@ import { getReactionUpdateArgs } from '../../utilities/reactions';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
 import { CAROUSEL_TABS } from '../../constants';
-import { handleAreaReaction, loadMorePosts, navToViewArea } from './postViewHelpers';
+import { handleAreaReaction, handleThoughtReaction, loadMorePosts, navToViewContent } from './postViewHelpers';
 import getDirections from '../../utilities/getDirections';
 import { SELECT_ALL } from '../../utilities/categories';
 import LazyPlaceholder from './components/LazyPlaceholder';
 import AreaCarousel from './AreaCarousel';
 import { Text } from 'react-native-elements';
+import ThoughtOptionsModal from '../../components/Modals/ThoughtOptionsModal';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -71,7 +72,9 @@ interface IAreasState {
     activeTabIndex: number;
     isLoading: boolean;
     areAreaOptionsVisible: boolean;
+    areThoughtOptionsVisible: boolean;
     selectedArea: any;
+    selectedThought: any;
     tabRoutes: { key: string; title: string }[]
 }
 
@@ -124,7 +127,9 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             activeTabIndex: 0,
             isLoading: true,
             areAreaOptionsVisible: false,
+            areThoughtOptionsVisible: false,
             selectedArea: {},
+            selectedThought: {},
             tabRoutes: [
                 { key: CAROUSEL_TABS.SOCIAL, title: this.translate('menus.headerTabs.social') },
                 { key: CAROUSEL_TABS.EVENTS, title: this.translate('menus.headerTabs.events') },
@@ -185,10 +190,10 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         navigation.navigate('Map');
     }
 
-    goToArea = (area) => {
+    goToContent = (content) => {
         const { navigation, user } = this.props;
 
-        navToViewArea(area, user, navigation.navigate);
+        navToViewContent(content, user, navigation.navigate);
     };
 
     goToViewMap = (lat, long) => {
@@ -280,6 +285,18 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         }
     }
 
+    onThoughtOptionSelect = (type: ISelectionType) => {
+        const { selectedThought } = this.state;
+        const { createOrUpdateThoughtReaction, user } = this.props;
+
+        handleThoughtReaction(selectedThought, type, {
+            user,
+            getReactionUpdateArgs,
+            createOrUpdateThoughtReaction,
+            toggleThoughtOptions: this.toggleThoughtOptions,
+        });
+    }
+
     onTabSelect = (index: number) => {
         this.setState({
             activeTabIndex: index,
@@ -307,7 +324,20 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         const { areAreaOptionsVisible } = this.state;
         this.setState({
             areAreaOptionsVisible: !areAreaOptionsVisible,
+            areThoughtOptionsVisible: false,
             selectedArea: areAreaOptionsVisible ? {} : area,
+            selectedThought: {},
+        });
+    }
+
+    toggleThoughtOptions = (thought) => {
+        console.log(thought);
+        const { areThoughtOptionsVisible } = this.state;
+        this.setState({
+            areAreaOptionsVisible: false,
+            areThoughtOptionsVisible: !areThoughtOptionsVisible,
+            selectedArea: {},
+            selectedThought: areThoughtOptionsVisible ? {} : thought,
         });
     }
 
@@ -358,12 +388,13 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                     <AreaCarousel
                         activeData={socialData}
                         content={content}
-                        inspectArea={this.goToArea}
+                        inspectContent={this.goToContent}
                         isLoading={isLoading}
                         fetchMedia={fetchMedia}
                         goToViewMap={this.goToViewMap}
                         goToViewUser={this.goToViewUser}
                         toggleAreaOptions={this.toggleAreaOptions}
+                        toggleThoughtOptions={this.toggleThoughtOptions}
                         translate={this.translate}
                         containerRef={(component) => { this.carouselSocialRef = component; }}
                         handleRefresh={this.handleRefresh}
@@ -386,18 +417,20 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                     (<AreaCarousel
                         activeData={eventsData}
                         content={content}
-                        inspectArea={this.goToArea}
+                        inspectContent={this.goToContent}
                         isLoading={isLoading}
                         fetchMedia={fetchMedia}
                         goToViewMap={this.goToViewMap}
                         goToViewUser={this.goToViewUser}
                         toggleAreaOptions={this.toggleAreaOptions}
+                        toggleThoughtOptions={this.toggleThoughtOptions}
                         translate={this.translate}
                         containerRef={(component) => { this.carouselEventsRef = component; }}
                         handleRefresh={this.handleRefresh}
                         onEndReached={this.tryLoadMore}
                         updateMomentReaction={createOrUpdateMomentReaction}
                         updateSpaceReaction={createOrUpdateSpaceReaction}
+                        updateThoughtReaction={createOrUpdateThoughtReaction}
                         emptyListMessage={this.getEmptyListMessage(CAROUSEL_TABS.EVENTS)}
                         renderHeader={() => null}
                         renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
@@ -413,18 +446,20 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                     <AreaCarousel
                         activeData={newsData}
                         content={content}
-                        inspectArea={this.goToArea}
+                        inspectContent={this.goToContent}
                         isLoading={isLoading}
                         fetchMedia={fetchMedia}
                         goToViewMap={this.goToViewMap}
                         goToViewUser={this.goToViewUser}
                         toggleAreaOptions={this.toggleAreaOptions}
+                        toggleThoughtOptions={this.toggleThoughtOptions}
                         translate={this.translate}
                         containerRef={(component) => { this.carouselNewsRef = component; }}
                         handleRefresh={this.handleRefresh}
                         onEndReached={this.tryLoadMore}
                         updateMomentReaction={createOrUpdateMomentReaction}
                         updateSpaceReaction={createOrUpdateSpaceReaction}
+                        updateThoughtReaction={createOrUpdateThoughtReaction}
                         emptyListMessage={this.getEmptyListMessage(CAROUSEL_TABS.NEWS)}
                         renderHeader={() => null}
                         renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
@@ -438,7 +473,14 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     }
 
     render() {
-        const { activeTabIndex, areAreaOptionsVisible, selectedArea, tabRoutes } = this.state;
+        const {
+            activeTabIndex,
+            areAreaOptionsVisible,
+            areThoughtOptionsVisible,
+            selectedThought,
+            selectedArea,
+            tabRoutes,
+        } = this.state;
         const { navigation, user } = this.props;
 
         return (
@@ -475,6 +517,14 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                     onRequestClose={() => this.toggleAreaOptions(selectedArea)}
                     translate={this.translate}
                     onSelect={this.onAreaOptionSelect}
+                    themeButtons={this.themeButtons}
+                    themeReactionsModal={this.themeReactionsModal}
+                />
+                <ThoughtOptionsModal
+                    isVisible={areThoughtOptionsVisible}
+                    onRequestClose={() => this.toggleThoughtOptions(selectedThought)}
+                    translate={this.translate}
+                    onSelect={this.onThoughtOptionSelect}
                     themeButtons={this.themeButtons}
                     themeReactionsModal={this.themeReactionsModal}
                 />

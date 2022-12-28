@@ -17,10 +17,10 @@ router.use('/auth', authRouter);
 router.use('/social-sync', socialSyncRouter);
 router.use('/rewards', rewardsRouter);
 router.use('/subscribers', subscribersRouter);
+router.use('/thoughts', thoughtsRouter);
 router.use('/users/achievements', userAchievementsRouter);
 router.use('/users/connections', userConnectionsRouter);
 router.use('/users/notifications', notificationsRouter);
-router.use('/users/thoughts', thoughtsRouter);
 router.use('/users', usersRouter);
 
 export default router;

@@ -47,6 +47,14 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             // position: 'absolute',
             // left: 20
         },
+        inspectThoughtContainer: {
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            padding: 0,
+            paddingHorizontal: 0,
+            marginTop: 0,
+            // marginBottom: 32,
+        },
         thoughtContainer: {
             display: 'flex',
             flexDirection: 'row',

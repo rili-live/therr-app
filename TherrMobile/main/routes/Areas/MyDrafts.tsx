@@ -16,7 +16,7 @@ import { buildStyles as buildMomentStyles } from '../../styles/user-content/area
 import { buildStyles as buildReactionsModalStyles } from '../../styles/modal/areaReactionsModal';
 import AreaCarousel from './AreaCarousel';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
-import { isMyArea as checkIsMyMoment } from '../../utilities/content';
+import { isMyContent as checkIsMyMoment } from '../../utilities/content';
 import { CAROUSEL_TABS } from '../../constants';
 import AreaOptionsModal, { ISelectionType, ModalButton } from '../../components/Modals/AreaOptionsModal';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
@@ -235,7 +235,7 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
                     <AreaCarousel
                         activeData={activeData}
                         content={content}
-                        inspectArea={this.goToArea}
+                        inspectContent={this.goToArea}
                         translate={this.translate}
                         containerRef={(component) => { this.carouselRef = component; }}
                         fetchMedia={fetchMedia}
@@ -266,13 +266,13 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
                 >
                     <ModalButton
                         iconName="directions"
-                        title={this.translate('modals.areaOptions.buttons.getDirections')}
+                        title={this.translate('modals.contentOptions.buttons.getDirections')}
                         onPress={() => this.onAreaOptionSelect('getDirections')}
                         themeButtons={this.themeButtons}
                     />
                     <ModalButton
                         iconName="delete"
-                        title={this.translate('modals.areaOptions.buttons.delete')}
+                        title={this.translate('modals.contentOptions.buttons.delete')}
                         onPress={() => this.onAreaOptionSelect('delete')}
                         themeButtons={this.themeButtons}
                     />

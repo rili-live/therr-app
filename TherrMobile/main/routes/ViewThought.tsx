@@ -10,55 +10,56 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 // import { Button }  from 'react-native-elements';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IContentState, IUserState } from 'therr-react/types';
-import { ContentActions, MapActions } from 'therr-react/redux/actions';
+import { ContentActions } from 'therr-react/redux/actions';
+import UsersActions from '../redux/actions/UsersActions';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-import YoutubePlayer from 'react-native-youtube-iframe';
+// import YoutubePlayer from 'react-native-youtube-iframe';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
 import { buildStyles } from '../styles';
+import { buildStyles as buildReactionsModalStyles } from '../styles/modal/areaReactionsModal';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
 import { buildStyles as buildButtonsStyles } from '../styles/buttons';
-import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/viewing';
-import { buildStyles as buildReactionsModalStyles } from '../styles/modal/areaReactionsModal';
-import userContentStyles from '../styles/user-content';
-import { youtubeLinkRegex } from '../constants';
-import AreaDisplay from '../components/UserContent/AreaDisplay';
+import { buildStyles as buildThoughtStyles } from '../styles/user-content/thoughts/viewing';
+// import userContentStyles from '../styles/user-content';
+// import { youtubeLinkRegex } from '../constants';
+import ThoughtDisplay from '../components/UserContent/ThoughtDisplay';
 import formatDate from '../utilities/formatDate';
 import BaseStatusBar from '../components/BaseStatusBar';
-import { isMyContent as checkIsMySpace } from '../utilities/content';
-import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptionsModal';
+import { isMyContent as checkIsMyContent } from '../utilities/content';
+import ThoughtOptionsModal, { ISelectionType } from '../components/Modals/ThoughtOptionsModal';
 import { getReactionUpdateArgs } from '../utilities/reactions';
-import getDirections from '../utilities/getDirections';
+import TherrIcon from '../components/TherrIcon';
 // import AccentInput from '../components/Input/Accent';
 
-interface IViewSpaceDispatchProps {
-    getSpaceDetails: Function;
-    deleteSpace: Function;
-    createOrUpdateSpaceReaction: Function;
+interface IViewThoughtDispatchProps {
+    getThoughtDetails: Function;
+    deleteThought: Function;
+    createOrUpdateThoughtReaction: Function;
 }
 
-interface IStoreProps extends IViewSpaceDispatchProps {
+interface IStoreProps extends IViewThoughtDispatchProps {
     content: IContentState;
     user: IUserState;
 }
 
 // Regular component props
-export interface IViewSpaceProps extends IStoreProps {
+export interface IViewThoughtProps extends IStoreProps {
     navigation: any;
     route: any;
 }
 
-interface IViewSpaceState {
-    areAreaOptionsVisible: boolean;
+interface IViewThoughtState {
+    areThoughtOptionsVisible: boolean;
     errorMsg: string;
     successMsg: string;
     isDeleting: boolean;
     isVerifyingDelete: boolean;
-    previewLinkId?: string;
-    previewStyleState: any;
-    selectedSpace: any;
+    // previewLinkId?: string;
+    // previewStyleState: any;
+    selectedThought: any;
 }
 
 const mapStateToProps = (state) => ({
@@ -67,14 +68,13 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
-    getSpaceDetails: MapActions.getSpaceDetails,
-    deleteSpace: MapActions.deleteSpace,
-    createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
+    getThoughtDetails: UsersActions.getThoughtDetails,
+    deleteThought: UsersActions.deleteThought,
+    createOrUpdateThoughtReaction: ContentActions.createOrUpdateThoughtReaction,
 }, dispatch);
 
-export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState> {
+export class ViewThought extends React.Component<IViewThoughtProps, IViewThoughtState> {
     private date;
-    private notificationMsg;
     private hashtags;
     private scrollViewRef;
     private translate: Function;
@@ -82,7 +82,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
     private theme = buildStyles();
     private themeAccentLayout = buildAccentStyles();
     private themeButtons = buildButtonsStyles();
-    private themeArea = buildMomentStyles();
+    private themeThought = buildThoughtStyles();
     private themeReactionsModal = buildReactionsModalStyles();
     private themeForms = buildFormStyles();
     private themeAccentForms = buildAccentFormStyles();
@@ -91,54 +91,50 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         super(props);
 
         const { route } = props;
-        const { space } = route.params;
+        const { thought } = route.params;
 
-        const youtubeMatches = (space.message || '').match(youtubeLinkRegex);
+        // const youtubeMatches = (thought.message || '').match(youtubeLinkRegex);
 
         this.state = {
-            areAreaOptionsVisible: false,
+            areThoughtOptionsVisible: false,
             errorMsg: '',
             successMsg: '',
             isDeleting: false,
             isVerifyingDelete: false,
-            previewStyleState: {},
-            previewLinkId: youtubeMatches && youtubeMatches[1],
-            selectedSpace: {},
+            // previewStyleState: {},
+            // previewLinkId: youtubeMatches && youtubeMatches[1],
+            selectedThought: {},
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
-        this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
         this.themeButtons = buildButtonsStyles(props.user.settings?.mobileThemeName);
-        this.themeArea = buildMomentStyles(props.user.settings?.mobileThemeName, true);
+        this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
+        this.themeThought = buildThoughtStyles(props.user.settings?.mobileThemeName, true);
         this.themeReactionsModal = buildReactionsModalStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
 
-        this.notificationMsg = (space.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
-        this.hashtags = space.hashTags ? space.hashTags.split(',') : [];
+        this.hashtags = thought.hashTags ? thought.hashTags.split(',') : [];
 
-        this.date = formatDate(space.updatedAt);
+        this.date = formatDate(thought.updatedAt);
 
         // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
     }
 
     componentDidMount() {
-        const { content, getSpaceDetails, navigation, route, user } = this.props;
-        const { isMyContent, space } = route.params;
+        const { getThoughtDetails, navigation, route, user } = this.props;
+        const { isMyContent, thought } = route.params;
 
-        const spaceUserName = isMyContent ? user.details.userName : space.fromUserName;
-        const mediaId = (space.media && space.media[0]?.id) || (space.mediaIds?.length && space.mediaIds?.split(',')[0]);
-        const spaceMedia = content?.media[mediaId];
+        const thoughtUserName = isMyContent ? user.details.userName : thought.fromUserName;
 
-        // Move space details out of route params and into redux
-        getSpaceDetails(space.id, {
-            withMedia: !spaceMedia,
-            withUser: !spaceUserName,
+        // Move thought details out of route params and into redux
+        getThoughtDetails(thought.id, {
+            withUser: !thoughtUserName,
         });
 
         navigation.setOptions({
-            title: this.notificationMsg,
+            title: this.translate('pages.viewThought.headerTitle'),
         });
 
         this.unsubscribeNavListener = navigation.addListener('beforeRemove', () => {
@@ -162,19 +158,19 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         );
     };
 
-    handlePreviewFullScreen = (isFullScreen) => {
-        const previewStyleState = isFullScreen ? {
-            top: 0,
-            left: 0,
-            padding: 0,
-            margin: 0,
-            position: 'absolute',
-            zIndex: 20,
-        } : {};
-        this.setState({
-            previewStyleState,
-        });
-    }
+    // handlePreviewFullScreen = (isFullScreen) => {
+    //     const previewStyleState = isFullScreen ? {
+    //         top: 0,
+    //         left: 0,
+    //         padding: 0,
+    //         margin: 0,
+    //         position: 'absolute',
+    //         zIndex: 20,
+    //     } : {};
+    //     this.setState({
+    //         previewStyleState,
+    //     });
+    // }
 
     onDelete = () => {
         this.setState({
@@ -189,19 +185,19 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
     }
 
     onDeleteConfirm = () => {
-        const { deleteSpace, navigation, route, user } = this.props;
-        const { space } = route.params;
+        const { deleteThought, navigation, route, user } = this.props;
+        const { thought } = route.params;
 
         this.setState({
             isDeleting: true,
         });
-        if (checkIsMySpace(space, user)) {
-            deleteSpace({ ids: [space.id] })
+        if (checkIsMyContent(thought, user)) {
+            deleteThought({ ids: [thought.id] })
                 .then(() => {
-                    navigation.navigate('Map');
+                    navigation.navigate('Areas');
                 })
                 .catch((err) => {
-                    console.log('Error deleting space', err);
+                    console.log('Error deleting thought', err);
                     this.setState({
                         isDeleting: true,
                         isVerifyingDelete: false,
@@ -210,41 +206,20 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         }
     }
 
-    onSpaceOptionSelect = (type: ISelectionType) => {
-        const { selectedSpace } = this.state;
+    onThoughtOptionSelect = (type: ISelectionType) => {
+        const { selectedThought } = this.state;
 
-        if (type === 'getDirections') {
-            getDirections({
-                latitude: selectedSpace.latitude,
-                longitude: selectedSpace.longitude,
-                title: selectedSpace.notificationMsg,
-            });
-        } else {
-            const requestArgs: any = getReactionUpdateArgs(type);
+        const requestArgs: any = getReactionUpdateArgs(type);
 
-            this.onUpdateSpaceReaction(selectedSpace.id, requestArgs).finally(() => {
-                this.toggleAreaOptions(selectedSpace);
-            });
-        }
+        this.onUpdateThoughtReaction(selectedThought.id, requestArgs).finally(() => {
+            this.toggleThoughtOptions(selectedThought);
+        });
     }
 
     goBack = () => {
-        const { navigation, route } = this.props;
-        const { previousView } = route.params;
-        if (previousView && previousView === 'Spaces') {
-            navigation.goBack();
-        } else {
-            navigation.navigate('Map');
-        }
-    }
-
-    goToViewMap = (lat, long) => {
         const { navigation } = this.props;
-
-        navigation.replace('Map', {
-            latitude: lat,
-            longitude: long,
-        });
+        // const { previousView } = route.params;
+        navigation.goBack();
     }
 
     goToViewUser = (userId) => {
@@ -257,38 +232,43 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         });
     }
 
-    onUpdateSpaceReaction = (spaceId, data) => {
-        const { createOrUpdateSpaceReaction, navigation, route, user } = this.props;
-        const { space } = route.params;
+    onUpdateThoughtReaction = (thoughtId, data) => {
+        const { createOrUpdateThoughtReaction, navigation, route, user } = this.props;
+        const { thought } = route.params;
         navigation.setParams({
-            space: {
-                ...space,
+            thought: {
+                ...thought,
                 reaction: {
-                    ...space.reaction,
+                    ...thought.reaction,
                     ...data,
                 },
             },
         });
-        return createOrUpdateSpaceReaction(spaceId, data, space.fromUserId, user.details.userName);
+        return createOrUpdateThoughtReaction(thoughtId, data, thought.fromUserId, user.details.userName);
     }
 
-    toggleAreaOptions = (area) => {
-        const { areAreaOptionsVisible } = this.state;
+    toggleThoughtOptions = (area) => {
+        const { areThoughtOptionsVisible } = this.state;
 
         this.setState({
-            areAreaOptionsVisible: !areAreaOptionsVisible,
-            selectedSpace: areAreaOptionsVisible ? {} : area,
+            areThoughtOptionsVisible: !areThoughtOptionsVisible,
+            selectedThought: areThoughtOptionsVisible ? {} : area,
         });
     }
 
     render() {
-        const { areAreaOptionsVisible, isDeleting, isVerifyingDelete, previewLinkId, previewStyleState, selectedSpace } = this.state;
-        const { content, route, user } = this.props;
-        const { space, isMyContent } = route.params;
-        // TODO: Fetch space media
-        const mediaId = (space.media && space.media[0]?.id) || (space.mediaIds?.length && space.mediaIds?.split(',')[0]);
-        const spaceMedia = content?.media[mediaId];
-        const spaceUserName = isMyContent ? user.details.userName : space.fromUserName;
+        const {
+            areThoughtOptionsVisible,
+            isDeleting,
+            isVerifyingDelete,
+            // previewLinkId,
+            // previewStyleState,
+            selectedThought,
+        } = this.state;
+        const { route, user } = this.props;
+        const { thought, isMyContent } = route.params;
+        // TODO: Fetch thought media
+        const thoughtUserName = isMyContent ? user.details.userName : thought.fromUserName;
 
         return (
             <>
@@ -300,31 +280,29 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                         style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyView]}
                         contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyViewScroll]}
                     >
-                        <View style={[this.themeAccentLayout.styles.container, this.themeArea.styles.areaContainer]}>
-                            <AreaDisplay
+                        <View style={[this.themeAccentLayout.styles.container, this.themeThought.styles.inspectThoughtContainer]}>
+                            <ThoughtDisplay
                                 translate={this.translate}
                                 date={this.date}
-                                toggleAreaOptions={() => this.toggleAreaOptions(space)}
+                                toggleThoughtOptions={() => this.toggleThoughtOptions(thought)}
                                 hashtags={this.hashtags}
                                 isDarkMode={true}
                                 isExpanded={true}
-                                inspectContent={() => null}
-                                area={space}
-                                goToViewMap={this.goToViewMap}
+                                inspectThought={() => null}
+                                thought={thought}
                                 goToViewUser={this.goToViewUser}
-                                updateAreaReaction={(spaceId, data) => this.onUpdateSpaceReaction(spaceId, data)}
+                                updateThoughtReaction={(thoughtId, data) => this.onUpdateThoughtReaction(thoughtId, data)}
                                 // TODO: User Username from response
                                 user={user}
                                 userDetails={{
-                                    userName: spaceUserName || space.fromUserId,
+                                    userName: thoughtUserName || thought.fromUserId,
                                 }}
-                                areaMedia={spaceMedia}
                                 theme={this.theme}
                                 themeForms={this.themeForms}
-                                themeViewArea={this.themeArea}
+                                themeViewContent={this.themeThought}
                             />
                         </View>
-                        {
+                        {/* {
                             previewLinkId
                             && <View style={[userContentStyles.preview, previewStyleState]}>
                                 <YoutubePlayer
@@ -334,17 +312,17 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                     onFullScreenChange={this.handlePreviewFullScreen}
                                 />
                             </View>
-                        }
+                        } */}
                     </KeyboardAwareScrollView>
                     {
-                        <View style={[this.themeAccentLayout.styles.footer, this.themeArea.styles.footer]}>
+                        <View style={[this.themeAccentLayout.styles.footer, this.themeThought.styles.footer]}>
                             <Button
                                 containerStyle={this.themeAccentForms.styles.backButtonContainer}
                                 buttonStyle={this.themeAccentForms.styles.backButton}
                                 onPress={() => this.goBack()}
                                 icon={
-                                    <FontAwesome5Icon
-                                        name="arrow-left"
+                                    <TherrIcon
+                                        name="go-back"
                                         size={25}
                                         color={'black'}
                                     />
@@ -363,7 +341,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                                 titleStyle={this.themeAccentForms.styles.submitButtonTitle}
                                                 containerStyle={this.themeAccentForms.styles.submitButtonContainer}
                                                 title={this.translate(
-                                                    'forms.editSpace.buttons.delete'
+                                                    'forms.editThought.buttons.delete'
                                                 )}
                                                 icon={
                                                     <FontAwesome5Icon
@@ -387,7 +365,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                                 titleStyle={this.themeAccentForms.styles.submitButtonTitle}
                                                 containerStyle={this.themeAccentForms.styles.submitCancelButtonContainer}
                                                 title={this.translate(
-                                                    'forms.editSpace.buttons.cancel'
+                                                    'forms.editThought.buttons.cancel'
                                                 )}
                                                 onPress={this.onDeleteCancel}
                                                 disabled={isDeleting}
@@ -400,7 +378,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                                 titleStyle={this.themeAccentForms.styles.submitButtonTitleLight}
                                                 containerStyle={this.themeAccentForms.styles.submitButtonContainer}
                                                 title={this.translate(
-                                                    'forms.editSpace.buttons.confirm'
+                                                    'forms.editThought.buttons.confirm'
                                                 )}
                                                 onPress={this.onDeleteConfirm}
                                                 disabled={isDeleting}
@@ -413,11 +391,11 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                         </View>
                     }
                 </SafeAreaView>
-                <AreaOptionsModal
-                    isVisible={areAreaOptionsVisible}
-                    onRequestClose={() => this.toggleAreaOptions(selectedSpace)}
+                <ThoughtOptionsModal
+                    isVisible={areThoughtOptionsVisible}
+                    onRequestClose={() => this.toggleThoughtOptions(selectedThought)}
                     translate={this.translate}
-                    onSelect={this.onSpaceOptionSelect}
+                    onSelect={this.onThoughtOptionSelect}
                     themeButtons={this.themeButtons}
                     themeReactionsModal={this.themeReactionsModal}
                 />
@@ -426,4 +404,4 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(ViewSpace);
+export default connect(mapStateToProps, mapDispatchToProps)(ViewThought);

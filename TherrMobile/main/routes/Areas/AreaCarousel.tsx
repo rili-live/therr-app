@@ -14,8 +14,8 @@ import ThoughtDisplay from '../../components/UserContent/ThoughtDisplay';
 interface IAreaCarouselProps {
     activeData: any;
     content: any;
-    displaySize: any;
-    inspectArea: any;
+    displaySize?: any;
+    inspectContent: any;
     containerRef: any;
     fetchMedia: any;
     goToViewMap: any;
@@ -24,6 +24,7 @@ interface IAreaCarouselProps {
     isLoading: any;
     onEndReached: any;
     toggleAreaOptions: any;
+    toggleThoughtOptions?: any;
     translate: any;
     updateMomentReaction: any;
     updateSpaceReaction: any;
@@ -40,8 +41,8 @@ interface IAreaCarouselProps {
 const renderItem = ({ item: post }, {
     media,
     displaySize,
-    inspectArea,
-    toggleAreaOptions,
+    inspectContent,
+    toggleContentOptions,
     fetchMedia,
     formattedDate,
     goToViewMap,
@@ -67,24 +68,24 @@ const renderItem = ({ item: post }, {
         return (
             <Pressable
                 style={theme.styles.areaContainer}
-                onPress={() => inspectArea(post)}
+                onPress={() => inspectContent(post)}
             >
                 <ThoughtDisplay
                     translate={translate}
                     date={formattedDate}
                     goToViewUser={goToViewUser}
-                    toggleThoughtOptions={toggleAreaOptions} // TODO
+                    toggleThoughtOptions={toggleContentOptions}
                     hashtags={post.hashTags ? post.hashTags.split(',') : []}
                     thought={post}
-                    inspectThought={() => inspectArea(post)}
+                    inspectThought={() => inspectContent(post)} // TODO
                     // TODO: Get username from response
                     user={user}
                     userDetails={userDetails}
-                    updateThoughtReaction={updateReaction}// TODO
+                    updateThoughtReaction={updateReaction}
                     isDarkMode={false}
                     theme={theme}
                     themeForms={themeForms}
-                    themeViewArea={themeViewPost}
+                    themeViewContent={themeViewPost}
                 />
             </Pressable>
         );
@@ -93,7 +94,7 @@ const renderItem = ({ item: post }, {
     return (
         <Pressable
             style={theme.styles.areaContainer}
-            onPress={() => inspectArea(post)}
+            onPress={() => inspectContent(post)}
         >
             {
                 displaySize === 'medium' ?
@@ -102,10 +103,10 @@ const renderItem = ({ item: post }, {
                         date={formattedDate}
                         goToViewMap={goToViewMap}
                         goToViewUser={goToViewUser}
-                        toggleAreaOptions={toggleAreaOptions}
+                        toggleAreaOptions={toggleContentOptions}
                         hashtags={post.hashTags ? post.hashTags.split(',') : []}
                         area={post}
-                        inspectArea={() => inspectArea(post)}
+                        inspectContent={() => inspectContent(post)}
                         // TODO: Get username from response
                         user={user}
                         userDetails={userDetails}
@@ -121,10 +122,10 @@ const renderItem = ({ item: post }, {
                         date={formattedDate}
                         goToViewMap={goToViewMap}
                         goToViewUser={goToViewUser}
-                        toggleAreaOptions={toggleAreaOptions}
+                        toggleAreaOptions={toggleContentOptions}
                         hashtags={post.hashTags ? post.hashTags.split(',') : []}
                         area={post}
-                        inspectArea={() => inspectArea(post)}
+                        inspectContent={() => inspectContent(post)}
                         // TODO: Get username from response
                         user={user}
                         userDetails={userDetails}
@@ -150,7 +151,7 @@ export default ({
     activeData,
     content,
     displaySize,
-    inspectArea,
+    inspectContent,
     containerRef,
     fetchMedia,
     goToViewMap,
@@ -159,6 +160,7 @@ export default ({
     isLoading,
     onEndReached,
     toggleAreaOptions,
+    toggleThoughtOptions,
     translate,
     updateMomentReaction,
     updateSpaceReaction,
@@ -196,7 +198,7 @@ export default ({
     //                 data={content.activeMoments}
     //                 renderItem={(itemObj) => renderItem(itemObj, {
     //                     content,
-    //                     inspectArea,
+    //                     inspectContent,
     //                     formattedDate: formatDate(itemObj.item.createdAt),
     //                     translate,
     //                 })}
@@ -226,15 +228,18 @@ export default ({
                     const updateReaction = (!itemObj.item.areaType && !!updateThoughtReaction)
                         ? updateThoughtReaction
                         : (itemObj.item.areaType === 'spaces' ? updateSpaceReaction : updateMomentReaction);
+                    const toggleContentOptions = (!itemObj.item.areaType && !!toggleThoughtOptions)
+                        ? toggleThoughtOptions
+                        : toggleAreaOptions;
                     return renderItem(itemObj, {
                         media: content?.media,
                         displaySize: displaySize || 'large', // default to large
-                        inspectArea,
+                        inspectContent,
                         fetchMedia,
                         formattedDate: formatDate(itemObj.item.createdAt),
                         goToViewMap,
                         goToViewUser,
-                        toggleAreaOptions,
+                        toggleContentOptions,
                         translate,
                         theme,
                         themeViewPost: itemObj.item.areaType ? themeArea : themeThought,

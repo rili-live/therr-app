@@ -35,6 +35,7 @@ interface IThoughtDisplayProps {
     hashtags: any[];
     inspectThought: () => any;
     isDarkMode: boolean;
+    isExpanded?: boolean;
     thought: any;
     goToViewUser: Function;
     updateThoughtReaction: Function;
@@ -48,7 +49,7 @@ interface IThoughtDisplayProps {
         styles: any;
         colors: ITherrThemeColors;
     };
-    themeViewArea: {
+    themeViewContent: {
         styles: any;
         colors: ITherrThemeColors;
     };
@@ -91,12 +92,13 @@ export default class ThoughtDisplay extends React.Component<IThoughtDisplayProps
             hashtags,
             isDarkMode,
             // inspectThought,
+            isExpanded,
             thought,
             goToViewUser,
             userDetails,
             theme,
             themeForms,
-            themeViewArea,
+            themeViewContent,
         } = this.props;
 
         const isBookmarked = thought.reaction?.userBookmarkCategory;
@@ -105,36 +107,36 @@ export default class ThoughtDisplay extends React.Component<IThoughtDisplayProps
 
         return (
             <>
-                <View style={themeViewArea.styles.thoughtContainer} >
-                    <View style={themeViewArea.styles.thoughtLeftContainer}>
+                <View style={themeViewContent.styles.thoughtContainer} >
+                    <View style={themeViewContent.styles.thoughtLeftContainer}>
                         <Pressable
                             onPress={() => goToViewUser(thought.fromUserId)}
                         >
                             <Image
                                 source={{ uri: getUserImageUri({ details: { media: thought.fromUserMedia, id: thought.fromUserId } }, 52) }}
-                                style={themeViewArea.styles.thoughtUserAvatarImg}
-                                containerStyle={themeViewArea.styles.thoughtUserAvatarImgContainer}
+                                style={themeViewContent.styles.thoughtUserAvatarImg}
+                                containerStyle={themeViewContent.styles.thoughtUserAvatarImgContainer}
                                 PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary}/>}
                                 transition={false}
                             />
                         </Pressable>
                     </View>
-                    <View style={themeViewArea.styles.thoughtRightContainer}>
-                        <View style={themeViewArea.styles.thoughtAuthorContainer}>
-                            <View style={themeViewArea.styles.thoughtAuthorTextContainer}>
+                    <View style={themeViewContent.styles.thoughtRightContainer}>
+                        <View style={themeViewContent.styles.thoughtAuthorContainer}>
+                            <View style={themeViewContent.styles.thoughtAuthorTextContainer}>
                                 {
                                     userDetails &&
-                                        <Text style={themeViewArea.styles.thoughtUserName} numberOfLines={1}>
+                                        <Text style={themeViewContent.styles.thoughtUserName} numberOfLines={1}>
                                             {`${userDetails.userName}`}
                                         </Text>
                                 }
-                                <Text style={themeViewArea.styles.dateTime}>
+                                <Text style={themeViewContent.styles.dateTime}>
                                     {date}
                                 </Text>
                             </View>
                             <Button
-                                containerStyle={themeViewArea.styles.moreButtonContainer}
-                                buttonStyle={themeViewArea.styles.moreButton}
+                                containerStyle={themeViewContent.styles.moreButtonContainer}
+                                buttonStyle={themeViewContent.styles.moreButton}
                                 icon={
                                     <Icon
                                         name="more-horiz"
@@ -147,9 +149,9 @@ export default class ThoughtDisplay extends React.Component<IThoughtDisplayProps
                                 TouchableComponent={TouchableWithoutFeedbackComponent}
                             />
                         </View>
-                        <View style={themeViewArea.styles.thoughtContentContainer}>
+                        <View style={themeViewContent.styles.thoughtContentContainer}>
                             <View style={spacingStyles.flexOne}>
-                                <Text style={themeViewArea.styles.thoughtMessage} numberOfLines={7}>
+                                <Text style={themeViewContent.styles.thoughtMessage} numberOfLines={isExpanded ? undefined : 7}>
                                     <Autolink
                                         text={thought.message}
                                         linkStyle={theme.styles.link}
@@ -161,18 +163,18 @@ export default class ThoughtDisplay extends React.Component<IThoughtDisplayProps
                                         hasIcon={false}
                                         hashtags={hashtags}
                                         onHashtagPress={() => {}}
-                                        visibleCount={4}
+                                        visibleCount={isExpanded ? 20 : 5}
                                         right
                                         styles={themeForms.styles}
                                     />
                                 </View>
-                                <View style={themeViewArea.styles.thoughtReactionsContainer}>
+                                <View style={themeViewContent.styles.thoughtReactionsContainer}>
                                     {
                                         !thought.isDraft &&
                                         <>
                                             <Button
-                                                containerStyle={themeViewArea.styles.thoughtReactionButtonContainer}
-                                                buttonStyle={themeViewArea.styles.thoughtReactionButton}
+                                                containerStyle={themeViewContent.styles.thoughtReactionButtonContainer}
+                                                buttonStyle={themeViewContent.styles.thoughtReactionButton}
                                                 icon={
                                                     <Icon
                                                         name={ isBookmarked ? 'bookmark' : 'bookmark-border' }
@@ -185,8 +187,8 @@ export default class ThoughtDisplay extends React.Component<IThoughtDisplayProps
                                                 TouchableComponent={TouchableWithoutFeedbackComponent}
                                             />
                                             <Button
-                                                containerStyle={themeViewArea.styles.areaReactionButtonContainer}
-                                                buttonStyle={themeViewArea.styles.areaReactionButton}
+                                                containerStyle={themeViewContent.styles.areaReactionButtonContainer}
+                                                buttonStyle={themeViewContent.styles.areaReactionButton}
                                                 icon={
                                                     <TherrIcon
                                                         name={ isLiked ? 'heart-filled' : 'heart' }
