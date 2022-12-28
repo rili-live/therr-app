@@ -2,6 +2,7 @@ import * as Immutable from 'seamless-immutable';
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { IUser, IUserSettings, UserActionTypes } from '../../types/redux/user';
 import UsersService, { ISocialSyncs } from '../../services/UsersService';
+import { ContentActionTypes } from '../../types/redux/content';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ISearchThoughtsArgs {}
@@ -474,6 +475,10 @@ class UsersActions {
             type: UserActionTypes.THOUGHT_CREATED,
             data: response.data,
         });
+        dispatch({
+            type: ContentActionTypes.INSERT_ACTIVE_THOUGHTS,
+            data: [response.data],
+        });
     });
 
     getThoughtDetails = (id: number, data: any) => (dispatch: any) => UsersService.getThoughtDetails(id, data)
@@ -510,6 +515,14 @@ class UsersActions {
             data: {
                 ids: args.ids,
             },
+        });
+        args.ids.forEach((id) => {
+            dispatch({
+                type: ContentActionTypes.REMOVE_ACTIVE_THOUGHTS,
+                data: {
+                    thoughtId: id,
+                },
+            });
         });
     });
 }

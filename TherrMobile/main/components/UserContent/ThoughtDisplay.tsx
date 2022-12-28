@@ -163,7 +163,7 @@ export default class ThoughtDisplay extends React.Component<IThoughtDisplayProps
                                         hasIcon={false}
                                         hashtags={hashtags}
                                         onHashtagPress={() => {}}
-                                        visibleCount={isExpanded ? 20 : 5}
+                                        visibleCount={isExpanded ? 20 : 4}
                                         right
                                         styles={themeForms.styles}
                                     />

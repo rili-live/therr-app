@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dimensions, SafeAreaView, View } from 'react-native';
-// import { Button } from 'react-native-elements';
+import { Button } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -29,6 +29,7 @@ import LazyPlaceholder from './components/LazyPlaceholder';
 import AreaCarousel from './AreaCarousel';
 import { Text } from 'react-native-elements';
 import ThoughtOptionsModal from '../../components/Modals/ThoughtOptionsModal';
+import TherrIcon from '../../components/TherrIcon';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -213,6 +214,12 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                 id: userId,
             },
         });
+    }
+
+    handleEditThought = () => {
+        const { navigation } = this.props;
+
+        navigation.navigate('EditThought', {});
     }
 
     handleRefresh = () => {
@@ -512,6 +519,19 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                         // style={styles.container}
                     />
                 </SafeAreaView>
+                <Button
+                    containerStyle={this.themeButtons.styles.addAThought}
+                    buttonStyle={this.themeButtons.styles.btnLarge}
+                    icon={
+                        <TherrIcon
+                            name={'idea'}
+                            size={27}
+                            style={this.themeButtons.styles.btnIcon}
+                        />
+                    }
+                    raised={true}
+                    onPress={this.handleEditThought}
+                />
                 <AreaOptionsModal
                     isVisible={areAreaOptionsVisible}
                     onRequestClose={() => this.toggleAreaOptions(selectedArea)}
