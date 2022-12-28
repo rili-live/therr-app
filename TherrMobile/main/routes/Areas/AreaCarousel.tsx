@@ -5,42 +5,96 @@ import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { buildStyles } from '../../styles/user-content/areas';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas/viewing';
+import { buildStyles as buildThoughtStyles } from '../../styles/user-content/thoughts/viewing';
 import AreaDisplay from '../../components/UserContent/AreaDisplay';
 import AreaDisplayMedium from '../../components/UserContent/AreaDisplayMedium';
 import formatDate from '../../utilities/formatDate';
+import ThoughtDisplay from '../../components/UserContent/ThoughtDisplay';
+
+interface IAreaCarouselProps {
+    activeData: any;
+    content: any;
+    displaySize?: any;
+    inspectContent: any;
+    containerRef: any;
+    fetchMedia: any;
+    goToViewMap: any;
+    goToViewUser: any;
+    handleRefresh: any;
+    isLoading: any;
+    onEndReached: any;
+    toggleAreaOptions: any;
+    toggleThoughtOptions?: any;
+    translate: any;
+    updateMomentReaction: any;
+    updateSpaceReaction: any;
+    updateThoughtReaction?: any;
+    emptyListMessage: any;
+    renderHeader: any;
+    renderLoader: any;
+    rootStyles: any;
+    user: any;
+}
 
 // let flatListRef;
 
-const renderItem = ({ item: area }, {
-    content,
+const renderItem = ({ item: post }, {
+    media,
     displaySize,
-    inspectArea,
-    toggleAreaOptions,
+    inspectContent,
+    toggleContentOptions,
     fetchMedia,
     formattedDate,
     goToViewMap,
     goToViewUser,
     translate,
     theme,
-    themeArea,
+    themeViewPost,
     themeForms,
-    updateAreaReaction,
+    updateReaction,
     user,
 }) => {
-    if (area.media && !content?.media[area.media[0]?.id]) {
-        fetchMedia(area.media[0]?.id);
+    if (post.media && (!media || !media[post.media[0]?.id])) {
+        fetchMedia(post.media[0]?.id);
     }
-    const areaMedia = content?.media[area.media && area.media[0]?.id];
-    const userDetails = area.fromUserName ? {
-        userName: area.fromUserName,
+    const postMedia = media && media[post.media && post.media[0]?.id];
+    const userDetails = post.fromUserName ? {
+        userName: post.fromUserName,
     } : {
-        userName: user.details.id === area.fromUserId ? user.details.userName : area.fromUserId,
+        userName: user.details.id === post.fromUserId ? user.details.userName : post.fromUserId,
     };
+
+    if (!post.areaType) {
+        return (
+            <Pressable
+                style={theme.styles.areaContainer}
+                onPress={() => inspectContent(post)}
+            >
+                <ThoughtDisplay
+                    translate={translate}
+                    date={formattedDate}
+                    goToViewUser={goToViewUser}
+                    toggleThoughtOptions={toggleContentOptions}
+                    hashtags={post.hashTags ? post.hashTags.split(',') : []}
+                    thought={post}
+                    inspectThought={() => inspectContent(post)} // TODO
+                    // TODO: Get username from response
+                    user={user}
+                    userDetails={userDetails}
+                    updateThoughtReaction={updateReaction}
+                    isDarkMode={false}
+                    theme={theme}
+                    themeForms={themeForms}
+                    themeViewContent={themeViewPost}
+                />
+            </Pressable>
+        );
+    }
 
     return (
         <Pressable
             style={theme.styles.areaContainer}
-            onPress={() => inspectArea(area)}
+            onPress={() => inspectContent(post)}
         >
             {
                 displaySize === 'medium' ?
@@ -49,38 +103,38 @@ const renderItem = ({ item: area }, {
                         date={formattedDate}
                         goToViewMap={goToViewMap}
                         goToViewUser={goToViewUser}
-                        toggleAreaOptions={toggleAreaOptions}
-                        hashtags={area.hashTags ? area.hashTags.split(',') : []}
-                        area={area}
-                        inspectArea={() => inspectArea(area)}
+                        toggleAreaOptions={toggleContentOptions}
+                        hashtags={post.hashTags ? post.hashTags.split(',') : []}
+                        area={post}
+                        inspectContent={() => inspectContent(post)}
                         // TODO: Get username from response
                         user={user}
                         userDetails={userDetails}
-                        updateAreaReaction={updateAreaReaction}
-                        areaMedia={areaMedia}
+                        updateAreaReaction={updateReaction}
+                        areaMedia={postMedia}
                         isDarkMode={false}
                         theme={theme}
                         themeForms={themeForms}
-                        themeViewArea={themeArea}
+                        themeViewArea={themeViewPost}
                     /> :
                     <AreaDisplay
                         translate={translate}
                         date={formattedDate}
                         goToViewMap={goToViewMap}
                         goToViewUser={goToViewUser}
-                        toggleAreaOptions={toggleAreaOptions}
-                        hashtags={area.hashTags ? area.hashTags.split(',') : []}
-                        area={area}
-                        inspectArea={() => inspectArea(area)}
+                        toggleAreaOptions={toggleContentOptions}
+                        hashtags={post.hashTags ? post.hashTags.split(',') : []}
+                        area={post}
+                        inspectContent={() => inspectContent(post)}
                         // TODO: Get username from response
                         user={user}
                         userDetails={userDetails}
-                        updateAreaReaction={updateAreaReaction}
-                        areaMedia={areaMedia}
+                        updateAreaReaction={updateReaction}
+                        areaMedia={postMedia}
                         isDarkMode={false}
                         theme={theme}
                         themeForms={themeForms}
-                        themeViewArea={themeArea}
+                        themeViewArea={themeViewPost}
                     />
             }
         </Pressable>
@@ -97,7 +151,7 @@ export default ({
     activeData,
     content,
     displaySize,
-    inspectArea,
+    inspectContent,
     containerRef,
     fetchMedia,
     goToViewMap,
@@ -106,9 +160,11 @@ export default ({
     isLoading,
     onEndReached,
     toggleAreaOptions,
+    toggleThoughtOptions,
     translate,
     updateMomentReaction,
     updateSpaceReaction,
+    updateThoughtReaction,
     emptyListMessage,
     renderHeader,
     renderLoader,
@@ -116,12 +172,13 @@ export default ({
     user,
     // viewportHeight,
     // viewportWidth,
-}) => {
+}: IAreaCarouselProps) => {
     const [refreshing, setRefreshing] = React.useState(false);
 
     // TODO: Move to top level
     const theme = buildStyles(user.details.mobileThemeName);
     const themeArea = buildAreaStyles(user.details.mobileThemeName, false);
+    const themeThought = buildThoughtStyles(user.details.mobileThemeName, false);
     const themeForms = buildFormStyles(user.details.mobileThemeName);
     const isUsingBottomSheet = (displaySize === 'small' || displaySize === 'medium');
     const FlatListComponent = isUsingBottomSheet ? BottomSheetFlatList : FlatList;
@@ -141,7 +198,7 @@ export default ({
     //                 data={content.activeMoments}
     //                 renderItem={(itemObj) => renderItem(itemObj, {
     //                     content,
-    //                     inspectArea,
+    //                     inspectContent,
     //                     formattedDate: formatDate(itemObj.item.createdAt),
     //                     translate,
     //                 })}
@@ -167,22 +224,30 @@ export default ({
             <FlatListComponent
                 data={activeData}
                 keyExtractor={(item) => String(item.id)}
-                renderItem={(itemObj) => renderItem(itemObj, {
-                    content,
-                    displaySize: displaySize || 'large', // default to large
-                    inspectArea,
-                    fetchMedia,
-                    formattedDate: formatDate(itemObj.item.createdAt),
-                    goToViewMap,
-                    goToViewUser,
-                    toggleAreaOptions,
-                    translate,
-                    theme,
-                    themeArea,
-                    themeForms,
-                    updateAreaReaction: itemObj.item.areaType === 'spaces' ? updateSpaceReaction : updateMomentReaction,
-                    user,
-                })}
+                renderItem={(itemObj) => {
+                    const updateReaction = (!itemObj.item.areaType && !!updateThoughtReaction)
+                        ? updateThoughtReaction
+                        : (itemObj.item.areaType === 'spaces' ? updateSpaceReaction : updateMomentReaction);
+                    const toggleContentOptions = (!itemObj.item.areaType && !!toggleThoughtOptions)
+                        ? toggleThoughtOptions
+                        : toggleAreaOptions;
+                    return renderItem(itemObj, {
+                        media: content?.media,
+                        displaySize: displaySize || 'large', // default to large
+                        inspectContent,
+                        fetchMedia,
+                        formattedDate: formatDate(itemObj.item.createdAt),
+                        goToViewMap,
+                        goToViewUser,
+                        toggleContentOptions,
+                        translate,
+                        theme,
+                        themeViewPost: itemObj.item.areaType ? themeArea : themeThought,
+                        themeForms,
+                        updateReaction,
+                        user,
+                    });
+                }}
                 initialNumToRender={1}
                 ListEmptyComponent={<Text style={theme.styles.noAreasFoundText}>{emptyListMessage}</Text>}
                 ListHeaderComponent={renderHeader()}

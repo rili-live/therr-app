@@ -26,7 +26,7 @@ import { getReactionUpdateArgs } from '../../../utilities/reactions';
 import LottieLoader, { ILottieId } from '../../../components/LottieLoader';
 import getActiveCarouselData from '../../../utilities/getActiveCarouselData';
 import { CAROUSEL_TABS } from '../../../constants';
-import { handleAreaReaction, loadMoreAreas, navToViewArea } from '../areaViewHelpers';
+import { handleAreaReaction, loadMoreAreas, navToViewContent } from '../postViewHelpers';
 import requestLocationServiceActivation from '../../../utilities/requestLocationServiceActivation';
 import { checkAndroidPermission, isLocationPermissionGranted, requestOSMapPermissions } from '../../../utilities/requestOSPermissions';
 import LocationActions from '../../../redux/actions/LocationActions';
@@ -214,7 +214,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
     goToArea = (area) => {
         const { navigation, user } = this.props;
 
-        navToViewArea(area, user, navigation.navigate);
+        navToViewContent(area, user, navigation.navigate);
     };
 
     goToViewMap = (lat, long) => {
@@ -606,7 +606,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
                             content={content}
                             displaySize={displaySize}
                             fetchMedia={fetchMedia}
-                            inspectArea={this.goToArea}
+                            inspectContent={this.goToArea}
                             goToViewMap={this.goToViewMap}
                             goToViewUser={this.goToViewUser}
                             toggleAreaOptions={this.toggleAreaOptions}

@@ -62,7 +62,7 @@ import TouringModal from '../../components/Modals/TouringModal';
 import BottomSheetPlus from '../../components/BottomSheet/BottomSheetPlus';
 import MapBottomSheetContent from '../../components/BottomSheet/MapBottomSheetContent';
 import TherrMapView from './TherrMapView';
-import { isMyArea } from '../../utilities/content';
+import { isMyContent } from '../../utilities/content';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../../assets/earth-loader.json');
@@ -398,7 +398,7 @@ class Map extends React.Component<IMapProps, IMapState> {
                     return false;
                 }
 
-                return (isMyArea(area, user) && filter.name === 'me') || (!isMyArea(area, user) && filter.name === 'notMe');
+                return (isMyContent(area, user) && filter.name === 'me') || (!isMyContent(area, user) && filter.name === 'notMe');
             });
         }
 

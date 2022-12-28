@@ -1,6 +1,5 @@
 import { ISelectionType } from '../../components/Modals/AreaOptionsModal';
-import { isMyArea } from '../../utilities/content';
-
+import { isMyContent } from '../../utilities/content';
 
 const handleAreaReaction = (selectedArea, reactionType: ISelectionType, {
     user,
@@ -15,11 +14,24 @@ const handleAreaReaction = (selectedArea, reactionType: ISelectionType, {
         createOrUpdateSpaceReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName).finally(() => {
             toggleAreaOptions(selectedArea);
         });
-    } else {
+    } else if (selectedArea.areaType === 'spaces') {
         createOrUpdateMomentReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName).finally(() => {
             toggleAreaOptions(selectedArea);
         });
     }
+};
+
+const handleThoughtReaction = (selectedArea, reactionType: ISelectionType, {
+    user,
+    getReactionUpdateArgs,
+    createOrUpdateThoughtReaction,
+    toggleThoughtOptions,
+}) => {
+    const requestArgs: any = getReactionUpdateArgs(reactionType);
+
+    createOrUpdateThoughtReaction(selectedArea.id, requestArgs, selectedArea.fromUserId, user.details.userName).finally(() => {
+        toggleThoughtOptions(selectedArea);
+    });
 };
 
 interface ILoadMoreAreas {
@@ -30,6 +42,10 @@ interface ILoadMoreAreas {
     searchActiveSpaces: any;
 }
 
+interface ILoadMorePosts extends ILoadMoreAreas{
+    searchActiveThoughts: any;
+}
+
 const loadMoreAreas = ({
     content,
     map,
@@ -38,7 +54,7 @@ const loadMoreAreas = ({
     searchActiveSpaces,
 }: ILoadMoreAreas) => {
     if (!content.activeMomentsPagination.isLastPage) {
-        return searchActiveMoments({
+        searchActiveMoments({
             userLatitude: map?.latitude,
             userLongitude: map?.longitude,
             withMedia: true,
@@ -51,7 +67,7 @@ const loadMoreAreas = ({
     }
 
     if (!content.activeSpacesPagination.isLastPage) {
-        return searchActiveSpaces({
+        searchActiveSpaces({
             userLatitude: map?.latitude,
             userLongitude: map?.longitude,
             withMedia: true,
@@ -64,26 +80,62 @@ const loadMoreAreas = ({
     }
 };
 
-const navToViewArea = (area, user, navigate) => {
-    if (area.areaType === 'spaces') {
+const loadMorePosts = ({
+    content,
+    map,
+    user,
+    searchActiveMoments,
+    searchActiveSpaces,
+    searchActiveThoughts,
+}: ILoadMorePosts) => {
+    loadMoreAreas({
+        content,
+        map,
+        user,
+        searchActiveMoments,
+        searchActiveSpaces,
+    });
+
+    if (!content.activeThoughtsPagination.isLastPage) {
+        searchActiveThoughts({
+            withUser: true,
+            offset: content.activeThoughtsPagination.offset + content.activeThoughtsPagination.itemsPerPage,
+            // ...content.activeAreasFilters,
+            blockedUsers: user.details.blockedUsers,
+            shouldHideMatureContent: user.details.shouldHideMatureContent,
+        });
+    }
+};
+
+const navToViewContent = (content, user, navigate) => {
+    if (content.areaType === 'spaces') {
         navigate('ViewSpace', {
-            isMyArea: isMyArea(area, user),
+            isMyContent: isMyContent(content, user),
             previousView: 'Spaces',
-            space: area,
+            space: content,
             spaceDetails: {},
         });
-    } else {
+    } else if (content.areaType === 'moments') {
         navigate('ViewMoment', {
-            isMyArea: isMyArea(area, user),
+            isMyContent: isMyContent(content, user),
             previousView: 'Areas',
-            moment: area,
+            moment: content,
             momentDetails: {},
+        });
+    } else {
+        navigate('ViewThought', {
+            isMyContent: isMyContent(content, user),
+            previousView: 'Areas',
+            thought: content,
+            thoughtDetails: {},
         });
     }
 };
 
 export {
     handleAreaReaction,
+    handleThoughtReaction,
     loadMoreAreas,
-    navToViewArea,
+    loadMorePosts,
+    navToViewContent,
 };

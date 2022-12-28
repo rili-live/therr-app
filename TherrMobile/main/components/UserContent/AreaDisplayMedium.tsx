@@ -42,7 +42,7 @@ interface IAreaDisplayMediumProps {
     areaMedia: string;
     goToViewUser: Function;
     goToViewMap: (lat: string, long: string) => any;
-    inspectArea: () => any;
+    inspectContent: () => any;
     updateAreaReaction: Function;
     user: IUserState;
     userDetails: IUserDetails;
@@ -105,7 +105,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
             area,
             areaMedia,
             goToViewUser,
-            inspectArea,
+            inspectContent,
             userDetails,
             theme,
             themeForms,
@@ -156,7 +156,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                 </View>
                 <View style={{ display: 'flex', flexDirection: 'row' }}>
                     <PresssableWithDoubleTap
-                        onPress={inspectArea}
+                        onPress={inspectContent}
                         onDoubleTap={() => this.onLikePress(area)}
                         style={{ paddingLeft: 14, paddingTop: 8 }}
                     >

@@ -6,9 +6,9 @@ import { ITherrThemeColors } from '../../styles/themes';
 import spacingStyles from '../../styles/layouts/spacing';
 
 
-export type ISelectionType = 'getDirections' | 'like' | 'superLike' | 'dislike' | 'superDislike' | 'report' | 'delete';
+export type ISelectionType = 'like' | 'superLike' | 'dislike' | 'superDislike' | 'report' | 'delete';
 
-interface IAreaOptionsModal {
+interface IThoughtOptionsModal {
     children?: React.ReactNode,
     isVisible: boolean;
     onRequestClose: any;
@@ -51,7 +51,7 @@ export default ({
     onSelect,
     themeButtons,
     themeReactionsModal,
-}: IAreaOptionsModal) => {
+}: IThoughtOptionsModal) => {
     return (
         <Modal
             animationType="slide"
@@ -66,12 +66,6 @@ export default ({
                     {
                         children ||
                         <>
-                            <ModalButton
-                                iconName="directions"
-                                title={translate('modals.contentOptions.buttons.getDirections')}
-                                onPress={() => onSelect('getDirections')}
-                                themeButtons={themeButtons}
-                            />
                             <ModalButton
                                 iconName="thumb-up"
                                 title={translate('modals.contentOptions.buttons.superLike')}

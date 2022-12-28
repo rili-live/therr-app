@@ -2,9 +2,9 @@ import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { getTheme } from '../../themes';
 
-const areaUserAvatarImgPadding = 4;
-const areaUserAvatarImgWidth = 52 - (2 * areaUserAvatarImgPadding);
-const areaUserAvatarImgRadius = areaUserAvatarImgWidth / 2;
+const thoughtUserAvatarImgPadding = 4;
+const thoughtUserAvatarImgWidth = 52 - (2 * thoughtUserAvatarImgPadding);
+const thoughtUserAvatarImgRadius = thoughtUserAvatarImgWidth / 2;
 const contentTitleContainerHeight = 40;
 
 const buttonContainerStyles: any = {
@@ -47,28 +47,41 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             // position: 'absolute',
             // left: 20
         },
-        areaContainer: {
-            justifyContent: 'center',
+        inspectThoughtContainer: {
+            justifyContent: 'flex-start',
             alignItems: 'center',
             padding: 0,
             paddingHorizontal: 0,
             marginTop: 0,
-            marginBottom: 32,
+            // marginBottom: 32,
         },
-        areaUserAvatarImgContainer: {
-            width: areaUserAvatarImgWidth,
+        thoughtContainer: {
+            display: 'flex',
+            flexDirection: 'row',
+        },
+        thoughtLeftContainer: {},
+        thoughtRightContainer: {
+            flex: 1,
+        },
+        thoughtUserAvatarImgContainer: {
+            width: thoughtUserAvatarImgWidth,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             padding: 0,
         },
-        areaUserAvatarImg: {
-            height: areaUserAvatarImgWidth - (areaUserAvatarImgPadding * 2),
-            width: areaUserAvatarImgWidth - (areaUserAvatarImgPadding * 2),
-            borderRadius: areaUserAvatarImgRadius,
-            margin: areaUserAvatarImgPadding,
+        thoughtUserAvatarImg: {
+            height: thoughtUserAvatarImgWidth - (thoughtUserAvatarImgPadding * 2),
+            width: thoughtUserAvatarImgWidth - (thoughtUserAvatarImgPadding * 2),
+            borderRadius: thoughtUserAvatarImgRadius,
+            margin: thoughtUserAvatarImgPadding,
         },
-        areaAuthorContainer: {
+        thoughtContentContainer: {
+            display: 'flex',
+            flexDirection: 'row',
+            paddingLeft: 4,
+        },
+        thoughtAuthorContainer: {
             display: 'flex',
             flex: 1,
             flexDirection: 'row',
@@ -77,12 +90,12 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             width: '100%',
             paddingBottom: 5,
             paddingHorizontal: 2,
-            height: areaUserAvatarImgWidth,
-            maxHeight: areaUserAvatarImgWidth,
+            height: thoughtUserAvatarImgWidth,
+            maxHeight: thoughtUserAvatarImgWidth,
             position: 'relative',
             boxSizing: 'border-box',
         },
-        areaAuthorTextContainer: {
+        thoughtAuthorTextContainer: {
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
@@ -91,9 +104,8 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             flex: 1,
             paddingTop: 4,
             paddingBottom: 2,
-            paddingLeft: 4,
         },
-        areaUserName: {
+        thoughtUserName: {
             fontSize: 15,
             fontWeight: '600',
             paddingBottom: 1,
@@ -109,25 +121,25 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
         moreButton: {
             ...buttonStyle,
         },
-        areaReactionButtonContainer: {
+        thoughtReactionButtonContainer: {
             ...buttonContainerStyles,
         },
-        areaReactionButton: {
+        thoughtReactionButton: {
             ...buttonStyle,
         },
-        areaContentTitleContainer: {
+        thoughtReactionsContainer: {
             display: 'flex',
             flex: 1,
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'flex-start',
             width: '100%',
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+            alignItems: 'flex-start',
             paddingBottom: 0,
             paddingHorizontal: 2,
             position: 'relative',
             maxHeight: contentTitleContainerHeight,
         },
-        areaContentTitle: {
+        thoughtContentTitle: {
             flex: 1,
             color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
             // position: 'absolute',
@@ -138,26 +150,15 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             paddingHorizontal: 6,
             height: '100%',
         },
-        areaContentTitleMedium: {
-            flex: 1,
-            color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
-            // position: 'absolute',
-            fontSize: 16,
-            fontWeight: '600',
-            // top: 10,
-            paddingVertical: ((contentTitleContainerHeight - 16) / 2) - 3,
-            paddingHorizontal: 6,
-            height: '100%',
-        },
-        areaMessage: {
+        thoughtMessage: {
             fontSize: 16,
             color: isDarkMode ? therrTheme.colors.accentTextWhite : therrTheme.colors.tertiary,
             overflow: 'scroll',
             width: '100%',
-            paddingHorizontal: 14,
+            paddingRight: 14,
             paddingBottom: 4,
         },
-        areaDistance: {
+        thoughtDistance: {
             color: isDarkMode ? therrTheme.colors.textGray : therrTheme.colors.tertiary,
             width: '100%',
             paddingHorizontal: 10,
