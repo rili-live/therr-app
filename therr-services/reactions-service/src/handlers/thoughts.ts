@@ -17,6 +17,7 @@ const searchActiveThoughts = async (req: any, res: any) => {
         withMedia,
         withUser,
         withBookmark,
+        lastContentCreatedAt,
     } = req.body;
 
     const conditions: any = {
@@ -36,7 +37,8 @@ const searchActiveThoughts = async (req: any, res: any) => {
 
     let reactions;
 
-    // TODO: Rather than offset, this should have a last thought id and filter for results earlier than that
+    // TODO: Debug limit where public thoughts exceed reactions causing reactions to be missing during pagination
+    // Get reactions should use a lastContentCreatedAt that excludes public thoughts with no reactions
     return Store.thoughtReactions.get(conditions, undefined, {
         limit: limit || 50,
         offset,
@@ -59,6 +61,7 @@ const searchActiveThoughts = async (req: any, res: any) => {
                     order,
                     withMedia,
                     withUser,
+                    lastContentCreatedAt,
                 },
             });
         })
