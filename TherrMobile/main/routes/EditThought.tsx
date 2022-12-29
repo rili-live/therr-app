@@ -492,6 +492,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                     >
                         <Pressable style={this.themeAccentLayout.styles.container} onPress={Keyboard.dismiss}>
                             <RoundTextInput
+                                autoFocus
                                 placeholder={this.translate(
                                     'forms.editThought.labels.message'
                                 )}

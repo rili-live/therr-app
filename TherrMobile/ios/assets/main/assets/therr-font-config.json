@@ -35,7 +35,7 @@
 			"isMulticolor": false,
 			"isMulticolor2": true,
 			"grid": 0,
-			"tags": ["follow-filled"],
+			"tags": ["map-follow-filled"],
 			"colorPermutations": {
 				"12552552551": [{}]
 			}
@@ -49,7 +49,7 @@
 		"properties": {
 			"order": 59,
 			"id": 55,
-			"name": "follow-filled",
+			"name": "map-follow-filled",
 			"prevSize": 32,
 			"code": 59696
 		},
@@ -759,14 +759,17 @@
 				"strokeLinejoin": "miter",
 				"strokeLinecap": "butt",
 				"strokeMiterlimit": "4",
-				"strokeWidth": 85.33333333333333
+				"strokeWidth": 85.33333333333333,
+				"stroke": "rgb(0, 0, 0)"
 			}],
 			"isMulticolor": false,
 			"isMulticolor2": false,
 			"grid": 0,
 			"tags": ["map-follow"],
 			"colorPermutations": {
-				"12552552551": [{}]
+				"12552552551": [{
+					"s": 0
+				}]
 			}
 		},
 		"attrs": [{
@@ -774,7 +777,8 @@
 			"strokeLinejoin": "miter",
 			"strokeLinecap": "butt",
 			"strokeMiterlimit": "4",
-			"strokeWidth": 85.33333333333333
+			"strokeWidth": 85.33333333333333,
+			"stroke": "rgb(0, 0, 0)"
 		}],
 		"properties": {
 			"order": 60,
@@ -1299,7 +1303,7 @@
 			"isMulticolor": false,
 			"isMulticolor2": false,
 			"grid": 0,
-			"tags": ["therr-logo"],
+			"tags": ["Artboard 1 copy 7"],
 			"colorPermutations": {
 				"12552552551": [{}, {}, {}, {}]
 			}
@@ -1330,7 +1334,7 @@
 			"metadata": {
 				"fontFamily": "TherrFont",
 				"majorVersion": 3,
-				"minorVersion": 2
+				"minorVersion": 4
 			},
 			"metrics": {
 				"emSize": 1024,

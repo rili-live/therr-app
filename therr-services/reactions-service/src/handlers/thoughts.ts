@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { distanceTo } from 'geolocation-utils';
 import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 // import translate from '../utilities/translator';
@@ -37,10 +36,11 @@ const searchActiveThoughts = async (req: any, res: any) => {
 
     let reactions;
 
+    // TODO: Rather than offset, this should have a last thought id and filter for results earlier than that
     return Store.thoughtReactions.get(conditions, undefined, {
         limit: limit || 50,
         offset,
-        order: order || 0,
+        order: order || 'DESC',
     }, customs)
         .then((reactionsResponse) => {
             reactions = reactionsResponse;

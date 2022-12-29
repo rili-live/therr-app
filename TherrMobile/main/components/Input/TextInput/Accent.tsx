@@ -14,7 +14,7 @@ export class AccentTextInput extends BaseTextInput {
             <BaseTextInput
                 style={themeForms.styles.textInputAccent}
                 placeholderTextColor={themeForms.colors.placeholderTextColor}
-                selectionColor={themeForms.colors.accentYellow}
+                // selectionColor={themeForms.colors.accentYellow}
                 multiline={true}
                 {...this.props}
             />
