@@ -257,7 +257,7 @@ export default class SpacesStore {
             ? this.mediaStore.create(params.media[0]).then((mediaIds) => mediaIds.toString())
             : Promise.resolve(undefined);
 
-        const isTextMature = isTextUnsafe([notificationMsg, params.message]);
+        const isTextMature = isTextUnsafe([notificationMsg, params.message, params.hashTags || '']);
 
         return mediaPromise.then((mediaIds: string | undefined) => {
             const sanitizedParams = {

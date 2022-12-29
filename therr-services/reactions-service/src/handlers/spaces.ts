@@ -39,6 +39,7 @@ const searchActiveSpaces = async (req: any, res: any) => {
 
     let reactions;
 
+    // TODO: Rather than offset, this should have a last space id and filter for results earlier than that
     return Store.spaceReactions.get(conditions, undefined, {
         limit: limit || 50,
         offset,

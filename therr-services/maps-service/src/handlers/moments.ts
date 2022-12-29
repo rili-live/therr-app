@@ -27,9 +27,14 @@ const createMoment = (req, res) => {
     const locale = req.headers['x-localecode'] || 'en-us';
     const userId = req.headers['x-userid'];
 
-    const { media, message, notificationMsg } = req.body;
+    const {
+        hashTags,
+        media,
+        message,
+        notificationMsg,
+    } = req.body;
 
-    const isTextMature = isTextUnsafe([notificationMsg, message]);
+    const isTextMature = isTextUnsafe([notificationMsg, message, hashTags]);
 
     return Store.moments.createMoment({
         ...req.body,

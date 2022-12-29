@@ -19,7 +19,7 @@ export class RoundTextInput extends BaseTextInput {
             <BaseTextInput
                 style={style}
                 placeholderTextColor={themeForms.styles.placeholderText.color}
-                selectionColor={themeForms.colors.accentYellow}
+                // selectionColor={themeForms.colors.accentYellow}
                 multiline={true}
                 {...this.props}
             />
