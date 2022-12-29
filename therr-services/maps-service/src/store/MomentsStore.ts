@@ -179,6 +179,7 @@ export default class MomentsStore {
         let query = knexBuilder
             .from(MOMENTS_TABLE_NAME)
             .orderBy(orderBy, order)
+            .where('createdAt', '<', filters.before || new Date())
             .whereIn('id', momentIds || [])
             .limit(restrictedLimit);
 

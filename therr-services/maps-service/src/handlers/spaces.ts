@@ -214,11 +214,13 @@ const findSpaces: RequestHandler = async (req: any, res: any) => {
         spaceIds,
         withMedia,
         withUser,
+        lastContentCreatedAt,
     } = req.body;
 
     return Store.spaces.findSpaces(spaceIds, {
         limit: limit || 21,
         order,
+        before: lastContentCreatedAt,
     }, {
         withMedia: !!withMedia,
         withUser: !!withUser,

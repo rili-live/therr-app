@@ -168,6 +168,7 @@ const findThoughts: RequestHandler = async (req: any, res: any) => {
         before: lastContentCreatedAt,
     }, {
         withUser: !!withUser,
+        shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
     })
         .then(({ thoughts }) => res.status(200).send({ thoughts }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHTS_ROUTES:ERROR' }));
