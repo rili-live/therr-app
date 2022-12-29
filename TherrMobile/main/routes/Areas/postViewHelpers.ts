@@ -54,6 +54,8 @@ const loadMoreAreas = ({
     searchActiveSpaces,
 }: ILoadMoreAreas) => {
     if (!content.activeMomentsPagination.isLastPage) {
+        const lastContentCreatedAt = content.activeMoments?.length ? content.activeMoments[content.activeMoments.length - 1].createdAt : null;
+
         searchActiveMoments({
             userLatitude: map?.latitude,
             userLongitude: map?.longitude,
@@ -63,10 +65,13 @@ const loadMoreAreas = ({
             ...content.activeAreasFilters,
             blockedUsers: user.details.blockedUsers,
             shouldHideMatureContent: user.details.shouldHideMatureContent,
+            lastContentCreatedAt,
         });
     }
 
     if (!content.activeSpacesPagination.isLastPage) {
+        const lastContentCreatedAt = content.activeSpaces?.length ? content.activeSpaces[content.activeSpaces.length - 1].createdAt : null;
+
         searchActiveSpaces({
             userLatitude: map?.latitude,
             userLongitude: map?.longitude,
@@ -76,6 +81,7 @@ const loadMoreAreas = ({
             ...content.activeAreasFilters,
             blockedUsers: user.details.blockedUsers,
             shouldHideMatureContent: user.details.shouldHideMatureContent,
+            lastContentCreatedAt,
         });
     }
 };
@@ -97,12 +103,14 @@ const loadMorePosts = ({
     });
 
     if (!content.activeThoughtsPagination.isLastPage) {
+        const lastContentCreatedAt = content.activeThoughts?.length ? content.activeThoughts[content.activeThoughts.length - 1].createdAt : null;
         searchActiveThoughts({
             withUser: true,
             offset: content.activeThoughtsPagination.offset + content.activeThoughtsPagination.itemsPerPage,
             // ...content.activeAreasFilters,
             blockedUsers: user.details.blockedUsers,
             shouldHideMatureContent: user.details.shouldHideMatureContent,
+            lastContentCreatedAt,
         });
     }
 };

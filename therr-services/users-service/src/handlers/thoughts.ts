@@ -158,12 +158,14 @@ const findThoughts: RequestHandler = async (req: any, res: any) => {
         offset,
         thoughtIds,
         withUser,
+        lastContentCreatedAt,
     } = req.body;
 
     return Store.thoughts.find(thoughtIds, {
         limit: limit || 21,
         order,
         offset,
+        before: lastContentCreatedAt,
     }, {
         withUser: !!withUser,
     })

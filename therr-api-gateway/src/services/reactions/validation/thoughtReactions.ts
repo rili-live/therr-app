@@ -14,6 +14,7 @@ export const searchActiveThoughtsValidation = [
     body('blockedUsers').exists().isArray(),
     body('shouldHideMatureContent').exists().isBoolean(),
     body('withUser').isBoolean().optional(),
+    body('lastContentCreatedAt').optional(),
 ];
 
 export const createOrUpdateThoughtReactionValidation = [

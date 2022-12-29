@@ -15,6 +15,7 @@ export const searchActiveAreasValidation = [
     body('withUser').isBoolean().optional(),
     body('userLatitude').isNumeric().optional(),
     body('userLongitude').isNumeric().optional(),
+    body('lastContentCreatedAt').optional(),
 ];
 
 export const searchBookmarkedAreasValidation = searchActiveAreasValidation;
