@@ -40,7 +40,7 @@ const searchActiveThoughts = async (req: any, res: any) => {
     // TODO: Debug limit where public thoughts exceed reactions causing reactions to be missing during pagination
     // Get reactions should use a lastContentCreatedAt that excludes public thoughts with no reactions
     return Store.thoughtReactions.get(conditions, undefined, {
-        limit: limit || 50,
+        limit,
         offset,
         order: order || 'DESC',
     }, customs)
@@ -58,6 +58,7 @@ const searchActiveThoughts = async (req: any, res: any) => {
                 },
                 data: {
                     thoughtIds,
+                    limit,
                     order,
                     withMedia,
                     withUser,

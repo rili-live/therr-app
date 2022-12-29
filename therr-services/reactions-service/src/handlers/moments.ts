@@ -20,6 +20,7 @@ const searchActiveMoments = async (req: any, res: any) => {
         withBookmark,
         userLatitude,
         userLongitude, // TODO: Fetch coords from user redis store instead?
+        lastContentCreatedAt,
     } = req.body;
 
     const conditions: any = {
@@ -41,7 +42,7 @@ const searchActiveMoments = async (req: any, res: any) => {
 
     // TODO: Rather than offset, this should have a last moment id and filter for results earlier than that
     return Store.momentReactions.get(conditions, undefined, {
-        limit: limit || 50,
+        limit,
         offset,
         order: order || 0,
     }, customs)
@@ -59,9 +60,11 @@ const searchActiveMoments = async (req: any, res: any) => {
                 },
                 data: {
                     momentIds,
+                    limit,
                     order,
                     withMedia,
                     withUser,
+                    lastContentCreatedAt,
                 },
             });
         })

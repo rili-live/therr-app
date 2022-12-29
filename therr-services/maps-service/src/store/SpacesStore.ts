@@ -141,6 +141,7 @@ export default class SpacesStore {
         let query = knexBuilder
             .from(SPACES_TABLE_NAME)
             .orderBy(orderBy, order)
+            .where('createdAt', '<', filters.before || new Date())
             .whereIn('id', spaceIds || [])
             .limit(restrictedLimit);
 
