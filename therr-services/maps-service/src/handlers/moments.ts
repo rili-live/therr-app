@@ -538,11 +538,13 @@ const findMoments: RequestHandler = async (req: any, res: any) => {
         momentIds,
         withMedia,
         withUser,
+        lastContentCreatedAt,
     } = req.body;
 
     return Store.moments.findMoments(momentIds, {
         limit: limit || 21,
         order,
+        before: lastContentCreatedAt,
     }, {
         withMedia: !!withMedia,
         withUser: !!withUser,

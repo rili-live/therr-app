@@ -20,6 +20,7 @@ const searchActiveSpaces = async (req: any, res: any) => {
         withBookmark,
         userLatitude,
         userLongitude, // TODO: Fetch coords from user redis store instead?
+        lastContentCreatedAt,
     } = req.body;
 
     const conditions: any = {
@@ -39,9 +40,10 @@ const searchActiveSpaces = async (req: any, res: any) => {
 
     let reactions;
 
-    // TODO: Rather than offset, this should have a last space id and filter for results earlier than that
+    // TODO: Debug limit where public thoughts exceed reactions causing reactions to be missing during pagination
+    // Get reactions should use a lastContentCreatedAt that excludes public thoughts with no reactions
     return Store.spaceReactions.get(conditions, undefined, {
-        limit: limit || 50,
+        limit,
         offset,
         order: order || 0,
     }, customs)
@@ -59,9 +61,11 @@ const searchActiveSpaces = async (req: any, res: any) => {
                 },
                 data: {
                     spaceIds,
+                    limit,
                     order,
                     withMedia,
                     withUser,
+                    lastContentCreatedAt,
                 },
             });
         })

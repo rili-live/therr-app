@@ -54,6 +54,7 @@ const loadMoreAreas = ({
     searchActiveSpaces,
 }: ILoadMoreAreas) => {
     if (!content.activeMomentsPagination.isLastPage) {
+        // NOTE: This helps prevent duplicate content from being loaded, but we should debug and test further to ensure this is the best approach
         const lastContentCreatedAt = content.activeMoments?.length ? content.activeMoments[content.activeMoments.length - 1].createdAt : null;
 
         searchActiveMoments({
@@ -70,6 +71,7 @@ const loadMoreAreas = ({
     }
 
     if (!content.activeSpacesPagination.isLastPage) {
+        // NOTE: This helps prevent duplicate content from being loaded, but we should debug and test further to ensure this is the best approach
         const lastContentCreatedAt = content.activeSpaces?.length ? content.activeSpaces[content.activeSpaces.length - 1].createdAt : null;
 
         searchActiveSpaces({
@@ -103,6 +105,7 @@ const loadMorePosts = ({
     });
 
     if (!content.activeThoughtsPagination.isLastPage) {
+        // NOTE: This helps prevent duplicate content from being loaded, but we should debug and test further to ensure this is the best approach
         const lastContentCreatedAt = content.activeThoughts?.length ? content.activeThoughts[content.activeThoughts.length - 1].createdAt : null;
         searchActiveThoughts({
             withUser: true,
