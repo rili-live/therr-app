@@ -505,6 +505,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                                 {this.translate('forms.editSpace.labels.addImageNote')}
                             </Text>
                             <RoundInput
+                                autoFocus
                                 maxLength={100}
                                 placeholder={this.translate(
                                     'forms.editSpace.labels.notificationMsg'

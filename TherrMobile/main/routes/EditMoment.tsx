@@ -553,6 +553,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 {this.translate('forms.editMoment.labels.addImageNote')}
                             </Text>
                             <RoundInput
+                                autoFocus
                                 maxLength={100}
                                 placeholder={this.translate(
                                     'forms.editMoment.labels.notificationMsg'

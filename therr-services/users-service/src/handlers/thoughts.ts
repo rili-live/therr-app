@@ -155,6 +155,7 @@ const findThoughts: RequestHandler = async (req: any, res: any) => {
     const {
         limit,
         order,
+        offset,
         thoughtIds,
         withUser,
     } = req.body;
@@ -162,6 +163,7 @@ const findThoughts: RequestHandler = async (req: any, res: any) => {
     return Store.thoughts.find(thoughtIds, {
         limit: limit || 21,
         order,
+        offset,
     }, {
         withUser: !!withUser,
     })

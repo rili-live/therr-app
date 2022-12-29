@@ -116,7 +116,9 @@ export default class ThoughtsStore {
         let query = knexBuilder
             .from(THOUGHTS_TABLE_NAME)
             .orderBy(orderBy, order)
+            .offset(filters.offset || 0)
             .whereIn('id', thoughtIds || [])
+            .orWhere('isPublic', true)
             .limit(restrictedLimit);
 
         if (options?.shouldHideMatureContent) {
@@ -177,7 +179,7 @@ export default class ThoughtsStore {
 
     create(params: ICreateThoughtParams) {
         // TODO: Support creating multiple
-        const isTextMature = isTextUnsafe([params.message]);
+        const isTextMature = isTextUnsafe([params.message, params.hashTags || '']);
 
         const sanitizedParams = {
             category: params.category || 'uncategorized',

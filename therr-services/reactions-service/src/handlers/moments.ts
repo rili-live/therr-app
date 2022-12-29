@@ -39,6 +39,7 @@ const searchActiveMoments = async (req: any, res: any) => {
 
     let reactions;
 
+    // TODO: Rather than offset, this should have a last moment id and filter for results earlier than that
     return Store.momentReactions.get(conditions, undefined, {
         limit: limit || 50,
         offset,
