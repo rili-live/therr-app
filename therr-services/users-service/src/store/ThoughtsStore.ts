@@ -117,8 +117,12 @@ export default class ThoughtsStore {
             .from(THOUGHTS_TABLE_NAME)
             .orderBy(orderBy, order)
             .offset(filters.offset || 0)
-            .whereIn('id', thoughtIds || [])
-            .orWhere('isPublic', true)
+            .where('createdAt', '<', filters.before || new Date())
+            .andWhere((builder) => {
+                builder
+                    .whereIn('id', thoughtIds || [])
+                    .orWhere('isPublic', true);
+            })
             .limit(restrictedLimit);
 
         if (options?.shouldHideMatureContent) {
