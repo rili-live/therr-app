@@ -28,7 +28,7 @@ const createThought = (req, res) => {
                             authorization,
                             locale,
                         }, {
-                            userId,
+                            userId: thoughts[0].fromUserId, // Notify parent thought's author
                             type: Notifications.Types.THOUGHT_REPLY,
                             associationId: thought.parentId,
                             isUnread: true,
@@ -37,7 +37,7 @@ const createThought = (req, res) => {
                             //     userName: TODO
                             // }
                         }, {
-                            toUserId: thoughts[0].fromUserId,
+                            toUserId: thoughts[0].fromUserId, // Notify parent thought's author
                             fromUser: {
                                 id: userId,
                             },
