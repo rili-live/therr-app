@@ -50,7 +50,7 @@
     },
     "newThoughtReplyReceived": {
       "title": "New Post Reply",
-      "body": "{userName} replied to your thought"
+      "body": "{userName} replied to your post"
     },
     "newAreasActivated": {
       "title": "New Areas Activated",
