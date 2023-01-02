@@ -107,6 +107,99 @@ export default class ThoughtsStore {
         });
     }
 
+    get(thoughtId, filters, options: any = {}) {
+        // hard limit to prevent overloading client
+        let query = knexBuilder
+            .from(THOUGHTS_TABLE_NAME)
+            .offset(filters.offset || 0)
+            .where(`${THOUGHTS_TABLE_NAME}.id`, thoughtId)
+            .andWhere(`${THOUGHTS_TABLE_NAME}.parentId`, null);
+
+        if (options.withReplies) {
+            query = query
+                .leftJoin(`${THOUGHTS_TABLE_NAME} as replies`, 'replies.parentId', `${THOUGHTS_TABLE_NAME}.id`)
+                .columns([
+                    `${THOUGHTS_TABLE_NAME}.*`,
+                    'replies.id as replies[].id',
+                    'replies.fromUserId as replies[].fromUserId',
+                    'replies.parentId as replies[].parentId',
+                    'replies.isPublic as replies[].isPublic',
+                    'replies.isRepost as replies[].isRepost',
+                    'replies.message as replies[].message',
+                    'replies.mediaIds as replies[].mediaIds',
+                    'replies.mentionsIds as replies[].mentionsIds',
+                    'replies.hashTags as replies[].hashTags',
+                    'replies.maxViews as replies[].maxViews',
+                    'replies.isMatureContent as replies[].isMatureContent',
+                    'replies.isModeratorApproved as replies[].isModeratorApproved',
+                    'replies.isForSale as replies[].isForSale',
+                    'replies.isHirable as replies[].isHirable',
+                    'replies.isPromotional as replies[].isPromotional',
+                    'replies.isExclusiveToGroups as replies[].isExclusiveToGroups',
+                    'replies.category as replies[].category',
+                    'replies.isScheduledAt as replies[].isScheduledAt',
+                    'replies.createdAt as replies[].createdAt',
+                    'replies.updatedAt as replies[].updatedAt',
+                ]);
+        }
+
+        if (options?.shouldHideMatureContent) {
+            query = query.where(`${THOUGHTS_TABLE_NAME}.isMatureContent`, false);
+        }
+
+        return this.db.read.query(query.toString()).then(async ({ rows }) => {
+            const thoughts = formatSQLJoinAsJSON(rows, [{ propKey: 'replies', propId: 'id' }]);
+            if (options.withUser) {
+                const userIds: string[] = [];
+                const thoughtDetailsPromises: Promise<any>[] = [];
+                const matchingUsers: any = {};
+
+                thoughts.forEach((thought) => {
+                    if (options.withUser) {
+                        userIds.push(thought.fromUserId);
+                    }
+                });
+                // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
+                thoughtDetailsPromises.push(options.withUser
+                    ? this.usersStore.findUsers({ ids: userIds })
+                    : Promise.resolve(null));
+
+                const [users] = await Promise.all(thoughtDetailsPromises);
+
+                // TODO: Optimize
+                const mappedThoughts = thoughts.map((thought) => {
+                    const modifiedThought = thought;
+                    modifiedThought.user = {};
+
+                    // USER
+                    if (options.withUser) {
+                        const matchingUser = users.find((user) => user.id === modifiedThought.fromUserId);
+                        if (matchingUser) {
+                            matchingUsers[matchingUser.id] = matchingUser;
+                            modifiedThought.fromUserName = matchingUser.userName;
+                            modifiedThought.fromUserFirstName = matchingUser.firstName;
+                            modifiedThought.fromUserLastName = matchingUser.lastName;
+                            modifiedThought.fromUserMedia = matchingUser.media;
+                        }
+                    }
+
+                    return modifiedThought;
+                });
+
+                return {
+                    thoughts: mappedThoughts,
+                    users: matchingUsers,
+                };
+            }
+
+            return {
+                thoughts,
+                media: {},
+                users: {},
+            };
+        });
+    }
+
     find(thoughtIds, filters, options: any = {}) {
         // hard limit to prevent overloading client
         const restrictedLimit = (filters.limit) > 1000 ? 1000 : filters.limit;
@@ -117,19 +210,30 @@ export default class ThoughtsStore {
             .from(THOUGHTS_TABLE_NAME)
             .orderBy(orderBy, order)
             .offset(filters.offset || 0)
-            .where('createdAt', '<', filters.before || new Date())
+            .where(`${THOUGHTS_TABLE_NAME}.createdAt`, '<', filters.before || new Date())
+            .andWhere(`${THOUGHTS_TABLE_NAME}.parentId`, null)
             .andWhere((builder) => {
                 builder
-                    .whereIn('id', thoughtIds || [])
-                    .orWhere('isPublic', true);
+                    .whereIn(`${THOUGHTS_TABLE_NAME}.id`, thoughtIds || [])
+                    .orWhere(`${THOUGHTS_TABLE_NAME}.isPublic`, true);
             })
             .limit(restrictedLimit);
 
-        if (options?.shouldHideMatureContent) {
-            query = query.where({ isMatureContent: false });
+        if (options.withReplies) {
+            query = query
+                .leftJoin(`${THOUGHTS_TABLE_NAME} as replies`, 'replies.parentId', `${THOUGHTS_TABLE_NAME}.id`)
+                .columns([
+                    `${THOUGHTS_TABLE_NAME}.*`,
+                    'replies.id as replies[].id', // Just the id so we can count replies in list view
+                ]);
         }
 
-        return this.db.read.query(query.toString()).then(async ({ rows: thoughts }) => {
+        if (options?.shouldHideMatureContent) {
+            query = query.where(`${THOUGHTS_TABLE_NAME}.isMatureContent`, false);
+        }
+
+        return this.db.read.query(query.toString()).then(async ({ rows }) => {
+            const thoughts = formatSQLJoinAsJSON(rows, [{ propKey: 'replies', propId: 'id' }]);
             if (options.withUser) {
                 const userIds: string[] = [];
                 const thoughtDetailsPromises: Promise<any>[] = [];

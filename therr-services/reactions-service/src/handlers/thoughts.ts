@@ -16,6 +16,7 @@ const searchActiveThoughts = async (req: any, res: any) => {
         shouldHideMatureContent,
         withMedia,
         withUser,
+        withReplies,
         withBookmark,
         lastContentCreatedAt,
     } = req.body;
@@ -62,6 +63,7 @@ const searchActiveThoughts = async (req: any, res: any) => {
                     order,
                     withMedia,
                     withUser,
+                    withReplies,
                     lastContentCreatedAt,
                 },
             });

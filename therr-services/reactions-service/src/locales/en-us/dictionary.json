@@ -3,6 +3,9 @@
   "momentReactions": {
     "momentNotActivated": "This user is not permitted to access content without first activating the moment"
   },
+  "thoughtReactions": {
+    "thoughtNotActivated": "This user is not permitted to access content without first activating the thought"
+  },
   "spaceReactions": {
     "spaceNotActivated": "This user is not permitted to access content without first activating the space"
   }

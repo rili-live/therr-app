@@ -4,7 +4,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
 import updateAchievements from '../utilities/updateAchievements';
-import sendUserCoinUpdateRequest from '../utilities/sendUserCoinUpdateRequest';
+// import sendUserCoinUpdateRequest from '../utilities/sendUserCoinUpdateRequest';
 // import * as globalConfig from '../../../../global-config';
 
 // CREATE/UPDATE
@@ -22,7 +22,7 @@ const createOrUpdateThoughtReaction = (req, res) => {
                 authorization: req.headers.authorization,
                 locale,
                 userId,
-            }, req.body);
+            }, req.body, reactionsResponse[0]);
 
             return Store.thoughtReactions.update({
                 userId,
@@ -31,6 +31,7 @@ const createOrUpdateThoughtReaction = (req, res) => {
                 ...req.body,
                 userLocale: locale,
                 userViewCount: reactionsResponse[0].userViewCount + (req.body.userViewCount || 0),
+                userHasActivated: true,
             })
                 .then(([thoughtReaction]) => {
                     // TODO: Should this be a blocking request to ensure update?
@@ -50,6 +51,7 @@ const createOrUpdateThoughtReaction = (req, res) => {
             thoughtId: req.params.thoughtId,
             ...req.body,
             userLocale: locale,
+            userHasActivated: true,
         }).then(([reaction]) => res.status(200).send(reaction));
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHT_REACTIONS_ROUTES:ERROR' }));
 };

@@ -131,6 +131,9 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
         // Move thought details out of route params and into redux
         getThoughtDetails(thought.id, {
             withUser: !thoughtUserName,
+            withReplies: true,
+        }).then((response) => {
+            console.log(response);
         });
 
         navigation.setOptions({

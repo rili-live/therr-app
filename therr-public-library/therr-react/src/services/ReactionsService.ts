@@ -27,6 +27,7 @@ export interface ISearchActiveAreasParams {
     shouldHideMatureContent?: boolean;
     withMedia: boolean;
     withUser: boolean;
+    withReplies?: boolean;
     userLatitude?: number;
     userLongitude?: number,
     lastContentCreatedAt?: Date;
@@ -104,6 +105,7 @@ class ReactionsService {
             shouldHideMatureContent: !!options.shouldHideMatureContent,
             withMedia: options.withMedia,
             withUser: options.withUser,
+            withReplies: options.withReplies,
             userLatitude: options.userLatitude,
             userLongitude: options.userLongitude,
             lastContentCreatedAt: options.lastContentCreatedAt,

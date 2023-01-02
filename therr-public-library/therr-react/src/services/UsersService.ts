@@ -60,6 +60,7 @@ interface ICreateThoughtBody {
 
 interface IGetThoughtDetailsArgs {
     withUser?: boolean;
+    withReplies?: boolean;
 }
 
 interface IDeleteThoughtsBody {
