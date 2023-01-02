@@ -487,6 +487,8 @@ class UsersActions {
                 type: UserActionTypes.GET_THOUGHT_DETAILS,
                 data: response.data,
             });
+
+            return response.data;
         });
 
     searchThoughts = (query: any, data: ISearchThoughtsArgs = {}) => (dispatch: any) => UsersService

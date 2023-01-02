@@ -46,7 +46,7 @@ interface IAreaDisplayProps {
     inspectContent: () => any;
     updateAreaReaction: Function;
     user: IUserState;
-    userDetails: IUserDetails;
+    areaUserDetails: IUserDetails;
     theme: {
         styles: any;
         colors: ITherrThemeColors;
@@ -79,21 +79,21 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
     }
 
     onBookmarkPress = (area) => {
-        const { updateAreaReaction, userDetails } = this.props;
+        const { updateAreaReaction, user } = this.props;
 
         updateAreaReaction(area.id, {
             userBookmarkCategory: area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
-        }, area.fromUserId, userDetails.userName);
+        }, area.fromUserId, user?.details?.userName);
     }
 
     onLikePress = (area) => {
         if (!area.isDraft) {
             ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
-            const { updateAreaReaction, userDetails } = this.props;
+            const { updateAreaReaction, user } = this.props;
 
             updateAreaReaction(area.id, {
                 userHasLiked: !area.reaction?.userHasLiked,
-            }, area.fromUserId, userDetails.userName);
+            }, area.fromUserId, user?.details?.userName);
         }
     }
 
@@ -108,7 +108,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             areaMedia,
             goToViewUser,
             inspectContent,
-            userDetails,
+            areaUserDetails,
             theme,
             themeForms,
             themeViewArea,
@@ -134,9 +134,9 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     </Pressable>
                     <View style={themeViewArea.styles.areaAuthorTextContainer}>
                         {
-                            userDetails &&
+                            areaUserDetails &&
                                 <Text style={themeViewArea.styles.areaUserName} numberOfLines={1}>
-                                    {`${userDetails.userName}`}
+                                    {`${areaUserDetails.userName}`}
                                 </Text>
                         }
                         <Text style={themeViewArea.styles.dateTime}>
