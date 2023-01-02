@@ -9,6 +9,7 @@ export enum Types {
     newAreasActivated = 'new-moments-activated',
     proximityRequiredMoment = 'proximity-required-moment',
     proximityRequiredSpace = 'proximity-required-space',
+    newThoughtReplyReceived = 'new-thought-reply-received',
 
     // Automation
     createYourProfileReminder = 'create-your-profile-reminder',

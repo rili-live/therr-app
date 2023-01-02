@@ -48,6 +48,10 @@
       "title": "New Reaction",
       "body": "{userName} super-liked your post"
     },
+    "newThoughtReplyReceived": {
+      "title": "New Post Reply",
+      "body": "{userName} replied to your thought"
+    },
     "newAreasActivated": {
       "title": "New Areas Activated",
       "body": "You recently activated {totalAreasActivated} new areas(s)"

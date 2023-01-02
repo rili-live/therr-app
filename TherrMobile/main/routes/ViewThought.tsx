@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+    Keyboard,
     SafeAreaView,
     View,
 } from 'react-native';
@@ -13,6 +14,8 @@ import { IContentState, IUserState } from 'therr-react/types';
 import { ContentActions } from 'therr-react/redux/actions';
 import UsersActions from '../redux/actions/UsersActions';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import analytics from '@react-native-firebase/analytics';
 // import YoutubePlayer from 'react-native-youtube-iframe';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
@@ -32,11 +35,18 @@ import { isMyContent as checkIsMyContent } from '../utilities/content';
 import ThoughtOptionsModal, { ISelectionType } from '../components/Modals/ThoughtOptionsModal';
 import { getReactionUpdateArgs } from '../utilities/reactions';
 import TherrIcon from '../components/TherrIcon';
+import RoundTextInput from '../components/Input/TextInput/Round';
 // import AccentInput from '../components/Input/Accent';
+
+const hapticFeedbackOptions = {
+    enableVibrateFallback: true,
+    ignoreAndroidSystemSettings: false,
+};
 
 interface IViewThoughtDispatchProps {
     getThoughtDetails: Function;
     deleteThought: Function;
+    createThought: Function;
     createOrUpdateThoughtReaction: Function;
 }
 
@@ -55,6 +65,9 @@ interface IViewThoughtState {
     areThoughtOptionsVisible: boolean;
     errorMsg: string;
     successMsg: string;
+    replies: any[],
+    inputs: any;
+    isSubmitting: boolean;
     isDeleting: boolean;
     isVerifyingDelete: boolean;
     // previewLinkId?: string;
@@ -68,6 +81,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => bindActionCreators({
+    createThought: UsersActions.createThought,
     getThoughtDetails: UsersActions.getThoughtDetails,
     deleteThought: UsersActions.deleteThought,
     createOrUpdateThoughtReaction: ContentActions.createOrUpdateThoughtReaction,
@@ -98,9 +112,14 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
         this.state = {
             areThoughtOptionsVisible: false,
             errorMsg: '',
+            replies: [],
             successMsg: '',
             isDeleting: false,
+            isSubmitting: false,
             isVerifyingDelete: false,
+            inputs: {
+                message: '',
+            },
             // previewStyleState: {},
             // previewLinkId: youtubeMatches && youtubeMatches[1],
             selectedThought: {},
@@ -117,7 +136,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
 
         this.hashtags = thought.hashTags ? thought.hashTags.split(',') : [];
 
-        this.date = formatDate(thought.updatedAt);
+        this.date = formatDate(thought.createdAt);
 
         // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
     }
@@ -133,8 +152,10 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
             withUser: !thoughtUserName,
             withReplies: true,
         }).then((response) => {
-            console.log(response);
-        });
+            this.setState({
+                replies: response?.thought?.replies?.sort((a, b) => new Date(b.createdAt).getTime()  - new Date(a.createdAt).getTime()) || [],
+            });
+        }).catch((error) => { console.log(error); });
 
         navigation.setOptions({
             title: this.translate('pages.viewThought.headerTitle'),
@@ -160,6 +181,15 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
             />
         );
     };
+
+    isFormDisabled() {
+        const { inputs, isSubmitting } = this.state;
+
+        return (
+            !inputs.message ||
+            isSubmitting
+        );
+    }
 
     // handlePreviewFullScreen = (isFullScreen) => {
     //     const previewStyleState = isFullScreen ? {
@@ -219,6 +249,111 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
         });
     }
 
+    onInputChange = (name: string, value: string) => {
+        // const { hashtags } = this.state;
+        // let modifiedHashtags = [ ...hashtags ];
+        let modifiedValue = value;
+        const newInputChanges = {
+            [name]: modifiedValue,
+        };
+
+        this.setState({
+            inputs: {
+                ...this.state.inputs,
+                ...newInputChanges,
+            },
+            isSubmitting: false,
+        });
+    };
+
+    onSubmitReply = () => {
+        const {
+            category,
+            message,
+        } = this.state.inputs;
+        const {
+            route,
+            user,
+        } = this.props;
+        const { thought } = route.params;
+
+        const hashTags = message.match(/#[a-z0-9_]+/g) || [];
+        const parentId = thought.id;
+        const hashTagsString = hashTags.join(',');
+        const isDraft = false;
+        const isPublic = false;
+
+        const createArgs: any = {
+            parentId,
+            category,
+            fromUserId: user.details.id,
+            isPublic,
+            message,
+            hashTags: hashTagsString,
+            isDraft,
+        };
+
+        if (!this.isFormDisabled()) {
+            ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
+
+            this.setState({
+                isSubmitting: true,
+            });
+
+            this.props.createThought(createArgs)
+                .then((newReply) => {
+                    const { replies } = this.state;
+                    const newReplies = [ newReply, ...replies ];
+                    this.setState({
+                        replies: newReplies,
+                        successMsg: this.translate('forms.editThought.backendSuccessMessage'),
+                    });
+
+                    analytics().logEvent('thought_create', {
+                        parentId,
+                        category,
+                        fromUserId: user.details.id,
+                        isPublic,
+                        message,
+                        hashTags: hashTagsString,
+                        isDraft,
+                    }).catch((err) => console.log(err));
+                })
+                .catch((error: any) => {
+                    if (
+                        error.statusCode === 400 ||
+                        error.statusCode === 401 ||
+                        error.statusCode === 404
+                    ) {
+                        this.setState({
+                            errorMsg: `${error.message}${
+                                error.parameters
+                                    ? '(' + error.parameters.toString() + ')'
+                                    : ''
+                            }`,
+                        });
+                    } else if (error.statusCode >= 500) {
+                        this.setState({
+                            errorMsg: this.translate('forms.editThought.backendErrorMessage'),
+                        });
+                    }
+                })
+                .finally(() => {
+                    this.onInputChange('message', '');
+                    this.setState({
+                        isSubmitting: false,
+                    });
+                    Keyboard.dismiss();
+                    this.scrollViewRef.scrollToOffset({ animated: true, offset: 0 });
+                });
+        }
+    };
+
+    getReplyUserName = (reply) => {
+        const { user } = this.props;
+        return checkIsMyContent(reply, user) ? user.details.userName : reply.fromUserName;
+    }
+
     goBack = () => {
         const { navigation } = this.props;
         // const { previousView } = route.params;
@@ -262,8 +397,11 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
     render() {
         const {
             areThoughtOptionsVisible,
+            inputs,
             isDeleting,
+            isSubmitting,
             isVerifyingDelete,
+            replies,
             // previewLinkId,
             // previewStyleState,
             selectedThought,
@@ -283,7 +421,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                         style={[this.theme.styles.bodyFlex, this.themeAccentLayout.styles.bodyView]}
                         contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyViewScroll]}
                     >
-                        <View style={[this.themeAccentLayout.styles.container, this.themeThought.styles.inspectThoughtContainer]}>
+                        <View style={[this.themeAccentLayout.styles.container, this.themeThought.styles.inspectThoughtContainer, { paddingHorizontal: 4 }]}>
                             <ThoughtDisplay
                                 translate={this.translate}
                                 date={this.date}
@@ -291,19 +429,69 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                                 hashtags={this.hashtags}
                                 isDarkMode={true}
                                 isExpanded={true}
+                                isRepliable={true}
                                 inspectThought={() => null}
                                 thought={thought}
                                 goToViewUser={this.goToViewUser}
                                 updateThoughtReaction={(thoughtId, data) => this.onUpdateThoughtReaction(thoughtId, data)}
                                 // TODO: User Username from response
                                 user={user}
-                                userDetails={{
+                                contentUserDetails={{
                                     userName: thoughtUserName || thought.fromUserId,
                                 }}
                                 theme={this.theme}
                                 themeForms={this.themeForms}
                                 themeViewContent={this.themeThought}
                             />
+                            <View style={this.themeThought.styles.sendInputsContainer}>
+                                <RoundTextInput
+                                    autoFocus
+                                    placeholder={this.translate(
+                                        'forms.editThought.labels.messageReply'
+                                    )}
+                                    value={inputs.message}
+                                    onSubmitEditing={this.onSubmitReply}
+                                    onChangeText={(text) =>
+                                        this.onInputChange('message', text)
+                                    }
+                                    minHeight={40}
+                                    numberOfLines={1}
+                                    maxLength={255}
+                                    themeForms={this.themeForms}
+                                    style={[this.themeForms.styles.textInputRound, this.themeThought.styles.sendBtnInput]}
+                                />
+                                <Button
+                                    icon={<TherrIcon name="send" size={26} style={this.themeThought.styles.sendBtnIcon} />}
+                                    buttonStyle={this.themeThought.styles.sendBtn}
+                                    containerStyle={[this.themeThought.styles.sendBtnContainer]}
+                                    onPress={this.onSubmitReply}
+                                    disabled={isSubmitting}
+                                />
+                            </View>
+                            {
+                                replies?.map((reply) => (
+                                    <ThoughtDisplay
+                                        translate={this.translate}
+                                        date={formatDate(reply.createdAt)}
+                                        toggleThoughtOptions={() => this.toggleThoughtOptions(reply)}
+                                        hashtags={this.hashtags}
+                                        isDarkMode={true}
+                                        isExpanded={false}
+                                        inspectThought={() => null}
+                                        thought={reply}
+                                        goToViewUser={this.goToViewUser}
+                                        updateThoughtReaction={(thoughtId, data) => this.onUpdateThoughtReaction(thoughtId, data)}
+                                        // TODO: User Username from response
+                                        user={user}
+                                        contentUserDetails={{
+                                            userName: this.getReplyUserName(reply),
+                                        }}
+                                        theme={this.theme}
+                                        themeForms={this.themeForms}
+                                        themeViewContent={this.themeThought}
+                                    />
+                                ))
+                            }
                         </View>
                         {/* {
                             previewLinkId

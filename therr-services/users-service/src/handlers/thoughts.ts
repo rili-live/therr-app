@@ -1,15 +1,13 @@
 import axios from 'axios';
-import path from 'path';
 import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
-import { ErrorCodes } from 'therr-js-utilities/constants';
+import { ErrorCodes, Notifications } from 'therr-js-utilities/constants';
 import { RequestHandler } from 'express';
-import printLogs from 'therr-js-utilities/print-logs';
-import beeline from '../beeline';
 import * as globalConfig from '../../../../global-config';
 import getReactions from '../utilities/getReactions';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
+import createSendTotalNotification from '../utilities/createSendTotalNotification';
 
 // CREATE
 const createThought = (req, res) => {
@@ -22,21 +20,50 @@ const createThought = (req, res) => {
         locale,
         fromUserId: userId,
     })
-        .then(([thought]) => axios({ // Create companion reaction for user's own thought
-            method: 'post',
-            url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/thought-reactions/${thought.id}`,
-            headers: {
-                authorization,
-                'x-localecode': locale,
-                'x-userid': userId,
-            },
-            data: {
-                userHasActivated: true,
-            },
-        }).then(({ data: reaction }) => res.status(201).send({
-            ...thought,
-            reaction,
-        })))
+        .then(([thought]) => {
+            if (thought.parentId) {
+                Store.thoughts.get(thought.parentId, {}).then(({ thoughts }) => {
+                    if (thoughts.length) {
+                        return createSendTotalNotification({
+                            authorization,
+                            locale,
+                        }, {
+                            userId,
+                            type: Notifications.Types.THOUGHT_REPLY,
+                            associationId: thought.parentId,
+                            isUnread: true,
+                            messageLocaleKey: Notifications.MessageKeys.THOUGHT_REPLY,
+                            // messageParams: {
+                            //     userName: TODO
+                            // }
+                        }, {
+                            toUserId: thoughts[0].fromUserId,
+                            fromUser: {
+                                id: userId,
+                            },
+                        }, true);
+                    }
+
+                    return Promise.resolve();
+                }).catch((err) => console.log(err));
+            }
+
+            return axios({ // Create companion reaction for user's own thought
+                method: 'post',
+                url: `${globalConfig[process.env.NODE_ENV].baseReactionsServiceRoute}/thought-reactions/${thought.id}`,
+                headers: {
+                    authorization,
+                    'x-localecode': locale,
+                    'x-userid': userId,
+                },
+                data: {
+                    userHasActivated: true,
+                },
+            }).then(({ data: reaction }) => res.status(201).send({
+                ...thought,
+                reaction,
+            }));
+        })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHTS_ROUTES:ERROR' }));
 };
 

@@ -475,10 +475,14 @@ class UsersActions {
             type: UserActionTypes.THOUGHT_CREATED,
             data: response.data,
         });
-        dispatch({
-            type: ContentActionTypes.INSERT_ACTIVE_THOUGHTS,
-            data: [response.data],
-        });
+        if (!response.data?.parentId) {
+            dispatch({
+                type: ContentActionTypes.INSERT_ACTIVE_THOUGHTS,
+                data: [response.data],
+            });
+        }
+
+        return response.data;
     });
 
     getThoughtDetails = (id: number, data: any) => (dispatch: any) => UsersService.getThoughtDetails(id, data)

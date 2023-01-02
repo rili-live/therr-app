@@ -315,7 +315,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                 updateAreaReaction={(spaceId, data) => this.onUpdateSpaceReaction(spaceId, data)}
                                 // TODO: User Username from response
                                 user={user}
-                                userDetails={{
+                                areaUserDetails={{
                                     userName: spaceUserName || space.fromUserId,
                                 }}
                                 areaMedia={spaceMedia}
