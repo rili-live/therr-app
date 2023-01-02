@@ -224,26 +224,7 @@ export default class ThoughtsStore {
                 .leftJoin(`${THOUGHTS_TABLE_NAME} as replies`, 'replies.parentId', `${THOUGHTS_TABLE_NAME}.id`)
                 .columns([
                     `${THOUGHTS_TABLE_NAME}.*`,
-                    'replies.id as replies[].id',
-                    'replies.fromUserId as replies[].fromUserId',
-                    'replies.parentId as replies[].parentId',
-                    'replies.isPublic as replies[].isPublic',
-                    'replies.isRepost as replies[].isRepost',
-                    'replies.message as replies[].message',
-                    'replies.mediaIds as replies[].mediaIds',
-                    'replies.mentionsIds as replies[].mentionsIds',
-                    'replies.hashTags as replies[].hashTags',
-                    'replies.maxViews as replies[].maxViews',
-                    'replies.isMatureContent as replies[].isMatureContent',
-                    'replies.isModeratorApproved as replies[].isModeratorApproved',
-                    'replies.isForSale as replies[].isForSale',
-                    'replies.isHirable as replies[].isHirable',
-                    'replies.isPromotional as replies[].isPromotional',
-                    'replies.isExclusiveToGroups as replies[].isExclusiveToGroups',
-                    'replies.category as replies[].category',
-                    'replies.isScheduledAt as replies[].isScheduledAt',
-                    'replies.createdAt as replies[].createdAt',
-                    'replies.updatedAt as replies[].updatedAt',
+                    'replies.id as replies[].id', // Just the id so we can count replies in list view
                 ]);
         }
 

@@ -159,6 +159,7 @@ const findThoughts: RequestHandler = async (req: any, res: any) => {
         offset,
         thoughtIds,
         withUser,
+        withReplies,
         lastContentCreatedAt,
     } = req.body;
 
@@ -169,6 +170,7 @@ const findThoughts: RequestHandler = async (req: any, res: any) => {
         before: lastContentCreatedAt,
     }, {
         withUser: !!withUser,
+        withReplies: !!withReplies,
         shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
     })
         .then(({ thoughts }) => res.status(200).send({ thoughts }))
