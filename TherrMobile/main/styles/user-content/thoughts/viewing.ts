@@ -18,6 +18,19 @@ const buttonStyle: any = {
     height: '100%',
 };
 
+const thoughtReactionsContainerStyles: any = {
+    display: 'flex',
+    flex: 1,
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'flex-start',
+    paddingBottom: 0,
+    paddingHorizontal: 2,
+    position: 'relative',
+    maxHeight: contentTitleContainerHeight,
+};
+
 const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
     const therrTheme = getTheme(themeName);
 
@@ -127,17 +140,18 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
         thoughtReactionButton: {
             ...buttonStyle,
         },
+        thoughtReactionButtonTitle: {
+            fontSize: 14,
+            paddingLeft: 2,
+        },
         thoughtReactionsContainer: {
-            display: 'flex',
-            flex: 1,
-            width: '100%',
-            flexDirection: 'row',
-            justifyContent: 'space-around',
-            alignItems: 'flex-start',
-            paddingBottom: 0,
-            paddingHorizontal: 2,
-            position: 'relative',
-            maxHeight: contentTitleContainerHeight,
+            ...thoughtReactionsContainerStyles,
+        },
+        thoughtReactionsContainerExpanded: {
+            ...thoughtReactionsContainerStyles,
+            borderBottomWidth: 1,
+            borderTopWidth: 1,
+            borderColor: isDarkMode ? therrTheme.colors.accentDivider : therrTheme.colors.tertiary,
         },
         thoughtContentTitle: {
             flex: 1,
@@ -170,6 +184,42 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
         },
         toggleIcon: {
             color: therrTheme.colors.textWhite,
+        },
+        sendBtnIcon: {
+            color: therrTheme.colors.brandingWhite,
+            padding: 0,
+            margin: 0,
+        },
+        sendBtn: {
+            borderRadius: 25,
+            backgroundColor: therrTheme.colors.primary3,
+        },
+        sendBtnContainer: {
+            margin: 0,
+            marginHorizontal: 4,
+            alignSelf: 'center',
+        },
+        sendBtnInput: {
+            flex: 1,
+            margin: 0,
+            marginBottom: 10,
+            marginVertical: 10,
+            fontSize: 18,
+            lineHeight: 20,
+            paddingTop: 18,
+            paddingBottom: 18,
+        },
+        sendInputsContainer: {
+            display: 'flex',
+            flexDirection: 'row',
+            width: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingBottom: 0,
+            marginBottom: 0,
+
+            borderBottomWidth: 1,
+            borderColor: isDarkMode ? therrTheme.colors.accentDivider : therrTheme.colors.tertiary,
         },
     });
 

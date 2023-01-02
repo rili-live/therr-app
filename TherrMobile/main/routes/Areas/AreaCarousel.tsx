@@ -83,6 +83,7 @@ const renderItem = ({ item: post }, {
                     contentUserDetails={userDetails}
                     updateThoughtReaction={updateReaction}
                     isDarkMode={false}
+                    isRepliable
                     theme={theme}
                     themeForms={themeForms}
                     themeViewContent={themeViewPost}

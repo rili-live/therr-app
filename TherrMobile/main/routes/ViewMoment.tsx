@@ -316,7 +316,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 updateAreaReaction={(momentId, data) => this.onUpdateMomentReaction(momentId, data)}
                                 // TODO: User Username from response
                                 user={user}
-                                userDetails={{
+                                areaUserDetails={{
                                     userName: momentUserName || moment.fromUserId,
                                 }}
                                 areaMedia={momentMedia}

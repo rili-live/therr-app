@@ -109,6 +109,7 @@ const loadMorePosts = ({
         const lastContentCreatedAt = content.activeThoughts?.length ? content.activeThoughts[content.activeThoughts.length - 1].createdAt : null;
         searchActiveThoughts({
             withUser: true,
+            withReplies: true,
             offset: content.activeThoughtsPagination.offset + content.activeThoughtsPagination.itemsPerPage,
             // ...content.activeAreasFilters,
             blockedUsers: user.details.blockedUsers,

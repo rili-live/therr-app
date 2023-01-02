@@ -111,7 +111,6 @@ export default class ThoughtsStore {
         // hard limit to prevent overloading client
         let query = knexBuilder
             .from(THOUGHTS_TABLE_NAME)
-            .offset(filters.offset || 0)
             .where(`${THOUGHTS_TABLE_NAME}.id`, thoughtId)
             .andWhere(`${THOUGHTS_TABLE_NAME}.parentId`, null);
 
@@ -297,7 +296,7 @@ export default class ThoughtsStore {
             isPublic: isTextMature ? false : !!params.isPublic, // NOTE: For now make this content private to reduce public, mature content
             isMatureContent: isTextMature || !!params.isMatureContent,
             isRepost: !!params.isRepost,
-            message: params.message,
+            message: params.message.substring(0, 255),
             mentionsIds: params.mentionsIds || '',
             parentId: params.parentId,
             hashTags: params.hashTags || '',
