@@ -34,14 +34,16 @@ const createOrUpdateThoughtReaction = (req, res) => {
             })
                 .then(([thoughtReaction]) => {
                     // TODO: Should this be a blocking request to ensure update?
-                    sendUserCoinUpdateRequest(req, reactionsResponse[0]);
+                    // NOTE: Temporarily disable for thoughts
+                    // sendUserCoinUpdateRequest(req, reactionsResponse[0]);
 
                     res.status(200).send(thoughtReaction);
                 });
         }
 
         // TODO: Should this be a blocking request to ensure update?
-        sendUserCoinUpdateRequest(req, {});
+        // NOTE: Temporarily disable for thoughts
+        // sendUserCoinUpdateRequest(req, {});
 
         return Store.thoughtReactions.create({
             userId,
