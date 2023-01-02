@@ -8,6 +8,7 @@ export enum Types {
   NEW_AREAS_ACTIVATED = 'NEW_AREAS_ACTIVATED',
   DISCOVERED_UNIQUE_MOMENT = 'DISCOVERED_UNIQUE_MOMENT',
   DISCOVERED_UNIQUE_SPACE = 'DISCOVERED_UNIQUE_SPACE',
+  THOUGHT_REPLY = 'THOUGHT_REPLY',
 }
 
 export enum MessageKeys {
@@ -20,4 +21,5 @@ export enum MessageKeys {
   NEW_AREAS_ACTIVATED = 'notifications.newAreasActivated',
   DISCOVERED_UNIQUE_MOMENT = 'notifications.discoveredUniqueMoment',
   DISCOVERED_UNIQUE_SPACE = 'notifications.discoveredUniqueSpace',
+  THOUGHT_REPLY = 'notifications.newThoughtReplyReceived',
 }

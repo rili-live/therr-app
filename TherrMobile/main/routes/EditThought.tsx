@@ -502,6 +502,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                                 }
                                 minHeight={150}
                                 numberOfLines={7}
+                                maxLength={255}
                                 themeForms={this.themeForms}
                             />
                             <RoundInput

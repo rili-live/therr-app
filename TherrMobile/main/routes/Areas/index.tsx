@@ -246,6 +246,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
 
         const activeThoughtsPromise = updateActiveThoughts({
             withUser: true,
+            withReplies: true,
             offset: 0,
             // ...content.activeAreasFilters,
             blockedUsers: user.details.blockedUsers,

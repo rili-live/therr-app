@@ -400,6 +400,7 @@
         "addImageNote": "Select an existing image or capture a new one to represent your thought.",
         "cost": "Cost: {pointCost} coins",
         "message": "Have an idea...?",
+        "messageReply": "Share your reply",
         "notificationMsg": "Title or Location Name",
         "hashTags": "Hashtags (ie. my_tag, myTag)",
         "maxViews": "Max views (per person)",

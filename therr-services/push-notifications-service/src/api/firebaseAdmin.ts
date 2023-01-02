@@ -226,6 +226,15 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
                 notificationTitle: translate(config.userLocale, 'notifications.discoveredUniqueSpace.title'),
                 notificationBody: translate(config.userLocale, 'notifications.discoveredUniqueSpace.body'),
             });
+        case PushNotifications.Types.newThoughtReplyReceived:
+            return createBaseMessage({
+                data: modifiedData,
+                deviceToken: config.deviceToken,
+                notificationTitle: translate(config.userLocale, 'notifications.newThoughtReplyReceived.title'),
+                notificationBody: translate(config.userLocale, 'notifications.newThoughtReplyReceived.body', {
+                    userName: config.fromUserName,
+                }),
+            });
         default:
             return false;
     }
@@ -297,6 +306,10 @@ const predictAndSendNotification = (
             }
 
             if (type === PushNotifications.Types.proximityRequiredSpace) {
+                return admin.messaging().send(message);
+            }
+
+            if (type === PushNotifications.Types.newThoughtReplyReceived) {
                 return admin.messaging().send(message);
             }
 

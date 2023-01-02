@@ -24,6 +24,7 @@
         "connectionRequestReceived": "You have received a new connection request from {firstName} {lastName}",
         "reactionLikeReceived": "{userName} liked your post",
         "reactionSuperLikeReceived": "{userName} super-liked your post!",
+        "newThoughtReplyReceived": "Your thought has new replies",
         "newDmReceived": "New direct message from {userName} while you were away",
         "newAreasActivated": "You recently activated {totalAreasActivated} new areas(s)",
         "discoveredUniqueMoment": "Check the map to activate a moment with special attributes",

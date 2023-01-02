@@ -36,6 +36,7 @@ interface IThoughtDisplayProps {
     inspectThought: () => any;
     isDarkMode: boolean;
     isExpanded?: boolean;
+    isRepliable?: boolean;
     thought: any;
     goToViewUser: Function;
     updateThoughtReaction: Function;
@@ -58,7 +59,7 @@ interface IThoughtDisplayProps {
 interface IThoughtDisplayState {
 }
 
-export default class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDisplayState> {
+class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDisplayState> {
     constructor(props: IThoughtDisplayProps) {
         super(props);
 
@@ -72,6 +73,12 @@ export default class ThoughtDisplay extends React.Component<IThoughtDisplayProps
         updateThoughtReaction(thought.id, {
             userBookmarkCategory: thought.reaction?.userBookmarkCategory ? null : 'Uncategorized',
         }, thought.fromUserId, user?.details?.userName);
+    }
+
+    onCommentPress = (thought) => {
+        const { inspectThought, user } = this.props;
+
+        inspectThought();
     }
 
     onLikePress = (thought) => {
@@ -93,6 +100,7 @@ export default class ThoughtDisplay extends React.Component<IThoughtDisplayProps
             isDarkMode,
             // inspectThought,
             isExpanded,
+            isRepliable,
             thought,
             goToViewUser,
             contentUserDetails,
@@ -107,7 +115,7 @@ export default class ThoughtDisplay extends React.Component<IThoughtDisplayProps
 
         return (
             <>
-                <View style={themeViewContent.styles.thoughtContainer} >
+                <View style={[themeViewContent.styles.thoughtContainer]}>
                     <View style={themeViewContent.styles.thoughtLeftContainer}>
                         <Pressable
                             onPress={() => goToViewUser(thought.fromUserId)}
@@ -149,65 +157,144 @@ export default class ThoughtDisplay extends React.Component<IThoughtDisplayProps
                                 TouchableComponent={TouchableWithoutFeedbackComponent}
                             />
                         </View>
-                        <View style={themeViewContent.styles.thoughtContentContainer}>
-                            <View style={spacingStyles.flexOne}>
-                                <Text style={themeViewContent.styles.thoughtMessage} numberOfLines={isExpanded ? undefined : 7}>
-                                    <Autolink
-                                        text={thought.message}
-                                        linkStyle={theme.styles.link}
-                                        phone="sms"
-                                    />
-                                </Text>
-                                <View>
-                                    <HashtagsContainer
-                                        hasIcon={false}
-                                        hashtags={hashtags}
-                                        onHashtagPress={() => {}}
-                                        visibleCount={isExpanded ? 20 : 4}
-                                        right
-                                        styles={themeForms.styles}
-                                    />
-                                </View>
-                                <View style={themeViewContent.styles.thoughtReactionsContainer}>
-                                    {
-                                        !thought.isDraft &&
-                                        <>
-                                            <Button
-                                                containerStyle={themeViewContent.styles.thoughtReactionButtonContainer}
-                                                buttonStyle={themeViewContent.styles.thoughtReactionButton}
-                                                icon={
-                                                    <Icon
-                                                        name={ isBookmarked ? 'bookmark' : 'bookmark-border' }
-                                                        size={24}
-                                                        color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
-                                                    />
-                                                }
-                                                onPress={() => this.onBookmarkPress(thought)}
-                                                type="clear"
-                                                TouchableComponent={TouchableWithoutFeedbackComponent}
-                                            />
-                                            <Button
-                                                containerStyle={themeViewContent.styles.areaReactionButtonContainer}
-                                                buttonStyle={themeViewContent.styles.areaReactionButton}
-                                                icon={
-                                                    <TherrIcon
-                                                        name={ isLiked ? 'heart-filled' : 'heart' }
-                                                        size={22}
-                                                        color={likeColor}
-                                                    />
-                                                }
-                                                onPress={() => this.onLikePress(thought)}
-                                                type="clear"
-                                                TouchableComponent={TouchableWithoutFeedbackComponent}
-                                            />
-                                        </>
-                                    }
-                                </View>
-                            </View>
-                        </View>
+                        {
+                            !isExpanded &&
+                                <ThoughtContent
+                                    hashtags={hashtags}
+                                    isBookmarked={isBookmarked}
+                                    isExpanded={isExpanded}
+                                    isDarkMode={isDarkMode}
+                                    isLiked={isLiked}
+                                    isRepliable={isRepliable}
+                                    likeColor={likeColor}
+                                    onBookmarkPress={this.onBookmarkPress}
+                                    onCommentPress={this.onCommentPress}
+                                    onLikePress={this.onLikePress}
+                                    theme={theme}
+                                    themeForms={themeForms}
+                                    themeViewContent={themeViewContent}
+                                    thought={thought}
+                                />
+                        }
                     </View>
                 </View>
+                {
+                    isExpanded &&
+                        <ThoughtContent
+                            hashtags={hashtags}
+                            isBookmarked={isBookmarked}
+                            isExpanded={isExpanded}
+                            isDarkMode={isDarkMode}
+                            isLiked={isLiked}
+                            isRepliable={isRepliable}
+                            likeColor={likeColor}
+                            onBookmarkPress={this.onBookmarkPress}
+                            onCommentPress={this.onCommentPress}
+                            onLikePress={this.onLikePress}
+                            theme={theme}
+                            themeForms={themeForms}
+                            themeViewContent={themeViewContent}
+                            thought={thought}
+                        />
+                }
             </>
         );
     }
 }
+
+const ThoughtContent = ({
+    hashtags,
+    isBookmarked,
+    isDarkMode,
+    isExpanded,
+    isLiked,
+    isRepliable,
+    likeColor,
+    onBookmarkPress,
+    onCommentPress,
+    onLikePress,
+    theme,
+    themeForms,
+    themeViewContent,
+    thought,
+}) => {
+    return (
+        <View style={themeViewContent.styles.thoughtContentContainer}>
+            <View style={spacingStyles.flexOne}>
+                <Text style={themeViewContent.styles.thoughtMessage} numberOfLines={isExpanded ? undefined : 7}>
+                    <Autolink
+                        text={thought.message}
+                        linkStyle={theme.styles.link}
+                        phone="sms"
+                    />
+                </Text>
+                <View>
+                    <HashtagsContainer
+                        hasIcon={false}
+                        hashtags={hashtags}
+                        onHashtagPress={() => {}}
+                        visibleCount={isExpanded ? 20 : 4}
+                        right
+                        styles={themeForms.styles}
+                    />
+                </View>
+                <View style={isExpanded ? themeViewContent.styles.thoughtReactionsContainerExpanded : themeViewContent.styles.thoughtReactionsContainer}>
+                    {
+                        !thought.isDraft && isRepliable &&
+                        <>
+                            <Button
+                                containerStyle={themeViewContent.styles.thoughtReactionButtonContainer}
+                                buttonStyle={themeViewContent.styles.thoughtReactionButton}
+                                icon={
+                                    <TherrIcon
+                                        name="chat"
+                                        size={22}
+                                        color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                    />
+                                }
+                                onPress={() => onCommentPress(thought)}
+                                type="clear"
+                                title={thought.replies?.length ? thought.replies.length : ''}
+                                titleStyle={[
+                                    themeViewContent.styles.thoughtReactionButtonTitle,
+                                    { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
+                                ]}
+                                TouchableComponent={TouchableWithoutFeedbackComponent}
+                            />
+                            <Button
+                                containerStyle={themeViewContent.styles.thoughtReactionButtonContainer}
+                                buttonStyle={themeViewContent.styles.thoughtReactionButton}
+                                icon={
+                                    <TherrIcon
+                                        name={ isBookmarked ? 'bookmark' : 'bookmark' }
+                                        size={22}
+                                        color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
+                                    />
+                                }
+                                onPress={() => onBookmarkPress(thought)}
+                                type="clear"
+                                TouchableComponent={TouchableWithoutFeedbackComponent}
+                            />
+                            <Button
+                                containerStyle={themeViewContent.styles.areaReactionButtonContainer}
+                                buttonStyle={themeViewContent.styles.areaReactionButton}
+                                icon={
+                                    <TherrIcon
+                                        name={ isLiked ? 'heart-filled' : 'heart' }
+                                        size={22}
+                                        color={likeColor}
+                                    />
+                                }
+                                onPress={() => onLikePress(thought)}
+                                type="clear"
+                                TouchableComponent={TouchableWithoutFeedbackComponent}
+                            />
+                        </>
+                    }
+                </View>
+            </View>
+        </View>
+    );
+};
+
+export default ThoughtDisplay;
