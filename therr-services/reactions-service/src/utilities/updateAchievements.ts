@@ -14,7 +14,14 @@ const getTier = (reactionBody) => {
     return '';
 };
 
-const updateAchievements = (headers, reqBody): Promise<any> => {
+const updateAchievements = (headers, reqBody, existingReaction?): Promise<any> => {
+    // Prevents spam liking
+    if (existingReaction?.userHasLiked && reqBody.userHasLiked) {
+        return Promise.resolve();
+    }
+    if (existingReaction?.userHasSuperLiked && reqBody.userHasSuperLiked) {
+        return Promise.resolve();
+    }
     const tier = getTier(reqBody);
 
     if (!tier) {

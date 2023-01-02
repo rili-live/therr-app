@@ -80,7 +80,7 @@ const renderItem = ({ item: post }, {
                     inspectThought={() => inspectContent(post)} // TODO
                     // TODO: Get username from response
                     user={user}
-                    userDetails={userDetails}
+                    contentUserDetails={userDetails}
                     updateThoughtReaction={updateReaction}
                     isDarkMode={false}
                     theme={theme}
@@ -109,7 +109,7 @@ const renderItem = ({ item: post }, {
                         inspectContent={() => inspectContent(post)}
                         // TODO: Get username from response
                         user={user}
-                        userDetails={userDetails}
+                        areaUserDetails={userDetails}
                         updateAreaReaction={updateReaction}
                         areaMedia={postMedia}
                         isDarkMode={false}
@@ -128,7 +128,7 @@ const renderItem = ({ item: post }, {
                         inspectContent={() => inspectContent(post)}
                         // TODO: Get username from response
                         user={user}
-                        userDetails={userDetails}
+                        areaUserDetails={userDetails}
                         updateAreaReaction={updateReaction}
                         areaMedia={postMedia}
                         isDarkMode={false}

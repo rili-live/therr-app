@@ -40,7 +40,7 @@ interface IThoughtDisplayProps {
     goToViewUser: Function;
     updateThoughtReaction: Function;
     user: IUserState;
-    userDetails: IUserDetails;
+    contentUserDetails: IUserDetails;
     theme: {
         styles: any;
         colors: ITherrThemeColors;
@@ -67,21 +67,21 @@ export default class ThoughtDisplay extends React.Component<IThoughtDisplayProps
     }
 
     onBookmarkPress = (thought) => {
-        const { updateThoughtReaction, userDetails } = this.props;
+        const { updateThoughtReaction, user } = this.props;
 
         updateThoughtReaction(thought.id, {
             userBookmarkCategory: thought.reaction?.userBookmarkCategory ? null : 'Uncategorized',
-        }, thought.fromUserId, userDetails.userName);
+        }, thought.fromUserId, user?.details?.userName);
     }
 
     onLikePress = (thought) => {
         if (!thought.isDraft) {
             ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
-            const { updateThoughtReaction, userDetails } = this.props;
+            const { updateThoughtReaction, user } = this.props;
 
             updateThoughtReaction(thought.id, {
                 userHasLiked: !thought.reaction?.userHasLiked,
-            }, thought.fromUserId, userDetails.userName);
+            }, thought.fromUserId, user?.details?.userName);
         }
     }
 
@@ -95,7 +95,7 @@ export default class ThoughtDisplay extends React.Component<IThoughtDisplayProps
             isExpanded,
             thought,
             goToViewUser,
-            userDetails,
+            contentUserDetails,
             theme,
             themeForms,
             themeViewContent,
@@ -125,9 +125,9 @@ export default class ThoughtDisplay extends React.Component<IThoughtDisplayProps
                         <View style={themeViewContent.styles.thoughtAuthorContainer}>
                             <View style={themeViewContent.styles.thoughtAuthorTextContainer}>
                                 {
-                                    userDetails &&
+                                    contentUserDetails &&
                                         <Text style={themeViewContent.styles.thoughtUserName} numberOfLines={1}>
-                                            {`${userDetails.userName}`}
+                                            {`${contentUserDetails.userName}`}
                                         </Text>
                                 }
                                 <Text style={themeViewContent.styles.dateTime}>

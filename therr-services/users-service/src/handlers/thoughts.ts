@@ -49,14 +49,15 @@ const getThoughtDetails = (req, res) => {
 
     const {
         withUser,
+        withReplies,
     } = req.body;
 
     const shouldFetchUser = !!withUser;
+    const shouldFetchReplies = !!withReplies;
 
-    return Store.thoughts.find([thoughtId], {
-        limit: 1,
-    }, {
+    return Store.thoughts.get(thoughtId, {}, {
         withUser: shouldFetchUser,
+        withReplies: shouldFetchReplies,
         shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
     })
         .then(({ thoughts, users }) => {
@@ -64,7 +65,7 @@ const getThoughtDetails = (req, res) => {
             let userHasAccessPromise = () => Promise.resolve(true);
             // Verify that user has activated thought and has access to view it
             // TODO: Verify thought exists
-            if (thought?.fromUserId !== userId) {
+            if (!thought.isPublic && thought?.fromUserId !== userId) {
                 userHasAccessPromise = () => getReactions(thoughtId, {
                     'x-userid': userId,
                 });
@@ -158,6 +159,7 @@ const findThoughts: RequestHandler = async (req: any, res: any) => {
         offset,
         thoughtIds,
         withUser,
+        withReplies,
         lastContentCreatedAt,
     } = req.body;
 
@@ -168,6 +170,7 @@ const findThoughts: RequestHandler = async (req: any, res: any) => {
         before: lastContentCreatedAt,
     }, {
         withUser: !!withUser,
+        withReplies: !!withReplies,
         shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
     })
         .then(({ thoughts }) => res.status(200).send({ thoughts }))
