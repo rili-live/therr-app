@@ -151,11 +151,14 @@ export default class ThoughtsStore {
             if (options.withUser) {
                 const userIds: string[] = [];
                 const thoughtDetailsPromises: Promise<any>[] = [];
-                const matchingUsers: any = {};
 
                 thoughts.forEach((thought) => {
-                    if (options.withUser) {
-                        userIds.push(thought.fromUserId);
+                    userIds.push(thought.fromUserId);
+
+                    if (options.withReplies) {
+                        thought.replies.forEach((reply) => {
+                            userIds.push(reply.fromUserId);
+                        });
                     }
                 });
                 // TODO: Try fetching from redis/cache first, before fetching remaining media from DB
@@ -164,21 +167,38 @@ export default class ThoughtsStore {
                     : Promise.resolve(null));
 
                 const [users] = await Promise.all(thoughtDetailsPromises);
+                const usersMap = users.reduce((acc, user) => {
+                    acc[user.id] = user;
+                    return acc;
+                }, {});
 
-                // TODO: Optimize
                 const mappedThoughts = thoughts.map((thought) => {
                     const modifiedThought = thought;
-                    modifiedThought.user = {};
 
                     // USER
-                    if (options.withUser) {
-                        const matchingUser = users.find((user) => user.id === modifiedThought.fromUserId);
-                        if (matchingUser) {
-                            matchingUsers[matchingUser.id] = matchingUser;
-                            modifiedThought.fromUserName = matchingUser.userName;
-                            modifiedThought.fromUserFirstName = matchingUser.firstName;
-                            modifiedThought.fromUserLastName = matchingUser.lastName;
-                            modifiedThought.fromUserMedia = matchingUser.media;
+                    const matchingUser = usersMap[modifiedThought.fromUserId];
+                    if (matchingUser) {
+                        modifiedThought.user = matchingUser;
+                        modifiedThought.fromUserName = matchingUser.userName;
+                        modifiedThought.fromUserFirstName = matchingUser.firstName;
+                        modifiedThought.fromUserLastName = matchingUser.lastName;
+                        modifiedThought.fromUserMedia = matchingUser.media;
+
+                        // Replies
+                        if (options.withReplies) {
+                            modifiedThought.replies = modifiedThought.replies.map((reply) => {
+                                const modifiedReply = reply;
+                                const matchingReplyUser = usersMap[modifiedReply.fromUserId];
+                                if (matchingReplyUser) {
+                                    modifiedReply.user = matchingReplyUser;
+                                    modifiedReply.fromUserName = matchingReplyUser.userName;
+                                    modifiedReply.fromUserFirstName = matchingReplyUser.firstName;
+                                    modifiedReply.fromUserLastName = matchingReplyUser.lastName;
+                                    modifiedReply.fromUserMedia = matchingReplyUser.media;
+                                }
+
+                                return modifiedReply;
+                            });
                         }
                     }
 
@@ -187,7 +207,7 @@ export default class ThoughtsStore {
 
                 return {
                     thoughts: mappedThoughts,
-                    users: matchingUsers,
+                    users: usersMap,
                 };
             }
 
