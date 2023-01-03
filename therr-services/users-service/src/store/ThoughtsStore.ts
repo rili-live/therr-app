@@ -213,8 +213,7 @@ export default class ThoughtsStore {
             .andWhere(`${THOUGHTS_TABLE_NAME}.parentId`, null)
             .andWhere((builder) => {
                 builder
-                    .whereIn(`${THOUGHTS_TABLE_NAME}.id`, thoughtIds || [])
-                    .orWhere(`${THOUGHTS_TABLE_NAME}.isPublic`, true);
+                    .whereIn(`${THOUGHTS_TABLE_NAME}.id`, thoughtIds || []);
             })
             .limit(restrictedLimit);
 
