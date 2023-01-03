@@ -3,7 +3,7 @@ import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/htt
 import { ErrorCodes, Notifications } from 'therr-js-utilities/constants';
 import { RequestHandler } from 'express';
 import * as globalConfig from '../../../../global-config';
-import getReactions from '../utilities/getReactions';
+import { getReactions } from '../api/reactions';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';

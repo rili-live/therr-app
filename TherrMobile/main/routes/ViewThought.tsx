@@ -142,14 +142,12 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
     }
 
     componentDidMount() {
-        const { getThoughtDetails, navigation, route, user } = this.props;
-        const { isMyContent, thought } = route.params;
-
-        const thoughtUserName = isMyContent ? user.details.userName : thought.fromUserName;
+        const { getThoughtDetails, navigation, route } = this.props;
+        const { thought } = route.params;
 
         // Move thought details out of route params and into redux
         getThoughtDetails(thought.id, {
-            withUser: !thoughtUserName,
+            withUser: true, // This will also get reply users
             withReplies: true,
         }).then((response) => {
             this.setState({
@@ -354,6 +352,11 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
         return checkIsMyContent(reply, user) ? user.details.userName : reply.fromUserName;
     }
 
+    getReplyUserMedia = (reply) => {
+        const { user } = this.props;
+        return checkIsMyContent(reply, user) ? user.details.media : reply.fromUserMedia;
+    }
+
     goBack = () => {
         const { navigation } = this.props;
         // const { previousView } = route.params;
@@ -478,6 +481,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                                         isDarkMode={true}
                                         isExpanded={false}
                                         inspectThought={() => null}
+                                        key={reply.id}
                                         thought={reply}
                                         goToViewUser={this.goToViewUser}
                                         updateThoughtReaction={(thoughtId, data) => this.onUpdateThoughtReaction(thoughtId, data)}
@@ -485,6 +489,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                                         user={user}
                                         contentUserDetails={{
                                             userName: this.getReplyUserName(reply),
+                                            media: this.getReplyUserMedia(reply),
                                         }}
                                         theme={this.theme}
                                         themeForms={this.themeForms}

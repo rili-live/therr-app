@@ -68,15 +68,15 @@ const createOrUpdateMultiThoughtReactions = (req, res) => {
 
     return Store.thoughtReactions.get({
         userId,
-    }, thoughtIds).then((existing) => {
+    }, thoughtIds).then(async (existing) => {
         const existingMapped = {};
         const existingReactions = existing.map((reaction) => {
             existingMapped[reaction.thoughtId] = reaction;
             return [userId, reaction.thoughtId];
         });
-        let updatedReactions;
+        let updatedReactions: any[] = [];
         if (existing?.length) {
-            Store.thoughtReactions.update({}, {
+            await Store.thoughtReactions.update({}, {
                 ...params,
                 userLocale: locale,
             }, {
