@@ -177,6 +177,7 @@ const searchThoughts: RequestHandler = async (req: any, res: any) => {
 };
 
 // NOTE: This should remain a non-public endpoint
+// It gets called by the reactions service when a thought is activated
 const findThoughts: RequestHandler = async (req: any, res: any) => {
     // const userId = req.headers['x-userid'];
 
