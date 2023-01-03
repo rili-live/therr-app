@@ -62,6 +62,20 @@ export default class ThoughtsStore {
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
+    getRecentThoughts(limit = 1, returning = ['id']) {
+        const queryString = knexBuilder.select(returning)
+            .from(THOUGHTS_TABLE_NAME)
+            .where('createdAt', '>', new Date(Date.now() - 1000 * 60 * 60 * 24))
+            .andWhere({
+                isPublic: true,
+                isMatureContent: false,
+            })
+            .limit(limit)
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
     search(conditions: any = {}, returning, fromUserIds = [], overrides?: any, includePublicResults = true) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;

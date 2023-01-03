@@ -9,10 +9,17 @@ import Store from '../store';
 import { createUserToken } from '../utilities/userHelpers';
 import translate from '../utilities/translator';
 import { validateCredentials } from './helpers/user';
+import TherrEventEmitter from '../api/TherrEventEmitter';
 
 // Authenticate user
 const login: RequestHandler = (req: any, res: any) => {
     const userNameEmailPhone = req.body.userName?.trim() || req.body.userEmail?.trim();
+
+    /**
+     * This is simply an event trigger. It could be triggered by a user logging in, or any other common event.
+     * We will probably want to move this to a scheduler to run at a set interval.
+     */
+    TherrEventEmitter.runThoughtReactionDistributorAlgorithm();
 
     return Store.users
         .getUsers(

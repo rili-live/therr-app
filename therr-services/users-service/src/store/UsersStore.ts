@@ -55,6 +55,16 @@ export default class UsersStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
+    getRecentUsers(limit = 1, returning = ['id']) {
+        const queryString = knexBuilder.select(returning)
+            .from(USERS_TABLE_NAME)
+            // 1 day ago
+            .where('createdAt', '>', new Date(Date.now() - 1000 * 60 * 60 * 24))
+            .limit(limit)
+            .toString();
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
     getUserById = (id: string, returning: any = '*') => {
         let queryString: any = knexBuilder.select(returning).from('main.users')
             .where({ id });
