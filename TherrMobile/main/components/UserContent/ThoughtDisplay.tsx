@@ -25,6 +25,9 @@ const hapticFeedbackOptions = {
 };
 
 interface IUserDetails {
+    media?: {
+        profilePicture: any;
+    };
     userName: string;
 }
 
@@ -75,8 +78,9 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
         }, thought.fromUserId, user?.details?.userName);
     }
 
-    onCommentPress = (thought) => {
-        const { inspectThought, user } = this.props;
+    // TODO: Open full screen reply editor
+    onCommentPress = () => {
+        const { inspectThought } = this.props;
 
         inspectThought();
     }
@@ -121,7 +125,9 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                             onPress={() => goToViewUser(thought.fromUserId)}
                         >
                             <Image
-                                source={{ uri: getUserImageUri({ details: { media: thought.fromUserMedia, id: thought.fromUserId } }, 52) }}
+                                source={{ uri: getUserImageUri({
+                                    details: { media: thought.fromUserMedia || contentUserDetails.media, id: thought.fromUserId },
+                                }, 52) }}
                                 style={themeViewContent.styles.thoughtUserAvatarImg}
                                 containerStyle={themeViewContent.styles.thoughtUserAvatarImgContainer}
                                 PlaceholderContent={<ActivityIndicator size="small" color={theme.colors.primary}/>}

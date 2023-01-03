@@ -25,7 +25,7 @@ const mergeAreas = (moments: IArea[], spaces: IArea[], sortBy = 'createdAt', sho
     }
 };
 
-export const mergeSortByCreatedAt = (leftPosts: IPost[], rightPosts: IPost[], shouldIncludeDrafts = false) => {
+const mergeSortByCreatedAt = (leftPosts: IPost[], rightPosts: IPost[], shouldIncludeDrafts = false) => {
     let mergedAreas: any[] = [];
     let lIndex = 0;
     let rIndex = 0;
