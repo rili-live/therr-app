@@ -32,6 +32,8 @@ import {
     feedbackAttemptLimiter,
     loginAttemptLimiter,
     rewardRequestAttemptLimiter,
+    userConnectionLimiter,
+    multiInviteLimiter,
     subscribeAttemptLimiter,
 } from './limitation/auth';
 import { createUpdateSocialSyncsValidation } from './validation/socialSyncs';
@@ -149,12 +151,12 @@ usersServiceRouter.post('/users/verify/:token', verifyUserAccountValidation, han
 }));
 
 // Connections
-usersServiceRouter.post('/users/connections', createUserConnectionValidation, handleServiceRequest({
+usersServiceRouter.post('/users/connections', userConnectionLimiter, createUserConnectionValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
 
-usersServiceRouter.post('/users/connections/multi-invite', inviteConnectionsValidation, handleServiceRequest({
+usersServiceRouter.post('/users/connections/multi-invite', multiInviteLimiter, inviteConnectionsValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
