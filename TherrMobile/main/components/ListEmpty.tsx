@@ -6,7 +6,7 @@ const ListEmpty = ({
     text,
 }) => (
     <View style={theme.styles.sectionContainer}>
-        <Text style={theme.styles.sectionDescription}>
+        <Text style={theme.styles.sectionDescriptionCentered}>
             {text}
         </Text>
     </View>

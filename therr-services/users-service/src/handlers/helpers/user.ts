@@ -15,7 +15,6 @@ import sendNewUserAdminNotificationEmail from '../../api/email/admin/sendNewUser
 import * as globalConfig from '../../../../../global-config';
 import handleHttpError from '../../utilities/handleHttpError';
 import { getMappedSocialSyncResults } from '../socialSync';
-import { createOrUpdateAchievement } from './achievements';
 
 const googleOAuth2ClientId = `${globalConfig[process.env.NODE_ENV].googleOAuth2WebClientId}`;
 const googleOAuth2Client = new OAuth2Client(googleOAuth2ClientId);
@@ -29,7 +28,7 @@ interface IRequiredUserDetails {
     userName?: string;
 }
 
-interface IUserByInviteDetails {
+export interface IUserByInviteDetails {
     fromName: string;
     fromEmail: string;
     toEmail: string;
@@ -269,6 +268,7 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
                             toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
                         }, {
                             name: userDetails.firstName && userDetails.lastName ? `${userDetails.firstName} ${userDetails.lastName}` : userDetails.email,
+                            inviterEmail: userByInviteDetails?.fromEmail || '',
                         });
 
                         if (isSSO) {

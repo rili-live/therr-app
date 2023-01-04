@@ -19,6 +19,7 @@ const searchActiveThoughts = async (req: any, res: any) => {
         withReplies,
         withBookmark,
         lastContentCreatedAt,
+        authorId,
     } = req.body;
 
     const conditions: any = {
@@ -65,6 +66,7 @@ const searchActiveThoughts = async (req: any, res: any) => {
                     withUser,
                     withReplies,
                     lastContentCreatedAt,
+                    authorId,
                 },
             });
         })

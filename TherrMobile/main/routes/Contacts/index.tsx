@@ -43,7 +43,7 @@ interface IContactsState {
     isNameConfirmModalVisible: boolean;
     isRefreshing: boolean;
     activeTabIndex: number;
-    tabRoutes: { key: string; title: string }[]
+    tabRoutes: { key: string; title: string }[];
 }
 
 const mapStateToProps = (state) => ({
