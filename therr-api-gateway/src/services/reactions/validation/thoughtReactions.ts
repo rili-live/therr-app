@@ -16,6 +16,7 @@ export const searchActiveThoughtsValidation = [
     body('withUser').isBoolean().optional(),
     body('withReplies').isBoolean().optional(),
     body('lastContentCreatedAt').optional(),
+    body('authorId').optional(),
 ];
 
 export const createOrUpdateThoughtReactionValidation = [

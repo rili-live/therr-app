@@ -16,9 +16,8 @@ import { buildStyles as buildMomentStyles } from '../../styles/user-content/area
 import { buildStyles as buildReactionsModalStyles } from '../../styles/modal/areaReactionsModal';
 import AreaCarousel from './AreaCarousel';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
-import { getReactionUpdateArgs } from '../../utilities/reactions';
 import { CAROUSEL_TABS } from '../../constants';
-import { handleAreaReaction, navToViewContent } from './postViewHelpers';
+import { handleAreaReaction, navToViewContent } from '../../utilities/postViewHelpers';
 import AreaOptionsModal, { ISelectionType } from '../../components/Modals/AreaOptionsModal';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import getDirections from '../../utilities/getDirections';
@@ -223,7 +222,6 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
         } else {
             handleAreaReaction(selectedArea, type, {
                 user,
-                getReactionUpdateArgs,
                 createOrUpdateMomentReaction,
                 createOrUpdateSpaceReaction,
                 toggleAreaOptions: this.toggleAreaOptions,

@@ -59,10 +59,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             fontSize: 20,
             fontWeight: '600',
             marginBottom: 8,
+            color: therrTheme.colors.textWhite,
         },
         profileBio: {
             fontSize: 14,
             fontWeight: '400',
+            color: therrTheme.colors.textWhite,
         },
         socialLinksContainer: {
             display: 'flex',
@@ -111,7 +113,8 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         actionsContainer: {
             display: 'flex',
             flexDirection: 'row',
-            marginVertical: 24,
+            marginTop: 24,
+            marginBottom: 0,
         },
         actionMenuContainer: {
             width: '100%',
@@ -131,7 +134,7 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             marginHorizontal: 4,
         },
         actionMenuItemText: {
-            color: therrTheme.colorVariations.accentTextWhiteFade,
+            color: therrTheme.colors.accentTextBlack,
             fontSize: 16,
             flex: 1,
             paddingRight: 10,

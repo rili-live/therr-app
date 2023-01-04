@@ -170,6 +170,8 @@ const Content = {
                 type: ContentActionTypes.UPDATE_ACTIVE_THOUGHTS,
                 data: response?.data,
             });
+
+            return response?.data;
         }),
     createOrUpdateThoughtReaction: (
         thoughtId: number,

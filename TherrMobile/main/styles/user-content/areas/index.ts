@@ -29,7 +29,6 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             width: '100%',
         },
         areaCarousel: {
-            backgroundColor: therrTheme.colorVariations.backgroundNeutral,
             width: '100%',
         },
         areaCarouselHeader: {

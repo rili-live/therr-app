@@ -529,7 +529,9 @@
       "social": "Social",
       "events": "Events",
       "invite": "Invite",
-      "news": "News"
+      "media": "Media",
+      "news": "News",
+      "thoughts": "Thoughts"
     },
     "mapActions": {
       "create": "Create",
@@ -1181,7 +1183,8 @@
         "profileIsPublicName": "Profile is Private"
       },
       "text": {
-        "noMedia": "No media to display. Users can sync their socials to showcase their best content creations."
+        "noMedia": "No media to display. Users can sync their socials to showcase their best content creations.",
+        "noThoughts": "No thoughts to display. User can create thoughts from the 'Discovered' page."
       }
     }
   }
