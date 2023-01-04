@@ -7,6 +7,8 @@ const limitReachedStatusCode = 429;
 const limitReachedMessage = 'Too many login attempts, please try again later.';
 const feedbackLimitReachedMessage = 'Too many requests to send feedback.';
 const rewardRequestLimitReachedMessage = 'Too many requests to exchange coins.';
+const userConnectionLimitReachedMessage = 'Too many user connection requests';
+const multiInviteLimitReachedMessage = 'Too many invite requests';
 const subscribeLimitReachedMessage = 'Too many requests to subscribe.';
 
 const loginAttemptLimiter = new RateLimit({
@@ -24,12 +26,12 @@ const loginAttemptLimiter = new RateLimit({
     }),
 });
 
-const buildRateLimiter = (msg) => new RateLimit({
+const buildRateLimiter = (msg, count = 1, minutes = 1) => new RateLimit({
     store: new RedisStore({
         client: redisClient,
     }),
-    windowMs: 1 * 60 * 1000, // 1 minutes
-    max: process.env.NODE_ENV !== 'development' ? 2 : 25, // limit each IP to 1 requests per windowMs
+    windowMs: minutes * 60 * 1000, // 1 minutes
+    max: process.env.NODE_ENV !== 'development' ? count : 25, // limit each IP to x requests per windowMs
     statusCode: limitReachedStatusCode,
     keyGenerator: (req) => `${req.method}${req.path}${req.ip}`,
     handler: (req, res) => handleHttpError({
@@ -40,12 +42,16 @@ const buildRateLimiter = (msg) => new RateLimit({
 });
 
 const feedbackAttemptLimiter = buildRateLimiter(feedbackLimitReachedMessage);
-const rewardRequestAttemptLimiter = buildRateLimiter(rewardRequestLimitReachedMessage);
+const rewardRequestAttemptLimiter = buildRateLimiter(rewardRequestLimitReachedMessage, 1, 3);
+const userConnectionLimiter = buildRateLimiter(userConnectionLimitReachedMessage, 10, 3);
+const multiInviteLimiter = buildRateLimiter(multiInviteLimitReachedMessage, 1, 3);
 const subscribeAttemptLimiter = buildRateLimiter(subscribeLimitReachedMessage);
 
 export {
     loginAttemptLimiter,
     rewardRequestAttemptLimiter,
     feedbackAttemptLimiter,
+    userConnectionLimiter,
+    multiInviteLimiter,
     subscribeAttemptLimiter,
 };

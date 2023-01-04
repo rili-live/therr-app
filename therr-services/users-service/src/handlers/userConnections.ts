@@ -3,6 +3,7 @@ import { CurrentSocialValuations, Notifications, PushNotifications } from 'therr
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
 import printLogs from 'therr-js-utilities/print-logs';
 import normalizeEmail from 'normalize-email';
+import emailValidator from 'email-validator';
 import sendPushNotificationAndEmail from '../utilities/sendPushNotificationAndEmail';
 import beeline from '../beeline';
 import Store from '../store';
@@ -257,9 +258,11 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
 
             if (!isFound) {
                 if (contact.email) {
-                    otherUserEmails.push({
-                        email: normalizeEmail(contact.email),
-                    });
+                    if (emailValidator.validate(contact.email)) {
+                        otherUserEmails.push({
+                            email: normalizeEmail(contact.email),
+                        });
+                    }
                 } else if (contact.phoneNumber) {
                     const normalizedPhoneNumber = normalizePhoneNumber(contact.phoneNumber);
                     if (normalizedPhoneNumber) {
