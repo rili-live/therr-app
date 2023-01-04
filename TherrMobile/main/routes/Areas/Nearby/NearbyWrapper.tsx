@@ -22,11 +22,10 @@ import { buildStyles as buildFormStyles } from '../../../styles/forms';
 import translator from '../../../services/translator';
 import AreaCarousel from '../AreaCarousel';
 import AreaOptionsModal, { ISelectionType } from '../../../components/Modals/AreaOptionsModal';
-import { getReactionUpdateArgs } from '../../../utilities/reactions';
 import LottieLoader, { ILottieId } from '../../../components/LottieLoader';
 import getActiveCarouselData from '../../../utilities/getActiveCarouselData';
 import { CAROUSEL_TABS } from '../../../constants';
-import { handleAreaReaction, loadMoreAreas, navToViewContent } from '../postViewHelpers';
+import { handleAreaReaction, loadMoreAreas, navToViewContent } from '../../../utilities/postViewHelpers';
 import requestLocationServiceActivation from '../../../utilities/requestLocationServiceActivation';
 import { checkAndroidPermission, isLocationPermissionGranted, requestOSMapPermissions } from '../../../utilities/requestOSPermissions';
 import LocationActions from '../../../redux/actions/LocationActions';
@@ -336,7 +335,6 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
         } else {
             handleAreaReaction(selectedArea, type, {
                 user,
-                getReactionUpdateArgs,
                 createOrUpdateMomentReaction,
                 createOrUpdateSpaceReaction,
                 toggleAreaOptions: this.toggleAreaOptions,

@@ -31,6 +31,7 @@ export interface ISearchActiveAreasParams {
     userLatitude?: number;
     userLongitude?: number,
     lastContentCreatedAt?: Date;
+    authorId?: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -109,6 +110,7 @@ class ReactionsService {
             userLatitude: options.userLatitude,
             userLongitude: options.userLongitude,
             lastContentCreatedAt: options.lastContentCreatedAt,
+            authorId: options.authorId,
         },
     })
 

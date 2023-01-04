@@ -363,6 +363,10 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             paddingRight: 12,
             textAlign: 'right',
         },
+        tabviewContainer: {
+            width: '100%',
+            flex: 1,
+        },
     });
 
     return ({

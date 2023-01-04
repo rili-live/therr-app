@@ -251,6 +251,15 @@ export default class ThoughtsStore {
             })
             .limit(restrictedLimit);
 
+        if (filters.authorId) {
+            // TODO: Also return private posts if users are friends
+            query = query.andWhere((builder) => {
+                builder
+                    .andWhere(`${THOUGHTS_TABLE_NAME}.fromUserId`, filters.authorId)
+                    .andWhere(`${THOUGHTS_TABLE_NAME}.isPublic`, true);
+            });
+        }
+
         if (options.withReplies) {
             query = query
                 .leftJoin(`${THOUGHTS_TABLE_NAME} as replies`, 'replies.parentId', `${THOUGHTS_TABLE_NAME}.id`)
@@ -263,6 +272,8 @@ export default class ThoughtsStore {
         if (options?.shouldHideMatureContent) {
             query = query.where(`${THOUGHTS_TABLE_NAME}.isMatureContent`, false);
         }
+
+        console.log('DEBUG', query.toString());
 
         return this.db.read.query(query.toString()).then(async ({ rows }) => {
             const thoughts = formatSQLJoinAsJSON(rows, [{ propKey: 'replies', propId: 'id' }]);

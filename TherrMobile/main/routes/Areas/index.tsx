@@ -18,11 +18,10 @@ import translator from '../../services/translator';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import AreaOptionsModal, { ISelectionType } from '../../components/Modals/AreaOptionsModal';
-import { getReactionUpdateArgs } from '../../utilities/reactions';
 import LottieLoader, { ILottieId } from '../../components/LottieLoader';
 import getActiveCarouselData from '../../utilities/getActiveCarouselData';
 import { CAROUSEL_TABS } from '../../constants';
-import { handleAreaReaction, handleThoughtReaction, loadMorePosts, navToViewContent } from './postViewHelpers';
+import { handleAreaReaction, handleThoughtReaction, loadMorePosts, navToViewContent } from '../../utilities/postViewHelpers';
 import getDirections from '../../utilities/getDirections';
 import { SELECT_ALL } from '../../utilities/categories';
 import LazyPlaceholder from './components/LazyPlaceholder';
@@ -285,7 +284,6 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         } else {
             handleAreaReaction(selectedArea, type, {
                 user,
-                getReactionUpdateArgs,
                 createOrUpdateMomentReaction,
                 createOrUpdateSpaceReaction,
                 toggleAreaOptions: this.toggleAreaOptions,
@@ -299,7 +297,6 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
 
         handleThoughtReaction(selectedThought, type, {
             user,
-            getReactionUpdateArgs,
             createOrUpdateThoughtReaction,
             toggleThoughtOptions: this.toggleThoughtOptions,
         });
@@ -339,7 +336,6 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     }
 
     toggleThoughtOptions = (thought) => {
-        console.log(thought);
         const { areThoughtOptionsVisible } = this.state;
         this.setState({
             areAreaOptionsVisible: false,

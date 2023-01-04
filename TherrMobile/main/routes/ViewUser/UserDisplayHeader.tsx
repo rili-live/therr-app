@@ -1,11 +1,10 @@
 import BottomSheet from '../../components/BottomSheet/BottomSheet';
 import React, { useState } from 'react';
-import { ActivityIndicator, Dimensions, Text, View, Pressable, RefreshControl } from 'react-native';
+import { ActivityIndicator, Text, View, Pressable } from 'react-native';
 import { Button, Image } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { getUserImageUri } from '../../utilities/content';
 import SocialIconLink from './SocialIconLink';
-import { ScrollView } from 'react-native-gesture-handler';
 import { createIconSetFromIcoMoon } from 'react-native-vector-icons';
 import spacingStyles from '../../styles/layouts/spacing';
 import therrIconConfig from '../../assets/therr-font-config.json';
@@ -16,9 +15,6 @@ const LogoIcon = createIconSetFromIcoMoon(
     'TherrFont',
     'TherrFont.ttf'
 );
-
-const { width: viewportWidth } = Dimensions.get('window');
-const imageWidth = viewportWidth / 3;
 
 interface IActionItem {
     id: string;
@@ -224,16 +220,13 @@ const FullName = ({
     );
 };
 
-export default ({
-    handleRefresh,
-    media,
+const UserDisplayHeader = ({
     navigation,
     onBlockUser,
     onConnectionRequest,
     onMessageUser,
     onReportUser,
     onProfilePicturePress,
-    theme,
     themeForms,
     themeModal,
     themeUser,
@@ -241,16 +234,11 @@ export default ({
     user,
     userInView,
 }) => {
-    const [refreshing, setRefreshing] = React.useState(false);
     const [isMoreBottomSheetVisible, toggleMoreBottomSheet] = useState(false);
 
     // eslint-disable-next-line eqeqeq
     const isMe = user.details?.id == userInView.id;
     let actionsList = getActionableOptions(isMe, userInView);
-    const onRefresh = React.useCallback(() => {
-        setRefreshing(true);
-        handleRefresh().finally(() => setRefreshing(false));
-    }, [handleRefresh]);
     const onToggleMoreBottomSheet = (isVisible: boolean) => {
         if (actionsList.length) {
             toggleMoreBottomSheet(isVisible);
@@ -258,7 +246,7 @@ export default ({
     };
 
     return (
-        <View style={themeUser.styles.container}>
+        <>
             <View style={themeUser.styles.profileInfoContainer}>
                 <Pressable
                     onPress={() => onProfilePicturePress(userInView, isMe)}
@@ -267,6 +255,8 @@ export default ({
                     <Image
                         source={{ uri: getUserImageUri({ details: userInView }, 400) }}
                         style={themeUser.styles.profileImage}
+                        height={themeUser.styles.profileImage.height}
+                        width={themeUser.styles.profileImage.width}
                         containerStyle={{}}
                         PlaceholderContent={<ActivityIndicator size="large" color={themeUser.colors.primary}/>}
                         transition={false}
@@ -388,44 +378,6 @@ export default ({
                     }
                 />
             </View>
-            <ScrollView
-                contentInsetAdjustmentBehavior="automatic"
-                style={theme.styles.scrollViewFull}
-                refreshControl={<RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={onRefresh}
-                />}
-            >
-                <View style={themeUser.styles.contentPostsContainer}>
-                    {
-                        userInView.externalIntegrations?.length ?
-                            userInView.externalIntegrations.map((integration) => {
-                                const mediaUrl = media[integration.moment?.media && integration.moment?.media[0]?.id];
-                                return (
-                                    <Image
-                                        key={integration.id}
-                                        source={{ uri: mediaUrl }}
-                                        style={{
-                                            width: imageWidth,
-                                            height: imageWidth,
-                                        }}
-                                        containerStyle={{}}
-                                        PlaceholderContent={<ActivityIndicator size="large" color={themeUser.colors.primary}/>}
-                                        transition={false}
-                                    />
-                                );
-                            }) :
-                            <View
-                                style={themeUser.styles.noPostsContainer}>
-                                <Text
-                                    style={themeUser.styles.noPostsText}
-                                >
-                                    {translate('user.profile.text.noMedia')}
-                                </Text>
-                            </View>
-                    }
-                </View>
-            </ScrollView>
             <BottomSheet
                 isVisible={isMoreBottomSheetVisible}
                 onRequestClose={() => onToggleMoreBottomSheet(!isMoreBottomSheetVisible)}
@@ -447,6 +399,8 @@ export default ({
                     />)
                 }
             </BottomSheet>
-        </View>
+        </>
     );
 };
+
+export default React.memo(UserDisplayHeader);

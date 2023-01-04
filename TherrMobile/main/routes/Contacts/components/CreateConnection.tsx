@@ -332,7 +332,7 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
         return (
             <FlatList
                 data={[{}]}
-                keyExtractor={(item) => String(item.id)}
+                keyExtractor={(item: any) => String(item.id)}
                 renderItem={() => (
                     <View style={this.theme.styles.body}>
                         <View style={this.theme.styles.sectionContainer}>

@@ -1,7 +1,8 @@
 import React from 'react';
-import { RefreshControl, View, Text, /* Platform, */ FlatList, Pressable } from 'react-native';
+import { RefreshControl, View, /* Platform, */ FlatList, Pressable } from 'react-native';
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 // import Carousel from 'react-native-snap-carousel';
+import { buildStyles as buildRootStyles } from '../../styles';
 import { buildStyles } from '../../styles/user-content/areas';
 import { buildStyles as buildFormStyles } from '../../styles/forms';
 import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas/viewing';
@@ -10,6 +11,7 @@ import AreaDisplay from '../../components/UserContent/AreaDisplay';
 import AreaDisplayMedium from '../../components/UserContent/AreaDisplayMedium';
 import formatDate from '../../utilities/formatDate';
 import ThoughtDisplay from '../../components/UserContent/ThoughtDisplay';
+import ListEmpty from '../../components/ListEmpty';
 
 interface IAreaCarouselProps {
     activeData: any;
@@ -177,6 +179,7 @@ export default ({
     const [refreshing, setRefreshing] = React.useState(false);
 
     // TODO: Move to top level
+    const themeRoot = buildRootStyles(user.details.mobileThemeName);
     const theme = buildStyles(user.details.mobileThemeName);
     const themeArea = buildAreaStyles(user.details.mobileThemeName, false);
     const themeThought = buildThoughtStyles(user.details.mobileThemeName, false);
@@ -250,7 +253,7 @@ export default ({
                     });
                 }}
                 initialNumToRender={1}
-                ListEmptyComponent={<Text style={theme.styles.noAreasFoundText}>{emptyListMessage}</Text>}
+                ListEmptyComponent={<ListEmpty text={emptyListMessage} theme={themeRoot} />}
                 ListHeaderComponent={renderHeader()}
                 ListFooterComponent={<View style={theme.styles.areaCarouselFooter} />}
                 ref={(component) => {

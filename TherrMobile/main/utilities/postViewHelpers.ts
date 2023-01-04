@@ -1,9 +1,10 @@
-import { ISelectionType } from '../../components/Modals/AreaOptionsModal';
-import { isMyContent } from '../../utilities/content';
+import { ISelectionType } from '../components/Modals/AreaOptionsModal';
+import { isMyContent } from './content';
+import { getReactionUpdateArgs } from './reactions';
+
 
 const handleAreaReaction = (selectedArea, reactionType: ISelectionType, {
     user,
-    getReactionUpdateArgs,
     createOrUpdateMomentReaction,
     createOrUpdateSpaceReaction,
     toggleAreaOptions,
@@ -23,7 +24,6 @@ const handleAreaReaction = (selectedArea, reactionType: ISelectionType, {
 
 const handleThoughtReaction = (selectedArea, reactionType: ISelectionType, {
     user,
-    getReactionUpdateArgs,
     createOrUpdateThoughtReaction,
     toggleThoughtOptions,
 }) => {
