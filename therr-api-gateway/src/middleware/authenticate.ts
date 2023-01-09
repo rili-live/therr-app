@@ -12,6 +12,15 @@ const authenticate = async (req, res, next) => {
                     }
 
                     req['x-userid'] = decoded.id;
+
+                    if (decoded && decoded.isBlocked && decoded.isBlocked === true && !req.path.includes('users-service/auth/logout')) {
+                        return handleHttpError({
+                            res,
+                            message: "Invalid 'authorization.' User is blocked.",
+                            statusCode: 403,
+                        });
+                    }
+
                     return resolve('');
                 });
             });
