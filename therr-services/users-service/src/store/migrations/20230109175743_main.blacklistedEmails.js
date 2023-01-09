@@ -10,7 +10,7 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('blacklistedEm
 
     // Indexes
     table.unique('email');
-    table.index('email');
+    table.index(['email', 'status']);
 });
 
 exports.down = (knex) => knex.schema.dropTable('main.blacklistedEmails');
