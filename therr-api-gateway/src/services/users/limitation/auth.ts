@@ -43,8 +43,8 @@ const buildRateLimiter = (msg, count = 1, minutes = 1) => new RateLimit({
 
 const feedbackAttemptLimiter = buildRateLimiter(feedbackLimitReachedMessage);
 const rewardRequestAttemptLimiter = buildRateLimiter(rewardRequestLimitReachedMessage, 1, 3);
-const userConnectionLimiter = buildRateLimiter(userConnectionLimitReachedMessage, 10, 60); // 10 requests per hour (60 minutes)
-const multiInviteLimiter = buildRateLimiter(multiInviteLimitReachedMessage, 1, 3);
+const userConnectionLimiter = buildRateLimiter(userConnectionLimitReachedMessage, 5, 60); // 5 requests per hour (60 minutes)
+const multiInviteLimiter = buildRateLimiter(multiInviteLimitReachedMessage, 1, 5);
 const subscribeAttemptLimiter = buildRateLimiter(subscribeLimitReachedMessage);
 
 export {
