@@ -26,7 +26,7 @@ const Content = {
         type: ContentActionTypes.SET_ACTIVE_AREAS_FILTERS,
         data: filters,
     }),
-    updateActiveMoments: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
+    updateActiveMomentsStream: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
         .searchActiveMoments(options, limit)
         .then((response: any) => {
             dispatch({
@@ -102,7 +102,7 @@ const Content = {
                 data: response?.data,
             });
         }),
-    updateActiveSpaces: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
+    updateActiveSpacesStream: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
         .searchActiveSpaces(options, limit)
         .then((response: any) => {
             dispatch({
@@ -163,7 +163,7 @@ const Content = {
                 data: response?.data,
             });
         }),
-    updateActiveThoughts: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
+    updateActiveThoughtsStream: (options: ISearchActiveAreasParams, limit = 21) => (dispatch: any) => ReactionsService
         .searchActiveThoughts(options, limit)
         .then((response: any) => {
             dispatch({
@@ -201,6 +201,7 @@ const Content = {
                     },
                 });
             }
+            return response?.data;
         }),
     searchBookmarkedThoughts: (options: ISearchActiveAreasParams) => (dispatch: any) => ReactionsService
         .searchBookmarkedThoughts(options, 100)
