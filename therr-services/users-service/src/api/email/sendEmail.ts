@@ -1,6 +1,7 @@
 import beeline from '../../beeline'; // eslint-disable-line import/order
 import printLogs from 'therr-js-utilities/print-logs';
 import { awsSES } from '../aws';
+import Store from '../../store';
 
 export interface ISendEmailConfig {
     charset?: string;
@@ -8,6 +9,13 @@ export interface ISendEmailConfig {
     subject: string;
     toAddresses: string[];
 }
+
+const failsafeBlackListRequest = (email) => Store.blacklistedEmails.get({
+    email,
+}).catch((err) => {
+    console.log(err);
+    return [];
+});
 
 export default (config: ISendEmailConfig) => new Promise((resolve, reject) => {
     const params = {
@@ -37,21 +45,34 @@ export default (config: ISendEmailConfig) => new Promise((resolve, reject) => {
         FromEmailAddress: process.env.AWS_SES_FROM_EMAIL,
     };
 
-    awsSES.sendEmail(params, (err, data) => {
-        if (err) {
-            printLogs({
-                level: 'error',
-                messageOrigin: 'API_SERVER',
-                messages: ['Error sending email', err?.message],
-                tracer: beeline,
-                traceArgs: {
-                    ...data,
-                },
+    if (!config.toAddresses?.length) {
+        return resolve({});
+    }
+
+    return failsafeBlackListRequest(config.toAddresses[0]).then((blacklistedEmails) => {
+        // Skip if email is on bounce list or complaint list
+        const emailIsBlacklisted = blacklistedEmails?.length;
+        if (!emailIsBlacklisted) {
+            return awsSES.sendEmail(params, (err, data) => {
+                if (err) {
+                    printLogs({
+                        level: 'error',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['Error sending email', err?.message],
+                        tracer: beeline,
+                        traceArgs: {
+                            ...data,
+                        },
+                    });
+                    // NOTE: Always resolve, even if there is an error to prevent the API from failing
+                    return resolve(data);
+                }
+                return resolve(data);
             });
-            // return reject(err);
-            return resolve(data);
         }
 
-        return resolve(data);
+        console.warn(`Email is blacklisted: ${config.toAddresses[0]}`);
+
+        return resolve({});
     });
 });
