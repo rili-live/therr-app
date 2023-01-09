@@ -273,8 +273,6 @@ export default class ThoughtsStore {
             query = query.where(`${THOUGHTS_TABLE_NAME}.isMatureContent`, false);
         }
 
-        console.log('DEBUG', query.toString());
-
         return this.db.read.query(query.toString()).then(async ({ rows }) => {
             const thoughts = formatSQLJoinAsJSON(rows, [{ propKey: 'replies', propId: 'id' }]);
             if (options.withUser) {

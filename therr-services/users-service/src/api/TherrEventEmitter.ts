@@ -12,7 +12,8 @@ class TherrEventEmitter {
                     }));
 
                 return Promise.all(promises);
-            })).catch((err) => {
+            }))
+            .catch((err) => {
                 // TODO: Send to Honeycomb/DataDog
                 console.log(err);
             });
