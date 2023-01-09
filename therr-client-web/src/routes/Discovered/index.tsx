@@ -16,11 +16,11 @@ interface IDiscoveredRouterProps {
 
 interface IDiscoveredDispatchProps {
   searchActiveMoments: Function;
-  updateActiveMoments: Function;
+  updateActiveMomentsStream: Function;
   createOrUpdateMomentReaction: Function;
 
   searchActiveSpaces: Function;
-  updateActiveSpaces: Function;
+  updateActiveSpacesStream: Function;
   createOrUpdateSpaceReaction: Function;
 
   logout: Function;
@@ -51,11 +51,11 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) => bindActionCreators(
     {
         searchActiveMoments: ContentActions.searchActiveMoments,
-        updateActiveMoments: ContentActions.updateActiveMoments,
+        updateActiveMomentsStream: ContentActions.updateActiveMomentsStream,
         createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
 
         searchActiveSpaces: ContentActions.searchActiveSpaces,
-        updateActiveSpaces: ContentActions.updateActiveSpaces,
+        updateActiveSpacesStream: ContentActions.updateActiveSpacesStream,
         createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
     },
     dispatch,
@@ -84,13 +84,13 @@ export class DiscoveredComponent extends React.Component<IDiscoveredProps, IDisc
     handleRefresh = () => {
         const {
             content,
-            updateActiveMoments,
-            updateActiveSpaces,
+            updateActiveMomentsStream,
+            updateActiveSpacesStream,
             user,
         } = this.props;
         this.setState({ isLoading: true });
 
-        const activeMomentsPromise = updateActiveMoments({
+        const activeMomentsPromise = updateActiveMomentsStream({
             withMedia: true,
             withUser: true,
             offset: 0,
@@ -99,7 +99,7 @@ export class DiscoveredComponent extends React.Component<IDiscoveredProps, IDisc
             shouldHideMatureContent: user.details.shouldHideMatureContent,
         });
 
-        const activeSpacesPromise = updateActiveSpaces({
+        const activeSpacesPromise = updateActiveSpacesStream({
             withMedia: true,
             withUser: true,
             offset: 0,

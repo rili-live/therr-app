@@ -1,3 +1,5 @@
+import beeline from '../../beeline'; // eslint-disable-line import/order
+import printLogs from 'therr-js-utilities/print-logs';
 import { awsSES } from '../aws';
 
 export interface ISendEmailConfig {
@@ -37,7 +39,17 @@ export default (config: ISendEmailConfig) => new Promise((resolve, reject) => {
 
     awsSES.sendEmail(params, (err, data) => {
         if (err) {
-            return reject(err);
+            printLogs({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: ['Error sending email', err?.message],
+                tracer: beeline,
+                traceArgs: {
+                    ...data,
+                },
+            });
+            // return reject(err);
+            return resolve(data);
         }
 
         return resolve(data);
