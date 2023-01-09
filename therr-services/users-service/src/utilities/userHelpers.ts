@@ -11,6 +11,7 @@ export const createUserToken = (user: any, rememberMe?: boolean) => {
         userName,
         email,
         phoneNumber,
+        isBlocked,
         isSSO,
     } = user;
     // Sign the JWT
@@ -20,6 +21,7 @@ export const createUserToken = (user: any, rememberMe?: boolean) => {
             userName,
             email,
             phoneNumber,
+            isBlocked,
             isSSO: isSSO || false,
         },
         (process.env.JWT_SECRET || ''),

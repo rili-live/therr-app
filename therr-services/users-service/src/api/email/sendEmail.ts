@@ -1,5 +1,5 @@
 import beeline from '../../beeline'; // eslint-disable-line import/order
-import printLogs from 'therr-js-utilities/print-logs';
+import printLogs from 'therr-js-utilities/print-logs'; // eslint-disable-line import/order
 import { awsSES } from '../aws';
 import Store from '../../store';
 
