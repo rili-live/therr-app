@@ -2,6 +2,7 @@ import { RequestHandler } from 'express';
 import { CurrentSocialValuations, Notifications, PushNotifications } from 'therr-js-utilities/constants';
 import { getSearchQueryArgs } from 'therr-js-utilities/http';
 import printLogs from 'therr-js-utilities/print-logs';
+import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
 import normalizeEmail from 'normalize-email';
 import emailValidator from 'email-validator';
 import sendPushNotificationAndEmail from '../utilities/sendPushNotificationAndEmail';
@@ -11,7 +12,6 @@ import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import { translateNotification } from './notifications';
 import { createUserHelper } from './helpers/user';
-import normalizePhoneNumber from '../utilities/normalizePhoneNumber';
 import sendContactInviteEmail from '../api/email/sendContactInviteEmail';
 import twilioClient from '../api/twilio';
 import { createOrUpdateAchievement } from './helpers/achievements';
@@ -61,7 +61,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
 
             // 1a. Send email invite when user does not exist
             if (!userResults.length) {
-                if (acceptingUserEmail) {
+                if (acceptingUserEmail && emailValidator.validate(acceptingUserEmail)) {
                     // TODO: Ratelimit this to prevent spamming new user email
                     // fire and forget
                     unverifiedUser = await createUserHelper({
@@ -275,6 +275,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
             }
         });
 
+        // NOTE: Current set to 0 coin reward while we debug spammers
         coinRewardsTotal += (otherUserEmails.length * CurrentSocialValuations.inviteSent) + (otherUserPhoneNumbers.length * CurrentSocialValuations.inviteSent);
 
         // 2. Send email invites if user does not exist

@@ -1,8 +1,8 @@
 import KnexBuilder, { Knex } from 'knex';
 import { AccessLevels } from 'therr-js-utilities/constants';
+import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
 import normalizeEmail from 'normalize-email';
 import { IConnection } from './connection';
-import normalizePhoneNumber from '../utilities/normalizePhoneNumber';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
