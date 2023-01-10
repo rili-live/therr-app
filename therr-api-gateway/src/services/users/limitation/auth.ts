@@ -11,12 +11,15 @@ const userConnectionLimitReachedMessage = 'Too many user connection requests';
 const multiInviteLimitReachedMessage = 'Too many invite requests';
 const subscribeLimitReachedMessage = 'Too many requests to subscribe.';
 
-const loginAttemptLimiter = new RateLimit({
+const loginAttemptLimiter = RateLimit({
     store: new RedisStore({
-        client: redisClient,
+        // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
+        sendCommand: (...args: string[]) => redisClient.call(...args),
     }),
     windowMs: 5 * 60 * 1000, // 5 minutes
     max: process.env.NODE_ENV !== 'development' ? 10 : 25, // limit each IP to 10 requests per windowMs
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
     statusCode: limitReachedStatusCode,
     keyGenerator: (req) => `${req.method}${req.path}${req.ip}`,
     handler: (req, res) => handleHttpError({
@@ -26,12 +29,15 @@ const loginAttemptLimiter = new RateLimit({
     }),
 });
 
-const buildRateLimiter = (msg, count = 1, minutes = 1) => new RateLimit({
+const buildRateLimiter = (msg, count = 1, minutes = 1) => RateLimit({
     store: new RedisStore({
-        client: redisClient,
+        // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
+        sendCommand: (...args: string[]) => redisClient.call(...args),
     }),
     windowMs: minutes * 60 * 1000, // 1 minutes
     max: process.env.NODE_ENV !== 'development' ? count : 25, // limit each IP to x requests per windowMs
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
     statusCode: limitReachedStatusCode,
     keyGenerator: (req) => `${req.method}${req.path}${req.ip}`,
     handler: (req, res) => handleHttpError({

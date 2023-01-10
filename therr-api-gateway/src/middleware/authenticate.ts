@@ -3,18 +3,8 @@ import unless from 'express-unless';
 import handleHttpError from '../utilities/handleHttpError';
 
 // TODO: Store this in a database
-const blacklistedIps = [
-    '105.112.214.168',
-    '105.112.212.145',
-    '105.112.214.25',
-    '105.112.211.56',
-    '102.90.48.8',
-    '105.112.212.145',
-    '105.113.40.145',
-    '197.210.54.175',
-    '197.210.226.65',
-];
-const blacklistedIpPrefixes = ['105.112', '197.210'];
+const blacklistedIps: string[] = [];
+const blacklistedIpPrefixes: string[] = [];
 const isBlacklisted = (ip) => {
     const isBadLocale = blacklistedIpPrefixes.some((prefix) => ip.startsWith(prefix));
 
