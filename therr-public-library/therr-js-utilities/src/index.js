@@ -26,6 +26,7 @@ const utilities = [
     'promiser',
     'scroll-to',
     'Logger',
+    'normalize-phone-number',
     'print-logs',
 ];
 

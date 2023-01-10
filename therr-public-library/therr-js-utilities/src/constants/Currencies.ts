@@ -1,7 +1,7 @@
 const CurrentSocialValuations = {
     bookmark: 0.03,
     invite: 0.1,
-    inviteSent: 0.75,
+    inviteSent: 0.0,
     like: 0.01,
     superLike: 0.05,
 };

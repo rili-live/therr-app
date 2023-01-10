@@ -11,7 +11,7 @@ const handleServiceRequest = ({
             authorization: req.headers.authorization || '',
             'x-requestid': uuidv4(),
             'x-localecode': req.headers['x-localecode'] || '',
-            'x-userid': req.headers['x-userid'] || '',
+            'x-userid': req.headers['x-userid'] || req['x-userid'] || '',
             'x-user-device-token': req.headers['x-user-device-token'] || '',
         },
         method,
