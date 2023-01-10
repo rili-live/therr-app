@@ -75,3 +75,7 @@ phoneRouter.post('/validate-code', validate, async (req, res) => {
 });
 
 export default phoneRouter;
+
+// Examples
+// curl -d '{"phoneNumber":"+13175448348"}' -H "Content-Type: application/json" -X POST http://localhost:7770/v1/phone/verify -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEwZmUwNDM3LTZmMGItNGI1Ni05YThmLTRlZjJkMjY4ZmUxYiIsInVzZXJOYW1lIjpudWxsLCJlbWFpbCI6InphbnNlbG1AdGhlcnIuY29tIiwicGhvbmVOdW1iZXIiOm51bGwsImlzQmxvY2tlZCI6ZmFsc2UsImlzU1NPIjp0cnVlLCJpYXQiOjE2NzMzNzYzMzIsImV4cCI6MTY3NDI0MDMzMn0.QIRJq0IkMYHLWhy6DPSY0YQGziBK7hUlK-2Dkqcd34c"
+// curl -d '{"verificationCode":"482156"}' -H "Content-Type: application/json" -X POST http://localhost:7770/v1/phone/validate-code -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEwZmUwNDM3LTZmMGItNGI1Ni05YThmLTRlZjJkMjY4ZmUxYiIsInVzZXJOYW1lIjpudWxsLCJlbWFpbCI6InphbnNlbG1AdGhlcnIuY29tIiwicGhvbmVOdW1iZXIiOm51bGwsImlzQmxvY2tlZCI6ZmFsc2UsImlzU1NPIjp0cnVlLCJpYXQiOjE2NzMzNzYzMzIsImV4cCI6MTY3NDI0MDMzMn0.QIRJq0IkMYHLWhy6DPSY0YQGziBK7hUlK-2Dkqcd34c"
