@@ -1,3 +1,5 @@
+import printLogs from 'therr-js-utilities/print-logs';
+import beeline from '../beeline';
 import Store from '../store';
 import { createReactions } from './reactions';
 
@@ -24,8 +26,15 @@ class TherrEventEmitter {
                 return Promise.all(promises);
             }))
             .catch((err) => {
-                // TODO: Send to Honeycomb/DataDog
-                console.log(err);
+                printLogs({
+                    level: 'error',
+                    messageOrigin: 'TherrEventEmitter',
+                    messages: [err?.message],
+                    tracer: beeline,
+                    traceArgs: {
+                        issue: 'error while running thought reaction distributor algorithm',
+                    },
+                });
             });
     }
 }
