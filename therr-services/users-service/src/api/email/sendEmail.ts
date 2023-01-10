@@ -1,4 +1,5 @@
 import beeline from '../../beeline'; // eslint-disable-line import/order
+import emailValidator from 'email-validator';
 import printLogs from 'therr-js-utilities/print-logs'; // eslint-disable-line import/order
 import { awsSES } from '../aws';
 import Store from '../../store';
@@ -49,10 +50,11 @@ export default (config: ISendEmailConfig) => new Promise((resolve, reject) => {
         return resolve({});
     }
 
+    // TODO: Validate email before sending
     return failsafeBlackListRequest(config.toAddresses[0]).then((blacklistedEmails) => {
         // Skip if email is on bounce list or complaint list
         const emailIsBlacklisted = blacklistedEmails?.length;
-        if (!emailIsBlacklisted) {
+        if (emailValidator.validate(config.toAddresses[0]) && !emailIsBlacklisted) {
             return awsSES.sendEmail(params, (err, data) => {
                 if (err) {
                     printLogs({
@@ -71,7 +73,7 @@ export default (config: ISendEmailConfig) => new Promise((resolve, reject) => {
             });
         }
 
-        console.warn(`Email is blacklisted: ${config.toAddresses[0]}`);
+        console.warn(`Email is blacklisted or invalid: ${config.toAddresses[0]}`);
 
         return resolve({});
     });
