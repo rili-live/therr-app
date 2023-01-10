@@ -79,6 +79,32 @@ usersServiceRouter.post('/rewards', rewardRequestAttemptLimiter, createRewardsRe
     method: 'post',
 }));
 
+// Connections - order matters here for route matching
+usersServiceRouter.post('/users/connections', userConnectionLimiter, createUserConnectionValidation, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+usersServiceRouter.post('/users/connections/multi-invite', multiInviteLimiter, inviteConnectionsValidation, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'post',
+}));
+
+usersServiceRouter.get('/users/connections/:requestingUserId', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
+usersServiceRouter.get('/users/connections', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
+usersServiceRouter.put('/users/connections', updateUserConnectionValidation, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'put',
+}));
+
 // Users
 usersServiceRouter.post('/users', createUserValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
@@ -148,32 +174,6 @@ usersServiceRouter.post('/users/verify/resend', resendVerificationValidation, ha
 usersServiceRouter.post('/users/verify/:token', verifyUserAccountValidation, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
-}));
-
-// Connections
-usersServiceRouter.post('/users/connections', userConnectionLimiter, createUserConnectionValidation, handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'post',
-}));
-
-usersServiceRouter.post('/users/connections/multi-invite', multiInviteLimiter, inviteConnectionsValidation, handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'post',
-}));
-
-usersServiceRouter.get('/users/connections/:requestingUserId', handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'get',
-}));
-
-usersServiceRouter.get('/users/connections', handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'get',
-}));
-
-usersServiceRouter.put('/users/connections', updateUserConnectionValidation, handleServiceRequest({
-    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
-    method: 'put',
 }));
 
 // Notifications
