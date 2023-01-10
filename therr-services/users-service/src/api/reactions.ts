@@ -25,10 +25,14 @@ const createReactions = (thoughtIds: string[], headers) => axios({
         userHasActivated: true,
     },
 })
-    .then(({ data: { created, updated } }) => ({
-        created,
-        updated,
-    }))
+    // eslint-disable-next-line arrow-body-style
+    .then(({ data: { created, updated } }) => {
+        // console.log(created, updated);
+        return {
+            created,
+            updated,
+        };
+    })
     .catch((err) => {
         if (err?.response?.data?.statusCode === 403) {
             return {
