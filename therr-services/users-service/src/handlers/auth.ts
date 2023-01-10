@@ -15,12 +15,6 @@ import TherrEventEmitter from '../api/TherrEventEmitter';
 const login: RequestHandler = (req: any, res: any) => {
     const userNameEmailPhone = req.body.userName?.trim() || req.body.userEmail?.trim();
 
-    /**
-     * This is simply an event trigger. It could be triggered by a user logging in, or any other common event.
-     * We will probably want to move this to a scheduler to run at a set interval.
-     */
-    TherrEventEmitter.runThoughtReactionDistributorAlgorithm();
-
     return Store.users
         .getUsers(
             { userName: userNameEmailPhone },
@@ -29,6 +23,14 @@ const login: RequestHandler = (req: any, res: any) => {
         )
         .then((userSearchResults) => {
             const locale = req.headers['x-localecode'] || 'en-us';
+
+            if (userSearchResults.length) {
+                /**
+                 * This is simply an event trigger. It could be triggered by a user logging in, or any other common event.
+                 * We will probably want to move this to a scheduler to run at a set interval.
+                 */
+                TherrEventEmitter.runThoughtReactionDistributorAlgorithm(userSearchResults[0].id);
+            }
 
             if (!userSearchResults.length && !req.body.isSSO) {
                 return handleHttpError({
