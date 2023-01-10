@@ -2,6 +2,9 @@ import * as jwt from 'jsonwebtoken';
 import unless from 'express-unless';
 import handleHttpError from '../utilities/handleHttpError';
 
+const blacklistedIps = ['105.112.214.168'];
+const isBlacklisted = (ip) => blacklistedIps.includes(ip);
+
 const authenticate = async (req, res, next) => {
     try {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
@@ -13,7 +16,8 @@ const authenticate = async (req, res, next) => {
 
                     req['x-userid'] = decoded.id;
 
-                    if (decoded && decoded.isBlocked && decoded.isBlocked === true && !req.path.includes('users-service/auth/logout')) {
+                    if (isBlacklisted(req.ip)
+                    || (decoded && decoded.isBlocked && decoded.isBlocked === true && !req.path.includes('users-service/auth/logout'))) {
                         return handleHttpError({
                             res,
                             message: "Invalid 'authorization.' User is blocked.",
