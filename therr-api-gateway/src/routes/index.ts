@@ -1,5 +1,6 @@
 import * as express from 'express';
 import filesRouter from '../services/files/router';
+import phoneRouter from '../services/phone/router';
 import mapsServiceRouter from '../services/maps/router';
 import messagesServiceRouter from '../services/messages/router';
 import pushNotificationsServiceRouter from '../services/push-notifications/router';
@@ -15,6 +16,7 @@ const router = express.Router();
 router.use(genericRateLimiter);
 
 // READ
+router.use('/phone', serviceRateLimiter(300), phoneRouter);
 router.use('/user-files', serviceRateLimiter(300), filesRouter);
 router.use('/maps-service', serviceRateLimiter(400), mapsServiceRouter);
 router.use('/messages-service', serviceRateLimiter(), messagesServiceRouter);

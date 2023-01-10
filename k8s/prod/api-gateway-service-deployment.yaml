@@ -48,6 +48,18 @@ spec:
             secretKeyRef:
               name: maps-service-google-app-credentials
               key: MAPS_SERVICE_GOOGLE_APP_CREDENTIALS
+        - name: TWILIO_ACCOUNT_SID
+          valueFrom:
+            secretKeyRef:
+              name: twilio-account-sid
+              key: TWILIOACCOUNTSID
+        - name: TWILIO_AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: twilio-auth-token
+              key: TWILIOAUTHTOKEN
+        - name: TWILIO_SENDER_PHONE_NUMBER
+          value: "+14783124948"
         - name: BUCKET_PUBLIC_USER_DATA
           value: "therr-public-user-data"
         - name: GOOGLE_MAPS_PLACES_SERVER_SIDE_API_KEY
