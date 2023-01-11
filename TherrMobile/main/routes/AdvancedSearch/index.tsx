@@ -24,7 +24,7 @@ const categoryOptions: { name: string; isChecked?: boolean }[] = allCategories.m
 interface IAdvancedSearchDispatchProps {
     setActiveMomentsFilters: Function;
     setMapFilters: Function;
-    updateActiveMoments: Function;
+    updateActiveMomentsStream: Function;
 }
 
 interface IStoreProps extends IAdvancedSearchDispatchProps {
@@ -57,7 +57,7 @@ const mapDispatchToProps = (dispatch: any) =>
         {
             setActiveMomentsFilters: ContentActions.setActiveMomentsFilters,
             setMapFilters: MapActions.setMapFilters,
-            updateActiveMoments: ContentActions.updateActiveMoments,
+            updateActiveMomentsStream: ContentActions.updateActiveMomentsStream,
         },
         dispatch
     );
@@ -102,7 +102,7 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
     }
 
     componentDidMount() {
-        const { content, navigation, updateActiveMoments } = this.props;
+        const { content, navigation, updateActiveMomentsStream } = this.props;
 
         navigation.setOptions({
             title: this.translate('pages.advancedSearch.headerTitle'),
@@ -117,7 +117,7 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
         }
 
         this.unsubscribeNavListener = navigation.addListener('beforeRemove', () => {
-            updateActiveMoments({
+            updateActiveMomentsStream({
                 withMedia: true,
                 withUser: true,
                 offset: 0,

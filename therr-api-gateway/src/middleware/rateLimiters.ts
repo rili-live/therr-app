@@ -10,6 +10,7 @@ const serviceLimitReachedMessage = 'Too many service requests, please try again 
 // TODO: Add store fallback to prevent single source of failure
 const genericRateLimiter = RateLimit({
     store: new RedisStore({
+        prefix: 'api-gateway:rl:', // This overrides the default prefix in redisClient
         // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
         sendCommand: (...args: string[]) => redisClient.call(...args),
     }),
@@ -27,6 +28,7 @@ const genericRateLimiter = RateLimit({
 
 const serviceRateLimiter = (maxRequests = 200) => RateLimit({
     store: new RedisStore({
+        prefix: 'api-gateway:rl:', // This overrides the default prefix in redisClient
         // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
         sendCommand: (...args: string[]) => redisClient.call(...args),
     }),

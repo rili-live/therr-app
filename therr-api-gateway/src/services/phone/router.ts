@@ -5,6 +5,7 @@ import { validate } from '../../validation';
 import redisClient from '../../store/redisClient';
 import twilioClient from '../../api/twilio';
 import translate from '../../utilities/translator';
+import { verifyPhoneLimiter, verifyPhoneLongLimiter } from './limitation/phone';
 
 const generateVerificationCode = () => {
     const minm = 100000;
@@ -18,7 +19,7 @@ const phoneRouter = express.Router();
 /**
  * Creates a verification code and sends it to the user provided phone number
  */
-phoneRouter.post('/verify', validate, async (req, res) => {
+phoneRouter.post('/verify', verifyPhoneLimiter, validate, async (req, res) => {
     const userId = req.headers['x-userid'] || req['x-userid'];
     const userLocale = (req.headers['x-localecode'] || 'en-us') as string;
 
@@ -42,7 +43,6 @@ phoneRouter.post('/verify', validate, async (req, res) => {
             .then(() => {
                 return res.status(200).send({
                     phoneNumber: normalizedPhoneNumber,
-                    cacheKey,
                 });
             }).catch((err: any) => handleHttpError({ err, res, message: 'SQL:PHONE_ROUTES:ERROR' }));
     } catch (err: any) {
@@ -50,7 +50,7 @@ phoneRouter.post('/verify', validate, async (req, res) => {
     }
 });
 
-phoneRouter.post('/validate-code', validate, async (req, res) => {
+phoneRouter.post('/validate-code', verifyPhoneLongLimiter, validate, async (req, res) => {
     const userId = req.headers['x-userid'] || req['x-userid'];
 
     try {
@@ -61,6 +61,8 @@ phoneRouter.post('/validate-code', validate, async (req, res) => {
             .then((cachedCode) => {
                 if (cachedCode && cachedCode === verificationCode) {
                     // TODO: Make request to update user verification status
+                    // The web app currently does not require verification for signup,
+                    // and we may have older users who are unverified
                     return redisClient.del(cacheKey);
                 }
                 return Promise.reject(new Error('Invalid verification code'));
@@ -68,14 +70,20 @@ phoneRouter.post('/validate-code', validate, async (req, res) => {
             // eslint-disable-next-line arrow-body-style
             .then(() => {
                 return res.status(201).send();
-            }).catch((err: any) => handleHttpError({ err, res, message: 'SQL:PHONE_ROUTES:ERROR' }));
+            }).catch((err: any) => {
+                if (err.message === 'Invalid verification code') {
+                    return handleHttpError({
+                        res,
+                        err,
+                        message: err.message,
+                        statusCode: 400,
+                    });
+                }
+                return handleHttpError({ err, res, message: 'SQL:PHONE_ROUTES:ERROR' });
+            });
     } catch (err: any) {
         return handleHttpError({ err, res, message: 'SQL:PHONE_ROUTES:ERROR' });
     }
 });
 
 export default phoneRouter;
-
-// Examples
-// curl -d '{"phoneNumber":"+13175448348"}' -H "Content-Type: application/json" -X POST http://localhost:7770/v1/phone/verify -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEwZmUwNDM3LTZmMGItNGI1Ni05YThmLTRlZjJkMjY4ZmUxYiIsInVzZXJOYW1lIjpudWxsLCJlbWFpbCI6InphbnNlbG1AdGhlcnIuY29tIiwicGhvbmVOdW1iZXIiOm51bGwsImlzQmxvY2tlZCI6ZmFsc2UsImlzU1NPIjp0cnVlLCJpYXQiOjE2NzMzNzYzMzIsImV4cCI6MTY3NDI0MDMzMn0.QIRJq0IkMYHLWhy6DPSY0YQGziBK7hUlK-2Dkqcd34c"
-// curl -d '{"verificationCode":"482156"}' -H "Content-Type: application/json" -X POST http://localhost:7770/v1/phone/validate-code -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEwZmUwNDM3LTZmMGItNGI1Ni05YThmLTRlZjJkMjY4ZmUxYiIsInVzZXJOYW1lIjpudWxsLCJlbWFpbCI6InphbnNlbG1AdGhlcnIuY29tIiwicGhvbmVOdW1iZXIiOm51bGwsImlzQmxvY2tlZCI6ZmFsc2UsImlzU1NPIjp0cnVlLCJpYXQiOjE2NzMzNzYzMzIsImV4cCI6MTY3NDI0MDMzMn0.QIRJq0IkMYHLWhy6DPSY0YQGziBK7hUlK-2Dkqcd34c"

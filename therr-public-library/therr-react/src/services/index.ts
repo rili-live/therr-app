@@ -1,3 +1,4 @@
+import ApiService from './ApiService';
 import ForumsService from './ForumsService';
 import MapsService, { IPlacesAutoCompleteArgs, IPlaceDetailsArgs } from './MapsService';
 import MessagesService from './MessagesService';
@@ -8,6 +9,7 @@ import UserConnectionsService from './UserConnectionsService';
 import UsersService from './UsersService';
 
 export {
+    ApiService,
     ForumsService,
     MapsService,
     IPlacesAutoCompleteArgs,

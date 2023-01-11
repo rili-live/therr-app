@@ -42,13 +42,14 @@ import TherrIcon from '../components/TherrIcon';
 const { width: viewportWidth } = Dimensions.get('window');
 
 // NOTE: When updating this list, be sure to update the MarkerIcon configs to include the new value(s)
-export const momentCategories = [
+export const thoughtCategories = [
     'uncategorized',
     'music',
     'food',
     'drinks',
     'art',
     'nature',
+    'travel',
     'fitness',
     'idea',
     'nightLife',
@@ -148,7 +149,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
         this.themeAccentForms = buildAccentFormStyles(props.user.settings?.mobileThemeName);
         this.translate = (key: string, params: any) => translator('en-us', key, params);
-        this.categoryOptions = momentCategories.map((category, index) => ({
+        this.categoryOptions = thoughtCategories.map((category, index) => ({
             id: index,
             label: this.translate(`forms.editThought.categories.${category}`),
             value: category,

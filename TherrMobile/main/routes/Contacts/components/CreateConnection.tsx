@@ -1,5 +1,5 @@
 import React from 'react';
-import { Share, View, Text } from 'react-native';
+import { Platform, Share, View, KeyboardAvoidingView, Text } from 'react-native';
 import { Button } from 'react-native-elements';
 // import { Picker as ReactPicker } from '@react-native-picker/picker';
 import 'react-native-gesture-handler';
@@ -246,7 +246,7 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
                 });
             })
             .catch((error) => {
-                if (error.statusCode === 400 || error.statusCode === 404) {
+                if (error.statusCode === 400 || error.statusCode === 404 || error.statusCode === 429) {
                     this.setState({
                         prevConnReqError: error.message,
                     });
@@ -330,134 +330,139 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
         } = this.state;
 
         return (
-            <FlatList
-                data={[{}]}
-                keyExtractor={(item: any) => String(item.id)}
-                renderItem={() => (
-                    <View style={this.theme.styles.body}>
-                        <View style={this.theme.styles.sectionContainer}>
-                            <Text style={[this.theme.styles.sectionTitle, { marginBottom: 15 }]}>
-                                {this.translate('pages.userProfile.h2.createConnection')}
-                            </Text>
-                            <Text style={[this.theme.styles.sectionDescription, { marginBottom: 25 }]}>
-                                {this.translate('pages.userProfile.subtitles.createConnection')}
-                            </Text>
-                            <View style={this.theme.styles.sectionForm}>
-                                <Button
-                                    containerStyle={{ marginBottom: 20 }}
-                                    buttonStyle={this.themeForms.styles.buttonRoundAlt}
-                                    // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                    disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                                    disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                    titleStyle={this.themeForms.styles.buttonTitleAlt}
-                                    title={this.translate(
-                                        'forms.createConnection.buttons.invitePhoneContacts'
-                                    )}
-                                    type="outline"
-                                    onPress={this.onGetPhoneContacts}
-                                    raised={false}
-                                />
-                                <Button
-                                    containerStyle={spacingStyles.marginBotMd}
-                                    buttonStyle={this.themeForms.styles.buttonRoundAlt}
-                                    // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                    disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                                    disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                    titleStyle={this.themeForms.styles.buttonTitleAlt}
-                                    title={this.translate(
-                                        'forms.createConnection.buttons.shareALink'
-                                    )}
-                                    type="outline"
-                                    onPress={this.onShareALink}
-                                    raised={false}
-                                />
-                                <Text style={[this.theme.styles.sectionDescription, { textAlign: 'center', fontSize: 12 }]}>
-                                    {this.translate('pages.userProfile.subtitles.whoInviteDisclaimer')}
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'position' : 'height'}
+            >
+                <FlatList
+                    data={[{}]}
+                    keyExtractor={(item: any) => String(item.id)}
+                    renderItem={() => (
+                        <View style={this.theme.styles.body}>
+                            <View style={this.theme.styles.sectionContainer}>
+                                <Text style={[this.theme.styles.sectionTitle, { marginBottom: 15 }]}>
+                                    {this.translate('pages.userProfile.h2.createConnection')}
                                 </Text>
-                                <OrDivider
-                                    translate={this.translate}
-                                    themeForms={this.themeForms}
-                                    containerStyle={{ marginTop: 20, marginBottom: 30 }}
-                                />
-                                {/* <ReactPicker
-                                    selectedValue={connectionContext}
-                                    style={this.themeForms.styles.picker}
-                                    itemStyle={this.themeForms.styles.pickerItem}
-                                    onValueChange={(itemValue) =>
-                                        this.setState({ connectionContext: itemValue })
-                                    }>
-                                    <ReactPicker.Item label={this.translate(
-                                        'forms.createConnection.labels.email'
-                                    )} value="email" />
-                                    <ReactPicker.Item label={this.translate(
-                                        'forms.createConnection.labels.phone'
-                                    )} value="phone" />
-                                </ReactPicker> */}
-                                {
-                                    connectionContext === 'email' &&
-                                    <RoundInput
-                                        placeholder={this.translate(
-                                            'forms.createConnection.placeholders.email'
+                                <Text style={[this.theme.styles.sectionDescription, { marginBottom: 25 }]}>
+                                    {this.translate('pages.userProfile.subtitles.createConnection')}
+                                </Text>
+                                <View style={this.theme.styles.sectionForm}>
+                                    <Button
+                                        containerStyle={{ marginBottom: 20 }}
+                                        buttonStyle={this.themeForms.styles.buttonRoundAlt}
+                                        // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                        disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                        titleStyle={this.themeForms.styles.buttonTitleAlt}
+                                        title={this.translate(
+                                            'forms.createConnection.buttons.invitePhoneContacts'
                                         )}
-                                        value={inputs.email}
-                                        onChangeText={(text) =>
-                                            this.onInputChange('email', text)
-                                        }
-                                        onBlur={this.onBlurValidate}
-                                        onSubmitEditing={() => this.onSubmit()}
-                                        errorMessage={emailErrorMessage}
-                                        autoCapitalize="none"
-                                        autoCorrect={false}
-                                        rightIcon={
-                                            <FontAwesomeIcon
-                                                name="envelope"
-                                                size={22}
-                                                color={this.theme.colorVariations.primary3Fade}
-                                            />
-                                        }
-                                        themeForms={this.themeForms}
+                                        type="outline"
+                                        onPress={this.onGetPhoneContacts}
+                                        raised={false}
                                     />
-                                }
-                                {
-                                    connectionContext === 'phone' &&
-                                    <PhoneNumberInput
-                                        onChangeText={this.onPhoneInputChange}
-                                        onSubmit={this.onSubmit}
-                                        placeholder={this.translate('forms.settings.labels.phoneNumber')}
+                                    <Button
+                                        containerStyle={spacingStyles.marginBotMd}
+                                        buttonStyle={this.themeForms.styles.buttonRoundAlt}
+                                        // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                        disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                        titleStyle={this.themeForms.styles.buttonTitleAlt}
+                                        title={this.translate(
+                                            'forms.createConnection.buttons.shareALink'
+                                        )}
+                                        type="outline"
+                                        onPress={this.onShareALink}
+                                        raised={false}
+                                    />
+                                    <Text style={[this.theme.styles.sectionDescription, { textAlign: 'center', fontSize: 12 }]}>
+                                        {this.translate('pages.userProfile.subtitles.whoInviteDisclaimer')}
+                                    </Text>
+                                    <OrDivider
                                         translate={this.translate}
-                                        theme={this.theme}
                                         themeForms={this.themeForms}
+                                        containerStyle={{ marginTop: 20, marginBottom: 30 }}
                                     />
-                                }
-                                <Button
-                                    buttonStyle={this.themeForms.styles.buttonPrimary}
-                                    // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                    disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                                    disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                    titleStyle={this.themeForms.styles.buttonTitle}
-                                    title={this.translate(
-                                        'forms.createConnection.buttons.submit'
-                                    )}
-                                    onPress={this.onSubmit}
-                                    disabled={this.isConnReqFormDisabled()}
-                                    raised={false}
-                                />
-                                <Alert
-                                    containerStyles={addMargins({
-                                        marginTop: 24,
-                                    })}
-                                    isVisible={!!prevConnReqSuccess || !!prevConnReqError}
-                                    message={prevConnReqSuccess ? prevConnReqSuccess : prevConnReqError}
-                                    type={prevConnReqSuccess ? 'success' : 'error'}
-                                    themeAlerts={this.themeAlerts}
-                                />
+                                    {/* <ReactPicker
+                                        selectedValue={connectionContext}
+                                        style={this.themeForms.styles.picker}
+                                        itemStyle={this.themeForms.styles.pickerItem}
+                                        onValueChange={(itemValue) =>
+                                            this.setState({ connectionContext: itemValue })
+                                        }>
+                                        <ReactPicker.Item label={this.translate(
+                                            'forms.createConnection.labels.email'
+                                        )} value="email" />
+                                        <ReactPicker.Item label={this.translate(
+                                            'forms.createConnection.labels.phone'
+                                        )} value="phone" />
+                                    </ReactPicker> */}
+                                    {
+                                        connectionContext === 'email' &&
+                                        <RoundInput
+                                            placeholder={this.translate(
+                                                'forms.createConnection.placeholders.email'
+                                            )}
+                                            value={inputs.email}
+                                            onChangeText={(text) =>
+                                                this.onInputChange('email', text)
+                                            }
+                                            onBlur={this.onBlurValidate}
+                                            onSubmitEditing={() => this.onSubmit()}
+                                            errorMessage={emailErrorMessage}
+                                            autoCapitalize="none"
+                                            autoCorrect={false}
+                                            rightIcon={
+                                                <FontAwesomeIcon
+                                                    name="envelope"
+                                                    size={22}
+                                                    color={this.theme.colorVariations.primary3Fade}
+                                                />
+                                            }
+                                            themeForms={this.themeForms}
+                                        />
+                                    }
+                                    {
+                                        connectionContext === 'phone' &&
+                                        <PhoneNumberInput
+                                            onChangeText={this.onPhoneInputChange}
+                                            onSubmit={this.onSubmit}
+                                            placeholder={this.translate('forms.settings.labels.phoneNumber')}
+                                            translate={this.translate}
+                                            theme={this.theme}
+                                            themeForms={this.themeForms}
+                                        />
+                                    }
+                                    <Button
+                                        buttonStyle={this.themeForms.styles.buttonPrimary}
+                                        // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                        disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                                        titleStyle={this.themeForms.styles.buttonTitle}
+                                        title={this.translate(
+                                            'forms.createConnection.buttons.submit'
+                                        )}
+                                        onPress={this.onSubmit}
+                                        disabled={this.isConnReqFormDisabled()}
+                                        raised={false}
+                                    />
+                                    <Alert
+                                        containerStyles={addMargins({
+                                            marginTop: 24,
+                                        })}
+                                        isVisible={!!prevConnReqSuccess || !!prevConnReqError}
+                                        message={prevConnReqSuccess ? prevConnReqSuccess : prevConnReqError}
+                                        type={prevConnReqSuccess ? 'success' : 'error'}
+                                        themeAlerts={this.themeAlerts}
+                                    />
+                                </View>
                             </View>
                         </View>
-                    </View>
-                )}
-                stickyHeaderIndices={[0]}
-                // onContentSizeChange={() => connections.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
-            />
+                    )}
+                    stickyHeaderIndices={[0]}
+                    // onContentSizeChange={() => connections.length && flatListRef.scrollToOffset({ animated: true, offset: 0 })}
+                />
+            </KeyboardAvoidingView>
         );
     }
 }

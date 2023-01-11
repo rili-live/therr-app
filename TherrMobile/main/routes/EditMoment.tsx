@@ -54,6 +54,7 @@ export const momentCategories = [
     'drinks',
     'art',
     'nature',
+    'travel',
     'fitness',
     'idea',
     'nightLife',

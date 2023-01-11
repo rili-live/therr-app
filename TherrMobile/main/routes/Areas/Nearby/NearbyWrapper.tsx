@@ -45,11 +45,11 @@ interface INearbyWrapperDispatchProps {
     updateUserRadius: Function;
 
     searchActiveMoments: Function;
-    updateActiveMoments: Function;
+    updateActiveMomentsStream: Function;
     createOrUpdateMomentReaction: Function;
 
     searchActiveSpaces: Function;
-    updateActiveSpaces: Function;
+    updateActiveSpacesStream: Function;
     createOrUpdateSpaceReaction: Function;
 
     updateGpsStatus: Function;
@@ -104,11 +104,11 @@ const mapDispatchToProps = (dispatch: any) =>
             updateUserRadius: MapActions.updateUserRadius,
 
             searchActiveMoments: ContentActions.searchActiveMoments,
-            updateActiveMoments: ContentActions.updateActiveMoments,
+            updateActiveMomentsStream: ContentActions.updateActiveMomentsStream,
             createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
 
             searchActiveSpaces: ContentActions.searchActiveSpaces,
-            updateActiveSpaces: ContentActions.updateActiveSpaces,
+            updateActiveSpacesStream: ContentActions.updateActiveSpacesStream,
             createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
 
             updateGpsStatus: LocationActions.updateGpsStatus,
@@ -262,7 +262,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
     }
 
     handleRefresh = (shouldShowLoader = false) => {
-        const { content, map, updateActiveMoments, updateActiveSpaces, user } = this.props;
+        const { content, map, updateActiveMomentsStream, updateActiveSpacesStream, user } = this.props;
         const { activeTab } = this.state;
 
         if (shouldShowLoader) {
@@ -271,7 +271,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             });
         }
 
-        const activeMomentsPromise = updateActiveMoments({
+        const activeMomentsPromise = updateActiveMomentsStream({
             userLatitude: map.latitude,
             userLongitude: map.longitude,
             withMedia: true,
@@ -282,7 +282,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             shouldHideMatureContent: user.details.shouldHideMatureContent,
         });
 
-        const activeSpacesPromise = updateActiveSpaces({
+        const activeSpacesPromise = updateActiveSpacesStream({
             userLatitude: map.latitude,
             userLongitude: map.longitude,
             withMedia: true,

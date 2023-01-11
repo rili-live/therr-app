@@ -42,15 +42,15 @@ function getRandomLoaderId(): ILottieId {
 
 interface IAreasDispatchProps {
     searchActiveMoments: Function;
-    updateActiveMoments: Function;
+    updateActiveMomentsStream: Function;
     createOrUpdateMomentReaction: Function;
 
     searchActiveSpaces: Function;
-    updateActiveSpaces: Function;
+    updateActiveSpacesStream: Function;
     createOrUpdateSpaceReaction: Function;
 
     searchActiveThoughts: Function;
-    updateActiveThoughts: Function;
+    updateActiveThoughtsStream: Function;
     createOrUpdateThoughtReaction: Function;
 
     logout: Function;
@@ -89,15 +89,15 @@ const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
             searchActiveMoments: ContentActions.searchActiveMoments,
-            updateActiveMoments: ContentActions.updateActiveMoments,
+            updateActiveMomentsStream: ContentActions.updateActiveMomentsStream,
             createOrUpdateMomentReaction: ContentActions.createOrUpdateMomentReaction,
 
             searchActiveSpaces: ContentActions.searchActiveSpaces,
-            updateActiveSpaces: ContentActions.updateActiveSpaces,
+            updateActiveSpacesStream: ContentActions.updateActiveSpacesStream,
             createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
 
             searchActiveThoughts: ContentActions.searchActiveThoughts,
-            updateActiveThoughts: ContentActions.updateActiveThoughts,
+            updateActiveThoughtsStream: ContentActions.updateActiveThoughtsStream,
             createOrUpdateThoughtReaction: ContentActions.createOrUpdateThoughtReaction,
         },
         dispatch
@@ -222,10 +222,10 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     }
 
     handleRefresh = () => {
-        const { content, updateActiveMoments, updateActiveSpaces, updateActiveThoughts, user } = this.props;
+        const { content, updateActiveMomentsStream, updateActiveSpacesStream, updateActiveThoughtsStream, user } = this.props;
         this.setState({ isLoading: true });
 
-        const activeMomentsPromise = updateActiveMoments({
+        const activeMomentsPromise = updateActiveMomentsStream({
             withMedia: true,
             withUser: true,
             offset: 0,
@@ -234,7 +234,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             shouldHideMatureContent: user.details.shouldHideMatureContent,
         });
 
-        const activeSpacesPromise = updateActiveSpaces({
+        const activeSpacesPromise = updateActiveSpacesStream({
             withMedia: true,
             withUser: true,
             offset: 0,
@@ -243,7 +243,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             shouldHideMatureContent: user.details.shouldHideMatureContent,
         });
 
-        const activeThoughtsPromise = updateActiveThoughts({
+        const activeThoughtsPromise = updateActiveThoughtsStream({
             withUser: true,
             withReplies: true,
             offset: 0,
