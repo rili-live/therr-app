@@ -13,6 +13,7 @@ const subscribeLimitReachedMessage = 'Too many requests to subscribe.';
 
 const loginAttemptLimiter = RateLimit({
     store: new RedisStore({
+        prefix: 'api-gateway:rl:', // This overrides the default prefix in redisClient
         // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
         sendCommand: (...args: string[]) => redisClient.call(...args),
     }),
@@ -31,6 +32,7 @@ const loginAttemptLimiter = RateLimit({
 
 const buildRateLimiter = (msg, count = 1, minutes = 1) => RateLimit({
     store: new RedisStore({
+        prefix: 'api-gateway:rl:', // This overrides the default prefix in redisClient
         // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
         sendCommand: (...args: string[]) => redisClient.call(...args),
     }),

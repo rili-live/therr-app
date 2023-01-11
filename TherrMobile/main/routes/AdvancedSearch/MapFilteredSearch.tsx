@@ -56,7 +56,7 @@ const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
             setMapFilters: MapActions.setMapFilters,
-            updateActiveMoments: ContentActions.updateActiveMoments,
+            updateActiveMomentsStream: ContentActions.updateActiveMomentsStream,
         },
         dispatch
     );

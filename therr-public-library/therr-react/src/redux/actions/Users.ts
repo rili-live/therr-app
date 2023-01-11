@@ -288,6 +288,10 @@ class UsersActions {
             firstName,
             hasAgreedToTerms,
             isBusinessAccount,
+            phoneNumber,
+            lastName,
+            userName,
+            media,
             settingsThemeName,
             settingsBio,
             settingsTherrCoinTotal,
@@ -313,9 +317,6 @@ class UsersActions {
             settingsPushMessages,
             settingsPushReminders,
             shouldHideMatureContent,
-            lastName,
-            userName,
-            media,
         } = response?.data || {};
         // TODO: Determine if it is necessary to dispatch anything after user registers
         // set current user?
@@ -370,6 +371,7 @@ class UsersActions {
                     shouldHideMatureContent,
                     firstName,
                     lastName,
+                    phoneNumber,
                     userName,
                     media,
                 },

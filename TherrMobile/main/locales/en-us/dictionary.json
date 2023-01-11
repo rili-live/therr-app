@@ -1,5 +1,16 @@
 
 {
+  "alertTitles": {
+    "codeSent": "New Code Sent",
+    "invalidCode": "Invalid Code",
+    "phoneVerifiedSuccess": "Phone Verification Success",
+    "backendErrorMessage": "Oops! Something went wrong."
+  },
+  "alertMessages": {
+    "codeSent": "Check your phone for a new verification code.",
+    "invalidCode": "Code is invalid or expired. Try again or resend.",
+    "backendErrorMessage": "Please try again later."
+  },
   "quoteOfTheDay": "Quote of the Day",
   "dailyQuotes": [
     {
@@ -236,6 +247,8 @@
         "skip": "Skip",
         "submit": "Next",
         "verifyNow": "Send Verification",
+        "resendCode": "Resend Code?",
+        "submitCode": "Submit",
         "verifyLater": "Save & Continue"
       },
       "errorMessages": {
@@ -327,6 +340,7 @@
         "idea": "Idea / Observation",
         "food": "Food",
         "nature": "Nature / Park",
+        "travel": "Travel / Tourism",
         "warning": "Warning / Alert",
         "seasonal": "Seasonal / Holidays",
         "drinks": "Happy Hour / Drinks",
@@ -455,6 +469,16 @@
       }
     },
     "settings": {
+      "alertTitles": {
+        "accountUpdated": "Account Updated",
+        "backendErrorMessage": "Oops! Something went wrong.",
+        "insecurePassword": "Insecure Password" 
+      },
+      "alertMessages": {
+        "accountUpdated": "Successfully updated."
+      },
+      "backendSuccessMessage": "User settings successfully updated!",
+      "backendErrorMessage": "Connection error. Please try again later.",
       "buttons": {
         "submit": "Save",
         "manageAccount": "Manage Account",
@@ -466,6 +490,7 @@
       },
       "labels": {
         "accountTypeLabel": "Account Type: ",
+        "code": "Verification Code",
         "email": "E-mail",
         "phoneNumber": "Phone #",
         "password": "Password",
@@ -479,9 +504,7 @@
         "bio": "Your bio...",
         "businessAccount": "Business",
         "personalAccount": "Personal"
-      },
-      "backendSuccessMessage": "User settings successfully updated!",
-      "backendErrorMessage": "Connection error. Please try again later."
+      }
     },
     "socialSync": {
       "buttons": {
