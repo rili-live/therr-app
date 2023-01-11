@@ -21,7 +21,7 @@ export default (emailParams: ISendSSONewUserConfig, templateParams: ITemplatePar
     const htmlConfig = {
         header: 'Therr App: User Account Created',
         dearUser: `Hi ${templateParams.name},`,
-        body1: 'A new user account was successfully created. Click the following link to login, choose a username, and set your password.',
+        body1: 'A new user account was successfully created. Click the following link to login, choose a username, and set your password. You can login with SSO or directly with your account password.',
         body2: 'Your temporary, one time password:',
         bodyBold: templateParams.oneTimePassword,
         buttonHref: `${globalConfig[process.env.NODE_ENV].hostFull}/login`,

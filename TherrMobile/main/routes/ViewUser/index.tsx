@@ -17,6 +17,7 @@ import {
 } from 'therr-react/redux/actions';
 import {
     UsersService,
+    ReactionsService,
 } from 'therr-react/services';
 import {
     IContentState,
@@ -66,7 +67,6 @@ interface IViewUserDispatchProps {
     updateUserInView: Function;
     createUserConnection: Function;
     updateUserConnection: Function;
-    updateActiveThoughts: Function;
 }
 
 interface IStoreProps extends IViewUserDispatchProps {
@@ -109,7 +109,6 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     updateUserInView: UsersActions.updateUserInView,
     createUserConnection: UserConnectionsActions.create,
     updateUserConnection: UserConnectionsActions.update,
-    updateActiveThoughts: ContentActions.updateActiveThoughts,
 }, dispatch);
 
 class ViewUser extends React.Component<
@@ -242,6 +241,33 @@ class ViewUser extends React.Component<
         });
     }
 
+    // TODO: This is so damn ugly. Refactor this!
+    createUpdateThoughtReaction = (
+        thoughtId: number,
+        params: any,
+        thoughtUserId: string,
+        reactorUserName: string,
+    ) => {
+        const { createOrUpdateThoughtReaction } = this.props;
+        const { userInViewsThoughts } = this.state;
+
+        createOrUpdateThoughtReaction(thoughtId, params, thoughtUserId, reactorUserName).then((reaction) => {
+            const modifiedThoughts = userInViewsThoughts.map((thought) => {
+                if (thought.id === thoughtId) {
+                    thought.reaction = reaction;
+                }
+
+                return thought;
+            });
+
+            this.setState({
+                userInViewsThoughts: modifiedThoughts,
+            });
+        });
+
+        createOrUpdateThoughtReaction(thoughtId, params, thoughtUserId, reactorUserName);
+    }
+
     handleRefresh = () => {
         this.setState({ isLoading: true });
         this.fetchUser();
@@ -268,34 +294,27 @@ class ViewUser extends React.Component<
     }
 
     fetchThoughts = () => {
-        const { searchThoughts, user, updateActiveThoughts } = this.props;
+        const { user } = this.props;
+        const isMe = user.userInView?.id === user.details.id;
 
-        // Is My Profile
-        if (user.userInView?.id === user.details.id) {
-            return searchThoughts({
-                query: 'me',
-                itemsPerPage: 21,
-                pageNumber: 1,
-                order: 'desc',
-                filterBy: 'fromUserIds',
-            });
-        } else {
-            // TODO: Search other user's thoughts
-            return updateActiveThoughts({
+        // TODO: Change this to a service request rather than redux action to prevent altering redux state
+        return ReactionsService.searchActiveThoughts(
+            {
                 authorId: user.userInView?.id,
                 withUser: true,
                 withReplies: true,
                 offset: 0,
                 // ...content.activeAreasFilters,
                 blockedUsers: user.details.blockedUsers,
-                shouldHideMatureContent: user.details.shouldHideMatureContent,
-            }).then((response) => {
-                // TODO: Store these on userInView?
-                this.setState({
-                    userInViewsThoughts: response?.thoughts || [],
-                });
+                shouldHideMatureContent: isMe ? false : user.details.shouldHideMatureContent,
+            },
+            21
+        ).then(({ data }) => {
+            // TODO: Store these on userInView?
+            this.setState({
+                userInViewsThoughts: data?.thoughts || [],
             });
-        }
+        });
     }
 
     onThoughtOptionSelect = (type: ISelectionType) => {
@@ -434,7 +453,6 @@ class ViewUser extends React.Component<
         const {
             content,
             user,
-            createOrUpdateThoughtReaction,
         } = this.props;
         const userInView = user.userInView || {};
 
@@ -444,9 +462,7 @@ class ViewUser extends React.Component<
 
         switch (route.key) {
             case 'thoughts':
-                const thoughtsData = userInView.id === user.details.id
-                    ? user.myThoughts
-                    : userInViewsThoughts;
+                const thoughtsData = userInViewsThoughts;
                 return (
                     <AreaCarousel
                         activeData={thoughtsData}
@@ -464,7 +480,7 @@ class ViewUser extends React.Component<
                         onEndReached={noop} // TODO
                         updateMomentReaction={noop}
                         updateSpaceReaction={noop}
-                        updateThoughtReaction={createOrUpdateThoughtReaction} // TODO: Update state to show reaction
+                        updateThoughtReaction={this.createUpdateThoughtReaction}
                         emptyListMessage={this.translate('user.profile.text.noThoughts')}
                         renderHeader={() => null}
                         renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}

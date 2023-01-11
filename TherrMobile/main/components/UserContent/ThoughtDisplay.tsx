@@ -272,7 +272,7 @@ const ThoughtContent = ({
                                 buttonStyle={themeViewContent.styles.thoughtReactionButton}
                                 icon={
                                     <TherrIcon
-                                        name={ isBookmarked ? 'bookmark' : 'bookmark' }
+                                        name={ isBookmarked ? 'bookmark-filled' : 'bookmark' }
                                         size={22}
                                         color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
                                     />
