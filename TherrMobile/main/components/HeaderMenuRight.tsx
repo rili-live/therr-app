@@ -326,6 +326,8 @@ class HeaderMenuRight extends React.Component<
                                                     <Image
                                                         source={{ uri: getUserImageUri(user, 50) }}
                                                         style={themeMenu.styles.headerTitleIcon}
+                                                        height={themeMenu.styles.headerTitleIcon.height}
+                                                        width={themeMenu.styles.headerTitleIcon.width}
                                                         transition={false}
                                                     />
                                                     {
@@ -464,7 +466,7 @@ class HeaderMenuRight extends React.Component<
                                                 />
                                                 {
                                                     hasNotifications && <View style={themeMenu.styles.notificationCircle}>
-                                                        <Text style={{ color: 'white' }}>{unreadCount.toString}</Text>
+                                                        <Text style={{ color: 'white' }}>{unreadCount.toString()}</Text>
                                                     </View>
                                                 }
                                             </View>

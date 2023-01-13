@@ -457,7 +457,8 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     }
 
-    expandBottomSheet = (index = 1) => {
+    expandBottomSheet = (index = 1, shouldToggle = false) => {
+        const { areButtonsVisible, areLayersVisible } = this.state;
         this.setState({
             areButtonsVisible: false,
             areLayersVisible: false,
@@ -465,7 +466,12 @@ class Map extends React.Component<IMapProps, IMapState> {
         if (index < 0) {
             this.bottomSheetRef?.current?.close();
         } else {
-            this.bottomSheetRef?.current?.snapToIndex(index);
+            if (shouldToggle && !areButtonsVisible && !areLayersVisible) {
+                // UX: Helps users more easily understand that they can hide the bottom sheet and show buttons
+                this.bottomSheetRef?.current?.close();
+            } else {
+                this.bottomSheetRef?.current?.snapToIndex(index);
+            }
         }
     }
 
