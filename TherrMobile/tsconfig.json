@@ -1,5 +1,6 @@
 
 {
+  "extends": "@tsconfig/react-native/tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",                          /* Base directory to resolve non-absolute module names. */
     "rootDir": "./main/",

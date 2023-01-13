@@ -80,6 +80,7 @@
     "@types/react-dom": "^18.0.6",
     "@types/react-router-dom": "^5.3.3",
     "@types/react-router-redux": "^5.0.21",
+    "@types/react-test-renderer": "^18.0.0",
     "@types/react-transition-group": "^4.4.5",
     "@types/redux-logger": "^3.0.9",
     "@types/redux-socket.io": "^1.4.2",
