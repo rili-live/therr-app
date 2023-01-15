@@ -1,5 +1,6 @@
 import beeline from '../../beeline'; // eslint-disable-line import/order
-import emailValidator from 'email-validator';
+// eslint-disable-next-line import/extensions
+import emailValidator from 'therr-js-utilities/email-validator';
 import printLogs from 'therr-js-utilities/print-logs'; // eslint-disable-line import/order
 import { awsSES } from '../aws';
 import Store from '../../store';
@@ -9,15 +10,6 @@ export interface ISendEmailConfig {
     html: string;
     subject: string;
     toAddresses: string[];
-}
-
-class CustomEmailValidator {
-    public static validate(email: string): boolean {
-        if (email.endsWith('.vom') || email.endsWith('gmaol.com') || email.endsWith('sil.com')) {
-            return false;
-        }
-        return emailValidator.validate(email);
-    }
 }
 
 const failsafeBlackListRequest = (email) => Store.blacklistedEmails.get({
@@ -63,7 +55,7 @@ export default (config: ISendEmailConfig) => new Promise((resolve, reject) => {
     return failsafeBlackListRequest(config.toAddresses[0]).then((blacklistedEmails) => {
         // Skip if email is on bounce list or complaint list
         const emailIsBlacklisted = blacklistedEmails?.length;
-        if (CustomEmailValidator.validate(config.toAddresses[0]) && !emailIsBlacklisted) {
+        if (emailValidator.validate(config.toAddresses[0]) && !emailIsBlacklisted) {
             return awsSES.sendEmail(params, (err, data) => {
                 if (err) {
                     printLogs({
