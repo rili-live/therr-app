@@ -11,6 +11,15 @@ export interface ISendEmailConfig {
     toAddresses: string[];
 }
 
+class CustomEmailValidator {
+    public static validate(email: string): boolean {
+        if (email.endsWith('.vom') || email.endsWith('gmaol.com')) {
+            return false;
+        }
+        return emailValidator.validate(email);
+    }
+}
+
 const failsafeBlackListRequest = (email) => Store.blacklistedEmails.get({
     email,
 }).catch((err) => {
@@ -54,7 +63,7 @@ export default (config: ISendEmailConfig) => new Promise((resolve, reject) => {
     return failsafeBlackListRequest(config.toAddresses[0]).then((blacklistedEmails) => {
         // Skip if email is on bounce list or complaint list
         const emailIsBlacklisted = blacklistedEmails?.length;
-        if (emailValidator.validate(config.toAddresses[0]) && !emailIsBlacklisted) {
+        if (CustomEmailValidator.validate(config.toAddresses[0]) && !emailIsBlacklisted) {
             return awsSES.sendEmail(params, (err, data) => {
                 if (err) {
                     printLogs({
