@@ -269,7 +269,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
                         });
                 }
             } else {
-                this.props.expandBottomSheet(0);
+                this.props.expandBottomSheet(0, true);
                 this.setState({
                     activeMoment: {},
                     activeMomentDetails: {},

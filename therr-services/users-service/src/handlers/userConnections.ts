@@ -4,7 +4,7 @@ import { getSearchQueryArgs } from 'therr-js-utilities/http';
 import printLogs from 'therr-js-utilities/print-logs';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
 import normalizeEmail from 'normalize-email';
-import emailValidator from 'email-validator';
+import emailValidator from 'therr-js-utilities/email-validator';
 import sendPushNotificationAndEmail from '../utilities/sendPushNotificationAndEmail';
 import beeline from '../beeline';
 import Store from '../store';

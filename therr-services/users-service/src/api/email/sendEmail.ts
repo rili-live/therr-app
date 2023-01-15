@@ -1,5 +1,6 @@
 import beeline from '../../beeline'; // eslint-disable-line import/order
-import emailValidator from 'email-validator';
+// eslint-disable-next-line import/extensions
+import emailValidator from 'therr-js-utilities/email-validator';
 import printLogs from 'therr-js-utilities/print-logs'; // eslint-disable-line import/order
 import { awsSES } from '../aws';
 import Store from '../../store';

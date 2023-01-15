@@ -19,6 +19,7 @@ const utilities = [
 
     // Utilities
     'calculate-pages',
+    'email-validator',
     'format-sql-join-as-json',
     'http-response',
     'is-valid-input',
