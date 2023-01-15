@@ -13,7 +13,7 @@ export interface ISendEmailConfig {
 
 class CustomEmailValidator {
     public static validate(email: string): boolean {
-        if (email.endsWith('.vom') || email.endsWith('gmaol.com')) {
+        if (email.endsWith('.vom') || email.endsWith('gmaol.com') || email.endsWith('sil.com')) {
             return false;
         }
         return emailValidator.validate(email);
