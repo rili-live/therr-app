@@ -49,7 +49,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
             delete creds.repeatPassword;
             this.props.register(creds);
         }
-    }
+    };
 
     onInputChange = (name: string, value: string) => {
         const newInputChanges = {
@@ -66,7 +66,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                 ...newInputChanges,
             },
         });
-    }
+    };
 
     onPhoneInputChange = (value: string) => {
         this.setState({
@@ -76,7 +76,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
             },
             isPhoneNumberValid: isValidPhoneNumber(value),
         });
-    }
+    };
 
     public render(): JSX.Element | null {
         const { isPhoneNumberValid } = this.state;

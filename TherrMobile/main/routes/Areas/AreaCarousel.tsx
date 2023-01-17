@@ -150,7 +150,7 @@ const renderItem = ({ item: post }, {
 //     );
 // };
 
-export default ({
+const AreaCarousel = ({
     activeData,
     content,
     displaySize,
@@ -275,3 +275,7 @@ export default ({
         </>
     );
 };
+
+AreaCarousel.whyDidYouRender = true;
+
+export default AreaCarousel;

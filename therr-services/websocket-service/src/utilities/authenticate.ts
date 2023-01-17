@@ -5,7 +5,8 @@ import beeline from '../beeline';
 
 export default (socket) => new Promise((resolve) => {
     if (!socket.handshake || !socket.handshake.query || !socket.handshake.query.token) {
-        return resolve(false);
+        resolve(false);
+        return;
     }
 
     jwt.verify(socket.handshake.query.token, (process.env.JWT_SECRET || ''), (err, decoded) => {

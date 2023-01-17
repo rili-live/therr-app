@@ -81,7 +81,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
         document.title = `Therr | ${this.translate('pages.login.pageTitle')}`;
     }
 
-    login = (credentials: any) => this.props.login(credentials)
+    login = (credentials: any) => this.props.login(credentials);
 
     public render(): JSX.Element | null {
         const { location } = this.props;

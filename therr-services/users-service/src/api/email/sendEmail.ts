@@ -48,11 +48,12 @@ export default (config: ISendEmailConfig) => new Promise((resolve, reject) => {
     };
 
     if (!config.toAddresses?.length) {
-        return resolve({});
+        resolve({});
+        return;
     }
 
     // TODO: Validate email before sending
-    return failsafeBlackListRequest(config.toAddresses[0]).then((blacklistedEmails) => {
+    failsafeBlackListRequest(config.toAddresses[0]).then((blacklistedEmails) => {
         // Skip if email is on bounce list or complaint list
         const emailIsBlacklisted = blacklistedEmails?.length;
         if (emailValidator.validate(config.toAddresses[0]) && !emailIsBlacklisted) {
@@ -68,9 +69,10 @@ export default (config: ISendEmailConfig) => new Promise((resolve, reject) => {
                         },
                     });
                     // NOTE: Always resolve, even if there is an error to prevent the API from failing
-                    return resolve(data);
+                    resolve(data);
+                    return;
                 }
-                return resolve(data);
+                resolve(data);
             });
         }
 

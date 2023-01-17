@@ -1,3 +1,4 @@
+/* eslint-disable import/no-import-module-exports */
 import beeline from './beeline'; // eslint-disable-line import/order
 import express from 'express';
 import cors from 'cors';

@@ -106,7 +106,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
         this.setState({
             activeTab: tabName,
         });
-    }
+    };
 
     navigate = (destination, params?: any, state?: any) => (e) => {
         this.props.toggleNavMenu(e);
@@ -121,7 +121,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                 });
             default:
         }
-    }
+    };
 
     renderMessagesContent = () => {
         const { onInitMessaging, userConnections } = this.props;
@@ -152,7 +152,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                 }
             </>
         );
-    }
+    };
 
     getForumItemClass = (forum) => {
         const { forums } = this.props;
@@ -162,7 +162,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
             'right-icon': true,
             active: forums.activeForums.find((f) => f.roomKey == forum.id), // eslint-disable-line eqeqeq
         });
-    }
+    };
 
     renderForumsContent = () => {
         const { forums } = this.props;
@@ -206,7 +206,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                 </div>
             </>
         );
-    }
+    };
 
     renderPeopleContent = () => (
         <>
@@ -218,7 +218,7 @@ export class MessagesMenuComponent extends React.Component<IMessagesMenuProps, I
                 />
             </div>
         </>
-    )
+    );
 
     render() {
         const { activeTab } = this.state;

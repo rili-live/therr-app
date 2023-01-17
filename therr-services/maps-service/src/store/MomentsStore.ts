@@ -83,6 +83,7 @@ export default class MomentsStore {
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
+    // eslint-disable-next-line default-param-last
     searchMoments(conditions: any = {}, returning, fromUserIds = [], overrides?: any, includePublicResults = true) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
@@ -135,6 +136,7 @@ export default class MomentsStore {
         });
     }
 
+    // eslint-disable-next-line default-param-last
     searchMyMoments(userId: string, requirements: any = {}, conditions: any = {}, returning?, overrides?: any) {
         const modifiedConditions: any = {
             ...conditions,

@@ -2,6 +2,8 @@ import axios from 'axios';
 import { distanceTo } from 'geolocation-utils';
 import { Location, Notifications, PushNotifications } from 'therr-js-utilities/constants';
 import { getSearchQueryString } from 'therr-js-utilities/http';
+// eslint-disable-next-line import/extensions, import/no-unresolved
+import { IAreaType } from 'therr-js-utilities/types';
 import beeline from '../../beeline';
 import UserLocationCache from '../../store/UserLocationCache';
 import { predictAndSendNotification } from '../../api/firebaseAdmin';
@@ -18,8 +20,6 @@ interface IHeaders {
     userId: any;
     userDeviceToken: string;
 }
-
-type IAreaType = 'moments' | 'spaces';
 
 interface IAreaGetSettings {
     headers: IHeaders;

@@ -138,19 +138,19 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                 },
             },
         });
-    }
+    };
 
     onCropComplete = (croppedImageDetails) => {
         this.setState({
             croppedImageDetails,
         });
-    }
+    };
 
     onContinue = () => {
         this.setState({
             stage: 'B',
         });
-    }
+    };
 
     onSubmit = (stage: StageType, shouldSkipAdvance: boolean = false) => {
         const { isPhoneNumberValid } = this.state;

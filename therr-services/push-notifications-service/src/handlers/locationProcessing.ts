@@ -87,7 +87,8 @@ const processUserLocationChange: RequestHandler = (req, res) => {
                 // Fire and forget (create or update reactions)
                 if (spaceIdsToActivate.length || momentIdsToActivate.length) {
                     activateAreasAndNotify(
-                        headers, {
+                        headers,
+                        {
                             moments: momentsToActivate,
                             spaces: spacesToActivate,
                             activatedMomentIds: momentIdsToActivate,

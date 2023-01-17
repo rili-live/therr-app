@@ -3,10 +3,8 @@ import { Location, SocketClientActionTypes } from 'therr-js-utilities/constants'
 import { IMapState, MapActionTypes } from '../../types/redux/maps';
 
 const initialState: IMapState = Immutable.from({
-    moments: Immutable.from([]),
-    myMoments: Immutable.from([]),
-    spaces: Immutable.from([]),
-    mySpaces: Immutable.from([]),
+    moments: Immutable.from({}),
+    spaces: Immutable.from({}),
     searchPredictions: Immutable.from({}),
     radiusOfAwareness: (Location.MAX_RADIUS_OF_AWARENESS - Location.MIN_RADIUS_OF_AWARENESS) / 2,
     radiusOfInfluence: (Location.MAX_RADIUS_OF_INFLUENCE - Location.MIN_RADIUS_OF_INFLUENCE) / 2,
@@ -23,95 +21,76 @@ const map = (state: IMapState = initialState, action: any) => {
         state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
     }
 
-    const modifiedMoment = [...state.moments];
-    let modifiedMyMoment = [...state.myMoments];
-    const modifiedSpace = [...state.spaces];
-    let modifiedMySpace = [...state.mySpaces];
+    const modifiedMoments = { ...state.moments };
+    const modifiedSpaces = { ...state.spaces };
 
     switch (action.type) {
         case MapActionTypes.GET_MOMENTS:
-            return state.setIn(['moments'], action.data.results);
-        case MapActionTypes.GET_MOMENT_DETAILS:
-            modifiedMoment.some((moment, index) => { // eslint-disable-line no-case-declarations
-                if (moment.id === action.data.moment?.id) {
-                    modifiedMoment[index] = {
-                        ...moment,
-                        ...action.data.moment,
-                    };
-                    return true;
-                }
-
-                return false;
-            });
-            return state.setIn(['moments'], modifiedMoment);
         case MapActionTypes.GET_MY_MOMENTS:
-            return state.setIn(['myMoments'], action.data.results);
+            // Convert array to object for faster lookup and de-duping
+            return state.setIn(['moments'], action.data.results.reduce((acc, item) => ({
+                ...acc,
+                [item.id]: item,
+            }), modifiedMoments));
+        case MapActionTypes.GET_MOMENT_DETAILS:
+            if (!modifiedMoments[action.data.moment.id]) {
+                modifiedMoments[action.data.moment.id] = action.data.moment;
+            } else {
+                modifiedMoments[action.data.moment.id] = {
+                    ...modifiedMoments[action.data.moment.id],
+                    ...action.data.moment,
+                };
+            }
+            return state.setIn(['moments'], modifiedMoments);
         case MapActionTypes.MOMENT_CREATED:
-            modifiedMyMoment.unshift(action.data);
-            return state.setIn(['myMoments'], modifiedMyMoment);
+            modifiedMoments[action.data?.id] = action.data;
+            return state.setIn(['moments'], modifiedMoments);
         case MapActionTypes.MOMENT_UPDATED:
-            modifiedMyMoment.some((moment, index) => {
-                if (moment.id === action.data.id) {
-                    modifiedMyMoment[index] = {
-                        ...moment,
-                        ...action.data,
-                    };
-                    return true;
-                }
-
-                return false;
-            });
-            return state.setIn(['myMoments'], modifiedMyMoment);
+            if (!modifiedMoments[action.data.moment.id]) {
+                modifiedMoments[action.data.moment.id] = action.data.moment;
+            } else {
+                modifiedMoments[action.data.moment.id] = {
+                    ...modifiedMoments[action.data.moment.id],
+                    ...action.data.moment,
+                };
+            }
+            return state.setIn(['moments'], modifiedMoments);
         case MapActionTypes.MOMENT_DELETED:
-            modifiedMyMoment = state.myMoments.filter((moment) => { // eslint-disable-line no-case-declarations
-                if (!action.data || !action.data.ids) {
-                    return true;
-                }
-                return !action.data.ids.includes(moment.id);
-            });
-            return state.setIn(['myMoments'], modifiedMyMoment);
+            delete modifiedMoments[action.data.id];
+            return state.setIn(['moments'], modifiedMoments);
         // // // // // // // // // // // //
         case MapActionTypes.GET_SPACES:
-            return state.setIn(['spaces'], action.data.results);
-        case MapActionTypes.GET_SPACE_DETAILS:
-            modifiedSpace.some((space, index) => { // eslint-disable-line no-case-declarations
-                if (space.id === action.data.space?.id) {
-                    modifiedSpace[index] = {
-                        ...space,
-                        ...action.data.space,
-                    };
-                    return true;
-                }
-
-                return false;
-            });
-            return state.setIn(['spaces'], modifiedSpace);
         case MapActionTypes.GET_MY_SPACES:
-            return state.setIn(['mySpaces'], action.data.results);
+            return state.setIn(['spaces'], action.data.results.reduce((acc, item) => ({
+                ...acc,
+                [item.id]: item,
+            }), modifiedSpaces));
+        case MapActionTypes.GET_SPACE_DETAILS:
+            if (!modifiedSpaces[action.data.space.id]) {
+                modifiedSpaces[action.data.space.id] = action.data.space;
+            } else {
+                modifiedSpaces[action.data.space.id] = {
+                    ...modifiedSpaces[action.data.space.id],
+                    ...action.data.space,
+                };
+            }
+            return state.setIn(['spaces'], modifiedSpaces);
         case MapActionTypes.SPACE_CREATED:
-            modifiedMySpace.unshift(action.data);
-            return state.setIn(['mySpaces'], modifiedMySpace);
+            modifiedSpaces[action.data?.id] = action.data;
+            return state.setIn(['spaces'], modifiedSpaces);
         case MapActionTypes.SPACE_UPDATED:
-            modifiedMySpace.some((space, index) => {
-                if (space.id === action.data.id) {
-                    modifiedMySpace[index] = {
-                        ...space,
-                        ...action.data,
-                    };
-                    return true;
-                }
-
-                return false;
-            });
-            return state.setIn(['mySpaces'], modifiedMySpace);
+            if (!modifiedSpaces[action.data.space.id]) {
+                modifiedSpaces[action.data.space.id] = action.data.space;
+            } else {
+                modifiedSpaces[action.data.space.id] = {
+                    ...modifiedSpaces[action.data.space.id],
+                    ...action.data.space,
+                };
+            }
+            return state.setIn(['spaces'], modifiedSpaces);
         case MapActionTypes.SPACE_DELETED:
-            modifiedMySpace = state.mySpaces.filter((space) => { // eslint-disable-line no-case-declarations
-                if (!action.data || !action.data.ids) {
-                    return true;
-                }
-                return !action.data.ids.includes(space.id);
-            });
-            return state.setIn(['mySpaces'], modifiedMySpace);
+            delete modifiedSpaces[action.data.id];
+            return state.setIn(['spaces'], modifiedSpaces);
         // // // // // // // // // // // //
         case MapActionTypes.UPDATE_COORDS:
             return state
@@ -134,7 +113,7 @@ const map = (state: IMapState = initialState, action: any) => {
                 .setIn(['searchPredictions', 'results'], [])
                 .setIn(['searchPredictions', 'isSearchDropdownVisible'], false)
                 .setIn(['hasUserLocationLoaded'], false)
-                .setIn(['myMoments'], Immutable.from([]));
+                .setIn(['moments'], Immutable.from({}));
         // // // // // // // // // // // //
         case MapActionTypes.SET_MAP_FILTERS:
             return state.setIn(['filtersAuthor'], action.data.filtersAuthor || state.filtersAuthor)

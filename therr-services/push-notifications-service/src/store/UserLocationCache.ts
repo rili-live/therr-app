@@ -1,5 +1,7 @@
 /* eslint-disable lines-between-class-members */
 import { Location } from 'therr-js-utilities/constants';
+// eslint-disable-next-line import/extensions, import/no-unresolved
+import { IAreaType } from 'therr-js-utilities/types';
 import redisClient from './redisClient';
 import beeline from '../beeline';
 
@@ -9,8 +11,6 @@ interface IOrigin {
     longitude: number;
     latitude: number;
 }
-
-type IAreaType = 'moments' | 'spaces';
 
 export default class UserLocationCache {
     private momentsKeyPrefix;
@@ -114,7 +114,7 @@ export default class UserLocationCache {
                     ...loggingDetails,
                 });
             });
-    }
+    };
 
     removeAreas = (areaType: IAreaType, geoKeyPrefix: string, areaIds: number[], loggingDetails) => {
         const pipeline = redisClient.pipeline();
@@ -133,7 +133,7 @@ export default class UserLocationCache {
                     ...loggingDetails,
                 });
             });
-    }
+    };
 
     getAreasWithinDistance = (areaType: IAreaType, geoKeyPrefix: string, userLocation, radius: number, loggingDetails) => {
         const redis: any = redisClient;
@@ -170,7 +170,7 @@ export default class UserLocationCache {
                     ...loggingDetails,
                 });
             });
-    }
+    };
 
     // Moments
     getLastMomentNotificationDate = () => this.getLastAreaNotificationDate('moments', this.momentsKeyPrefix);

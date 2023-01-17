@@ -97,13 +97,13 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         this.props.navigation.setOptions({
             title: this.translate('pages.settings.headerTitle'),
         });
-    }
+    };
 
     goToManageAccount = () => {
         const { navigation } = this.props;
 
         navigation.push('ManageAccount');
-    }
+    };
 
     isFormDisabled() {
         const { inputs, isSubmitting } = this.state;
@@ -127,7 +127,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         this.themeMenu = buildMenuStyles(themeName);
         this.themeForms = buildFormStyles(themeName);
         this.themeSettingsForm = buildSettingsFormStyles(themeName);
-    }
+    };
 
     onSubmit = () => {
         const {
@@ -260,13 +260,13 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
         this.setState({
             isNightMode,
         });
-    }
+    };
 
     onRewardSettingsChange = (isOptedInToAds: boolean) => {
         this.setState({
             isOptedInToAds,
         });
-    }
+    };
 
     onDoneCropping = (croppedImageDetails) => {
         if (!croppedImageDetails.didCancel && !croppedImageDetails.errorCode) {
@@ -290,7 +290,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 console.log(err);
             });
         }
-    }
+    };
 
     signAndUploadImage = (croppedImageDetails) => {
         const filePathSplit = croppedImageDetails?.path?.split('.');
@@ -316,11 +316,11 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                 RNFB.wrap(localFileCroppedPath),
             ).then(() => response?.data);
         });
-    }
+    };
 
     handleRefresh = () => {
         console.log('refresh');
-    }
+    };
 
     render() {
         const { navigation, user } = this.props;

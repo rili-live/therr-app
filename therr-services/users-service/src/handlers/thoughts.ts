@@ -33,9 +33,10 @@ const createThought = (req, res) => {
                             associationId: thought.parentId,
                             isUnread: true,
                             messageLocaleKey: Notifications.MessageKeys.THOUGHT_REPLY,
-                            // messageParams: {
-                            //     userName: TODO
-                            // }
+                            messageParams: {
+                                thoughtId: thought.parentId,
+                                // TODO: Add fromUserName for notification text
+                            },
                         }, {
                             toUserId: thoughts[0].fromUserId, // Notify parent thought's author
                             fromUser: {

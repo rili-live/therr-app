@@ -77,7 +77,7 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
                 });
             }
         });
-    }
+    };
 
     public render(): JSX.Element | null {
         const { errorMessage } = this.state;

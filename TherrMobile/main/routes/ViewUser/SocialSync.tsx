@@ -147,7 +147,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
         this.themeForms = buildFormStyles(themeName);
         this.themeSocialSyncForm = buildSettingsFormStyles(themeName);
         this.themeUser = buildUserStyles(themeName);
-    }
+    };
 
     onSubmit = (syncs) => {
         const { activeProvider } = this.state;
@@ -240,7 +240,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
         }).catch((err) => {
             console.log(err);
         });
-    }
+    };
 
     onSaveFacebook = (syncs) => {
         this.onSubmit(syncs);
@@ -301,19 +301,19 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                 isOAuthModalVisible: true,
             });
         }
-    }
+    };
 
     onCloseAccountTypeModal = () => {
         this.setState({
             isAccountTypeModalVisible: false,
         });
-    }
+    };
 
     onCloseOAuthModal = () => {
         this.setState({
             isOAuthModalVisible: false,
         });
-    }
+    };
 
     onSelectMetaAccountType = (type: 'personal' | 'business') => {
         const { requestId } = this.state;
@@ -336,7 +336,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
             // eslint-disable-next-line max-len
             Linking.openURL(`https://www.facebook.com/v14.0/dialog/oauth?client_id=${appId}&redirect_uri=${backendRedirectUrl}&response_type=${responseType}&scope=${scopes.join(',')}&state=${requestId}`);
         }
-    }
+    };
 
     onTikTokSocialLogin = () => {
         const { requestId } = this.state;
@@ -347,7 +347,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
         const scopes = ['user.info.basic'];
         // eslint-disable-next-line max-len
         Linking.openURL(`https://www.tiktok.com/auth/authorize/?client_key=${clientKey}&scope=${scopes.join(',')}&response_type=${responseType}&redirect_uri=${backendRedirectUrl}&state=${requestId}`);
-    }
+    };
 
     onOAuthLoginSuccess = (results) => {
         const { activeProvider } = this.state;
@@ -376,7 +376,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
                 },
             });
         }
-    }
+    };
 
     onOAuthLoginFailed = (results) => {
         this.onCloseOAuthModal();
@@ -386,7 +386,7 @@ export class SocialSync extends React.Component<ISocialSyncProps, ISocialSyncSta
             text1: this.translate('forms.socialSync.errorTitles.oops'),
             text2: this.translate('forms.socialSync.errorAlerts.unknownError'),
         });
-    }
+    };
 
     render() {
         const { navigation, route, user } = this.props;

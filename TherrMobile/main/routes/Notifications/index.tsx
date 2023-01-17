@@ -110,7 +110,7 @@ class Notifications extends React.Component<
             },
             user: user.details,
         });
-    }
+    };
 
     onContentSizeChange = () => {
         const { notifications } = this.props;
@@ -121,7 +121,7 @@ class Notifications extends React.Component<
                 animated: true,
             });
         }
-    }
+    };
 
     markNotificationAsRead = (event, notification, userConnection?: any, shouldNavigate = true) => {
         if (notification.isUnread || userConnection) {
@@ -144,7 +144,7 @@ class Notifications extends React.Component<
         if (shouldNavigate) {
             this.navigateToNotificationContext(notification);
         }
-    }
+    };
 
     navigateToNotificationContext = (notification) => {
         const { navigation } = this.props;
@@ -175,11 +175,11 @@ class Notifications extends React.Component<
         } else if (notification.type === NotificationsEmuns.Types.NEW_DM_RECEIVED) {
             navigation.navigate('Contacts');
         }
-    }
+    };
 
     scrollTop = () => {
         this.flatListRef?.scrollToOffset({ animated: true, offset: 0 });
-    }
+    };
 
     handleRefresh = () => {
         const { searchNotifications, user } = this.props;
@@ -192,7 +192,7 @@ class Notifications extends React.Component<
             pageNumber: 1,
             order: 'desc',
         }).finally(() => this.setState({ isRefreshing: false }));
-    }
+    };
 
     render() {
         const { navigation, notifications, user } = this.props;
@@ -212,7 +212,7 @@ class Notifications extends React.Component<
                                 handlePress={(e) => this.markNotificationAsRead(e, item, false, false)}
                                 isUnread={item.isUnread}
                                 notification={item}
-                                containerStyles={index === 0 ? notificationStyles.firstChildNotification : {}}
+                                containerStyles={index === 0 ? notificationStyles.firstChildNotification : notificationStyles.otherChildNotification}
                                 translate={this.translate}
                                 themeNotification={this.themeNotification}
                             />

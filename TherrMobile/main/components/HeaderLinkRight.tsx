@@ -56,7 +56,7 @@ class HeaderMenuRight extends React.Component<
 
     componentWillUnmount = () => {
         clearTimeout(this.timeoutId);
-    }
+    };
 
     toggleOverlay = (shouldClose?: boolean) => {
         const { isModalVisible } = this.state;

@@ -104,13 +104,13 @@ export class EmailVerificationComponent extends React.Component<IEmailVerificati
                     });
                 }
             });
-    }
+    };
 
     onInputChange = (name: string, value: string) => {
         this.setState({
             email: value,
         });
-    }
+    };
 
     render() {
         const { errorReason, verificationStatus } = this.state;

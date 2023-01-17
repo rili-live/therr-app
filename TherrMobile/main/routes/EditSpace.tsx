@@ -214,7 +214,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                 RNFB.wrap(localFileCroppedPath),
             ).then(() => createArgs);
         });
-    }
+    };
 
     onSubmit = () => {
         const { hashtags, selectedImage } = this.state;
@@ -357,7 +357,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                 },
             });
         }
-    }
+    };
 
     handleImageSelect = (imageResponse) => {
         if (!imageResponse.didCancel && !imageResponse.errorCode) {
@@ -366,14 +366,14 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                 imagePreviewPath: getImagePreviewPath(imageResponse?.path),
             }, () => this.toggleBottomSheet());
         }
-    }
+    };
 
     toggleBottomSheet = () => {
         const { isBottomSheetVisible } = this.state;
         this.setState({
             isBottomSheetVisible: !isBottomSheetVisible,
         });
-    }
+    };
 
     onAddImage = (action: string) => {
         // TODO: Store permissions in redux
@@ -409,7 +409,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
                 console.log('canceled');
             }
         });
-    }
+    };
 
     onSliderChange = (name, value) => {
         const newInputChanges = {
@@ -425,7 +425,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
             successMsg: '',
             isSubmitting: false,
         });
-    }
+    };
 
     handleHashtagPress = (tag) => {
         const { hashtags } = this.state;
@@ -434,7 +434,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
         this.setState({
             hashtags: modifiedHastags,
         });
-    }
+    };
 
     handlePreviewFullScreen = (isFullScreen) => {
         const previewStyleState = isFullScreen ? {
@@ -448,7 +448,7 @@ export class EditSpace extends React.Component<IEditSpaceProps, IEditSpaceState>
         this.setState({
             previewStyleState,
         });
-    }
+    };
 
     render() {
         const { navigation } = this.props;

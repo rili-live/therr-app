@@ -62,6 +62,7 @@ module.exports = {
             },
         ],
         'no-use-before-define': 'off',
+        'import/no-relative-packages': 'off',
         '@typescript-eslint/no-use-before-define': ['error'],
         '@typescript-eslint/ban-types': 'off',
     },

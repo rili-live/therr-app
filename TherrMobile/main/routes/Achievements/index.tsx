@@ -69,7 +69,7 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
         });
 
         this.handleRefresh();
-    }
+    };
 
     handleRefresh = () => {
         this.props.getMyAchievements().finally(() => {
@@ -77,7 +77,7 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
                 isRefreshing: false,
             });
         });
-    }
+    };
 
     handleClaim = (userAchievement: any) => {
         const { claimMyAchievement } = this.props;
@@ -85,7 +85,7 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
         claimMyAchievement(userAchievement.id, userAchievement.unclaimedRewardPts).then(() => {
             this.onPressAchievement(userAchievement, true);
         });
-    }
+    };
 
     onPressAchievement = (userAchievement: any, isClaiming: boolean = false) => {
         const { navigation } = this.props;
@@ -94,7 +94,7 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
             userAchievement,
             isClaiming,
         });
-    }
+    };
 
     render() {
         const { navigation, user } = this.props;

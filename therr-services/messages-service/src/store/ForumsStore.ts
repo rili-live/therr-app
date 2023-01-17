@@ -76,6 +76,7 @@ export default class ForumsStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
+    // eslint-disable-next-line default-param-last
     async searchForums(conditions: any = {}, returning, options: ISearchForumOptions) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;

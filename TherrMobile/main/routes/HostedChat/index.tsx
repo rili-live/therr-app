@@ -130,7 +130,7 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
 
     componentWillUnmount = () => {
         clearTimeout(this.searchTimerId);
-    }
+    };
 
     handleCategoryPress = (category) => {
         const { categories, searchInput } = this.state;
@@ -148,20 +148,20 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
         this.setState({
             categories: modifiedCategories,
         });
-    }
+    };
 
     handleChatTilePress = (chat) => {
         const { navigation } = this.props;
 
         navigation.navigate('ViewChat', chat);
-    }
+    };
 
     handleCategoryTogglePress = () => {
         const  { toggleChevronName } = this.state;
         this.setState({
             toggleChevronName: toggleChevronName === 'chevron-down' ? 'chevron-up' : 'chevron-down',
         });
-    }
+    };
 
     handleCreateHostedChat = () => {
         const { forums, navigation } = this.props;
@@ -176,7 +176,7 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
         this.setState({
             searchInput: text,
         });
-    }
+    };
 
     searchForumsWithFilters = (text, modifiedCategories?) => {
         const { searchForums } = this.props;
@@ -198,7 +198,7 @@ class HostedChat extends React.Component<IHostedChatProps, IHostedChatState> {
             }
             searchForums(searchParams, searchArgs);
         }, 250);
-    }
+    };
 
     render() {
         const { forums } = this.props;

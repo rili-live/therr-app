@@ -69,18 +69,18 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
             title: this.translate('pages.exchangePointsDisclaimer.headerTitle'),
         });
         this.props.getMe().catch((err) => console.log(`Failed to fetch me: ${err.message}`));
-    }
+    };
 
     handleRefresh = () => {
         console.log('refresh');
-    }
+    };
 
     isFormDisabled = () => {
         const { isSubmitting } = this.state;
         const { user } = this.props;
 
-        return isSubmitting || (user.settings?.settingsTherrCoinTotal || 0) < 5;
-    }
+        return isSubmitting || (user.settings?.settingsTherrCoinTotal || 0) < 10;
+    };
 
     onSubmit = () => {
         const { user } = this.props;
@@ -108,7 +108,7 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
                 isSubmitting: false,
             });
         });
-    }
+    };
 
     render() {
         const { navigation, user } = this.props;

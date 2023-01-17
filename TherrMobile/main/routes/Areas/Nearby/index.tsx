@@ -70,7 +70,7 @@ class Nearby extends React.Component<INearbyProps, INearbyState> {
 
     scrollTop = () => {
         this.carouselRef?.scrollToOffset({ animated: true, offset: 0 });
-    }
+    };
 
     render() {
         const {

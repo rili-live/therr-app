@@ -4,8 +4,6 @@ import {
     ContentActionTypes,
 
     // Maps
-    IAreaType,
-    IPostType,
     IMapState,
     MapActionTypes,
 
@@ -89,8 +87,6 @@ export {
     ForumActionTypes,
 
     // Maps
-    IAreaType,
-    IPostType,
     IMapState,
     MapActionTypes,
 

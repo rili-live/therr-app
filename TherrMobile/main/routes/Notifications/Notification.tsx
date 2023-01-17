@@ -1,7 +1,8 @@
 import React from 'react';
-import { GestureResponderEvent, Pressable, Text, View } from 'react-native';
-import { Button } from 'react-native-elements';
+import { GestureResponderEvent, Pressable, View } from 'react-native';
+import { Button, Text } from 'react-native-elements';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
+import formatDate from '../../utilities/formatDate';
 import { ITherrThemeColors } from '../../styles/themes';
 
 interface INotificationProps {
@@ -51,73 +52,76 @@ export default ({
                 <Text style={messageStyle}>
                     {notification.message}
                 </Text>
-                <Pressable
-                    onPress={isUnread ? handlePress : () => {}}
-                    style={themeNotification.styles.iconContainerStyle}
-                    hitSlop={20}
-                >
-                    {
-                        isUnread ?
-                            <FontAwesomeIcon
-                                name="dot-circle"
-                                size={20}
-                                style={iconStyle}
-                            /> :
-                            <FontAwesomeIcon
-                                name="check"
-                                size={14}
-                                style={iconStyle}
+                {
+                    notification.userConnection?.requestStatus === 'pending' &&
+                    <View style={themeNotification.styles.actionsContainer}>
+                        {
+                            notification.messageParams?.userId &&
+                            <Button
+                                title={translate('components.notification.buttons.view')}
+                                type="clear"
+                                buttonStyle={themeNotification.styles.actionButton}
+                                titleStyle={themeNotification.styles.actionButtonText}
+                                icon={
+                                    <FontAwesomeIcon
+                                        name="eye"
+                                        size={18}
+                                    />
+                                }
+                                onPress={(e) => handlePressAndNavigate && handlePressAndNavigate(e)}
                             />
-                    }
-                </Pressable>
-            </View>
-            {
-                notification.userConnection?.requestStatus === 'pending' &&
-                <View style={themeNotification.styles.actionsContainer}>
-                    {
-                        notification.messageParams?.userId &&
+                        }
                         <Button
-                            title={translate('components.notification.buttons.view')}
+                            title={translate('components.notification.buttons.accept')}
                             type="clear"
                             buttonStyle={themeNotification.styles.actionButton}
                             titleStyle={themeNotification.styles.actionButtonText}
                             icon={
                                 <FontAwesomeIcon
-                                    name="eye"
+                                    name="check"
                                     size={18}
                                 />
                             }
-                            onPress={(e) => handlePressAndNavigate && handlePressAndNavigate(e)}
+                            onPress={(e) => acknowledgeRequest(e, notification, true)}
                         />
-                    }
-                    <Button
-                        title={translate('components.notification.buttons.accept')}
-                        type="clear"
-                        buttonStyle={themeNotification.styles.actionButton}
-                        titleStyle={themeNotification.styles.actionButtonText}
-                        icon={
-                            <FontAwesomeIcon
-                                name="check"
-                                size={18}
-                            />
-                        }
-                        onPress={(e) => acknowledgeRequest(e, notification, true)}
-                    />
-                    <Button
-                        title={translate('components.notification.buttons.reject')}
-                        type="clear"
-                        buttonStyle={themeNotification.styles.actionButton}
-                        titleStyle={themeNotification.styles.actionButtonText}
-                        icon={
-                            <FontAwesomeIcon
-                                name="minus"
-                                size={18}
-                            />
-                        }
-                        onPress={(e) => acknowledgeRequest(e, notification, false)}
-                    />
+                        <Button
+                            title={translate('components.notification.buttons.reject')}
+                            type="clear"
+                            buttonStyle={themeNotification.styles.actionButton}
+                            titleStyle={themeNotification.styles.actionButtonText}
+                            icon={
+                                <FontAwesomeIcon
+                                    name="minus"
+                                    size={18}
+                                />
+                            }
+                            onPress={(e) => acknowledgeRequest(e, notification, false)}
+                        />
+                    </View>
+                }
+                <View style={themeNotification.styles.dateContainer}>
+                    <Text style={themeNotification.styles.dateText}>{formatDate(notification.createdAt)}</Text>
                 </View>
-            }
+            </View>
+            <Pressable
+                onPress={isUnread ? handlePress : () => {}}
+                style={themeNotification.styles.iconContainerStyle}
+                hitSlop={20}
+            >
+                {
+                    isUnread ?
+                        <FontAwesomeIcon
+                            name="dot-circle"
+                            size={20}
+                            style={iconStyle}
+                        /> :
+                        <FontAwesomeIcon
+                            name="check"
+                            size={14}
+                            style={iconStyle}
+                        />
+                }
+            </Pressable>
         </Pressable>
     );
 };

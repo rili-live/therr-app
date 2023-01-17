@@ -182,13 +182,13 @@ class EmailVerification extends React.Component<IEmailVerificationProps, IEmailV
                     });
                 }
             });
-    }
+    };
 
     onInputChange = (name: string, value: string) => {
         this.setState({
             email: value,
         });
-    }
+    };
 
     getErrorMessage = () => {
         const { errorReason, verificationStatus } = this.state;
@@ -207,7 +207,7 @@ class EmailVerification extends React.Component<IEmailVerificationProps, IEmailV
         }
 
         return false;
-    }
+    };
 
     render() {
         const { email, verificationStatus } = this.state;
