@@ -334,7 +334,7 @@ const predictAndSendNotification = (
                 userId: config.userId,
                 significance: 'failed to send push notification',
                 ...metrics,
-            }, {});
+            });
         });
 };
 

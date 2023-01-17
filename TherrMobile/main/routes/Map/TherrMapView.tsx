@@ -5,8 +5,9 @@ import { PROVIDER_GOOGLE, Circle, Marker } from 'react-native-maps';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { PushNotificationsService } from 'therr-react/services';
-import { IAreaType, ITherrMapViewState as ITherrMapViewReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
+import { ITherrMapViewState as ITherrMapViewReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
 import { MapActions, ReactionActions } from 'therr-react/redux/actions';
+import { IAreaType } from 'therr-js-utilities/types';
 import { distanceTo, insideCircle } from 'geolocation-utils';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { ILocationState } from '../../types/redux/location';
@@ -101,7 +102,7 @@ const mapDispatchToProps = (dispatch: any) =>
         dispatch
     );
 
-class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewState> {
+class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapViewState> {
     private localeShort = 'en-US'; // TODO: Derive from user locale
     private mapViewRef: any;
     private theme = buildStyles();
@@ -155,7 +156,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
 
         setSearchDropdownVisibility(false);
 
-        const pressedSpaces = filteredSpaces.filter((space) => {
+        const pressedSpaces: any[] = Object.values(filteredSpaces).filter((space: any) => {
             return insideCircle(nativeEvent.coordinate, {
                 lon: space.longitude,
                 lat: space.latitude,
@@ -218,7 +219,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
                 activeSpaceDetails: {},
             });
 
-            const pressedMoments = filteredMoments.filter((moment) => {
+            const pressedMoments: any[] = Object.values(filteredMoments).filter((moment: any) => {
                 return insideCircle(nativeEvent.coordinate, {
                     lon: moment.longitude,
                     lat: moment.latitude,
@@ -445,41 +446,47 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
         return this.theme.colors.map.undiscoveredSpacesCircleStroke;
     }
 
+    getLatitudeDelta = () => {
+        const { map, route } = this.props;
+        if (route.params?.latitude) {
+            return SECONDARY_LATITUDE_DELTA;
+        }
+        return map.hasUserLocationLoaded ? PRIMARY_LATITUDE_DELTA : INITIAL_LATITUDE_DELTA;
+    };
+
+    getLongitudeDelta = () => {
+        const { map, route } = this.props;
+        if (route.params?.longitude) {
+            return SECONDARY_LONGITUDE_DELTA;
+        }
+        return map.hasUserLocationLoaded ? PRIMARY_LONGITUDE_DELTA : INITIAL_LONGITUDE_DELTA;
+    };
+
+    updateOuterMapRef = (ref: Ref<MapView>) => {
+        this.props.mapRef(ref);
+    }
+
     render() {
         const {
             circleCenter,
             filteredMoments,
             filteredSpaces,
             isScrollEnabled,
-            map,
-            route,
             shouldFollowUserLocation,
             shouldRenderMapCircles,
         } = this.props;
-        const getLatitudeDelta = () => {
-            if (route.params?.latitude) {
-                return SECONDARY_LATITUDE_DELTA;
-            }
-            return map.hasUserLocationLoaded ? PRIMARY_LATITUDE_DELTA : INITIAL_LATITUDE_DELTA;
-        };
-        const getLongitudeDelta = () => {
-            if (route.params?.longitude) {
-                return SECONDARY_LONGITUDE_DELTA;
-            }
-            return map.hasUserLocationLoaded ? PRIMARY_LONGITUDE_DELTA : INITIAL_LONGITUDE_DELTA;
-        };
 
         return (
             <MapView
-                mapRef={(ref: Ref<MapView>) => { this.props.mapRef(ref); this.mapViewRef = ref; }}
+                mapRef={(ref: Ref<MapView>) => { this.updateOuterMapRef(ref); this.mapViewRef = ref; }}
                 provider={PROVIDER_GOOGLE}
                 style={mapStyles.mapView}
                 customMapStyle={mapCustomStyle}
                 initialRegion={{
                     latitude: circleCenter.latitude,
                     longitude: circleCenter.longitude,
-                    latitudeDelta: getLatitudeDelta(),
-                    longitudeDelta: getLongitudeDelta(),
+                    latitudeDelta: this.getLatitudeDelta(),
+                    longitudeDelta: this.getLongitudeDelta(),
                 }}
                 onPress={this.handleMapPress}
                 onRegionChange={this.props.onRegionChange}
@@ -510,7 +517,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
                     zIndex={0}
                 />
                 {
-                    filteredMoments.map((moment) => {
+                    Object.values(filteredMoments).map((moment: any) => {
                         return (
                             <Marker
                                 anchor={{
@@ -534,28 +541,7 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
                     })
                 }
                 {
-                    filteredMoments.map((moment) => {
-                        if (!shouldRenderMapCircles) {
-                            return null;
-                        }
-                        return (
-                            <Circle
-                                key={moment.id}
-                                center={{
-                                    longitude: moment.longitude,
-                                    latitude: moment.latitude,
-                                }}
-                                radius={moment.radius} /* meters */
-                                strokeWidth={0}
-                                strokeColor={this.getMomentCircleStrokeColor(moment)}
-                                fillColor={this.getMomentCircleFillColor(moment)}
-                                zIndex={1}
-                            />
-                        );
-                    })
-                }
-                {
-                    filteredSpaces.map((space) => {
+                    Object.values(filteredSpaces).map((space: any) => {
                         return (
                             <Marker
                                 anchor={{
@@ -579,7 +565,28 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
                     })
                 }
                 {
-                    filteredSpaces.map((space) => {
+                    Object.values(filteredMoments).map((moment: any) => {
+                        if (!shouldRenderMapCircles) {
+                            return null;
+                        }
+                        return (
+                            <Circle
+                                key={moment.id}
+                                center={{
+                                    longitude: moment.longitude,
+                                    latitude: moment.latitude,
+                                }}
+                                radius={moment.radius} /* meters */
+                                strokeWidth={0}
+                                strokeColor={this.getMomentCircleStrokeColor(moment)}
+                                fillColor={this.getMomentCircleFillColor(moment)}
+                                zIndex={1}
+                            />
+                        );
+                    })
+                }
+                {
+                    Object.values(filteredSpaces).map((space: any) => {
                         if (!shouldRenderMapCircles) {
                             return null;
                         }
@@ -604,4 +611,4 @@ class TherrMapView extends React.Component<ITherrMapViewProps, ITherrMapViewStat
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(React.memo(TherrMapView));
+export default connect(mapStateToProps, mapDispatchToProps)(TherrMapView);

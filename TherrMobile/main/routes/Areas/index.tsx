@@ -104,6 +104,8 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class Areas extends React.Component<IAreasProps, IAreasState> {
+    static whyDidYouRender = true
+
     private carouselSocialRef;
     private carouselEventsRef;
     private carouselNewsRef;

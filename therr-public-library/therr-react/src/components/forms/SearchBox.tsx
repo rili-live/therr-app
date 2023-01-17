@@ -51,11 +51,11 @@ class SearchBox extends React.Component<any, any> {
             isDirty: !!value.length,
         });
         this.props.onChange(key, value);
-    }
+    };
 
     handleSearch = (event: any) => {
         this.props.onSearch(event, this.state.inputValue);
-    }
+    };
 
     onBlur = () => {
         this.setState({

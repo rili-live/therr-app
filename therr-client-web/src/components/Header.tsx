@@ -74,7 +74,7 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
         logout(user.details).then(() => {
             goHome();
         });
-    }
+    };
 
     render() {
         const { hasUnreadNotifications } = this.state;

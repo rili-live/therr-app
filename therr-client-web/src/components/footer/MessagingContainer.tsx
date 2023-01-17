@@ -90,7 +90,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
 
     componentDidMount = () => {
         document.addEventListener('click', this.handleClick);
-    }
+    };
 
     componentDidUpdate(prevProps: IMessagingContainerProps) {
         const { messagingContext, messages } = this.props;
@@ -114,11 +114,11 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
 
     componentWillUnmount = () => {
         document.removeEventListener('click', this.handleClick);
-    }
+    };
 
     onToggleMessaging = (e) => {
         this.props.toggleMessaging(e);
-    }
+    };
 
     shouldDisableSubmit = (buttonName: string) => {
         switch (buttonName) {
@@ -127,13 +127,13 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
             default:
                 return false;
         }
-    }
+    };
 
     shouldShowMessagingCtnr = () => {
         const { isMessagingOpen, isMsgContainerOpen } = this.props;
 
         return isMessagingOpen && isMsgContainerOpen;
-    }
+    };
 
     handleClick = (event: any) => {
         if (this.props.isMsgContainerOpen) {
@@ -152,7 +152,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
                 this.onToggleMessaging(event);
             }
         }
-    }
+    };
 
     onInputChange = (name: string, value: string) => {
         const newInputChanges = {
@@ -164,7 +164,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
                 ...newInputChanges,
             },
         });
-    }
+    };
 
     onSendMessage = (event) => {
         if (!this.shouldDisableSubmit('sendMessaging')) {
@@ -184,7 +184,7 @@ export class MessagingContainerComponent extends React.Component<IMessagingConta
             });
             this.onInputChange('message', '');
         }
-    }
+    };
 
     render() {
         const {

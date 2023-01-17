@@ -58,7 +58,7 @@ export class UnderConstructionAppComponent extends React.Component<IUnderConstru
         document.title = `Therr | ${this.translate('pages.underConstruction.pageTitle')}`;
     }
 
-    login = (credentials: any) => this.props.login(credentials)
+    login = (credentials: any) => this.props.login(credentials);
 
     public render(): JSX.Element | null {
         const { location } = this.props;

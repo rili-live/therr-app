@@ -212,7 +212,7 @@ class Notifications extends React.Component<
                                 handlePress={(e) => this.markNotificationAsRead(e, item, false, false)}
                                 isUnread={item.isUnread}
                                 notification={item}
-                                containerStyles={index === 0 ? notificationStyles.firstChildNotification : {}}
+                                containerStyles={index === 0 ? notificationStyles.firstChildNotification : notificationStyles.otherChildNotification}
                                 translate={this.translate}
                                 themeNotification={this.themeNotification}
                             />

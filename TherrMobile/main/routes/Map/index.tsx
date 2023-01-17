@@ -6,7 +6,8 @@ import AnimatedOverlay from 'react-native-modal-overlay';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { MapsService, UsersService, PushNotificationsService } from 'therr-react/services';
-import { IAreaType, AccessCheckType, IMapState as IMapReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
+import { AccessCheckType, IMapState as IMapReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
+import { IAreaType } from 'therr-js-utilities/types';
 import { MapActions, ReactionActions, UserInterfaceActions } from 'therr-react/redux/actions';
 import { AccessLevels, Location } from 'therr-js-utilities/constants';
 import Geolocation from 'react-native-geolocation-service';
@@ -194,7 +195,7 @@ const mapDispatchToProps = (dispatch: any) =>
         dispatch
     );
 
-class Map extends React.Component<IMapProps, IMapState> {
+class Map extends React.PureComponent<IMapProps, IMapState> {
     private bottomSheetRef: React.RefObject<BottomSheetMethods> | undefined;
     private localeShort = 'en-US'; // TODO: Derive from user locale
     private mapRef: any;
@@ -364,25 +365,38 @@ class Map extends React.Component<IMapProps, IMapState> {
         }, ANIMATE_TO_REGION_DURATION_SLOW + 2000); // Add some buffer room
     }
 
+    hasNoMapfilters = () => {
+        const { map } = this.props;
+        const mapFilters = {
+            filtersAuthor: map.filtersAuthor,
+            filtersCategory: map.filtersCategory,
+            filtersVisibility: map.filtersVisibility,
+        };
+
+        return (!mapFilters.filtersAuthor?.length && !mapFilters.filtersCategory?.length && !mapFilters.filtersVisibility?.length)
+        || (mapFilters.filtersAuthor[0]?.isChecked && mapFilters.filtersCategory[0]?.isChecked && mapFilters.filtersVisibility[0]?.isChecked);
+    }
+
     getFilteredAreas = (areas, mapFilters) => {
         // Filter for duplicates
-        const areasMap = {};
-        areas.forEach(area => { areasMap[area.id] = area; });
-        let filteredAreas: any = Object.values(areasMap);
-        if ((!mapFilters.filtersAuthor?.length && !mapFilters.filtersCategory?.length && !mapFilters.filtersVisibility?.length)
-            || (mapFilters.filtersAuthor[0]?.isChecked && mapFilters.filtersCategory[0]?.isChecked && mapFilters.filtersVisibility[0]?.isChecked)) {
-            return filteredAreas;
+        if (this.hasNoMapfilters()) {
+            return areas;
         }
 
-        const filteredAreasMap = {};
         // Only requires one loop to check each area
-        filteredAreas.forEach(area => {
+        const filteredAreasMap = {};
+        Object.values(areas).forEach((area: any) => {
             if (this.shouldRenderArea(area, mapFilters)) {
                 filteredAreasMap[area.id] = area;
             }
         });
 
-        return Object.values(filteredAreasMap);
+        if (areas.length === Object.values(filteredAreasMap).length) {
+            // Prevents unnecessary rerenders
+            return areas;
+        }
+
+        return filteredAreasMap;
     };
 
     shouldRenderArea = (area, mapFilters) => {
@@ -1054,6 +1068,8 @@ class Map extends React.Component<IMapProps, IMapState> {
         }, 2000);
     };
 
+    hideMomentActions = () => this.toggleMomentActions(true);
+
     toggleMomentActions = (shouldHide: boolean = false) => {
         const { user } = this.props;
         const { shouldShowCreateActions } = this.state;
@@ -1193,6 +1209,21 @@ class Map extends React.Component<IMapProps, IMapState> {
         });
     }
 
+    updateMapRef = (ref: Ref<MapView>) => { this.mapRef = ref; }
+
+    updateRegion = (region) => {
+        const { map } = this.props;
+        const mapFilters = {
+            filtersAuthor: map.filtersAuthor,
+            filtersCategory: map.filtersCategory,
+            filtersVisibility: map.filtersVisibility,
+        };
+        const filteredMoments = this.getFilteredAreas(map.moments, mapFilters);
+        const filteredSpaces = this.getFilteredAreas(map.spaces, mapFilters);
+        const filteredAreasCount = filteredMoments.length + filteredSpaces.length;
+        this.onRegionChangeComplete(region, filteredAreasCount);
+    }
+
     render() {
         const {
             areButtonsVisible,
@@ -1219,9 +1250,8 @@ class Map extends React.Component<IMapProps, IMapState> {
             filtersCategory: map.filtersCategory,
             filtersVisibility: map.filtersVisibility,
         };
-        const filteredMoments = this.getFilteredAreas(map.moments.concat(map.myMoments), mapFilters);
-        const filteredSpaces = this.getFilteredAreas(map.spaces.concat(map.mySpaces), mapFilters);
-        const filteredAreasCount = filteredMoments.length + filteredSpaces.length;
+        const filteredMoments = this.getFilteredAreas(map.moments, mapFilters);
+        const filteredSpaces = this.getFilteredAreas(map.spaces, mapFilters);
 
         return (
             <>
@@ -1258,14 +1288,14 @@ class Map extends React.Component<IMapProps, IMapState> {
                                 route={route}
                                 filteredMoments={filteredMoments}
                                 filteredSpaces={filteredSpaces}
-                                mapRef={(ref: Ref<MapView>) => { this.mapRef = ref; }}
+                                mapRef={this.updateMapRef}
                                 navigation={navigation}
                                 onRegionChange={this.onRegionChange}
-                                onRegionChangeComplete={(region) => this.onRegionChangeComplete(region, filteredAreasCount)}
+                                onRegionChangeComplete={this.updateRegion}
                                 showAreaAlert={this.showAreaAlert}
                                 shouldFollowUserLocation={shouldFollowUserLocation}
                                 shouldRenderMapCircles={shouldRenderMapCircles}
-                                hideCreateActions={() => this.toggleMomentActions(true)}
+                                hideCreateActions={this.hideMomentActions}
                                 isScrollEnabled={isScrollEnabled}
                                 // /* react-native-map-clustering */
                                 // onClusterPress={this.onClusterPress}

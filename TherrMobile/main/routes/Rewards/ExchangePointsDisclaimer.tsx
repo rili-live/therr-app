@@ -79,7 +79,7 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
         const { isSubmitting } = this.state;
         const { user } = this.props;
 
-        return isSubmitting || (user.settings?.settingsTherrCoinTotal || 0) < 5;
+        return isSubmitting || (user.settings?.settingsTherrCoinTotal || 0) < 10;
     }
 
     onSubmit = () => {

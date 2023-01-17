@@ -117,7 +117,7 @@ export class DiscoveredComponent extends React.Component<IDiscoveredProps, IDisc
                 //     this.setState({ isLoading: false });
                 // }, 400);
             });
-    }
+    };
 
     public render(): JSX.Element | null {
         // render is a function

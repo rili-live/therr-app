@@ -84,7 +84,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
                 break;
             default:
         }
-    }
+    };
 
     onInputChange = (name: string, value: string) => {
         const newInputChanges = {
@@ -102,7 +102,7 @@ export class LoginFormComponent extends React.Component<ILoginFormProps, ILoginF
             },
             prevLoginError: '',
         });
-    }
+    };
 
     public render(): JSX.Element | null {
         const { prevLoginError } = this.state;

@@ -124,6 +124,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
     private loaderId: ILottieId;
     private loadTimeoutId: any;
     private locationListener: any;
+    private unsubscribeNavigationBlurListener;
     private unsubscribeNavigationListener;
     private theme = buildStyles();
     private themeButtons = buildButtonsStyles();
@@ -181,6 +182,10 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
 
         this.handleRefreshConditionally();
 
+        this.unsubscribeNavigationBlurListener = navigation.addListener('blur', () => {
+            this.clearTimeouts();
+        });
+
         this.unsubscribeNavigationListener = navigation.addListener('focus', () => {
             this.handleRefreshConditionally();
         });
@@ -194,13 +199,18 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
     }
 
     componentWillUnmount() {
+        this.unsubscribeNavigationBlurListener();
         this.unsubscribeNavigationListener();
         if (this.locationListener) {
             this.locationListener();
         }
-        clearTimeout(this.loadTimeoutId);
+        this.clearTimeouts();
         Geolocation.clearWatch(this.mapWatchId);
         Geolocation.stopObserving();
+    }
+
+    clearTimeouts = () => {
+        clearTimeout(this.loadTimeoutId);
     }
 
     getEmptyListMessage = () => this.translate('pages.areas.noNearbyAreasFound');

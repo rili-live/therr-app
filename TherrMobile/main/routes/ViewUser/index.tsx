@@ -202,7 +202,7 @@ class ViewUser extends React.Component<
                 isLoading: false,
             });
         });
-    }
+    };
 
     goToContent = (content) => {
         const { navigation, route, user } = this.props;
@@ -227,11 +227,11 @@ class ViewUser extends React.Component<
                 id: userId,
             },
         });
-    }
+    };
 
     scrollTop = () => {
         this.flatListRef?.scrollToOffset({ animated: true, offset: 0 });
-    }
+    };
 
     toggleThoughtOptions = (thought) => {
         const { areThoughtOptionsVisible } = this.state;
@@ -239,7 +239,7 @@ class ViewUser extends React.Component<
             areThoughtOptionsVisible: !areThoughtOptionsVisible,
             selectedThought: areThoughtOptionsVisible ? {} : thought,
         });
-    }
+    };
 
     // TODO: This is so damn ugly. Refactor this!
     createUpdateThoughtReaction = (
@@ -266,12 +266,12 @@ class ViewUser extends React.Component<
         });
 
         createOrUpdateThoughtReaction(thoughtId, params, thoughtUserId, reactorUserName);
-    }
+    };
 
     handleRefresh = () => {
         this.setState({ isLoading: true });
         this.fetchUser();
-    }
+    };
 
     handleUserMediaRefresh = () => {
         const { getIntegratedMoments, user } = this.props;
@@ -281,7 +281,7 @@ class ViewUser extends React.Component<
         return user.userInView ? getIntegratedMoments(user.userInView.id).then(() => {
             this.setState({ isRefreshingUserMedia: false });
         }) : null;
-    }
+    };
 
     handleUserThoughtsRefresh = () => {
         const { user } = this.props;
@@ -291,7 +291,7 @@ class ViewUser extends React.Component<
         return user.userInView ? this.fetchThoughts().then(() => {
             this.setState({ isRefreshingUserThoughts: false });
         }) : null;
-    }
+    };
 
     fetchThoughts = () => {
         const { user } = this.props;
@@ -315,7 +315,7 @@ class ViewUser extends React.Component<
                 userInViewsThoughts: data?.thoughts || [],
             });
         });
-    }
+    };
 
     onThoughtOptionSelect = (type: ISelectionType) => {
         const { selectedThought } = this.state;
@@ -326,18 +326,18 @@ class ViewUser extends React.Component<
             createOrUpdateThoughtReaction,
             toggleThoughtOptions: this.toggleThoughtOptions,
         });
-    }
+    };
 
     onProfilePicturePress = (selectedUser, isOwnProfile) => {
         console.log('onProfilePicturePress', selectedUser, isOwnProfile);
-    }
+    };
 
     onBlockUser = (context, selectedUser) => {
         this.setState({
             confirmModalText: this.translate('modals.confirmModal.blockUser', { userName: selectedUser.userName }),
             activeConfirmModal: 'block-user',
         });
-    }
+    };
 
     onConnectionRequest = (context, selectedUser) => {
         if (selectedUser.isNotConnected) {
@@ -351,7 +351,7 @@ class ViewUser extends React.Component<
                 activeConfirmModal: 'remove-connection-request',
             });
         }
-    }
+    };
 
     onMessageUser = (context, selectedUser) => {
         // TODO: Update DirectMessage to support messaging non-connected users
@@ -362,20 +362,20 @@ class ViewUser extends React.Component<
                 userName: selectedUser.userName,
             },
         });
-    }
+    };
 
     onReportUser = (context, selectedUser) => {
         this.setState({
             confirmModalText: this.translate('modals.confirmModal.reportUser', { userName: selectedUser.userName }),
             activeConfirmModal: 'report-user',
         });
-    }
+    };
 
     onCancelConfirmModal = () => {
         this.setState({
             activeConfirmModal: '',
         });
-    }
+    };
 
     onAcceptConfirmModal = () => {
         const { activeConfirmModal } = this.state;
@@ -418,7 +418,7 @@ class ViewUser extends React.Component<
         this.setState({
             activeConfirmModal: '',
         });
-    }
+    };
 
     onTabSelect = (index: number) => {
         if (index === 0) {
@@ -427,7 +427,7 @@ class ViewUser extends React.Component<
         this.setState({
             activeTabIndex: index,
         });
-    }
+    };
 
     renderTabBar = props => {
         return (
@@ -446,7 +446,7 @@ class ViewUser extends React.Component<
                 {route.title}
             </Text>
         );
-    }
+    };
 
     renderSceneMap = ({ route }) => {
         const { isRefreshingUserMedia, userInViewsThoughts } = this.state;
@@ -513,8 +513,8 @@ class ViewUser extends React.Component<
                                                     width: imageWidth,
                                                     height: imageWidth,
                                                 }}
-                                                width={imageWidth}
-                                                height={imageWidth}
+                                                // width={imageWidth}
+                                                // height={imageWidth}
                                                 containerStyle={{}}
                                                 PlaceholderContent={<ActivityIndicator size="large" color={this.themeUser.colors.primary}/>}
                                                 transition={false}
@@ -530,7 +530,7 @@ class ViewUser extends React.Component<
                     </ScrollView>
                 );
         }
-    }
+    };
 
     render() {
         const { navigation, user } = this.props;

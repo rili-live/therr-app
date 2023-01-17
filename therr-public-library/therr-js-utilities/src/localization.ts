@@ -13,7 +13,7 @@ export const fallbackToLocale = (originalLocale: string) => {
 };
 
 export const configureTranslator = (translations: any) => {
-    const translateInternal = (locale: string, key = '', params?: any) => {
+    const translateInternal = (locale: string, params?: any, key = '') => {
         if (!translations[locale]) {
             return null;
         }
@@ -45,13 +45,13 @@ export const configureTranslator = (translations: any) => {
 
     return (locale: string, key: string, params?: any) => {
         let newLocale = normalizeLocale(locale);
-        let translatedValue = translateInternal(newLocale, key, params);
+        let translatedValue = translateInternal(newLocale, params, key);
         while (!translatedValue) {
             newLocale = fallbackToLocale(newLocale);
             if (!newLocale) {
                 break;
             }
-            translatedValue = translateInternal(newLocale, key, params);
+            translatedValue = translateInternal(newLocale, params, key);
         }
 
         return translatedValue;

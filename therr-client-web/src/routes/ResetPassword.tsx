@@ -68,13 +68,13 @@ export class ResetPasswordComponent extends React.Component<IResetPasswordProps,
                     });
                 }
             });
-    }
+    };
 
     onInputChange = (name: string, value: string) => {
         this.setState({
             email: value,
         });
-    }
+    };
 
     render() {
         const { errorReason, isEmailSent } = this.state;

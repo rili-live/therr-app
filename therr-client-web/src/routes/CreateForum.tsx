@@ -134,7 +134,7 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
             },
             isSubmitting: false,
         });
-    }
+    };
 
     handleHashtagClick = (tag) => {
         const { hashtags } = this.state;
@@ -143,7 +143,7 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
         this.setState({
             hashtags: modifiedHastags,
         });
-    }
+    };
 
     isFormDisabled() {
         const { isSubmitting } = this.state;
@@ -229,7 +229,7 @@ export class CreateForumComponent extends React.Component<ICreateForumProps, ICr
             default:
                 return false;
         }
-    }
+    };
 
     public render(): JSX.Element | null {
         const { hashtags } = this.state;

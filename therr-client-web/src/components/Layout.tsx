@@ -165,13 +165,13 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                 this.toggleNavMenu(event);
             }
         }
-    }
+    };
 
     handleWidthResize = (shouldExpand) => {
         this.setState({
             isNavMenuExpanded: shouldExpand,
         });
-    }
+    };
 
     toggleNavMenu = (event, context?: string) => {
         const newState: any = {
@@ -192,13 +192,13 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                 activeTabEl.focus();
             }
         });
-    }
+    };
 
     toggleMessaging = (event, overrideAndClose = false) => {
         this.setState({
             isMsgContainerOpen: overrideAndClose ? false : !this.state.isMsgContainerOpen,
         });
-    }
+    };
 
     goHome = () => {
         const isAuthorized = UsersService.isAuthorized(
@@ -214,7 +214,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         } else {
             this.props.navigation.navigate(routeAfterLogin);
         }
-    }
+    };
 
     handleLogout = (e) => {
         const { logout, user } = this.props;
@@ -252,7 +252,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         }
 
         this.setState(newState);
-    }
+    };
 
     renderNavMenuContent = () => {
         const { navMenuContext } = this.state;
@@ -287,7 +287,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                 </div>
             </>
         );
-    }
+    };
 
     renderHeader = (isLandingStylePage?: boolean) => (
         <Header
@@ -304,7 +304,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             toggleNavMenu={this.toggleNavMenu}
             isLandingStylePage={isLandingStylePage}
         />
-    )
+    );
 
     renderFooter = (isLandingStylePage?: boolean) => {
         const { isMessagingOpen, isMsgContainerOpen, messagingContext } = this.state;

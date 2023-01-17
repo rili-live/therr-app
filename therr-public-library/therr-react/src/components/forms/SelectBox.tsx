@@ -31,7 +31,7 @@ class SelectBox extends React.Component<any, any> {
         return {
             isInvalid: props.required && (!props.value && props.value !== false),
         };
-    }
+    };
 
     static propTypes: any = {
         className: PropTypes.string,
@@ -102,7 +102,7 @@ class SelectBox extends React.Component<any, any> {
         this.setState({
             axIndex,
         });
-    }
+    };
 
     handleKeyDown = (event: any) => {
         if (!this.props.disabled) {
@@ -132,7 +132,7 @@ class SelectBox extends React.Component<any, any> {
                 this.toggleSelectionVisibility();
             }
         }
-    }
+    };
 
     handlePageClick = (event: any) => {
         if (event.target !== this.buttonElement) {
@@ -140,7 +140,7 @@ class SelectBox extends React.Component<any, any> {
                 optionsAreVisible: false,
             });
         }
-    }
+    };
 
     handleSelectionChange = (event: any) => {
         event.preventDefault();
@@ -148,13 +148,13 @@ class SelectBox extends React.Component<any, any> {
             const selection = this.props.options[event.target.dataset.index];
             this.props.onChange(this.props.name, selection.value);
         }
-    }
+    };
 
     onFocus = () => {
         this.setState({
             isTouched: true,
         });
-    }
+    };
 
     toggleSelectionVisibility = () => {
         const { disabled, options, value } = this.props;
@@ -168,7 +168,7 @@ class SelectBox extends React.Component<any, any> {
                 optionsAreVisible: !this.state.optionsAreVisible,
             });
         }
-    }
+    };
 
     updateValidations = (props: any) => {
         const { onValidate, translate } = props;
@@ -181,7 +181,7 @@ class SelectBox extends React.Component<any, any> {
                 [props.id]: translate('validations.isRequired'),
             });
         }
-    }
+    };
 
     render() {
         const {
