@@ -211,14 +211,14 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
 
     clearTimeouts = () => {
         clearTimeout(this.loadTimeoutId);
-    }
+    };
 
     getEmptyListMessage = () => this.translate('pages.areas.noNearbyAreasFound');
 
     goToMap = () => {
         const { navigation } = this.props;
         navigation.navigate('Map');
-    }
+    };
 
     goToArea = (area) => {
         const { navigation, user } = this.props;
@@ -233,7 +233,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             latitude: lat,
             longitude: long,
         });
-    }
+    };
 
     goToViewUser = (userId) => {
         const { navigation } = this.props;
@@ -243,7 +243,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
                 id: userId,
             },
         });
-    }
+    };
 
     handleRefreshConditionally = (shouldShowLoader = false) => {
         const { activeTab, isFirstLoad } = this.state;
@@ -269,7 +269,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             });
             return Promise.resolve();
         }
-    }
+    };
 
     handleRefresh = (shouldShowLoader = false) => {
         const { content, map, updateActiveMomentsStream, updateActiveSpacesStream, user } = this.props;
@@ -318,7 +318,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
                     this.setState({ isLoading: false });
                 }, 400);
             });
-    }
+    };
 
     tryLoadMore = () => {
         const { content, map, searchActiveMoments, searchActiveSpaces, user } = this.props;
@@ -330,7 +330,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             searchActiveMoments,
             searchActiveSpaces,
         });
-    }
+    };
 
     onAreaOptionSelect = (type: ISelectionType) => {
         const { selectedArea } = this.state;
@@ -350,17 +350,17 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
                 toggleAreaOptions: this.toggleAreaOptions,
             });
         }
-    }
+    };
 
     onTabSelect = (tabName: string) => {
         this.setState({
             activeTab: tabName,
         });
-    }
+    };
 
     scrollTop = () => {
         this.carouselRef?.scrollToOffset({ animated: true, offset: 0 });
-    }
+    };
 
     toggleAreaOptions = (area) => {
         const { areAreaOptionsVisible } = this.state;
@@ -368,7 +368,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             areAreaOptionsVisible: !areAreaOptionsVisible,
             selectedArea: areAreaOptionsVisible ? {} : area,
         });
-    }
+    };
 
     onSliderAwarenessChange = (value) => {
         const { map, updateUserRadius } = this.props;
@@ -377,7 +377,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             radiusOfAwareness: value || map.radiusOfAwareness,
             radiusOfInfluence: map.radiusOfInfluence,
         });
-    }
+    };
 
     onSliderInfluenceChange = (value) => {
         const { map, updateUserRadius } = this.props;
@@ -386,7 +386,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             radiusOfAwareness: map.radiusOfAwareness,
             radiusOfInfluence: value || map.radiusOfInfluence,
         });
-    }
+    };
 
     positionSuccessCallback = (position) => {
         const { shouldDisableLocationSendEvent, map, updateCoordinates } = this.props;
@@ -411,7 +411,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
 
     positionErrorCallback = (error) => {
         console.log('geolocation error', error.code);
-    }
+    };
 
     handleEnableLocationPress = () => {
         const {
@@ -501,7 +501,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             console.log('gps activation error', error);
             // this.goToHome();
         });
-    }
+    };
 
     handleLocationDisclosureSelect = (/* selection */) => {
         const { updateLocationDisclosure } = this.props;
@@ -510,14 +510,14 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
             this.toggleLocationUseDisclosure();
             this.handleEnableLocationPress();
         });
-    }
+    };
 
     toggleLocationUseDisclosure = () => {
         const { isLocationUseDisclosureModalVisible } = this.state;
         this.setState({
             isLocationUseDisclosureModalVisible: !isLocationUseDisclosureModalVisible,
         });
-    }
+    };
 
 
 
@@ -575,7 +575,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
                 </View>
             </>
         );
-    }
+    };
 
     render() {
         const {

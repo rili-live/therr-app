@@ -152,7 +152,7 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
 
     isEmailValid = () => {
         return isEmail(this.state.inputs.email || '');
-    }
+    };
 
     onConnectionPress = (connectionDetails) => {
         const { navigation } = this.props;
@@ -197,13 +197,13 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
         this.setState({
             emailErrorMessage,
         });
-    }
+    };
 
     isUserNameAnonymous = () => {
         const { user } = this.props;
 
         return user.details.firstName === DEFAULT_FIRSTNAME && user.details.lastName === DEFAULT_LASTNAME;
-    }
+    };
 
     onSubmit = () => {
         const { connectionContext, didIgnoreNameConfirm, inputs, isPhoneNumberValid } = this.state;
@@ -264,14 +264,14 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
             prevConnReqSuccess: '',
             isPhoneNumberValid: isValid,
         });
-    }
+    };
 
     onToggleNameConfirmModal = () => {
         this.props.toggleNameConfirmModal();
         this.setState({
             didIgnoreNameConfirm: true,
         });
-    }
+    };
 
     onGetPhoneContacts = () => {
         const { navigation } = this.props;
@@ -298,7 +298,7 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
                 });
             }
         });
-    }
+    };
 
     onShareALink = () => {
         Share.share({
@@ -318,7 +318,7 @@ class CreateConnection extends React.Component<ICreateConnectionProps, ICreateCo
         }).catch((err) => {
             console.error(err);
         });
-    }
+    };
 
     render() {
         const {

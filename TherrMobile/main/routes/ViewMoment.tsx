@@ -175,19 +175,19 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         this.setState({
             previewStyleState,
         });
-    }
+    };
 
     onDelete = () => {
         this.setState({
             isVerifyingDelete: true,
         });
-    }
+    };
 
     onDeleteCancel = () => {
         this.setState({
             isVerifyingDelete: false,
         });
-    }
+    };
 
     onDeleteConfirm = () => {
         const { deleteMoment, navigation, route, user } = this.props;
@@ -209,7 +209,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                     });
                 });
         }
-    }
+    };
 
     onMomentOptionSelect = (type: ISelectionType) => {
         const { selectedMoment } = this.state;
@@ -227,7 +227,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                 this.toggleAreaOptions(selectedMoment);
             });
         }
-    }
+    };
 
     goBack = () => {
         const { navigation, route } = this.props;
@@ -237,7 +237,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         } else {
             navigation.navigate('Map');
         }
-    }
+    };
 
     goToViewMap = (lat, long) => {
         const { navigation } = this.props;
@@ -246,7 +246,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
             latitude: lat,
             longitude: long,
         });
-    }
+    };
 
     goToViewUser = (userId) => {
         const { navigation } = this.props;
@@ -256,7 +256,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                 id: userId,
             },
         });
-    }
+    };
 
     onUpdateMomentReaction = (momentId, data) => {
         const { createOrUpdateMomentReaction, navigation, route, user } = this.props;
@@ -271,7 +271,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
             },
         });
         return createOrUpdateMomentReaction(momentId, data, moment.fromUserId, user.details.userName);
-    }
+    };
 
     toggleAreaOptions = (area) => {
         const { areAreaOptionsVisible } = this.state;
@@ -280,7 +280,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
             areAreaOptionsVisible: !areAreaOptionsVisible,
             selectedMoment: areAreaOptionsVisible ? {} : area,
         });
-    }
+    };
 
     render() {
         const { areAreaOptionsVisible, isDeleting, isVerifyingDelete, previewLinkId, previewStyleState, selectedMoment } = this.state;

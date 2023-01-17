@@ -170,6 +170,7 @@ const isUserProfileIncomplete = (updateArgs, existingUser?) => {
     return requestDoesNotCompleteProfile;
 };
 
+// eslint-disable-next-line default-param-last
 const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, userByInviteDetails?: IUserByInviteDetails, locale = 'en-us') => {
     // TODO: Supply user agent to determine if web or mobile
     const codeDetails = generateCode({ email: userDetails.email, type: 'email' });

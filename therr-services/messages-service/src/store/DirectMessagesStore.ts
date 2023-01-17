@@ -42,6 +42,7 @@ export default class DirectMessagesStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
+    // eslint-disable-next-line default-param-last
     searchDirectMessages(userId, conditions: any = {}, returning, shouldCheckReverse?: string) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;

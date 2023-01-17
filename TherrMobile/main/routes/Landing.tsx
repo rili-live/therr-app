@@ -123,7 +123,7 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
         const { navigation } = this.props;
 
         navigation.navigate(routeName);
-    }
+    };
 
     renderFTUISlide = ({
         title,
@@ -152,7 +152,7 @@ class LandingComponent extends React.Component<ILandingProps, ILandingState> {
                 </View>
             </View>
         );
-    }
+    };
 
     render() {
         const { activeSlide } = this.state;

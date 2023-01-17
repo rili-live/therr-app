@@ -76,14 +76,14 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
         updateThoughtReaction(thought.id, {
             userBookmarkCategory: thought.reaction?.userBookmarkCategory ? null : 'Uncategorized',
         }, thought.fromUserId, user?.details?.userName);
-    }
+    };
 
     // TODO: Open full screen reply editor
     onCommentPress = () => {
         const { inspectThought } = this.props;
 
         inspectThought();
-    }
+    };
 
     onLikePress = (thought) => {
         if (!thought.isDraft) {
@@ -94,7 +94,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                 userHasLiked: !thought.reaction?.userHasLiked,
             }, thought.fromUserId, user?.details?.userName);
         }
-    }
+    };
 
     render() {
         const {

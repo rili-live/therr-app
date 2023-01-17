@@ -71,7 +71,7 @@ export default class UsersStore {
 
         queryString = queryString.toString();
         return this.db.read.query(queryString).then((response) => response.rows);
-    }
+    };
 
     findUser = ({
         id,
@@ -95,7 +95,7 @@ export default class UsersStore {
 
         queryString = queryString.toString();
         return this.db.read.query(queryString).then((response) => response.rows);
-    }
+    };
 
     findUsers({
         ids,

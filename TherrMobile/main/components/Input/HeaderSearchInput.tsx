@@ -82,7 +82,7 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
 
     componentWillUnmount = () => {
         clearTimeout(this.throttleTimeoutId);
-    }
+    };
 
     onInputChange = (text: string) => {
         const { getPlacesSearchAutoComplete, map, setSearchDropdownVisibility } = this.props;
@@ -102,7 +102,7 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
         }, 500);
 
         setSearchDropdownVisibility(!!text?.length);
-    }
+    };
 
     handlePress = () => {
         const { isAdvancedSearch, navigation, setSearchDropdownVisibility } = this.props;
@@ -114,7 +114,7 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
             this.onInputChange(inputText || '');
             setSearchDropdownVisibility(!!inputText?.length);
         }
-    }
+    };
 
     // TODO: Display red dot to show filters enabled
     render() {

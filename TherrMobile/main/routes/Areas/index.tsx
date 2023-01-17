@@ -104,7 +104,7 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class Areas extends React.Component<IAreasProps, IAreasState> {
-    static whyDidYouRender = true
+    static whyDidYouRender = true;
 
     private carouselSocialRef;
     private carouselEventsRef;
@@ -185,12 +185,12 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
 
         // CAROUSEL_TABS.EVENTS
         return this.translate('pages.areas.noEventsAreasFound');
-    }
+    };
 
     goToMap = () => {
         const { navigation } = this.props;
         navigation.navigate('Map');
-    }
+    };
 
     goToContent = (content) => {
         const { navigation, user } = this.props;
@@ -205,7 +205,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             latitude: lat,
             longitude: long,
         });
-    }
+    };
 
     goToViewUser = (userId) => {
         const { navigation } = this.props;
@@ -215,13 +215,13 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                 id: userId,
             },
         });
-    }
+    };
 
     handleEditThought = () => {
         const { navigation } = this.props;
 
         navigation.navigate('EditThought', {});
-    }
+    };
 
     handleRefresh = () => {
         const { content, updateActiveMomentsStream, updateActiveSpacesStream, updateActiveThoughtsStream, user } = this.props;
@@ -259,7 +259,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                 this.setState({ isLoading: false });
             }, 400);
         });
-    }
+    };
 
     tryLoadMore = () => {
         const { content, searchActiveMoments, searchActiveSpaces, searchActiveThoughts, user } = this.props;
@@ -271,7 +271,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             searchActiveSpaces,
             searchActiveThoughts,
         });
-    }
+    };
 
     onAreaOptionSelect = (type: ISelectionType) => {
         const { selectedArea } = this.state;
@@ -291,7 +291,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                 toggleAreaOptions: this.toggleAreaOptions,
             });
         }
-    }
+    };
 
     onThoughtOptionSelect = (type: ISelectionType) => {
         const { selectedThought } = this.state;
@@ -302,13 +302,13 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             createOrUpdateThoughtReaction,
             toggleThoughtOptions: this.toggleThoughtOptions,
         });
-    }
+    };
 
     onTabSelect = (index: number) => {
         this.setState({
             activeTabIndex: index,
         });
-    }
+    };
 
     scrollTop = () => {
         const { activeTabIndex } = this.state;
@@ -325,7 +325,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             default:
                 break;
         }
-    }
+    };
 
     toggleAreaOptions = (area) => {
         const { areAreaOptionsVisible } = this.state;
@@ -335,7 +335,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             selectedArea: areAreaOptionsVisible ? {} : area,
             selectedThought: {},
         });
-    }
+    };
 
     toggleThoughtOptions = (thought) => {
         const { areThoughtOptionsVisible } = this.state;
@@ -345,7 +345,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             selectedArea: {},
             selectedThought: areThoughtOptionsVisible ? {} : thought,
         });
-    }
+    };
 
     renderTabBar = props => {
         return (
@@ -364,7 +364,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                 {route.title}
             </Text>
         );
-    }
+    };
 
     renderSceneMap = ({ route }) => {
         const { isLoading } = this.state;
@@ -476,7 +476,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                     />
                 );
         }
-    }
+    };
 
     render() {
         const {

@@ -75,7 +75,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
         const { goToViewMap } = this.props;
 
         goToViewMap(area.latitude, area.longitude);
-    }
+    };
 
     onBookmarkPress = (area) => {
         const { updateAreaReaction, user } = this.props;
@@ -83,7 +83,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
         updateAreaReaction(area.id, {
             userBookmarkCategory: area.reaction?.userBookmarkCategory ? null : 'Uncategorized',
         }, area.fromUserId, user?.details?.userName);
-    }
+    };
 
     onLikePress = (area) => {
         if (!area.isDraft) {
@@ -94,7 +94,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                 userHasLiked: !area.reaction?.userHasLiked,
             }, area.fromUserId, user?.details?.userName);
         }
-    }
+    };
 
     render() {
         const {

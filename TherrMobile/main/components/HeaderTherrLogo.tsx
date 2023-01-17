@@ -42,7 +42,7 @@ export class HeaderTherrLogo extends React.Component<IHeaderTherrLogoProps> {
         const { navigation } = this.props;
 
         navigation.navigate('Home');
-    }
+    };
 
     // TODO: Display red dot to show filters enabled
 

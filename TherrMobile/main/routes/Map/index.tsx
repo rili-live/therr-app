@@ -331,7 +331,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         clearTimeout(this.timeoutIdRefreshMoments);
         clearTimeout(this.timeoutIdShowMomentAlert);
         clearTimeout(this.timeoutIdWaitForSearchSelect);
-    }
+    };
 
     reloadTheme = (shouldForceUpdate: boolean = false) => {
         const themeName = this.props.user.settings?.mobileThemeName;
@@ -349,7 +349,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         if (shouldForceUpdate) {
             this.forceUpdate();
         }
-    }
+    };
 
     animateToWithHelp = (doAnimate) => {
         this.setState({
@@ -363,7 +363,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 shouldIgnoreSearchThisAreaButton: false,
             });
         }, ANIMATE_TO_REGION_DURATION_SLOW + 2000); // Add some buffer room
-    }
+    };
 
     hasNoMapfilters = () => {
         const { map } = this.props;
@@ -375,7 +375,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
 
         return (!mapFilters.filtersAuthor?.length && !mapFilters.filtersCategory?.length && !mapFilters.filtersVisibility?.length)
         || (mapFilters.filtersAuthor[0]?.isChecked && mapFilters.filtersCategory[0]?.isChecked && mapFilters.filtersVisibility[0]?.isChecked);
-    }
+    };
 
     getFilteredAreas = (areas, mapFilters) => {
         // Filter for duplicates
@@ -439,7 +439,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         }
 
         return passesFilterAuthor && passesFilterCategory && passesFilterVisibility;
-    }
+    };
 
     goToMoments = () => {
         const { navigation } = this.props;
@@ -469,7 +469,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         this.setState({
             isAreaAlertVisible: false,
         });
-    }
+    };
 
     expandBottomSheet = (index = 1, shouldToggle = false) => {
         const { areButtonsVisible, areLayersVisible } = this.state;
@@ -487,7 +487,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 this.bottomSheetRef?.current?.snapToIndex(index);
             }
         }
-    }
+    };
 
     handleImageSelect = (imageResponse, userCoords, areaType: IAreaType = 'moments') => {
         const { navigation } = this.props;
@@ -499,7 +499,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 imageDetails: imageResponse,
             });
         }
-    }
+    };
 
     handleCreate = (action: ICreateMomentAction = 'moment') => {
         const { location, navigation } = this.props;
@@ -757,7 +757,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             console.log('locationServiceActivationError', error);
             // this.goToHome();
         });
-    }
+    };
 
     handleGpsRecenter = (coords?, delta?, duration?) => {
         const { circleCenter, lastLocationSendForProcessing } = this.state;
@@ -788,7 +788,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     handleOpenMapFiltersPress = () => {
         const { navigation } = this.props;
         navigation.navigate('MapFilteredSearch');
-    }
+    };
 
     // TODO: Call this when user has traveled a certain distance from origin
     handleRefreshMoments = (overrideThrottle = false, coords?: any) => {
@@ -884,7 +884,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         searchRadiusMeters = Math.max(searchRadiusMeters, Location.AREA_PROXIMITY_METERS);
         searchRadiusMeters = searchRadiusMeters + (searchRadiusMeters * 0.10); // add 10% padding
         return searchRadiusMeters;
-    }
+    };
 
     handleLocationDisclosureSelect = (selection) => {
         const { updateLocationDisclosure } = this.props;
@@ -894,7 +894,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             this.toggleLocationUseDisclosure();
             this.handleGpsRecenterPress();
         });
-    }
+    };
 
     handleSearchSelect = (selection) => {
         const { setSearchDropdownVisibility } = this.props;
@@ -927,7 +927,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         }).catch((error) => {
             console.log(error);
         });
-    }
+    };
 
     handleSearchThisLocation = (searchRadius?, latitude?, longitude?) => {
         const { findMomentReactions, findSpaceReactions, searchMoments, searchSpaces } = this.props;
@@ -1013,14 +1013,14 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 }
             });
         }
-    }
+    };
 
     handleStopTouring = () => {
         const { user, updateTour } = this.props;
         updateTour(user.details.id, {
             isTouring: false,
         });
-    }
+    };
 
     isAuthorized = () => {
         const { user } = this.props;
@@ -1031,13 +1031,13 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             },
             user
         );
-    }
+    };
 
     onConfirmModalCancel = () => {
         this.setState({
             isConfirmModalVisible: false,
         });
-    }
+    };
 
     onConfirmModalAccept = () => {
         const { user, updateUser } = this.props;
@@ -1049,12 +1049,12 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         updateUser(user.details.id, { hasAgreedToTerms: true }).then(() => {
             this.handleCreate('upload');
         });
-    }
+    };
 
     onClusterPress = (/* cluster, markers */) => {
         // if (Platform.OS === 'android') {
         // }
-    }
+    };
 
     showAreaAlert = () => {
         this.setState({
@@ -1084,14 +1084,14 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         this.setState({
             shouldShowCreateActions: shouldHide ? false : !shouldShowCreateActions,
         });
-    }
+    };
 
     toggleLocationUseDisclosure = () => {
         const { isLocationUseDisclosureModalVisible } = this.state;
         this.setState({
             isLocationUseDisclosureModalVisible: !isLocationUseDisclosureModalVisible,
         });
-    }
+    };
 
     // Currently not implemented
     toggleMapFollow = () => {
@@ -1116,7 +1116,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             shouldFollowUserLocation: !shouldFollowUserLocation,
             isScrollEnabled: !isScrollEnabled,
         });
-    }
+    };
 
     toggleMomentBtns = () => {
         if (!this.state.areButtonsVisible) {
@@ -1129,7 +1129,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             areButtonsVisible: !this.state.areButtonsVisible,
             areLayersVisible: false,
         });
-    }
+    };
 
     toggleNearbySheet = (shouldClose = false) => {
         const { location } = this.props;
@@ -1148,14 +1148,14 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             areButtonsVisible: !this.state.areButtonsVisible,
             areLayersVisible: false,
         });
-    }
+    };
 
     onBottomSheetClose = () => {
         this.setState({
             areButtonsVisible: true,
             areLayersVisible: false,
         });
-    }
+    };
 
     onRegionChange = (region) => {
         if (region.latitude.toFixed(6) === this.state.region?.latitude?.toFixed(6)
@@ -1176,7 +1176,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         //         });
         //     }, 500);
         // }
-    }
+    };
 
     onRegionChangeComplete = (region, filteredAreasCount: number) => {
         this.setState({
@@ -1193,7 +1193,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                 });
             }, 750);
         }
-    }
+    };
 
     shouldRenderCircles = (region, filteredAreasCount: number) => {
         if (filteredAreasCount > MAX_RENDERED_CIRCLES) {
@@ -1201,15 +1201,15 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         }
 
         return region.longitudeDelta <= 0.15 || region.latitudeDelta <= 0.1;
-    }
+    };
 
     updateCircleCenter = (center: { longitude: number, latitude: number }) => {
         this.setState({
             circleCenter: center,
         });
-    }
+    };
 
-    updateMapRef = (ref: Ref<MapView>) => { this.mapRef = ref; }
+    updateMapRef = (ref: Ref<MapView>) => { this.mapRef = ref; };
 
     updateRegion = (region) => {
         const { map } = this.props;
@@ -1222,7 +1222,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         const filteredSpaces = this.getFilteredAreas(map.spaces, mapFilters);
         const filteredAreasCount = filteredMoments.length + filteredSpaces.length;
         this.onRegionChangeComplete(region, filteredAreasCount);
-    }
+    };
 
     render() {
         const {

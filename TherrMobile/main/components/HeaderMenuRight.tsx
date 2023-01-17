@@ -98,7 +98,7 @@ class HeaderMenuRight extends React.Component<
 
     componentWillUnmount = () => {
         clearTimeout(this.timeoutId);
-    }
+    };
 
     toggleOverlay = (shouldClose?: boolean) => {
         const { isModalVisible } = this.state;
@@ -198,7 +198,7 @@ class HeaderMenuRight extends React.Component<
         if (this.getCurrentScreen() !== 'Map') {
             navigation.navigate('Map');
         }
-    }
+    };
 
     getCurrentScreen = () => {
         const navState = this.props.navigation.getState();
@@ -215,7 +215,7 @@ class HeaderMenuRight extends React.Component<
         this.setState({
             isPointsInfoModalVisible: !isPointsInfoModalVisible,
         });
-    }
+    };
 
     viewUser = () => {
         const { navigation, user } = this.props;
@@ -226,7 +226,7 @@ class HeaderMenuRight extends React.Component<
                 id: user.details.id,
             },
         });
-    }
+    };
 
     render() {
         const {

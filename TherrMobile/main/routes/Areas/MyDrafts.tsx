@@ -129,17 +129,17 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
             itemsPerPage: 50,
             query: 'drafts-only',
         });
-    }
+    };
 
     onTabSelect = (tabName: string) => {
         this.setState({
             activeTab: tabName,
         });
-    }
+    };
 
     getEmptyListMessage = () => {
         return this.translate('pages.myDrafts.noDraftsFound');
-    }
+    };
 
     goToArea = (area) => {
         const { navigation } = this.props;
@@ -157,7 +157,7 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
             latitude: lat,
             longitude: long,
         });
-    }
+    };
 
     goToViewUser = (userId) => {
         const { navigation } = this.props;
@@ -167,7 +167,7 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
                 id: userId,
             },
         });
-    }
+    };
 
     toggleAreaOptions = (area) => {
         const { areAreaOptionsVisible } = this.state;
@@ -175,7 +175,7 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
             areAreaOptionsVisible: !areAreaOptionsVisible,
             selectedArea: areAreaOptionsVisible ? {} : area,
         });
-    }
+    };
 
     tryLoadMore = () => {
         // const { content, searchMyDrafts } = this.props;
@@ -186,7 +186,7 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
         //     itemsPerPage: 20,
         //     pageNumber: content.myDraftsPagination.pageNumber + 1,
         // });
-    }
+    };
 
     onAreaOptionSelect = (type: ISelectionType) => {
         const { selectedArea } = this.state;
@@ -213,7 +213,7 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
                 title: selectedArea.notificationMsg,
             });
         }
-    }
+    };
 
     render() {
         const { activeTab, areAreaOptionsVisible, isLoading, selectedArea } = this.state;

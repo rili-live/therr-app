@@ -291,7 +291,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         }
 
         return !!reactions.mySpaceReactions[area.id];
-    }
+    };
 
     onUserLocationChange = (event) => {
         const {
@@ -374,7 +374,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     onClusterPress = (/* cluster, markers */) => {
         // if (Platform.OS === 'android') {
         // }
-    }
+    };
 
     getMomentCircleFillColor = (moment) => {
         const { user } = this.props;
@@ -394,7 +394,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
         // Not yet activated/discovered
         return this.theme.colors.map.undiscoveredMomentsCircleFill;
-    }
+    };
 
     getSpaceCircleFillColor = (space) => {
         const { user } = this.props;
@@ -414,7 +414,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
         // Not yet activated/discovered
         return this.theme.colors.map.undiscoveredSpacesCircleFill;
-    }
+    };
 
     getMomentCircleStrokeColor = (moment) => {
         const { user } = this.props;
@@ -429,7 +429,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
         // Not yet activated/discovered
         return this.theme.colors.map.undiscoveredMomentsCircleStroke;
-    }
+    };
 
     getSpaceCircleStrokeColor = (space) => {
         const { user } = this.props;
@@ -444,7 +444,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
         // Not yet activated/discovered
         return this.theme.colors.map.undiscoveredSpacesCircleStroke;
-    }
+    };
 
     getLatitudeDelta = () => {
         const { map, route } = this.props;
@@ -464,7 +464,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
     updateOuterMapRef = (ref: Ref<MapView>) => {
         this.props.mapRef(ref);
-    }
+    };
 
     render() {
         const {

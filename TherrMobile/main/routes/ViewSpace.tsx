@@ -174,19 +174,19 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         this.setState({
             previewStyleState,
         });
-    }
+    };
 
     onDelete = () => {
         this.setState({
             isVerifyingDelete: true,
         });
-    }
+    };
 
     onDeleteCancel = () => {
         this.setState({
             isVerifyingDelete: false,
         });
-    }
+    };
 
     onDeleteConfirm = () => {
         const { deleteSpace, navigation, route, user } = this.props;
@@ -208,7 +208,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                     });
                 });
         }
-    }
+    };
 
     onSpaceOptionSelect = (type: ISelectionType) => {
         const { selectedSpace } = this.state;
@@ -226,7 +226,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                 this.toggleAreaOptions(selectedSpace);
             });
         }
-    }
+    };
 
     goBack = () => {
         const { navigation, route } = this.props;
@@ -236,7 +236,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         } else {
             navigation.navigate('Map');
         }
-    }
+    };
 
     goToViewMap = (lat, long) => {
         const { navigation } = this.props;
@@ -245,7 +245,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
             latitude: lat,
             longitude: long,
         });
-    }
+    };
 
     goToViewUser = (userId) => {
         const { navigation } = this.props;
@@ -255,7 +255,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                 id: userId,
             },
         });
-    }
+    };
 
     onUpdateSpaceReaction = (spaceId, data) => {
         const { createOrUpdateSpaceReaction, navigation, route, user } = this.props;
@@ -270,7 +270,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
             },
         });
         return createOrUpdateSpaceReaction(spaceId, data, space.fromUserId, user.details.userName);
-    }
+    };
 
     toggleAreaOptions = (area) => {
         const { areAreaOptionsVisible } = this.state;
@@ -279,7 +279,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
             areAreaOptionsVisible: !areAreaOptionsVisible,
             selectedSpace: areAreaOptionsVisible ? {} : area,
         });
-    }
+    };
 
     render() {
         const { areAreaOptionsVisible, isDeleting, isVerifyingDelete, previewLinkId, previewStyleState, selectedSpace } = this.state;

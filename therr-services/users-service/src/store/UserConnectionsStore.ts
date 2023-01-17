@@ -79,6 +79,7 @@ export default class UserConnectionsStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
+    // eslint-disable-next-line default-param-last
     getUserConnections(conditions: any = {}, shouldCheckReverse?: boolean) {
         let queryString;
         if (shouldCheckReverse) {
@@ -138,6 +139,7 @@ export default class UserConnectionsStore {
     }
 
     // TODO: RSERV:25 - Make this dynamic to accept multiple queries
+    // eslint-disable-next-line default-param-last
     searchUserConnections(conditions: any = {}, returning, shouldCheckReverse?: string) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
