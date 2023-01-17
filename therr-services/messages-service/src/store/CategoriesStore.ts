@@ -31,6 +31,7 @@ export default class CategoriesStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
+    // eslint-disable-next-line default-param-last
     searchCategories(conditions: any = {}, returning) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;

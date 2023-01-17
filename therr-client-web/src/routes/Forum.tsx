@@ -199,7 +199,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                 ...newInputChanges,
             },
         });
-    }
+    };
 
     onButtonClick = (event: any) => {
         event.preventDefault();
@@ -215,7 +215,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
                 return this.onInputChange('message', '');
             default:
         }
-    }
+    };
 
     shouldDisableInput = (buttonName: string) => {
         switch (buttonName) {
@@ -224,7 +224,7 @@ export class ForumComponent extends React.Component<IForumProps, IForumState> {
             default:
                 return false;
         }
-    }
+    };
 
     render() {
         const { location, messages, user } = this.props;

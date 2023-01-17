@@ -53,7 +53,7 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
             const updateArgs = { ...this.state.inputs };
             this.props.onSubmit(updateArgs);
         }
-    }
+    };
 
     onInputChange = (name: string, value: string) => {
         const newInputChanges = {
@@ -70,7 +70,7 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
                 ...newInputChanges,
             },
         });
-    }
+    };
 
     onPhoneInputChange = (value: string) => {
         this.setState({
@@ -80,7 +80,7 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
             },
             isPhoneNumberValid: isValidPhoneNumber(value),
         });
-    }
+    };
 
     public render(): JSX.Element | null {
         const { isPhoneNumberValid } = this.state;

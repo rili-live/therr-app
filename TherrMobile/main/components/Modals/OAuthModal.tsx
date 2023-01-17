@@ -84,13 +84,13 @@ export default class OAuthModal extends Component<IOAuthModalProps, IOAuthModalS
                 onLoginFailure(results);
             }
         }
-    }
+    };
 
     onWebviewError = (err) => {
         const { onLoginFailure } = this.props;
         console.log('WebViewError', err);
         onLoginFailure(err);
-    }
+    };
 
     onMessage(reactMessage) {
         const { onRequestClose } = this.props;

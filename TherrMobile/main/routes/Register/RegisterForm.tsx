@@ -78,11 +78,11 @@ export class RegisterFormComponent extends React.Component<
         return isSubmitting || !this.state.inputs.email ||
             !this.state.inputs.password ||
             !this.isFormValid();
-    }
+    };
 
     isFormValid = () => {
         return this.state.inputs.password === this.state.inputs.repeatPassword;
-    }
+    };
 
     onSubmit = () => {
         const { inputs } = this.state;
@@ -223,7 +223,7 @@ export class RegisterFormComponent extends React.Component<
         this.setState({
             isSubmitting: false,
         });
-    }
+    };
 
     onSSOLoginSuccess = (idToken, user, additionalUserInfo, provider = 'google') => {
         if (user.emailVerified) {
@@ -244,7 +244,7 @@ export class RegisterFormComponent extends React.Component<
             // TODO: RMOBILE-26: Add UI alert message
             console.log('SSO email is not verified!');
         }
-    }
+    };
 
     public render() {
         const {

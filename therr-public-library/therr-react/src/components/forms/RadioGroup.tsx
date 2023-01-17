@@ -18,7 +18,7 @@ class RadioGroup extends React.Component<any, any> {
         const value = event.target.dataset.value;
 
         this.props.onSelect(key, value);
-    }
+    };
 
     render() {
         const { options, value } = this.props;

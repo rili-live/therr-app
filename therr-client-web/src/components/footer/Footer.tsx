@@ -56,11 +56,12 @@ export class FooterComponent extends React.Component<IFooterProps, IFooterState>
         logout(user.details).then(() => {
             goHome();
         });
-    }
+    };
 
+    // eslint-disable-next-line class-methods-use-this
     handleInfoClick = () => {
         window.open('https://www.therr.app/', '_blank');
-    }
+    };
 
     render() {
         const {

@@ -38,7 +38,7 @@ class MainButtonMenuAlt extends ButtonMenu {
         }
 
         return 'sync';
-    }
+    };
 
     getActionButtonTitle = ({
         isCompact,
@@ -58,7 +58,7 @@ class MainButtonMenuAlt extends ButtonMenu {
         }
 
         return translate('menus.main.buttons.refresh');
-    }
+    };
 
     goToMyProfile = () => {
         const { navigation, user } = this.props;
@@ -79,7 +79,7 @@ class MainButtonMenuAlt extends ButtonMenu {
                 },
             });
         }
-    }
+    };
 
     onNavPressDynamic = (viewDestinationName: string) => {
         const { onActionButtonPress } = this.props;
@@ -90,7 +90,7 @@ class MainButtonMenuAlt extends ButtonMenu {
         } else {
             this.navTo(viewDestinationName);
         }
-    }
+    };
 
     handleNearbyPress = () => {
         const { onNearbyPress } = this.props;
@@ -100,7 +100,7 @@ class MainButtonMenuAlt extends ButtonMenu {
         } else {
             this.onNavPressDynamic('Nearby');
         }
-    }
+    };
 
     render() {
         const { isCompact, translate, themeMenu, user } = this.props;

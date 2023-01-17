@@ -152,7 +152,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                 id: userId,
             },
         });
-    }
+    };
 
     onConnectionPress = (connectionDetails) => {
         const { navigation } = this.props;
@@ -166,7 +166,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
         this.setState({
             activeTabIndex: index,
         });
-    }
+    };
 
     handleRefresh = () => {
         const { user } = this.props;
@@ -194,26 +194,26 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                     isRefreshing: false,
                 });
             });
-    }
+    };
 
     handleNameConfirm = () => {
         const { navigation } = this.props;
 
         this.toggleNameConfirmModal();
         navigation.navigate('Settings');
-    }
+    };
 
     toggleNameConfirmModal = () => {
         this.setState({
             isNameConfirmModalVisible: !this.state.isNameConfirmModalVisible,
         });
-    }
+    };
 
     navToInvite = () => {
         this.setState({
             activeTabIndex: 1,
         });
-    }
+    };
 
     sortConnections = () => {
         const { userConnections } = this.props;
@@ -222,7 +222,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
             ?.filter(c => !activeConnections.find(a => a.id === c.requestingUserId || a.id === c.acceptingUserId)) || [];
 
         return activeConnections.concat(inactiveConnections);
-    }
+    };
 
     renderTabBar = props => {
         return (
@@ -241,7 +241,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                 {route.title}
             </Text>
         );
-    }
+    };
 
     renderSceneMap = ({ route }) => {
         const { isRefreshing } = this.state;
@@ -287,7 +287,7 @@ class Contacts extends React.Component<IContactsProps, IContactsState> {
                     />
                 );
         }
-    }
+    };
 
     render() {
         const { activeTabIndex, isNameConfirmModalVisible, tabRoutes } = this.state;

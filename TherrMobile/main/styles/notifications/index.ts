@@ -4,9 +4,10 @@ import { getTheme } from '../themes';
 
 const messageContainerStyle: any = {
     display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
 };
 
 const notificationStyle: any = {
@@ -20,6 +21,14 @@ const notifications = StyleSheet.create({
     },
     firstChildNotification: {
         borderTopWidth: 1,
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    otherChildNotification: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
     },
 });
 
@@ -65,6 +74,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
         messageContainerRead: {
             ...messageContainerStyle,
             paddingRight: 35,
+        },
+        dateContainer: {
+            marginTop: 6,
+        },
+        dateText: {
+            color: therrTheme.colors.textGray,
         },
         unread: {
             ...notificationStyle,

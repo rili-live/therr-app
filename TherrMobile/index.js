@@ -1,3 +1,5 @@
+import './wdyr'; // <--- first import, dev only
+
 import React from 'react';
 import 'react-native-gesture-handler';
 import messaging from '@react-native-firebase/messaging';

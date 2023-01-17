@@ -57,7 +57,7 @@ class CreateProfileStageC extends React.Component<ICreateProfileStageCProps, ICr
                 console.log(err);
             });
         }
-    }
+    };
 
     signAndUploadImage = (croppedImageDetails) => {
         const filePathSplit = croppedImageDetails?.path?.split('.');
@@ -83,7 +83,7 @@ class CreateProfileStageC extends React.Component<ICreateProfileStageCProps, ICr
                 RNFB.wrap(localFileCroppedPath),
             ).then(() => response?.data);
         });
-    }
+    };
 
     render() {
         const {

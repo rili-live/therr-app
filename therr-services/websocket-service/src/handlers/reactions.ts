@@ -2,6 +2,8 @@ import * as socketio from 'socket.io';
 import {
     Notifications,
 } from 'therr-js-utilities/constants';
+// eslint-disable-next-line import/extensions, import/no-unresolved
+import { IAreaType, IPostType } from 'therr-js-utilities/types';
 import restRequest from '../utilities/restRequest';
 import redisHelper from '../utilities/redisHelper';
 import globalConfig from '../../../../global-config';
@@ -13,6 +15,7 @@ const throttleAndNotify = (socket, decodedAuthenticationToken, {
     reactorUserId,
     reactorUserName,
     userHasSuperLiked,
+    postType,
 }, isArea) => {
     redisHelper.throttleReactionNotifications(contentUserId, reactorUserId)
         .then((shouldCreateNotification) => {
@@ -31,9 +34,11 @@ const throttleAndNotify = (socket, decodedAuthenticationToken, {
                         messageParams: isArea ? {
                             areaId: contentId,
                             userName: reactorUserName,
+                            postType,
                         } : {
                             thoughtId: contentId,
                             userName: reactorUserName,
+                            postType,
                         },
                         shouldSendPushNotification: true,
                         fromUserName: reactorUserName,
@@ -51,8 +56,9 @@ const throttleAndNotify = (socket, decodedAuthenticationToken, {
 const sendReactionPushNotification = (socket: socketio.Socket, data: any, decodedAuthenticationToken: any) => {
     // Send new moment/space reaction notification
     const areaReaction = data.momentReaction || data.spaceReaction;
+    const areaType: IAreaType = data.momentReaction ? 'moments' : 'spaces';
+    const postType: IPostType = areaReaction ? areaType : 'thoughts';
     const thoughtReaction = data.thoughtReaction;
-    // const areaType = data.momentReaction ? 'moments' : 'spaces';
     if (areaReaction?.userHasLiked || areaReaction?.userHasSuperLiked) {
         throttleAndNotify(socket, decodedAuthenticationToken, {
             contentId: areaReaction.momentId || areaReaction.spaceId,
@@ -60,6 +66,7 @@ const sendReactionPushNotification = (socket: socketio.Socket, data: any, decode
             reactorUserId: areaReaction.userId,
             reactorUserName: data.reactorUserName,
             userHasSuperLiked: areaReaction.userHasSuperLiked,
+            postType,
         }, true);
     } else if (thoughtReaction?.userHasLiked || thoughtReaction?.userHasSuperLiked) {
         throttleAndNotify(socket, decodedAuthenticationToken, {
@@ -68,6 +75,7 @@ const sendReactionPushNotification = (socket: socketio.Socket, data: any, decode
             reactorUserId: thoughtReaction.userId,
             reactorUserName: data.reactorUserName,
             userHasSuperLiked: thoughtReaction.userHasSuperLiked,
+            postType,
         }, false);
     }
 };

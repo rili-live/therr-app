@@ -86,7 +86,7 @@ export class LoginFormComponent extends React.Component<
         this.setState({
             isSubmitting: false,
         });
-    }
+    };
 
     onSSOLoginSuccess = (idToken, user, additionalUserInfo, provider = 'google') => {
         if (user.emailVerified) {
@@ -107,7 +107,7 @@ export class LoginFormComponent extends React.Component<
             // TODO: RMOBILE-26: Add UI alert message
             console.log('SSO email is not verified!');
         }
-    }
+    };
 
     onSubmit = (ssoUserDetails?: ISSOUserDetails) => {
         const { password, rememberMe, userName } = this.state.inputs;

@@ -129,7 +129,7 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
             const { navigation } = this.props;
             navigation.goBack();
         }
-    }
+    };
 
     handleResetFilters = (shouldNavigate = false) => {
         this.setState({
@@ -141,15 +141,15 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
             const { navigation } = this.props;
             navigation.goBack();
         }
-    }
+    };
 
     isSelectAll = (title: string) => {
         return title === this.translate('pages.mapFilteredSearch.labels.selectAll');
-    }
+    };
 
     onRefresh = () => {
         console.log('Refresh');
-    }
+    };
 
     onCheckmarkPress = (filterGroup: 'authorFilters' | 'categoryFilters' | 'visibilityFilters', index, isSelectAll: boolean = false) => {
         let modifiedGroup = this.state[filterGroup];
@@ -167,7 +167,7 @@ class MapFilteredSearch extends React.Component<IMapFilteredSearchProps, IMapFil
         this.setState({
             [filterGroup]: modifiedGroup,
         } as any);
-    }
+    };
 
     render() {
         const { navigation, user } = this.props;

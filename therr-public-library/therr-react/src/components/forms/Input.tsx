@@ -61,7 +61,7 @@ class Input extends React.Component<any, any> {
             validations: props.validations,
             validationErrors,
         };
-    }
+    };
 
     static propTypes: any = {
         autoComplete: PropTypes.oneOf(['off', 'on']),
@@ -128,13 +128,13 @@ class Input extends React.Component<any, any> {
         });
 
         this.props.onChange(name, value);
-    }
+    };
 
     handleKeyDown = (event: any) => {
         if (this.props.onEnter && event.keyCode === KeyCode.Enter) {
             this.props.onEnter(event);
         }
-    }
+    };
 
     onFocus = () => {
         this.setState({
@@ -142,14 +142,14 @@ class Input extends React.Component<any, any> {
         });
 
         return this.props.onFocus && this.props.onFocus();
-    }
+    };
 
     onBlur = () => { // eslint-disable-line arrow-body-style
         const modifiedValidationsState = Input.updateValidations(this.props);
         this.setState(modifiedValidationsState);
 
         return this.props.onBlur && this.props.onBlur();
-    }
+    };
 
     render() {
         const {

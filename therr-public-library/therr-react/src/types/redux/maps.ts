@@ -1,18 +1,11 @@
 import * as Immutable from 'seamless-immutable';
 
-type IAreaType = 'moments' | 'spaces';
-type IPostType = 'thoughts' | IAreaType;
-
-export { IAreaType, IPostType };
-
 export interface IMapState extends Immutable.ImmutableObject<any> {
     hasUserLocationLoaded?: boolean;
     longitude?: number;
     latitude?: number;
-    moments: any;
-    myMoments: any;
-    spaces: any;
-    mySpaces: any;
+    moments: { [id: string]: any };
+    spaces: { [id: string]: any };
     radiusOfAwareness: number,
     radiusOfInfluence: number,
     searchPredictions: any;

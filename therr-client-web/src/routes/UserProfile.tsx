@@ -78,16 +78,16 @@ export class UserProfileComponent extends React.Component<IUserProfileProps, IUs
         const { user } = this.props;
 
         return connection.users.find((u) => u.id !== user.details.id);
-    }
+    };
 
     handleInitMessaging = (e, connection) => {
         const { onInitMessaging } = this.props;
         return onInitMessaging && onInitMessaging(e, this.getConnectionDetails(connection), 'user-profile');
-    }
+    };
 
     onCreateForumClick = () => {
         this.props.navigation.navigate('/create-forum');
-    }
+    };
 
     public render(): JSX.Element | null {
         const { createUserConnection, user, userConnections } = this.props;

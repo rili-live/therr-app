@@ -109,7 +109,7 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
             searchInputValue: value,
             filteredContactList: filtered,
         });
-    }
+    };
 
     onSubmit = () => {
         const { contactList } = this.state;
@@ -149,11 +149,11 @@ class PhoneContacts extends React.Component<IPhoneContactsProps, IPhoneContactsS
         }).finally(() => {
             navigation.goBack();
         });
-    }
+    };
 
     handleRefresh = () => {
         console.log('refresh');
-    }
+    };
 
     render() {
         const { filteredContactList, searchInputValue } = this.state;

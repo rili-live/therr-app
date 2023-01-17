@@ -24,7 +24,7 @@ const initInterceptors = (
 
     // Global axios interceptor
     axios.interceptors.request.use((config) => {
-        const modifiedConfig = config;
+        const modifiedConfig: any = config;
         const storedUser = store.getState().user;
         const token = storedUser && storedUser.details && storedUser.details.idToken;
         const userId = storedUser && storedUser.details && storedUser.details.id;

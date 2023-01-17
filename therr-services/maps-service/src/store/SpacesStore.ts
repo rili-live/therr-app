@@ -81,6 +81,7 @@ export default class SpacesStore {
         return this.db.read.query(queryString.toString()).then((response) => response.rows);
     }
 
+    // eslint-disable-next-line default-param-last
     searchSpaces(conditions: any = {}, returning, fromUserIds = [], overrides?: any, includePublicResults = true) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;

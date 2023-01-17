@@ -83,7 +83,7 @@ export class RedisHelper {
                 status: newStatus,
             }),
         );
-    }
+    };
 
     public removeUser = async (socketId: Redis.KeyType) => {
         const user = await this.getUserBySocketId(socketId);

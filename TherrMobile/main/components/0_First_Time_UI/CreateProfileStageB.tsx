@@ -55,7 +55,7 @@ class CreateProfileStageB extends React.Component<ICreateProfileStageBProps, ICr
         this.setState({
             verificationCode: value,
         });
-    }
+    };
 
     onPhoneInputChange = (value: string, isValid: boolean) => {
         const { onInputChange } = this.props;
@@ -64,7 +64,7 @@ class CreateProfileStageB extends React.Component<ICreateProfileStageBProps, ICr
             phoneNumber: value,
         });
         onInputChange('phoneNumber', value, isValid);
-    }
+    };
 
     onSubmitVerifyPhone = () => {
         const { phoneNumber } = this.state;
@@ -96,7 +96,7 @@ class CreateProfileStageB extends React.Component<ICreateProfileStageBProps, ICr
                     isSubmitting: false,
                 });
             });
-    }
+    };
 
     onSubmitCode = () => {
         const { onSubmit, translate } = this.props;
@@ -136,7 +136,7 @@ class CreateProfileStageB extends React.Component<ICreateProfileStageBProps, ICr
                     isSubmitting: false,
                 });
             });
-    }
+    };
 
     render() {
         const {

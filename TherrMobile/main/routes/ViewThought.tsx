@@ -207,13 +207,13 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
         this.setState({
             isVerifyingDelete: true,
         });
-    }
+    };
 
     onDeleteCancel = () => {
         this.setState({
             isVerifyingDelete: false,
         });
-    }
+    };
 
     onDeleteConfirm = () => {
         const { deleteThought, navigation, route, user } = this.props;
@@ -235,7 +235,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                     });
                 });
         }
-    }
+    };
 
     onThoughtOptionSelect = (type: ISelectionType) => {
         const { selectedThought } = this.state;
@@ -245,7 +245,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
         this.onUpdateThoughtReaction(selectedThought.id, requestArgs).finally(() => {
             this.toggleThoughtOptions(selectedThought);
         });
-    }
+    };
 
     onInputChange = (name: string, value: string) => {
         // const { hashtags } = this.state;
@@ -350,18 +350,18 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
     getReplyUserName = (reply) => {
         const { user } = this.props;
         return checkIsMyContent(reply, user) ? user.details.userName : reply.fromUserName;
-    }
+    };
 
     getReplyUserMedia = (reply) => {
         const { user } = this.props;
         return checkIsMyContent(reply, user) ? user.details.media : reply.fromUserMedia;
-    }
+    };
 
     goBack = () => {
         const { navigation } = this.props;
         // const { previousView } = route.params;
         navigation.goBack();
-    }
+    };
 
     goToViewUser = (userId) => {
         const { navigation } = this.props;
@@ -371,7 +371,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                 id: userId,
             },
         });
-    }
+    };
 
     onUpdateThoughtReaction = (thoughtId, data) => {
         const { createOrUpdateThoughtReaction, navigation, route, user } = this.props;
@@ -386,7 +386,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
             },
         });
         return createOrUpdateThoughtReaction(thoughtId, data, thought.fromUserId, user.details.userName);
-    }
+    };
 
     toggleThoughtOptions = (area) => {
         const { areThoughtOptionsVisible } = this.state;
@@ -395,7 +395,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
             areThoughtOptionsVisible: !areThoughtOptionsVisible,
             selectedThought: areThoughtOptionsVisible ? {} : area,
         });
-    }
+    };
 
     render() {
         const {

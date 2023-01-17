@@ -66,7 +66,7 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
             prevRequestError: '',
             prevRequestSuccess: '',
         });
-    }
+    };
 
     onPhoneInputChange = (value: string) => {
         let safeValue = value;
@@ -82,14 +82,14 @@ class CreateConnectionForm extends React.Component<ICreateConnectionFormProps, I
             prevRequestError: '',
             prevRequestSuccess: '',
         });
-    }
+    };
 
     onValidateInput = (validations: any) => {
         const hasValidationErrors = !!Object.keys(validations).filter((key) => validations[key].length).length;
         this.setState({
             hasValidationErrors,
         });
-    }
+    };
 
     onSubmit = (event: any) => {
         if (this.isFormValid()) {

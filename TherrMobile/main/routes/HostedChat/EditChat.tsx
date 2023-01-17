@@ -108,7 +108,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
         this.setState({
             hashtags: modifiedHastags,
         });
-    }
+    };
 
     isFormDisabled() {
         const { isSubmitting } = this.state;
@@ -233,7 +233,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
         this.setState({
             toggleChevronName: toggleChevronName === 'chevron-down' ? 'chevron-up' : 'chevron-down',
         });
-    }
+    };
 
     handleCategoryPress = (category) => {
         const { categories } = this.state;
@@ -249,7 +249,7 @@ class EditChat extends React.Component<IEditChatProps, IEditChatState> {
         this.setState({
             categories: modifiedCategories,
         });
-    }
+    };
 
     render() {
         const { navigation } = this.props;

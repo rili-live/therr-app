@@ -74,7 +74,7 @@ export class RegisterComponent extends React.Component<IRegisterProps, IRegister
                 });
             }
         });
-    }
+    };
 
     public render(): JSX.Element | null {
         const { errorMessage } = this.state;

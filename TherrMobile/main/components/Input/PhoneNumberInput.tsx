@@ -45,13 +45,13 @@ class PhoneNumberInput extends React.Component<IPhoneNumberInputProps, IPhoneNum
             countryCode: country.cca2,
             isCountryPickerVisible: false,
         });
-    }
+    };
 
     onPressFlag = () => {
         this.setState({
             isCountryPickerVisible: true,
         });
-    }
+    };
 
     onPhoneInputChange = (value: string, iso2: string) => {
         const { onChangeText } = this.props;
@@ -67,7 +67,7 @@ class PhoneNumberInput extends React.Component<IPhoneNumberInputProps, IPhoneNum
         if (onChangeText) {
             onChangeText(this.phone.getValue(), this.phone?.isValidNumber());
         }
-    }
+    };
 
     render() {
         const { onSubmit, placeholder, translate, theme, themeForms } = this.props;

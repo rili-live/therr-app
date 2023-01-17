@@ -286,7 +286,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         if (shouldForceUpdate) {
             this.forceUpdate();
         }
-    }
+    };
 
     prefetchContent = () => {
         const {
@@ -307,7 +307,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 order: 'desc',
             });
         }
-    }
+    };
 
     handleNotificationEvent = (event) => {
         const { user } = this.props;
@@ -352,11 +352,11 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 RootNavigation.navigate(targetRouteView);
             }
         }
-    }
+    };
 
     handleUrlEvent = (event) => {
         this.handleAppUniversalLinkURL(event.url);
-    }
+    };
 
     handleAppUniversalLinkURL = (url) => {
         const { user } = this.props;
@@ -400,7 +400,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         } else if (url?.match(viewSpaceRegex)) {
             // TODO: Link to view space
         }
-    }
+    };
 
     getCurrentScreen = (navigation) => {
         const navState = navigation.getState();
@@ -420,7 +420,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                     console.log('Notifications authorization status:', authStatus);
                 }
             });
-    }
+    };
 
     shouldShowTopRightMenu = () => {
         return UsersService.isAuthorized(
@@ -446,7 +446,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
         const { logout } = this.props;
         this.unsubscribePushNotifications && this.unsubscribePushNotifications();
         return logout(userDetails);
-    }
+    };
 
     render() {
         const { location, notifications, updateGpsStatus, user } = this.props;

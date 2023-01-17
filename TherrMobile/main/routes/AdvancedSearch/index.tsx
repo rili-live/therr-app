@@ -137,13 +137,13 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
         setMapFilters({
             filtersCategory: categoryFilters,
         });
-    }
+    };
 
     handleResetFilters = () => {
         this.setState({
             categoryFilters: this.initialCategoryFilters.map(x => ({ ...x, isChecked: true})),
         }, this.handleApplyFilters);
-    }
+    };
 
     handleFilterBadgePress = (filterGroup: 'categoryFilters', index, isSelectAll: boolean = false) => {
         let modifiedGroup = this.state[filterGroup];
@@ -162,24 +162,24 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
         this.setState({
             [filterGroup]: modifiedGroup,
         } as any, this.handleApplyFilters);
-    }
+    };
 
     goBack = () => {
         const { navigation } = this.props;
         navigation.goBack();
-    }
+    };
 
     onRefresh = () => {
         // TODO: Reset Filters
         console.log('Refresh');
         this.handleResetFilters();
-    }
+    };
 
     onFiltersChanged = () => {
         this.setState({
             hasChanges: true,
         });
-    }
+    };
 
     onSearchOrderSelect = (searchOrder) => {
         const { setActiveMomentsFilters } = this.props;
@@ -188,7 +188,7 @@ class AdvancedSearch extends React.Component<IAdvancedSearchProps, IAdvancedSear
         setActiveMomentsFilters({
             order: searchOrder,
         });
-    }
+    };
 
     render() {
         const { content, map, navigation, user } = this.props;

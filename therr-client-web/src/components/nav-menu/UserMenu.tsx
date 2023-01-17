@@ -75,7 +75,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
         } else {
             this.props.handleWidthResize(false);
         }
-    }
+    };
 
     handleConnectionRequestAction = (e, notification, isAccepted) => {
         e.stopPropagation();
@@ -100,7 +100,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
             },
             user: user.details,
         });
-    }
+    };
 
     markNotificationAsRead = (event, notification, userConnection?: any) => {
         if (notification.isUnread || userConnection) {
@@ -119,7 +119,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
             }
             updateNotification(message);
         }
-    }
+    };
 
     navigate = (destination) => (e) => {
         this.props.toggleNavMenu(e);
@@ -133,7 +133,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                 return this.props.navigation.navigate('/user/profile');
             default:
         }
-    }
+    };
 
     renderProfileContent = () => (
         <>
@@ -151,7 +151,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                     text={this.translate('components.userMenu.buttons.editProfile')} onClick={this.navigate('edit-profile')} buttonType="primary" />
             </div>
         </>
-    )
+    );
 
     renderNotificationsContent = () => {
         const { notifications } = this.props;
@@ -173,7 +173,7 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                 </div>
             </>
         );
-    }
+    };
 
     renderAccountContent = () => (
         <>
@@ -186,13 +186,13 @@ export class UserMenuComponent extends React.Component<IUserMenuProps, IUserMenu
                     text={this.translate('components.userMenu.buttons.changePassword')} onClick={this.navigate('change-password')} buttonType="primary" />
             </div>
         </>
-    )
+    );
 
     renderLocationContent = () => (
         <>
             <h2>{this.translate('components.userMenu.h2.locationMap')}</h2>
         </>
-    )
+    );
 
     render() {
         const { activeTab } = this.state;

@@ -5,6 +5,7 @@ import redisSessions from '../store/redisSessions';
 import globalConfig from '../../../../global-config';
 
 // TODO: Optimize for performance
+// eslint-disable-next-line default-param-last
 export default (socket, userDetails, actionType, shouldReturnActiveConnections = false, decodedAuthenticationToken: any) => {
     const query = {
         filterBy: 'acceptingUserId',

@@ -127,7 +127,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
 
     handleRefresh = () => {
         console.log('refresh');
-    }
+    };
 
     render() {
         const { navigation, user } = this.props;

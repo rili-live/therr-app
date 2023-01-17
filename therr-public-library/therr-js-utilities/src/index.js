@@ -17,6 +17,9 @@ const utilities = [
     // Express Middleware
     'middleware/index',
 
+    // Types
+    'types/index',
+
     // Utilities
     'calculate-pages',
     'email-validator',

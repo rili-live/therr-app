@@ -11,12 +11,12 @@ export default class Logger {
         this.defaultHeaders['X-Honeycomb-Team'] = process.env.HONEYCOMB_API_KEY;
     }
 
-    log = (data: any | any[], headers: any = {}, namespace?: any, endpoint = '/events/') => {
+    log = (data: any | any[], namespace?: any, headers: any = {}, endpoint = '/events/') => {
         const formattedData = data;
         return this.sendLog(formattedData, headers, namespace, endpoint);
-    }
+    };
 
-    sendLog = (data: any | any[], headers: any = {}, namespace?: any, endpoint = '/events/') => {
+    sendLog = (data: any | any[], namespace?: any, headers: any = {}, endpoint = '/events/') => {
         if (!headers['X-Honeycomb-Event-Time']) {
             headers['X-Honeycomb-Event-Time'] = new Date(); // eslint-disable-line no-param-reassign
         }
@@ -42,5 +42,5 @@ export default class Logger {
                 }
             }
         });
-    }
+    };
 }

@@ -88,14 +88,14 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
         this.props.navigation.navigate('Login', {
             userMessage: this.translate('pages.login.userAlerts.registerSuccess'),
         });
-    }
+    };
 
     toggleEULA = () => {
         const { isEULAVisible } = this.state;
         this.setState({
             isEULAVisible: !isEULAVisible,
         });
-    }
+    };
 
     render() {
         const { isEULAVisible } = this.state;

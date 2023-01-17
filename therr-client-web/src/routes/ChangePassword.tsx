@@ -98,7 +98,7 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
                     });
                 }
             });
-    }
+    };
 
     onInputChange = (name: string, value: string) => {
         const newInputChanges = {
@@ -112,7 +112,7 @@ export class ChangePasswordComponent extends React.Component<IChangePasswordProp
             },
             errorReason: '',
         });
-    }
+    };
 
     render() {
         const { errorReason, isSuccess } = this.state;

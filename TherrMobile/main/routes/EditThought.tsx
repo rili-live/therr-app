@@ -224,7 +224,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                 RNFB.wrap(localFileCroppedPath),
             ).then(() => createArgs);
         });
-    }
+    };
 
     onSubmit = (isDraft = false) => {
         const { hashtags } = this.state;
@@ -354,7 +354,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                 },
             });
         }
-    }
+    };
 
     handleImageSelect = (imageResponse) => {
         if (!imageResponse.didCancel && !imageResponse.errorCode) {
@@ -363,21 +363,21 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                 imagePreviewPath: getImagePreviewPath(imageResponse?.path),
             }, () => this.toggleImageBottomSheet());
         }
-    }
+    };
 
     toggleImageBottomSheet = () => {
         const { isImageBottomSheetVisible } = this.state;
         this.setState({
             isImageBottomSheetVisible: !isImageBottomSheetVisible,
         });
-    }
+    };
 
     toggleVisibilityBottomSheet = () => {
         const { isVisibilityBottomSheetVisible } = this.state;
         this.setState({
             isVisibilityBottomSheetVisible: !isVisibilityBottomSheetVisible,
         });
-    }
+    };
 
     onAddImage = (action: string) => {
         // TODO: Store permissions in redux
@@ -413,7 +413,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
                 console.log('canceled');
             }
         });
-    }
+    };
 
     onSetVisibility = (isPublic: boolean) => {
         this.setState({
@@ -424,7 +424,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
         });
 
         this.toggleVisibilityBottomSheet();
-    }
+    };
 
     onSliderChange = (name, value) => {
         const newInputChanges = {
@@ -440,7 +440,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
             successMsg: '',
             isSubmitting: false,
         });
-    }
+    };
 
     handleHashtagPress = (tag) => {
         const { hashtags } = this.state;
@@ -449,7 +449,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
         this.setState({
             hashtags: modifiedHastags,
         });
-    }
+    };
 
     handlePreviewFullScreen = (isFullScreen) => {
         const previewStyleState = isFullScreen ? {
@@ -463,7 +463,7 @@ export class EditThought extends React.Component<IEditThoughtProps, IEditThought
         this.setState({
             previewStyleState,
         });
-    }
+    };
 
     render() {
         const { navigation } = this.props;

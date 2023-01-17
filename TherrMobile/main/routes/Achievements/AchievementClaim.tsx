@@ -76,11 +76,11 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
         });
 
         this.handleRefresh();
-    }
+    };
 
     handleRefresh = () => {
         console.log('refresh');
-    }
+    };
 
     renderDescription = (userAchievement) => {
         const { route } = this.props;
@@ -122,7 +122,7 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                 {this.translate('pages.achievements.info.inProgressDescription', { achievementTitle: userAchievement.achievementClass })}
             </Text>
         );
-    }
+    };
 
     renderTitle = (userAchievement) => {
         const { route } = this.props;
@@ -160,7 +160,7 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                 })}
             </Text>
         );
-    }
+    };
 
     renderDetails = (userAchievement) => {
         const achievement = achievementsByClass[userAchievement.achievementClass][userAchievement.achievementId];
@@ -183,7 +183,7 @@ export class AchievementClaim extends React.Component<IAchievementClaimProps, IA
                 </Text>
             </>
         );
-    }
+    };
 
     render() {
         const { navigation, route, user } = this.props;

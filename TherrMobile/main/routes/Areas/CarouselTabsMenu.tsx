@@ -55,7 +55,7 @@ export class CarouselTabsMenu extends React.Component<ICarouselTabsMenuProps, IC
         }
 
         return {};
-    }
+    };
 
     render() {
         const { onButtonPress, themeAreas } = this.props;

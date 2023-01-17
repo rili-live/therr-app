@@ -151,13 +151,13 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
             blockedUsers: user.details.blockedUsers,
             shouldHideMatureContent: user.details.shouldHideMatureContent,
         });
-    }
+    };
 
     onTabSelect = (tabName: string) => {
         this.setState({
             activeTab: tabName,
         });
-    }
+    };
 
     getEmptyListMessage = (activeTab) => {
         if (activeTab === CAROUSEL_TABS.SOCIAL) {
@@ -170,7 +170,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
 
         // CAROUSEL_TABS.EVENTS
         return this.translate('pages.bookmarked.noEventsBookmarksFound');
-    }
+    };
 
     goToArea = (area) => {
         const { navigation, user } = this.props;
@@ -185,7 +185,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
             latitude: lat,
             longitude: long,
         });
-    }
+    };
 
     goToViewUser = (userId) => {
         const { navigation } = this.props;
@@ -195,7 +195,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
                 id: userId,
             },
         });
-    }
+    };
 
     toggleAreaOptions = (area) => {
         const { areAreaOptionsVisible } = this.state;
@@ -203,11 +203,11 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
             areAreaOptionsVisible: !areAreaOptionsVisible,
             selectedArea: areAreaOptionsVisible ? {} : area,
         });
-    }
+    };
 
     tryLoadMore = () => {
         console.log('try load more');
-    }
+    };
 
     onAreaOptionSelect = (type: ISelectionType) => {
         const { selectedArea } = this.state;
@@ -227,7 +227,7 @@ class BookMarked extends React.Component<IBookMarkedProps, IBookMarkedState> {
                 toggleAreaOptions: this.toggleAreaOptions,
             });
         }
-    }
+    };
 
     render() {
         const { activeTab, areAreaOptionsVisible, isLoading, selectedArea } = this.state;

@@ -96,7 +96,7 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
         this.props.navigation.setOptions({
             title: this.translate('pages.advancedSettings.headerTitle'),
         });
-    }
+    };
 
     onDeleteAccountConfirm = () => {
         const { logout, user } = this.props;
@@ -126,7 +126,7 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
                 error: error?.message,
             }).catch((err) => console.log(err));
         });
-    }
+    };
 
     isFormDisabled() {
         const { isSubmitting } = this.state;
@@ -141,7 +141,7 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
         this.themeMenu = buildMenuStyles(themeName);
         this.themeForms = buildFormStyles(themeName);
         this.themeSettingsForm = buildSettingsFormStyles(themeName);
-    }
+    };
 
     onSubmit = (shouldDeactivateAccount?: boolean) => {
         const { user } = this.props;
@@ -189,13 +189,13 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
         this.setState({
             isNightMode,
         });
-    }
+    };
 
     toggleDeleteAccountModal = (shouldOpen: boolean) => {
         this.setState({
             isDeleteAccountModalVisible: shouldOpen,
         });
-    }
+    };
 
     onDeleteAccountModalClose = (action?: 'deactivate' | 'delete') => {
         this.setState({
@@ -207,11 +207,11 @@ export class ManageAccount extends React.Component<IManageAccountProps, IManageA
         } else if (action === 'delete') {
             this.onDeleteAccountConfirm();
         }
-    }
+    };
 
     handleRefresh = () => {
         console.log('refresh');
-    }
+    };
 
     render() {
         const { navigation, user } = this.props;

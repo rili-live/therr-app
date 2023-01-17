@@ -103,7 +103,7 @@ class DirectMessage extends React.Component<
                 id: userId,
             },
         });
-    }
+    };
 
     searchDmsByPage = (pageNumber: number) => {
         const { route, searchDms } = this.props;
@@ -130,7 +130,7 @@ class DirectMessage extends React.Component<
                 });
             });
         }
-    }
+    };
 
     handleInputChange = (val) => {
         this.setState({
@@ -162,7 +162,7 @@ class DirectMessage extends React.Component<
         if (!messages[index + 1]) { return true; }
 
         return messages[index].fromUserName !== messages[index + 1].fromUserName;
-    }
+    };
 
     tryLoadMore = () => {
         const { pageNumber } = this.state;
@@ -180,7 +180,7 @@ class DirectMessage extends React.Component<
         this.setState({
             pageNumber: nextPage,
         });
-    }
+    };
 
     render() {
         const { isLoading, msgInputVal } = this.state;
