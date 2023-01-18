@@ -362,6 +362,7 @@ const getMomentDetails = (req, res) => {
     const shouldFetchMedia = !!withMedia;
     const shouldFetchUser = !!withUser;
 
+    // TODO: Fetch own reaction or reaction count for own moment
     return Store.moments.findMoments([momentId], {
         limit: 1,
     }, {

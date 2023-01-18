@@ -135,7 +135,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             tabRoutes: [
                 { key: CAROUSEL_TABS.SOCIAL, title: this.translate('menus.headerTabs.social') },
                 { key: CAROUSEL_TABS.EVENTS, title: this.translate('menus.headerTabs.events') },
-                { key: CAROUSEL_TABS.NEWS, title: this.translate('menus.headerTabs.news') },
+                // { key: CAROUSEL_TABS.NEWS, title: this.translate('menus.headerTabs.news') },
             ],
         };
 

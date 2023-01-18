@@ -10,15 +10,18 @@ class TherrEventEmitter {
         return Store.users.getRecentUsers(1)
             .then((users) => Store.thoughts.getRecentThoughts(3).then((thoughts) => {
                 const promises: Promise<any>[] = [];
+                // New reactions for the user who just logged in
+                promises.push(
+                    createReactions(thoughts.map((thought) => thought.id), {
+                        'x-userid': contextUserId,
+                    }),
+                );
                 users
                     .forEach((user) => {
                         // Create new reactions for the user who just logged in and several other recent users
                         promises.push(
                             createReactions(thoughts.map((thought) => thought.id), {
                                 'x-userid': user.id,
-                            }),
-                            createReactions(thoughts.map((thought) => thought.id), {
-                                'x-userid': contextUserId,
                             }),
                         );
                     });

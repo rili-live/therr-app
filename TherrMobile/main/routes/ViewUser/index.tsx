@@ -7,7 +7,7 @@ import {
     Text,
     View,
 } from 'react-native';
-import { Image } from 'react-native-elements';
+import { Button, Image } from 'react-native-elements';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -49,6 +49,7 @@ import { isMyContent } from '../../utilities/content';
 import ThoughtOptionsModal, { ISelectionType } from '../../components/Modals/ThoughtOptionsModal';
 import { handleThoughtReaction } from '../../utilities/postViewHelpers';
 import ListEmpty from '../../components/ListEmpty';
+import TherrIcon from '../../components/TherrIcon';
 
 const { width: viewportWidth } = Dimensions.get('window');
 const imageWidth = viewportWidth / 3;
@@ -316,6 +317,13 @@ class ViewUser extends React.Component<
             });
         });
     };
+
+    handleEditThought = () => {
+        const { navigation } = this.props;
+
+        navigation.navigate('EditThought', {});
+    };
+
 
     onThoughtOptionSelect = (type: ISelectionType) => {
         const { selectedThought } = this.state;
@@ -594,6 +602,22 @@ class ViewUser extends React.Component<
                             </View>
                     }
                 </SafeAreaView>
+                {
+                    user.userInView?.id === user.details.id &&
+                        <Button
+                            containerStyle={this.themeButtons.styles.addAThought}
+                            buttonStyle={this.themeButtons.styles.btnLarge}
+                            icon={
+                                <TherrIcon
+                                    name={'idea'}
+                                    size={27}
+                                    style={this.themeButtons.styles.btnIcon}
+                                />
+                            }
+                            raised={true}
+                            onPress={this.handleEditThought}
+                        />
+                }
                 <ThoughtOptionsModal
                     isVisible={areThoughtOptionsVisible}
                     onRequestClose={() => this.toggleThoughtOptions(selectedThought)}

@@ -56,6 +56,7 @@ interface IViewSpaceState {
     successMsg: string;
     isDeleting: boolean;
     isVerifyingDelete: boolean;
+    fetchedSpace: any;
     previewLinkId?: string;
     previewStyleState: any;
     selectedSpace: any;
@@ -101,6 +102,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
             successMsg: '',
             isDeleting: false,
             isVerifyingDelete: false,
+            fetchedSpace: {},
             previewStyleState: {},
             previewLinkId: youtubeMatches && youtubeMatches[1],
             selectedSpace: {},
@@ -135,6 +137,10 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         getSpaceDetails(space.id, {
             withMedia: !spaceMedia,
             withUser: !spaceUserName,
+        }).then((data) => {
+            this.setState({
+                fetchedSpace: data?.space,
+            });
         });
 
         navigation.setOptions({
@@ -223,7 +229,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
             const requestArgs: any = getReactionUpdateArgs(type);
 
             this.onUpdateSpaceReaction(selectedSpace.id, requestArgs).finally(() => {
-                this.toggleAreaOptions(selectedSpace);
+                this.toggleAreaOptions();
             });
         }
     };
@@ -231,8 +237,12 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
     goBack = () => {
         const { navigation, route } = this.props;
         const { previousView } = route.params;
-        if (previousView && previousView === 'Spaces') {
-            navigation.goBack();
+        if (previousView && (previousView === 'Areas' || previousView === 'Notifications')) {
+            if (previousView === 'Areas') {
+                navigation.goBack();
+            } else if (previousView === 'Notifications') {
+                navigation.navigate('Notifications');
+            }
         } else {
             navigation.navigate('Map');
         }
@@ -272,8 +282,13 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         return createOrUpdateSpaceReaction(spaceId, data, space.fromUserId, user.details.userName);
     };
 
-    toggleAreaOptions = (area) => {
-        const { areAreaOptionsVisible } = this.state;
+    toggleAreaOptions = () => {
+        const { areAreaOptionsVisible, fetchedSpace } = this.state;
+        const { space } = this.props.route.params;
+        const area = {
+            ...space,
+            ...fetchedSpace,
+        };
 
         this.setState({
             areAreaOptionsVisible: !areAreaOptionsVisible,
@@ -282,13 +297,17 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
     };
 
     render() {
-        const { areAreaOptionsVisible, isDeleting, isVerifyingDelete, previewLinkId, previewStyleState, selectedSpace } = this.state;
+        const { areAreaOptionsVisible, isDeleting, isVerifyingDelete, fetchedSpace, previewLinkId, previewStyleState } = this.state;
         const { content, route, user } = this.props;
         const { space, isMyContent } = route.params;
         // TODO: Fetch space media
         const mediaId = (space.media && space.media[0]?.id) || (space.mediaIds?.length && space.mediaIds?.split(',')[0]);
         const spaceMedia = content?.media[mediaId];
         const spaceUserName = isMyContent ? user.details.userName : space.fromUserName;
+        const spaceInView = {
+            ...space,
+            ...fetchedSpace,
+        };
 
         return (
             <>
@@ -304,19 +323,19 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                             <AreaDisplay
                                 translate={this.translate}
                                 date={this.date}
-                                toggleAreaOptions={() => this.toggleAreaOptions(space)}
+                                toggleAreaOptions={this.toggleAreaOptions}
                                 hashtags={this.hashtags}
                                 isDarkMode={true}
                                 isExpanded={true}
                                 inspectContent={() => null}
-                                area={space}
+                                area={spaceInView}
                                 goToViewMap={this.goToViewMap}
                                 goToViewUser={this.goToViewUser}
-                                updateAreaReaction={(spaceId, data) => this.onUpdateSpaceReaction(spaceId, data)}
+                                updateAreaReaction={this.onUpdateSpaceReaction}
                                 // TODO: User Username from response
                                 user={user}
                                 areaUserDetails={{
-                                    userName: spaceUserName || space.fromUserId,
+                                    userName: spaceUserName || spaceInView.fromUserId,
                                 }}
                                 areaMedia={spaceMedia}
                                 theme={this.theme}
@@ -415,7 +434,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                 </SafeAreaView>
                 <AreaOptionsModal
                     isVisible={areAreaOptionsVisible}
-                    onRequestClose={() => this.toggleAreaOptions(selectedSpace)}
+                    onRequestClose={this.toggleAreaOptions}
                     translate={this.translate}
                     onSelect={this.onSpaceOptionSelect}
                     themeButtons={this.themeButtons}

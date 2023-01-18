@@ -33,5 +33,11 @@
     "invites": {
         "phone": "{name} has invited you to join Therr app. Sign up with this link to connect https://therr.com"
     },
+    "thoughts": {
+        "notFound": "Thought not found"
+    },
+    "thoughtReactions": {
+        "thoughtNotActivated": "This user is not permitted to access content without first activating the thought"
+    },
     "validation": "The required parameters were not provided."
 }

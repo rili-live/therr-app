@@ -150,10 +150,42 @@ class Notifications extends React.Component<
         const { navigation } = this.props;
         if (notification.type === NotificationsEmuns.Types.NEW_AREAS_ACTIVATED
             || notification.type === NotificationsEmuns.Types.NEW_LIKE_RECEIVED
-            || notification.type === NotificationsEmuns.Types.NEW_SUPER_LIKE_RECEIVED) {
-            // TODO: Fetch area by notification.messageParams?.areaId and navigate to view moment/space
-            // TODO: Fetch thought by notification.messageParams?.thoughtId and navigate to view thought
-            navigation.navigate('Nearby');
+            || notification.type === NotificationsEmuns.Types.NEW_SUPER_LIKE_RECEIVED
+            || notification.type === NotificationsEmuns.Types.THOUGHT_REPLY) {
+            if (notification.messageParams?.thoughtId) {
+                navigation.navigate('ViewThought', {
+                    isMyContent: true,
+                    previousView: 'Notifications',
+                    thought: {
+                        id: notification.messageParams?.thoughtId,
+                    },
+                    thoughtDetails: {},
+                });
+            } else if (notification.messageParams?.areaId && notification.messageParams?.postType) {
+                if (notification.messageParams?.postType === 'spaces') {
+                    navigation.navigate('ViewSpace', {
+                        isMyContent: true,
+                        previousView: 'Notifications',
+                        space: {
+                            id: notification.messageParams?.areaId,
+                        },
+                        spaceDetails: {},
+                    });
+                } else if (notification.messageParams?.postType === 'moments') {
+                    navigation.navigate('ViewMoment', {
+                        isMyContent: true,
+                        previousView: 'Notifications',
+                        moment: {
+                            id: notification.messageParams?.areaId,
+                        },
+                        momentDetails: {},
+                    });
+                }
+            } else {
+                // NEW_AREAS_ACTIVATED
+                // TODO: Load a page with a list of the newly activated areas
+                navigation.navigate('Nearby');
+            }
         } else if (notification.type === NotificationsEmuns.Types.ACHIEVEMENT_COMPLETED) {
             navigation.navigate('Achievements');
         } else if (notification.type === NotificationsEmuns.Types.CONNECTION_REQUEST_ACCEPTED) {

@@ -115,6 +115,10 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
         areaReactionButton: {
             ...buttonStyle,
         },
+        areaReactionButtonTitle: {
+            fontSize: 14,
+            paddingLeft: 2,
+        },
         areaContentTitleContainer: {
             display: 'flex',
             flex: 1,

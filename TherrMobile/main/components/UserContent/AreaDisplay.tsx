@@ -35,7 +35,7 @@ interface IUserDetails {
 interface IAreaDisplayProps {
     translate: Function;
     date: string;
-    toggleAreaOptions: Function;
+    toggleAreaOptions: any;
     hashtags: any[];
     isDarkMode: boolean;
     isExpanded?: boolean;
@@ -62,13 +62,26 @@ interface IAreaDisplayProps {
 }
 
 interface IAreaDisplayState {
+    likeCount: number | null;
 }
 
 export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAreaDisplayState> {
+    static getDerivedStateFromProps(nextProps: IAreaDisplayProps, nextState: IAreaDisplayState) {
+        if (nextProps.area?.likeCount != null
+            && nextState.likeCount == null) {
+            return {
+                likeCount: nextProps.area?.likeCount,
+            };
+        }
+
+        return null;
+    }
+
     constructor(props: IAreaDisplayProps) {
         super(props);
 
         this.state = {
+            likeCount: props.area.likeCount,
         };
     }
 
@@ -90,6 +103,15 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         if (!area.isDraft) {
             ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
             const { updateAreaReaction, user } = this.props;
+
+            // Only display on own user post
+            if (this.props.area.likeCount != null) {
+                this.setState({
+                    likeCount: !area.reaction?.userHasLiked
+                        ? (this.state.likeCount || 0) + 1
+                        : (this.state.likeCount || 0) - 1,
+                });
+            }
 
             updateAreaReaction(area.id, {
                 userHasLiked: !area.reaction?.userHasLiked,
@@ -113,6 +135,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             themeForms,
             themeViewArea,
         } = this.props;
+        const { likeCount } = this.state;
 
         const isBookmarked = area.reaction?.userBookmarkCategory;
         const isLiked = area.reaction?.userHasLiked;
@@ -155,12 +178,13 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 color={isDarkMode ? theme.colors.textWhite : theme.colors.tertiary}
                             />
                         }
-                        onPress={() => toggleAreaOptions(area)}
+                        onPress={toggleAreaOptions}
                         type="clear"
                         TouchableComponent={TouchableWithoutFeedbackComponent}
                     />
                 </View>
                 <PresssableWithDoubleTap
+                    style={{}}
                     onPress={inspectContent}
                     onDoubleTap={() => this.onLikePress(area)}
                 >
@@ -223,6 +247,11 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 }
                                 onPress={() => this.onLikePress(area)}
                                 type="clear"
+                                title={(isExpanded && likeCount && likeCount > 0) ? likeCount.toString() : ''}
+                                titleStyle={[
+                                    themeViewArea.styles.areaReactionButtonTitle,
+                                    { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
+                                ]}
                                 TouchableComponent={TouchableWithoutFeedbackComponent}
                             />
                         </>

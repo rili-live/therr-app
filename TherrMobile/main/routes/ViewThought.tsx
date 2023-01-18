@@ -70,6 +70,7 @@ interface IViewThoughtState {
     isSubmitting: boolean;
     isDeleting: boolean;
     isVerifyingDelete: boolean;
+    fetchedThought: any;
     // previewLinkId?: string;
     // previewStyleState: any;
     selectedThought: any;
@@ -120,6 +121,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
             inputs: {
                 message: '',
             },
+            fetchedThought: {},
             // previewStyleState: {},
             // previewLinkId: youtubeMatches && youtubeMatches[1],
             selectedThought: {},
@@ -151,9 +153,12 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
             withReplies: true,
         }).then((response) => {
             this.setState({
+                fetchedThought: response?.thought,
                 replies: response?.thought?.replies?.sort((a, b) => new Date(b.createdAt).getTime()  - new Date(a.createdAt).getTime()) || [],
             });
-        }).catch((error) => { console.log(error); });
+        }).catch(() => {
+            navigation.goBack();
+        });
 
         navigation.setOptions({
             title: this.translate('pages.viewThought.headerTitle'),
@@ -358,9 +363,13 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
     };
 
     goBack = () => {
-        const { navigation } = this.props;
-        // const { previousView } = route.params;
-        navigation.goBack();
+        const { navigation, route } = this.props;
+        const { previousView } = route.params;
+        if (previousView) {
+            navigation.navigate(previousView);
+        } else {
+            navigation.goBack();
+        }
     };
 
     goToViewUser = (userId) => {
@@ -405,6 +414,7 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
             isSubmitting,
             isVerifyingDelete,
             replies,
+            fetchedThought,
             // previewLinkId,
             // previewStyleState,
             selectedThought,
@@ -413,6 +423,10 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
         const { thought, isMyContent } = route.params;
         // TODO: Fetch thought media
         const thoughtUserName = isMyContent ? user.details.userName : thought.fromUserName;
+        const thoughtInView = {
+            ...thought,
+            ...fetchedThought,
+        };
 
         return (
             <>
@@ -428,19 +442,19 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
                             <ThoughtDisplay
                                 translate={this.translate}
                                 date={this.date}
-                                toggleThoughtOptions={() => this.toggleThoughtOptions(thought)}
+                                toggleThoughtOptions={() => this.toggleThoughtOptions(thoughtInView)}
                                 hashtags={this.hashtags}
                                 isDarkMode={true}
                                 isExpanded={true}
                                 isRepliable={true}
                                 inspectThought={() => null}
-                                thought={thought}
+                                thought={thoughtInView}
                                 goToViewUser={this.goToViewUser}
-                                updateThoughtReaction={(thoughtId, data) => this.onUpdateThoughtReaction(thoughtId, data)}
+                                updateThoughtReaction={this.onUpdateThoughtReaction}
                                 // TODO: User Username from response
                                 user={user}
                                 contentUserDetails={{
-                                    userName: thoughtUserName || thought.fromUserId,
+                                    userName: thoughtUserName || thoughtInView.fromUserId,
                                 }}
                                 theme={this.theme}
                                 themeForms={this.themeForms}
