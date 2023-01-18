@@ -1,6 +1,9 @@
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export default (unformattedDate, hideTime = false) => {
+    if (!unformattedDate) {
+        return '';
+    }
     const date = new Date(unformattedDate);
     const year = date.getFullYear();
     const month = MONTHS[date.getMonth()];

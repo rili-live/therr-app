@@ -3,7 +3,7 @@ import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/htt
 import { ErrorCodes, Notifications } from 'therr-js-utilities/constants';
 import { RequestHandler } from 'express';
 import * as globalConfig from '../../../../global-config';
-import { getReactions } from '../api/reactions';
+import { findReactions, hasUserReacted } from '../api/reactions';
 import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
@@ -83,23 +83,42 @@ const getThoughtDetails = (req, res) => {
     const shouldFetchUser = !!withUser;
     const shouldFetchReplies = !!withReplies;
 
+    // TODO: Fetch own reaction or reaction count for own thought ("likeCount")
     return Store.thoughts.get(thoughtId, {}, {
         withUser: shouldFetchUser,
         withReplies: shouldFetchReplies,
         shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
     })
-        .then(({ thoughts, users }) => {
+        .then(async ({ thoughts, users }) => {
+            if (!thoughts.length) {
+                return handleHttpError({
+                    res,
+                    message: translate(locale, 'thoughts.notFound'),
+                    statusCode: 404,
+                    errorCode: ErrorCodes.NOT_FOUND,
+                });
+            }
+
             const thought = thoughts[0];
-            let userHasAccessPromise = () => Promise.resolve(true);
-            // Verify that user has activated thought and has access to view it
-            // TODO: Verify thought exists
-            if (!thought.isPublic && thought?.fromUserId !== userId) {
-                userHasAccessPromise = () => getReactions(thoughtId, {
+            const isOwnThought = userId === thought.fromUserId;
+            let userHasAccessPromise = Promise.resolve(true);
+            let listReactionsPromise: Promise<any> = Promise.resolve();
+
+            if (isOwnThought) {
+                listReactionsPromise = findReactions(thoughtId, {
                     'x-userid': userId,
                 });
             }
 
-            return userHasAccessPromise().then((isActivated) => {
+            // Verify that user has activated thought and has access to view it
+            // TODO: Verify thought exists
+            if (!thought.isPublic && thought?.fromUserId !== userId) {
+                userHasAccessPromise = hasUserReacted(thoughtId, {
+                    'x-userid': userId,
+                });
+            }
+
+            return Promise.all([userHasAccessPromise, listReactionsPromise]).then(([isActivated, reactionResponse]) => {
                 if (!isActivated) {
                     return handleHttpError({
                         res,
@@ -109,7 +128,46 @@ const getThoughtDetails = (req, res) => {
                     });
                 }
 
-                return res.status(200).send({ thought, users });
+                let thoughtResult = {
+                    ...thought,
+                };
+
+                // Users are only allowed to see their own reactions
+                if (isOwnThought) {
+                    const reactions = reactionResponse?.data?.reactions;
+                    const reactionCounts = reactions.reduce((acc, reaction) => {
+                        if (reaction.userHasLiked) {
+                            acc.likeCount += 1;
+                        }
+                        if (reaction.userHasSuperLiked) {
+                            acc.superLikeCount += 1;
+                        }
+                        if (reaction.userHasDisliked) {
+                            acc.dislikeCount += 1;
+                        }
+                        if (reaction.userHasSuperDisliked) {
+                            acc.superDislikeCount += 1;
+                        }
+                        if (reaction.userBookmarkCategory) {
+                            acc.bookmarkCount += 1;
+                        }
+
+                        return acc;
+                    }, {
+                        likeCount: 0,
+                        superLikeCount: 0,
+                        dislikeCount: 0,
+                        superDislikeCount: 0,
+                        bookmarkCount: 0,
+                    });
+
+                    thoughtResult = {
+                        ...thoughtResult,
+                        ...reactionCounts,
+                    };
+                }
+
+                return res.status(200).send({ thought: thoughtResult, users });
             });
         }).catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHTS_ROUTES:ERROR' }));
 };

@@ -57,6 +57,7 @@ interface IViewMomentState {
     successMsg: string;
     isDeleting: boolean;
     isVerifyingDelete: boolean;
+    fetchedMoment: any;
     previewLinkId?: string;
     previewStyleState: any;
     selectedMoment: any;
@@ -102,6 +103,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
             successMsg: '',
             isDeleting: false,
             isVerifyingDelete: false,
+            fetchedMoment: {},
             previewStyleState: {},
             previewLinkId: youtubeMatches && youtubeMatches[1],
             selectedMoment: {},
@@ -136,6 +138,10 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         getMomentDetails(moment.id, {
             withMedia: !momentMedia,
             withUser: !momentUserName,
+        }).then((data) => {
+            this.setState({
+                fetchedMoment: data?.moment,
+            });
         });
 
         navigation.setOptions({
@@ -224,7 +230,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
             const requestArgs: any = getReactionUpdateArgs(type);
 
             this.onUpdateMomentReaction(selectedMoment.id, requestArgs).finally(() => {
-                this.toggleAreaOptions(selectedMoment);
+                this.toggleAreaOptions();
             });
         }
     };
@@ -232,8 +238,12 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     goBack = () => {
         const { navigation, route } = this.props;
         const { previousView } = route.params;
-        if (previousView && previousView === 'Areas') {
-            navigation.goBack();
+        if (previousView && (previousView === 'Areas' || previousView === 'Notifications')) {
+            if (previousView === 'Areas') {
+                navigation.goBack();
+            } else if (previousView === 'Notifications') {
+                navigation.navigate('Notifications');
+            }
         } else {
             navigation.navigate('Map');
         }
@@ -273,8 +283,13 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         return createOrUpdateMomentReaction(momentId, data, moment.fromUserId, user.details.userName);
     };
 
-    toggleAreaOptions = (area) => {
-        const { areAreaOptionsVisible } = this.state;
+    toggleAreaOptions = () => {
+        const { areAreaOptionsVisible, fetchedMoment } = this.state;
+        const { moment } = this.props.route.params;
+        const area = {
+            ...moment,
+            ...fetchedMoment,
+        };
 
         this.setState({
             areAreaOptionsVisible: !areAreaOptionsVisible,
@@ -283,13 +298,24 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
     };
 
     render() {
-        const { areAreaOptionsVisible, isDeleting, isVerifyingDelete, previewLinkId, previewStyleState, selectedMoment } = this.state;
+        const {
+            areAreaOptionsVisible,
+            fetchedMoment,
+            isDeleting,
+            isVerifyingDelete,
+            previewLinkId,
+            previewStyleState,
+        } = this.state;
         const { content, route, user } = this.props;
         const { moment, isMyContent } = route.params;
         // TODO: Fetch moment media
         const mediaId = (moment.media && moment.media[0]?.id) || (moment.mediaIds?.length && moment.mediaIds?.split(',')[0]);
         const momentMedia = content?.media[mediaId];
         const momentUserName = isMyContent ? user.details.userName : moment.fromUserName;
+        const momentInView = {
+            ...moment,
+            ...fetchedMoment,
+        };
 
         return (
             <>
@@ -305,19 +331,19 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                             <AreaDisplay
                                 translate={this.translate}
                                 date={this.date}
-                                toggleAreaOptions={() => this.toggleAreaOptions(moment)}
+                                toggleAreaOptions={this.toggleAreaOptions}
                                 hashtags={this.hashtags}
                                 isDarkMode={true}
                                 isExpanded={true}
                                 inspectContent={() => null}
-                                area={moment}
+                                area={momentInView}
                                 goToViewMap={this.goToViewMap}
                                 goToViewUser={this.goToViewUser}
-                                updateAreaReaction={(momentId, data) => this.onUpdateMomentReaction(momentId, data)}
+                                updateAreaReaction={this.onUpdateMomentReaction}
                                 // TODO: User Username from response
                                 user={user}
                                 areaUserDetails={{
-                                    userName: momentUserName || moment.fromUserId,
+                                    userName: momentUserName || momentInView.fromUserId,
                                 }}
                                 areaMedia={momentMedia}
                                 theme={this.theme}
@@ -416,7 +442,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                 </SafeAreaView>
                 <AreaOptionsModal
                     isVisible={areAreaOptionsVisible}
-                    onRequestClose={() => this.toggleAreaOptions(selectedMoment)}
+                    onRequestClose={this.toggleAreaOptions}
                     translate={this.translate}
                     onSelect={this.onMomentOptionSelect}
                     themeButtons={this.themeButtons}

@@ -13,7 +13,7 @@ interface IUserMediaProps {
     isDarkMode?: boolean;
     isSingleView?: boolean;
     isVisible: boolean;
-    moreStyle: StyleProp<ViewStyle>;
+    moreStyle?: StyleProp<ViewStyle>;
     overlayMsg?: string;
     viewportWidth: number;
 }
@@ -34,7 +34,7 @@ export default ({
             width: viewportWidth,
             overflow: 'hidden',
             height: viewportWidth,
-            ...moreStyle,
+            ...(moreStyle as object || {}),
         }
         : {
             maxHeight: viewportWidth - (paddingVertical),
@@ -44,7 +44,7 @@ export default ({
             paddingHorizontal,
             paddingVertical,
             borderRadius,
-            ...moreStyle,
+            ...(moreStyle as object || {}),
         };
     const singleViewStyles: any = isSingleView ? {} : { borderRadius };
     return (
