@@ -7,7 +7,18 @@ const getReactions = (thoughtId: string, headers) => axios({
     method: 'get',
     url: `${baseReactionsServiceRoute}/thought-reactions/${thoughtId}`,
     headers,
-})
+});
+
+const findReactions = (thoughtId: string, headers) => axios({
+    method: 'post',
+    url: `${baseReactionsServiceRoute}/thought-reactions/find/dynamic`,
+    headers,
+    data: {
+        thoughtIds: [thoughtId],
+    },
+});
+
+const hasUserReacted = (thoughtId: string, headers) => getReactions(thoughtId, headers)
     .then(({ data: thoughtReaction }) => !!(thoughtReaction && thoughtReaction.userHasActivated))
     .catch((err) => {
         if (err?.response?.data?.statusCode === 403) {
@@ -44,5 +55,7 @@ const createReactions = (thoughtIds: string[], headers) => axios({
 
 export {
     createReactions,
+    findReactions,
     getReactions,
+    hasUserReacted,
 };

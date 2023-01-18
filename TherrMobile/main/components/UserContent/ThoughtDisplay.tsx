@@ -60,13 +60,26 @@ interface IThoughtDisplayProps {
 }
 
 interface IThoughtDisplayState {
+    likeCount: number | null;
 }
 
 class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDisplayState> {
+    static getDerivedStateFromProps(nextProps: IThoughtDisplayProps, nextState: IThoughtDisplayState) {
+        if (nextProps.thought?.likeCount != null
+            && nextState.likeCount == null) {
+            return {
+                likeCount: nextProps.thought?.likeCount,
+            };
+        }
+
+        return null;
+    }
+
     constructor(props: IThoughtDisplayProps) {
         super(props);
 
         this.state = {
+            likeCount: props.thought.likeCount,
         };
     }
 
@@ -90,6 +103,15 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
             ReactNativeHapticFeedback.trigger('impactLight', hapticFeedbackOptions);
             const { updateThoughtReaction, user } = this.props;
 
+            // Only display on own user post
+            if (this.props.thought.likeCount != null) {
+                this.setState({
+                    likeCount: !thought.reaction?.userHasLiked
+                        ? (this.state.likeCount || 0) + 1
+                        : (this.state.likeCount || 0) - 1,
+                });
+            }
+
             updateThoughtReaction(thought.id, {
                 userHasLiked: !thought.reaction?.userHasLiked,
             }, thought.fromUserId, user?.details?.userName);
@@ -112,6 +134,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
             themeForms,
             themeViewContent,
         } = this.props;
+        const { likeCount } = this.state;
 
         const isBookmarked = thought.reaction?.userBookmarkCategory;
         const isLiked = thought.reaction?.userHasLiked;
@@ -171,6 +194,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                                     isExpanded={isExpanded}
                                     isDarkMode={isDarkMode}
                                     isLiked={isLiked}
+                                    likeCount={likeCount}
                                     isRepliable={isRepliable}
                                     likeColor={likeColor}
                                     onBookmarkPress={this.onBookmarkPress}
@@ -194,6 +218,7 @@ class ThoughtDisplay extends React.Component<IThoughtDisplayProps, IThoughtDispl
                             isLiked={isLiked}
                             isRepliable={isRepliable}
                             likeColor={likeColor}
+                            likeCount={likeCount}
                             onBookmarkPress={this.onBookmarkPress}
                             onCommentPress={this.onCommentPress}
                             onLikePress={this.onLikePress}
@@ -216,6 +241,7 @@ const ThoughtContent = ({
     isLiked,
     isRepliable,
     likeColor,
+    likeCount,
     onBookmarkPress,
     onCommentPress,
     onLikePress,
@@ -293,6 +319,11 @@ const ThoughtContent = ({
                                 }
                                 onPress={() => onLikePress(thought)}
                                 type="clear"
+                                title={(isExpanded && likeCount && likeCount > 0) ? likeCount.toString() : ''}
+                                titleStyle={[
+                                    themeViewContent.styles.thoughtReactionButtonTitle,
+                                    { color: isDarkMode ? theme.colors.textWhite : theme.colors.tertiary },
+                                ]}
                                 TouchableComponent={TouchableWithoutFeedbackComponent}
                             />
                         </>

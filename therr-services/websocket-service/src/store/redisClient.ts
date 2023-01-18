@@ -35,6 +35,9 @@ const redisSub: Redis.Redis = new Redis(nodes[0].port, nodes[0].host, {
     keyPrefix: redisKeyPrefix,
 });
 
+/**
+ * Connects and reconnects to Redis with custom exponential backoff
+ */
 export const connectToRedis = (options, callback) => {
     redisPub.disconnect();
     redisSub.disconnect();

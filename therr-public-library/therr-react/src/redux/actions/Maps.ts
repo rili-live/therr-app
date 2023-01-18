@@ -58,6 +58,8 @@ const Maps = {
                 type: MapActionTypes.GET_MOMENT_DETAILS,
                 data: response.data,
             });
+
+            return response.data;
         }),
     getIntegratedMoments: (userId: string) => (dispatch: any) => MapsService.getIntegratedMoments(userId)
         .then((response: any) => {
@@ -122,6 +124,8 @@ const Maps = {
                 type: MapActionTypes.GET_SPACE_DETAILS,
                 data: response.data,
             });
+
+            return response.data;
         }),
     searchSpaces: (query: any, data: ISearchAreasArgs = {}) => (dispatch: any) => MapsService
         .searchSpaces(query, data).then((response: any) => {

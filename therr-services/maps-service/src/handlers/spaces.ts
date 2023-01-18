@@ -104,6 +104,7 @@ const getSpaceDetails = (req, res) => {
     const shouldFetchMedia = !!withMedia;
     const shouldFetchUser = !!withUser;
 
+    // TODO: Fetch own reaction or reaction count for own space
     return Store.spaces.findSpaces([spaceId], {
         limit: 1,
     }, {

@@ -399,7 +399,8 @@ const activateAreasAndNotify = (
                     predictAndSendNotification(
                         PushNotifications.Types.newAreasActivated,
                         {
-                            areasActivated: spaces.slice(0, activatedSpaceIds.length).concat(moments.slice(0, activatedMomentIds.length)),
+                            // NOTE: Not needed in push notification. Payload too big for firebase
+                            // areasActivated: spaces.slice(0, activatedSpaceIds.length).concat(moments.slice(0, activatedMomentIds.length)),
                             notificationData,
                         },
                         {
