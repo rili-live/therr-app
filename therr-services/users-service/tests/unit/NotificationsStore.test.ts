@@ -24,7 +24,7 @@ describe('NotificationsStore', () => {
 
     describe('searchNotifications', () => {
         it('joins on userConnections', () => {
-            const expected = `select "main"."notifications"."id", "main"."notifications"."userId", "main"."notifications"."type", "main"."notifications"."associationId", "main"."notifications"."isUnread", "main"."notifications"."messageLocaleKey", "main"."notifications"."messageParams", "main"."notifications"."createdAt", "main"."notifications"."updatedAt", "main"."userConnections"."requestingUserId" as "userConnection.requestingUserId", "main"."userConnections"."acceptingUserId" as "userConnection.acceptingUserId", "main"."userConnections"."requestStatus" as "userConnection.requestStatus", "main"."userConnections"."updatedAt" as "userConnection.updatedAt" from "main"."notifications" left join "main"."userConnections" on "main"."notifications"."associationId" = "main"."userConnections".id AND (main.notifications.type = 'CONNECTION_REQUEST_ACCEPTED' OR main.notifications.type = 'CONNECTION_REQUEST_RECEIVED') where "main"."notifications"."associationId" > 5 order by "main"."notifications"."updatedAt" desc limit 100 offset 100`;
+            const expected = `select "main"."notifications"."id", "main"."notifications"."userId", "main"."notifications"."type", "main"."notifications"."associationId", "main"."notifications"."isUnread", "main"."notifications"."messageLocaleKey", "main"."notifications"."messageParams", "main"."notifications"."createdAt", "main"."notifications"."updatedAt", "main"."userConnections"."requestingUserId" as "userConnection.requestingUserId", "main"."userConnections"."acceptingUserId" as "userConnection.acceptingUserId", "main"."userConnections"."requestStatus" as "userConnection.requestStatus", "main"."userConnections"."updatedAt" as "userConnection.updatedAt" from "main"."notifications" left join "main"."userConnections" on "main"."notifications"."associationId" = "main"."userConnections".id AND (main.notifications.type = 'CONNECTION_REQUEST_ACCEPTED' OR main.notifications.type = 'CONNECTION_REQUEST_RECEIVED') where "main"."notifications"."userId" = 5 order by "main"."notifications"."updatedAt" desc limit 100 offset 100`;
             const mockStore = {
                 read: {
                     query: sinon.stub().callsFake(() => Promise.resolve({})),
@@ -36,7 +36,7 @@ describe('NotificationsStore', () => {
                     itemsPerPage: 100,
                     pageNumber: 2,
                 },
-                filterBy: `${NOTIFICATIONS_TABLE_NAME}.associationId`,
+                filterBy: `${NOTIFICATIONS_TABLE_NAME}.associationId`, // Deprecated. This should be ignored and instead we will use the x-userid for security
                 filterOperator: '>',
                 query: 5,
                 order: 'desc',
