@@ -62,7 +62,7 @@ export default class NotificationsStore {
 
     // TODO: RSERV:25 - Make this dynamic to support various associationIds
     // WARNING: This could become a potential bottleneck
-    searchNotifications(conditions: any = {}) {
+    searchNotifications(userId, conditions: any = {}) {
         const offset = conditions.pagination.itemsPerPage * (conditions.pagination.pageNumber - 1);
         const limit = conditions.pagination.itemsPerPage;
         let queryString: any = knexBuilder
@@ -86,13 +86,14 @@ export default class NotificationsStore {
                 `${USER_CONNECTIONS_TABLE_NAME}.acceptingUserId as userConnection.acceptingUserId`,
                 `${USER_CONNECTIONS_TABLE_NAME}.requestStatus as userConnection.requestStatus`,
                 `${USER_CONNECTIONS_TABLE_NAME}.updatedAt as userConnection.updatedAt`,
-            ]);
+            ])
+            .where(`${NOTIFICATIONS_TABLE_NAME}.userId`, '=', userId);
 
-        if (conditions.filterBy && conditions.query) {
-            const operator = conditions.filterOperator || '=';
-            const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
-            queryString = queryString.andWhere(conditions.filterBy, operator, query);
-        }
+        // if (conditions.filterBy && conditions.query) {
+        //     const operator = conditions.filterOperator || '=';
+        //     const query = operator === 'ilike' ? `%${conditions.query}%` : conditions.query;
+        //     queryString = queryString.andWhere(conditions.filterBy, operator, query);
+        // }
 
         queryString = queryString.orderBy(`${NOTIFICATIONS_TABLE_NAME}.updatedAt`, conditions.order || 'asc');
 

@@ -55,11 +55,11 @@ export default class UsersStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
-    getRecentUsers(limit = 1, returning = ['id']) {
+    getRecentUsers(limit = 1, returning = ['id'], createdAtOrUpdatedAt = 'createdAt', operator = '>') {
         const queryString = knexBuilder.select(returning)
             .from(USERS_TABLE_NAME)
             // 1 day ago
-            .where('createdAt', '>', new Date(Date.now() - 1000 * 60 * 60 * 24))
+            .where(createdAtOrUpdatedAt, operator, new Date(Date.now() - 1000 * 60 * 60 * 24))
             .limit(limit)
             .toString();
         return this.db.read.query(queryString).then((response) => response.rows);

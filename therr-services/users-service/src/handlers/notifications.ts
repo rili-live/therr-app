@@ -4,6 +4,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import Store from '../store';
 import translate from '../utilities/translator';
 import createSendTotalNotification from '../utilities/createSendTotalNotification';
+import TherrEventEmitter from '../api/TherrEventEmitter';
 // import * as globalConfig from '../../../../global-config';
 
 export const translateNotification = (notification, locale = 'en-us') => ({
@@ -55,6 +56,7 @@ const getNotification = (req, res) => Store.notifications.getNotifications({
     .catch((err) => handleHttpError({ err, res, message: 'SQL:NOTIFICATIONS_ROUTES:ERROR' }));
 
 const searchNotifications: RequestHandler = (req: any, res: any) => {
+    const userId = req.headers['x-userid'];
     const locale = req.headers['x-localecode'] || 'en-us';
     const {
         filterBy,
@@ -64,7 +66,16 @@ const searchNotifications: RequestHandler = (req: any, res: any) => {
     } = req.query;
     const integerColumns = ['id'];
     const searchArgs = getSearchQueryArgs(req.query, integerColumns);
-    const searchPromise = Store.notifications.searchNotifications(searchArgs[0]);
+    const searchPromise = Store.notifications.searchNotifications(userId, searchArgs[0]);
+
+    /**
+     * This is simply an event trigger. It could be triggered by a user logging in, or any other common event.
+     * We will probably want to move this to a scheduler to run at a set interval.
+     *
+     * Uses updatedAt to target recently active users
+     */
+    TherrEventEmitter.runThoughtReactionDistributorAlgorithm(userId, 'updatedAt', 5);
+
     // const countPromise = Store.notifications.countRecords({
     //     filterBy,
     //     query,

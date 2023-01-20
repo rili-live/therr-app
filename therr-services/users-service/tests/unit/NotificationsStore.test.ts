@@ -31,7 +31,7 @@ describe('NotificationsStore', () => {
                 },
             };
             const store = new NotificationsStore(mockStore);
-            store.searchNotifications({
+            store.searchNotifications(5, {
                 pagination: {
                     itemsPerPage: 100,
                     pageNumber: 2,
