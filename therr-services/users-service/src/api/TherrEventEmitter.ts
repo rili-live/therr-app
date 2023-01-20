@@ -3,12 +3,15 @@ import beeline from '../beeline';
 import Store from '../store';
 import { createReactions } from './reactions';
 
+const randomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+
 class TherrEventEmitter {
     // TODO: Query user interests and create reactions based on those interests
     // eslint-disable-next-line class-methods-use-this
-    public runThoughtReactionDistributorAlgorithm(contextUserId: string) {
-        return Store.users.getRecentUsers(1)
-            .then((users) => Store.thoughts.getRecentThoughts(3).then((thoughts) => {
+    public runThoughtReactionDistributorAlgorithm(contextUserId: string, createdAtOrUpdatedAt = 'createdAt', userCount = 1) {
+        const numThoughts = randomIntFromInterval(3, 7);
+        return Store.users.getRecentUsers(userCount, ['id'], createdAtOrUpdatedAt)
+            .then((users) => Store.thoughts.getRecentThoughts(numThoughts).then((thoughts) => {
                 const promises: Promise<any>[] = [];
                 // New reactions for the user who just logged in
                 promises.push(
