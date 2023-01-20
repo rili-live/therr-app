@@ -28,8 +28,10 @@ const login: RequestHandler = (req: any, res: any) => {
                 /**
                  * This is simply an event trigger. It could be triggered by a user logging in, or any other common event.
                  * We will probably want to move this to a scheduler to run at a set interval.
+                 *
+                 * Uses createdAt to target recently created users
                  */
-                TherrEventEmitter.runThoughtReactionDistributorAlgorithm(userSearchResults[0].id);
+                TherrEventEmitter.runThoughtReactionDistributorAlgorithm(userSearchResults[0].id, 'createdAt', 3);
             }
 
             if (!userSearchResults.length && !req.body.isSSO) {
