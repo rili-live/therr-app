@@ -228,6 +228,11 @@ class HeaderMenuRight extends React.Component<
         });
     };
 
+    sanitizeCoinTotal = (total: number) => {
+        const rounded = Math.round((Number(total || 0) + Number.EPSILON) * 100) / 100;
+        return rounded;
+    };
+
     render() {
         const {
             isVisible,
@@ -364,7 +369,7 @@ class HeaderMenuRight extends React.Component<
                                                     }
                                                 />
                                                 <Text numberOfLines={1} style={themeMenu.styles.subheaderTitleText}>
-                                                    {`${(user.settings?.settingsTherrCoinTotal || 0)} coins`}
+                                                    {`${this.sanitizeCoinTotal(user.settings?.settingsTherrCoinTotal)} coins`}
                                                 </Text>
                                             </View>
                                             <Pressable onPress={() => this.navTo('ExchangePointsDisclaimer')}>

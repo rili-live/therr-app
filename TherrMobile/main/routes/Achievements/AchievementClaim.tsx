@@ -21,6 +21,7 @@ const cardImagesLottie = {
     explorer: require('../../assets/explorer-card.json'),
     influencer: require('../../assets/influencer-card.json'),
     socialite: require('../../assets/socialite-card.json'),
+    thinker: require('../../assets/thinker-card.json'),
 };
 
 interface IAchievementClaimDispatchProps {
