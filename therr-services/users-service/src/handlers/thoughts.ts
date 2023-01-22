@@ -8,6 +8,7 @@ import handleHttpError from '../utilities/handleHttpError';
 import translate from '../utilities/translator';
 import Store from '../store';
 import createSendTotalNotification from '../utilities/createSendTotalNotification';
+import { createOrUpdateAchievement } from './helpers/achievements';
 
 // CREATE
 const createThought = (req, res) => {
@@ -24,6 +25,18 @@ const createThought = (req, res) => {
             if (thought.parentId) {
                 Store.thoughts.get(thought.parentId, {}).then(({ thoughts }) => {
                     if (thoughts.length) {
+                        const parentThought = thoughts[0];
+                        if (parentThought.fromUserId !== userId) {
+                            createOrUpdateAchievement({
+                                authorization,
+                                userId: parentThought.fromUserId,
+                                locale,
+                            }, {
+                                achievementClass: 'thinker',
+                                achievementTier: '1_2',
+                                progressCount: 1,
+                            });
+                        }
                         return createSendTotalNotification({
                             authorization,
                             locale,
@@ -47,6 +60,18 @@ const createThought = (req, res) => {
 
                     return Promise.resolve();
                 }).catch((err) => console.log(err));
+            } else {
+                // TODO: Create reactions for user's connections
+                // requires new endpoint createReactionsForUsers
+                createOrUpdateAchievement({
+                    authorization,
+                    userId,
+                    locale,
+                }, {
+                    achievementClass: 'thinker',
+                    achievementTier: '1_1',
+                    progressCount: 1,
+                });
             }
 
             return axios({ // Create companion reaction for user's own thought

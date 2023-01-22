@@ -238,6 +238,13 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
                     achievementTier: '1_1',
                     progressCount: 0,
                 },
+                {
+                    achievementId: 'thinker_1_1',
+                    userId: user.id,
+                    achievementClass: 'thinker',
+                    achievementTier: '1_1',
+                    progressCount: 0,
+                },
             ]).catch((err) => {
                 printLogs({
                     level: 'error',

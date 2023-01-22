@@ -8,6 +8,7 @@ import humanitarian from './humanitarian';
 import influencer from './influencer';
 import journalist from './journalist';
 import socialite from './socialite';
+import thinker from './thinker';
 import tourGuide from './tourGuide';
 
 export interface IAchievement {
@@ -34,6 +35,7 @@ const achievements: { [key: string]: IAchievement } = {
     ...influencer,
     ...journalist,
     ...socialite,
+    ...thinker,
     ...tourGuide,
 };
 
@@ -48,6 +50,7 @@ export const achievementsByClass: { [key: string]: { [key: string]: IAchievement
     influencer,
     journalist,
     socialite,
+    thinker,
     tourGuide,
 };
 
