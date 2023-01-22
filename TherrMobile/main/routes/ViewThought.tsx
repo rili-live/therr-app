@@ -365,10 +365,14 @@ export class ViewThought extends React.Component<IViewThoughtProps, IViewThought
     goBack = () => {
         const { navigation, route } = this.props;
         const { previousView } = route.params;
-        if (previousView) {
-            navigation.navigate(previousView);
+        if (previousView && (previousView === 'Areas' || previousView === 'Notifications')) {
+            if (previousView === 'Areas') {
+                navigation.goBack();
+            } else if (previousView === 'Notifications') {
+                navigation.navigate('Notifications');
+            }
         } else {
-            navigation.goBack();
+            navigation.navigate('Map');
         }
     };
 

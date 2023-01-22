@@ -79,7 +79,9 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
         const { isSubmitting } = this.state;
         const { user } = this.props;
 
-        return isSubmitting || (user.settings?.settingsTherrCoinTotal || 0) < 10;
+        const cointTotal = this.sanitizeCoinTotal(user.settings?.settingsTherrCoinTotal);
+
+        return isSubmitting || cointTotal < 10;
     };
 
     onSubmit = () => {
@@ -88,8 +90,10 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
             isSubmitting: true,
         });
 
+        const cointTotal = this.sanitizeCoinTotal(user.settings?.settingsTherrCoinTotal);
+
         // TODO: Allow user to specify an amount
-        UsersService.requestRewardsExchange(user.settings?.settingsTherrCoinTotal).then(() => {
+        UsersService.requestRewardsExchange(cointTotal).then(() => {
             Toast.show({
                 type: 'successBig',
                 text1: this.translate('pages.exchangePointsDisclaimer.alertTitles.requestSent'),
@@ -108,6 +112,11 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
                 isSubmitting: false,
             });
         });
+    };
+
+    sanitizeCoinTotal = (total: number) => {
+        const rounded = Math.round((Number(total || 0) + Number.EPSILON) * 100) / 100;
+        return rounded;
     };
 
     render() {

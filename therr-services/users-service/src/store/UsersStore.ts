@@ -257,7 +257,8 @@ export default class UsersStore {
         // TODO: Ensure this is absolutely secure
         // Maybe create a separate method specifically for updating coins
         if (params.settingsTherrCoinTotal != null && params.settingsTherrCoinTotal > 0) {
-            queryString = queryString.increment('settingsTherrCoinTotal', params.settingsTherrCoinTotal);
+            const totalRounded = Math.round((params.settingsTherrCoinTotal + Number.EPSILON) * 100) / 100;
+            queryString = queryString.increment('settingsTherrCoinTotal', totalRounded);
         }
 
         return this.db.write.query(queryString.toString()).then((response) => response.rows);

@@ -49,6 +49,7 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
     private theme = buildStyles();
     private themeMenu = buildMenuStyles();
     private themeAchievements = buildAchievementStyles();
+    private unsubscribeNavigationListener;
 
     constructor(props) {
         super(props);
@@ -68,8 +69,18 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
             title: this.translate('pages.achievements.headerTitle'),
         });
 
+        this.unsubscribeNavigationListener = this.props.navigation.addListener('focus', () => {
+            this.handleRefresh();
+        });
+
         this.handleRefresh();
     };
+
+    componentWillUnmount() {
+        if (this.unsubscribeNavigationListener) {
+            this.unsubscribeNavigationListener();
+        }
+    }
 
     handleRefresh = () => {
         this.props.getMyAchievements().finally(() => {
@@ -114,7 +125,7 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
                         </View> */}
                         <FlatList
                             data={userAchievements}
-                            keyExtractor={(item) => String(item.id)}
+                            keyExtractor={(item: any) => String(item.id)}
                             renderItem={({ item }) => <AchievementTile
                                 claimText={this.translate('pages.achievements.info.claimRewards')}
                                 completedText={this.translate('pages.achievements.info.completed')}
