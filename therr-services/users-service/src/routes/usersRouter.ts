@@ -3,6 +3,7 @@ import {
     createUser,
     getMe,
     getUser,
+    getUserByPhoneNumber,
     getUserByUserName,
     getUsers,
     findUsers,
@@ -26,6 +27,7 @@ router.post('/', createUser);
 router.get('/me', getMe);
 router.get('/:id', getUser);
 router.get('/', getUsers);
+router.get('/by-phone/:phoneNumber', getUserByPhoneNumber);
 router.get('/by-username/:userName', getUserByUserName);
 router.post('/find', findUsers);
 

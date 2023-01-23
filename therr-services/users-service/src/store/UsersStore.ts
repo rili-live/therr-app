@@ -73,6 +73,15 @@ export default class UsersStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     };
 
+    getByPhoneNumber = (phoneNumber: string) => {
+        const normalizedPhone = normalizePhoneNumber(phoneNumber as string);
+        let queryString: any = knexBuilder.select(['phoneNumber']).from('main.users')
+            .where({ phoneNumber: normalizedPhone });
+
+        queryString = queryString.toString();
+        return this.db.read.query(queryString).then((response) => response.rows);
+    };
+
     findUser = ({
         id,
         email,

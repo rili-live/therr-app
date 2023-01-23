@@ -1,11 +1,15 @@
 import express from 'express';
+import { v4 as uuidv4 } from 'uuid';
 import normalizePhoneNumber from 'therr-js-utilities/normalize-phone-number';
+import { ErrorCodes } from 'therr-js-utilities/constants';
 import handleHttpError from '../../utilities/handleHttpError';
 import { validate } from '../../validation';
 import redisClient from '../../store/redisClient';
 import twilioClient from '../../api/twilio';
 import translate from '../../utilities/translator';
 import { verifyPhoneLimiter, verifyPhoneLongLimiter } from './limitation/phone';
+import * as globalConfig from '../../../../global-config';
+import restRequest from '../../utilities/restRequest';
 
 const generateVerificationCode = () => {
     const minm = 100000;
@@ -26,6 +30,42 @@ phoneRouter.post('/verify', verifyPhoneLimiter, validate, async (req, res) => {
     try {
         const { phoneNumber } = req.body;
         const normalizedPhoneNumber = normalizePhoneNumber(phoneNumber);
+
+        const numberExists: boolean = await new Promise((resolve) => {
+            const config: any = {
+                headers: {
+                    authorization: req.headers.authorization || '',
+                    'x-requestid': uuidv4(),
+                    'x-localecode': req.headers['x-localecode'] || '',
+                    'x-userid': req.headers['x-userid'] || req['x-userid'] || '',
+                    'x-user-device-token': req.headers['x-user-device-token'] || '',
+                },
+                method: 'get',
+                url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/by-phone/${normalizedPhoneNumber}`,
+            };
+
+            restRequest(config)
+                .then(() => resolve(true))
+                .catch((error) => {
+                    // Phone number not yet in use, so we can allow this user to use it
+                    if (error?.response?.data?.statusCode === 404) {
+                        return resolve(false);
+                    }
+
+                    return resolve(true);
+                });
+        });
+
+        if (numberExists) {
+            return handleHttpError({
+                err: new Error('Phone number already exists'),
+                errorCode: ErrorCodes.USER_EXISTS,
+                res,
+                message: 'SQL:PHONE_ROUTES:ERROR',
+                statusCode: 400,
+            });
+        }
+
         const verificationCode = generateVerificationCode();
         const cacheKey = `phone-verification-codes:${userId}`;
         const expireSeconds = 60 * 5;
