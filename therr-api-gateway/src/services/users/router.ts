@@ -126,6 +126,11 @@ usersServiceRouter.get('/users/:id', handleServiceRequest({
     method: 'get',
 }));
 
+usersServiceRouter.get('/users/by-phone/:phoneNumber', handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
+    method: 'get',
+}));
+
 usersServiceRouter.get('/users/by-username/:userName', authenticateOptional, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'get',
