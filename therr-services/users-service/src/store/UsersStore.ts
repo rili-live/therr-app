@@ -257,7 +257,7 @@ export default class UsersStore {
         // TODO: Ensure this is absolutely secure
         // Maybe create a separate method specifically for updating coins
         if (params.settingsTherrCoinTotal != null && params.settingsTherrCoinTotal > 0) {
-            const totalRounded = Math.round((params.settingsTherrCoinTotal + Number.EPSILON) * 100) / 100;
+            const totalRounded = Math.round((Number(params.settingsTherrCoinTotal || 0) + Number.EPSILON) * 100) / 100;
             queryString = queryString.increment('settingsTherrCoinTotal', totalRounded);
         }
 
