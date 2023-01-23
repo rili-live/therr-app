@@ -2,10 +2,17 @@ import { v4 as uuidv4 } from 'uuid';
 import handleHttpError from '../utilities/handleHttpError';
 import restRequest from '../utilities/restRequest';
 
+interface IHandleServiceRequestArgs {
+    basePath: string;
+    method: string;
+    overrideUrl?: string;
+}
+
 const handleServiceRequest = ({
     basePath,
     method,
-}) => (req, res) => {
+    overrideUrl,
+}: IHandleServiceRequestArgs) => (req, res) => {
     const config: any = {
         headers: {
             authorization: req.headers.authorization || '',
@@ -15,7 +22,7 @@ const handleServiceRequest = ({
             'x-user-device-token': req.headers['x-user-device-token'] || '',
         },
         method,
-        url: `${basePath}${req.url}`,
+        url: `${basePath}${overrideUrl || req.url}`,
     };
 
     if (method !== 'get') {

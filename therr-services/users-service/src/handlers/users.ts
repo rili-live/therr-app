@@ -79,6 +79,28 @@ const getUser = (req, res) => {
 
 // READ
 /**
+ * IMPORTANT - This should not return sensitive information. It is used exclusively to check for the existence
+ * of a user by phone number.
+ */
+const getUserByPhoneNumber = (req, res) => {
+    // const userId = req.headers['x-userid'];
+    const { phoneNumber } = req.params;
+
+    return Store.users.getByPhoneNumber(phoneNumber).then((results) => {
+        if (!results.length) {
+            return handleHttpError({
+                res,
+                message: `No user found with phone number, ${phoneNumber}.`,
+                statusCode: 404,
+            });
+        }
+
+        return res.status(200).send(results[0]);
+    });
+};
+
+// READ
+/**
  * IMPORTANT - This is a public endpoint without optional authorization
  * Consider any and all implications of data that is returned
  */
@@ -629,6 +651,7 @@ export {
     createUser,
     getMe,
     getUser,
+    getUserByPhoneNumber,
     getUserByUserName,
     getUsers,
     findUsers,
