@@ -293,4 +293,13 @@ export default class UsersStore {
 
         return this.db.write.query(queryString).then((response) => response.rows);
     }
+
+    sumTotalCoins() {
+        const queryString = knexBuilder
+            .from(USERS_TABLE_NAME)
+            .sum('settingsTherrCoinTotal as totalTherrCoinSupply')
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
 }
