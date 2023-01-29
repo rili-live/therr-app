@@ -15,7 +15,7 @@ class UsersServiceCache {
 
     // 30 minute TTL
     // TODO: Determine a better TTL for this
-    public setExchangeRate(value: any, ttl = 1800): Promise<'OK'> {
+    public setExchangeRate(value: any, ttl = 1): Promise<'OK'> {
         return this.cache.setex(`${USERS_STORE_PREFIX}therrCoinExchangeRate`, ttl, value);
     }
 

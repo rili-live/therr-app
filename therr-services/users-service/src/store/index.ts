@@ -1,5 +1,6 @@
 import connection, { IConnection } from './connection';
 import BlacklistedEmailsStore from './BlacklistedEmailsStore';
+import ConfigStore from './ConfigStore';
 import InvitesStore from './InvitesStore';
 import NotificationsStore from './NotificationsStore';
 import SocialSyncsStore from './SocialSyncsStore';
@@ -14,6 +15,8 @@ class Store {
     db: IConnection;
 
     blacklistedEmails: BlacklistedEmailsStore;
+
+    config: ConfigStore;
 
     subscribers: SubscribersStore;
 
@@ -37,6 +40,7 @@ class Store {
         this.db = dbConnection;
 
         this.blacklistedEmails = new BlacklistedEmailsStore(this.db);
+        this.config = new ConfigStore(this.db);
         this.users = new UsersStore(this.db);
         this.userAchievements = new UserAchievementsStore(this.db);
         this.userConnections = new UserConnectionsStore(this.db);

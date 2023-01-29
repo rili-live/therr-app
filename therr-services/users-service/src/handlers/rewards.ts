@@ -1,6 +1,7 @@
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import sendRewardsExchangeEmail from '../api/email/admin/sendRewardsExchangeEmail';
+import { parseConfigValue } from './config';
 
 const calculateExchangeRate = (totalCoins, therrDollarReserves = 100) => {
     // Ensure we don't divide by zero
@@ -42,7 +43,7 @@ const getCurrentExchangeRate = (req, res) => {
     const userId = req.headers['x-userid'] as string;
 
     return Store.users.sumTotalCoins()
-        .then((results) => {
+        .then(async (results) => {
             const totalCoins = results[0]?.totalTherrCoinSupply;
             if (!totalCoins) {
                 return handleHttpError({
@@ -52,13 +53,16 @@ const getCurrentExchangeRate = (req, res) => {
                 });
             }
 
-            /**
-             * TODO: Fetch remaining dollar reserve balance from source
-             * We will need to update the reserve balance on each exchange
-             * and each time we "mint" new coins
-             */
-            const exchangeRate = calculateExchangeRate(totalCoins);
-            res.status(200).send({ exchangeRate });
+            return Store.config.get('therrDollarReserves').then((configResults: any) => {
+                /**
+                 * Fetch remaining dollar reserve balance from source
+                 * We will need to update the reserve balance on each exchange
+                 * and each time we "mint" new coins
+                 */
+                const therrDollarReserves = parseConfigValue(configResults[0].value, configResults[0].type);
+                const exchangeRate = calculateExchangeRate(totalCoins, therrDollarReserves);
+                res.status(200).send({ exchangeRate });
+            });
         })
         .catch((err) => handleHttpError({
             res,
