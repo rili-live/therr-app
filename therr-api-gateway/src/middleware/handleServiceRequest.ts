@@ -12,7 +12,7 @@ const handleServiceRequest = ({
     basePath,
     method,
     overrideUrl,
-}: IHandleServiceRequestArgs) => (req, res) => {
+}: IHandleServiceRequestArgs, updateCache?: (result: any) => void) => (req, res) => {
     const config: any = {
         headers: {
             authorization: req.headers.authorization || '',
@@ -35,7 +35,12 @@ const handleServiceRequest = ({
     }
 
     return restRequest(config)
-        .then((response) => res.send(response.data))
+        .then((response) => {
+            if (updateCache) {
+                updateCache(response.data);
+            }
+            return res.send(response.data);
+        })
         .catch((error) => {
             if (error?.response?.status === 301) {
                 return res.status(301).redirect(error.response.data.redirectUrl);

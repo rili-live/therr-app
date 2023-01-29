@@ -74,3 +74,6 @@ terminals.sh
 
 # GCP
 google-service.json*
+
+# android
+bugreport-sdk*
