@@ -43,7 +43,7 @@ const getCurrentExchangeRate = (req, res) => {
     const userId = req.headers['x-userid'] as string;
 
     return Store.users.sumTotalCoins()
-        .then(async (results) => {
+        .then((results) => {
             const totalCoins = results[0]?.totalTherrCoinSupply;
             if (!totalCoins) {
                 return handleHttpError({
@@ -61,7 +61,7 @@ const getCurrentExchangeRate = (req, res) => {
                  */
                 const therrDollarReserves = parseConfigValue(configResults[0].value, configResults[0].type);
                 const exchangeRate = calculateExchangeRate(totalCoins, therrDollarReserves);
-                res.status(200).send({ exchangeRate });
+                return res.status(200).send({ exchangeRate });
             });
         })
         .catch((err) => handleHttpError({
