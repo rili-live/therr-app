@@ -16,6 +16,13 @@ import sendContactInviteEmail from '../api/email/sendContactInviteEmail';
 import twilioClient from '../api/twilio';
 import { createOrUpdateAchievement } from './helpers/achievements';
 
+const failsafeBlackListRequest = (email) => Store.blacklistedEmails.get({
+    email,
+}).catch((err) => {
+    console.log(err);
+    return [];
+});
+
 // CREATE
 // TODO:RSERV-24: Security, get requestingUserId from user header token
 const createUserConnection: RequestHandler = async (req: any, res: any) => {
@@ -61,7 +68,10 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
 
             // 1a. Send email invite when user does not exist
             if (!userResults.length) {
-                if (acceptingUserEmail && emailValidator.validate(acceptingUserEmail)) {
+                const blacklistedEmails = await failsafeBlackListRequest(acceptingUserEmail);
+                const emailIsBlacklisted = blacklistedEmails?.length;
+
+                if (!emailIsBlacklisted && acceptingUserEmail && emailValidator.validate(acceptingUserEmail)) {
                     // TODO: Ratelimit this to prevent spamming new user email
                     // fire and forget
                     unverifiedUser = await createUserHelper({
