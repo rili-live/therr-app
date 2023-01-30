@@ -8,6 +8,7 @@ import UserImage from '../UserContent/UserImage';
 import { signImageUrl } from '../../utilities/content';
 
 interface ICreateProfileStageCProps {
+    user: any;
     errorMsg: string;
     isDisabled: boolean;
     requestUserUpdate: Function;
@@ -87,6 +88,7 @@ class CreateProfileStageC extends React.Component<ICreateProfileStageCProps, ICr
 
     render() {
         const {
+            user,
             errorMsg,
             isDisabled,
             onContinue,
@@ -108,6 +110,7 @@ class CreateProfileStageC extends React.Component<ICreateProfileStageCProps, ICr
                     themeAlerts={themeAlerts}
                 />
                 <UserImage
+                    user={user}
                     onImageReady={this.onDoneCropping}
                     theme={theme}
                     themeForms={themeForms}

@@ -63,6 +63,7 @@ export default ({
 }: MapActionButtonsProps) => {
     const shouldShowCreateButton = isAuthorized() && isGpsEnabled;
     const [isModalVisible, setModalVisibility] = useState(false);
+    const isBusinessAccount = user.details?.isBusinessAccount;
     const onShowModal = () => {
         if (user.details.loginCount && user.details.loginCount < 4) {
             setModalVisibility(true);
@@ -162,25 +163,28 @@ export default ({
                         {
                             shouldShowCreateActions &&
                                 <>
-                                    <View style={themeButtons.styles.claimASpace}>
-                                        {/* <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.claimASpace')}</Text> */}
-                                        <Button
-                                            containerStyle={themeButtons.styles.btnContainer}
-                                            buttonStyle={themeButtons.styles.btnLargeWithText}
-                                            icon={
-                                                <TherrIcon
-                                                    name="map-marker-user"
-                                                    size={24}
-                                                    style={themeButtons.styles.btnIcon}
-                                                />
-                                            }
-                                            iconRight
-                                            raised
-                                            title={translate('menus.mapActions.claimASpace')}
-                                            titleStyle={themeButtons.styles.btnMediumTitle}
-                                            onPress={onShowModal}
-                                        />
-                                    </View>
+                                    {
+                                        isBusinessAccount &&
+                                        <View style={themeButtons.styles.claimASpace}>
+                                            {/* <Text style={themeButtons.styles.labelLeft}>{translate('menus.mapActions.claimASpace')}</Text> */}
+                                            <Button
+                                                containerStyle={themeButtons.styles.btnContainer}
+                                                buttonStyle={themeButtons.styles.btnLargeWithText}
+                                                icon={
+                                                    <TherrIcon
+                                                        name="map-marker-user"
+                                                        size={24}
+                                                        style={themeButtons.styles.btnIcon}
+                                                    />
+                                                }
+                                                iconRight
+                                                raised
+                                                title={translate('menus.mapActions.claimASpace')}
+                                                titleStyle={themeButtons.styles.btnMediumTitle}
+                                                onPress={onShowModal}
+                                            />
+                                        </View>
+                                    }
                                     <View style={themeButtons.styles.uploadMoment}>
                                         <Button
                                             containerStyle={themeButtons.styles.btnContainer}

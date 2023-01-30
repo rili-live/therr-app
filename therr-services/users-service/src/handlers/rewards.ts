@@ -6,7 +6,9 @@ import { parseConfigValue } from './config';
 const calculateExchangeRate = (totalCoins, therrDollarReserves = 100) => {
     // Ensure we don't divide by zero
     const coinsInCirculation = totalCoins || therrDollarReserves;
-    return therrDollarReserves / coinsInCirculation;
+    const unrounded = therrDollarReserves / coinsInCirculation;
+    const deducted = unrounded * 0.90; // 10% service fee
+    return Math.round((Number(deducted) + Number.EPSILON) * 100) / 100;
 };
 
 const requestRewardsExchange = (req, res) => {

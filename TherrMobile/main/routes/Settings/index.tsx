@@ -413,6 +413,7 @@ export class Settings extends React.Component<ISettingsProps, ISettingsState> {
                             </View>
                             <View style={this.themeSettingsForm.styles.userContainer}>
                                 <UserImage
+                                    user={user}
                                     onImageReady={this.onDoneCropping}
                                     theme={this.theme}
                                     themeForms={this.themeForms}
