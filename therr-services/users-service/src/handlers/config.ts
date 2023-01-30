@@ -2,6 +2,9 @@ import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 
 const parseConfigValue = (value, type) => {
+    if (type === 'boolean') {
+        return !!value;
+    }
     if (type === 'STRING') {
         return value;
     }

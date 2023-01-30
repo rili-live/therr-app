@@ -2,7 +2,9 @@ import React from 'react';
 import { View } from 'react-native';
 import { Button }  from 'react-native-elements';
 import { ApiService } from 'therr-react/services';
+import { ErrorCodes } from 'therr-js-utilities/constants';
 import Toast from 'react-native-toast-message';
+import analytics from '@react-native-firebase/analytics';
 import Alert from '../Alert';
 import SquareInput from '../Input/Square';
 import PhoneNumberInput from '../Input/PhoneNumberInput';
@@ -10,6 +12,7 @@ import { ITherrThemeColors, ITherrThemeColorVariations } from '../../styles/them
 import TherrIcon from '../../components/TherrIcon';
 
 interface ICreateProfileStageBProps {
+    user: any;
     errorMsg: string;
     isFormDisabled: boolean | undefined;
     onInputChange: Function;
@@ -68,12 +71,16 @@ class CreateProfileStageB extends React.Component<ICreateProfileStageBProps, ICr
 
     onSubmitVerifyPhone = () => {
         const { phoneNumber } = this.state;
-        const { translate } = this.props;
+        const { translate, user } = this.props;
         this.setState({
             isSubmitting: true,
         });
         ApiService.verifyPhone(phoneNumber)
             .then(() => {
+                analytics().logEvent('phone_verify_success', {
+                    userId: user?.details?.id,
+                    phoneNumber,
+                }).catch((err) => console.log(err));
                 this.setState({
                     isVerifying: true,
                 });
@@ -84,12 +91,28 @@ class CreateProfileStageB extends React.Component<ICreateProfileStageBProps, ICr
                     visibilityTime: 2000,
                 });
             })
-            .catch(() => {
-                Toast.show({
-                    type: 'errorBig',
-                    text1: translate('alertTitles.backendErrorMessage'),
-                    text2: translate('alertMessages.backendErrorMessage'),
-                });
+            .catch((error) => {
+                if (error?.errorCode === ErrorCodes.USER_EXISTS) {
+                    analytics().logEvent('phone_verify_error_already_exists', {
+                        userId: user?.details?.id,
+                        phoneNumber,
+                    }).catch((err) => console.log(err));
+                    Toast.show({
+                        type: 'errorBig',
+                        text1: translate('alertTitles.phoneNumberAlreadyInUse'),
+                        text2: translate('alertMessages.phoneNumberAlreadyInUse'),
+                    });
+                } else {
+                    analytics().logEvent('phone_verify_error', {
+                        userId: user?.details?.id,
+                        phoneNumber,
+                    }).catch((err) => console.log(err));
+                    Toast.show({
+                        type: 'errorBig',
+                        text1: translate('alertTitles.backendErrorMessage'),
+                        text2: translate('alertMessages.backendErrorMessage'),
+                    });
+                }
             })
             .finally(() => {
                 this.setState({
@@ -105,8 +128,7 @@ class CreateProfileStageB extends React.Component<ICreateProfileStageBProps, ICr
             isSubmitting: true,
         });
         ApiService.validateCode(verificationCode)
-            .then((result) => {
-                console.log(result);
+            .then(() => {
                 onSubmit && onSubmit();
                 Toast.show({
                     type: 'success',
