@@ -4,12 +4,18 @@
     "codeSent": "New Code Sent",
     "invalidCode": "Invalid Code",
     "phoneVerifiedSuccess": "Phone Verification Success",
-    "backendErrorMessage": "Oops! Something went wrong."
+    "backendErrorMessage": "Oops! Something went wrong.",
+    "permissionsDenied": "Permissions Denied",
+    "phoneNumberAlreadyInUse": "Invalid Phone Number",
+    "ssoLoginError": "Error With Single Sign-On"
   },
   "alertMessages": {
     "codeSent": "Check your phone for a new verification code.",
     "invalidCode": "Code is invalid or expired. Try again or resend.",
-    "backendErrorMessage": "Please try again later."
+    "backendErrorMessage": "Please try again later.",
+    "cameraOrFilePermissionsDenied": "Camera or File permissions were denied. Please enable them in your device settings.",
+    "phoneNumberAlreadyInUse": "Phone Number Already In Use",
+    "ssoLoginError": "Please try logging in with you account username/password"
   },
   "quoteOfTheDay": "Quote of the Day",
   "dailyQuotes": [
@@ -736,12 +742,18 @@
       "headerTitle": "Therr Rewards",
       "pageHeader": "Exchange Coins",
       "pageHeaderHow": "How It Works",
-      "pageHeaderYourCoins": "Your Coins",
+      "pageHeaderYourWallet": "Your Wallet",
+      "pageHeaderExchangeRate": "Exchange Rate",
       "info": {
-        "earlyAccess": "Our rewards program is still a work in progress. For the time being we are offering an Amazon.com eGift Card.",
-        "stepOne": "To earn coins, first complete achievements. Each achievement allows you to claim coins.",
+        "earlyAccess": "Earn coins through customer loyalty programs with your favorite local businesses.",
+        "stepOne": "Complete achievements and local activities to earn coins. Don't forget to claim completed achievements.",
         "stepTwo": "After you have at least $5 in coins, you are eligible to exchange.",
-        "stepThree": "Click the 'Exchange Now' button below and you will receive an eGift Card to your account e-mail."
+        "stepThree": "Click the 'Exchange Now' button below and you will receive an eGift Card to your account e-mail within 24-72 hours."
+      },
+      "labels": {
+        "coinsSuffix": "{total} TherrCoin",
+        "dollarsPrefix": "~${total}",
+        "exchangeRatePrefix": "1 Coin = ${exchangeRate}"
       },
       "alertTitles": {
         "requestSent": "Successfully Sent!",

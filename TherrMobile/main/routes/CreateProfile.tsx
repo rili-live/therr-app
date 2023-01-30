@@ -368,6 +368,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                             {
                                 stage === 'B' &&
                                 <CreateProfileStageB
+                                    user={user}
                                     errorMsg={errorMsg}
                                     isFormDisabled={this.isFormBDisabled()}
                                     onInputChange={this.onPhoneInputChange}
@@ -382,6 +383,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
                             {
                                 stage === 'C' &&
                                 <CreateProfileStageC
+                                    user={user}
                                     errorMsg={errorMsg}
                                     isDisabled={isSubmitting}
                                     onCropComplete={this.onCropComplete}

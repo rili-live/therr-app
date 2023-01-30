@@ -34,6 +34,7 @@ export interface IExchangePointsDisclaimerProps extends IStoreProps {
 }
 
 interface IExchangePointsDisclaimerState {
+    exchangeRate?: number;
     isSubmitting: boolean;
 }
 
@@ -69,6 +70,11 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
             title: this.translate('pages.exchangePointsDisclaimer.headerTitle'),
         });
         this.props.getMe().catch((err) => console.log(`Failed to fetch me: ${err.message}`));
+        UsersService.getExchangeRate().then((response) => {
+            this.setState({
+                exchangeRate: response.data?.exchangeRate,
+            });
+        }).catch((err) => console.log(`Failed to get exchange rate: ${err.message}`));
     };
 
     handleRefresh = () => {
@@ -77,20 +83,19 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
 
     isFormDisabled = () => {
         const { isSubmitting } = this.state;
-        const { user } = this.props;
 
-        const cointTotal = this.sanitizeCoinTotal(user.settings?.settingsTherrCoinTotal);
+        const dollar = this.getDollarTotal();
 
-        return isSubmitting || cointTotal < 10;
+        // Minimum of $10 exchange
+        return isSubmitting || dollar < 10;
     };
 
     onSubmit = () => {
-        const { user } = this.props;
         this.setState({
             isSubmitting: true,
         });
 
-        const cointTotal = this.sanitizeCoinTotal(user.settings?.settingsTherrCoinTotal);
+        const cointTotal = this.sanitizeCoinTotal();
 
         // TODO: Allow user to specify an amount
         UsersService.requestRewardsExchange(cointTotal).then(() => {
@@ -114,15 +119,24 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
         });
     };
 
-    sanitizeCoinTotal = (total: number) => {
-        const rounded = Math.round((Number(total || 0) + Number.EPSILON) * 100) / 100;
+    sanitizeCoinTotal = () => {
+        const { user } = this.props;
+        const unrounded = user.settings?.settingsTherrCoinTotal || 0;
+        const rounded = Math.round((Number(unrounded) + Number.EPSILON) * 100) / 100;
         return rounded;
     };
 
+    getDollarTotal = () => {
+        const { exchangeRate } = this.state;
+        return this.sanitizeCoinTotal() * (exchangeRate || 0);
+    };
+
     render() {
+        const { exchangeRate } = this.state;
         const { navigation, user } = this.props;
         const pageHeader = this.translate('pages.exchangePointsDisclaimer.pageHeader');
-        const pageHeaderYourCoins = this.translate('pages.exchangePointsDisclaimer.pageHeaderYourCoins');
+        const pageHeaderYourWallet = this.translate('pages.exchangePointsDisclaimer.pageHeaderYourWallet');
+        const pageHeaderExchangeRate = this.translate('pages.exchangePointsDisclaimer.pageHeaderExchangeRate');
         const pageHeaderHow = this.translate('pages.exchangePointsDisclaimer.pageHeaderHow');
 
         return (
@@ -143,13 +157,34 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
                                     {this.translate('pages.exchangePointsDisclaimer.info.earlyAccess')}
                                 </Text>
                             </View>
+                            {
+                                exchangeRate &&
+                                    <View style={this.theme.styles.sectionContainer}>
+                                        <Text style={this.theme.styles.sectionTitleCenter}>
+                                            {pageHeaderExchangeRate}
+                                        </Text>
+                                        <Text style={[this.theme.styles.sectionTitleCenter, { color: this.theme.colors.primary3 }]}>
+                                            {this.translate('pages.exchangePointsDisclaimer.labels.exchangeRatePrefix', { exchangeRate })}
+                                        </Text>
+                                    </View>
+                            }
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitleCenter}>
-                                    {pageHeaderYourCoins}
+                                    {pageHeaderYourWallet}
                                 </Text>
                                 <Text style={[this.theme.styles.sectionTitleCenter, { color: this.theme.colors.primary3 }]}>
-                                    {user.settings?.settingsTherrCoinTotal || 0}
+                                    {this.translate('pages.exchangePointsDisclaimer.labels.coinsSuffix', {
+                                        total: this.sanitizeCoinTotal(),
+                                    })}
                                 </Text>
+                                {
+                                    exchangeRate &&
+                                    <Text style={[this.theme.styles.sectionTitleCenter, { color: this.theme.colors.primary3 }]}>
+                                        {this.translate('pages.exchangePointsDisclaimer.labels.dollarsPrefix', {
+                                            total: this.getDollarTotal(),
+                                        })}
+                                    </Text>
+                                }
                             </View>
                             <View style={this.theme.styles.sectionContainer}>
                                 <Text style={this.theme.styles.sectionTitleCenter}>

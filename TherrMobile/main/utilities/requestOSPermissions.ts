@@ -49,8 +49,11 @@ const requestOSCameraPermissions = (storePermissionsResponse) => {
         case 'android':
             return requestAndroidPermission([
                 PermissionsAndroid.PERMISSIONS.CAMERA,
-                PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-                PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+                (Platform.Version && Platform.Version < 33)
+                    ? PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
+                    : PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+                // PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+                // PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
             ], storePermissionsResponse);
         default:
             return Promise.reject();

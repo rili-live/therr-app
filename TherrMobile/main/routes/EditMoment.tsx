@@ -1,10 +1,11 @@
 import React from 'react';
-import { Dimensions, Pressable, SafeAreaView, Keyboard, Text, View } from 'react-native';
+import { Dimensions, Platform, Pressable, SafeAreaView, Keyboard, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button, Slider, Image } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RNFB from 'rn-fetch-blob';
+import Toast from 'react-native-toast-message';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
@@ -413,6 +414,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
     };
 
     onAddImage = (action: string) => {
+        const { user } = this.props;
         // TODO: Store permissions in redux
         const storePermissions = () => {};
 
@@ -437,9 +439,22 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         .then((cameraResponse) => this.handleImageSelect(cameraResponse));
                 }
             } else {
+                analytics().logEvent('permissions_denied_issue', {
+                    platform: Platform.OS,
+                    userId: user?.details?.id,
+                }).catch((err) => console.log(err));
+                Toast.show({
+                    type: 'errorBig',
+                    text1: this.translate('alertTitles.permissionsDenied'),
+                    text2: this.translate('alertMessages.cameraOrFilePermissionsDenied'),
+                });
                 throw new Error('permissions denied');
             }
         }).catch((e) => {
+            analytics().logEvent('camera_permissions_error', {
+                platform: Platform.OS,
+                userId: user?.details?.id,
+            }).catch((err) => console.log(err));
             this.toggleImageBottomSheet();
             // TODO: Handle Permissions denied
             if (e?.message.toLowerCase().includes('cancel')) {
@@ -547,6 +562,13 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 title={this.translate(
                                     'forms.editMoment.buttons.addImage'
                                 )}
+                                icon={
+                                    <TherrIcon
+                                        name="camera"
+                                        size={23}
+                                        style={{ color: this.theme.colors.primary, paddingRight: 8 }}
+                                    />
+                                }
                                 onPress={() => this.toggleImageBottomSheet()}
                                 raised={false}
                             />

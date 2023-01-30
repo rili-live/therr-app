@@ -4,6 +4,7 @@ import { Button } from 'react-native-elements';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
+import Toast from 'react-native-toast-message';
 import translator from '../../services/translator';
 import { addMargins } from '../../styles';
 import Alert from '../../components/Alert';
@@ -83,6 +84,11 @@ export class LoginFormComponent extends React.Component<
     }
 
     onSSOLoginError = () => {
+        Toast.show({
+            type: 'errorBig',
+            text1: this.translate('alertTitles.phoneNumberAlreadyInUse'),
+            text2: this.translate('alertMessages.phoneNumberAlreadyInUse'),
+        });
         this.setState({
             isSubmitting: false,
         });
