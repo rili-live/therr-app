@@ -5,7 +5,7 @@ const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
 export const MEDIA_TABLE_NAME = 'main.media';
 export interface ICreateMediaParams {
-    fromUserId: number;
+    fromUserId: string;
     altText: string;
     type: string;
     path: string;

@@ -20,7 +20,8 @@ export interface ICreateMomentParams {
     category?: any;
     createdAt?: any;
     expiresAt?: any;
-    fromUserId: number;
+    fromUserId: string;
+    spaceId?: string;
     locale: string;
     isPublic?: boolean;
     isDraft?: boolean;
@@ -311,6 +312,7 @@ export default class MomentsStore {
                 createdAt: params.createdAt || undefined, // TODO: make more secure (only for social sync)
                 expiresAt: params.expiresAt,
                 fromUserId: params.fromUserId,
+                spaceId: params.spaceId,
                 locale: params.locale,
                 isPublic: isTextMature ? false : !!params.isPublic, // NOTE: For now make this content private to reduce public, mature content
                 isDraft: !!params.isDraft,
@@ -367,6 +369,7 @@ export default class MomentsStore {
                 category: params.category || 'uncategorized',
                 expiresAt: params.expiresAt,
                 fromUserId: params.fromUserId,
+                spaceId: params.spaceId,
                 locale: params.locale,
                 isPublic: isTextMature ? false : !!params.isPublic, // NOTE: For now make this content private to reduce public, mature content
                 isDraft: !!params.isDraft,
