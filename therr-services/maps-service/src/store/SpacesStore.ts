@@ -19,7 +19,7 @@ export interface ICreateSpaceParams {
     areaType?: string;
     category?: string;
     expiresAt?: any;
-    fromUserId: number;
+    fromUserId: string;
     locale: string;
     isPublic?: boolean;
     isMatureContent?: boolean;
