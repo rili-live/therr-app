@@ -327,6 +327,7 @@
         "captureNew": "Capture a New Photo",
         "selectExisting": "Select an Existing Photo",
         "draft": "Draft",
+        "next": "Next",
         "submit": "Send",
         "delete": "Delete?",
         "confirm": "Delete",
@@ -353,13 +354,15 @@
         "nightLife": "Night Life / Social"
       },
       "labels": {
+        "addNearbySpaceNote": "Is this moment related to a nearby space?",
         "addImageNote": "Select an existing image or capture a new one!",
         "message": "Share something unique...",
         "notificationMsg": "Tagline or Title",
         "hashTags": "Hashtags (ie. my_tag, myTag)",
         "maxViews": "Max views (per person)",
         "expiresAt": "Countdown",
-        "radius": "Radius: {meters} meters"
+        "radius": "Radius: {meters} meters",
+        "unselected": "Select a Space"
       },
       "backendSuccessMessage": "Your moment was successfully saved!",
       "backendErrorMessage": "Connection error. Please try again later."

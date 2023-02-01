@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 import axios from 'axios';
 import uuid from 'react-native-uuid';
 import { getSearchQueryString } from 'therr-js-utilities/http';
@@ -26,9 +27,14 @@ interface ICreateAreaBody {
     mentionsIds?: string;
     hashTags?: string;
     maxViews?: number;
+    nearbySpacesSnapshot?: { // moment only
+        id: string;
+        title: string
+    }[]
     latitude: string;
     longitude: string;
     radius?: string;
+    spaceId?: string; // moment only
     polygonCoords?: string;
 }
 
@@ -62,19 +68,19 @@ class MapsService {
         method: 'post',
         url: `/maps-service/${areaType}`,
         data,
-    })
+    });
 
     updateArea = (areaType: IAreaType, id: string, data: ICreateAreaBody) => axios({
         method: 'put',
         url: `/maps-service/${areaType}/${id}`,
         data,
-    })
+    });
 
     getAreaDetails = (areaType: IAreaType, id: number, args: IGetAreaDetailsArgs) => axios({
         method: 'post',
         url: `/maps-service/${areaType}/${id}/details`,
         data: args,
-    })
+    });
 
     searchAreas = (areaType: IAreaType, query: ISearchQuery, data: ISearchAreasArgs = {}) => {
         const queryString = getSearchQueryString(query);
@@ -84,7 +90,7 @@ class MapsService {
             url: `/maps-service/${areaType}/search${queryString}`,
             data,
         });
-    }
+    };
 
     searchMyAreas = (areaType: IAreaType, query: ISearchQuery, data: ISearchAreasArgs = {}) => {
         const queryString = getSearchQueryString(query);
@@ -94,16 +100,16 @@ class MapsService {
             url: `/maps-service/${areaType}/search/me${queryString}`,
             data,
         });
-    }
+    };
 
     deleteAreas = (areaType: IAreaType, data: IDeleteAreasBody) => axios({
         method: 'delete',
         url: `/maps-service/${areaType}`,
         data,
-    })
+    });
 
     // Moments
-    createMoment = (data: ICreateAreaBody) => this.createArea('moments', data)
+    createMoment = (data: ICreateAreaBody) => this.createArea('moments', data);
 
     createIntegratedMoment = (platform: string, accessToken: string, mediaId: string) => axios({
         method: 'post',
@@ -113,31 +119,31 @@ class MapsService {
             mediaId,
             platform,
         },
-    })
+    });
 
-    updateMoment = (id: string, data: ICreateAreaBody) => this.updateArea('moments', id, data)
+    updateMoment = (id: string, data: ICreateAreaBody) => this.updateArea('moments', id, data);
 
-    getMomentDetails = (id: number, args: IGetAreaDetailsArgs) => this.getAreaDetails('moments', id, args)
+    getMomentDetails = (id: number, args: IGetAreaDetailsArgs) => this.getAreaDetails('moments', id, args);
 
     getIntegratedMoments = (userId: string) => axios({
         method: 'get',
         url: `/maps-service/moments/integrated/${userId}`,
     });
 
-    searchMoments = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('moments', query, data)
+    searchMoments = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('moments', query, data);
 
-    searchMyMoments = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchMyAreas('moments', query, data)
+    searchMyMoments = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchMyAreas('moments', query, data);
 
-    deleteMoments = (data: IDeleteAreasBody) => this.deleteAreas('moments', data)
+    deleteMoments = (data: IDeleteAreasBody) => this.deleteAreas('moments', data);
 
     // Spaces
-    createSpace = (data: ICreateAreaBody) => this.createArea('spaces', data)
+    createSpace = (data: ICreateAreaBody) => this.createArea('spaces', data);
 
-    getSpaceDetails = (id: number, args: IGetAreaDetailsArgs) => this.getAreaDetails('spaces', id, args)
+    getSpaceDetails = (id: number, args: IGetAreaDetailsArgs) => this.getAreaDetails('spaces', id, args);
 
-    searchSpaces = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('spaces', query, data)
+    searchSpaces = (query: ISearchQuery, data: ISearchAreasArgs = {}) => this.searchAreas('spaces', query, data);
 
-    deleteSpaces = (data: IDeleteAreasBody) => this.deleteAreas('spaces', data)
+    deleteSpaces = (data: IDeleteAreasBody) => this.deleteAreas('spaces', data);
 
     // Media
     getSignedUrlPublicBucket = (args: ISignedUrlArgs) => {
@@ -148,7 +154,7 @@ class MapsService {
             method: 'get',
             url: `/maps-service/${areaType}/signed-url/public${queryString}`,
         });
-    }
+    };
 
     getSignedUrlPrivateBucket = (args: ISignedUrlArgs) => {
         const areaType: IAreaType = args.areaType || 'moments';
@@ -158,7 +164,7 @@ class MapsService {
             method: 'get',
             url: `/maps-service/${areaType}/signed-url/private${queryString}`,
         });
-    }
+    };
 
     // Google Maps
     // TODO: Use sessiontoken to prevent being over-billed
@@ -185,7 +191,7 @@ class MapsService {
             url,
             headers: {},
         });
-    }
+    };
 
     getPlaceDetails = ({
         apiKey,
@@ -203,7 +209,7 @@ class MapsService {
         }).finally(() => {
             googleDynamicSessionToken = uuid.v4(); // This must be updated after each call to get place details
         });
-    }
+    };
 
     getPlaceNearbySearch = ({
         apiKey,
@@ -221,7 +227,7 @@ class MapsService {
         }).finally(() => {
             googleDynamicSessionToken = uuid.v4(); // This must be updated after each call to get place details
         });
-    }
+    };
 }
 
 export default new MapsService();
