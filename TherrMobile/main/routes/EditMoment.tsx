@@ -92,7 +92,9 @@ interface IEditMomentState {
     isImageBottomSheetVisible: boolean;
     isVisibilityBottomSheetVisible: boolean;
     inputs: any;
+    isEditingNearbySpaces: boolean;
     isSubmitting: boolean;
+    nearbySpaces: { id: string, title: string }[];
     previewLinkId?: string;
     previewStyleState: any;
     imagePreviewPath: string;
@@ -110,6 +112,7 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
 
 export class EditMoment extends React.Component<IEditMomentProps, IEditMomentState> {
     private categoryOptions: any[];
+    private nearbySpaceOptions: any[];
     private scrollViewRef;
     private translate: Function;
     private unsubscribeNavListener;
@@ -125,7 +128,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         super(props);
 
         const { route } = props;
-        const { area, imageDetails } = route.params;
+        const { area, nearbySpaces, imageDetails } = route.params;
 
         this.state = {
             errorMsg: '',
@@ -141,9 +144,11 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 hashTags: area?.hashtags || '',
                 maxViews: area?.maxViews,
             },
+            isEditingNearbySpaces: false,
             isImageBottomSheetVisible: false,
             isVisibilityBottomSheetVisible: false,
             isSubmitting: false,
+            nearbySpaces: nearbySpaces || [],
             previewStyleState: {},
             selectedImage: imageDetails || {},
             imagePreviewPath: getImagePreviewPath(imageDetails?.path),
@@ -162,6 +167,15 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             label: this.translate(`forms.editMoment.categories.${category}`),
             value: category,
         }));
+        this.nearbySpaceOptions = [{
+            id: 'unselected',
+            label: this.translate('forms.editMoment.labels.unselected'),
+            value: undefined,
+        }].concat((nearbySpaces || []).map((space) => ({
+            id: space.id,
+            label: space.title,
+            value: space.id,
+        })));
         // changeNavigationBarColor(therrTheme.colors.accent1, false, true);
     }
 
@@ -172,8 +186,18 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             title: this.translate('pages.editMoment.headerTitle'),
         });
 
-        this.unsubscribeNavListener = navigation.addListener('beforeRemove', () => {
+        // If editing an existing moment, fetch the moment details (withMedia) and populate the form
+
+        this.unsubscribeNavListener = navigation.addListener('beforeRemove', (e) => {
+            const { isEditingNearbySpaces } = this.state;
             // changeNavigationBarColor(therrTheme.colors.primary, false, true);
+            if (isEditingNearbySpaces && (e.data.action.type === 'GO_BACK' || e.data.action.type === 'POP')) {
+                console.log('HERE');
+                e.preventDefault();
+                this.setState({
+                    isEditingNearbySpaces: false,
+                });
+            }
         });
     }
 
@@ -234,8 +258,24 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         });
     };
 
+    onSubmitWithNearbySpaces = () => {
+        const { navigation } = this.props;
+
+        this.setState({
+            isEditingNearbySpaces: true,
+        });
+
+        // This is necessary to allow intercepting the back swipe gesture and prevent it from animating
+        // before preventDefault is called in the beforeRemove listener
+        navigation.setOptions({
+            // animation: 'none', // navigation v6
+            animationEnabled: false,
+            gestureEnabled: true, // must be set to true or it gets animationEnabled with animationEnabled=false
+        });
+    };
+
     onSubmit = (isDraft = false) => {
-        const { hashtags, selectedImage } = this.state;
+        const { hashtags, nearbySpaces, selectedImage } = this.state;
         const {
             category,
             message,
@@ -243,6 +283,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             maxViews,
             expiresAt,
             radius,
+            spaceId,
             isPublic,
         } = this.state.inputs;
         const {
@@ -271,7 +312,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             longitude,
             maxViews,
             radius,
+            spaceId,
             expiresAt,
+            nearbySpacesSnapshot: nearbySpaces,
         };
 
         if (!this.isFormDisabled()) {
@@ -339,7 +382,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         }
     };
 
-    onInputChange = (name: string, value: string) => {
+    onInputChange = (name: string, value: string | undefined) => {
         const { hashtags } = this.state;
         let modifiedHashtags = [ ...hashtags ];
         let modifiedValue = value;
@@ -355,7 +398,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         }
 
         if (name === 'message') {
-            const match = value.match(youtubeLinkRegex);
+            const match = value?.match(youtubeLinkRegex);
             const previewLinkId = (match && match[1]) || undefined;
             this.setState({
                 previewLinkId,
@@ -513,8 +556,35 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         });
     };
 
-    render() {
-        const { navigation } = this.props;
+    getContinueButtonConfig = (): {
+        title: string;
+        icon: string,
+        iconRight: boolean,
+        iconStyle: any,
+        onPress: any,
+    } => {
+        const { isEditingNearbySpaces, nearbySpaces } = this.state;
+
+        if (!isEditingNearbySpaces && (nearbySpaces?.length || 0) > 0) {
+            return {
+                title: this.translate('forms.editMoment.buttons.next'),
+                icon: 'chevron-right',
+                iconStyle: this.themeAccentForms.styles.nextButtonIcon,
+                iconRight: true,
+                onPress: this.onSubmitWithNearbySpaces,
+            };
+        }
+
+        return {
+            title: this.translate('forms.editMoment.buttons.submit'),
+            icon: 'send',
+            iconStyle: this.themeAccentForms.styles.submitButtonIcon,
+            iconRight: false,
+            onPress: () => this.onSubmit(false),
+        };
+    };
+
+    renderEditingForm = () => {
         const {
             errorMsg,
             successMsg,
@@ -523,9 +593,233 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             previewLinkId,
             previewStyleState,
             imagePreviewPath,
+        } = this.state;
+
+        return (
+            <>
+                <Pressable style={this.themeAccentLayout.styles.container} onPress={Keyboard.dismiss}>
+                    {
+                        !!imagePreviewPath &&
+                        <View style={this.themeMoments.styles.mediaContainer}>
+                            <Image
+                                source={{ uri: imagePreviewPath }}
+                                style={this.themeMoments.styles.mediaImage}
+                            />
+                        </View>
+                    }
+                    <Button
+                        containerStyle={spacingStyles.marginBotMd}
+                        buttonStyle={this.themeForms.styles.buttonPrimary}
+                        // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                        disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                        titleStyle={this.themeForms.styles.buttonTitle}
+                        title={this.translate(
+                            'forms.editMoment.buttons.addImage'
+                        )}
+                        icon={
+                            <TherrIcon
+                                name="camera"
+                                size={23}
+                                style={{ color: this.theme.colors.primary, paddingRight: 8 }}
+                            />
+                        }
+                        onPress={() => this.toggleImageBottomSheet()}
+                        raised={false}
+                    />
+                    <Text style={this.theme.styles.sectionDescriptionNote}>
+                        {this.translate('forms.editMoment.labels.addImageNote')}
+                    </Text>
+                    <RoundInput
+                        autoFocus
+                        maxLength={100}
+                        placeholder={this.translate(
+                            'forms.editMoment.labels.notificationMsg'
+                        )}
+                        value={inputs.notificationMsg}
+                        onChangeText={(text) =>
+                            this.onInputChange('notificationMsg', text)
+                        }
+                        themeForms={this.themeForms}
+                    />
+                    <RoundTextInput
+                        placeholder={this.translate(
+                            'forms.editMoment.labels.message'
+                        )}
+                        value={inputs.message}
+                        onChangeText={(text) =>
+                            this.onInputChange('message', text)
+                        }
+                        minHeight={150}
+                        numberOfLines={7}
+                        themeForms={this.themeForms}
+                    />
+                    <RoundInput
+                        containerStyle={{ marginBottom: !hashtags?.length ? 10 : 0 }}
+                        autoCorrect={false}
+                        errorStyle={this.theme.styles.displayNone}
+                        placeholder={this.translate(
+                            'forms.editMoment.labels.hashTags'
+                        )}
+                        value={inputs.hashTags}
+                        onChangeText={(text) =>
+                            this.onInputChange('hashTags', text)
+                        }
+                        onBlur={this.handleHashTagsBlur}
+                        themeForms={this.themeForms}
+                    />
+                    <HashtagsContainer
+                        hashtags={hashtags}
+                        onHashtagPress={this.handleHashtagPress}
+                        styles={this.themeForms.styles}
+                    />
+                    <View style={[this.themeForms.styles.input, { display: 'flex', flexDirection: 'row', alignItems: 'center' }]}>
+                        <DropDown
+                            onChange={(newValue) =>
+                                this.onInputChange('category', newValue || 'uncategorized')
+                            }
+                            options={this.categoryOptions}
+                            formStyles={this.themeForms.styles}
+                        />
+                    </View>
+                    <Button
+                        containerStyle={spacingStyles.marginBotMd}
+                        buttonStyle={this.themeForms.styles.buttonRoundAlt}
+                        // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                        disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                        titleStyle={this.themeForms.styles.buttonTitleAlt}
+                        title={inputs.isPublic
+                            ? this.translate('forms.editMoment.buttons.visibilityPublic')
+                            : this.translate('forms.editMoment.buttons.visibilityPrivate')}
+                        type="outline"
+                        onPress={this.toggleVisibilityBottomSheet}
+                        raised={false}
+                        icon={
+                            <OctIcon
+                                name={inputs.isPublic ? 'globe' : 'people'}
+                                size={22}
+                                style={this.themeForms.styles.buttonIconAlt}
+                            />
+                        }
+                    />
+                    <View style={[this.themeForms.styles.inputSliderContainer, { paddingBottom: 20 }]}>
+                        <Slider
+                            value={inputs.radius}
+                            onValueChange={(value) => this.onSliderChange('radius', value)}
+                            maximumValue={MAX_RADIUS_PRIVATE}
+                            minimumValue={MIN_RADIUS_PRIVATE}
+                            step={1}
+                            thumbStyle={{ backgroundColor: this.theme.colors.accentBlue, height: 20, width: 20 }}
+                            thumbTouchSize={{ width: 30, height: 30 }}
+                            minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
+                            maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
+                            onSlidingStart={Keyboard.dismiss}
+                        />
+                        <Text style={this.themeForms.styles.inputLabelDark}>
+                            {`${this.translate('forms.editMoment.labels.radius', { meters: inputs.radius })}`}
+                        </Text>
+                    </View>
+                    <Alert
+                        containerStyles={addMargins({
+                            marginBottom: 24,
+                        })}
+                        isVisible={!!(errorMsg || successMsg)}
+                        message={successMsg || errorMsg}
+                        type={errorMsg ? 'error' : 'success'}
+                        themeAlerts={this.themeAlerts}
+                    />
+                    {/* <AccentInput
+                        placeholder={this.translate(
+                            'forms.editMoment.labels.maxProximity'
+                        )}
+                        value={inputs.maxProximity}
+                        onChangeText={(text) =>
+                            this.onInputChange('maxProximity', text)
+                        }
+                    />
+                    {/* <AccentInput
+                        placeholder={this.translate(
+                            'forms.editMoment.labels.maxViews'
+                        )}
+                        value={inputs.maxViews}
+                        onChangeText={(text) =>
+                            this.onInputChange('maxViews', text)
+                        }
+                    />
+                    <AccentInput
+                        placeholder={this.translate(
+                            'forms.editMoment.labels.expiresAt'
+                        )}
+                        value={inputs.expiresAt}
+                        onChangeText={(text) =>
+                            this.onInputChange('expiresAt', text)
+                        }
+                    /> */}
+                </Pressable>
+                {
+                    !!previewLinkId
+                    && <View style={[userContentStyles.preview, this.themeAccentForms.styles.previewContainer, previewStyleState]}>
+                        <Text style={this.themeAccentForms.styles.previewHeader}>{this.translate('pages.editMoment.previewHeader')}</Text>
+                        <View style={this.themeAccentForms.styles.preview}>
+                            <YoutubePlayer
+                                height={300}
+                                play={false}
+                                videoId={previewLinkId}
+                                onFullScreenChange={this.handlePreviewFullScreen}
+                            />
+                        </View>
+                    </View>
+                }
+            </>
+        );
+    };
+
+    renderEditingNearbySpaces = () => {
+        const {
+            errorMsg,
+            successMsg,
+        } = this.state;
+
+        return (
+            <>
+                <Pressable style={this.themeAccentLayout.styles.container} onPress={Keyboard.dismiss}>
+                    <Text style={this.theme.styles.sectionDescriptionNote}>
+                        {this.translate('forms.editMoment.labels.addNearbySpaceNote')}
+                    </Text>
+                    <View style={[this.themeForms.styles.input, { display: 'flex', flexDirection: 'row', alignItems: 'center' }]}>
+                        <DropDown
+                            onChange={(newValue) =>
+                                this.onInputChange('spaceId', newValue || undefined)
+                            }
+                            options={this.nearbySpaceOptions}
+                            formStyles={this.themeForms.styles}
+                        />
+                    </View>
+                    <Alert
+                        containerStyles={addMargins({
+                            marginBottom: 24,
+                        })}
+                        isVisible={!!(errorMsg || successMsg)}
+                        message={successMsg || errorMsg}
+                        type={errorMsg ? 'error' : 'success'}
+                        themeAlerts={this.themeAlerts}
+                    />
+                </Pressable>
+            </>
+        );
+    };
+
+    render() {
+        const { navigation } = this.props;
+        const {
+            previewLinkId,
+            previewStyleState,
+            isEditingNearbySpaces,
             isImageBottomSheetVisible,
             isVisibilityBottomSheetVisible,
         } = this.state;
+        const continueButtonConfig = this.getContinueButtonConfig();
 
         return (
             <>
@@ -542,158 +836,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             { backgroundColor: this.theme.colorVariations.primary2Fade },
                         ]}
                     >
-                        <Pressable style={this.themeAccentLayout.styles.container} onPress={Keyboard.dismiss}>
-                            {
-                                !!imagePreviewPath &&
-                                <View style={this.themeMoments.styles.mediaContainer}>
-                                    <Image
-                                        source={{ uri: imagePreviewPath }}
-                                        style={this.themeMoments.styles.mediaImage}
-                                    />
-                                </View>
-                            }
-                            <Button
-                                containerStyle={spacingStyles.marginBotMd}
-                                buttonStyle={this.themeForms.styles.buttonPrimary}
-                                // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                                disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                titleStyle={this.themeForms.styles.buttonTitle}
-                                title={this.translate(
-                                    'forms.editMoment.buttons.addImage'
-                                )}
-                                icon={
-                                    <TherrIcon
-                                        name="camera"
-                                        size={23}
-                                        style={{ color: this.theme.colors.primary, paddingRight: 8 }}
-                                    />
-                                }
-                                onPress={() => this.toggleImageBottomSheet()}
-                                raised={false}
-                            />
-                            <Text style={this.theme.styles.sectionDescriptionNote}>
-                                {this.translate('forms.editMoment.labels.addImageNote')}
-                            </Text>
-                            <RoundInput
-                                autoFocus
-                                maxLength={100}
-                                placeholder={this.translate(
-                                    'forms.editMoment.labels.notificationMsg'
-                                )}
-                                value={inputs.notificationMsg}
-                                onChangeText={(text) =>
-                                    this.onInputChange('notificationMsg', text)
-                                }
-                                themeForms={this.themeForms}
-                            />
-                            <RoundTextInput
-                                placeholder={this.translate(
-                                    'forms.editMoment.labels.message'
-                                )}
-                                value={inputs.message}
-                                onChangeText={(text) =>
-                                    this.onInputChange('message', text)
-                                }
-                                minHeight={150}
-                                numberOfLines={7}
-                                themeForms={this.themeForms}
-                            />
-                            <View style={[this.themeForms.styles.input, { display: 'flex', flexDirection: 'row', alignItems: 'center' }]}>
-                                <DropDown
-                                    onChange={(newValue) =>
-                                        this.onInputChange('category', newValue || 'uncategorized')
-                                    }
-                                    options={this.categoryOptions}
-                                    formStyles={this.themeForms.styles}
-                                />
-                            </View>
-                            <RoundInput
-                                autoCorrect={false}
-                                errorStyle={this.theme.styles.displayNone}
-                                placeholder={this.translate(
-                                    'forms.editMoment.labels.hashTags'
-                                )}
-                                value={inputs.hashTags}
-                                onChangeText={(text) =>
-                                    this.onInputChange('hashTags', text)
-                                }
-                                onBlur={this.handleHashTagsBlur}
-                                themeForms={this.themeForms}
-                            />
-                            <HashtagsContainer
-                                hashtags={hashtags}
-                                onHashtagPress={this.handleHashtagPress}
-                                styles={this.themeForms.styles}
-                            />
-                            <Button
-                                containerStyle={spacingStyles.marginBotMd}
-                                buttonStyle={this.themeForms.styles.buttonRoundAlt}
-                                // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                disabledStyle={this.themeForms.styles.buttonRoundDisabled}
-                                disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
-                                titleStyle={this.themeForms.styles.buttonTitleAlt}
-                                title={inputs.isPublic
-                                    ? this.translate('forms.editMoment.buttons.visibilityPublic')
-                                    : this.translate('forms.editMoment.buttons.visibilityPrivate')}
-                                type="outline"
-                                onPress={this.toggleVisibilityBottomSheet}
-                                raised={false}
-                            />
-                            <View style={[this.themeForms.styles.inputSliderContainer, { paddingBottom: 20 }]}>
-                                <Slider
-                                    value={inputs.radius}
-                                    onValueChange={(value) => this.onSliderChange('radius', value)}
-                                    maximumValue={MAX_RADIUS_PRIVATE}
-                                    minimumValue={MIN_RADIUS_PRIVATE}
-                                    step={1}
-                                    thumbStyle={{ backgroundColor: this.theme.colors.accentBlue, height: 20, width: 20 }}
-                                    thumbTouchSize={{ width: 30, height: 30 }}
-                                    minimumTrackTintColor={this.theme.colorVariations.accentBlueLightFade}
-                                    maximumTrackTintColor={this.theme.colorVariations.accentBlueHeavyFade}
-                                    onSlidingStart={Keyboard.dismiss}
-                                />
-                                <Text style={this.themeForms.styles.inputLabelDark}>
-                                    {`${this.translate('forms.editMoment.labels.radius', { meters: inputs.radius })}`}
-                                </Text>
-                            </View>
-                            <Alert
-                                containerStyles={addMargins({
-                                    marginBottom: 24,
-                                })}
-                                isVisible={!!(errorMsg || successMsg)}
-                                message={successMsg || errorMsg}
-                                type={errorMsg ? 'error' : 'success'}
-                                themeAlerts={this.themeAlerts}
-                            />
-                            {/* <AccentInput
-                                placeholder={this.translate(
-                                    'forms.editMoment.labels.maxProximity'
-                                )}
-                                value={inputs.maxProximity}
-                                onChangeText={(text) =>
-                                    this.onInputChange('maxProximity', text)
-                                }
-                            />
-                            {/* <AccentInput
-                                placeholder={this.translate(
-                                    'forms.editMoment.labels.maxViews'
-                                )}
-                                value={inputs.maxViews}
-                                onChangeText={(text) =>
-                                    this.onInputChange('maxViews', text)
-                                }
-                            />
-                            <AccentInput
-                                placeholder={this.translate(
-                                    'forms.editMoment.labels.expiresAt'
-                                )}
-                                value={inputs.expiresAt}
-                                onChangeText={(text) =>
-                                    this.onInputChange('expiresAt', text)
-                                }
-                            /> */}
-                        </Pressable>
+                        {
+                            isEditingNearbySpaces ? this.renderEditingNearbySpaces() : this.renderEditingForm()
+                        }
                         {
                             !!previewLinkId
                             && <View style={[userContentStyles.preview, this.themeAccentForms.styles.previewContainer, previewStyleState]}>
@@ -749,18 +894,17 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             disabledTitleStyle={this.themeAccentForms.styles.submitDisabledButtonTitle}
                             titleStyle={this.themeAccentForms.styles.submitButtonTitle}
                             containerStyle={this.themeAccentForms.styles.submitButtonContainer}
-                            title={this.translate(
-                                'forms.editMoment.buttons.submit'
-                            )}
+                            title={continueButtonConfig.title}
                             icon={
                                 <TherrIcon
-                                    name="send"
+                                    name={continueButtonConfig.icon}
                                     size={20}
                                     color={this.isFormDisabled() ? 'grey' : 'black'}
-                                    style={this.themeAccentForms.styles.submitButtonIcon}
+                                    style={continueButtonConfig.iconStyle}
                                 />
                             }
-                            onPress={() => this.onSubmit()}
+                            iconRight={continueButtonConfig.iconRight}
+                            onPress={continueButtonConfig.onPress}
                             disabled={this.isFormDisabled()}
                         />
                     </View>

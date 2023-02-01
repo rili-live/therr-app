@@ -64,6 +64,7 @@ import BottomSheetPlus from '../../components/BottomSheet/BottomSheetPlus';
 import MapBottomSheetContent from '../../components/BottomSheet/MapBottomSheetContent';
 import TherrMapView from './TherrMapView';
 import { isMyContent } from '../../utilities/content';
+import getNearbySpaces from '../../utilities/getNearbySpaces';
 
 const { height: viewPortHeight, width: viewportWidth } = Dimensions.get('window');
 const earthLoader = require('../../assets/earth-loader.json');
@@ -502,7 +503,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     };
 
     handleCreate = (action: ICreateMomentAction = 'moment') => {
-        const { location, navigation } = this.props;
+        const { location, navigation, map, reactions, user } = this.props;
         const { circleCenter } = this.state;
 
         this.setState({
@@ -514,6 +515,8 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             const storePermissions = () => {};
 
             if (action === 'moment') {
+                const nearbySpaces = getNearbySpaces(circleCenter, user, reactions, map.spaces);
+
                 navigation.reset({
                     index: 1,
                     routes: [
@@ -528,6 +531,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                             params: {
                                 ...circleCenter,
                                 imageDetails: {},
+                                nearbySpaces,
                                 area: {},
                             },
                         },
@@ -1031,6 +1035,20 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             },
             user
         );
+    };
+
+    isAreaActivated = (type: IAreaType, area) => {
+        const { reactions, user } = this.props;
+
+        if (isMyContent(area, user)) {
+            return true;
+        }
+
+        if (type === 'moments') {
+            return !!reactions.myMomentReactions[area.id];
+        }
+
+        return !!reactions.mySpaceReactions[area.id];
     };
 
     onConfirmModalCancel = () => {

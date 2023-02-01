@@ -70,10 +70,13 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
             if (!userResults.length) {
                 const blacklistedEmails = await failsafeBlackListRequest(acceptingUserEmail);
                 const emailIsBlacklisted = blacklistedEmails?.length;
+                // NOTE: This caused AWS SES Bounce rates to block our account.
+                // This is disabled until we can find a better way to handle this.
+                const isAutoUserCreateDisabled = true;
 
-                if (!emailIsBlacklisted && acceptingUserEmail && emailValidator.validate(acceptingUserEmail)) {
-                    // TODO: Ratelimit this to prevent spamming new user email
-                    // fire and forget
+                if (!isAutoUserCreateDisabled && !emailIsBlacklisted && acceptingUserEmail && emailValidator.validate(acceptingUserEmail)) {
+                    // NOTE: This caused AWS SES Bounce rates to block our account.
+                    // This is disabled until we can find a better way to handle this.
                     unverifiedUser = await createUserHelper({
                         email: acceptingUserEmail,
                     }, false, {

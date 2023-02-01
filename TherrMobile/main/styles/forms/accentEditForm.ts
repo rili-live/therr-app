@@ -98,6 +98,9 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             alignItems: 'center',
             justifyContent: 'flex-end',
         },
+        nextButtonIcon: {
+            marginLeft: 4,
+        },
         submitButtonIcon: {
             marginRight: 10,
         },

@@ -46,12 +46,12 @@ const map = (state: IMapState = initialState, action: any) => {
             modifiedMoments[action.data?.id] = action.data;
             return state.setIn(['moments'], modifiedMoments);
         case MapActionTypes.MOMENT_UPDATED:
-            if (!modifiedMoments[action.data.moment.id]) {
-                modifiedMoments[action.data.moment.id] = action.data.moment;
+            if (!modifiedMoments[action.data.id]) {
+                modifiedMoments[action.data.id] = action.data;
             } else {
-                modifiedMoments[action.data.moment.id] = {
-                    ...modifiedMoments[action.data.moment.id],
-                    ...action.data.moment,
+                modifiedMoments[action.data.id] = {
+                    ...modifiedMoments[action.data.id],
+                    ...action.data,
                 };
             }
             return state.setIn(['moments'], modifiedMoments);
