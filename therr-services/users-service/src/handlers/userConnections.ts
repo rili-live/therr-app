@@ -15,6 +15,7 @@ import { createUserHelper } from './helpers/user';
 import sendContactInviteEmail from '../api/email/sendContactInviteEmail';
 import twilioClient from '../api/twilio';
 import { createOrUpdateAchievement } from './helpers/achievements';
+import { parseConfigValue } from './config';
 
 const failsafeBlackListRequest = (email) => Store.blacklistedEmails.get({
     email,
@@ -72,9 +73,10 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
                 const emailIsBlacklisted = blacklistedEmails?.length;
                 // NOTE: This caused AWS SES Bounce rates to block our account.
                 // This is disabled until we can find a better way to handle this.
-                const isAutoUserCreateDisabled = true;
+                const isAutoUserCreateEnabled = await Store.config.get('features.isAutoUserCreateEnabled')
+                    .then((configResults) => configResults?.length && parseConfigValue(configResults[0].value, configResults[0].type));
 
-                if (!isAutoUserCreateDisabled && !emailIsBlacklisted && acceptingUserEmail && emailValidator.validate(acceptingUserEmail)) {
+                if (isAutoUserCreateEnabled && !emailIsBlacklisted && acceptingUserEmail && emailValidator.validate(acceptingUserEmail)) {
                     // NOTE: This caused AWS SES Bounce rates to block our account.
                     // This is disabled until we can find a better way to handle this.
                     unverifiedUser = await createUserHelper({
