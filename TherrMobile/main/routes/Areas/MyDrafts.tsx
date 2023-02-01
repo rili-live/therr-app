@@ -147,6 +147,7 @@ class MyDrafts extends React.Component<IMyDraftsProps, IMyDraftsState> {
         navigation.navigate('EditMoment', {
             area,
             imageDetails: {},
+            nearbySpaces: area.nearbySpacesSnapshot,
         });
     };
 

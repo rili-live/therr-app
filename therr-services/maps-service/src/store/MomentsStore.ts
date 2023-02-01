@@ -15,6 +15,12 @@ export const MOMENTS_TABLE_NAME = 'main.moments';
 
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
 const maxNotificationMsgLength = 100;
+
+interface INearbySpacesSnapshot {
+    id: string;
+    title: string;
+}
+
 export interface ICreateMomentParams {
     areaType?: string;
     category?: any;
@@ -36,6 +42,7 @@ export interface ICreateMomentParams {
     maxProximity?: number;
     latitude: number;
     longitude: number;
+    nearbySpacesSnapshot?: INearbySpacesSnapshot[];
     radius?: number;
     polygonCoords?: string;
 }
@@ -324,6 +331,9 @@ export default class MomentsStore {
                 hashTags: params.hashTags || '',
                 maxViews: params.maxViews || 0,
                 maxProximity: params.maxProximity,
+                // nearbySpacesSnapshot is used for drafted moments so we can get nearby spaces without requiring location
+                // to edit a drafted moment
+                nearbySpacesSnapshot: params.nearbySpacesSnapshot ? JSON.stringify(params.nearbySpacesSnapshot) : JSON.stringify([]),
                 latitude: params.latitude,
                 longitude: params.longitude,
                 radius: params.radius,
@@ -381,6 +391,7 @@ export default class MomentsStore {
                 hashTags: params.hashTags || '',
                 maxViews: params.maxViews || 0,
                 maxProximity: params.maxProximity,
+                nearbySpacesSnapshot: params.nearbySpacesSnapshot ? JSON.stringify(params.nearbySpacesSnapshot) : undefined,
                 // latitude: params.latitude,
                 // longitude: params.longitude,
                 radius: params.radius,
@@ -393,7 +404,7 @@ export default class MomentsStore {
             const queryString = knexBuilder.update(sanitizedParams)
                 .into(MOMENTS_TABLE_NAME)
                 .where({ id })
-                .returning(['id'])
+                .returning('*')
                 .toString();
 
             return this.db.write.query(queryString).then((response) => response.rows);
