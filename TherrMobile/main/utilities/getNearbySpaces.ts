@@ -28,10 +28,8 @@ const getNearbySpaces = (center, user, reactions, spaces) => Object.values(space
         lat: space.latitude,
     });
 
-    console.log(distanceToNearbySpace);
-
     // Distance in meters (roughly 400 feet)
-    return distanceToNearbySpace < 900000;
+    return distanceToNearbySpace < 120;
 }).map((space: any) => ({ id: space.id, title: space.notificationMsg }));
 
 export default getNearbySpaces;
