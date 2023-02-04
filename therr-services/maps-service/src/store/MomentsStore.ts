@@ -64,6 +64,25 @@ export default class MomentsStore {
         this.mediaStore = mediaStore;
     }
 
+    /**
+     * This is used to check for duplicates before creating a new moments
+     */
+    get(filters) {
+        const notificationMsg = filters.notificationMsg
+            ? `${sanitizeNotificationMsg(filters.notificationMsg).substring(0, maxNotificationMsgLength)}`
+            : `${sanitizeNotificationMsg(filters.message).substring(0, maxNotificationMsgLength)}`;
+        // hard limit to prevent overloading client
+        const query = knexBuilder
+            .from(MOMENTS_TABLE_NAME)
+            .where({
+                fromUserId: filters.fromUserId,
+                message: filters.message,
+                notificationMsg,
+            });
+
+        return this.db.read.query(query.toString()).then((response) => response.rows);
+    }
+
     // Combine with search to avoid getting count out of sync
     countRecords(params, fromUserIds) {
         let proximityMax = Location.AREA_PROXIMITY_METERS;
