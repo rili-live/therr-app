@@ -6,6 +6,9 @@
             "oneTimeExpired": "One-time password has expired",
             "incorrectUserPass": "Incorrect username/password combination"
         },
+        "posts": {
+            "duplicatePost": "Duplicate posts are not allowed"
+        },
         "userAchievements": {
             "invalidAchievementClass": "Invalid achievement class. Nothing found in config.",
             "invalidAchievementId": "Invalid achievement ID. Nothing found in config.",

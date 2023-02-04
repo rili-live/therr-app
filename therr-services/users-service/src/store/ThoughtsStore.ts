@@ -122,7 +122,28 @@ export default class ThoughtsStore {
         });
     }
 
-    get(thoughtId, filters, options: any = {}) {
+    /**
+     * This is used to check for duplicates before creating a new thought
+     */
+    get(filters) {
+        // hard limit to prevent overloading client
+        let query = knexBuilder
+            .from(THOUGHTS_TABLE_NAME)
+            .where({
+                fromUserId: filters.fromUserId,
+                message: filters.message,
+            });
+
+        if (!filters.parentId) {
+            query = query.whereNull('parentId');
+        } else {
+            query = query.where('parentId', filters.parentId);
+        }
+
+        return this.db.read.query(query.toString()).then((response) => response.rows);
+    }
+
+    getById(thoughtId, filters, options: any = {}) {
         // hard limit to prevent overloading client
         let query = knexBuilder
             .from(THOUGHTS_TABLE_NAME)

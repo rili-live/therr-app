@@ -15,10 +15,26 @@ import { checkIsMediaSafeForWork } from './helpers';
 import { isTextUnsafe } from '../utilities/contentSafety';
 
 // CREATE
-const createSpace = (req, res) => {
+const createSpace = async (req, res) => {
     const authorization = req.headers.authorization;
     const locale = req.headers['x-localecode'] || 'en-us';
     const userId = req.headers['x-userid'];
+
+    const isDuplicate = await Store.spaces.get({
+        fromUserId: userId,
+        message: req.body.message,
+        notificationMsg: req.body.notificationMsg,
+    })
+        .then((spaces) => spaces?.length);
+
+    if (isDuplicate) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.posts.duplicatePost'),
+            statusCode: 400,
+            errorCode: ErrorCodes.DUPLICATE_POST,
+        });
+    }
 
     const {
         hashTags,

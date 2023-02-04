@@ -22,10 +22,26 @@ import { isTextUnsafe } from '../utilities/contentSafety';
 const MAX_INTERGRATIONS_PER_USER = 50;
 
 // CREATE
-const createMoment = (req, res) => {
+const createMoment = async (req, res) => {
     const authorization = req.headers.authorization;
     const locale = req.headers['x-localecode'] || 'en-us';
     const userId = req.headers['x-userid'];
+
+    const isDuplicate = await Store.moments.get({
+        fromUserId: userId,
+        message: req.body.message,
+        notificationMsg: req.body.notificationMsg,
+    })
+        .then((moments) => moments?.length);
+
+    if (isDuplicate) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.posts.duplicatePost'),
+            statusCode: 400,
+            errorCode: ErrorCodes.DUPLICATE_POST,
+        });
+    }
 
     const {
         hashTags,
