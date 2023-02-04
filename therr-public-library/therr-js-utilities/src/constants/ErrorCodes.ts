@@ -1,5 +1,6 @@
 const ErrorCodes = {
     UNKNOWN_ERROR: 'UnknownError',
+    DUPLICATE_POST: 'DuplicatePost',
     NOT_FOUND: 'NotFound',
     USER_EXISTS: 'UserAlreadyExists',
     MOMENT_ACCESS_RESTRICTED: 'MomentAccessRestricted',

@@ -11,10 +11,26 @@ import createSendTotalNotification from '../utilities/createSendTotalNotificatio
 import { createOrUpdateAchievement } from './helpers/achievements';
 
 // CREATE
-const createThought = (req, res) => {
+const createThought = async (req, res) => {
     const authorization = req.headers.authorization;
     const locale = req.headers['x-localecode'] || 'en-us';
     const userId = req.headers['x-userid'];
+
+    const isDuplicate = await Store.thoughts.get({
+        fromUserId: userId,
+        message: req.body.message,
+        parentId: req.body.parentId,
+    })
+        .then((thoughts) => thoughts?.length);
+
+    if (isDuplicate) {
+        return handleHttpError({
+            res,
+            message: translate(locale, 'errorMessages.posts.duplicatePost'),
+            statusCode: 400,
+            errorCode: ErrorCodes.DUPLICATE_POST,
+        });
+    }
 
     return Store.thoughts.create({
         ...req.body,
@@ -23,7 +39,8 @@ const createThought = (req, res) => {
     })
         .then(([thought]) => {
             if (thought.parentId) {
-                Store.thoughts.get(thought.parentId, {}).then(({ thoughts }) => {
+                // Reward users for replying to thoughts
+                Store.thoughts.getById(thought.parentId, {}).then(({ thoughts }) => {
                     if (thoughts.length) {
                         const parentThought = thoughts[0];
                         if (parentThought.fromUserId !== userId) {
@@ -109,7 +126,7 @@ const getThoughtDetails = (req, res) => {
     const shouldFetchReplies = !!withReplies;
 
     // TODO: Fetch own reaction or reaction count for own thought ("likeCount")
-    return Store.thoughts.get(thoughtId, {}, {
+    return Store.thoughts.getById(thoughtId, {}, {
         withUser: shouldFetchUser,
         withReplies: shouldFetchReplies,
         shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
