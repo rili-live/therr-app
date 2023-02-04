@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 import * as Immutable from 'seamless-immutable';
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { IUser, IUserSettings, UserActionTypes } from '../../types/redux/user';
@@ -106,7 +107,7 @@ class UsersActions {
             userData,
             userSettingsData,
         };
-    }
+    };
 
     block = (userIdToBlock: string, alreadyBlockedUsers: number[]) => (dispatch: any) => UsersService
         .block(userIdToBlock, alreadyBlockedUsers).then(async (response) => {
@@ -170,18 +171,10 @@ class UsersActions {
             this.socketIO.io.opts.query = {
                 token: idToken,
             };
-            // Connect and get socketIO.id
-            this.socketIO.on('connect', async () => {
-                const sessionData = { id: this.socketIO.id, idTokens: idTokens || {} };
-                // NOTE: Native Storage methods return a promise, but in this case we don't need to await
-                await (this.NativeStorage || sessionStorage)
-                    .setItem('therrSession', JSON.stringify(sessionData));
-                if (data.rememberMe && !this.NativeStorage) {
-                    localStorage.setItem('therrSession', JSON.stringify(sessionData));
-                }
-
+            const afterIOConnectAttempt = () => {
                 // These two dispatches were moved here to fix a bug when one dispatch happened before the callback
-                // For some reason it caused the websocket server to NOT receive the message in the callback
+                // For some reason it caused the websocket server to NOT receive the message in the callback.
+                // We should also call these regardless when failing to connect to the socket server
                 dispatch({
                     type: SocketClientActionTypes.LOGIN,
                     data: userData,
@@ -196,7 +189,27 @@ class UsersActions {
                         settings: userSettingsData,
                     },
                 });
-            });
+            };
+            // Connect and get socketIO.id
+            const onIOConnectListener = async () => {
+                const sessionData = { id: this.socketIO.id, idTokens: idTokens || {} };
+                // NOTE: Native Storage methods return a promise, but in this case we don't need to await
+                await (this.NativeStorage || sessionStorage)
+                    .setItem('therrSession', JSON.stringify(sessionData));
+                if (data.rememberMe && !this.NativeStorage) {
+                    localStorage.setItem('therrSession', JSON.stringify(sessionData));
+                }
+
+                afterIOConnectAttempt();
+            };
+            // TODO: Send event to Google Analytics and/or Datadog
+            const onIOConnectErrorListener = (error: any) => {
+                // We still need to let the user login when websocket service is down or not available
+                console.warn(error);
+                afterIOConnectAttempt();
+            };
+            this.socketIO.on('connect', onIOConnectListener);
+            this.socketIO.on('connect_error', onIOConnectErrorListener);
             this.socketIO.connect();
             (this.NativeStorage || sessionStorage).setItem('therrUser', JSON.stringify(userData));
             (this.NativeStorage || sessionStorage).setItem('therrUserSettings', JSON.stringify(userSettingsData));
@@ -260,7 +273,7 @@ class UsersActions {
         this.socketIO.disconnect();
         this.GoogleSignin?.signOut();
         // NOTE: Socket will disconnect in reducer after event response from server (SESSION_CLOSED)
-    }
+    };
 
     register = (data: any) => (dispatch: any) => UsersService.create(data).then((response) => {
         const {

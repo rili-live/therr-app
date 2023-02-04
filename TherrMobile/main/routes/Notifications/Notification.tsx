@@ -104,7 +104,7 @@ export default ({
                 </View>
             </View>
             <Pressable
-                onPress={isUnread ? handlePress : () => {}}
+                onPress={handlePress}
                 style={themeNotification.styles.iconContainerStyle}
                 hitSlop={20}
             >
