@@ -17,7 +17,7 @@ const redisClient = new Redis({
 // Redis Error handling
 redisClient.on('error', (error: any) => {
     printLogs({
-        level: 'verbose',
+        level: 'error',
         messageOrigin: 'REDIS_CONNECTION_ERROR',
         messages: error.toString(),
         tracer: beeline,
@@ -43,7 +43,7 @@ const connectToRedis = (options, callback) => {
     }).catch((e) => {
         console.error(e);
         printLogs({
-            level: 'verbose',
+            level: 'error',
             messageOrigin: 'REDIS_LOG',
             messages: [e.message],
             tracer: options.tracer,
