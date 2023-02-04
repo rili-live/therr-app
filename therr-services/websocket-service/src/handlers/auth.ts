@@ -41,7 +41,7 @@ const login = ({
             socketId: socket.id,
             ip: (socket.handshake.headers as any).host.split(':')[0],
             // 30 minutes
-            ttl: 60 * 1000 * 30,
+            ttl: 1 * 60 * 30,
             data: {
                 id: data?.id,
                 socketId: socket.id,
@@ -67,7 +67,7 @@ const login = ({
             });
         }).catch((err: any) => {
             printLogs({
-                level: 'verbose',
+                level: 'error',
                 messageOrigin: 'REDIS_SESSION_ERROR',
                 messages: err.toString(),
                 tracer: beeline,

@@ -45,6 +45,7 @@ export const connectToRedis = (options, callback) => {
     const redisConnectPromises = [redisPub.connect(), redisSub.connect()];
 
     Promise.all(redisConnectPromises).then((responses: any[]) => {
+        console.info(responses);
         clearTimeout(connectionTimerId);
         connectionRetryCount = 0;
         connectionWaitTime = 0;
@@ -70,7 +71,7 @@ export const connectToRedis = (options, callback) => {
     }).catch((e) => {
         console.error(e);
         printLogs({
-            level: 'verbose',
+            level: 'error',
             messageOrigin: 'REDIS_LOG',
             messages: [e.message],
             tracer: options.tracer,
@@ -101,7 +102,7 @@ export const connectToRedis = (options, callback) => {
 // Redis Error handling
 redisPub.on('error', (error: any) => {
     printLogs({
-        level: 'verbose',
+        level: 'error',
         messageOrigin: 'REDIS_PUB_CLUSTER_CONNECTION_ERROR',
         messages: error.toString(),
         tracer: beeline,
@@ -111,7 +112,7 @@ redisPub.on('error', (error: any) => {
 
 redisSub.on('error', (error: any) => {
     printLogs({
-        level: 'verbose',
+        level: 'error',
         messageOrigin: 'REDIS_SUB_CLUSTER_CONNECTION_ERROR',
         messages: error.toString(),
         tracer: beeline,

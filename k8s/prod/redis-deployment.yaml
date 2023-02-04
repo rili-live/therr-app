@@ -5,6 +5,7 @@ metadata:
   namespace: default
 spec:
   replicas: 1
+  priorityClassName: "redis-cluster-priority"
   selector:
     matchLabels:
       component: redis
@@ -24,9 +25,12 @@ spec:
             weight: 100
       containers:
       - name: redis
-        image: redis:6
+        image: redis:7
         resources:
           limits:
+            memory: "512Mi"
+            cpu: "100m"
+          requests:
             memory: "512Mi"
             cpu: "100m"
         ports:
