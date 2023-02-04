@@ -1,9 +1,11 @@
 import * as socketio from 'socket.io';
+import printLogs from 'therr-js-utilities/print-logs';
 import {
     Notifications,
 } from 'therr-js-utilities/constants';
 // eslint-disable-next-line import/extensions, import/no-unresolved
 import { IAreaType, IPostType } from 'therr-js-utilities/types';
+import beeline from '../beeline';
 import restRequest from '../utilities/restRequest';
 import redisHelper from '../utilities/redisHelper';
 import globalConfig from '../../../../global-config';
@@ -43,12 +45,16 @@ const throttleAndNotify = (socket, decodedAuthenticationToken, {
                         shouldSendPushNotification: true,
                         fromUserName: reactorUserName,
                     },
-                }, socket, decodedAuthenticationToken).catch((err) => {
-                    console.log(err);
-                });
+                }, socket, decodedAuthenticationToken);
             }
         }).catch((err) => {
-            console.log(err);
+            printLogs({
+                level: 'error',
+                messageOrigin: 'WEBSOCKET_SERVICE',
+                messages: JSON.stringify(err?.response?.data || { error: 'Unknown error with websocket request' }),
+                tracer: beeline,
+                traceArgs: {},
+            });
         });
 };
 
