@@ -101,7 +101,7 @@ class Notifications extends React.Component<
             requestStatus: isAccepted ? 'complete' : 'denied',
         };
 
-        this.markNotificationAsRead(e, notification, updatedUserConnection, false);
+        this.onNotificationPress(e, notification, updatedUserConnection, false);
 
         updateUserConnection({
             connection: {
@@ -123,23 +123,23 @@ class Notifications extends React.Component<
         }
     };
 
-    markNotificationAsRead = (event, notification, userConnection?: any, shouldNavigate = true) => {
-        if (notification.isUnread || userConnection) {
-            const { updateNotification, user } = this.props;
+    onNotificationPress = (event, notification, userConnection?: any, shouldNavigate = true) => {
+        const { updateNotification, user } = this.props;
 
-            const message = {
-                notification: {
-                    ...notification,
-                    isUnread: false,
-                },
-                userName: user.details.userName,
-            };
+        const message = {
+            notification: {
+                ...notification,
+                isUnread: shouldNavigate
+                    ? false
+                    : !notification.isUnread, // Toggle when clicking icon on the right
+            },
+            userName: user.details.userName,
+        };
 
-            if (userConnection) {
-                message.notification.userConnection = userConnection;
-            }
-            updateNotification(message);
+        if (userConnection) {
+            message.notification.userConnection = userConnection;
         }
+        updateNotification(message);
 
         if (shouldNavigate) {
             this.navigateToNotificationContext(notification);
@@ -240,8 +240,8 @@ class Notifications extends React.Component<
                         renderItem={({ item, index }) => (
                             <Notification
                                 acknowledgeRequest={this.handleConnectionRequestAction}
-                                handlePressAndNavigate={(e) => this.markNotificationAsRead(e, item, false, true)}
-                                handlePress={(e) => this.markNotificationAsRead(e, item, false, false)}
+                                handlePressAndNavigate={(e) => this.onNotificationPress(e, item, false, true)}
+                                handlePress={(e) => this.onNotificationPress(e, item, false, false)}
                                 isUnread={item.isUnread}
                                 notification={item}
                                 containerStyles={index === 0 ? notificationStyles.firstChildNotification : notificationStyles.otherChildNotification}
