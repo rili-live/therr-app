@@ -31,12 +31,13 @@ phoneRouter.post('/verify', verifyPhoneLimiter, validate, async (req, res) => {
         const { phoneNumber } = req.body;
         const normalizedPhoneNumber = normalizePhoneNumber(phoneNumber);
 
-        const numberExists: boolean = await new Promise((resolve) => {
+        const isNumberValid: boolean = await new Promise((resolve) => {
             const config: any = {
                 headers: {
                     authorization: req.headers.authorization || '',
                     'x-requestid': uuidv4(),
                     'x-localecode': req.headers['x-localecode'] || '',
+                    'x-platform': req.headers['x-platform'] || '',
                     'x-userid': req.headers['x-userid'] || req['x-userid'] || '',
                     'x-user-device-token': req.headers['x-user-device-token'] || '',
                 },
@@ -48,7 +49,8 @@ phoneRouter.post('/verify', verifyPhoneLimiter, validate, async (req, res) => {
                 .then(() => resolve(true))
                 .catch((error) => {
                     // Phone number not yet in use, so we can allow this user to use it
-                    if (error?.response?.data?.statusCode === 404) {
+                    // NOTE: Users are allowed one personal account and one business account
+                    if (error?.response?.data?.statusCode === 400 && error?.response?.data?.errorCode === ErrorCodes.TOO_MANY_ACCOUNTS) {
                         return resolve(false);
                     }
 
@@ -56,7 +58,7 @@ phoneRouter.post('/verify', verifyPhoneLimiter, validate, async (req, res) => {
                 });
         });
 
-        if (numberExists) {
+        if (!isNumberValid) {
             return handleHttpError({
                 err: new Error('Phone number already exists'),
                 errorCode: ErrorCodes.USER_EXISTS,
