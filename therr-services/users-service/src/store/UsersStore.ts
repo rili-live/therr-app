@@ -75,7 +75,7 @@ export default class UsersStore {
 
     getByPhoneNumber = (phoneNumber: string) => {
         const normalizedPhone = normalizePhoneNumber(phoneNumber as string);
-        let queryString: any = knexBuilder.select(['phoneNumber']).from('main.users')
+        let queryString: any = knexBuilder.select(['email', 'phoneNumber', 'isBusinessAccount']).from('main.users')
             .where({ phoneNumber: normalizedPhone });
 
         queryString = queryString.toString();
@@ -182,7 +182,7 @@ export default class UsersStore {
             modifiedParams.lastName = params.lastName;
         }
 
-        if (params.isBusinessAccount) {
+        if (params.isBusinessAccount || params.isBusinessAccount === false) {
             modifiedParams.isBusinessAccount = params.isBusinessAccount;
         }
 
