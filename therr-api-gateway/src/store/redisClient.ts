@@ -1,5 +1,6 @@
 import printLogs from 'therr-js-utilities/print-logs';
 import Redis from 'ioredis';
+import RedisStore from 'rate-limit-redis';
 import beeline from '../beeline';
 
 const maxConnectionRetries = 100;
@@ -12,6 +13,10 @@ const redisClient = new Redis({
     port: Number(process.env.REDIS_GENERIC_PORT),
     keyPrefix: 'api-gateway:',
     lazyConnect: true,
+    retryStrategy(times) {
+        const delay = Math.min(times * 50, 5000);
+        return delay;
+    },
 });
 
 // Redis Error handling
@@ -31,7 +36,10 @@ redisClient.on('error', (error: any) => {
 const connectToRedis = (options, callback) => {
     redisClient.disconnect();
     // We must connect manually since lazyConnect is true
-    const redisConnectPromises = [redisClient.connect()];
+    const redisConnectPromises = [
+        redisClient.connect()
+            .catch((e) => { console.log('Handled error thrown after attempting to connect to Redis'); }),
+    ];
 
     Promise.all(redisConnectPromises).then((responses: any[]) => {
         clearTimeout(connectionTimerId);
@@ -75,5 +83,20 @@ const connectToRedis = (options, callback) => {
 connectToRedis({
     tracer: beeline,
 }, () => { console.log('Attempting to connect to Redis...'); });
+
+/**
+ * This must be instantiated after the redisClient connects because it also calls connect which causes an error otherwise
+ */
+export const RateLimiterRedisStore = new RedisStore({
+    prefix: 'api-gateway:rl:', // This overrides the default prefix in redisClient
+    // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
+    sendCommand: (...args: string[]) => redisClient.call(...args),
+});
+
+redisClient.on('connect', () => {
+    // This fixes a bug where rate-limit-redis fails to load the script it gets unloaded when Redis restarts
+    console.log('Connected to Redis');
+    RateLimiterRedisStore.loadScript();
+});
 
 export default redisClient;
