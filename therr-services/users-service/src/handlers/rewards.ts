@@ -11,6 +11,28 @@ const calculateExchangeRate = (totalCoins, therrDollarReserves = 100) => {
     return Math.round((Number(deducted) + Number.EPSILON) * 100) / 100;
 };
 
+const fetchExchangeRate = () => Store.users.sumTotalCoins()
+    .then((results) => {
+        const totalCoins = results[0]?.totalTherrCoinSupply;
+        if (!totalCoins) {
+            return Promise.reject(new Error('zero-coins'));
+        }
+
+        return Store.config.get('therrDollarReserves').then((configResults: any) => {
+            if (!configResults.length) {
+                return Promise.reject(new Error('missing-config'));
+            }
+            /**
+             * Fetch remaining dollar reserve balance from source
+             * We will need to update the reserve balance on each exchange
+             * and each time we "mint" new coins
+             */
+            const therrDollarReserves = parseConfigValue(configResults[0].value, configResults[0].type);
+            const exchangeRate = calculateExchangeRate(totalCoins, therrDollarReserves);
+            return exchangeRate;
+        });
+    });
+
 const requestRewardsExchange = (req, res) => {
     const userId = req.headers['x-userid'] as string;
     return Store.users.getUserById(userId, ['userName', 'email', 'settingsTherrCoinTotal']).then(([user]) => {
@@ -22,15 +44,17 @@ const requestRewardsExchange = (req, res) => {
             });
         }
 
-        return sendRewardsExchangeEmail({
-            subject: '[Rewards Requested] Coin Exchange',
-            toAddresses: [],
-        }, {
-            amount: req.body.amount || user.settingsTherrCoinTotal,
-            userId: req.headers['x-userid'],
-            userName: user.userName,
-            userEmail: user.email,
-        })
+        return fetchExchangeRate()
+            .then((exchangeRate) => sendRewardsExchangeEmail({
+                subject: '[Rewards Requested] Coin Exchange',
+                toAddresses: [],
+            }, {
+                amount: req.body.amount || user.settingsTherrCoinTotal,
+                exchangeRate,
+                userId: req.headers['x-userid'],
+                userName: user.userName,
+                userEmail: user.email,
+            }))
             .then(() => res.status(200).send({ message: 'Rewards request sent successfully!' }))
             .catch((err) => handleHttpError({
                 res,
@@ -44,28 +68,7 @@ const requestRewardsExchange = (req, res) => {
 const getCurrentExchangeRate = (req, res) => {
     const userId = req.headers['x-userid'] as string;
 
-    return Store.users.sumTotalCoins()
-        .then((results) => {
-            const totalCoins = results[0]?.totalTherrCoinSupply;
-            if (!totalCoins) {
-                return handleHttpError({
-                    res,
-                    message: 'Zero coins found in Therr reserves',
-                    statusCode: 400,
-                });
-            }
-
-            return Store.config.get('therrDollarReserves').then((configResults: any) => {
-                /**
-                 * Fetch remaining dollar reserve balance from source
-                 * We will need to update the reserve balance on each exchange
-                 * and each time we "mint" new coins
-                 */
-                const therrDollarReserves = parseConfigValue(configResults[0].value, configResults[0].type);
-                const exchangeRate = calculateExchangeRate(totalCoins, therrDollarReserves);
-                return res.status(200).send({ exchangeRate });
-            });
-        })
+    return fetchExchangeRate().then((exchangeRate) => res.status(200).send({ exchangeRate }))
         .catch((err) => handleHttpError({
             res,
             err,

@@ -55,7 +55,7 @@ jobs:
       #     command: npm run lint:all
   docker_build_publish_images:
     docker:
-      - image: circleci/golang:1.15
+      - image: cimg/go:1.20.0
         auth:
           username: $DOCKERHUB_USER
           password: $DOCKERHUB_PASSWORD

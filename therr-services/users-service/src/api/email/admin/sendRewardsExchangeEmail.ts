@@ -24,7 +24,7 @@ export default (emailParams: ISendRewardsExchangeEmailConfig, templateParams: an
     const htmlConfig = {
         header: 'Therr App: Rewards Exchange Request',
         dearUser: 'Hello admin,',
-        body1: `UserName, ${templateParams.userName}, requested to exchange ${templateParams.amount} coins.`,
+        body1: `UserName, ${templateParams.userName}, requested to exchange ${templateParams.amount} coins at rate of $${templateParams.exchangeRate}.`,
         body2: `User Email: ${templateParams.userEmail}`,
         bodyBold: `UserId: ${templateParams.userId}`,
     };
