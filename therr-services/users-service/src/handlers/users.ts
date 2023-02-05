@@ -83,19 +83,41 @@ const getUser = (req, res) => {
  * of a user by phone number.
  */
 const getUserByPhoneNumber = (req, res) => {
-    // const userId = req.headers['x-userid'];
+    const userId = req.headers['x-userid'];
     const { phoneNumber } = req.params;
 
-    return Store.users.getByPhoneNumber(phoneNumber).then((results) => {
-        if (!results.length) {
+    return Store.users.getUserById(userId, ['email', 'phoneNumber', 'isBusinessAccount']).then((userSearchResults) => {
+        if (!userSearchResults.length) {
             return handleHttpError({
                 res,
-                message: `No user found with phone number, ${phoneNumber}.`,
-                statusCode: 404,
+                message: `No user found with id, ${userId}. User is required to verify phone number.`,
+                statusCode: 400,
             });
         }
 
-        return res.status(200).send(results[0]);
+        return Store.users.getByPhoneNumber(phoneNumber).then((results) => {
+            const requestingUser = userSearchResults[0];
+            if (!results.length) {
+                // 1st account with this phone number
+                return res.status(200).send({
+                    isSecondAccount: false,
+                    existingUsers: results,
+                });
+            }
+            if (results.length === 1 && results[0].isBusinessAccount !== requestingUser.isBusinessAccount) {
+                // 2nd account with this phone number
+                return res.status(200).send({
+                    isSecondAccount: true,
+                    existingUsers: results,
+                });
+            }
+
+            return res.status(400).send({
+                existingUsers: results,
+                errorCode: ErrorCodes.TOO_MANY_ACCOUNTS,
+                statusCode: 400,
+            });
+        });
     });
 };
 
