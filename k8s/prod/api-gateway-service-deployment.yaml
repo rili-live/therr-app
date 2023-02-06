@@ -10,6 +10,8 @@ spec:
       component: server-api-gateway
   template:
     metadata:
+      annotations:
+        ad.datadoghq.com/nginx.logs: '[{"source":"services-external","service":"server-api-gateway"}]'
       labels:
         component: server-api-gateway
         tier: api-gateway
