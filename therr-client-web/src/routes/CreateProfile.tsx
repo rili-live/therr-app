@@ -6,9 +6,10 @@ import translator from '../services/translator';
 import CreateProfileForm from '../components/forms/CreateProfileForm';
 import UsersActions from '../redux/actions/UsersActions';
 import withNavigation from '../wrappers/withNavigation';
+import { routeAfterLogin } from './Login';
 
 interface ICreateProfileRouterProps {
-    history: any;
+    navigation: any;
 }
 
 interface ICreateProfileDispatchProps {
@@ -57,11 +58,10 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
     }
 
     onSubmit = (updateArgs: any) => {
-        const { history, user, updateUser } = this.props;
+        const { navigation, user, updateUser } = this.props;
 
         updateUser(user.details.id, updateArgs).then((response: any) => {
-            history.push({
-                pathname: '/login',
+            navigation.navigate(routeAfterLogin, {
                 state: {
                     successMessage: this.translate('pages.createProfile.createProfileSuccess'),
                 },

@@ -48,30 +48,36 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     },
     {
         path: '/create-forum',
-        element: <CreateForum />,
-        access: {
-            type: AccessCheckType.ALL,
-            levels: [AccessLevels.EMAIL_VERIFIED],
-        },
-        redirectPath: '/create-profile',
+        element: <AuthRoute
+            component={CreateForum}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
     },
     {
         path: '/create-profile',
-        element: <CreateProfile />,
-        access: {
-            type: AccessCheckType.ALL,
-            levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
-        },
-        redirectPath: '/login',
+        element: <AuthRoute
+            component={CreateProfile}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+            })}
+            redirectPath={'/login'}
+        />,
     },
     {
         path: '/users/change-password',
-        element: <ChangePassword />,
-        access: {
-            type: AccessCheckType.ANY,
-            levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
-        },
-        redirectPath: '/create-profile',
+        element: <AuthRoute
+            component={ChangePassword}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ANY,
+                levels: [AccessLevels.EMAIL_VERIFIED, AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES],
+            })}
+            redirectPath={'/create-profile'}
+        />,
     },
     {
         path: '/reset-password',
@@ -91,30 +97,36 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     },
     {
         path: '/user/profile',
-        element: <UserProfile onInitMessaging={routePropsConfig.onInitMessaging} />, // eslint-disable-line react/display-name
-        access: {
-            type: AccessCheckType.ALL,
-            levels: [AccessLevels.EMAIL_VERIFIED],
-        },
-        redirectPath: '/create-profile',
+        element: <AuthRoute
+            render={() => <UserProfile onInitMessaging={routePropsConfig.onInitMessaging} />}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
     },
     {
         path: '/discovered',
-        element: <Discovered />,
-        access: {
-            type: AccessCheckType.ALL,
-            levels: [AccessLevels.EMAIL_VERIFIED],
-        },
-        redirectPath: '/create-profile',
+        element: <AuthRoute
+            component={Discovered}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
     },
     {
         path: '/user/go-mobile',
-        element: <UnderConstruction />, // eslint-disable-line react/display-name
-        access: {
-            type: AccessCheckType.ALL,
-            levels: [AccessLevels.EMAIL_VERIFIED],
-        },
-        redirectPath: '/create-profile',
+        element: <AuthRoute
+            component={UnderConstruction}
+            isAuthorized={routePropsConfig.isAuthorized({
+                type: AccessCheckType.ALL,
+                levels: [AccessLevels.EMAIL_VERIFIED],
+            })}
+            redirectPath={'/create-profile'}
+        />,
     },
 
     // If no route matches, return NotFound component

@@ -169,7 +169,7 @@ export class CreateProfile extends React.Component<ICreateProfileProps, ICreateP
             firstName,
             lastName,
             userName: userName?.toLowerCase(),
-            isBusinessAccount,
+            isBusinessAccount: !!isBusinessAccount,
         };
 
         if (stage === 'B' && !isPhoneNumberValid) {

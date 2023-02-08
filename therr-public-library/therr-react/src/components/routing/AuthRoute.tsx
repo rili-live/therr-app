@@ -1,6 +1,6 @@
 /* eslint-disable no-nested-ternary */
 import * as React from 'react';
-import { Route, RouteProps } from 'react-router-dom';
+import { RouteProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
 import RedirectWithStatus from './RedirectWithStatus';
@@ -15,7 +15,6 @@ interface IAuthRouteProps extends RouteProps {
     location: string;
     redirectPath: string;
     render?: any;
-    path: any;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -26,7 +25,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators(
     dispatch,
 );
 
-const TheComponent = (props: IAuthRouteProps) => (
+const RouteComponent = (props: IAuthRouteProps) => (
     props.isAuthorized
         ? (
             props.render ? props.render(props) : <props.component {...props}/>
@@ -37,7 +36,6 @@ const TheComponent = (props: IAuthRouteProps) => (
                 to={{
                     pathname: props.redirectPath,
                 }}
-                from={props.location}
             />
         )
 );
@@ -45,25 +43,15 @@ const TheComponent = (props: IAuthRouteProps) => (
 class AuthRoute extends React.Component<IAuthRouteProps, any> {
     redirectPath = '/login';
 
-    constructor(props: IAuthRouteProps) {
-        super(props);
-
+    render() {
         const { redirectPath } = this.props;
 
         if (redirectPath) {
             this.redirectPath = redirectPath;
         }
-    }
-
-    render() {
-        const {
-            path,
-        } = this.props;
-        const routeProps = { ...this.props };
-        delete routeProps.component;
 
         return (
-            <Route path={path} element={<TheComponent { ...routeProps } redirectPath={this.redirectPath} />}/>
+            <RouteComponent { ...this.props } redirectPath={this.redirectPath} />
         );
     }
 }
