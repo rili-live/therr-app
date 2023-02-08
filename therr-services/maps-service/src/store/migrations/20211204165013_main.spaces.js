@@ -45,7 +45,7 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('spaces', asyn
 
     // Audit
     table.integer('valuation').notNullable().defaultTo(0);
-    table.string('region').notNullable(); // Also used for sharding, db locationing
+    table.string('region').notNullable(); // Also used for sharding, db location
     table.timestamp('expiresAt', { useTz: true });
     table.timestamp('createdAt', { useTz: true }).notNullable().defaultTo(knex.fn.now());
     table.timestamp('updatedAt', { useTz: true }).notNullable().defaultTo(knex.fn.now());

@@ -14,7 +14,7 @@
     "invalidCode": "Code is invalid or expired. Try again or resend.",
     "backendErrorMessage": "Please try again later.",
     "cameraOrFilePermissionsDenied": "Camera or File permissions were denied. Please enable them in your device settings.",
-    "phoneNumberAlreadyInUse": "Phone Number Already In Use",
+    "phoneNumberAlreadyInUse": "Phone Number Already In Use For This Account Type",
     "ssoLoginError": "Please try logging in with you account username/password"
   },
   "quoteOfTheDay": "Quote of the Day",

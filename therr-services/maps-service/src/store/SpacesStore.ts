@@ -35,6 +35,11 @@ export interface ICreateSpaceParams {
     longitude: number;
     radius?: string;
     polygonCoords?: string;
+    featuredIncentiveKey: string;
+    featuredIncentiveValue: number;
+    featuredIncentiveRewardKey: string;
+    featuredIncentiveRewardValue: number;
+    featuredIncentiveCurrencyId: string;
 }
 
 interface IDeleteSpacesParams {
@@ -301,6 +306,11 @@ export default class SpacesStore {
                 radius: params.radius,
                 region: region.code,
                 polygonCoords: params.polygonCoords ? JSON.stringify(params.polygonCoords) : JSON.stringify([]),
+                featuredIncentiveKey: params.featuredIncentiveKey,
+                featuredIncentiveValue: params.featuredIncentiveValue,
+                featuredIncentiveRewardKey: params.featuredIncentiveRewardKey,
+                featuredIncentiveRewardValue: params.featuredIncentiveRewardValue,
+                featuredIncentiveCurrencyId: params.featuredIncentiveCurrencyId,
                 // eslint-disable-next-line max-len
                 geom: knexBuilder.raw(`ST_SetSRID(ST_Buffer(ST_MakePoint(${params.longitude}, ${params.latitude})::geography, ${params.radius})::geometry, 4326)`),
             };
@@ -314,11 +324,17 @@ export default class SpacesStore {
         });
     }
 
-    updateSpace(id: string, isMatureContent: boolean) {
-        const queryString = knexBuilder.update({
-            isMatureContent,
-            isPublic: !isMatureContent, // NOTE: For now make this content private to reduce public, mature content
-        })
+    updateSpace(id: string, params: any = {}) {
+        const sanitizedParams = {
+            isMatureContent: params.isMatureContent,
+            isPublic: params.isMatureContent === true ? true : undefined, // NOTE: For now make this content private to reduce public, mature content
+            featuredIncentiveKey: params.featuredIncentiveKey,
+            featuredIncentiveValue: params.featuredIncentiveValue,
+            featuredIncentiveRewardKey: params.featuredIncentiveRewardKey,
+            featuredIncentiveRewardValue: params.featuredIncentiveRewardValue,
+            incentiveCurrencyId: params.incentiveCurrencyId,
+        };
+        const queryString = knexBuilder.update(sanitizedParams)
             .into(SPACES_TABLE_NAME)
             .where({ id })
             .returning(['id'])

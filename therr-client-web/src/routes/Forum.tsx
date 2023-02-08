@@ -21,7 +21,7 @@ const userColors: any = {}; // local state
 
 const verifyAndJoinForum = (props) => {
     if (!props.location?.state || !props.routePrams?.roomId) {
-        props.history.push('/create-forum');
+        props.navigation.navigate('/create-forum');
         return;
     }
 

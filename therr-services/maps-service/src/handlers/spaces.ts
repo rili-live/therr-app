@@ -62,6 +62,20 @@ const createSpace = async (req, res) => {
                 userHasActivated: true,
             },
         }).then(({ data: reaction }) => {
+            // if condition could work for any incentive property
+            let createIncentivePromise: Promise<any[]> = Promise.resolve([]);
+            if (req.body.featuredIncentiveKey) {
+                createIncentivePromise = Store.spaceIncentives.create({
+                    spaceId: space.id,
+                    region: space.region,
+                    incentiveKey: req.body.featuredIncentiveKey,
+                    incentiveValue: req.body.featuredIncentiveValue,
+                    incentiveRewardKey: req.body.featuredIncentiveRewardKey,
+                    incentiveRewardValue: req.body.featuredIncentiveRewardValue,
+                    incentiveCurrencyId: req.body.featuredIncentiveCurrencyId,
+                    isFeatured: true,
+                });
+            }
             // TODO: This technically leaves room for a gap of time where users may find
             // explicit content before it's flag has been updated. We should solve this by
             // marking the content pending before making it available to search
@@ -70,7 +84,9 @@ const createSpace = async (req, res) => {
             if (!isTextMature) {
                 checkIsMediaSafeForWork(media).then((isSafeForWork) => {
                     if (!isSafeForWork) {
-                        return Store.spaces.updateSpace(space.id, !isSafeForWork).catch((err) => {
+                        return Store.spaces.updateSpace(space.id, {
+                            isMatureContent: !isSafeForWork,
+                        }).catch((err) => {
                             printLogs({
                                 level: 'error',
                                 messageOrigin: 'API_SERVER',
@@ -86,10 +102,27 @@ const createSpace = async (req, res) => {
                 });
             }
 
-            return res.status(201).send({
-                ...space,
+            return createIncentivePromise.then(([spaceIncentive]) => {
+                if (spaceIncentive) {
+                    return Store.spaces.updateSpace(space.id, {
+                        featuredIncentiveKey: spaceIncentive.incentiveKey,
+                        featuredIncentiveValue: spaceIncentive.incentiveValue,
+                        featuredIncentiveRewardKey: spaceIncentive.incentiveRewardKey,
+                        featuredIncentiveRewardValue: spaceIncentive.incentiveRewardValue,
+                        featuredIncentiveCurrencyId: spaceIncentive.incentiveCurrencyId,
+                    }).then(() => ({
+                        ...space,
+                        featuredIncentiveKey: spaceIncentive.incentiveKey,
+                        featuredIncentiveValue: spaceIncentive.incentiveValue,
+                        featuredIncentiveRewardKey: spaceIncentive.incentiveRewardKey,
+                        featuredIncentiveRewardValue: spaceIncentive.incentiveRewardValue,
+                        featuredIncentiveCurrencyId: spaceIncentive.incentiveCurrencyId,
+                    }));
+                }
+            }).then((spaceWithFeaturedIncentive) => res.status(201).send({
+                ...spaceWithFeaturedIncentive,
                 reaction,
-            });
+            }));
         }))
         .catch((err) => {
             if (err?.constraint === 'no_overlaps') {
