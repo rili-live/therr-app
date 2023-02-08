@@ -1,15 +1,15 @@
 exports.up = (knex) => knex.schema.withSchema('main').alterTable('spaces', async (table) => {
-    table.string('incentiveRequirement');
-    table.double('incentiveRequirementValue');
-    table.string('incentiveRewardType');
-    table.double('incentiveRewardAmount');
-    table.string('incentiveCurrency');
+    table.string('featuredIncentiveKey'); // These are duplicated properties from the spaceIncentiveDetails table
+    table.double('featuredIncentiveValue'); // These are duplicated properties from the spaceIncentiveDetails table
+    table.string('featuredIncentiveRewardKey'); // These are duplicated properties from the spaceIncentiveDetails table
+    table.double('featuredIncentiveRewardValue'); // These are duplicated properties from the spaceIncentiveDetails table
+    table.string('incentiveCurrencyId'); // These are duplicated properties from the spaceIncentiveDetails table
 });
 
 exports.down = (knex) => knex.schema.withSchema('main').alterTable('spaces', (table) => {
-    table.dropColumn('incentiveAction');
-    table.dropColumn('incentiveRequirementType');
-    table.dropColumn('incentiveRewardType');
-    table.dropColumn('incentiveRewardAmount');
-    table.dropColumn('incentiveCurrency');
+    table.dropColumn('featuredIncentiveKey');
+    table.dropColumn('featuredIncentiveValue');
+    table.dropColumn('featuredIncentiveRewardKey');
+    table.dropColumn('featuredIncentiveRewardValue');
+    table.dropColumn('incentiveCurrencyId');
 });

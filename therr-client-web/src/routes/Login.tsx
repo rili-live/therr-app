@@ -61,6 +61,8 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                 email: nextProps.user.details.email,
                 // Add your own custom user variables below:
             });
+            // TODO: This doesn't seem to work with react-router-dom v6 after a newly created user tries to login
+            // Need to investigate further
             nextProps.navigation.navigate(routeAfterLogin);
             return null;
         }
