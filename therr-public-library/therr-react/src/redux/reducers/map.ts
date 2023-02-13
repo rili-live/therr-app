@@ -33,14 +33,17 @@ const map = (state: IMapState = initialState, action: any) => {
                 [item.id]: item,
             }), modifiedMoments));
         case MapActionTypes.GET_MOMENT_DETAILS:
-            if (!modifiedMoments[action.data.moment.id]) {
-                modifiedMoments[action.data.moment.id] = action.data.moment;
-            } else {
-                modifiedMoments[action.data.moment.id] = {
-                    ...modifiedMoments[action.data.moment.id],
-                    ...action.data.moment,
-                };
+            if (action.data?.moment?.id) {
+                if (!modifiedMoments[action.data.moment.id]) {
+                    modifiedMoments[action.data.moment.id] = action.data.moment;
+                } else {
+                    modifiedMoments[action.data.moment.id] = {
+                        ...modifiedMoments[action.data.moment.id],
+                        ...action.data.moment,
+                    };
+                }
             }
+
             return state.setIn(['moments'], modifiedMoments);
         case MapActionTypes.MOMENT_CREATED:
             modifiedMoments[action.data?.id] = action.data;
@@ -66,13 +69,15 @@ const map = (state: IMapState = initialState, action: any) => {
                 [item.id]: item,
             }), modifiedSpaces));
         case MapActionTypes.GET_SPACE_DETAILS:
-            if (!modifiedSpaces[action.data.space.id]) {
-                modifiedSpaces[action.data.space.id] = action.data.space;
-            } else {
-                modifiedSpaces[action.data.space.id] = {
-                    ...modifiedSpaces[action.data.space.id],
-                    ...action.data.space,
-                };
+            if (action.data.space?.id) {
+                if (!modifiedSpaces[action.data.space.id]) {
+                    modifiedSpaces[action.data.space.id] = action.data.space;
+                } else {
+                    modifiedSpaces[action.data.space.id] = {
+                        ...modifiedSpaces[action.data.space.id],
+                        ...action.data.space,
+                    };
+                }
             }
             return state.setIn(['spaces'], modifiedSpaces);
         case MapActionTypes.SPACE_CREATED:

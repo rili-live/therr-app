@@ -38,6 +38,14 @@ interface ICreateAreaBody {
     polygonCoords?: string;
 }
 
+interface ICreateSpaceBody extends ICreateAreaBody {
+    featuredIncentiveKey?: string;
+    featuredIncentiveValue?: number;
+    featuredIncentiveRewardKey?: string;
+    featuredIncentiveRewardValue?: number;
+    featuredIncentiveCurrencyId?: string;
+}
+
 interface IDeleteAreasBody {
     ids: string[];
 }
@@ -137,7 +145,7 @@ class MapsService {
     deleteMoments = (data: IDeleteAreasBody) => this.deleteAreas('moments', data);
 
     // Spaces
-    createSpace = (data: ICreateAreaBody) => this.createArea('spaces', data);
+    createSpace = (data: ICreateSpaceBody) => this.createArea('spaces', data);
 
     getSpaceDetails = (id: number, args: IGetAreaDetailsArgs) => this.getAreaDetails('spaces', id, args);
 
