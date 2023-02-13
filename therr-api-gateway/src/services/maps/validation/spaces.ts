@@ -3,6 +3,7 @@ import {
     header,
     param,
 } from 'express-validator/check'; // eslint-disable-line import/extensions
+import { createAreaValidation } from './areas';
 
 export const getSpaceDetailsValidation = [
     header('authorization').exists(),
@@ -10,4 +11,13 @@ export const getSpaceDetailsValidation = [
     param('spaceId').exists(),
     body('withMedia').isBoolean().optional(),
     body('withUser').isBoolean().optional(),
+];
+
+export const createSpaceValidation = [
+    ...createAreaValidation,
+    body('featuredIncentiveKey').isString().optional(),
+    body('featuredIncentiveValue').isNumeric().optional(),
+    body('featuredIncentiveRewardKey').isString().optional(),
+    body('featuredIncentiveRewardValue').isNumeric().optional(),
+    body('featuredIncentiveCurrencyId').isString().optional(),
 ];

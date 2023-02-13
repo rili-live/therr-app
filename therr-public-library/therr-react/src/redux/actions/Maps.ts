@@ -56,7 +56,10 @@ const Maps = {
         .then((response: any) => {
             dispatch({
                 type: MapActionTypes.GET_MOMENT_DETAILS,
-                data: response.data,
+                data: {
+                    moment: {}, // sometimes moment is undefined if recently deleted
+                    ...response.data,
+                },
             });
 
             return response.data;
@@ -122,7 +125,10 @@ const Maps = {
         .then((response: any) => {
             dispatch({
                 type: MapActionTypes.GET_SPACE_DETAILS,
-                data: response.data,
+                data: {
+                    space: {}, // Sometimes space is undefined if recently deleted
+                    ...response.data,
+                },
             });
 
             return response.data;
