@@ -3,6 +3,7 @@ const ErrorCodes = {
     DUPLICATE_POST: 'DuplicatePost',
     NOT_FOUND: 'NotFound',
     USER_EXISTS: 'UserAlreadyExists',
+    INSUFFICIENT_THERR_COIN_FUNDS: 'InsufficientTherrCoinFunds',
     MOMENT_ACCESS_RESTRICTED: 'MomentAccessRestricted',
     TOO_MANY_ACCOUNTS: 'OnlyTwoAccountsPerPhoneNumber',
     THOUGHT_ACCESS_RESTRICTED: 'ThoughtAccessRestricted',

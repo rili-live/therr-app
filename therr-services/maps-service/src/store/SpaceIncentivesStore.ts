@@ -14,6 +14,7 @@ export interface ICreateSpaceIncentiveParams {
     incentiveCurrencyId: string;
     isActive?: boolean;
     isFeatured?: boolean;
+    requiredUserDataProps?: string;
     maxUseCount?: number;
     minUserDataProps?: number;
     region: string;

@@ -8,16 +8,11 @@ import Store from '../store';
 const deleteUserData = (req, res) => {
     const userId = req.headers['x-userid'];
     // TODO: RSERV-52 | Consider archiving only, and delete/archive associated reactions from reactions-service
+    // We must delete moments first since they may be associated to a space and have NO cascade on delete (this is intentional)
+    const deletePosts = Store.moments.delete(userId)
+        .then(([moments]) => Store.spaces.delete(userId).then(([spaces]) => ([moments, spaces])));
 
-    const momentsPromise = Store.moments.delete(userId)
-        .then(([moments]) => res.status(202).send(moments));
-
-    const spacesPromise = Store.spaces.delete(userId)
-        .then(([spaces]) => res.status(202).send(spaces));
-
-    const promises = [momentsPromise, spacesPromise];
-
-    Promise.all(promises)
+    deletePosts
         .then(([moments, spaces]) => res.status(202).send({ moments, spaces }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
 };

@@ -77,7 +77,25 @@ const getCurrentExchangeRate = (req, res) => {
         }));
 };
 
+const transferCoins = (req, res) => {
+    const { fromUserId, toUserId, amount } = req.body;
+
+    return Store.users.transferTherrCoin(fromUserId, toUserId, amount)
+        .then((result) => {
+            if (result?.transactionStatus !== 'success') {
+                return handleHttpError({
+                    res,
+                    message: result.transactionStatus,
+                    statusCode: 400,
+                });
+            }
+
+            return res.status(200).send({ message: 'Coins transferred successfully!', ...result });
+        });
+};
+
 export {
     requestRewardsExchange,
     getCurrentExchangeRate,
+    transferCoins,
 };
