@@ -13,6 +13,8 @@ import {
 
 // Enums
 import AccessLevels from './enums/AccessLevels';
+import IncentiveRequirementKeys from './enums/IncentiveRequirementKeys';
+import IncentiveRewardKeys from './enums/IncentiveRewardKeys';
 import * as Notifications from './enums/Notifications';
 import * as PushNotifications from './enums/PushNotifications';
 import SocketClientActionTypes from './enums/SocketClientActionTypes';
@@ -30,6 +32,8 @@ export {
     AccessLevels,
     Content,
     ErrorCodes,
+    IncentiveRequirementKeys,
+    IncentiveRewardKeys,
     Location,
     ILogLevel,
     LogLevelMap,

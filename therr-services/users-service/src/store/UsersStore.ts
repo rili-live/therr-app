@@ -273,6 +273,58 @@ export default class UsersStore {
         return this.db.write.query(queryString.toString()).then((response) => response.rows);
     }
 
+    transferTherrCoin(fromUserId: string, toUserId: string, amount: number) {
+        return this.db.write.connect()
+            .then((client) => this.db.write.query('BEGIN')
+                .then(() => {
+                    // 1. Attempt to reduce the fromUserId's coin total
+                    const decrementQueryString = knexBuilder
+                        .from(USERS_TABLE_NAME)
+                        .returning(['id', 'settingsTherrCoinTotal'])
+                        .where({ id: fromUserId })
+                        .decrement('settingsTherrCoinTotal', amount)
+                        .toString();
+
+                    return client.query(decrementQueryString).then((response) => response.rows[0]);
+                })
+                .then((decrementedUser) => {
+                    if (decrementedUser?.settingsTherrCoinTotal < 0) {
+                        return client.query('ROLLBACK').then(() => ({ transactionStatus: 'insufficient-funds', user: {} }));
+                    }
+
+                    // 2. Attempt to increment the toUserId's coin total
+                    const incrementQueryString = knexBuilder
+                        .from(USERS_TABLE_NAME)
+                        .returning(['id', 'settingsTherrCoinTotal'])
+                        .where({ id: toUserId })
+                        .increment('settingsTherrCoinTotal', amount)
+                        .toString();
+
+                    return client.query(incrementQueryString)
+                        .then((incrResponse) => client.query('COMMIT').then(() => ({
+                            transactionStatus: 'success',
+                            user: incrResponse.rows?.[0],
+                        })))
+                        .catch((err) => ({ transactionStatus: 'increment-failed', error: err?.message }));
+                })
+                .catch((err) => {
+                    console.log(err);
+                    return client.query('ROLLBACK').then(() => ({ transactionStatus: 'unknown', error: err?.message }));
+                }) // rollback if either fail
+                .finally(() => {
+                    client.release();
+                }));
+    }
+
+    sumTotalCoins() {
+        const queryString = knexBuilder
+            .from(USERS_TABLE_NAME)
+            .sum('settingsTherrCoinTotal as totalTherrCoinSupply')
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows);
+    }
+
     deleteUsers(conditions) {
         const normalizedConditions: any = { ...conditions };
 
@@ -292,14 +344,5 @@ export default class UsersStore {
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows);
-    }
-
-    sumTotalCoins() {
-        const queryString = knexBuilder
-            .from(USERS_TABLE_NAME)
-            .sum('settingsTherrCoinTotal as totalTherrCoinSupply')
-            .toString();
-
-        return this.db.read.query(queryString).then((response) => response.rows);
     }
 }

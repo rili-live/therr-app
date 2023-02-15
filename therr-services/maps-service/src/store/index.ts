@@ -4,6 +4,7 @@ import MediaStore from './MediaStore';
 import MomentsStore from './MomentsStore';
 import SpacesStore from './SpacesStore';
 import SpaceIncentivesStore from './SpaceIncentivesStore';
+import SpaceIncentiveCouponsStore from './SpaceIncentiveCouponsStore';
 
 class Store {
     db: IConnection;
@@ -18,6 +19,8 @@ class Store {
 
     spaceIncentives: SpaceIncentivesStore;
 
+    spaceIncentiveCoupons: SpaceIncentiveCouponsStore;
+
     constructor(dbConnection) {
         this.db = dbConnection;
 
@@ -30,6 +33,8 @@ class Store {
         this.spaces = new SpacesStore(this.db, this.media);
 
         this.spaceIncentives = new SpaceIncentivesStore(this.db);
+
+        this.spaceIncentiveCoupons = new SpaceIncentiveCouponsStore(this.db);
     }
 }
 
