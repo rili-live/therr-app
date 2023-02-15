@@ -8,6 +8,7 @@ import MediaStore, { ICreateMediaParams } from './MediaStore';
 import getBucket from '../utilities/getBucket';
 import findUsers from '../utilities/findUsers';
 import { isTextUnsafe } from '../utilities/contentSafety';
+import { SPACE_INCENTIVES_TABLE_NAME } from './SpaceIncentivesStore';
 
 const knexBuilder: Knex = KnexBuilder({ client: 'pg' });
 
@@ -76,6 +77,38 @@ export default class SpacesStore {
             });
 
         return this.db.read.query(query.toString()).then((response) => response.rows);
+    }
+
+    getById(id) {
+        const query = knexBuilder
+            .select([
+                `${SPACES_TABLE_NAME}.id`,
+                `${SPACES_TABLE_NAME}.fromUserId`,
+            ])
+            .from(SPACES_TABLE_NAME)
+            .leftJoin(SPACE_INCENTIVES_TABLE_NAME, `${SPACES_TABLE_NAME}.id`, `${SPACE_INCENTIVES_TABLE_NAME}.spaceId`)
+            .columns([
+                `${SPACE_INCENTIVES_TABLE_NAME}.id as incentives[].id`,
+                `${SPACE_INCENTIVES_TABLE_NAME}.incentiveKey as incentives[].incentiveKey`,
+                `${SPACE_INCENTIVES_TABLE_NAME}.incentiveValue as incentives[].incentiveValue`,
+                `${SPACE_INCENTIVES_TABLE_NAME}.incentiveRewardKey as incentives[].incentiveRewardKey`,
+                `${SPACE_INCENTIVES_TABLE_NAME}.incentiveRewardValue as incentives[].incentiveRewardValue`,
+                `${SPACE_INCENTIVES_TABLE_NAME}.incentiveCurrencyId as incentives[].incentiveCurrencyId`,
+                `${SPACE_INCENTIVES_TABLE_NAME}.isActive as incentives[].isActive`,
+                `${SPACE_INCENTIVES_TABLE_NAME}.isFeatured as incentives[].isFeatured`,
+                `${SPACE_INCENTIVES_TABLE_NAME}.maxUseCount as incentives[].maxUseCount`,
+                `${SPACE_INCENTIVES_TABLE_NAME}.minUserDataProps as incentives[].minUserDataProps`,
+                `${SPACE_INCENTIVES_TABLE_NAME}.region as incentives[].region`,
+                `${SPACE_INCENTIVES_TABLE_NAME}.requiredUserDataProps as incentives[].requiredUserDataProps`,
+                `${SPACE_INCENTIVES_TABLE_NAME}.startsAt as incentives[].startsAt`,
+                `${SPACE_INCENTIVES_TABLE_NAME}.endsAt as incentives[].endsAt`,
+            ])
+            .where({
+                [`${SPACES_TABLE_NAME}.id`]: id,
+            });
+
+        return this.db.read.query(query.toString())
+            .then((response) => formatSQLJoinAsJSON(response.rows, [{ propKey: 'incentives', propId: 'id' }]));
     }
 
     // Combine with search to avoid getting count out of sync

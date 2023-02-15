@@ -1,6 +1,11 @@
 import axios from 'axios';
 import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
-import { Content, ErrorCodes } from 'therr-js-utilities/constants';
+import {
+    Content,
+    ErrorCodes,
+    IncentiveRequirementKeys,
+    IncentiveRewardKeys,
+} from 'therr-js-utilities/constants';
 import printLogs from 'therr-js-utilities/print-logs';
 import { RequestHandler } from 'express';
 import * as globalConfig from '../../../../global-config';
@@ -26,6 +31,7 @@ const createMoment = async (req, res) => {
     const authorization = req.headers.authorization;
     const locale = req.headers['x-localecode'] || 'en-us';
     const userId = req.headers['x-userid'];
+    let therrCoinRewarded = 0;
 
     const isDuplicate = await Store.moments.get({
         fromUserId: userId,
@@ -43,6 +49,77 @@ const createMoment = async (req, res) => {
         });
     }
 
+    if (req.body.spaceId && !req.body.skipReward) {
+        try {
+            const spaces = await Store.spaces.getById(req.body.spaceId);
+            const space = spaces[0];
+
+            if (userId !== space.fromUserId
+                && space?.incentives?.length) {
+                // 1. Attempt to create a transaction (only if user has not exceeded limits)
+                const therrCoinIncentive = space.incentives
+                    .find((incentive) => (
+                        incentive.incentiveKey === IncentiveRequirementKeys.SHARE_A_MOMENT
+                        && incentive.incentiveRewardKey === IncentiveRewardKeys.THERR_COIN_REWARD
+                    ));
+
+                if (therrCoinIncentive) {
+                    // This prevents spamming and claiming a reward for every post
+                    const existingCoupon = await Store.spaceIncentiveCoupons.get(userId, therrCoinIncentive.id);
+                    if (!existingCoupon.length || existingCoupon[0].useCount < therrCoinIncentive.maxUseCount) {
+                        const { data } = await axios({ // Create companion reaction for user's own moment
+                            method: 'post',
+                            url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/rewards/transfer-coins`,
+                            headers: {
+                                authorization,
+                                'x-localecode': locale,
+                                'x-userid': userId,
+                            },
+                            data: {
+                                fromUserId: space.fromUserId,
+                                toUserId: userId,
+                                amount: therrCoinIncentive.incentiveRewardValue,
+                            },
+                        });
+
+                        if (data.transactionStatus !== 'success') {
+                            // 3. If unsuccessful, return response with error. Frontend will show dialog
+                            // to user to confirm they want to create the space without the reward
+
+                            // TODO: Send e-mail to space owner to purchase more coins
+                            return handleHttpError({
+                                res,
+                                message: 'Space owner does not have enough Therr Coins to reward you.',
+                                statusCode: 400,
+                                errorCode: ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS,
+                            });
+                        }
+
+                        // Handles incrementing if coupon already exists
+                        await Store.spaceIncentiveCoupons.upsert({
+                            spaceIncentiveId: therrCoinIncentive.id,
+                            userId,
+                            useCount: 1,
+                            region: therrCoinIncentive.region,
+                        });
+
+                        therrCoinRewarded = therrCoinIncentive.incentiveRewardValue;
+                    }
+                }
+            }
+        } catch (err: any) {
+            // TODO: If coins were transferred, but spaceIncentiveCoupons failed,
+            // we should mitigate this to prevent claiming a reward multiple times
+            return handleHttpError({
+                res,
+                message: `An error occurred while attempting to transfer Therr Coins: ${err?.message}`,
+                statusCode: 500,
+                errorCode: ErrorCodes.UNKNOWN_ERROR,
+            });
+        }
+    }
+
+    // 2. If successful, create the space
     const {
         hashTags,
         media,
@@ -107,6 +184,7 @@ const createMoment = async (req, res) => {
             return res.status(201).send({
                 ...moment,
                 reaction,
+                therrCoinRewarded,
             });
         }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));

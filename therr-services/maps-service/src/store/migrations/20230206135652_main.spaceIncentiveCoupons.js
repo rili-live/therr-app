@@ -6,7 +6,6 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('spaceIncentiv
         .onDelete('CASCADE');
     table.uuid('userId').notNullable();
     table.integer('useCount').notNullable().defaultTo(0);
-    table.jsonb('requiredUserDataProps').notNullable().defaultTo(JSON.stringify([]));
     table.timestamp('expirationDate', { useTz: true });
 
     // Audit
@@ -15,7 +14,7 @@ exports.up = (knex) => knex.schema.withSchema('main').createTable('spaceIncentiv
     table.string('region').notNullable(); // Also used for sharding, db location
 
     // Indexes
-    table.index(['spaceIncentiveId', 'userId']);
+    table.index(['spaceIncentiveId', 'userId']).unique(['spaceIncentiveId', 'userId']);
 });
 
 exports.down = (knex) => knex.schema.withSchema('main').dropTable('spaceIncentiveCoupons');
