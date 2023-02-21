@@ -2,20 +2,29 @@
 {
   "alertTitles": {
     "codeSent": "New Code Sent",
+    "coinsReceived": "You Received Coins",
     "invalidCode": "Invalid Code",
     "phoneVerifiedSuccess": "Phone Verification Success",
     "backendErrorMessage": "Oops! Something went wrong.",
     "permissionsDenied": "Permissions Denied",
     "phoneNumberAlreadyInUse": "Invalid Phone Number",
-    "ssoLoginError": "Error With Single Sign-On"
+    "momentCreatedSuccess": "Moment Created  🎉",
+    "spaceCreatedSuccess": "You Claimed a Space",
+    "ssoLoginError": "Error With Single Sign-On",
+    "walkCloser": "Too Far Away"
   },
   "alertMessages": {
     "codeSent": "Check your phone for a new verification code.",
+    "coinsReceived": "🎁 You earned {total} TherrCoin(s) 🎁",
     "invalidCode": "Code is invalid or expired. Try again or resend.",
     "backendErrorMessage": "Please try again later.",
     "cameraOrFilePermissionsDenied": "Camera or File permissions were denied. Please enable them in your device settings.",
     "phoneNumberAlreadyInUse": "Phone Number Already In Use For This Account Type",
-    "ssoLoginError": "Please try logging in with you account username/password"
+    "ssoLoginError": "Please try logging in with you account username/password",
+    "momentCreatedSuccess": "Your moment was successfully posted!",
+    "spaceCreatedSuccess": "You have successfully claimed this space!",
+    "pleaseTryAgain": "Connection error. Please try again later.",
+    "walkCloser": "Walk closer to claim rewards. Check the map for details."
   },
   "quoteOfTheDay": "Quote of the Day",
   "dailyQuotes": [
@@ -371,21 +380,45 @@
       "buttons": {
         "addImage": "Attach an Image",
         "captureNew": "Capture a New Photo",
+        "next": "Next",
         "selectExisting": "Select an Existing Photo",
         "submit": "Send",
         "delete": "Delete?",
         "confirm": "Delete",
         "cancel": "Cancel"
       },
+      "incentiveRequirementKeys": {
+        "shareAMoment": "Share a Moment",
+        "visitSpace": "Visit the Space",
+        "makeAPurchase": "Make a Purchase"
+      },
+      "incentiveRewardKeys": {
+        "coinReward": "TherrCoin Reward",
+        "currencyDiscount": "Currency Discount",
+        "percentageDiscount": "Percent Discount"
+      },
       "labels": {
+        "addIncentivesNote": "Add incentives to encourage people to visit your space.",
+        "addIncentivesNote2": "*Unlock customer metrics from each visit or point-of-sale transaction.",
+        "addIncentivesNoteEx": "(ie. free coffee, $2 off, 10% off, etc...)",
         "addImageNote": "Select an existing image or capture a new one to represent your space.",
         "cost": "Cost: {pointCost} coins",
+        "featuredIncentiveValue": "Requirement (# of times)",
+        "featuredIncentiveRewardValue": "Reward Amount",
+        "featuredIncentiveValuePlaceholder": "ex. 1",
+        "featuredIncentiveRewardValuePlaceholder": "ex. 5.00",
+        "featuredIncentiveCurrencyId": "Reward Currency",
+        "featuredIncentiveCurrencyIdPlaceholder": "ex. USD",
         "message": "Describe the location, event, business, promotion, etc...",
         "notificationMsg": "Title or Location Name",
         "hashTags": "Hashtags (ie. my_tag, myTag)",
         "maxViews": "Max views (per person)",
         "expiresAt": "Countdown",
-        "radius": "Radius: {meters} meters"
+        "radius": "Radius: {meters} meters",
+        "incentiveRequirement": "Reward Requirement",
+        "unselectedIncentiveRequirement": "Select a Requirement",
+        "incentiveReward": "Reward for Participation",
+        "unselectedIncentiveReward": "Select an Incentive"
       },
       "backendSuccessMessage": "You have successfully claimed this space!",
       "backendErrorMessage": "Connection error. Please try again later."
@@ -558,6 +591,7 @@
       }
     },
     "headerTabs": {
+      "discoveries": "Discoveries",
       "connections": "Connections",
       "social": "Social",
       "events": "Events",
@@ -667,7 +701,8 @@
       "noHireAreasFound": "No freelancer postings found in your area. Check back soon to find local freelancers in range of your location.",
       "noNearbyAreasFound": "Nothing yet. Start the conversation by posting from the Map or increase the Awareness Radius to discover nearby content.",
       "noNewsAreasFound": "Local News stream coming soon!",
-      "noSocialAreasFound": "You have not yet activated any moments/spaces. Enable location from the map, and active areas will start to appear in this view as you travel."
+      "noSocialAreasFound": "You have not yet activated any moments/spaces. Enable location from the map, and active areas will start to appear in this view as you travel.",
+      "noThoughtsFound": "You have not yet activated any global thoughts. Continue using the app to activate new thoughts."
     },
     "bookmarked": {
       "headerTitle": "Favorited",
@@ -718,6 +753,28 @@
     "editSpace": {
       "headerTitle": "Claim a Space",
       "previewHeader": "Preview:"
+    },
+    "viewSpace": {
+      "buttons": {
+        "claimRewards": "Claim Rewards?",
+        "coinReward": "Earn {count} TherrCoin(s)"
+      },
+      "h2": {
+        "claimRewards": "Claim Your Rewards",
+        "requirements": "Steps"
+      },
+      "info": {
+        "shareAMoment": {
+          "claimRewards": "Earn rewards for visiting this space.",
+          "alreadyClaimed": "You have already claimed rewards for this space.",
+          "unClaimed": "This space is complete! Go back and press 'claim rewards' to continue.",
+          "stepOne": "Walk into the space (within {maxDistance} feet)",
+          "stepTwo": "Create a moment and select the nearby space",
+          "stepThree": "Press send and get coins!",
+          "protip": "Protip: Start a draft with location, then edit later without location"
+        },
+        "walkCloser": "Walk closer to the space to claim rewards."
+      }
     },
     "editThought": {
       "headerTitle": "Share a Thought"

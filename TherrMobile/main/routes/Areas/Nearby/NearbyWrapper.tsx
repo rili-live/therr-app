@@ -41,7 +41,7 @@ function getRandomLoaderId(): ILottieId {
 }
 
 interface INearbyWrapperDispatchProps {
-    updateCoordinates: Function;
+    updateUserCoordinates: Function;
     updateUserRadius: Function;
 
     searchActiveMoments: Function;
@@ -100,7 +100,7 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
-            updateCoordinates: MapActions.updateCoordinates,
+            updateUserCoordinates: MapActions.updateUserCoordinates,
             updateUserRadius: MapActions.updateUserRadius,
 
             searchActiveMoments: ContentActions.searchActiveMoments,
@@ -389,7 +389,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
     };
 
     positionSuccessCallback = (position) => {
-        const { shouldDisableLocationSendEvent, map, updateCoordinates } = this.props;
+        const { shouldDisableLocationSendEvent, map, updateUserCoordinates } = this.props;
         const { isFirstLoad } = this.state;
         // TODO: Throttle to prevent too many requests
         // Only update when Map is not already handling this in the background
@@ -398,7 +398,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
             };
-            updateCoordinates(coords);
+            updateUserCoordinates(coords);
             PushNotificationsService.postLocationChange({
                 longitude: position.coords.longitude,
                 latitude: position.coords.latitude,

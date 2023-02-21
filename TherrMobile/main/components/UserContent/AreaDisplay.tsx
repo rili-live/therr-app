@@ -12,6 +12,7 @@ import { Button, Image } from 'react-native-elements';
 import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import { IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import UserMedia from './UserMedia';
 import HashtagsContainer from './HashtagsContainer';
@@ -41,6 +42,7 @@ interface IAreaDisplayProps {
     isExpanded?: boolean;
     area: any;
     areaMedia: string;
+    goToViewIncentives: Function;
     goToViewUser: Function;
     goToViewMap: (lat: string, long: string) => any;
     inspectContent: () => any;
@@ -84,6 +86,11 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             likeCount: props.area.likeCount,
         };
     }
+
+    onClaimRewardPress = () => {
+        const { goToViewIncentives } = this.props;
+        goToViewIncentives();
+    };
 
     onViewMapPress = (area) => {
         const { goToViewMap } = this.props;
@@ -134,12 +141,17 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             theme,
             themeForms,
             themeViewArea,
+            translate,
         } = this.props;
         const { likeCount } = this.state;
 
         const isBookmarked = area.reaction?.userBookmarkCategory;
         const isLiked = area.reaction?.userHasLiked;
         const likeColor = isLiked ? theme.colors.accentRed : (isDarkMode ? theme.colors.textWhite : theme.colors.tertiary);
+        const shouldDisplayRewardsBanner = isExpanded
+            && area.featuredIncentiveRewardValue
+            && area.featuredIncentiveRewardKey
+            && area.featuredIncentiveRewardKey === IncentiveRewardKeys.THERR_COIN_REWARD;
 
         return (
             <>
@@ -257,6 +269,46 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         </>
                     }
                 </View>
+                {
+                    shouldDisplayRewardsBanner &&
+                    <Pressable style={themeViewArea.styles.banner} onPress={this.onClaimRewardPress}>
+                        <View style={themeViewArea.styles.bannerTitle}>
+                            <Button
+                                type="clear"
+                                icon={
+                                    <TherrIcon
+                                        name="gift"
+                                        size={28}
+                                        style={themeViewArea.styles.bannerTitleIcon}
+                                    />
+                                }
+                                onPress={this.onClaimRewardPress}
+                            />
+                            <Text numberOfLines={1} style={themeViewArea.styles.bannerTitleText}>
+                                {translate('pages.viewSpace.buttons.coinReward', {
+                                    count: area.featuredIncentiveRewardValue,
+                                })}
+                            </Text>
+                        </View>
+                        <Pressable onPress={this.onClaimRewardPress}>
+                            <Text style={themeViewArea.styles.bannerLinkText}>
+                                {translate('pages.viewSpace.buttons.claimRewards')}
+                            </Text>
+                        </Pressable>
+                        <Button
+                            icon={
+                                <TherrIcon
+                                    name="hand-coin"
+                                    size={28}
+                                    color={theme.colors.accentYellow}
+                                />
+                            }
+                            iconRight
+                            onPress={this.onClaimRewardPress}
+                            type="clear"
+                        />
+                    </Pressable>
+                }
                 <Text style={themeViewArea.styles.areaMessage} numberOfLines={isExpanded ? undefined : 3}>
                     <Autolink
                         text={area.message}

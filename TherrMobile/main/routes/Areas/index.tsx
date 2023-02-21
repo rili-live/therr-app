@@ -32,7 +32,7 @@ import TherrIcon from '../../components/TherrIcon';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
-const defaultActiveTab = CAROUSEL_TABS.SOCIAL;
+const defaultActiveTab = CAROUSEL_TABS.DISCOVERIES;
 
 function getRandomLoaderId(): ILottieId {
     const options: ILottieId[] = ['donut', 'earth', 'taco', 'shopping', 'happy-swing', 'karaoke', 'yellow-car', 'zeppelin', 'therr-black-rolling'];
@@ -133,7 +133,8 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             selectedArea: {},
             selectedThought: {},
             tabRoutes: [
-                { key: CAROUSEL_TABS.SOCIAL, title: this.translate('menus.headerTabs.social') },
+                { key: CAROUSEL_TABS.DISCOVERIES, title: this.translate('menus.headerTabs.discoveries') },
+                { key: CAROUSEL_TABS.THOUGHTS, title: this.translate('menus.headerTabs.thoughts') },
                 { key: CAROUSEL_TABS.EVENTS, title: this.translate('menus.headerTabs.events') },
                 // { key: CAROUSEL_TABS.NEWS, title: this.translate('menus.headerTabs.news') },
             ],
@@ -175,8 +176,11 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     }
 
     getEmptyListMessage = (activeTab) => {
-        if (activeTab === CAROUSEL_TABS.SOCIAL) {
+        if (activeTab === CAROUSEL_TABS.DISCOVERIES) {
             return this.translate('pages.areas.noSocialAreasFound');
+        }
+        if (activeTab === CAROUSEL_TABS.THOUGHTS) {
+            return this.translate('pages.areas.noThoughtsFound');
         }
 
         if (activeTab === CAROUSEL_TABS.NEWS) {
@@ -313,7 +317,10 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
     scrollTop = () => {
         const { activeTabIndex } = this.state;
         switch (Object.values(CAROUSEL_TABS)[activeTabIndex]) {
-            case CAROUSEL_TABS.SOCIAL:
+            case CAROUSEL_TABS.DISCOVERIES:
+                this.carouselSocialRef?.scrollToOffset({ animated: true, offset: 0 });
+                break;
+            case CAROUSEL_TABS.THOUGHTS:
                 this.carouselSocialRef?.scrollToOffset({ animated: true, offset: 0 });
                 break;
             case CAROUSEL_TABS.EVENTS:
@@ -381,13 +388,13 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         const fetchMedia = () => {};
 
         switch (route.key) {
-            case CAROUSEL_TABS.SOCIAL:
+            case CAROUSEL_TABS.DISCOVERIES:
                 const categoriesFilter = (map.filtersCategory?.length && map.filtersCategory?.filter(c => c.isChecked).map(c => c.name)) || [SELECT_ALL];
                 const socialData = isLoading ? [] : getActiveCarouselData({
                     activeTab: route.key,
                     content,
                     isForBookmarks: false,
-                    shouldIncludeThoughts: true,
+                    shouldIncludeThoughts: false,
                 }, 'createdAt', categoriesFilter);
 
                 return (
@@ -408,7 +415,44 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                         updateMomentReaction={createOrUpdateMomentReaction}
                         updateSpaceReaction={createOrUpdateSpaceReaction}
                         updateThoughtReaction={createOrUpdateThoughtReaction}
-                        emptyListMessage={this.getEmptyListMessage(CAROUSEL_TABS.SOCIAL)}
+                        emptyListMessage={this.getEmptyListMessage(CAROUSEL_TABS.DISCOVERIES)}
+                        renderHeader={() => null}
+                        renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
+                        user={user}
+                        rootStyles={this.theme.styles}
+                        // viewportHeight={viewportHeight}
+                        // viewportWidth={viewportWidth}
+                    />
+                );
+            case CAROUSEL_TABS.THOUGHTS:
+                const thoughtCategoriesFilter = (map.filtersCategory?.length && map.filtersCategory?.filter(c => c.isChecked).map(c => c.name)) || [SELECT_ALL];
+                const thoughtSocialData = isLoading ? [] : getActiveCarouselData({
+                    activeTab: route.key,
+                    content,
+                    isForBookmarks: false,
+                    shouldIncludeThoughts: true,
+                    shouldExcludeMapContent: true,
+                }, 'createdAt', thoughtCategoriesFilter);
+
+                return (
+                    <AreaCarousel
+                        activeData={thoughtSocialData}
+                        content={content}
+                        inspectContent={this.goToContent}
+                        isLoading={isLoading}
+                        fetchMedia={fetchMedia}
+                        goToViewMap={this.goToViewMap}
+                        goToViewUser={this.goToViewUser}
+                        toggleAreaOptions={this.toggleAreaOptions}
+                        toggleThoughtOptions={this.toggleThoughtOptions}
+                        translate={this.translate}
+                        containerRef={(component) => { this.carouselSocialRef = component; }}
+                        handleRefresh={this.handleRefresh}
+                        onEndReached={this.tryLoadMore}
+                        updateMomentReaction={createOrUpdateMomentReaction}
+                        updateSpaceReaction={createOrUpdateSpaceReaction}
+                        updateThoughtReaction={createOrUpdateThoughtReaction}
+                        emptyListMessage={this.getEmptyListMessage(CAROUSEL_TABS.THOUGHTS)}
                         renderHeader={() => null}
                         renderLoader={() => <LottieLoader id={this.loaderId} theme={this.themeLoader} />}
                         user={user}

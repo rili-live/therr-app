@@ -1,5 +1,6 @@
 import Immutable from 'seamless-immutable';
 // import { SocketServerActionTypes } from 'therr-js-utilities/constants';
+import { MapActionTypes } from 'therr-react/types';
 import {
     ILocationState,
     LocationActionTypes,
@@ -8,6 +9,7 @@ import {
 const initialState: ILocationState = Immutable.from({
     permissions: {},
     settings: {},
+    user: {},
 });
 
 const locations = (state: ILocationState = initialState, action: any) => {
@@ -32,6 +34,12 @@ const locations = (state: ILocationState = initialState, action: any) => {
                 ...state.permissions,
                 ...action.data,
             });
+        case MapActionTypes.UPDATE_COORDS:
+            return state
+                .setIn(['user', 'longitude'], action.data.longitude)
+                .setIn(['user', 'latitude'], action.data.latitude)
+                .setIn(['user', 'prevLongitude'], state.longitude)
+                .setIn(['user', 'prevLatitude'], state.latitude);
         default:
             return state;
     }

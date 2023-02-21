@@ -23,6 +23,8 @@ const Maps = {
                 data: response.data,
             });
         }
+
+        return response?.data;
     }),
     createIntegratedMoment: (platform: string, accessToken: string, externalMediaId: string) => (dispatch: any) => MapsService
         .createIntegratedMoment(platform, accessToken, externalMediaId).then((response: any) => {
@@ -176,7 +178,7 @@ const Maps = {
     }),
 
     // Location
-    updateCoordinates: (data: any) => (dispatch: any) => {
+    updateUserCoordinates: (data: any) => (dispatch: any) => {
         dispatch({
             type: MapActionTypes.UPDATE_COORDS,
             data,

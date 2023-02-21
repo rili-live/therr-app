@@ -107,7 +107,7 @@ interface IMapDispatchProps {
     createOrUpdateSpaceReaction: Function;
     findMomentReactions: Function;
     findSpaceReactions: Function;
-    updateCoordinates: Function;
+    updateUserCoordinates: Function;
     searchMoments: Function;
     searchSpaces: Function;
     setInitialUserLocation: Function;
@@ -150,6 +150,7 @@ interface IMapState {
     isScrollEnabled: boolean;
     isLocationReady: boolean;
     isLocationUseDisclosureModalVisible: boolean;
+    isMapReady: boolean;
     isMinLoadTimeComplete: boolean;
     isSearchThisLocationBtnVisible: boolean;
     shouldIgnoreSearchThisAreaButton: boolean;
@@ -176,7 +177,7 @@ const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
             captureClickTarget: UserInterfaceActions.captureClickEvent,
-            updateCoordinates: MapActions.updateCoordinates,
+            updateUserCoordinates: MapActions.updateUserCoordinates,
             searchMoments: MapActions.searchMoments,
             searchSpaces: MapActions.searchSpaces,
             setInitialUserLocation: MapActions.setInitialUserLocation,
@@ -237,6 +238,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             isAreaAlertVisible: false,
             isLocationUseDisclosureModalVisible: false,
             isLocationReady: false,
+            isMapReady: false,
             isMinLoadTimeComplete: false,
             isSearchThisLocationBtnVisible: false,
             shouldIgnoreSearchThisAreaButton: false,
@@ -324,6 +326,9 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         if (this.unsubscribeFocusListener) {
             this.unsubscribeFocusListener();
         }
+        this.setState({
+            isMapReady: false,
+        });
     }
 
     clearTimeouts = () => {
@@ -353,17 +358,19 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     };
 
     animateToWithHelp = (doAnimate) => {
-        this.setState({
-            shouldIgnoreSearchThisAreaButton: true,
-        });
-        clearTimeout(this.timeoutIdSearchButton);
-        clearTimeout(this.timeoutIdWaitForSearchSelect);
-        doAnimate();
-        this.timeoutIdWaitForSearchSelect = setTimeout(() => {
+        if (this.state.isMapReady) {
             this.setState({
-                shouldIgnoreSearchThisAreaButton: false,
+                shouldIgnoreSearchThisAreaButton: true,
             });
-        }, ANIMATE_TO_REGION_DURATION_SLOW + 2000); // Add some buffer room
+            clearTimeout(this.timeoutIdSearchButton);
+            clearTimeout(this.timeoutIdWaitForSearchSelect);
+            doAnimate();
+            this.timeoutIdWaitForSearchSelect = setTimeout(() => {
+                this.setState({
+                    shouldIgnoreSearchThisAreaButton: false,
+                });
+            }, ANIMATE_TO_REGION_DURATION_SLOW + 2000); // Add some buffer room
+        }
     };
 
     hasNoMapfilters = () => {
@@ -612,7 +619,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
             location,
             map,
             setInitialUserLocation,
-            updateCoordinates,
+            updateUserCoordinates,
             updateGpsStatus,
             updateLocationDisclosure,
             updateLocationPermissions,
@@ -691,7 +698,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 this.setState({
                                     circleCenter: coords,
                                 });
-                                updateCoordinates(coords);
+                                updateUserCoordinates(coords);
                                 this.handleGpsRecenter(coords, null, ANIMATE_TO_REGION_DURATION);
                                 return resolve(coords);
                             }
@@ -709,7 +716,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                     circleCenter: coords,
                                 });
                                 setInitialUserLocation();
-                                updateCoordinates(coords);
+                                updateUserCoordinates(coords);
                                 this.handleGpsRecenter(coords, null, ANIMATE_TO_REGION_DURATION_SLOW);
                                 return resolve(coords);
                             };
@@ -1175,6 +1182,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         });
     };
 
+    onMapLayout = () => {
+        this.setState({ isMapReady: true });
+    };
+
     onRegionChange = (region) => {
         if (region.latitude.toFixed(6) === this.state.region?.latitude?.toFixed(6)
             && region.longitude.toFixed(6) === this.state.region?.longitude?.toFixed(6)) {
@@ -1315,6 +1326,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 shouldRenderMapCircles={shouldRenderMapCircles}
                                 hideCreateActions={this.hideMomentActions}
                                 isScrollEnabled={isScrollEnabled}
+                                onMapLayout={this.onMapLayout}
                                 // /* react-native-map-clustering */
                                 // onClusterPress={this.onClusterPress}
                                 // // preserveClusterPressBehavior={true}

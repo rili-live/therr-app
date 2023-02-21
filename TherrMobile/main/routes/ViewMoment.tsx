@@ -311,11 +311,11 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         // TODO: Fetch moment media
         const mediaId = (moment.media && moment.media[0]?.id) || (moment.mediaIds?.length && moment.mediaIds?.split(',')[0]);
         const momentMedia = content?.media[mediaId];
-        const momentUserName = isMyContent ? user.details.userName : moment.fromUserName;
         const momentInView = {
             ...moment,
             ...fetchedMoment,
         };
+        const momentUserName = isMyContent ? user.details.userName : momentInView.fromUserName;
 
         return (
             <>
