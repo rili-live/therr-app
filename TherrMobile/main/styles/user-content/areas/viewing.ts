@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
+import { therrFontFamily } from '../../font';
 import { getTheme } from '../../themes';
 
 const areaUserAvatarImgPadding = 4;
@@ -165,7 +166,7 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             color: isDarkMode ? therrTheme.colors.textGray : therrTheme.colors.tertiary,
             width: '100%',
             paddingHorizontal: 10,
-            fontFamily: 'Lexend-Regular',
+            fontFamily: therrFontFamily,
             textAlign: 'left',
         },
         footer: {
@@ -173,6 +174,44 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
         },
         toggleIcon: {
             color: therrTheme.colors.textWhite,
+        },
+        banner: {
+            marginBottom: 10,
+            display: 'flex',
+            flexDirection: 'row',
+            color: therrTheme.colors.accent3,
+            borderBottomWidth: 2,
+            borderBottomColor: therrTheme.colors.accentDivider,
+            backgroundColor: therrTheme.colors.brandingBlueGreen,
+            alignItems: 'center',
+        },
+        bannerTitle: {
+            display: 'flex',
+            flexDirection: 'row',
+            flex: 1,
+            alignItems: 'center',
+            marginLeft: 2,
+        },
+        bannerTitleText: {
+            color: therrTheme.colors.brandingWhite,
+            fontSize: 15,
+            fontFamily: therrFontFamily,
+        },
+        bannerTitleTextCenter: {
+            color: therrTheme.colors.brandingWhite,
+            fontSize: 15,
+            fontFamily: therrFontFamily,
+            textAlign: 'center',
+        },
+        bannerLinkText: {
+            textDecorationLine: 'underline',
+            color: therrTheme.colors.brandingWhite,
+        },
+        bannerTitleIcon: {
+            color: therrTheme.colors.accentYellow,
+            marginRight: 5,
+            height: 28,
+            width: 28,
         },
     });
 

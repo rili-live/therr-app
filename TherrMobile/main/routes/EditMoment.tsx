@@ -87,7 +87,6 @@ export interface IEditMomentProps extends IStoreProps {
 
 interface IEditMomentState {
     errorMsg: string;
-    successMsg: string;
     hashtags: string[];
     isImageBottomSheetVisible: boolean;
     isVisibilityBottomSheetVisible: boolean;
@@ -132,7 +131,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
 
         this.state = {
             errorMsg: '',
-            successMsg: '',
             hashtags: [],
             inputs: {
                 isDraft: false,
@@ -192,7 +190,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             const { isEditingNearbySpaces } = this.state;
             // changeNavigationBarColor(therrTheme.colors.primary, false, true);
             if (isEditingNearbySpaces && (e.data.action.type === 'GO_BACK' || e.data.action.type === 'POP')) {
-                console.log('HERE');
                 e.preventDefault();
                 this.setState({
                     isEditingNearbySpaces: false,
@@ -258,7 +255,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         });
     };
 
-    onSubmitWithNearbySpaces = () => {
+    onSubmitBaseDetails = () => {
+        // TODO: Consider saving draft
+        // Should show some UI that draft was created
         const { navigation } = this.props;
 
         this.setState({
@@ -332,9 +331,25 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                     : this.props.createMoment(modifiedCreateArgs);
 
                 createOrUpdatePromise
-                    .then(() => {
-                        this.setState({
-                            successMsg: this.translate('forms.editMoment.backendSuccessMessage'),
+                    .then((response) => {
+                        Toast.show({
+                            type: 'success',
+                            text1: this.translate('alertTitles.momentCreatedSuccess'),
+                            text2: this.translate('alertMessages.momentCreatedSuccess'),
+                            visibilityTime: 3500,
+                            position: 'top',
+                            onHide: () => {
+                                if (response?.therrCoinRewarded && response?.therrCoinRewarded > 0) {
+                                    Toast.show({
+                                        type: 'success',
+                                        text1: this.translate('alertTitles.coinsReceived'),
+                                        text2: this.translate('alertMessages.coinsReceived', {
+                                            total: response.therrCoinRewarded,
+                                        }),
+                                        visibilityTime: 3500,
+                                    });
+                                }
+                            },
                         });
 
                         analytics().logEvent('moment_create', {
@@ -412,7 +427,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 ...newInputChanges,
             },
             errorMsg: '',
-            successMsg: '',
             isSubmitting: false,
         });
     };
@@ -528,7 +542,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 ...newInputChanges,
             },
             errorMsg: '',
-            successMsg: '',
             isSubmitting: false,
         });
     };
@@ -571,7 +584,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                 icon: 'chevron-right',
                 iconStyle: this.themeAccentForms.styles.nextButtonIcon,
                 iconRight: true,
-                onPress: this.onSubmitWithNearbySpaces,
+                onPress: this.onSubmitBaseDetails,
             };
         }
 
@@ -587,7 +600,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
     renderEditingForm = () => {
         const {
             errorMsg,
-            successMsg,
             hashtags,
             inputs,
             previewLinkId,
@@ -724,9 +736,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         containerStyles={addMargins({
                             marginBottom: 24,
                         })}
-                        isVisible={!!(errorMsg || successMsg)}
-                        message={successMsg || errorMsg}
-                        type={errorMsg ? 'error' : 'success'}
+                        isVisible={!!(errorMsg)}
+                        message={errorMsg}
+                        type={'error'}
                         themeAlerts={this.themeAlerts}
                     />
                     {/* <AccentInput
@@ -778,7 +790,6 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
     renderEditingNearbySpaces = () => {
         const {
             errorMsg,
-            successMsg,
         } = this.state;
 
         return (
@@ -800,9 +811,9 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         containerStyles={addMargins({
                             marginBottom: 24,
                         })}
-                        isVisible={!!(errorMsg || successMsg)}
-                        message={successMsg || errorMsg}
-                        type={errorMsg ? 'error' : 'success'}
+                        isVisible={!!errorMsg}
+                        message={errorMsg}
+                        type={'error'}
                         themeAlerts={this.themeAlerts}
                     />
                 </Pressable>

@@ -9,6 +9,7 @@ export default StyleSheet.create({
         bottom: 0,
         justifyContent: 'center',
         alignItems: 'center',
+        minHeight: 100,
     },
     momentAlertOverlayContainer: {
         display: 'flex',

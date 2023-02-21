@@ -1,6 +1,7 @@
 import { distanceTo } from 'geolocation-utils';
 import { IAreaType } from 'therr-js-utilities/types';
 import { isMyContent } from './content';
+import { MAX_DISTANCE_TO_NEARBY_SPACE } from '../constants';
 
 const isAreaActivated = (type: IAreaType, area, user, reactions) => {
     if (isMyContent(area, user)) {
@@ -8,13 +9,13 @@ const isAreaActivated = (type: IAreaType, area, user, reactions) => {
     }
 
     if (type === 'moments') {
-        return !!reactions.myMomentReactions[area.id];
+        return !!reactions?.myMomentReactions[area.id];
     }
 
-    return !!reactions.mySpaceReactions[area.id];
+    return !!reactions?.mySpaceReactions[area.id];
 };
 
-const getNearbySpaces = (center, user, reactions, spaces) => Object.values(spaces).filter((space: any) => {
+const getNearbySpaces = (center, user, reactions, spaces) => Object.values(spaces || {}).filter((space: any) => {
     if (!isAreaActivated('spaces', space, user, reactions)) {
         return false;
     }
@@ -28,8 +29,7 @@ const getNearbySpaces = (center, user, reactions, spaces) => Object.values(space
         lat: space.latitude,
     });
 
-    // Distance in meters (roughly 400 feet)
-    return distanceToNearbySpace < 120;
+    return distanceToNearbySpace < MAX_DISTANCE_TO_NEARBY_SPACE;
 }).map((space: any) => ({ id: space.id, title: space.notificationMsg }));
 
 export default getNearbySpaces;

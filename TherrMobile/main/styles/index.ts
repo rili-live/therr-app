@@ -7,7 +7,7 @@ import { getTheme, ITherrTheme } from './themes';
 import { therrFontFamily } from './font';
 
 
-const HEADER_HEIGHT_MARGIN = 80;
+export const HEADER_HEIGHT_MARGIN = 80;
 const IOS_STATUS_HEIGHT = 20;
 const IOS_TOP_GAP = 28;
 const ANDROID_TOP_GAP = 25;
@@ -269,6 +269,12 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             textAlign: 'center',
             fontSize: 12,
             marginBottom: 20,
+        },
+        sectionLabel: {
+            ...getSectionDescriptionStyles(therrTheme),
+            fontSize: 14,
+            marginBottom: 8,
+            color: therrTheme.colors.accentTextWhite,
         },
         sectionDescriptionCentered: {
             ...getSectionDescriptionStyles(therrTheme),

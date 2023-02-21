@@ -1,15 +1,16 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, View, Text } from 'react-native';
+import { SafeAreaView, View, Text } from 'react-native';
 import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from 'react-native-elements';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { IUserState } from 'therr-react/types';
+import { UsersService } from 'therr-react/services';
 import Alert from '../components/Alert';
 import RoundTextInput from '../components/Input/TextInput/Round';
 import MainButtonMenu from '../components/ButtonMenu/MainButtonMenu';
 import UsersActions from '../redux/actions/UsersActions';
-import { UsersService } from 'therr-react/services';
 import translator from '../services/translator';
 import BaseStatusBar from '../components/BaseStatusBar';
 import { buildStyles, addMargins } from '../styles';
@@ -137,7 +138,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
             <>
                 <BaseStatusBar therrThemeName={this.props.user.settings?.mobileThemeName}/>
                 <SafeAreaView style={this.theme.styles.safeAreaView}>
-                    <ScrollView
+                    <KeyboardAwareScrollView
                         contentInsetAdjustmentBehavior="automatic"
                         style={this.theme.styles.scrollViewFull}
                     >
@@ -206,7 +207,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
                                 </Text>
                             </View>
                         </View>
-                    </ScrollView>
+                    </KeyboardAwareScrollView>
                 </SafeAreaView>
                 <MainButtonMenu
                     navigation={navigation}

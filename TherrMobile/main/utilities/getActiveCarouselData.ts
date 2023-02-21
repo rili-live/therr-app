@@ -67,6 +67,7 @@ interface IGetActiveDataArgs {
     isForBookmarks?: boolean;
     isForDrafts?: boolean;
     shouldIncludeThoughts?: boolean;
+    shouldExcludeMapContent?: boolean;
 }
 
 export default ({
@@ -75,6 +76,7 @@ export default ({
     isForBookmarks,
     isForDrafts,
     shouldIncludeThoughts,
+    shouldExcludeMapContent,
 }: IGetActiveDataArgs, sortBy = 'createdAt', categories: string[] = [SELECT_ALL]) => {
     if (activeTab === CAROUSEL_TABS.EVENTS) {
         return [];
@@ -84,8 +86,12 @@ export default ({
         return [];
     }
 
+
     if (isForBookmarks) {
-        return mergeAreas(content.bookmarkedMoments, content.bookmarkedSpaces, sortBy);
+        // TODO: Add Thought Bookmarks
+        const mapContent = shouldExcludeMapContent ? [] : mergeAreas(content.bookmarkedMoments, content.bookmarkedSpaces, sortBy);
+
+        return mapContent;
     }
 
     if (isForDrafts) {
@@ -93,16 +99,16 @@ export default ({
         return mergeAreas(drafts, [], sortBy, isForDrafts);
     }
 
-    // TODO: performance optimize to prevent loading unnecessary data
-    const withoutCategoryFilters = mergeAreas(content.activeMoments, content.activeSpaces, sortBy, isForDrafts);
-
-    let sortedData = categories.includes(SELECT_ALL) ?
-        withoutCategoryFilters :
-        withoutCategoryFilters.filter(area => categories.includes(area.category));
+    let sortedData = shouldExcludeMapContent ? [] : mergeAreas(content.activeMoments, content.activeSpaces, sortBy, isForDrafts);
 
     if (shouldIncludeThoughts) {
         sortedData = mergeSortByCreatedAt(sortedData, content.activeThoughts, isForDrafts);
     }
 
-    return sortedData;
+    // TODO: performance optimize to prevent loading unnecessary data
+    let filteredData = categories.includes(SELECT_ALL) ?
+        sortedData :
+        sortedData.filter(area => categories.includes(area.category));
+
+    return filteredData;
 };
