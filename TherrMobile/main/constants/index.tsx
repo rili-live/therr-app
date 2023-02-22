@@ -1,6 +1,7 @@
 // CAROUSEL Constants
 const CAROUSEL_TABS = {
-    SOCIAL: 'social',
+    DISCOVERIES: 'discoveries',
+    THOUGHTS: 'thoughts',
     EVENTS: 'events',
     NEWS: 'news',
 };
@@ -32,6 +33,7 @@ const DEFAULT_MOMENT_PROXIMITY = 25;
 const MIN_ZOOM_LEVEL = 1; // Setting this too high may break animation to regions that excede the minimum zoom
 const MOMENTS_REFRESH_THROTTLE_MS = 30 * 1000;
 const LOCATION_PROCESSING_THROTTLE_MS = 5 * 1000;
+const MAX_DISTANCE_TO_NEARBY_SPACE = 120; // Distance in meters (roughly 400 feet)
 
 // RegEx
 const youtubeLinkRegex = /(?:http(?:s?):\/\/)?(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-_]*)(&(amp;)?[\w?‌​=]*)?/mi;
@@ -70,6 +72,7 @@ export {
     MIN_ZOOM_LEVEL,
     MOMENTS_REFRESH_THROTTLE_MS,
     LOCATION_PROCESSING_THROTTLE_MS,
+    MAX_DISTANCE_TO_NEARBY_SPACE,
 
     // RegEx
     youtubeLinkRegex,

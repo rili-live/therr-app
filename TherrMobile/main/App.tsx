@@ -9,6 +9,7 @@ import Layout from './components/Layout';
 import { buttonMenuHeight } from './styles/navigation/buttonMenu';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import spacingStyles from './styles/layouts/spacing';
+import { HEADER_HEIGHT_MARGIN } from './styles';
 
 // import { buildStyles } from './styles';
 
@@ -47,6 +48,22 @@ const toastConfig = {
         <BaseToast
             {...props}
             style={{ borderLeftColor: '#00A624' }}
+            text1Style={{
+                fontSize: 17,
+                fontWeight: '600',
+                fontFamily: 'Lexend-Regular',
+            }}
+            text2Style={{
+                fontSize: 14,
+                fontFamily: 'Lexend-Regular',
+            }}
+            text2NumberOfLines={3}
+        />
+    ),
+    warnBig: (props) => (
+        <ErrorToast
+            {...props}
+            style={{ borderLeftColor: '#FDBD2E' }}
             text1Style={{
                 fontSize: 17,
                 fontWeight: '600',
@@ -165,6 +182,7 @@ class App extends React.Component<any, any> {
                     config={toastConfig}
                     position="bottom"
                     bottomOffset={buttonMenuHeight + 10}
+                    topOffset={HEADER_HEIGHT_MARGIN + 30}
                 />
             </Provider>
         );

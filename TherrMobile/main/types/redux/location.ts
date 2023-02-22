@@ -3,6 +3,7 @@ import Immutable from 'seamless-immutable';
 export interface ILocationState extends Immutable.ImmutableObject<any> {
     permissions: any;
     settings: any;
+    user: any;
 }
 
 export enum LocationActionTypes {

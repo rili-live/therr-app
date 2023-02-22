@@ -39,7 +39,7 @@ const hapticFeedbackOptions = {
 interface ITherrMapViewDispatchProps {
     createOrUpdateMomentReaction: Function;
     createOrUpdateSpaceReaction: Function;
-    updateCoordinates: Function;
+    updateUserCoordinates: Function;
     setSearchDropdownVisibility: Function;
 }
 
@@ -62,6 +62,7 @@ export interface ITherrMapViewProps extends IStoreProps {
     filteredSpaces: any;
     hideCreateActions: () => any;
     isScrollEnabled: boolean;
+    onMapLayout: any;
     mapRef: any;
     navigation: any;
     route: any;
@@ -76,6 +77,7 @@ interface ITherrMapViewState {
     activeMomentDetails: any;
     activeSpace: any;
     activeSpaceDetails: any;
+    isMapReady: boolean;
     lastLocationSendForProcessing?: number,
     lastLocationSendForProcessingCoords?: {
         longitude: number,
@@ -94,7 +96,7 @@ const mapStateToProps = (state: any) => ({
 const mapDispatchToProps = (dispatch: any) =>
     bindActionCreators(
         {
-            updateCoordinates: MapActions.updateCoordinates,
+            updateUserCoordinates: MapActions.updateUserCoordinates,
             setSearchDropdownVisibility: MapActions.setSearchDropdownVisibility,
             createOrUpdateMomentReaction: ReactionActions.createOrUpdateMomentReaction,
             createOrUpdateSpaceReaction: ReactionActions.createOrUpdateSpaceReaction,
@@ -116,6 +118,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             activeMomentDetails: {},
             activeSpace: {},
             activeSpaceDetails: {},
+            isMapReady: false,
         };
 
         this.translate = (key: string, params: any) =>
@@ -124,7 +127,11 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
 
     componentDidMount = () => {};
 
-    componentWillUnmount() {}
+    componentWillUnmount() {
+        this.setState({
+            isMapReady: false,
+        });
+    }
 
     getAreaDetails = (area) => new Promise((resolve) => {
         const { user } = this.props;
@@ -301,7 +308,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         const {
             map,
             shouldFollowUserLocation,
-            updateCoordinates,
+            updateUserCoordinates,
             updateCircleCenter,
         } = this.props;
         const coords = {
@@ -309,7 +316,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             longitude: event.nativeEvent.coordinate.longitude,
         };
         // TODO: Add throttle
-        updateCoordinates(coords);
+        updateUserCoordinates(coords);
         updateCircleCenter(coords);
 
         if (shouldFollowUserLocation) {
@@ -466,6 +473,11 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         this.props.mapRef(ref);
     };
 
+    onMapLayout = () => {
+        this.setState({ isMapReady: true });
+        this.props.onMapLayout();
+    };
+
     render() {
         const {
             circleCenter,
@@ -475,6 +487,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             shouldFollowUserLocation,
             shouldRenderMapCircles,
         } = this.props;
+        const { isMapReady } = this.state;
 
         return (
             <MapView
@@ -504,20 +517,24 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                 clusterFontFamily={this.theme.styles.headerTitleStyle.fontFamily}
                 clusterTextColor={this.theme.colors.brandingWhite}
                 onClusterPress={this.onClusterPress}
+                onLayout={this.onMapLayout}
                 // preserveClusterPressBehavior={true}
                 animationEnabled={false} // iOS Only
                 spiderLineColor="#FF0000"
             >
-                <Circle
-                    center={circleCenter}
-                    radius={DEFAULT_MOMENT_PROXIMITY} /* meters */
-                    strokeWidth={1}
-                    strokeColor={this.theme.colors.secondary}
-                    fillColor={this.theme.colors.map.userCircleFill}
-                    zIndex={0}
-                />
                 {
-                    Object.values(filteredMoments).map((moment: any) => {
+                    isMapReady &&
+                    <Circle
+                        center={circleCenter}
+                        radius={DEFAULT_MOMENT_PROXIMITY} /* meters */
+                        strokeWidth={1}
+                        strokeColor={this.theme.colors.secondary}
+                        fillColor={this.theme.colors.map.userCircleFill}
+                        zIndex={0}
+                    />
+                }
+                {
+                    isMapReady && Object.values(filteredMoments).map((moment: any) => {
                         return (
                             <Marker
                                 anchor={{
@@ -541,7 +558,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                     })
                 }
                 {
-                    Object.values(filteredSpaces).map((space: any) => {
+                    isMapReady && Object.values(filteredSpaces).map((space: any) => {
                         return (
                             <Marker
                                 anchor={{
@@ -565,7 +582,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                     })
                 }
                 {
-                    Object.values(filteredMoments).map((moment: any) => {
+                    isMapReady && Object.values(filteredMoments).map((moment: any) => {
                         if (!shouldRenderMapCircles) {
                             return null;
                         }
@@ -586,7 +603,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                     })
                 }
                 {
-                    Object.values(filteredSpaces).map((space: any) => {
+                    isMapReady && Object.values(filteredSpaces).map((space: any) => {
                         if (!shouldRenderMapCircles) {
                             return null;
                         }

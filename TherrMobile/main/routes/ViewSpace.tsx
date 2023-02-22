@@ -1,18 +1,26 @@
 import React from 'react';
 import {
+    Platform,
     SafeAreaView,
+    Text,
     View,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Button } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Toast from 'react-native-toast-message';
 // import { Button }  from 'react-native-elements';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
-import { IContentState, IUserState } from 'therr-react/types';
+import { IContentState, IMapState as IMapReduxState, IReactionsState, IUserState } from 'therr-react/types';
 import { ContentActions, MapActions } from 'therr-react/redux/actions';
+import { IncentiveRequirementKeys } from 'therr-js-utilities/constants';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import YoutubePlayer from 'react-native-youtube-iframe';
+import TherrIcon from '../components/TherrIcon';
+import { ILocationState } from '../types/redux/location';
+import LocationActions from '../redux/actions/LocationActions';
 // import Alert from '../components/Alert';
 import translator from '../services/translator';
 import { buildStyles } from '../styles';
@@ -23,6 +31,7 @@ import { buildStyles as buildButtonsStyles } from '../styles/buttons';
 import { buildStyles as buildMomentStyles } from '../styles/user-content/areas/viewing';
 import { buildStyles as buildReactionsModalStyles } from '../styles/modal/areaReactionsModal';
 import userContentStyles from '../styles/user-content';
+import spacingStyles from '../styles/layouts/spacing';
 import { youtubeLinkRegex } from '../constants';
 import AreaDisplay from '../components/UserContent/AreaDisplay';
 import formatDate from '../utilities/formatDate';
@@ -31,16 +40,26 @@ import { isMyContent as checkIsMySpace } from '../utilities/content';
 import AreaOptionsModal, { ISelectionType } from '../components/Modals/AreaOptionsModal';
 import { getReactionUpdateArgs } from '../utilities/reactions';
 import getDirections from '../utilities/getDirections';
+import { MAX_DISTANCE_TO_NEARBY_SPACE } from '../constants';
+import requestLocationServiceActivation from '../utilities/requestLocationServiceActivation';
+import { isLocationPermissionGranted } from '../utilities/requestOSPermissions';
+import getNearbySpaces from '../utilities/getNearbySpaces';
 // import AccentInput from '../components/Input/Accent';
 
 interface IViewSpaceDispatchProps {
     getSpaceDetails: Function;
     deleteSpace: Function;
     createOrUpdateSpaceReaction: Function;
+    updateGpsStatus: Function;
+    updateLocationDisclosure: Function;
+    updateLocationPermissions: Function;
 }
 
 interface IStoreProps extends IViewSpaceDispatchProps {
     content: IContentState;
+    location: ILocationState;
+    map: IMapReduxState;
+    reactions: IReactionsState;
     user: IUserState;
 }
 
@@ -55,7 +74,9 @@ interface IViewSpaceState {
     errorMsg: string;
     successMsg: string;
     isDeleting: boolean;
+    isUserInSpace: boolean;
     isVerifyingDelete: boolean;
+    isViewingIncentives: boolean;
     fetchedSpace: any;
     previewLinkId?: string;
     previewStyleState: any;
@@ -64,6 +85,9 @@ interface IViewSpaceState {
 
 const mapStateToProps = (state) => ({
     content: state.content,
+    location: state.location,
+    map: state.map,
+    reactions: state.reactions,
     user: state.user,
 });
 
@@ -71,6 +95,9 @@ const mapDispatchToProps = (dispatch: any) => bindActionCreators({
     getSpaceDetails: MapActions.getSpaceDetails,
     deleteSpace: MapActions.deleteSpace,
     createOrUpdateSpaceReaction: ContentActions.createOrUpdateSpaceReaction,
+    updateGpsStatus: LocationActions.updateGpsStatus,
+    updateLocationDisclosure: LocationActions.updateLocationDisclosure,
+    updateLocationPermissions: LocationActions.updateLocationPermissions,
 }, dispatch);
 
 export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState> {
@@ -101,7 +128,9 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
             errorMsg: '',
             successMsg: '',
             isDeleting: false,
+            isUserInSpace: true,
             isVerifyingDelete: false,
+            isViewingIncentives: false,
             fetchedSpace: {},
             previewStyleState: {},
             previewLinkId: youtubeMatches && youtubeMatches[1],
@@ -147,8 +176,16 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
             title: this.notificationMsg,
         });
 
-        this.unsubscribeNavListener = navigation.addListener('beforeRemove', () => {
+        this.unsubscribeNavListener = navigation.addListener('beforeRemove', (e) => {
+            const { isViewingIncentives } = this.state;
             // changeNavigationBarColor(therrTheme.colors.primary, false, true);
+            console.log(e.data.action);
+            if (isViewingIncentives && (e.data.action.type === 'GO_BACK' || e.data.action.type === 'POP')) {
+                e.preventDefault();
+                this.setState({
+                    isViewingIncentives: false,
+                });
+            }
         });
     }
 
@@ -235,6 +272,12 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
     };
 
     goBack = () => {
+        if (this.state.isViewingIncentives) {
+            this.setState({
+                isViewingIncentives: false,
+            });
+            return;
+        }
         const { navigation, route } = this.props;
         const { previousView } = route.params;
         if (previousView && (previousView === 'Areas' || previousView === 'Notifications')) {
@@ -267,6 +310,22 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         });
     };
 
+    goToViewIncentives = () => {
+        const { navigation } = this.props;
+
+        this.setState({
+            isViewingIncentives: true,
+        });
+
+        // This is necessary to allow intercepting the back swipe gesture and prevent it from animating
+        // before preventDefault is called in the beforeRemove listener
+        navigation.setOptions({
+            // animation: 'none', // navigation v6
+            animationEnabled: false,
+            gestureEnabled: true, // must be set to true or it gets animationEnabled with animationEnabled=false
+        });
+    };
+
     onUpdateSpaceReaction = (spaceId, data) => {
         const { createOrUpdateSpaceReaction, navigation, route, user } = this.props;
         const { space } = route.params;
@@ -296,18 +355,235 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         });
     };
 
+    handleCreateMoment = () => {
+        const {
+            location,
+            map,
+            navigation,
+            reactions,
+            updateGpsStatus,
+            updateLocationDisclosure,
+            user,
+        } = this.props;
+
+        return requestLocationServiceActivation({
+            isGpsEnabled: location?.settings?.isGpsEnabled,
+            translate: this.translate,
+            shouldIgnoreRequirement: false,
+        }).then((response: any) => {
+            if (response?.status || Platform.OS === 'ios') {
+                if (response?.alreadyEnabled && isLocationPermissionGranted(location.permissions)) {
+                    // Ensure that the user sees location disclosure even if gps is already enabled (otherwise requestOSMapPermissions will handle it)
+                    if (!location?.settings?.isLocationDislosureComplete) {
+                        // TODO: Show location disclosure modal
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+
+                updateLocationDisclosure(true);
+                updateGpsStatus(response?.status || 'enabled');
+
+                return false;
+            }
+
+            return Promise.resolve(false);
+        }).then((shouldAbort) => {
+            // TODO: Consider also calling requestOSMapPermissions here
+            if (!shouldAbort && location.user?.latitude && location.user?.longitude) {
+                const userCenter = {
+                    latitude: location.user.latitude,
+                    longitude: location.user.longitude,
+                };
+                const nearbySpaces = getNearbySpaces(userCenter, user, reactions, map?.spaces);
+                if (nearbySpaces.length > 0) {
+                    // CAUTION: Do not use navigation.reset. It seems to cause the app to crash on Android when
+                    // setting the 1st route to Map and 2nd round to EditMoment
+                    navigation.navigate({
+                        name: 'EditMoment',
+                        params: {
+                            ...userCenter,
+                            imageDetails: {},
+                            nearbySpaces,
+                            area: {},
+                        },
+                    });
+                } else {
+                    Toast.show({
+                        type: 'warnBig',
+                        text1: this.translate('alertTitles.walkCloser'),
+                        text2: this.translate('alertMessages.walkCloser'),
+                    });
+                    this.setState({
+                        isUserInSpace: false,
+                    });
+                }
+            }
+        });
+    };
+
+    renderViewIncentives({
+        spaceInView,
+    }) {
+        const { isUserInSpace } = this.state;
+
+        return (
+            <View style={{ width: '100%' }}>
+                <View style={this.theme.styles.sectionContainer}>
+                    <Text style={this.theme.styles.sectionTitleCenter}>
+                        {this.translate('pages.viewSpace.h2.claimRewards')}
+                    </Text>
+                    {
+                        spaceInView.featuredIncentiveKey === IncentiveRequirementKeys.SHARE_A_MOMENT &&
+                        <Text style={this.theme.styles.sectionDescription}>
+                            {this.translate('pages.viewSpace.info.shareAMoment.claimRewards')}
+                        </Text>
+                    }
+                </View>
+                <View style={this.themeArea.styles.banner}>
+                    <View style={this.themeArea.styles.bannerTitle}>
+                        <Button
+                            type="clear"
+                            icon={
+                                <TherrIcon
+                                    name="gift"
+                                    size={28}
+                                    style={this.themeArea.styles.bannerTitleIcon}
+                                />
+                            }
+                            onPress={() =>{}}
+                        />
+                        <Text numberOfLines={1} style={[this.themeArea.styles.bannerTitleTextCenter, spacingStyles.flexOne]}>
+                            {this.translate('pages.viewSpace.buttons.coinReward', {
+                                count: spaceInView.featuredIncentiveRewardValue,
+                            })}
+                        </Text>
+                    </View>
+                    <Button
+                        icon={
+                            <TherrIcon
+                                name="hand-coin"
+                                size={28}
+                                color={this.theme.colors.accentYellow}
+                            />
+                        }
+                        iconRight
+                        onPress={() =>{}}
+                        type="clear"
+                    />
+                </View>
+                {
+                    spaceInView.featuredIncentiveKey === IncentiveRequirementKeys.SHARE_A_MOMENT &&
+                        <View style={this.theme.styles.sectionContainer}>
+                            <Text style={this.theme.styles.sectionTitleCenter}>
+                                {this.translate('pages.viewSpace.h2.requirements')}
+                            </Text>
+                            <View style={{ display: 'flex', flexDirection: 'row' }}>
+                                <View style={{ width: 50, alignItems: 'center' }}>
+                                    <MaterialIcon
+                                        name="looks-one"
+                                        size={23}
+                                        style={{ color: this.theme.colors.primary4 }}
+                                    />
+                                </View>
+                                <Text style={[this.theme.styles.sectionDescription16, spacingStyles.flexOne]}>
+                                    {this.translate('pages.viewSpace.info.shareAMoment.stepOne', {
+                                        maxDistance: MAX_DISTANCE_TO_NEARBY_SPACE,
+                                    })}
+                                </Text>
+                            </View>
+                            <View style={{ display: 'flex', flexDirection: 'row' }}>
+                                <View style={{ width: 50, alignItems: 'center' }}>
+                                    <MaterialIcon
+                                        name="looks-two"
+                                        size={23}
+                                        style={{ color: this.theme.colors.primary4 }}
+                                    />
+                                </View>
+                                <Text style={[this.theme.styles.sectionDescription16, spacingStyles.flexOne]}>
+                                    {this.translate('pages.viewSpace.info.shareAMoment.stepTwo')}
+                                </Text>
+                            </View>
+                            <View style={{ display: 'flex', flexDirection: 'row' }}>
+                                <View style={{ width: 50, alignItems: 'center' }}>
+                                    <MaterialIcon
+                                        name="looks-3"
+                                        size={23}
+                                        style={{ color: this.theme.colors.primary4 }}
+                                    />
+                                </View>
+                                <Text style={[this.theme.styles.sectionDescription16, spacingStyles.flexOne]}>
+                                    {this.translate('pages.viewSpace.info.shareAMoment.stepThree')}
+                                </Text>
+                            </View>
+                            <View style={{ display: 'flex', flexDirection: 'row' }}>
+                                <View style={{ width: 50, alignItems: 'center' }}>
+                                    <MaterialIcon
+                                        name="priority-high"
+                                        size={23}
+                                        style={{ color: this.theme.colors.primary4 }}
+                                    />
+                                </View>
+                                <Text style={[this.theme.styles.sectionDescription16, spacingStyles.flexOne]}>
+                                    {this.translate('pages.viewSpace.info.shareAMoment.protip')}
+                                </Text>
+                            </View>
+                        </View>
+                }
+                <View style={this.theme.styles.sectionContainer}>
+                    {/* TODO: Conditionally Show text if user has already claimed reward (or needs to walk closer) */}
+                    <Button
+                        containerStyle={this.themeButtons.styles.btnContainer}
+                        buttonStyle={this.themeButtons.styles.btnLargeWithText}
+                        // disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                        disabledStyle={this.themeForms.styles.buttonRoundDisabled}
+                        disabledTitleStyle={this.themeForms.styles.buttonTitleDisabled}
+                        titleStyle={this.themeButtons.styles.btnMediumTitle}
+                        title={this.translate(
+                            'menus.mapActions.uploadAMoment'
+                        )}
+                        icon={
+                            <TherrIcon
+                                name="map-marker-clock"
+                                size={24}
+                                style={this.themeButtons.styles.btnIcon}
+                            />
+                        }
+                        onPress={() => this.handleCreateMoment()}
+                        raised={false}
+                    />
+                    {
+                        !isUserInSpace &&
+                        <Text style={[this.theme.styles.sectionDescriptionNote, spacingStyles.marginTopSm]}>
+                            {this.translate('pages.viewSpace.info.walkCloser')}
+                        </Text>
+                    }
+                </View>
+            </View>
+        );
+    }
+
     render() {
-        const { areAreaOptionsVisible, isDeleting, isVerifyingDelete, fetchedSpace, previewLinkId, previewStyleState } = this.state;
+        const {
+            areAreaOptionsVisible,
+            isDeleting,
+            isVerifyingDelete,
+            isViewingIncentives,
+            fetchedSpace,
+            previewLinkId,
+            previewStyleState,
+        } = this.state;
         const { content, route, user } = this.props;
         const { space, isMyContent } = route.params;
         // TODO: Fetch space media
         const mediaId = (space.media && space.media[0]?.id) || (space.mediaIds?.length && space.mediaIds?.split(',')[0]);
         const spaceMedia = content?.media[mediaId];
-        const spaceUserName = isMyContent ? user.details.userName : space.fromUserName;
         const spaceInView = {
             ...space,
             ...fetchedSpace,
         };
+        const spaceUserName = isMyContent ? user.details.userName : spaceInView.fromUserName;
 
         return (
             <>
@@ -320,28 +596,35 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                         contentContainerStyle={[this.theme.styles.bodyScroll, this.themeAccentLayout.styles.bodyViewScroll]}
                     >
                         <View style={[this.themeAccentLayout.styles.container, this.themeArea.styles.areaContainer]}>
-                            <AreaDisplay
-                                translate={this.translate}
-                                date={this.date}
-                                toggleAreaOptions={this.toggleAreaOptions}
-                                hashtags={this.hashtags}
-                                isDarkMode={true}
-                                isExpanded={true}
-                                inspectContent={() => null}
-                                area={spaceInView}
-                                goToViewMap={this.goToViewMap}
-                                goToViewUser={this.goToViewUser}
-                                updateAreaReaction={this.onUpdateSpaceReaction}
-                                // TODO: User Username from response
-                                user={user}
-                                areaUserDetails={{
-                                    userName: spaceUserName || spaceInView.fromUserId,
-                                }}
-                                areaMedia={spaceMedia}
-                                theme={this.theme}
-                                themeForms={this.themeForms}
-                                themeViewArea={this.themeArea}
-                            />
+                            {
+                                isViewingIncentives ?
+                                    this.renderViewIncentives({
+                                        spaceInView,
+                                    }) :
+                                    <AreaDisplay
+                                        translate={this.translate}
+                                        date={this.date}
+                                        toggleAreaOptions={this.toggleAreaOptions}
+                                        hashtags={this.hashtags}
+                                        isDarkMode={true}
+                                        isExpanded={true}
+                                        inspectContent={() => null}
+                                        area={spaceInView}
+                                        goToViewMap={this.goToViewMap}
+                                        goToViewUser={this.goToViewUser}
+                                        goToViewIncentives={this.goToViewIncentives}
+                                        updateAreaReaction={this.onUpdateSpaceReaction}
+                                        // TODO: User Username from response
+                                        user={user}
+                                        areaUserDetails={{
+                                            userName: spaceUserName || spaceInView.fromUserId,
+                                        }}
+                                        areaMedia={spaceMedia}
+                                        theme={this.theme}
+                                        themeForms={this.themeForms}
+                                        themeViewArea={this.themeArea}
+                                    />
+                            }
                         </View>
                         {
                             previewLinkId
