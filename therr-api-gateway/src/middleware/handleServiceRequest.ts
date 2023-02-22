@@ -56,6 +56,7 @@ const handleServiceRequest = ({
                 res,
                 message: error?.response?.data?.message || error,
                 statusCode: error?.response?.data?.statusCode || 500,
+                errorCode: error?.response?.data?.errorCode || 500,
             });
         });
 };
