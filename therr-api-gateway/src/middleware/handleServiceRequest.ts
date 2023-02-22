@@ -20,6 +20,7 @@ const handleServiceRequest = ({
             'x-localecode': req.headers['x-localecode'] || '',
             'x-platform': req.headers['x-platform'] || '',
             'x-userid': req.headers['x-userid'] || req['x-userid'] || '',
+            'x-username': req.headers['x-username'] || req['x-username'] || '',
             'x-user-device-token': req.headers['x-user-device-token'] || '',
         },
         method,

@@ -108,7 +108,7 @@ export default ({
     // TODO: performance optimize to prevent loading unnecessary data
     let filteredData = categories.includes(SELECT_ALL) ?
         sortedData :
-        sortedData.filter(area => categories.includes(area.category));
+        sortedData.filter(areaOrThought => categories.includes(areaOrThought.category));
 
     return filteredData;
 };
