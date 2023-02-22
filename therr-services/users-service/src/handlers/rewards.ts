@@ -1,3 +1,4 @@
+import { ErrorCodes } from 'therr-js-utilities/constants';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import sendRewardsExchangeEmail from '../api/email/admin/sendRewardsExchangeEmail';
@@ -83,10 +84,20 @@ const transferCoins = (req, res) => {
     return Store.users.transferTherrCoin(fromUserId, toUserId, amount)
         .then((result) => {
             if (result?.transactionStatus !== 'success') {
+                if (result.transactionStatus === 'insufficient-funds') {
+                    return handleHttpError({
+                        res,
+                        message: result.transactionStatus,
+                        statusCode: 400,
+                        errorCode: ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS,
+                    });
+                }
+
                 return handleHttpError({
                     res,
                     message: result.transactionStatus,
-                    statusCode: 400,
+                    statusCode: 500,
+                    errorCode: ErrorCodes.UNKNOWN_ERROR,
                 });
             }
 

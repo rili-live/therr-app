@@ -54,8 +54,7 @@ const createMoment = async (req, res) => {
             const spaces = await Store.spaces.getById(req.body.spaceId);
             const space = spaces[0];
 
-            if (userId !== space.fromUserId
-                && space?.incentives?.length) {
+            if (userId !== space.fromUserId && space?.incentives?.length) {
                 // 1. Attempt to create a transaction (only if user has not exceeded limits)
                 const therrCoinIncentive = space.incentives
                     .find((incentive) => (
@@ -80,6 +79,18 @@ const createMoment = async (req, res) => {
                                 toUserId: userId,
                                 amount: therrCoinIncentive.incentiveRewardValue,
                             },
+                        }).catch((error) => {
+                            // Catch and handle insufficient funds error so we can pass this error along to the frontend
+                            if (error?.response?.data?.errorCode === ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS) {
+                                return {
+                                    data: {
+                                        transactionStatus: error?.response?.data?.message || 'insufficient-funds',
+                                    },
+                                };
+                            }
+
+                            // Let the error trickle down to our catch 500 block
+                            throw error;
                         });
 
                         if (data.transactionStatus !== 'success') {
