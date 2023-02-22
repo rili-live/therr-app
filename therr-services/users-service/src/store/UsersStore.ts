@@ -275,7 +275,7 @@ export default class UsersStore {
 
     transferTherrCoin(fromUserId: string, toUserId: string, amount: number) {
         return this.db.write.connect()
-            .then((client) => this.db.write.query('BEGIN')
+            .then((client) => client.query('BEGIN')
                 .then(() => {
                     // 1. Attempt to reduce the fromUserId's coin total
                     const decrementQueryString = knexBuilder
