@@ -13,6 +13,7 @@ interface IConfirmModal {
     onConfirm: any;
     renderImage?: () => React.ReactNode,
     text: string;
+    text2?: string;
     textConfirm?: string;
     textCancel?: string;
     translate: Function;
@@ -61,6 +62,7 @@ export default ({
     onConfirm,
     renderImage,
     text,
+    text2,
     textConfirm,
     textCancel,
     themeModal,
@@ -93,6 +95,9 @@ export default ({
                                 <ScrollView style={themeModal.styles.body} contentContainerStyle={themeModal.styles.bodyContent}>
                                     <View onStartShouldSetResponder={() => true}>
                                         <Text style={themeModal.styles.bodyText}>{text}</Text>
+                                        {
+                                            text2 && <Text style={themeModal.styles.bodyText}>{text2}</Text>
+                                        }
                                     </View>
                                 </ScrollView>
                             </> :
@@ -102,7 +107,7 @@ export default ({
                         <ModalButton
                             iconName="close"
                             title={textCancel || translate('modals.confirmModal.cancel')}
-                            onPress={() => onCancel()}
+                            onPress={onCancel}
                             hasBorderRight={true}
                             themeModal={themeModal}
                             themeButtons={themeButtons}
@@ -110,7 +115,7 @@ export default ({
                         <ModalButton
                             iconName="check"
                             title={textConfirm || translate('modals.confirmModal.confirm')}
-                            onPress={() => onConfirm()}
+                            onPress={onConfirm}
                             hasBorderRight={false}
                             themeModal={themeModal}
                             themeButtons={themeButtons}

@@ -44,8 +44,8 @@ export default class UsersStore {
     }
 
     // Deprecated
-    getUsers(conditions = {}, orConditions = {}, anotherOrConditions = {}) {
-        const queryString = knexBuilder.select(['*'])
+    getUsers(conditions = {}, orConditions = {}, anotherOrConditions = {}, returning = ['*']) {
+        const queryString = knexBuilder.select(returning)
             .from(USERS_TABLE_NAME)
             .orderBy('id')
             .where(conditions)

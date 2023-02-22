@@ -337,6 +337,7 @@
         "selectExisting": "Select an Existing Photo",
         "draft": "Draft",
         "next": "Next",
+        "continue": "Continue",
         "submit": "Send",
         "delete": "Delete?",
         "confirm": "Delete",
@@ -372,6 +373,11 @@
         "expiresAt": "Countdown",
         "radius": "Radius: {meters} meters",
         "unselected": "Select a Space"
+      },
+      "modal": {
+        "insufficientFundsTitle": "No TherrCoins Available",
+        "insufficientFundsMessage": "The owner of this Space has insufficient funds to send you TherrCoin.",
+        "insufficientFundsMessage2": "Continue without rewards?"
       },
       "backendSuccessMessage": "Your moment was successfully saved!",
       "backendErrorMessage": "Connection error. Please try again later."

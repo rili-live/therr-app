@@ -265,6 +265,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         });
     };
 
+    // TODO: We don't need to load more areas when scrolling thoughts and vice versa
     tryLoadMore = () => {
         const { content, searchActiveMoments, searchActiveSpaces, searchActiveThoughts, user } = this.props;
 

@@ -29,7 +29,12 @@ const template = `
             <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
               <tr>
                 <td class="content-block" style="font-family: sans-serif; vertical-align: top; padding-bottom: 0px; padding-top: 0px; color: #999999; text-align: center; line-height: 0">
-                  <img src="${imagesHost}/assets/images/email-header.jpg" alt="Therr email header" style="height: auto; width: 100%" />
+                  {{#if headerImageName}}
+                    <img src="${imagesHost}/assets/images/{{headerImageName}}" alt="Therr email header" style="height: auto; width: 100%" />
+                  {{/if}}
+                  {{#unless headerImageName}}
+                    <img src="${imagesHost}/assets/images/email-header.jpg" alt="Therr email header" style="height: auto; width: 100%" />
+                  {{/unless}}
                 </td>
               </tr>
             </table>
@@ -88,6 +93,9 @@ const template = `
           <!-- START FOOTER -->
           <div class="footer" style="clear: both; margin-top: 10px; text-align: center; width: 100%;">
             <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
+            {{#if footerImageName}}
+              <img src="${imagesHost}/assets/images/{{footerImageName}}" alt="Therr email footer" style="height: auto; width: 100%" />
+            {{/if}}
               <tr>
                 <td class="content-block" style="font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; font-size: 12px; color: #999999; text-align: center;">
                   <span class="apple-link" style="color: #e2e0e0; font-size: 12px; text-align: center;">All rights reserved © Therr Inc. 2021</span>
