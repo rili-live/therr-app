@@ -782,6 +782,11 @@
         "walkCloser": "Walk closer to the space to claim rewards."
       }
     },
+    "viewMoment": {
+      "buttons": {
+        "viewNearbySpace": "View Space?"
+      }
+    },
     "editThought": {
       "headerTitle": "Share a Thought"
     },

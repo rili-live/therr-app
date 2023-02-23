@@ -111,6 +111,25 @@ export default class SpacesStore {
             .then((response) => formatSQLJoinAsJSON(response.rows, [{ propKey: 'incentives', propId: 'id' }]));
     }
 
+    getByIdSimple(id) {
+        const query = knexBuilder
+            .select([
+                'id',
+                'fromUserId',
+                'notificationMsg',
+                'message',
+                'latitude',
+                'longitude',
+            ])
+            .from(SPACES_TABLE_NAME)
+            .where({
+                id,
+            });
+
+        return this.db.read.query(query.toString())
+            .then((response) => response.rows);
+    }
+
     // Combine with search to avoid getting count out of sync
     countRecords(params, fromUserIds) {
         let proximityMax = Location.AREA_PROXIMITY_METERS;

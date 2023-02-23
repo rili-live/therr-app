@@ -17,6 +17,7 @@ import { IUserState } from 'therr-react/types';
 import UserMedia from './UserMedia';
 import HashtagsContainer from './HashtagsContainer';
 import { ITherrThemeColors } from '../../styles/themes';
+import spacingStyles from '../../styles/layouts/spacing';
 import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserImageUri } from '../../utilities/content';
 import PresssableWithDoubleTap from '../../components/PressableWithDoubleTap';
@@ -45,6 +46,7 @@ interface IAreaDisplayProps {
     goToViewIncentives: Function;
     goToViewUser: Function;
     goToViewMap: (lat: string, long: string) => any;
+    goToViewSpace?: (area: any) => any;
     inspectContent: () => any;
     updateAreaReaction: Function;
     user: IUserState;
@@ -90,6 +92,13 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
     onClaimRewardPress = () => {
         const { goToViewIncentives } = this.props;
         goToViewIncentives();
+    };
+
+    onGoToSpace = () => {
+        const { goToViewSpace } = this.props;
+        if (goToViewSpace) {
+            goToViewSpace(this.props.area);
+        }
     };
 
     onViewMapPress = (area) => {
@@ -152,6 +161,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             && area.featuredIncentiveRewardValue
             && area.featuredIncentiveRewardKey
             && area.featuredIncentiveRewardKey === IncentiveRewardKeys.THERR_COIN_REWARD;
+        const shouldDisplayRelatedSpaceBanner = isExpanded && area.spaceId;
 
         return (
             <>
@@ -307,6 +317,35 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                             onPress={this.onClaimRewardPress}
                             type="clear"
                         />
+                    </Pressable>
+                }
+                {
+                    shouldDisplayRelatedSpaceBanner &&
+                    <Pressable style={themeViewArea.styles.banner} onPress={this.onGoToSpace}>
+                        <View style={themeViewArea.styles.bannerTitle}>
+                            <Button
+                                type="clear"
+                                icon={
+                                    <TherrIcon
+                                        name="road-map"
+                                        size={28}
+                                        style={themeViewArea.styles.bannerTitleIcon}
+                                    />
+                                }
+                                onPress={this.onGoToSpace}
+                            />
+                            {
+                                area.space &&
+                                <Text numberOfLines={1} style={themeViewArea.styles.bannerTitleText}>
+                                    {`${area.space?.notificationMsg} lbah blah blah blah blah blah`}
+                                </Text>
+                            }
+                        </View>
+                        <Pressable onPress={this.onGoToSpace} style={spacingStyles.marginRtMd}>
+                            <Text style={themeViewArea.styles.bannerLinkText}>
+                                {translate('pages.viewMoment.buttons.viewNearbySpace')}
+                            </Text>
+                        </Pressable>
                     </Pressable>
                 }
                 <Text style={themeViewArea.styles.areaMessage} numberOfLines={isExpanded ? undefined : 3}>

@@ -196,6 +196,8 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             color: therrTheme.colors.brandingWhite,
             fontSize: 15,
             fontFamily: therrFontFamily,
+            paddingRight: 8,
+            flex: 1,
         },
         bannerTitleTextCenter: {
             color: therrTheme.colors.brandingWhite,
