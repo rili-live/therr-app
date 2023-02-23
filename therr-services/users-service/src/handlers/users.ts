@@ -450,6 +450,7 @@ const updateUserPassword = (req, res) => Store.users.findUser({ id: req.headers[
 // DELETE
 const deleteUser = (req, res) => {
     const userId = req.headers['x-userid'];
+    const userName = req.headers['x-username'];
 
     // User should only be able to delete self
     if (userId !== req.params.id) {
@@ -473,6 +474,7 @@ const deleteUser = (req, res) => {
                 toAddresses: [process.env.AWS_FEEDBACK_EMAIL_ADDRESS as any],
             }, {
                 userId,
+                userName,
             });
 
             return res.status(200).send({

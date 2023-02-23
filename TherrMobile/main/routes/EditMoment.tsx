@@ -9,7 +9,7 @@ import Toast from 'react-native-toast-message';
 // import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import { IUserState } from 'therr-react/types';
 import { MapActions } from 'therr-react/redux/actions';
-import { Content } from 'therr-js-utilities/constants';
+import { Content, ErrorCodes } from 'therr-js-utilities/constants';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import OctIcon from 'react-native-vector-icons/Octicons';
 import YoutubePlayer from 'react-native-youtube-iframe';
@@ -21,6 +21,8 @@ import translator from '../services/translator';
 import { buildStyles, addMargins } from '../styles';
 import { buildStyles as buildAlertStyles } from '../styles/alerts';
 import { buildStyles as buildAccentStyles } from '../styles/layouts/accent';
+import { buildStyles as buildConfirmModalStyles } from '../styles/modal/confirmModal';
+import { buildStyles as buildButtonStyles } from '../styles/buttons';
 import { buildStyles as buildFormStyles } from '../styles/forms';
 import { buildStyles as buildAccentFormStyles } from '../styles/forms/accentEditForm';
 import { buildStyles as buildModalStyles } from '../styles/modal';
@@ -44,6 +46,7 @@ import { signImageUrl } from '../utilities/content';
 import { requestOSCameraPermissions } from '../utilities/requestOSPermissions';
 import BottomSheet from '../components/BottomSheet/BottomSheet';
 import TherrIcon from '../components/TherrIcon';
+import ConfirmModal from '../components/Modals/ConfirmModal';
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -89,6 +92,7 @@ interface IEditMomentState {
     errorMsg: string;
     hashtags: string[];
     isImageBottomSheetVisible: boolean;
+    isInsufficientFundsModalVisible: boolean;
     isVisibilityBottomSheetVisible: boolean;
     inputs: any;
     isEditingNearbySpaces: boolean;
@@ -118,6 +122,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
     private theme = buildStyles();
     private themeAlerts = buildAlertStyles();
     private themeAccentLayout = buildAccentStyles();
+    private themeConfirmModal = buildConfirmModalStyles();
+    private themeButtons = buildButtonStyles();
     private themeMoments = buildMomentStyles();
     private themeModal = buildModalStyles();
     private themeForms = buildFormStyles();
@@ -144,6 +150,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             },
             isEditingNearbySpaces: false,
             isImageBottomSheetVisible: false,
+            isInsufficientFundsModalVisible: false,
             isVisibilityBottomSheetVisible: false,
             isSubmitting: false,
             nearbySpaces: nearbySpaces || [],
@@ -155,6 +162,8 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
         this.themeAccentLayout = buildAccentStyles(props.user.settings?.mobileThemeName);
         this.themeAlerts = buildAlertStyles(props.user.settings?.mobileThemeName);
+        this.themeConfirmModal = buildConfirmModalStyles(props.user.settings?.mobileThemeName);
+        this.themeButtons = buildButtonStyles(props.user.settings?.mobileThemeName);
         this.themeModal = buildModalStyles(props.user.settings?.mobileThemeName);
         this.themeMoments = buildMomentStyles(props.user.settings?.mobileThemeName);
         this.themeForms = buildFormStyles(props.user.settings?.mobileThemeName);
@@ -273,7 +282,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
         });
     };
 
-    onSubmit = (isDraft = false) => {
+    onSubmit = (isDraft = false, shouldSkipRewards = false) => {
         const { hashtags, nearbySpaces, selectedImage } = this.state;
         const {
             category,
@@ -311,6 +320,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             longitude,
             maxViews,
             radius,
+            skipReward: shouldSkipRewards,
             spaceId,
             expiresAt,
             nearbySpacesSnapshot: nearbySpaces,
@@ -336,7 +346,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             type: 'success',
                             text1: this.translate('alertTitles.momentCreatedSuccess'),
                             text2: this.translate('alertMessages.momentCreatedSuccess'),
-                            visibilityTime: 3500,
+                            visibilityTime: 2500,
                             position: 'top',
                             onHide: () => {
                                 if (response?.therrCoinRewarded && response?.therrCoinRewarded > 0) {
@@ -380,6 +390,10 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                         : ''
                                 }`,
                             });
+
+                            if (error.errorCode === ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS) {
+                                this.toggleInfoModal();
+                            }
                         } else if (error.statusCode >= 500) {
                             this.setState({
                                 errorMsg: this.translate('forms.editMoment.backendErrorMessage'),
@@ -543,6 +557,22 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             },
             errorMsg: '',
             isSubmitting: false,
+        });
+    };
+
+    onConfirmInsufficientFunds = () => {
+        this.toggleInfoModal();
+
+        // Submit and allow skipping rewards
+        this.setState({
+            isSubmitting: false,
+            errorMsg: '',
+        }, () => this.onSubmit(false, true));
+    };
+
+    toggleInfoModal = () => {
+        this.setState({
+            isInsufficientFundsModalVisible: !this.state.isInsufficientFundsModalVisible,
         });
     };
 
@@ -828,6 +858,7 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
             previewStyleState,
             isEditingNearbySpaces,
             isImageBottomSheetVisible,
+            isInsufficientFundsModalVisible,
             isVisibilityBottomSheetVisible,
         } = this.state;
         const continueButtonConfig = this.getContinueButtonConfig();
@@ -1012,6 +1043,20 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                         />
                     </BottomSheet>
                 </SafeAreaView>
+                <ConfirmModal
+                    isVisible={isInsufficientFundsModalVisible}
+                    onCancel={this.toggleInfoModal}
+                    onConfirm={this.onConfirmInsufficientFunds}
+                    headerText={this.translate('forms.editMoment.modal.insufficientFundsTitle')}
+                    text={this.translate('forms.editMoment.modal.insufficientFundsMessage')}
+                    text2={this.translate('forms.editMoment.modal.insufficientFundsMessage2')}
+                    textCancel={this.translate('forms.editMoment.buttons.cancel')}
+                    textConfirm={this.translate('forms.editMoment.buttons.continue')}
+                    translate={this.translate}
+                    theme={this.theme}
+                    themeModal={this.themeConfirmModal}
+                    themeButtons={this.themeButtons}
+                />
             </>
         );
     }

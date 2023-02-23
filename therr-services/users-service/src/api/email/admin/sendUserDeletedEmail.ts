@@ -11,6 +11,7 @@ export interface ISendUserDeletedEmailConfig {
 
 export interface ITemplateParams {
     userId: string;
+    userName: string;
 }
 
 export default (emailParams: ISendUserDeletedEmailConfig, templateParams: ITemplateParams) => {
@@ -18,7 +19,7 @@ export default (emailParams: ISendUserDeletedEmailConfig, templateParams: ITempl
     const template = Handlebars.compile(templateString);
     const htmlConfig = {
         header: 'Therr App: Account Deleted',
-        dearUser: `User with id ${templateParams.userId} has deleted their account.`,
+        dearUser: `User, ${templateParams.userName}, with id ${templateParams.userId} has deleted their account.`,
         body1: 'This use deleted their account. Ensure that any user content was also deleted.',
     };
     const html = template(htmlConfig);

@@ -3,6 +3,7 @@ import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import sendRewardsExchangeEmail from '../api/email/admin/sendRewardsExchangeEmail';
 import { parseConfigValue } from './config';
+import sendCoinsReceivedEmail from '../api/email/sendCoinsReceivedEmail';
 
 const calculateExchangeRate = (totalCoins, therrDollarReserves = 100) => {
     // Ensure we don't divide by zero
@@ -81,28 +82,50 @@ const getCurrentExchangeRate = (req, res) => {
 const transferCoins = (req, res) => {
     const { fromUserId, toUserId, amount } = req.body;
 
-    return Store.users.transferTherrCoin(fromUserId, toUserId, amount)
-        .then((result) => {
-            if (result?.transactionStatus !== 'success') {
-                if (result.transactionStatus === 'insufficient-funds') {
+    return Store.users.getUsers({ id: fromUserId }, { id: toUserId }, {}, ['id', 'email', 'userName']).then((usersResult) => {
+        if (!usersResult || !usersResult.length) {
+            return handleHttpError({
+                res,
+                message: 'One or both users not found',
+                statusCode: 404,
+                errorCode: ErrorCodes.NOT_FOUND,
+            });
+        }
+
+        return Store.users.transferTherrCoin(fromUserId, toUserId, amount)
+            .then((result) => {
+                if (result?.transactionStatus !== 'success') {
+                    if (result.transactionStatus === 'insufficient-funds') {
+                        return handleHttpError({
+                            res,
+                            message: result.transactionStatus,
+                            statusCode: 400,
+                            errorCode: ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS,
+                        });
+                    }
+
                     return handleHttpError({
                         res,
                         message: result.transactionStatus,
-                        statusCode: 400,
-                        errorCode: ErrorCodes.INSUFFICIENT_THERR_COIN_FUNDS,
+                        statusCode: 500,
+                        errorCode: ErrorCodes.UNKNOWN_ERROR,
                     });
                 }
 
-                return handleHttpError({
-                    res,
-                    message: result.transactionStatus,
-                    statusCode: 500,
-                    errorCode: ErrorCodes.UNKNOWN_ERROR,
-                });
-            }
+                const { userName, email } = usersResult.find((user) => user.id === toUserId);
+                if (amount > 0 && userName && email) {
+                    sendCoinsReceivedEmail({
+                        subject: `[Coins Received] You earned ${amount} TherrCoin(s)!`,
+                        toAddresses: [email],
+                    }, {
+                        coinTotal: amount,
+                        userName,
+                    });
+                }
 
-            return res.status(200).send({ message: 'Coins transferred successfully!', ...result });
-        });
+                return res.status(200).send({ message: 'Coins transferred successfully!', ...result });
+            });
+    });
 };
 
 export {
