@@ -13,7 +13,7 @@ export default class Logger {
 
     log = (data: any | any[], namespace?: any, headers: any = {}, endpoint = '/events/') => {
         const formattedData = data;
-        return this.sendLog(formattedData, headers, namespace, endpoint);
+        return this.sendLog(formattedData, namespace, headers, endpoint);
     };
 
     sendLog = (data: any | any[], namespace?: any, headers: any = {}, endpoint = '/events/') => {
