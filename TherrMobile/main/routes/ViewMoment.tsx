@@ -139,6 +139,12 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
             withMedia: !momentMedia,
             withUser: !momentUserName,
         }).then((data) => {
+            if (data?.moment?.notificationMsg) {
+                this.notificationMsg = (data?.moment?.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
+                navigation.setOptions({
+                    title: this.notificationMsg,
+                });
+            }
             this.setState({
                 fetchedMoment: data?.moment,
             });
@@ -258,6 +264,21 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         });
     };
 
+    goToViewSpace = (moment) => {
+        const { navigation, user } = this.props;
+
+        if (moment.spaceId) {
+            navigation.navigate('ViewSpace', {
+                isMyContent: moment.space?.fromUserId === user.details.id,
+                previousView: 'Areas',
+                space: {
+                    id: moment.spaceId,
+                },
+                spaceDetails: {},
+            });
+        }
+    };
+
     goToViewUser = (userId) => {
         const { navigation } = this.props;
 
@@ -308,14 +329,13 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
         } = this.state;
         const { content, route, user } = this.props;
         const { moment, isMyContent } = route.params;
-        // TODO: Fetch moment media
-        const mediaId = (moment.media && moment.media[0]?.id) || (moment.mediaIds?.length && moment.mediaIds?.split(',')[0]);
-        const momentMedia = content?.media[mediaId];
         const momentInView = {
             ...moment,
             ...fetchedMoment,
         };
         const momentUserName = isMyContent ? user.details.userName : momentInView.fromUserName;
+        const mediaId = (momentInView.media && momentInView.media[0]?.id) || (momentInView.mediaIds?.length && momentInView.mediaIds?.split(',')[0]);
+        const momentMedia = content?.media[mediaId];
 
         return (
             <>
@@ -338,6 +358,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 inspectContent={() => null}
                                 area={momentInView}
                                 goToViewMap={this.goToViewMap}
+                                goToViewSpace={this.goToViewSpace}
                                 goToViewUser={this.goToViewUser}
                                 updateAreaReaction={this.onUpdateMomentReaction}
                                 // TODO: User Username from response
