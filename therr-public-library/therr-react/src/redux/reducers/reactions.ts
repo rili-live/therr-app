@@ -1,6 +1,7 @@
 import * as Immutable from 'seamless-immutable';
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { IReactionsState, ReactionActionTypes } from '../../types/redux/reactions';
+import { ContentActionTypes } from '../../types/redux/content';
 
 const initialState: IReactionsState = Immutable.from({
     myMomentReactions: Immutable.from({}), // mapMomentIdToReactions
@@ -28,12 +29,40 @@ const reactions = (state: IReactionsState = initialState, action: any) => {
             modifiedMomentReactions[action.data.momentId] = action.data;
 
             return state.setIn(['myMomentReactions'], modifiedMomentReactions);
+        case ContentActionTypes.INSERT_ACTIVE_MOMENTS:
+            if (action.data?.length) {
+                action.data.forEach((moment: any) => {
+                    if (!modifiedMomentReactions[moment.id]) {
+                        // Add a placeholder reaction without needing to fetch from server
+                        // This allows us to display the area on the map as activated
+                        modifiedMomentReactions[moment.id] = {
+                            momentId: moment.id,
+                        };
+                    }
+                });
+            }
+
+            return state.setIn(['myMomentReactions'], modifiedMomentReactions);
 
         // Spaces
         case ReactionActionTypes.GET_SPACE_REACTIONS:
             return state.setIn(['mySpaceReactions'], action.data);
         case ReactionActionTypes.SPACE_REACTION_CREATED_OR_UPDATED:
             modifiedSpaceReactions[action.data.momentId] = action.data;
+
+            return state.setIn(['mySpaceReactions'], modifiedSpaceReactions);
+        case ContentActionTypes.INSERT_ACTIVE_SPACES:
+            if (action.data?.length) {
+                action.data.forEach((space: any) => {
+                    if (!modifiedSpaceReactions[space.id]) {
+                        // Add a placeholder reaction without needing to fetch from server
+                        // This allows us to display the area on the map as activated
+                        modifiedSpaceReactions[space.id] = {
+                            spaceId: space.id,
+                        };
+                    }
+                });
+            }
 
             return state.setIn(['mySpaceReactions'], modifiedSpaceReactions);
 

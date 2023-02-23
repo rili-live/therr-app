@@ -337,7 +337,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                             {
                                 area.space &&
                                 <Text numberOfLines={1} style={themeViewArea.styles.bannerTitleText}>
-                                    {`${area.space?.notificationMsg} lbah blah blah blah blah blah`}
+                                    {area.space?.notificationMsg}
                                 </Text>
                             }
                         </View>
