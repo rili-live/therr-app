@@ -167,6 +167,12 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
             withMedia: !spaceMedia,
             withUser: !spaceUserName,
         }).then((data) => {
+            if (data?.space?.notificationMsg) {
+                this.notificationMsg = (data?.space?.notificationMsg || '').replace(/\r?\n+|\r+/gm, ' ');
+                navigation.setOptions({
+                    title: this.notificationMsg,
+                });
+            }
             this.setState({
                 fetchedSpace: data?.space,
             });
@@ -576,14 +582,13 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
         } = this.state;
         const { content, route, user } = this.props;
         const { space, isMyContent } = route.params;
-        // TODO: Fetch space media
-        const mediaId = (space.media && space.media[0]?.id) || (space.mediaIds?.length && space.mediaIds?.split(',')[0]);
-        const spaceMedia = content?.media[mediaId];
         const spaceInView = {
             ...space,
             ...fetchedSpace,
         };
         const spaceUserName = isMyContent ? user.details.userName : spaceInView.fromUserName;
+        const mediaId = (spaceInView.media && spaceInView.media[0]?.id) || (spaceInView.mediaIds?.length && spaceInView.mediaIds?.split(',')[0]);
+        const spaceMedia = content?.media[mediaId];
 
         return (
             <>

@@ -495,6 +495,21 @@ const getMomentDetails = (req, res) => {
                     });
                 }
 
+                if (moment.spaceId) {
+                    return Store.spaces.getByIdSimple(moment.spaceId).then(([space]) => {
+                        if (space) {
+                            // Response including space details for navigation
+                            moment.space = space;
+                            return res.status(200).send({
+                                moment,
+                                media,
+                                users,
+                                space,
+                            });
+                        }
+                    });
+                }
+
                 return res.status(200).send({ moment, media, users });
             });
         }).catch((err) => handleHttpError({ err, res, message: 'SQL:MOMENTS_ROUTES:ERROR' }));
