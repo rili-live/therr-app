@@ -364,7 +364,7 @@ export class ViewMoment extends React.Component<IViewMomentProps, IViewMomentSta
                                 // TODO: User Username from response
                                 user={user}
                                 areaUserDetails={{
-                                    userName: momentUserName || momentInView.fromUserId,
+                                    userName: momentUserName || momentInView.fromUserId || '',
                                 }}
                                 areaMedia={momentMedia}
                                 theme={this.theme}

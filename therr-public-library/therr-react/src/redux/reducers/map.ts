@@ -43,7 +43,6 @@ const map = (state: IMapState = initialState, action: any) => {
                     };
                 }
             }
-
             return state.setIn(['moments'], modifiedMoments);
         case MapActionTypes.MOMENT_CREATED:
             modifiedMoments[action.data?.id] = action.data;
