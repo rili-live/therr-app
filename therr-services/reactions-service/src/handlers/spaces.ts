@@ -94,7 +94,7 @@ const searchActiveSpaces = async (req: any, res: any) => {
                 pagination: {
                     itemsPerPage: limit,
                     offset,
-                    isLastPage: response?.data?.spaces?.length < limit,
+                    isLastPage: reactions.length < limit && response?.data?.spaces?.length < limit,
                 },
             });
         })

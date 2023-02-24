@@ -85,7 +85,7 @@ const searchActiveThoughts = async (req: any, res: any) => {
                 pagination: {
                     itemsPerPage: limit,
                     offset,
-                    isLastPage: response?.data?.isLastPage,
+                    isLastPage: reactions.length < limit && response?.data?.isLastPage,
                 },
             });
         })
