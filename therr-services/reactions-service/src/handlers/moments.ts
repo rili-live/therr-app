@@ -93,7 +93,7 @@ const searchActiveMoments = async (req: any, res: any) => {
                 pagination: {
                     itemsPerPage: limit,
                     offset,
-                    isLastPage: response?.data?.moments?.length < limit,
+                    isLastPage: reactions.length < limit && response?.data?.moments?.length < limit,
                 },
             });
         })
