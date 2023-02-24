@@ -345,6 +345,7 @@ export default class ThoughtsStore {
                 return {
                     thoughts: mappedThoughts,
                     users: matchingUsers,
+                    isLastPage,
                 };
             }
 
