@@ -78,7 +78,7 @@ const createThought = async (req, res) => {
                     return Promise.resolve();
                 }).catch((err) => console.log(err));
             } else {
-                // TODO: Create reactions for user's connections
+                // TODO: Create reactions for (some of) user's connections
                 // requires new endpoint createReactionsForUsers
                 createOrUpdateAchievement({
                     authorization,
@@ -305,7 +305,7 @@ const findThoughts: RequestHandler = async (req: any, res: any) => {
         shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
         isMe: userId === authorId,
     })
-        .then(({ thoughts }) => res.status(200).send({ thoughts }))
+        .then(({ thoughts, isLastPage }) => res.status(200).send({ thoughts, isLastPage }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHTS_ROUTES:ERROR' }));
 };
 
