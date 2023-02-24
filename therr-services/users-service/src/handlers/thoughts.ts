@@ -280,7 +280,7 @@ const searchThoughts: RequestHandler = async (req: any, res: any) => {
 // NOTE: This should remain a non-public endpoint
 // It gets called by the reactions service when a thought is activated
 const findThoughts: RequestHandler = async (req: any, res: any) => {
-    // const userId = req.headers['x-userid'];
+    const userId = req.headers['x-userid'];
 
     const {
         limit,
@@ -303,6 +303,7 @@ const findThoughts: RequestHandler = async (req: any, res: any) => {
         withUser: !!withUser,
         withReplies: !!withReplies,
         shouldHideMatureContent: true, // TODO: Check the user settings to determine if mature content should be hidden
+        isMe: userId === authorId,
     })
         .then(({ thoughts }) => res.status(200).send({ thoughts }))
         .catch((err) => handleHttpError({ err, res, message: 'SQL:THOUGHTS_ROUTES:ERROR' }));

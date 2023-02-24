@@ -267,10 +267,6 @@ export default class ThoughtsStore {
             .offset(filters.offset || 0)
             .where(`${THOUGHTS_TABLE_NAME}.createdAt`, '<', filters.before || new Date())
             .andWhere(`${THOUGHTS_TABLE_NAME}.parentId`, null)
-            .andWhere((builder) => {
-                builder
-                    .whereIn(`${THOUGHTS_TABLE_NAME}.id`, thoughtIds || []);
-            })
             .limit(restrictedLimit);
 
         if (filters.authorId) {
@@ -279,6 +275,16 @@ export default class ThoughtsStore {
                 builder
                     .andWhere(`${THOUGHTS_TABLE_NAME}.fromUserId`, filters.authorId)
                     .andWhere(`${THOUGHTS_TABLE_NAME}.isPublic`, true);
+            });
+        }
+
+        // This restricts the query to only return thoughts that are in the list of thoughtIds
+        // when the user is not viewing their own thoughts.
+        // This ensures a thought is "activated" for the user when they view it.
+        if (!options?.isMe) {
+            query = query.andWhere((builder) => {
+                builder
+                    .whereIn(`${THOUGHTS_TABLE_NAME}.id`, thoughtIds || []);
             });
         }
 
