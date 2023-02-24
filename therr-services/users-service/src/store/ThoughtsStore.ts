@@ -302,6 +302,8 @@ export default class ThoughtsStore {
         }
 
         return this.db.read.query(query.toString()).then(async ({ rows }) => {
+            // Use raw rows to determine count and isLastPage
+            const isLastPage = rows.length < restrictedLimit;
             const thoughts = formatSQLJoinAsJSON(rows, [{ propKey: 'replies', propId: 'id' }]);
             if (options.withUser) {
                 const userIds: string[] = [];
@@ -350,6 +352,7 @@ export default class ThoughtsStore {
                 thoughts,
                 media: {},
                 users: {},
+                isLastPage,
             };
         });
     }
