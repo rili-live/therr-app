@@ -61,8 +61,6 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
             newInputChanges[name] = value.toLowerCase();
         }
 
-        console.log(newInputChanges);
-
         this.setState({
             inputs: {
                 ...this.state.inputs,
