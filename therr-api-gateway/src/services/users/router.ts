@@ -31,6 +31,7 @@ import { updateNotificationValidation } from './validation/notifications';
 import {
     feedbackAttemptLimiter,
     loginAttemptLimiter,
+    registerAttemptLimiter,
     rewardRequestAttemptLimiter,
     userConnectionLimiter,
     multiInviteLimiter,
@@ -121,7 +122,7 @@ usersServiceRouter.put('/users/connections', updateUserConnectionValidation, han
 }));
 
 // Users
-usersServiceRouter.post('/users', createUserValidation, validate, handleServiceRequest({
+usersServiceRouter.post('/users', registerAttemptLimiter, createUserValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}`,
     method: 'post',
 }));
