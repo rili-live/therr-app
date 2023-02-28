@@ -15,24 +15,43 @@ import { createUserHelper, getUserHelper, isUserProfileIncomplete } from './help
 import requestToDeleteUserData from './helpers/requestToDeleteUserData';
 
 // CREATE
-const createUser: RequestHandler = (req: any, res: any) => Store.users.findUser(req.body)
-    .then((findResults) => {
-        if (findResults.length) {
-            return handleHttpError({
-                res,
-                message: 'Username, e-mail, and phone number must be unique. A user already exists.',
-                statusCode: 400,
-                errorCode: ErrorCodes.USER_EXISTS,
-            });
-        }
+const createUser: RequestHandler = (req: any, res: any) => {
+    // This is a honeypot hidden field to prevent spam
+    if (req.body.website) {
+        return handleHttpError({
+            res,
+            message: 'Invalid Registration',
+            statusCode: 400,
+            err: new Error(`Attempted spam registration with email ${req.body.email}`),
+        });
+    }
 
-        return createUserHelper(req.body, false, undefined, req.headers['x-localecode']).then((user) => res.status(201).send(user));
-    })
-    .catch((err) => handleHttpError({
-        err,
-        res,
-        message: 'SQL:USER_ROUTES:ERROR',
-    }));
+    return Store.users.findUser(req.body)
+        .then((findResults) => {
+            if (findResults.length) {
+                return handleHttpError({
+                    res,
+                    message: 'Username, e-mail, and phone number must be unique. A user already exists.',
+                    statusCode: 400,
+                    errorCode: ErrorCodes.USER_EXISTS,
+                });
+            }
+
+            return createUserHelper({
+                email: req.body.email,
+                password: req.body.password,
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
+                phoneNumber: req.body.phoneNumber,
+                userName: req.body.userName,
+            }, false, undefined, req.headers['x-localecode']).then((user) => res.status(201).send(user));
+        })
+        .catch((err) => handleHttpError({
+            err,
+            res,
+            message: 'SQL:USER_ROUTES:ERROR',
+        }));
+};
 
 // READ
 const getMe = (req, res) => {

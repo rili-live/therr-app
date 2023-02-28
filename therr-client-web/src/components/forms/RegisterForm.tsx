@@ -20,6 +20,7 @@ interface IRegisterFormState {
 
 /**
  * RegisterForm
+ * TODO: Use timer and mark as spam if form is submitted in less that 2 second
  */
 export class RegisterFormComponent extends React.Component<IRegisterFormProps, IRegisterFormState> {
     private translate: Function;
@@ -115,6 +116,19 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
                     />
 
                     {/* <label className="required" htmlFor="repeat_password">{this.translate('components.registerForm.labels.repeatPassword')}:</label> */}
+                    <Input
+                        autoComplete="off"
+                        type="hidden"
+                        id="sweety_pie"
+                        name="website"
+                        value={this.state.inputs.website}
+                        onChange={this.onInputChange}
+                        onEnter={this.onSubmit}
+                        translate={this.translate}
+                        placeholder={this.translate('components.registerForm.labels.mySweet')}
+                        tabIndex="-1"
+                    />
+
                     <Input
                         type="password"
                         id="repeat_password"
