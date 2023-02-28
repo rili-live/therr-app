@@ -52,8 +52,7 @@ fi
 # This is reliant on the previous commit being a single merge commit with all prior changes
 should_deploy_web_app()
 {
-  # TODO: Uncomment after fixing web react 18 update
-  # has_prev_diff_changes "therr-client-web" || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
+  has_prev_diff_changes "therr-client-web" || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
   false
 }
 

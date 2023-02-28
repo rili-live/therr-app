@@ -78,7 +78,8 @@ class Input extends React.Component<any, any> {
         neverValidations: PropTypes.bool,
         placeholder: PropTypes.string,
         translate: PropTypes.func.isRequired,
-        type: PropTypes.oneOf(['number', 'password', 'search', 'text', 'url']),
+        tabIndex: PropTypes.string,
+        type: PropTypes.oneOf(['hidden', 'number', 'password', 'search', 'text', 'url']),
         validations: PropTypes.arrayOf(PropTypes.oneOf(Object.keys(VALIDATIONS))),
         value: PropTypes.string,
     };
@@ -153,7 +154,7 @@ class Input extends React.Component<any, any> {
 
     render() {
         const {
-            autoComplete, className, disabled, formClassName, id, name, neverValidations, placeholder, type, validations,
+            autoComplete, className, disabled, formClassName, id, name, neverValidations, placeholder, tabIndex, type, validations,
         } = this.props;
         const {
             inputValue, isDirty, isTouched, validationErrors,
@@ -184,6 +185,7 @@ class Input extends React.Component<any, any> {
                     onFocus={this.onFocus}
                     onKeyDown={this.handleKeyDown}
                     placeholder={placeholder}
+                    tabIndex={tabIndex}
                 />
                 {
                     shouldShowValidationErrors
