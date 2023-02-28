@@ -1,15 +1,7 @@
 import * as jwt from 'jsonwebtoken';
 import unless from 'express-unless';
 import handleHttpError from '../utilities/handleHttpError';
-
-// TODO: Store this in a database
-const blacklistedIps: string[] = [];
-const blacklistedIpPrefixes: string[] = [];
-const isBlacklisted = (ip) => {
-    const isBadLocale = blacklistedIpPrefixes.some((prefix) => ip.startsWith(prefix));
-
-    return isBadLocale || blacklistedIps.includes(ip);
-};
+import isBlacklisted from '../utilities/isBlacklisted';
 
 const authenticate = async (req, res, next) => {
     try {

@@ -37,7 +37,7 @@ export class RegisterFormComponent extends React.Component<IRegisterFormProps, I
     }
 
     isFormDisabled() {
-        return !this.state.inputs.password || !this.isFormValid();
+        return !this.state.inputs.email || !this.state.inputs.password || !this.isFormValid();
     }
 
     isFormValid() {
