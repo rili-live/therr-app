@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import handleHttpError from '../utilities/handleHttpError';
 import restRequest from '../utilities/restRequest';
+import isBlacklisted from '../utilities/isBlacklisted';
 
 interface IHandleServiceRequestArgs {
     basePath: string;
@@ -34,6 +35,15 @@ const handleServiceRequest = ({
     // TODO: RAUTO-27: Remove this
     if (req.headers.authorization) {
         config.headers.authorization = req.headers.authorization;
+    }
+
+    if (isBlacklisted(req.ip)) {
+        return handleHttpError({
+            err: new Error('IP address is blacklisted'),
+            res,
+            message: 'Invalid request. Please try again later.',
+            statusCode: 400,
+        });
     }
 
     return restRequest(config)
