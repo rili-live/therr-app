@@ -53,7 +53,6 @@ fi
 should_deploy_web_app()
 {
   has_prev_diff_changes "therr-client-web" || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
-  false
 }
 
 # This is reliant on the previous commit being a single merge commit with all prior changes
