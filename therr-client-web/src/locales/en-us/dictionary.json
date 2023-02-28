@@ -80,7 +80,8 @@
         "mobilePhone": "Mobile Phone #",
         "password": "Password",
         "repeatPassword": "Repeat Password",
-        "userName": "Username"
+        "userName": "Username",
+        "mySweet": "Are you Sweet?"
       },
       "validationErrors": {
         "phoneNumber": "Invalid phone number"

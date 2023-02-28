@@ -312,6 +312,7 @@ const createUserHelper = (userDetails: IRequiredUserDetails, isSSO = false, user
             });
 
             // STANDARD USER REGISTRATION
+            // TODO: If this bounces, update user email preferences and notify admin
             return sendVerificationEmail({
                 subject: '[Account Verification] Therr User Account',
                 toAddresses: [userDetails.email],
