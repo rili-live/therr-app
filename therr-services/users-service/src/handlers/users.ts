@@ -22,7 +22,7 @@ const createUser: RequestHandler = (req: any, res: any) => {
             res,
             message: 'Invalid Registration',
             statusCode: 400,
-            err: new Error(`Attempted spam registration with email${req.body.email}`),
+            err: new Error(`Attempted spam registration with email ${req.body.email}`),
         });
     }
 
