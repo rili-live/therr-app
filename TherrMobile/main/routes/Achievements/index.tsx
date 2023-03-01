@@ -3,6 +3,7 @@ import { SafeAreaView, View, Text } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { IUserState } from 'therr-react/types';
+import Toast from 'react-native-toast-message';
 import { FlatList, RefreshControl } from 'react-native-gesture-handler';
 // import { achievementsByClass } from 'therr-js-utilities/config';
 import MainButtonMenu from '../../components/ButtonMenu/MainButtonMenu';
@@ -94,6 +95,14 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
         const { claimMyAchievement } = this.props;
 
         claimMyAchievement(userAchievement.id, userAchievement.unclaimedRewardPts).then(() => {
+            Toast.show({
+                type: 'success',
+                text1: this.translate('alertTitles.coinsReceived'),
+                text2: this.translate('alertMessages.coinsReceived', {
+                    total: userAchievement.unclaimedRewardPts,
+                }),
+                visibilityTime: 2000,
+            });
             this.onPressAchievement(userAchievement, true);
         });
     };
@@ -107,11 +116,33 @@ export class Achievements extends React.Component<IAchievementsProps, IAchieveme
         });
     };
 
+    /** Groups achievements so most important float to the top */
+    getUserAchievements = () => {
+        const { user } = this.props;
+
+        const achArray = Object.values(user.achievements || {});
+        let claimed: any[] = [];
+        let incomplete: any[] = [];
+        let unclaimed: any[] = [];
+
+        achArray.forEach((ach: any) => {
+            if (!ach.completedAt) {
+                incomplete.push(ach);
+            } else if (ach.unclaimedRewardPts > 0) {
+                unclaimed.push(ach);
+            } else {
+                claimed.push(ach);
+            }
+        });
+
+        return unclaimed.concat(incomplete).concat(claimed);
+    };
+
     render() {
         const { navigation, user } = this.props;
         const { isRefreshing } = this.state;
         // const pageHeaderAchievements = this.translate('pages.achievements.pageHeader');
-        const userAchievements = Object.values(user.achievements || {});
+        const userAchievements = this.getUserAchievements();
 
         return (
             <>
