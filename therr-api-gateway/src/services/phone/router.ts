@@ -96,6 +96,7 @@ phoneRouter.post('/validate-code', verifyPhoneLongLimiter, validate, async (req,
     const userId = req.headers['x-userid'] || req['x-userid'];
 
     try {
+        // TODO: This should require phonenumber and ensure match
         const { verificationCode } = req.body;
         const cacheKey = `phone-verification-codes:${userId}`;
 

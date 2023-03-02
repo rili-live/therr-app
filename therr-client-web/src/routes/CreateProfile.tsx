@@ -1,9 +1,13 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import * as ReactGA from 'react-ga';
+import { ErrorCodes } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
+import { ApiService } from 'therr-react/services';
 import translator from '../services/translator';
 import CreateProfileForm from '../components/forms/CreateProfileForm';
+import VerifyPhoneCodeForm from '../components/forms/VerifyPhoneCodeForm';
 import UsersActions from '../redux/actions/UsersActions';
 import withNavigation from '../wrappers/withNavigation';
 import { routeAfterLogin } from './Login';
@@ -26,6 +30,9 @@ interface ICreateProfileProps extends ICreateProfileRouterProps, IStoreProps {
 interface ICreateProfileState {
     errorMessage: string;
     inputs: any;
+    isSubmitting: boolean;
+    isVerifyingPhone: boolean;
+    phoneNumber: string;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -48,6 +55,9 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
         this.state = {
             errorMessage: '',
             inputs: {},
+            isVerifyingPhone: false,
+            isSubmitting: false,
+            phoneNumber: '',
         };
 
         this.translate = (key: string, params: any) => translator('en-us', key, params);
@@ -57,14 +67,44 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
         document.title = `Therr | ${this.translate('pages.createProfile.pageTitle')}`;
     }
 
-    onSubmit = (updateArgs: any) => {
-        const { navigation, user, updateUser } = this.props;
+    onSubmitVerifyPhone = (updateArgs: any) => {
+        const { user, updateUser } = this.props;
 
-        updateUser(user.details.id, updateArgs).then((response: any) => {
-            navigation.navigate(routeAfterLogin, {
-                state: {
-                    successMessage: this.translate('pages.createProfile.createProfileSuccess'),
-                },
+        this.setState({
+            isSubmitting: true,
+            phoneNumber: updateArgs.phoneNumber,
+        });
+
+        const argsWithoutPhone = { ...updateArgs };
+        delete argsWithoutPhone.phoneNumber;
+
+        updateUser(user.details.id, argsWithoutPhone).then((response: any) => {
+            ApiService.verifyPhone(updateArgs.phoneNumber).then(() => {
+                ReactGA.event({
+                    category: 'Registering',
+                    action: 'Verify Phone',
+                });
+                this.setState({
+                    isVerifyingPhone: true,
+                });
+            }).catch((error) => {
+                if (error?.errorCode === ErrorCodes.USER_EXISTS) {
+                    this.setState({
+                        errorMessage: this.translate('pages.createProfile.phoneNumberAlreadyInUseError'),
+                    });
+                } else {
+                    ReactGA.event({
+                        category: 'Registering',
+                        action: 'Verify Phone Error',
+                    });
+                    this.setState({
+                        errorMessage: this.translate('pages.createProfile.createProfileError'),
+                    });
+                }
+            }).finally(() => {
+                this.setState({
+                    isSubmitting: false,
+                });
             });
         }).catch((error: any) => {
             if (error.statusCode === 400) {
@@ -79,13 +119,74 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
         });
     };
 
+    onSubmitCode = (updateArgs: any) => {
+        const { navigation, updateUser, user } = this.props;
+        this.setState({
+            isSubmitting: true,
+        });
+        ApiService.validateCode(updateArgs.verificationCode)
+            .then(() => {
+                updateUser(user.details.id, {
+                    phoneNumber: this.state.phoneNumber,
+                }).then(() => {
+                    navigation.navigate(routeAfterLogin, {
+                        state: {
+                            successMessage: this.translate('pages.createProfile.createProfileSuccess'),
+                        },
+                    });
+                }).catch((error: any) => {
+                    if (error.statusCode === 400) {
+                        this.setState({
+                            errorMessage: error.message,
+                        });
+                    } else {
+                        this.setState({
+                            errorMessage: this.translate('pages.createProfile.createProfileError'),
+                        });
+                    }
+                });
+            })
+            .catch((error) => {
+                if (
+                    error.statusCode === 400
+                ) {
+                    this.setState({
+                        errorMessage: this.translate('pages.createProfile.invalidCode'),
+                    });
+                } else {
+                    this.setState({
+                        errorMessage: this.translate('pages.createProfile.createProfileError'),
+                    });
+                }
+
+                this.setState({
+                    isSubmitting: false,
+                });
+            });
+    };
+
     public render(): JSX.Element | null {
-        const { errorMessage } = this.state;
+        const { errorMessage, isSubmitting, isVerifyingPhone } = this.state;
 
         return (
             <>
                 <div id="page_create_profile" className="flex-box space-evenly center row wrap-reverse">
-                    <CreateProfileForm onSubmit={this.onSubmit} title={this.translate('pages.createProfile.pageTitle')} />
+                    {
+                        isVerifyingPhone
+                            && <VerifyPhoneCodeForm
+                                onSubmit={this.onSubmitCode}
+                                isSubmitting={isSubmitting}
+                                title={this.translate('pages.createProfile.pageTitleVerify')}
+                            />
+                    }
+                    {
+                        !isVerifyingPhone
+                            && <CreateProfileForm
+                                onSubmit={this.onSubmitVerifyPhone}
+                                isSubmitting={isSubmitting}
+                                title={this.translate('pages.createProfile.pageTitle')}
+                            />
+                    }
                 </div>
                 {
                     errorMessage

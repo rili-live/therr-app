@@ -80,6 +80,7 @@ class CreateProfileStageB extends React.Component<ICreateProfileStageBProps, ICr
                 analytics().logEvent('phone_verify_success', {
                     userId: user?.details?.id,
                     phoneNumber,
+                    platform: 'mobile',
                 }).catch((err) => console.log(err));
                 this.setState({
                     isVerifying: true,
