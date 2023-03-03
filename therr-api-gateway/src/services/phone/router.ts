@@ -69,10 +69,16 @@ phoneRouter.post('/verify', verifyPhoneLimiter, validate, async (req, res) => {
         }
 
         const verificationCode = generateVerificationCode();
-        const cacheKey = `phone-verification-codes:${userId}`;
+        // TODO: cache phone number in a secondary key for validation
+        const codeCacheKey = `phone-verification-codes:${userId}`;
+        const phoneCacheKey = `phone-verification-phone-number:${userId}`;
         const expireSeconds = 60 * 5;
 
-        return redisClient.setex(cacheKey, expireSeconds, verificationCode)
+        // TODO: User Redis Pipeline
+        return Promise.all([
+            redisClient.setex(codeCacheKey, expireSeconds, verificationCode),
+            redisClient.setex(phoneCacheKey, expireSeconds, normalizedPhoneNumber),
+        ])
             .then(() => twilioClient.messages
                 .create({
                     body: translate(userLocale, 'sms.yourVerificationCode', {
@@ -98,15 +104,35 @@ phoneRouter.post('/validate-code', verifyPhoneLongLimiter, validate, async (req,
     try {
         // TODO: This should require phonenumber and ensure match
         const { verificationCode } = req.body;
-        const cacheKey = `phone-verification-codes:${userId}`;
+        const codeCacheKey = `phone-verification-codes:${userId}`;
+        const phoneCacheKey = `phone-verification-phone-number:${userId}`;
 
-        return redisClient.get(cacheKey)
-            .then((cachedCode) => {
+        // TODO: User Redis Pipeline
+        return Promise.all([
+            redisClient.get(codeCacheKey),
+            redisClient.get(phoneCacheKey),
+        ])
+            .then(([cachedCode, normalizedPhoneNumber]) => {
                 if (cachedCode && cachedCode === verificationCode) {
-                    // TODO: Make request to update user verification status
-                    // The web app currently does not require verification for signup,
-                    // and we may have older users who are unverified
-                    return redisClient.del(cacheKey);
+                    redisClient.del(codeCacheKey);
+                    // TODO: retrieve phone number from cache and send with request
+                    const config: any = {
+                        headers: {
+                            authorization: req.headers.authorization || '',
+                            'x-requestid': uuidv4(),
+                            'x-localecode': req.headers['x-localecode'] || '',
+                            'x-platform': req.headers['x-platform'] || '',
+                            'x-userid': userId || req['x-userid'] || '',
+                            'x-user-device-token': req.headers['x-user-device-token'] || '',
+                        },
+                        method: 'post',
+                        url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/${userId}/verify-phone`,
+                        data: {
+                            phoneNumber: normalizedPhoneNumber,
+                        },
+                    };
+
+                    return restRequest(config);
                 }
                 return Promise.reject(new Error('Invalid verification code'));
             })
@@ -122,6 +148,7 @@ phoneRouter.post('/validate-code', verifyPhoneLongLimiter, validate, async (req,
                         statusCode: 400,
                     });
                 }
+
                 return handleHttpError({ err, res, message: 'SQL:PHONE_ROUTES:ERROR' });
             });
     } catch (err: any) {
