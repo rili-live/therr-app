@@ -244,11 +244,13 @@ const updateUser = (req, res) => {
 
             const isMissingUserProps = isUserProfileIncomplete(updateArgs, userSearchResults[0]);
 
+            // Replace the email verified access level with the missing properties access level
             if (isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED)) {
                 const userAccessLevels = userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED);
                 userAccessLevels.push(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
                 updateArgs.accessLevels = JSON.stringify(userAccessLevels);
             }
+            // Replace the missing properties access level with the email verified access level
             if (!isMissingUserProps && userSearchResults[0].accessLevels?.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES)) {
                 const userAccessLevels = userSearchResults[0].accessLevels.filter((level) => level !== AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES);
                 userAccessLevels.push(AccessLevels.EMAIL_VERIFIED);
@@ -278,6 +280,41 @@ const updateUser = (req, res) => {
         })
         .catch((err) => handleHttpError({ err, res, message: 'SQL:USER_ROUTES:ERROR' }));
 };
+
+const updatePhoneVerification = (req, res) => Store.users.findUser({ id: req.params.id })
+    .then((userSearchResults) => {
+        const userId = req.headers['x-userid'];
+
+        if (!userSearchResults.length) {
+            return handleHttpError({
+                res,
+                message: 'User not found',
+                statusCode: 404,
+            });
+        }
+
+        const userAccessLevels = [...(userSearchResults[0].accessLevels || [])];
+        userAccessLevels.push(AccessLevels.MOBILE_VERIFIED);
+
+        return Store.users
+            .updateUser({
+                // remove duplicates using Set()
+                accessLevels: JSON.stringify([...new Set([...userAccessLevels])]),
+                phoneNumber: req.body.phoneNumber,
+            }, {
+                id: userId,
+            }).then((results) => {
+                const user = results[0];
+                delete user.password;
+                delete user.oneTimePassword;
+                delete user.verificationCodes;
+                res.status(200).send({ ...user, id: userId });
+            });
+    }).catch((e) => handleHttpError({
+        res,
+        message: e.message,
+        statusCode: 400,
+    }));
 
 const updateUserCoins = (req, res) => {
     const locale = req.headers['x-localecode'] || 'en-us';
@@ -389,8 +426,9 @@ const blockUser = (req, res) => Store.users.findUser({ id: req.params.id })
 
         return Store.users
             .updateUser({
+                // TODO: Should this included the existing blocked users? (verify this update works)
                 // remove duplicates using Set()
-                blockedUsers: [...new Set([...(req.body.blockedUsers || []), req.params.id])],
+                blockedUsers: [...new Set([...findResults[0].blockedUsers, ...(req.body.blockedUsers || []), req.params.id])],
             }, {
                 id: userId,
             }).then((response) => res.status(200).send({ blockedUsers: response[0].blockedUsers }));
@@ -699,6 +737,7 @@ export {
     getUsers,
     findUsers,
     updateUser,
+    updatePhoneVerification,
     updateUserCoins,
     blockUser,
     reportUser,

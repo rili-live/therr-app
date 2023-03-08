@@ -19,13 +19,15 @@
     "createProfileForm": {
       "buttons": {
         "backToLogin": "Back to Login",
-        "submit": "Continue"
+        "submit": "Continue",
+        "resend": "Resend"
       },
       "labels": {
         "firstName": "First Name",
         "lastName": "Last Name",
         "mobilePhone": "Mobile Phone #",
-        "userName": "Username"
+        "userName": "Username",
+        "verificationCode": "Verification Code"
       },
       "validationErrors": {
         "phoneNumber": "Invalid phone number"
@@ -190,8 +192,11 @@
     },
     "createProfile": {
       "pageTitle": "Create Profile",
+      "pageTitleVerify": "Create Profile: Verify Phone",
       "createProfileSuccess": "Profile successfully updated!",
       "createProfileError": "Oops, something went wrong",
+      "phoneNumberAlreadyInUseError": "Phone number is already in use for this account type",
+      "invalidCode": "Code is invalid or expired. Try again or resend.",
       "infoTitle": "Why Require Phone #?",
       "info": "We are dedicated to preventing fake users, so Multi-Factor Authentication is a must. Requiring an e-mail and phone # along with geo-tag post requirements drastically reduces the impact of scammers or fake users."
     },

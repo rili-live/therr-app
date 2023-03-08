@@ -8,6 +8,7 @@ import {
     getUsers,
     findUsers,
     updateUser,
+    updatePhoneVerification,
     updateUserCoins,
     blockUser,
     reportUser,
@@ -34,6 +35,7 @@ router.post('/find', findUsers);
 // UPDATE
 router.put('/change-password', updateUserPassword);
 router.put('/:id', updateUser);
+router.put('/:id/verify-phone', updatePhoneVerification); // apply phone verified access level
 router.put('/:id/block', blockUser);
 router.put('/:id/report', reportUser);
 router.put('/:id/coins', updateUserCoins);
