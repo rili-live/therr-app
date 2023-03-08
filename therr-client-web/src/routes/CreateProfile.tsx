@@ -166,7 +166,12 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
     };
 
     public render(): JSX.Element | null {
-        const { errorMessage, isSubmitting, isVerifyingPhone } = this.state;
+        const {
+            errorMessage,
+            isSubmitting,
+            isVerifyingPhone,
+            phoneNumber,
+        } = this.state;
 
         return (
             <>
@@ -175,6 +180,9 @@ export class CreateProfileComponent extends React.Component<ICreateProfileProps,
                         isVerifyingPhone
                             && <VerifyPhoneCodeForm
                                 onSubmit={this.onSubmitCode}
+                                onSubmitVerify={() => this.onSubmitVerifyPhone({
+                                    phoneNumber,
+                                })}
                                 isSubmitting={isSubmitting}
                                 title={this.translate('pages.createProfile.pageTitleVerify')}
                             />

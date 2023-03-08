@@ -10,6 +10,7 @@ import translator from '../../services/translator';
 interface IVerifyPhoneCodeFormProps {
   isSubmitting: boolean;
   onSubmit: Function;
+  onSubmitVerify: Function;
   title: string;
 }
 
@@ -48,6 +49,12 @@ export class VerifyPhoneCodeFormComponent extends React.Component<IVerifyPhoneCo
         }
     };
 
+    onResendCode = (event: any) => {
+        event.preventDefault();
+
+        this.props.onSubmitVerify();
+    };
+
     onInputChange = (name: string, value: string) => {
         const newInputChanges = {
             [name]: value,
@@ -79,9 +86,12 @@ export class VerifyPhoneCodeFormComponent extends React.Component<IVerifyPhoneCo
                         validations={['isRequired']}
                     />
 
-                    <div className="form-field text-right">
+                    <div className="form-field flex-box space-between row">
                         <ButtonPrimary
-                            id="register"
+                            id="resend_phone"
+                            text={this.translate('components.createProfileForm.buttons.resend')} onClick={this.onResendCode} />
+                        <ButtonPrimary
+                            id="verify_phone"
                             text={this.translate('components.createProfileForm.buttons.submit')} onClick={this.onSubmit} disabled={this.isFormDisabled()} />
                     </div>
                 </div>

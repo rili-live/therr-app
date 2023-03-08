@@ -19,7 +19,8 @@
     "createProfileForm": {
       "buttons": {
         "backToLogin": "Back to Login",
-        "submit": "Continue"
+        "submit": "Continue",
+        "resend": "Resend"
       },
       "labels": {
         "firstName": "First Name",

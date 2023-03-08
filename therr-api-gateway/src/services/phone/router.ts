@@ -115,7 +115,6 @@ phoneRouter.post('/validate-code', verifyPhoneLongLimiter, validate, async (req,
             .then(([cachedCode, normalizedPhoneNumber]) => {
                 if (cachedCode && cachedCode === verificationCode) {
                     redisClient.del(codeCacheKey);
-                    // TODO: retrieve phone number from cache and send with request
                     const config: any = {
                         headers: {
                             authorization: req.headers.authorization || '',
@@ -125,7 +124,7 @@ phoneRouter.post('/validate-code', verifyPhoneLongLimiter, validate, async (req,
                             'x-userid': userId || req['x-userid'] || '',
                             'x-user-device-token': req.headers['x-user-device-token'] || '',
                         },
-                        method: 'post',
+                        method: 'put',
                         url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/users/${userId}/verify-phone`,
                         data: {
                             phoneNumber: normalizedPhoneNumber,
