@@ -10,6 +10,7 @@ import translator from '../../services/translator';
 
 // Regular component props
 interface ICreateProfileFormProps {
+  isSubmitting: boolean;
   onSubmit: Function;
   title: string;
 }
@@ -39,7 +40,7 @@ export class CreateProfileFormComponent extends React.Component<ICreateProfileFo
     }
 
     isFormDisabled() {
-        return !this.state.inputs.userName || !this.isFormValid();
+        return this.props.isSubmitting || !this.state.inputs.userName || !this.isFormValid();
     }
 
     isFormValid() {
