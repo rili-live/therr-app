@@ -4,6 +4,7 @@ import {
     StyleProp,
     ViewStyle,
     View,
+    LayoutChangeEvent,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import userContentStyles from '../../styles/user-content';
@@ -14,8 +15,10 @@ interface IUserMediaProps {
     isSingleView?: boolean;
     isVisible: boolean;
     moreStyle?: StyleProp<ViewStyle>;
+    onLayout?: ((event: LayoutChangeEvent) => void) | undefined;
     overlayMsg?: string;
     viewportWidth: number;
+    viewContainerStyles?: any;
 }
 
 export default ({
@@ -23,7 +26,9 @@ export default ({
     isSingleView,
     isVisible,
     moreStyle,
+    onLayout,
     viewportWidth,
+    viewContainerStyles,
 }: IUserMediaProps) => {
     const borderRadius = 0;
     const paddingHorizontal = isSingleView ? 0 : 0;
@@ -46,9 +51,16 @@ export default ({
             borderRadius,
             ...(moreStyle as object || {}),
         };
-    const singleViewStyles: any = isSingleView ? {} : { borderRadius };
+    const singleViewStyles: any = isSingleView ? {
+        maxHeight: viewportWidth,
+        maxWidth: viewportWidth,
+        width: viewportWidth,
+        height: viewportWidth,
+    } : {
+        borderRadius,
+    };
     return (
-        <View style={{ display: 'flex', position: 'relative' }}>
+        <View style={[{ display: 'flex', position: 'relative' }, (viewContainerStyles || {})]} onLayout={onLayout}>
             {
                 isVisible &&
                 <WebView

@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { therrFontFamily } from '../../font';
-import { getTheme } from '../../themes';
+import { getTheme, ITherrTheme } from '../../themes';
 
 const areaUserAvatarImgPadding = 4;
 const areaUserAvatarImgWidth = 52 - (2 * areaUserAvatarImgPadding);
@@ -18,6 +18,14 @@ const buttonContainerStyles: any = {
 const buttonStyle: any = {
     height: '100%',
 };
+
+const getAreaDistanceStyle = (therrTheme: ITherrTheme, isDarkMode = true): any => ({
+    color: isDarkMode ? therrTheme.colors.textGray : therrTheme.colors.tertiary,
+    width: '100%',
+    paddingHorizontal: 10,
+    fontFamily: therrFontFamily,
+    textAlign: 'left',
+});
 
 const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
     const therrTheme = getTheme(themeName);
@@ -163,11 +171,12 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             paddingBottom: 4,
         },
         areaDistance: {
-            color: isDarkMode ? therrTheme.colors.textGray : therrTheme.colors.tertiary,
-            width: '100%',
-            paddingHorizontal: 10,
-            fontFamily: therrFontFamily,
-            textAlign: 'left',
+            ...getAreaDistanceStyle(therrTheme, isDarkMode),
+        },
+        areaDistanceRight: {
+            ...getAreaDistanceStyle(therrTheme, isDarkMode),
+            textAlign: 'right',
+            fontSize: 11,
         },
         footer: {
             paddingRight: 20,
@@ -199,6 +208,13 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             paddingRight: 8,
             flex: 1,
         },
+        bannerTitleTextSmall: {
+            color: therrTheme.colors.brandingWhite,
+            fontSize: 11,
+            fontFamily: therrFontFamily,
+            paddingLeft: 3,
+            flex: 1,
+        },
         bannerTitleTextCenter: {
             color: therrTheme.colors.brandingWhite,
             fontSize: 15,
@@ -214,6 +230,60 @@ const buildStyles = (themeName?: IMobileThemeName, isDarkMode = true) => {
             marginRight: 5,
             height: 28,
             width: 28,
+        },
+        // This container is important to keep the snap at the left side of each card
+        cardContainer: {
+            display: 'flex',
+            flexDirection: 'column',
+            padding: 0,
+        },
+        card: {
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            padding: 0,
+            elevation: 2,
+            backgroundColor: therrTheme.colors.backgroundWhite,
+            borderRadius: 5,
+            paddingBottom: 5,
+            marginHorizontal: 7,
+            shadowRadius: 5,
+            shadowOpacity: 0.3,
+            shadowOffset: {
+                width: 2,
+                height: -2,
+            },
+            overflow: 'hidden',
+        },
+        cardFeatured: {
+            // borderColor: therrTheme.colors.brandingBlueGreen,
+            // borderWidth: 2,
+        },
+        cardImageContainer: {
+            flex: 3,
+            width: '100%',
+        },
+        cardImage: {
+            height: '100%',
+            width: '100%',
+        },
+        textContent: {
+        },
+        cardTitle: {
+            fontFamily: therrFontFamily,
+            fontSize: 12,
+            marginTop: 5,
+            fontWeight: '600',
+            color: therrTheme.colors.textWhite,
+            paddingHorizontal: 8,
+            paddingBottom: 4,
+        },
+        cardDescription: {
+            fontFamily: therrFontFamily,
+            fontSize: 11,
+            color: therrTheme.colors.textWhite,
+            paddingHorizontal: 8,
+            paddingBottom: 3,
         },
     });
 

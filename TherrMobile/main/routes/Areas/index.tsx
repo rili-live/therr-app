@@ -256,7 +256,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
             // ...content.activeAreasFilters,
             blockedUsers: user.details.blockedUsers,
             shouldHideMatureContent: user.details.shouldHideMatureContent,
-        });
+        },);
 
         return Promise.all([activeMomentsPromise, activeSpacesPromise, activeThoughtsPromise]).finally(() => {
             this.loadTimeoutId = setTimeout(() => {

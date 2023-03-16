@@ -21,7 +21,7 @@ interface MapActionButtonsProps {
     handleGpsRecenter: () => any;
     handleOpenMapFilters: () => any;
     hasNotifications: boolean;
-    toggleMomentActions: Function;
+    toggleCreateActions: Function;
     isAuthorized: any;
     isGpsEnabled: any;
     translate: Function;
@@ -49,7 +49,7 @@ export default ({
     handleCreate,
     handleGpsRecenter,
     handleOpenMapFilters,
-    toggleMomentActions,
+    toggleCreateActions,
     // hasNotifications,
     isAuthorized,
     isGpsEnabled,
@@ -158,7 +158,7 @@ export default ({
                             title={shouldShowCreateActions ? null : translate('menus.mapActions.create')}
                             titleStyle={themeButtons.styles.btnLargeTitle}
                             raised={true}
-                            onPress={() => toggleMomentActions()}
+                            onPress={() => toggleCreateActions()}
                         />
                         {
                             shouldShowCreateActions &&
