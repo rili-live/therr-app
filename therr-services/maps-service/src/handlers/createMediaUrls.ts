@@ -38,7 +38,7 @@ const createMediaUrls = (req, res) => {
         });
 
         return Promise.all(urlPromises).then((mediaUrls) => res.status(201).send({
-            media: mediaUrls,
+            media: mediaUrls.reduce((prev: any, curr: any) => ({ ...curr, ...prev }), {}),
         }));
     }).catch((err) => handleHttpError({ err, res, message: 'SQL:MEDIA_ROUTES:ERROR' }));
 };

@@ -10,6 +10,16 @@ interface IMapFilters {
 }
 
 const Maps = {
+    // Media
+    fetchMedia: (mediaIds: string[]) => (dispatch: any) => MapsService.fetchMedia(mediaIds).then((response: any) => {
+        dispatch({
+            type: ContentActionTypes.FETCH_MEDIA,
+            data: response.data.media,
+        });
+
+        return response?.data;
+    }),
+
     // Moments
     createMoment: (data: any) => (dispatch: any) => MapsService.createMoment(data).then((response: any) => {
         if (data.isDraft) {
