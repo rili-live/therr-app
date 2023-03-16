@@ -2,10 +2,19 @@ import React from 'react';
 import NearbyWrapper from '../../routes/Areas/Nearby/NearbyWrapper';
 import { ITherrThemeColors } from '../../styles/themes';
 
+export type IMapSheetContentTypes = 'nearby' | 'areas';
+
 interface IMapBottomSheetContent {
+    contentType: IMapSheetContentTypes;
     navigation: any;
     theme: {
         colors: ITherrThemeColors;
+        styles: any;
+    },
+    themeBottomSheet: {
+        styles: any;
+    },
+    themeViewArea: {
         styles: any;
     },
     translate: Function;
@@ -13,9 +22,10 @@ interface IMapBottomSheetContent {
 
 const MapBottomSheetContent = ({
     navigation,
-    // theme,
-    // translate,
 }: IMapBottomSheetContent) => {
+    // if (contentType !== 'nearby') {
+    // }
+
     return (
         <>
             {/* <Text>{translate('pages.map.bottomSheet.noResults')}</Text> */}

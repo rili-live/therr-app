@@ -309,7 +309,7 @@ class ViewUser extends React.Component<
                 blockedUsers: user.details.blockedUsers,
                 shouldHideMatureContent: isMe ? false : user.details.shouldHideMatureContent,
             },
-            21
+            63, // NOTE: SQL Query includes thought replies, so use (21 * 3) for more results per request
         ).then(({ data }) => {
             // TODO: Store these on userInView?
             this.setState({

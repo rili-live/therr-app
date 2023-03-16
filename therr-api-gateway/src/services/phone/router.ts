@@ -69,7 +69,6 @@ phoneRouter.post('/verify', verifyPhoneLimiter, validate, async (req, res) => {
         }
 
         const verificationCode = generateVerificationCode();
-        // TODO: cache phone number in a secondary key for validation
         const codeCacheKey = `phone-verification-codes:${userId}`;
         const phoneCacheKey = `phone-verification-phone-number:${userId}`;
         const expireSeconds = 60 * 5;
@@ -102,7 +101,6 @@ phoneRouter.post('/validate-code', verifyPhoneLongLimiter, validate, async (req,
     const userId = req.headers['x-userid'] || req['x-userid'];
 
     try {
-        // TODO: This should require phonenumber and ensure match
         const { verificationCode } = req.body;
         const codeCacheKey = `phone-verification-codes:${userId}`;
         const phoneCacheKey = `phone-verification-phone-number:${userId}`;

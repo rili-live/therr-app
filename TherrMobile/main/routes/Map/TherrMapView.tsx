@@ -1,19 +1,20 @@
 import React, { Ref } from 'react';
-import { View } from 'react-native';
+import { Animated, Dimensions, View } from 'react-native';
 import MapView from 'react-native-map-clustering';
-import { PROVIDER_GOOGLE, Circle, Marker } from 'react-native-maps';
+import { PROVIDER_GOOGLE, Circle, Marker, MapPressEvent, MarkerPressEvent } from 'react-native-maps';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { PushNotificationsService } from 'therr-react/services';
 import { ITherrMapViewState as ITherrMapViewReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
 import { MapActions, ReactionActions } from 'therr-react/redux/actions';
-import { IAreaType } from 'therr-js-utilities/types';
+import { IAreaType, IContentState } from 'therr-js-utilities/types';
 import { distanceTo, insideCircle } from 'geolocation-utils';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { ILocationState } from '../../types/redux/location';
 import translator from '../../services/translator';
 import {
     ANIMATE_TO_REGION_DURATION_FAST,
+    ANIMATE_TO_REGION_DURATION_RAPID,
     INITIAL_LATITUDE_DELTA,
     INITIAL_LONGITUDE_DELTA,
     PRIMARY_LATITUDE_DELTA,
@@ -25,10 +26,21 @@ import {
     SECONDARY_LONGITUDE_DELTA,
 } from '../../constants';
 import { buildStyles } from '../../styles';
+import { buildStyles as buildBottomSheetStyles } from '../../styles/bottom-sheet';
+import { buildStyles as buildViewAreaStyles } from '../../styles/user-content/areas/viewing';
 import mapStyles from '../../styles/map';
 import mapCustomStyle from '../../styles/map/googleCustom';
 import MarkerIcon from './MarkerIcon';
 import { isMyContent } from '../../utilities/content';
+import formatDate from '../../utilities/formatDate';
+import AreaDisplayCard from '../../components/UserContent/AreaDisplayCard';
+
+const { width: viewPortWidth, height: viewPortHeight } = Dimensions.get('window');
+
+const CARD_HEIGHT = viewPortHeight / 5;
+const CARD_WIDTH = CARD_HEIGHT - 50;
+const spaceBubbleWidth = viewPortWidth / 8;
+const MAX_CIRCLE_DIAMETER_SCALE = 2;
 
 const hapticFeedbackOptions = {
     enableVibrateFallback: true,
@@ -44,6 +56,7 @@ interface ITherrMapViewDispatchProps {
 }
 
 interface IStoreProps extends ITherrMapViewDispatchProps {
+    content: IContentState;
     location: ILocationState;
     map: ITherrMapViewReduxState;
     notifications: INotificationsState;
@@ -55,6 +68,7 @@ interface IStoreProps extends ITherrMapViewDispatchProps {
 
 // Regular component props
 export interface ITherrMapViewProps extends IStoreProps {
+    areMapActionsVisible: boolean;
     animateToWithHelp: (doAnimate: any) => any;
     circleCenter: {longitude: number, latitude: number};
     expandBottomSheet: any;
@@ -62,6 +76,8 @@ export interface ITherrMapViewProps extends IStoreProps {
     filteredSpaces: any;
     hideCreateActions: () => any;
     isScrollEnabled: boolean;
+    onPreviewBottomSheetClose: any;
+    onPreviewBottomSheetOpen: any;
     onMapLayout: any;
     mapRef: any;
     navigation: any;
@@ -77,7 +93,9 @@ interface ITherrMapViewState {
     activeMomentDetails: any;
     activeSpace: any;
     activeSpaceDetails: any;
+    areasInPreview: any[];
     isMapReady: boolean;
+    isPreviewBottomSheetVisible: boolean;
     lastLocationSendForProcessing?: number,
     lastLocationSendForProcessingCoords?: {
         longitude: number,
@@ -86,6 +104,7 @@ interface ITherrMapViewState {
 }
 
 const mapStateToProps = (state: any) => ({
+    content: state.content,
     location: state.location,
     map: state.map,
     notifications: state.notifications,
@@ -105,10 +124,25 @@ const mapDispatchToProps = (dispatch: any) =>
     );
 
 class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapViewState> {
+    static getDerivedStateFromProps(nextProps: ITherrMapViewProps, nextState: ITherrMapViewState) {
+        if (nextProps.areMapActionsVisible && nextState.isPreviewBottomSheetVisible) {
+            return {
+                isPreviewBottomSheetVisible: false,
+            };
+        }
+        return {};
+    }
+
     private localeShort = 'en-US'; // TODO: Derive from user locale
     private mapViewRef: any;
     private theme = buildStyles();
+    private themeBottomSheet = buildBottomSheetStyles();
+    private themeViewArea = buildViewAreaStyles();
     private translate: Function;
+    private previewAnimation;
+    private previewScrollIndex;
+    private timeoutIdPreviewRegion;
+    private unsubscribeFocusListener;
 
     constructor(props) {
         super(props);
@@ -118,20 +152,94 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
             activeMomentDetails: {},
             activeSpace: {},
             activeSpaceDetails: {},
+            areasInPreview: [],
             isMapReady: false,
+            isPreviewBottomSheetVisible: false,
         };
 
+        this.reloadTheme();
         this.translate = (key: string, params: any) =>
             translator('en-us', key, params);
     }
 
-    componentDidMount = () => {};
+    componentDidMount = () => {
+        const { navigation } = this.props;
+        this.previewAnimation = new Animated.Value(0);
+        this.addAnimationListener();
+
+        this.unsubscribeFocusListener = navigation.addListener('focus', () => {
+            this.setState({
+                isPreviewBottomSheetVisible: false,
+            });
+        });
+    };
+
+    componentDidUpdate(prevProps: ITherrMapViewProps) {
+        const { user } = this.props;
+
+        if (prevProps.user?.settings?.mobileThemeName !== user?.settings?.mobileThemeName) {
+            this.reloadTheme();
+        }
+    }
 
     componentWillUnmount() {
+        this.removeAnimation();
         this.setState({
             isMapReady: false,
         });
     }
+
+    reloadTheme = (shouldForceUpdate: boolean = false) => {
+        const themeName = this.props.user.settings?.mobileThemeName;
+        this.theme = buildStyles(themeName);
+        this.themeBottomSheet = buildBottomSheetStyles(themeName);
+        this.themeViewArea = buildViewAreaStyles(themeName);
+
+        if (shouldForceUpdate) {
+            this.forceUpdate();
+        }
+    };
+
+    addAnimationListener = () => {
+        this.previewAnimation.addListener(({ value }) => {
+            const { areasInPreview } = this.state;
+            if (areasInPreview.length && value) {
+                let index = Math.floor(value / CARD_WIDTH + 0.2); // animate 20% away from landing on the next item
+                if (index >= areasInPreview.length) {
+                    index = areasInPreview.length - 1;
+                }
+                if (index <= 0) {
+                    index = 0;
+                }
+
+                clearTimeout(this.timeoutIdPreviewRegion);
+                this.timeoutIdPreviewRegion = setTimeout(() => {
+                    if (this.previewScrollIndex !== index) {
+                        this.previewScrollIndex = index;
+                        const { latitude, longitude } = areasInPreview[index] || {};
+                        if (latitude && longitude) {
+                            const loc = {
+                                latitude,
+                                longitude,
+                                latitudeDelta: PRIMARY_LATITUDE_DELTA * 2,
+                                longitudeDelta: PRIMARY_LONGITUDE_DELTA * 2,
+                            };
+                            this.props.animateToWithHelp(
+                                () => this.mapViewRef && this.mapViewRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_RAPID)
+                            );
+                        }
+                    }
+                }, 50);
+            }
+        });
+    };
+
+    removeAnimation = () => {
+        // removes the listener
+        this.previewAnimation = new Animated.Value(0);
+        clearTimeout(this.timeoutIdPreviewRegion);
+        this.previewScrollIndex = 0;
+    };
 
     getAreaDetails = (area) => new Promise((resolve) => {
         const { user } = this.props;
@@ -147,7 +255,8 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     /**
      * On press handler for any map press. Handles pressing an area, and determines when view or bottom-sheet menu to open
      */
-    handleMapPress = ({ nativeEvent }) => {
+    handleMapPress = (event: MapPressEvent | MarkerPressEvent) => {
+        const { nativeEvent } = event;
         const {
             circleCenter,
             createOrUpdateMomentReaction,
@@ -178,8 +287,6 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                 activeMomentDetails: {},
             });
 
-            // this.props.expandBottomSheet();
-
             const selectedSpace = pressedSpaces[0];
             const distToCenter = distanceTo({
                 lon: circleCenter.longitude,
@@ -206,12 +313,22 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                                 activeSpace: selectedSpace,
                                 activeSpaceDetails: details,
                             }, () => {
-                                // TODO: Consider requiring location to view an area
-                                navigation.navigate('ViewSpace', {
-                                    isMyContent: isMyContent(selectedSpace, user),
-                                    space: selectedSpace,
-                                    spaceDetails: details,
-                                });
+                                // navigation.navigate('ViewSpace', {
+                                //     isMyContent: isMyContent(selectedSpace, user),
+                                //     space: selectedSpace,
+                                //     spaceDetails: details,
+                                // });
+                                // Showing a preview is a better experience then jumping right to the space
+                                const loc = {
+                                    longitude: selectedSpace.longitude,
+                                    latitude: selectedSpace.latitude,
+                                    latitudeDelta: PRIMARY_LATITUDE_DELTA * 2,
+                                    longitudeDelta: PRIMARY_LONGITUDE_DELTA * 2,
+                                };
+                                this.props.animateToWithHelp(
+                                    () => this.mapViewRef && this.mapViewRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_RAPID)
+                                );
+                                this.togglePreviewBottomSheet(nativeEvent.coordinate, selectedSpace.id);
                             });
                         })
                         .catch(() => {
@@ -277,13 +394,84 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         });
                 }
             } else {
-                this.props.expandBottomSheet(0, true);
+                this.togglePreviewBottomSheet(nativeEvent.coordinate);
                 this.setState({
                     activeMoment: {},
                     activeMomentDetails: {},
                 });
             }
         }
+    };
+
+    togglePreviewBottomSheet = (pressedCoords: { latitude: number, longitude: number }, pressedAreaId?: any) => {
+        const { location } = this.props;
+        const { areasInPreview, isPreviewBottomSheetVisible } = this.state;
+
+        let modifiedAreasInPreview = [...areasInPreview];
+        if (!isPreviewBottomSheetVisible) {
+            // TODO: Fetch media
+            const { filteredSpaces } = this.props;
+
+            // Label with user's location if available, but sort by distance from pressedCoord
+            const sortedAreasWithDistance = Object.values(filteredSpaces).map((area: any) => {
+                const milesFromPress = distanceTo({
+                    lon: pressedCoords.longitude,
+                    lat: pressedCoords.latitude,
+                }, {
+                    lon: area.longitude,
+                    lat: area.latitude,
+                }) / 1069.344; // convert meters to miles
+                const milesFromUser = !(location?.user?.longitude && location?.user?.latitude)
+                    ? milesFromPress
+                    : distanceTo({
+                        lon: location?.user?.longitude,
+                        lat: location?.user?.latitude,
+                    }, {
+                        lon: area.longitude,
+                        lat: area.latitude,
+                    }) / 1069.344; // convert meters to miles
+                return {
+                    ...area,
+                    distanceFromUser: milesFromUser,
+                    distanceFromPress: milesFromPress,
+                };
+            }).sort((a, b) => a.distanceFromPress - b.distanceFromPress);
+
+            const areasArray: any[] = [];
+            let pressedAreas: any[] = [];
+            let featuredAreas: any[] = [];
+
+            // TODO: Only select spaces within distance of the current map view?
+            sortedAreasWithDistance.some((area: any, index: number) => {
+                const readableDistance = area.distanceFromUser < 0.1
+                    ? `${Math.round(area.distanceFromUser * 5280)} ft`
+                    : `${Math.round(10 * area.distanceFromUser) / 10} mi`;
+                area.distance = readableDistance;
+
+                if (pressedAreaId && area.id === pressedAreaId) {
+                    pressedAreas.push(area);
+                } else if (area.featuredIncentiveRewardKey) {
+                    featuredAreas.push(area);
+                } else {
+                    areasArray.push(area);
+                }
+
+                // Prevent loading too many areas in preview
+                return index >= 99;
+            });
+            modifiedAreasInPreview = pressedAreas.concat(featuredAreas).concat(areasArray);
+            this.props.onPreviewBottomSheetOpen();
+        } else {
+            this.props.onPreviewBottomSheetClose();
+            // Reset to zero to review marker highlight
+            this.removeAnimation();
+            this.addAnimationListener();
+        }
+
+        this.setState({
+            areasInPreview: modifiedAreasInPreview,
+            isPreviewBottomSheetVisible: !isPreviewBottomSheetVisible,
+        });
     };
 
     isAreaActivated = (type: IAreaType, area) => {
@@ -383,6 +571,8 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         // }
     };
 
+    fetchMedia = () => {};
+
     getMomentCircleFillColor = (moment) => {
         const { user } = this.props;
         const { activeMoment } = this.state;
@@ -469,6 +659,24 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         return map.hasUserLocationLoaded ? PRIMARY_LONGITUDE_DELTA : INITIAL_LONGITUDE_DELTA;
     };
 
+    goToArea = (area: any) => {
+        const { navigation, user } = this.props;
+
+        // TODO: Should handle space or moment
+        this.getAreaDetails(area)
+            .then((details) => {
+                navigation.navigate('ViewSpace', {
+                    isMyContent: isMyContent(area, user),
+                    space: area,
+                    spaceDetails: details,
+                });
+            })
+            .catch(() => {
+                // TODO: Add error handling
+                console.log('Failed to get space details!');
+            });
+    };
+
     updateOuterMapRef = (ref: Ref<MapView>) => {
         this.props.mapRef(ref);
     };
@@ -481,149 +689,254 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     render() {
         const {
             circleCenter,
+            content,
             filteredMoments,
             filteredSpaces,
             isScrollEnabled,
             shouldFollowUserLocation,
             shouldRenderMapCircles,
         } = this.props;
-        const { isMapReady } = this.state;
+        const { areasInPreview, isPreviewBottomSheetVisible, isMapReady } = this.state;
 
         return (
-            <MapView
-                mapRef={(ref: Ref<MapView>) => { this.updateOuterMapRef(ref); this.mapViewRef = ref; }}
-                provider={PROVIDER_GOOGLE}
-                style={mapStyles.mapView}
-                customMapStyle={mapCustomStyle}
-                initialRegion={{
-                    latitude: circleCenter.latitude,
-                    longitude: circleCenter.longitude,
-                    latitudeDelta: this.getLatitudeDelta(),
-                    longitudeDelta: this.getLongitudeDelta(),
-                }}
-                onPress={this.handleMapPress}
-                onRegionChange={this.props.onRegionChange}
-                onRegionChangeComplete={this.props.onRegionChangeComplete}
-                onUserLocationChange={this.onUserLocationChange}
-                showsUserLocation={true}
-                showsBuildings={true}
-                showsMyLocationButton={false}
-                showsCompass={false}
-                followsUserLocation={shouldFollowUserLocation}
-                scrollEnabled={isScrollEnabled}
-                minZoomLevel={MIN_ZOOM_LEVEL}
-                /* react-native-map-clustering */
-                clusterColor={this.theme.colors.brandingBlueGreen}
-                clusterFontFamily={this.theme.styles.headerTitleStyle.fontFamily}
-                clusterTextColor={this.theme.colors.brandingWhite}
-                onClusterPress={this.onClusterPress}
-                onLayout={this.onMapLayout}
-                // preserveClusterPressBehavior={true}
-                animationEnabled={false} // iOS Only
-                spiderLineColor="#FF0000"
-            >
+            <>
+                <MapView
+                    mapRef={(ref: Ref<MapView>) => { this.updateOuterMapRef(ref); this.mapViewRef = ref; }}
+                    provider={PROVIDER_GOOGLE}
+                    style={mapStyles.mapView}
+                    customMapStyle={mapCustomStyle}
+                    initialRegion={{
+                        latitude: circleCenter.latitude,
+                        longitude: circleCenter.longitude,
+                        latitudeDelta: this.getLatitudeDelta(),
+                        longitudeDelta: this.getLongitudeDelta(),
+                    }}
+                    onPress={this.handleMapPress}
+                    onRegionChange={this.props.onRegionChange}
+                    onRegionChangeComplete={this.props.onRegionChangeComplete}
+                    onUserLocationChange={this.onUserLocationChange}
+                    showsUserLocation={true}
+                    showsBuildings={true}
+                    showsMyLocationButton={false}
+                    showsCompass={false}
+                    followsUserLocation={shouldFollowUserLocation}
+                    scrollEnabled={isScrollEnabled}
+                    minZoomLevel={MIN_ZOOM_LEVEL}
+                    /* react-native-map-clustering */
+                    clusterColor={this.theme.colors.brandingBlueGreen}
+                    clusterFontFamily={this.theme.styles.headerTitleStyle.fontFamily}
+                    clusterTextColor={this.theme.colors.brandingWhite}
+                    onClusterPress={this.onClusterPress}
+                    onLayout={this.onMapLayout}
+                    // preserveClusterPressBehavior={true}
+                    animationEnabled={false} // iOS Only
+                    spiderLineColor="#FF0000"
+                >
+                    {
+                        isMapReady &&
+                        <Circle
+                            center={circleCenter}
+                            radius={DEFAULT_MOMENT_PROXIMITY} /* meters */
+                            strokeWidth={1}
+                            strokeColor={this.theme.colors.secondary}
+                            fillColor={this.theme.colors.map.userCircleFill}
+                            zIndex={0}
+                        />
+                    }
+                    {
+                        isMapReady && Object.values(filteredMoments).map((moment: any) => {
+                            return (
+                                <Marker
+                                    anchor={{
+                                        x: 0.5,
+                                        y: 0.5,
+                                    }}
+                                    key={moment.id}
+                                    coordinate={{
+                                        longitude: moment.longitude,
+                                        latitude: moment.latitude,
+                                    }}
+                                    onPress={this.handleMapPress}
+                                    stopPropagation={true}
+                                    tracksViewChanges={false} // Note: Supposedly affects performance but not sure the implications
+                                >
+                                    <View style={{ /* transform: [{ translateY: 0 }] */ }}>
+                                        <MarkerIcon area={moment} areaType="moments" theme={this.theme} />
+                                    </View>
+                                </Marker>
+                            );
+                        })
+                    }
+                    {
+                        isMapReady && areasInPreview.map((space: any, index) => {
+                            const inputRange = [
+                                (index - 1) * CARD_WIDTH,
+                                index * CARD_WIDTH,
+                                (index + 1) * CARD_WIDTH,
+                            ];
+                            const scale = this.previewAnimation.interpolate({
+                                inputRange,
+                                outputRange: [1, MAX_CIRCLE_DIAMETER_SCALE, 1],
+                                extrapolate: 'clamp',
+                            });
+                            const opacity = this.previewAnimation.interpolate({
+                                inputRange,
+                                outputRange: [0.35, 1, 0.35],
+                                extrapolate: 'clamp',
+                            });
+                            const scaleStyle = {
+                                transform: [
+                                    {
+                                        scale: scale || 1,
+                                    },
+                                ],
+                            };
+                            const opacityStyle = {
+                                opacity: opacity || 0.35,
+                            };
+
+                            return (
+                                <Marker
+                                    anchor={{
+                                        x: 0.5,
+                                        y: 0.5,
+                                    }}
+                                    key={space.id}
+                                    coordinate={{
+                                        longitude: space.longitude,
+                                        latitude: space.latitude,
+                                    }}
+                                    onPress={this.handleMapPress}
+                                    stopPropagation={true}
+                                    tracksViewChanges={true} // Note: Supposedly affects performance but not sure the implications
+                                >
+                                    <Animated.View style={[{
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        /* transform: [{ translateY: 0 }] */
+                                        width: (spaceBubbleWidth * MAX_CIRCLE_DIAMETER_SCALE),
+                                        height: (spaceBubbleWidth * MAX_CIRCLE_DIAMETER_SCALE),
+                                    }, opacityStyle]}>
+                                        <Animated.View style={[{
+                                            width: spaceBubbleWidth,
+                                            height: spaceBubbleWidth,
+                                            borderRadius: spaceBubbleWidth / 2,
+                                            backgroundColor: 'rgba(170,10,170, 0.3)',
+                                            position: 'absolute',
+                                            borderWidth: 1,
+                                            borderColor: 'rgba(170,10,170, 0.5)',
+                                        }, scaleStyle]} />
+                                        <MarkerIcon area={space} areaType="spaces" theme={this.theme} />
+                                    </Animated.View>
+                                </Marker>
+                            );
+                        })
+                    }
+                    {
+                        isMapReady && Object.values(filteredMoments).map((moment: any) => {
+                            if (!shouldRenderMapCircles) {
+                                return null;
+                            }
+                            return (
+                                <Circle
+                                    key={moment.id}
+                                    center={{
+                                        longitude: moment.longitude,
+                                        latitude: moment.latitude,
+                                    }}
+                                    radius={moment.radius} /* meters */
+                                    strokeWidth={0}
+                                    strokeColor={this.getMomentCircleStrokeColor(moment)}
+                                    fillColor={this.getMomentCircleFillColor(moment)}
+                                    zIndex={1}
+                                />
+                            );
+                        })
+                    }
+                    {
+                        isMapReady && Object.values(filteredSpaces).map((space: any) => {
+                            if (!shouldRenderMapCircles) {
+                                return null;
+                            }
+                            return (
+                                <Circle
+                                    key={space.id}
+                                    center={{
+                                        longitude: space.longitude,
+                                        latitude: space.latitude,
+                                    }}
+                                    radius={space.radius} /* meters */
+                                    strokeWidth={0}
+                                    strokeColor={this.getSpaceCircleStrokeColor(space)}
+                                    fillColor={this.getSpaceCircleFillColor(space)}
+                                    zIndex={1}
+                                />
+                            );
+                        })
+                    }
+                </MapView>
                 {
-                    isMapReady &&
-                    <Circle
-                        center={circleCenter}
-                        radius={DEFAULT_MOMENT_PROXIMITY} /* meters */
-                        strokeWidth={1}
-                        strokeColor={this.theme.colors.secondary}
-                        fillColor={this.theme.colors.map.userCircleFill}
-                        zIndex={0}
-                    />
+                    isPreviewBottomSheetVisible &&
+                    <View style={this.themeBottomSheet.styles.scrollViewOuterContainer}>
+                        <Animated.ScrollView
+                            horizontal
+                            // scrollEventThrottle={1}
+                            showsHorizontalScrollIndicator={false}
+                            snapToInterval={CARD_WIDTH}
+                            onScroll={Animated.event(
+                                [
+                                    {
+                                        nativeEvent: {
+                                            contentOffset: {
+                                                x: this.previewAnimation,
+                                            },
+                                        },
+                                    },
+                                ],
+                                {
+                                    useNativeDriver: true,
+                                }
+                            )}
+                            style={[
+                                this.themeBottomSheet.styles.scrollView,
+                                {
+                                    backgroundColor: 'transparent',
+                                },
+                            ]}
+                            contentContainerStyle={[this.themeBottomSheet.styles.scrollViewContainer, {
+                                paddingRight: viewPortWidth - CARD_WIDTH,
+                            }]}
+                            // snapToAlignment="start"
+                        >
+                            {
+                                areasInPreview.map((area) => {
+                                    const formattedDate = formatDate(area.createdAt);
+                                    const mediaIdsSplit = (area.mediaIds || '').split(',');
+                                    if (area.media && (!content.media || !content.media[area.media[0]?.id])) {
+                                        this.fetchMedia(area.media[0]?.id);
+                                    }
+                                    const areaMedia = content.media
+                                        && (content.media[area.media && area.media[0]?.id] || content.media[mediaIdsSplit && mediaIdsSplit[0]]);
+                                    return (
+                                        <AreaDisplayCard
+                                            area={area}
+                                            areaMedia={areaMedia}
+                                            cardWidth={CARD_WIDTH}
+                                            date={formattedDate}
+                                            isDarkMode={false}
+                                            key={area.id}
+                                            onPress={this.goToArea}
+                                            theme={this.theme}
+                                            themeViewArea={this.themeViewArea}
+                                            translate={this.translate}
+                                        />
+                                    );
+                                })
+                            }
+                        </Animated.ScrollView>
+                    </View>
                 }
-                {
-                    isMapReady && Object.values(filteredMoments).map((moment: any) => {
-                        return (
-                            <Marker
-                                anchor={{
-                                    x: 0.5,
-                                    y: 0.5,
-                                }}
-                                key={moment.id}
-                                coordinate={{
-                                    longitude: moment.longitude,
-                                    latitude: moment.latitude,
-                                }}
-                                onPress={this.handleMapPress}
-                                stopPropagation={true}
-                                tracksViewChanges={false} // Note: Supposedly affects performance but not sure the implications
-                            >
-                                <View style={{ /* transform: [{ translateY: 0 }] */ }}>
-                                    <MarkerIcon area={moment} areaType="moments" theme={this.theme} />
-                                </View>
-                            </Marker>
-                        );
-                    })
-                }
-                {
-                    isMapReady && Object.values(filteredSpaces).map((space: any) => {
-                        return (
-                            <Marker
-                                anchor={{
-                                    x: 0.5,
-                                    y: 0.5,
-                                }}
-                                key={space.id}
-                                coordinate={{
-                                    longitude: space.longitude,
-                                    latitude: space.latitude,
-                                }}
-                                onPress={this.handleMapPress}
-                                stopPropagation={true}
-                                tracksViewChanges={false} // Note: Supposedly affects performance but not sure the implications
-                            >
-                                <View style={{ /* transform: [{ translateY: 0 }] */ }}>
-                                    <MarkerIcon area={space} areaType="spaces" theme={this.theme} />
-                                </View>
-                            </Marker>
-                        );
-                    })
-                }
-                {
-                    isMapReady && Object.values(filteredMoments).map((moment: any) => {
-                        if (!shouldRenderMapCircles) {
-                            return null;
-                        }
-                        return (
-                            <Circle
-                                key={moment.id}
-                                center={{
-                                    longitude: moment.longitude,
-                                    latitude: moment.latitude,
-                                }}
-                                radius={moment.radius} /* meters */
-                                strokeWidth={0}
-                                strokeColor={this.getMomentCircleStrokeColor(moment)}
-                                fillColor={this.getMomentCircleFillColor(moment)}
-                                zIndex={1}
-                            />
-                        );
-                    })
-                }
-                {
-                    isMapReady && Object.values(filteredSpaces).map((space: any) => {
-                        if (!shouldRenderMapCircles) {
-                            return null;
-                        }
-                        return (
-                            <Circle
-                                key={space.id}
-                                center={{
-                                    longitude: space.longitude,
-                                    latitude: space.latitude,
-                                }}
-                                radius={space.radius} /* meters */
-                                strokeWidth={0}
-                                strokeColor={this.getSpaceCircleStrokeColor(space)}
-                                fillColor={this.getSpaceCircleFillColor(space)}
-                                zIndex={1}
-                            />
-                        );
-                    })
-                }
-            </MapView>
+            </>
         );
     }
 }

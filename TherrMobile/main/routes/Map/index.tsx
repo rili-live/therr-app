@@ -6,7 +6,7 @@ import AnimatedOverlay from 'react-native-modal-overlay';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { MapsService, UsersService, PushNotificationsService } from 'therr-react/services';
-import { AccessCheckType, IMapState as IMapReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
+import { AccessCheckType, IContentState, IMapState as IMapReduxState, INotificationsState, IReactionsState, IUserState } from 'therr-react/types';
 import { IAreaType } from 'therr-js-utilities/types';
 import { MapActions, ReactionActions, UserInterfaceActions } from 'therr-react/redux/actions';
 import { AccessLevels, Location } from 'therr-js-utilities/constants';
@@ -42,6 +42,7 @@ import { buildStyles as buildLoaderStyles } from '../../styles/loaders';
 import { buildStyles as buildMenuStyles } from '../../styles/navigation/buttonMenu';
 import { buildStyles as buildDisclosureStyles } from '../../styles/modal/locationDisclosure';
 import { buildStyles as buildTourStyles } from '../../styles/modal/tourModal';
+import { buildStyles as buildViewAreaStyles } from '../../styles/user-content/areas/viewing';
 import { buildStyles as buildSearchStyles } from '../../styles/modal/typeAhead';
 import mapStyles from '../../styles/map';
 import requestLocationServiceActivation from '../../utilities/requestLocationServiceActivation';
@@ -60,8 +61,8 @@ import ConfirmModal from '../../components/Modals/ConfirmModal';
 import eula from './EULA';
 import UsersActions from '../../redux/actions/UsersActions';
 import TouringModal from '../../components/Modals/TouringModal';
-import BottomSheetPlus from '../../components/BottomSheet/BottomSheetPlus';
-import MapBottomSheetContent from '../../components/BottomSheet/MapBottomSheetContent';
+import BottomSheetPlus, { defaultSnapPoints } from '../../components/BottomSheet/BottomSheetPlus';
+import MapBottomSheetContent, { IMapSheetContentTypes } from '../../components/BottomSheet/MapBottomSheetContent';
 import TherrMapView from './TherrMapView';
 import { isMyContent } from '../../utilities/content';
 import getNearbySpaces from '../../utilities/getNearbySpaces';
@@ -122,6 +123,7 @@ interface IMapDispatchProps {
 }
 
 interface IStoreProps extends IMapDispatchProps {
+    content: IContentState;
     location: ILocationState;
     map: IMapReduxState;
     notifications: INotificationsState;
@@ -138,6 +140,9 @@ export interface IMapProps extends IStoreProps {
 interface IMapState {
     areButtonsVisible: boolean;
     areLayersVisible: boolean;
+    bottomSheetContentType: IMapSheetContentTypes;
+    bottomSheetIsTransparent: boolean;
+    bottomSheetSnapPoints: (string | number)[];
     region: {
         latitude?: number,
         longitude?: number,
@@ -166,6 +171,7 @@ interface IMapState {
 }
 
 const mapStateToProps = (state: any) => ({
+    content: state.content,
     location: state.location,
     map: state.map,
     notifications: state.notifications,
@@ -199,6 +205,7 @@ const mapDispatchToProps = (dispatch: any) =>
 
 class Map extends React.PureComponent<IMapProps, IMapState> {
     private bottomSheetRef: React.RefObject<BottomSheetMethods> | undefined;
+    private scrollAnimationRef;
     private localeShort = 'en-US'; // TODO: Derive from user locale
     private mapRef: any;
     private mapWatchId;
@@ -206,12 +213,14 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     private themeAlerts = buildAlertStyles();
     private themeConfirmModal = buildConfirmModalStyles();
     private themeBottomSheet = buildBottomSheetStyles();
+    private themeViewArea = buildViewAreaStyles();
     private themeButtons = buildButtonStyles();
     private themeLoader = buildLoaderStyles();
     private themeMenu = buildMenuStyles();
     private themeDisclosure = buildDisclosureStyles();
     private themeTour = buildTourStyles();
     private themeSearch = buildSearchStyles({ viewPortHeight });
+    private timeoutIdPreviewRegion;
     private timeoutIdLocationReady;
     private timeoutIdRefreshMoments;
     private timeoutIdShowMomentAlert;
@@ -221,6 +230,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     private unsubscribeBlurListener: any;
     private unsubscribeFocusListener: any;
     private unsubscribeNavigationListener: any;
+    private previewScrollIndex: number = 0;
 
     constructor(props) {
         super(props);
@@ -231,6 +241,9 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         this.state = {
             areButtonsVisible: true,
             areLayersVisible: false,
+            bottomSheetContentType: 'nearby',
+            bottomSheetIsTransparent: false,
+            bottomSheetSnapPoints: defaultSnapPoints,
             region: {},
             shouldFollowUserLocation: false,
             isConfirmModalVisible: false,
@@ -332,6 +345,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     }
 
     clearTimeouts = () => {
+        clearTimeout(this.timeoutIdPreviewRegion);
         clearTimeout(this.timeoutIdLocationReady);
         clearTimeout(this.timeoutIdSearchButton);
         clearTimeout(this.timeoutIdRefreshMoments);
@@ -345,6 +359,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         this.themeAlerts = buildAlertStyles(themeName);
         this.themeConfirmModal = buildConfirmModalStyles(themeName);
         this.themeBottomSheet = buildBottomSheetStyles(themeName);
+        this.themeViewArea = buildViewAreaStyles(themeName);
         this.themeButtons = buildButtonStyles(themeName);
         this.themeLoader = buildLoaderStyles(themeName);
         this.themeMenu = buildMenuStyles(themeName);
@@ -479,22 +494,27 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         });
     };
 
-    expandBottomSheet = (index = 1, shouldToggle = false) => {
+    expandBottomSheet = (index = 1, shouldToggle = false, content: IMapSheetContentTypes = 'nearby') => {
         const { areButtonsVisible, areLayersVisible } = this.state;
+        const bottomSheetRef = this.bottomSheetRef;
         this.setState({
             areButtonsVisible: false,
             areLayersVisible: false,
-        });
-        if (index < 0) {
-            this.bottomSheetRef?.current?.close();
-        } else {
-            if (shouldToggle && !areButtonsVisible && !areLayersVisible) {
-                // UX: Helps users more easily understand that they can hide the bottom sheet and show buttons
-                this.bottomSheetRef?.current?.close();
+            bottomSheetIsTransparent: false,
+            bottomSheetContentType: content,
+            bottomSheetSnapPoints: defaultSnapPoints,
+        }, () => {
+            if (index < 0) {
+                bottomSheetRef?.current?.close();
             } else {
-                this.bottomSheetRef?.current?.snapToIndex(index);
+                if (shouldToggle && !areButtonsVisible && !areLayersVisible) {
+                    // UX: Helps users more easily understand that they can hide the bottom sheet and show buttons
+                    bottomSheetRef?.current?.close();
+                } else {
+                    bottomSheetRef?.current?.snapToIndex(index);
+                }
             }
-        }
+        });
     };
 
     handleImageSelect = (imageResponse, userCoords, areaType: IAreaType = 'moments') => {
@@ -1093,9 +1113,9 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         }, 2000);
     };
 
-    hideMomentActions = () => this.toggleMomentActions(true);
+    hideCreateActions = () => this.toggleCreateActions(true);
 
-    toggleMomentActions = (shouldHide: boolean = false) => {
+    toggleCreateActions = (shouldHide: boolean = false) => {
         const { user } = this.props;
         const { shouldShowCreateActions } = this.state;
 
@@ -1182,6 +1202,13 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         });
     };
 
+    onPreviewBottomSheetOpen = () => {
+        this.setState({
+            areButtonsVisible: false,
+            areLayersVisible: false,
+        });
+    };
+
     onMapLayout = () => {
         this.setState({ isMapReady: true });
     };
@@ -1257,6 +1284,9 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         const {
             areButtonsVisible,
             areLayersVisible,
+            bottomSheetContentType,
+            bottomSheetIsTransparent,
+            bottomSheetSnapPoints,
             circleCenter,
             shouldShowCreateActions,
             isConfirmModalVisible,
@@ -1311,6 +1341,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 />
                             }
                             <TherrMapView
+                                areMapActionsVisible={areButtonsVisible}
                                 animateToWithHelp={this.animateToWithHelp}
                                 circleCenter={circleCenter}
                                 expandBottomSheet={this.expandBottomSheet}
@@ -1322,9 +1353,11 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 onRegionChange={this.onRegionChange}
                                 onRegionChangeComplete={this.updateRegion}
                                 showAreaAlert={this.showAreaAlert}
+                                onPreviewBottomSheetClose={this.onBottomSheetClose}
+                                onPreviewBottomSheetOpen={this.onPreviewBottomSheetOpen}
                                 shouldFollowUserLocation={shouldFollowUserLocation}
                                 shouldRenderMapCircles={shouldRenderMapCircles}
-                                hideCreateActions={this.hideMomentActions}
+                                hideCreateActions={this.hideCreateActions}
                                 isScrollEnabled={isScrollEnabled}
                                 onMapLayout={this.onMapLayout}
                                 // /* react-native-map-clustering */
@@ -1374,7 +1407,7 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                                 handleCreate={this.handleCreate}
                                 handleGpsRecenter={this.handleGpsRecenterPress}
                                 handleOpenMapFilters={this.handleOpenMapFiltersPress}
-                                toggleMomentActions={this.toggleMomentActions}
+                                toggleCreateActions={this.toggleCreateActions}
                                 shouldShowCreateActions={shouldShowCreateActions}
                                 isAuthorized={this.isAuthorized}
                                 isGpsEnabled={location?.settings?.isGpsEnabled}
@@ -1418,12 +1451,17 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
                     <BottomSheetPlus
                         sheetRef={(sheetRef: React.RefObject<BottomSheetMethods>) => { this.bottomSheetRef = sheetRef; }}
                         initialIndex={-1}
+                        isTransparent={bottomSheetIsTransparent}
                         onClose={this.onBottomSheetClose}
                         themeBottomSheet={this.themeBottomSheet}
+                        overrideSnapPoints={bottomSheetSnapPoints}
                     >
                         <MapBottomSheetContent
+                            contentType={bottomSheetContentType}
                             navigation={navigation}
                             theme={this.theme}
+                            themeBottomSheet={this.themeBottomSheet}
+                            themeViewArea={this.themeViewArea}
                             translate={this.translate}
                         />
                     </BottomSheetPlus>
