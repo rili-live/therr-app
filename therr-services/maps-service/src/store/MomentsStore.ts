@@ -274,7 +274,7 @@ export default class MomentsStore {
                                         });
                                     signingPromises.push(promise);
                                 } else {
-                                    console.log('MometsStore.ts: bucket is undefined');
+                                    console.log('MomentsStore.ts: bucket is undefined');
                                 }
 
                                 return true;

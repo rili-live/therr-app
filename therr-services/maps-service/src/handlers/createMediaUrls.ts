@@ -10,8 +10,9 @@ const createMediaUrls = (req, res) => {
     const userId = req.headers['x-userid'];
     const { mediaIds, ttl } = req.body;
     const imageExpireTime = ttl || (Date.now() + 60 * 60 * 1000); // 60 minutes
+    const sanitizedIds = (mediaIds || []).filter((id) => id.length > 0);
 
-    return Store.media.get(mediaIds).then((media) => {
+    return Store.media.get(sanitizedIds).then((media) => {
         const urlPromises: Promise<any>[] = [];
         media.forEach((m) => {
             const bucket = getBucket(m.type);
@@ -33,8 +34,9 @@ const createMediaUrls = (req, res) => {
                         return {};
                     });
                 urlPromises.push(promise);
+            } else {
+                console.log('MomentsStore.ts: bucket is undefined');
             }
-            console.log('MometsStore.ts: bucket is undefined');
         });
 
         return Promise.all(urlPromises).then((mediaUrls) => res.status(201).send({
