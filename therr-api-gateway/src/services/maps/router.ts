@@ -23,6 +23,12 @@ import {
 
 const mapsServiceRouter = express.Router();
 
+// Media
+mapsServiceRouter.post('/media/signed-urls', validate, handleServiceRequest({
+    basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
+    method: 'post',
+}));
+
 // Moments
 mapsServiceRouter.post('/moments', createAreaValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
