@@ -264,9 +264,14 @@ export default class MomentsStore {
                                             version: 'v4',
                                             action: 'read',
                                             expires: imageExpireTime,
-                                        }).then((urls) => ({
+                                        })
+                                        .then((urls) => ({
                                             [m.id]: urls[0],
-                                        }));
+                                        }))
+                                        .catch((err) => {
+                                            console.log(err);
+                                            return {};
+                                        });
                                     signingPromises.push(promise);
                                 } else {
                                     console.log('MometsStore.ts: bucket is undefined');

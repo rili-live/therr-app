@@ -72,6 +72,14 @@ export interface ISignedUrlArgs {
 }
 
 class MapsService {
+    fetchMedia = (mediaIds) => axios({
+        method: 'post',
+        url: '/maps-service/media/signed-urls',
+        data: {
+            mediaIds,
+        },
+    });
+
     createArea = (areaType: IAreaType, data: ICreateAreaBody) => axios({
         method: 'post',
         url: `/maps-service/${areaType}`,
