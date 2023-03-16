@@ -61,6 +61,7 @@ interface IAreaDisplayMediumProps {
 }
 
 interface IAreaDisplayMediumState {
+    mediaWidth: number;
 }
 
 export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediumProps, IAreaDisplayMediumState> {
@@ -68,6 +69,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
         super(props);
 
         this.state = {
+            mediaWidth: viewportWidth / 4,
         };
     }
 
@@ -96,6 +98,13 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
         }
     };
 
+    onUserMediaLayout = (event) => {
+        const { width } = event.nativeEvent.layout;
+        this.setState({
+            mediaWidth: width,
+        });
+    };
+
     render() {
         const {
             date,
@@ -111,6 +120,7 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
             themeForms,
             themeViewArea,
         } = this.props;
+        const { mediaWidth } = this.state;
 
         const isBookmarked = area.reaction?.userBookmarkCategory;
 
@@ -163,10 +173,11 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                         style={{ paddingLeft: 14, paddingTop: 8 }}
                     >
                         <UserMedia
-                            viewportWidth={viewportWidth / 4}
+                            viewportWidth={mediaWidth}
                             media={areaMedia}
                             isVisible={!!areaMedia}
                             isSingleView={false}
+                            onLayout={this.onUserMediaLayout}
                         />
                     </PresssableWithDoubleTap>
                     <View style={spacingStyles.flexOne}>

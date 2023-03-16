@@ -225,6 +225,7 @@ const updateUser = (req, res) => {
                 });
             }
 
+            // TODO: Don't allow updating phone number unless user phone number is already verified
             const updateArgs: any = {
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
