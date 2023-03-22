@@ -12,9 +12,12 @@ export interface ISendEmailConfig {
     toAddresses: string[];
 }
 
-const failsafeBlackListRequest = (email) => Store.blacklistedEmails.get({
-    email,
-}).catch((err) => {
+const failsafeBlackListRequest = (email) => Promise.all([
+    Store.blacklistedEmails.get({
+        email,
+    }),
+    Store.users.getUserByEmail(email).then((results) => results?.[0]),
+]).catch((err) => {
     console.log(err);
     return [];
 });
@@ -53,9 +56,10 @@ export default (config: ISendEmailConfig) => new Promise((resolve, reject) => {
     }
 
     // TODO: Validate email before sending
-    failsafeBlackListRequest(config.toAddresses[0]).then((blacklistedEmails) => {
+    failsafeBlackListRequest(config.toAddresses[0]).then(([blacklistedEmails, userDetails]) => {
         // Skip if email is on bounce list or complaint list
-        const emailIsBlacklisted = blacklistedEmails?.length;
+        // Also skip if user account is unclaimed
+        const emailIsBlacklisted = blacklistedEmails?.length || userDetails?.isUnclaimed;
         if (emailValidator.validate(config.toAddresses[0]) && !emailIsBlacklisted) {
             return awsSES.sendEmail(params, (err, data) => {
                 if (err) {
@@ -76,7 +80,7 @@ export default (config: ISendEmailConfig) => new Promise((resolve, reject) => {
             });
         }
 
-        console.warn(`Email is blacklisted or invalid: ${config.toAddresses[0]}`);
+        console.warn(`Email is blacklisted/invalid or account is unclaimed: ${config.toAddresses[0]}`);
 
         return resolve({});
     });
