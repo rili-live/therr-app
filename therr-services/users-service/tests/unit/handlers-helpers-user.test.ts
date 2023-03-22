@@ -67,11 +67,20 @@ describe('handlers/helpers/user', () => {
                 email: 'test.user@gmail.com', // this email should get normalized
                 password: 'string',
                 firstName: 'bob',
+                isUnclaimed: false,
                 lastName: 'smith',
                 phoneNumber: '+13175448348',
                 userName: 'testUser', // this should be made lowercase
             };
             const mockUserStoreConnection = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({
+                        rows: [{
+                            id: 'mock-id',
+                            isUnclaimed: false,
+                        }],
+                    })),
+                },
                 write: {
                     query: sinon.stub().callsFake(() => Promise.resolve({
                         rows: [{
@@ -117,6 +126,14 @@ describe('handlers/helpers/user', () => {
                 email: 'test.user@gmail.com', // this email should get normalized
             };
             const mockUserStoreConnection = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({
+                        rows: [{
+                            id: 'mock-id',
+                            isUnclaimed: false,
+                        }],
+                    })),
+                },
                 write: {
                     query: sinon.stub().callsFake(() => Promise.resolve({
                         rows: [{
@@ -175,6 +192,14 @@ describe('handlers/helpers/user', () => {
                 toEmail: 'bob.jones@gmail.com', // this email should get normalized
             };
             const mockUserStoreConnection = {
+                read: {
+                    query: sinon.stub().callsFake(() => Promise.resolve({
+                        rows: [{
+                            id: 'mock-id',
+                            isUnclaimed: false,
+                        }],
+                    })),
+                },
                 write: {
                     query: sinon.stub().callsFake(() => Promise.resolve({
                         rows: [{
