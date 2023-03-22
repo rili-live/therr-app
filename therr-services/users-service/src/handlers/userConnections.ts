@@ -63,7 +63,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
             const userResults = await Store.users.findUser({
                 phoneNumber: acceptingUserPhoneNumber,
                 email: acceptingUserEmail,
-            }, ['id', 'deviceMobileFirebaseToken', 'email']);
+            }, ['id', 'deviceMobileFirebaseToken', 'email', 'isUnclaimed']);
 
             let unverifiedUser;
 
@@ -116,7 +116,7 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
         try {
             const userResults = await Store.users.findUser({
                 id: acceptingUserId,
-            }, ['id', 'deviceMobileFirebaseToken', 'email']);
+            }, ['id', 'deviceMobileFirebaseToken', 'email', 'isUnclaimed']);
 
             // 1b. Capture user id for step 2 when found in DB
             acceptingUser = userResults[0];
@@ -184,7 +184,11 @@ const createUserConnection: RequestHandler = async (req: any, res: any) => {
             }
 
             // NOTE: no need to refetch user from DB
-            sendPushNotificationAndEmail(() => Promise.resolve([acceptingUser as { deviceMobileFirebaseToken: string; email: string; }]), {
+            sendPushNotificationAndEmail(() => Promise.resolve([acceptingUser as {
+                deviceMobileFirebaseToken: string;
+                email: string;
+                isUnclaimed: boolean;
+            }]), {
                 authorization,
                 fromUserName: fromUserFullName,
                 fromUserId: userId,
@@ -390,7 +394,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
             return Store.userConnections.findUserConnections(userId, existingUsers.map((user) => user.id)).then((connections) => {
                 // TODO: Determine if we can replace this logic in the SQL query
                 const newConnectionUserIds: any = [];
-                const newConnectionUsers: { id: string; deviceMobileFirebaseToken: string; email: string; }[] = [];
+                const newConnectionUsers: { id: string; deviceMobileFirebaseToken: string; email: string; isUnclaimed: boolean; }[] = [];
                 existingUsers
                     .forEach((user) => {
                         if (!connections.find((conn) => conn.acceptingUserId === user.id || conn.requestingUser === user.id)) {
@@ -399,6 +403,7 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                                 id: user.id,
                                 deviceMobileFirebaseToken: user.deviceMobileFirebaseToken,
                                 email: user.email,
+                                isUnclaimed: user.isUnclaimed,
                             });
                         }
                     });
@@ -411,7 +416,11 @@ const createOrInviteUserConnections: RequestHandler = async (req: any, res: any)
                 // 5a. Send notifications to each new connection request
                 newConnectionUsers.forEach((acceptingUser) => {
                     // NOTE: no need to refetch user from DB
-                    sendPushNotificationAndEmail(() => Promise.resolve([acceptingUser as { deviceMobileFirebaseToken: string; email: string; }]), {
+                    sendPushNotificationAndEmail(() => Promise.resolve([acceptingUser as {
+                        deviceMobileFirebaseToken: string;
+                        email: string;
+                        isUnclaimed: boolean;
+                    }]), {
                         authorization,
                         fromUserName: fromUserFullName,
                         fromUserId: userId,

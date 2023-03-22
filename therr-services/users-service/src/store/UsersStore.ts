@@ -65,6 +65,18 @@ export default class UsersStore {
         return this.db.read.query(queryString).then((response) => response.rows);
     }
 
+    getUserByEmail = (email: string) => {
+        let queryString: any = knexBuilder.select([
+            'id',
+            'email',
+            'isUnclaimed',
+        ]).from('main.users')
+            .where({ email });
+
+        queryString = queryString.toString();
+        return this.db.read.query(queryString).then((response) => response.rows);
+    };
+
     getUserById = (id: string, returning: any = '*') => {
         let queryString: any = knexBuilder.select(returning).from('main.users')
             .where({ id });
@@ -118,7 +130,7 @@ export default class UsersStore {
 
     findUsersByContactInfo(
         contacts: IFindUsersByContactInfo[],
-        returning: any = ['id', 'email', 'phoneNumber', 'deviceMobileFirebaseToken'],
+        returning: any = ['id', 'email', 'phoneNumber', 'deviceMobileFirebaseToken', 'isUnclaimed'],
     ) {
         const emails: string[] = [];
         const phoneNumbers: string[] = [];

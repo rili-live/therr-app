@@ -19,6 +19,7 @@ interface ISendPushNotification {
 export default (findUser: (args: IFindUserArgs, returning: any[]) => Promise<{
     deviceMobileFirebaseToken: string;
     email: string;
+    isUnclaimed: boolean;
 }[]>, {
     authorization,
     fromUserName,
@@ -27,7 +28,11 @@ export default (findUser: (args: IFindUserArgs, returning: any[]) => Promise<{
     toUserId,
     type,
     retentionEmailType,
-}: ISendPushNotification): Promise<any> => findUser({ id: toUserId }, ['deviceMobileFirebaseToken', 'email']).then(([destinationUser]) => {
+}: ISendPushNotification): Promise<any> => findUser({ id: toUserId }, ['deviceMobileFirebaseToken', 'email', 'isUnclaimed']).then(([destinationUser]) => {
+    if (!destinationUser || destinationUser.isUnclaimed) {
+        // Don't send notification/email
+        return Promise.resolve({});
+    }
     if (retentionEmailType === PushNotifications.Types.newConnectionRequest) {
         if (fromUserName) {
             sendPendingInviteEmail({
