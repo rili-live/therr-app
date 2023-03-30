@@ -28,10 +28,11 @@ const map = (state: IMapState = initialState, action: any) => {
         case MapActionTypes.GET_MOMENTS:
         case MapActionTypes.GET_MY_MOMENTS:
             // Convert array to object for faster lookup and de-duping
-            return state.setIn(['moments'], action.data.results.reduce((acc, item) => ({
-                ...acc,
-                [item.id]: item,
-            }), modifiedMoments));
+            return state.setIn(['moments'], action.data.results.filter((a) => a.longitude && a.latitude)
+                .reduce((acc, item) => ({
+                    ...acc,
+                    [item.id]: item,
+                }), modifiedMoments));
         case MapActionTypes.GET_MOMENT_DETAILS:
             if (action.data?.moment?.id) {
                 if (!modifiedMoments[action.data.moment.id]) {
@@ -63,10 +64,11 @@ const map = (state: IMapState = initialState, action: any) => {
         // // // // // // // // // // // //
         case MapActionTypes.GET_SPACES:
         case MapActionTypes.GET_MY_SPACES:
-            return state.setIn(['spaces'], action.data.results.reduce((acc, item) => ({
-                ...acc,
-                [item.id]: item,
-            }), modifiedSpaces));
+            return state.setIn(['spaces'], action.data.results.filter((a) => a.longitude && a.latitude)
+                .reduce((acc, item) => ({
+                    ...acc,
+                    [item.id]: item,
+                }), modifiedSpaces));
         case MapActionTypes.GET_SPACE_DETAILS:
             if (action.data.space?.id) {
                 if (!modifiedSpaces[action.data.space.id]) {

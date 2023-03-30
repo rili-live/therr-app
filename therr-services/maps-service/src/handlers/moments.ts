@@ -65,6 +65,19 @@ const createMoment = async (req, res) => {
                 if (therrCoinIncentive) {
                     // This prevents spamming and claiming a reward for every post
                     const existingCoupon = await Store.spaceIncentiveCoupons.get(userId, therrCoinIncentive.id);
+                    const isClaimable = !existingCoupon.length || existingCoupon[0].useCount < therrCoinIncentive.maxUseCount;
+                    printLogs({
+                        level: 'info',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['User attempted to claim rewards'],
+                        tracer: beeline,
+                        traceArgs: {
+                            incentive: therrCoinIncentive,
+                            isIncentiveClaimable: isClaimable,
+                            incentiveAmount: therrCoinIncentive.incentiveRewardValue,
+                            userId,
+                        },
+                    });
                     if (!existingCoupon.length || existingCoupon[0].useCount < therrCoinIncentive.maxUseCount) {
                         const { data } = await axios({ // Create companion reaction for user's own moment
                             method: 'post',

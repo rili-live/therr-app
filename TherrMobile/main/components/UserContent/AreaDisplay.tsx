@@ -14,7 +14,6 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
-import UserMedia from './UserMedia';
 import HashtagsContainer from './HashtagsContainer';
 import { ITherrThemeColors } from '../../styles/themes';
 import spacingStyles from '../../styles/layouts/spacing';
@@ -43,7 +42,7 @@ interface IAreaDisplayProps {
     isExpanded?: boolean;
     area: any;
     areaMedia: string;
-    goToViewIncentives: Function;
+    goToViewIncentives?: Function;
     goToViewUser: Function;
     goToViewMap: (lat: string, long: string) => any;
     goToViewSpace?: (area: any) => any;
@@ -90,8 +89,12 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
     }
 
     onClaimRewardPress = () => {
-        const { goToViewIncentives } = this.props;
-        goToViewIncentives();
+        const { goToViewIncentives, inspectContent } = this.props;
+        if (goToViewIncentives) {
+            goToViewIncentives();
+        } else {
+            inspectContent();
+        }
     };
 
     onGoToSpace = () => {
@@ -157,8 +160,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         const isBookmarked = area.reaction?.userBookmarkCategory;
         const isLiked = area.reaction?.userHasLiked;
         const likeColor = isLiked ? theme.colors.accentRed : (isDarkMode ? theme.colors.textWhite : theme.colors.tertiary);
-        const shouldDisplayRewardsBanner = isExpanded
-            && area.featuredIncentiveRewardValue
+        const shouldDisplayRewardsBanner = area.featuredIncentiveRewardValue
             && area.featuredIncentiveRewardKey
             && area.featuredIncentiveRewardKey === IncentiveRewardKeys.THERR_COIN_REWARD;
         const shouldDisplayRelatedSpaceBanner = isExpanded && area.spaceId;
@@ -210,12 +212,26 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                     onPress={inspectContent}
                     onDoubleTap={() => this.onLikePress(area)}
                 >
-                    <UserMedia
+                    {/* <UserMedia
                         viewportWidth={viewportWidth}
                         media={areaMedia}
                         isVisible={!!areaMedia}
                         isSingleView={isExpanded}
-                    />
+                    /> */}
+                    {
+                        areaMedia &&
+                        <Image
+                            source={{
+                                uri: areaMedia,
+                            }}
+                            style={{
+                                width: viewportWidth,
+                                height: viewportWidth,
+                            }}
+                            resizeMode='contain'
+                            PlaceholderContent={<ActivityIndicator />}
+                        />
+                    }
                 </PresssableWithDoubleTap>
                 <View style={themeViewArea.styles.areaContentTitleContainer}>
                     <Text
@@ -328,7 +344,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 icon={
                                     <TherrIcon
                                         name="road-map"
-                                        size={28}
+                                        size={26}
                                         style={themeViewArea.styles.bannerTitleIcon}
                                     />
                                 }

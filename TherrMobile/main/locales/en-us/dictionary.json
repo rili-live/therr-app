@@ -816,10 +816,11 @@
       "pageHeaderYourWallet": "Your Wallet",
       "pageHeaderExchangeRate": "Exchange Rate",
       "info": {
-        "earlyAccess": "Earn coins through customer loyalty programs with your favorite local businesses.",
-        "stepOne": "Complete achievements and local activities to earn coins. Don't forget to claim completed achievements.",
+        "earlyAccess": "Claim coins from local business offers and app achievements.",
+        "stepOne": "Complete achievements and local activities to earn coins.",
         "stepTwo": "After you have at least $5 in coins, you are eligible to exchange.",
-        "stepThree": "Click the 'Exchange Now' button below and you will receive an eGift Card to your account e-mail within 24-72 hours."
+        "stepThree": "Click 'Exchange Now' below and you will receive an eGift Card to your account e-mail within 24-72 hours.",
+        "stepFour": "More reward options coming soon!"
       },
       "labels": {
         "coinsSuffix": "{total} TherrCoin",
