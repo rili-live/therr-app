@@ -123,7 +123,7 @@ const navToViewContent = (content, user, navigate) => {
     if (content.areaType === 'spaces') {
         navigate('ViewSpace', {
             isMyContent: isMyContent(content, user),
-            previousView: 'Spaces',
+            previousView: 'Areas',
             space: content,
             spaceDetails: {},
         });

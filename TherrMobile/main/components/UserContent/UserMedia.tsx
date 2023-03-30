@@ -3,8 +3,8 @@ import {
     Platform,
     StyleProp,
     ViewStyle,
-    View,
     LayoutChangeEvent,
+    Pressable,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import userContentStyles from '../../styles/user-content';
@@ -16,6 +16,7 @@ interface IUserMediaProps {
     isVisible: boolean;
     moreStyle?: StyleProp<ViewStyle>;
     onLayout?: ((event: LayoutChangeEvent) => void) | undefined;
+    onPress?: () => any;
     overlayMsg?: string;
     viewportWidth: number;
     viewContainerStyles?: any;
@@ -27,6 +28,7 @@ export default ({
     isVisible,
     moreStyle,
     onLayout,
+    onPress,
     viewportWidth,
     viewContainerStyles,
 }: IUserMediaProps) => {
@@ -60,7 +62,10 @@ export default ({
         borderRadius,
     };
     return (
-        <View style={[{ display: 'flex', position: 'relative' }, (viewContainerStyles || {})]} onLayout={onLayout}>
+        <Pressable
+            onPress={onPress}
+            style={[{ display: 'flex', position: 'relative' }, (viewContainerStyles || {})]} onLayout={onLayout}
+        >
             {
                 isVisible &&
                 <WebView
@@ -76,6 +81,6 @@ export default ({
                     showsVerticalScrollIndicator={false}
                 />
             }
-        </View>
+        </Pressable>
     );
 };

@@ -13,7 +13,6 @@ import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { IUserState } from 'therr-react/types';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import UserMedia from './UserMedia';
 import HashtagsContainer from './HashtagsContainer';
 import { ITherrThemeColors } from '../../styles/themes';
 import spacingStyles from '../../styles/layouts/spacing';
@@ -172,13 +171,27 @@ export default class AreaDisplayMedium extends React.Component<IAreaDisplayMediu
                         onDoubleTap={() => this.onLikePress(area)}
                         style={{ paddingLeft: 14, paddingTop: 8 }}
                     >
-                        <UserMedia
+                        {/* <UserMedia
                             viewportWidth={mediaWidth}
                             media={areaMedia}
                             isVisible={!!areaMedia}
                             isSingleView={false}
                             onLayout={this.onUserMediaLayout}
-                        />
+                        /> */}
+                        {
+                            areaMedia &&
+                            <Image
+                                source={{
+                                    uri: areaMedia,
+                                }}
+                                style={{
+                                    width: mediaWidth,
+                                    height: mediaWidth,
+                                }}
+                                resizeMode='contain'
+                                PlaceholderContent={<ActivityIndicator />}
+                            />
+                        }
                     </PresssableWithDoubleTap>
                     <View style={spacingStyles.flexOne}>
                         <View style={themeViewArea.styles.areaContentTitleContainer}>

@@ -128,7 +128,9 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
 
     getDollarTotal = () => {
         const { exchangeRate } = this.state;
-        return this.sanitizeCoinTotal() * (exchangeRate || 0);
+        const unrounded = this.sanitizeCoinTotal() * (exchangeRate || 0);
+        const rounded = Math.round((Number(unrounded) + Number.EPSILON) * 100) / 100;
+        return rounded;
     };
 
     render() {
@@ -163,7 +165,7 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
                                         <Text style={this.theme.styles.sectionTitleCenter}>
                                             {pageHeaderExchangeRate}
                                         </Text>
-                                        <Text style={[this.theme.styles.sectionTitleCenter, { color: this.theme.colors.primary3 }]}>
+                                        <Text style={[this.theme.styles.sectionTitleSmallCenter, { color: this.theme.colors.primary3 }]}>
                                             {this.translate('pages.exchangePointsDisclaimer.labels.exchangeRatePrefix', { exchangeRate })}
                                         </Text>
                                     </View>
@@ -172,14 +174,14 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
                                 <Text style={this.theme.styles.sectionTitleCenter}>
                                     {pageHeaderYourWallet}
                                 </Text>
-                                <Text style={[this.theme.styles.sectionTitleCenter, { color: this.theme.colors.primary3 }]}>
+                                <Text style={[this.theme.styles.sectionTitleSmallCenter, { color: this.theme.colors.primary3 }]}>
                                     {this.translate('pages.exchangePointsDisclaimer.labels.coinsSuffix', {
                                         total: this.sanitizeCoinTotal(),
                                     })}
                                 </Text>
                                 {
                                     exchangeRate &&
-                                    <Text style={[this.theme.styles.sectionTitleCenter, { color: this.theme.colors.primary3 }]}>
+                                    <Text style={[this.theme.styles.sectionTitleSmallCenter, { color: this.theme.colors.primary3 }]}>
                                         {this.translate('pages.exchangePointsDisclaimer.labels.dollarsPrefix', {
                                             total: this.getDollarTotal(),
                                         })}
@@ -224,6 +226,18 @@ export class ExchangePointsDisclaimer extends React.Component<IExchangePointsDis
                                     </View>
                                     <Text style={[this.theme.styles.sectionDescription16, spacingStyles.flexOne]}>
                                         {this.translate('pages.exchangePointsDisclaimer.info.stepThree')}
+                                    </Text>
+                                </View>
+                                <View style={{ display: 'flex', flexDirection: 'row' }}>
+                                    <View style={{ width: 50, alignItems: 'center' }}>
+                                        <MaterialIcon
+                                            name="looks-4"
+                                            size={23}
+                                            style={{ color: this.theme.colors.primary4 }}
+                                        />
+                                    </View>
+                                    <Text style={[this.theme.styles.sectionDescription16, spacingStyles.flexOne]}>
+                                        {this.translate('pages.exchangePointsDisclaimer.info.stepFour')}
                                     </Text>
                                 </View>
                             </View>

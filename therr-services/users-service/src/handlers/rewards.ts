@@ -1,4 +1,6 @@
 import { ErrorCodes } from 'therr-js-utilities/constants';
+import printLogs from 'therr-js-utilities/print-logs';
+import beeline from '../beeline';
 import Store from '../store';
 import handleHttpError from '../utilities/handleHttpError';
 import sendRewardsExchangeEmail from '../api/email/admin/sendRewardsExchangeEmail';
@@ -47,16 +49,30 @@ const requestRewardsExchange = (req, res) => {
         }
 
         return fetchExchangeRate()
-            .then((exchangeRate) => sendRewardsExchangeEmail({
-                subject: '[Rewards Requested] Coin Exchange',
-                toAddresses: [],
-            }, {
-                amount: req.body.amount || user.settingsTherrCoinTotal,
-                exchangeRate,
-                userId: req.headers['x-userid'],
-                userName: user.userName,
-                userEmail: user.email,
-            }))
+            .then((exchangeRate) => {
+                printLogs({
+                    level: 'info',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['User requested to exchange coins'],
+                    tracer: beeline,
+                    traceArgs: {
+                        amount: req.body.amount || user.settingsTherrCoinTotal,
+                        exchangeRate,
+                        userId,
+                    },
+                });
+
+                return sendRewardsExchangeEmail({
+                    subject: '[Rewards Requested] Coin Exchange',
+                    toAddresses: [],
+                }, {
+                    amount: req.body.amount || user.settingsTherrCoinTotal,
+                    exchangeRate,
+                    userId: req.headers['x-userid'],
+                    userName: user.userName,
+                    userEmail: user.email,
+                });
+            })
             .then(() => res.status(200).send({ message: 'Rewards request sent successfully!' }))
             .catch((err) => handleHttpError({
                 res,

@@ -428,6 +428,10 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
         let passesFilterCategory = true;
         let passesFilterVisibility = true;
 
+        if (!area.latitude || !area.longitude) {
+            return false;
+        }
+
         // Filters have been populated and "Select All" is not checked
         if (mapFilters.filtersAuthor?.length && !mapFilters.filtersAuthor[0]?.isChecked) {
             passesFilterAuthor = mapFilters.filtersAuthor.some(filter => {
