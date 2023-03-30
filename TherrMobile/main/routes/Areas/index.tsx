@@ -106,9 +106,10 @@ const mapDispatchToProps = (dispatch: any) =>
 class Areas extends React.Component<IAreasProps, IAreasState> {
     static whyDidYouRender = true;
 
-    private carouselSocialRef;
+    private carouselDiscoveriesRef;
     private carouselEventsRef;
     private carouselNewsRef;
+    private carouselThoughtsRef;
     private translate: Function;
     private loaderId: ILottieId;
     private loadTimeoutId: any;
@@ -319,10 +320,10 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
         const { activeTabIndex } = this.state;
         switch (Object.values(CAROUSEL_TABS)[activeTabIndex]) {
             case CAROUSEL_TABS.DISCOVERIES:
-                this.carouselSocialRef?.scrollToOffset({ animated: true, offset: 0 });
+                this.carouselDiscoveriesRef?.scrollToOffset({ animated: true, offset: 0 });
                 break;
             case CAROUSEL_TABS.THOUGHTS:
-                this.carouselSocialRef?.scrollToOffset({ animated: true, offset: 0 });
+                this.carouselThoughtsRef?.scrollToOffset({ animated: true, offset: 0 });
                 break;
             case CAROUSEL_TABS.EVENTS:
                 this.carouselEventsRef?.scrollToOffset({ animated: true, offset: 0 });
@@ -410,7 +411,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                         toggleAreaOptions={this.toggleAreaOptions}
                         toggleThoughtOptions={this.toggleThoughtOptions}
                         translate={this.translate}
-                        containerRef={(component) => { this.carouselSocialRef = component; }}
+                        containerRef={(component) => { this.carouselDiscoveriesRef = component; }}
                         handleRefresh={this.handleRefresh}
                         onEndReached={this.tryLoadMore}
                         updateMomentReaction={createOrUpdateMomentReaction}
@@ -447,7 +448,7 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
                         toggleAreaOptions={this.toggleAreaOptions}
                         toggleThoughtOptions={this.toggleThoughtOptions}
                         translate={this.translate}
-                        containerRef={(component) => { this.carouselSocialRef = component; }}
+                        containerRef={(component) => { this.carouselThoughtsRef = component; }}
                         handleRefresh={this.handleRefresh}
                         onEndReached={this.tryLoadMore}
                         updateMomentReaction={createOrUpdateMomentReaction}

@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { Image } from 'react-native-elements';
 import { IncentiveRewardKeys } from 'therr-js-utilities/constants';
-import UserMedia from './UserMedia';
 import { ITherrThemeColors } from '../../styles/themes';
 import TherrIcon from '../TherrIcon';
 
@@ -63,8 +62,6 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
             themeViewArea,
             translate,
         } = this.props;
-        const { mediaWidth } = this.state;
-
         const shouldDisplayRewardsBanner = area.featuredIncentiveRewardValue
             && area.featuredIncentiveRewardKey
             && area.featuredIncentiveRewardKey === IncentiveRewardKeys.THERR_COIN_REWARD;
@@ -83,15 +80,24 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
                     <View style={[themeViewArea.styles.cardImageContainer]}>
                         {
                             areaMedia ?
-                                <UserMedia
-                                    viewportWidth={mediaWidth}
-                                    media={areaMedia}
-                                    isVisible={!!areaMedia}
-                                    isSingleView={false}
-                                    viewContainerStyles={{
-                                        flex: 1,
+                                // <UserMedia
+                                //     onPress={() => onPress(area)}
+                                //     viewportWidth={mediaWidth}
+                                //     media={areaMedia}
+                                //     isVisible={!!areaMedia}
+                                //     isSingleView={false}
+                                //     viewContainerStyles={{
+                                //         flex: 1,
+                                //     }}
+                                //     onLayout={this.onUserMediaLayout}
+                                // /> :
+                                <Image
+                                    source={{
+                                        uri: areaMedia,
                                     }}
-                                    onLayout={this.onUserMediaLayout}
+                                    style={themeViewArea.styles.cardImage}
+                                    resizeMode='cover'
+                                    PlaceholderContent={<ActivityIndicator />}
                                 /> :
                                 <Image
                                     source={placeholderMedia}
