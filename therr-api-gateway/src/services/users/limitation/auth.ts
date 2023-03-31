@@ -1,5 +1,4 @@
 import RateLimit from 'express-rate-limit';
-import RedisStore from 'rate-limit-redis';
 import handleHttpError from '../../../utilities/handleHttpError';
 import { RateLimiterRedisStore } from '../../../store/redisClient';
 
