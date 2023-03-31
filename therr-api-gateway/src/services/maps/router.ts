@@ -3,6 +3,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 import * as globalConfig from '../../../../global-config';
 import handleServiceRequest from '../../middleware/handleServiceRequest';
 import { validate } from '../../validation';
+import { createMomentLimiter, createSpaceLimiter } from './limitation/map';
 import { getSignedUrlValidation } from './validation';
 import {
     createAreaValidation,
@@ -30,7 +31,7 @@ mapsServiceRouter.post('/media/signed-urls', validate, handleServiceRequest({
 }));
 
 // Moments
-mapsServiceRouter.post('/moments', createAreaValidation, validate, handleServiceRequest({
+mapsServiceRouter.post('/moments', createMomentLimiter, createAreaValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));
@@ -86,7 +87,7 @@ mapsServiceRouter.delete('/moments', deleteAreasValidation, validate, handleServ
 }));
 
 // Spaces
-mapsServiceRouter.post('/spaces', createAreaValidation, validate, handleServiceRequest({
+mapsServiceRouter.post('/spaces', createSpaceLimiter, createAreaValidation, validate, handleServiceRequest({
     basePath: `${globalConfig[process.env.NODE_ENV].baseMapsServiceRoute}`,
     method: 'post',
 }));
