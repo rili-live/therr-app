@@ -78,7 +78,7 @@ const createMoment = async (req, res) => {
                             userId,
                         },
                     });
-                    if (!existingCoupon.length || existingCoupon[0].useCount < therrCoinIncentive.maxUseCount) {
+                    if (isClaimable) {
                         const { data } = await axios({ // Create companion reaction for user's own moment
                             method: 'post',
                             url: `${globalConfig[process.env.NODE_ENV].baseUsersServiceRoute}/rewards/transfer-coins`,
