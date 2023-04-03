@@ -103,6 +103,12 @@ class CreateProfileStageB extends React.Component<ICreateProfileStageBProps, ICr
                         text1: translate('alertTitles.phoneNumberAlreadyInUse'),
                         text2: translate('alertMessages.phoneNumberAlreadyInUse'),
                     });
+                } else if (error?.errorCode === ErrorCodes.INVALID_REGION) {
+                    Toast.show({
+                        type: 'errorBig',
+                        text1: translate('alertTitles.invalidRegionCode'),
+                        text2: translate('alertMessages.invalidRegionCode'),
+                    });
                 } else {
                     analytics().logEvent('phone_verify_error', {
                         userId: user?.details?.id,
