@@ -167,12 +167,14 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
             if (user.isAuthenticated) { // Happens after login
                 if (user.details?.id) {
                     crashlytics().setUserId(user.details?.id?.toString());
-                    LogRocket.identify(user.details?.id, {
-                        name: `${user.details?.firstName} ${user.details?.lastName}`,
-                        email: user.details?.email,
+                    if (!__DEV__) {
+                        LogRocket.identify(user.details?.id, {
+                            name: `${user.details?.firstName} ${user.details?.lastName}`,
+                            email: user.details?.email,
 
-                        // Add your own custom user variables here, ie:
-                    });
+                            // Add your own custom user variables here, ie:
+                        });
+                    }
                 }
 
                 if (targetRouteView) {

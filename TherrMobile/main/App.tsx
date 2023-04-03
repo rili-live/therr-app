@@ -126,31 +126,33 @@ class App extends React.Component<any, any> {
     componentDidMount() {
         this.loadStorage();
 
-        LogRocket.init('pibaqj/therr-app-mobile', {
-            network: {
-                requestSanitizer: request => {
-                    if (request.headers.authorization) {
-                        request.headers.authorization = '';
-                    }
-                    if (request.body?.toString().includes('password')) {
-                        request.body = '';
-                    }
+        if (!__DEV__) {
+            LogRocket.init('pibaqj/therr-app-mobile', {
+                network: {
+                    requestSanitizer: request => {
+                        if (request.headers.authorization) {
+                            request.headers.authorization = '';
+                        }
+                        if (request.body?.toString().includes('password')) {
+                            request.body = '';
+                        }
 
-                    return request;
-                },
-                responseSanitizer: response => {
-                    if (response.body?.toString().includes('password') || response.body?.toString().includes('idToken')) {
-                        response.body = '';
-                    }
+                        return request;
+                    },
+                    responseSanitizer: response => {
+                        if (response.body?.toString().includes('password') || response.body?.toString().includes('idToken')) {
+                            response.body = '';
+                        }
 
-                    return response;
+                        return response;
+                    },
                 },
-            },
-            console: {
-                shouldAggregateConsoleErrors: true,
-            },
-            redactionTags: ['RedactionString'],
-        });
+                console: {
+                    shouldAggregateConsoleErrors: true,
+                },
+                redactionTags: ['RedactionString'],
+            });
+        }
     }
 
     loadStorage = () => {

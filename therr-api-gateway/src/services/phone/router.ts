@@ -91,7 +91,18 @@ phoneRouter.post('/verify', verifyPhoneLimiter, validate, async (req, res) => {
                 return res.status(200).send({
                     phoneNumber: normalizedPhoneNumber,
                 });
-            }).catch((err: any) => handleHttpError({ err, res, message: 'SQL:PHONE_ROUTES:ERROR' }));
+            }).catch((err: any) => {
+                if (err?.message?.includes('SMS has not been enabled for the region')) {
+                    return handleHttpError({
+                        err,
+                        errorCode: ErrorCodes.INVALID_REGION,
+                        res,
+                        message: 'Region not enabled for phone number',
+                        statusCode: 405,
+                    });
+                }
+                return handleHttpError({ err, res, message: 'SQL:PHONE_ROUTES:ERROR' });
+            });
     } catch (err: any) {
         return handleHttpError({ err, res, message: 'SQL:PHONE_ROUTES:ERROR' });
     }
