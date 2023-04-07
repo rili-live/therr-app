@@ -17,6 +17,7 @@ export const SPACES_TABLE_NAME = 'main.spaces';
 const countryReverseGeo = countryGeo.country_reverse_geocoding();
 const maxNotificationMsgLength = 100;
 export interface ICreateSpaceParams {
+    address?: string;
     areaType?: string;
     category?: string;
     expiresAt?: any;
@@ -344,6 +345,7 @@ export default class SpacesStore {
 
         return mediaPromise.then((mediaIds: string | undefined) => {
             const sanitizedParams = {
+                address: params.address || '',
                 areaType: params.areaType || 'spaces',
                 category: params.category || 'uncategorized',
                 expiresAt: params.expiresAt,
