@@ -39,6 +39,7 @@ interface ICreateAreaBody {
 }
 
 interface ICreateSpaceBody extends ICreateAreaBody {
+    address?: string;
     featuredIncentiveKey?: string;
     featuredIncentiveValue?: number;
     featuredIncentiveRewardKey?: string;
