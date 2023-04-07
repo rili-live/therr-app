@@ -746,7 +746,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Therr/TherrDebug.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 112;
 				DEVELOPMENT_TEAM = 22AN4MZ6H5;
@@ -946,7 +946,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.therr.mobile.Therr;
 				PRODUCT_NAME = Therr;
 				PROVISIONING_PROFILE_SPECIFIER = "Therr App Development 5-3-22";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Therr App Distribution 5-3-22";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Therr App Development 4-5-23";
 				SWIFT_OBJC_BRIDGING_HEADER = "Therr-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -1150,7 +1150,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.therr.mobile.Therr;
 				PRODUCT_NAME = Therr;
 				PROVISIONING_PROFILE_SPECIFIER = "Therr App Distribution 5-3-22";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Therr App Distribution 5-3-22";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Therr App Distribution 4-5-23";
 				SWIFT_OBJC_BRIDGING_HEADER = "Therr-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

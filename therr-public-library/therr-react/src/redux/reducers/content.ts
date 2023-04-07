@@ -3,6 +3,8 @@ import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { IContentState, ContentActionTypes } from '../../types/redux/content';
 import { MapActionTypes } from '../../types';
 
+// TODO: Rather than using Set to remove duplicates, store this data as a Map keyed on area ID
+
 const initialState: IContentState = Immutable.from({
     activeMoments: Immutable.from([]),
     activeMomentsPagination: Immutable.from({}),
@@ -116,21 +118,21 @@ const content = (state: IContentState = initialState, action: any) => {
         // Moments
         case ContentActionTypes.INSERT_ACTIVE_MOMENTS:
             // Add latest moments to start
-            return state.setIn(['activeMoments'], [...action.data, ...state.activeMoments]);
+            return state.setIn(['activeMoments'], [...new Set(action.data.concat(state.activeMoments))]);
         case ContentActionTypes.REMOVE_ACTIVE_MOMENTS:
             // Remove (reported) moments
-            return state.setIn(['activeMoments'], modifiedActiveMoments);
+            return state.setIn(['activeMoments'], [...new Set(modifiedActiveMoments)]);
         case ContentActionTypes.UPDATE_ACTIVE_MOMENT_REACTION:
             return state.setIn(['activeMoments'], modifiedActiveMoments)
                 .setIn(['bookmarkedMoments'], modifiedBookmarkedMoments);
         case ContentActionTypes.SEARCH_ACTIVE_MOMENTS:
             // Add next offset of moments to end
-            return state.setIn(['activeMoments'], [...state.activeMoments, ...action.data.moments])
+            return state.setIn(['activeMoments'], [...new Set(state.activeMoments.concat(action.data.moments))])
                 .setIn(['media'], { ...state.media, ...action.data.media })
                 .setIn(['activeMomentsPagination'], { ...action.data.pagination });
         case ContentActionTypes.UPDATE_ACTIVE_MOMENTS:
             // Reset moments from scratch
-            return state.setIn(['activeMoments'], action.data.moments)
+            return state.setIn(['activeMoments'], [...new Set(action.data.moments)])
                 .setIn(['media'], { ...state.media, ...action.data.media }) // local cache existing media
                 .setIn(['activeMomentsPagination'], { ...action.data.pagination });
         case ContentActionTypes.SEARCH_BOOKMARKED_MOMENTS:
@@ -154,21 +156,21 @@ const content = (state: IContentState = initialState, action: any) => {
         // Spaces
         case ContentActionTypes.INSERT_ACTIVE_SPACES:
             // Add latest spaces to start
-            return state.setIn(['activeSpaces'], [...action.data, ...state.activeSpaces]);
+            return state.setIn(['activeSpaces'], [...new Set(action.data.concat(state.activeSpaces))]);
         case ContentActionTypes.REMOVE_ACTIVE_SPACES:
             // Remove (reported) spaces
-            return state.setIn(['activeSpaces'], modifiedActiveSpaces);
+            return state.setIn(['activeSpaces'], [...new Set(modifiedActiveSpaces)]);
         case ContentActionTypes.UPDATE_ACTIVE_SPACE_REACTION:
-            return state.setIn(['activeSpaces'], modifiedActiveSpaces)
+            return state.setIn(['activeSpaces'], [...new Set(modifiedActiveSpaces)])
                 .setIn(['bookmarkedSpaces'], modifiedBookmarkedSpaces);
         case ContentActionTypes.SEARCH_ACTIVE_SPACES:
             // Add next offset of spaces to end
-            return state.setIn(['activeSpaces'], [...state.activeSpaces, ...action.data.spaces])
+            return state.setIn(['activeSpaces'], [...new Set(state.activeSpaces.concat(action.data.spaces))])
                 .setIn(['media'], { ...state.media, ...action.data.media })
                 .setIn(['activeSpacesPagination'], { ...action.data.pagination });
         case ContentActionTypes.UPDATE_ACTIVE_SPACES:
             // Reset spaces from scratch
-            return state.setIn(['activeSpaces'], action.data.spaces)
+            return state.setIn(['activeSpaces'], [...new Set(action.data.spaces)])
                 .setIn(['media'], { ...state.media, ...action.data.media }) // local cache existing media
                 .setIn(['activeSpacesPagination'], { ...action.data.pagination });
         case ContentActionTypes.SEARCH_BOOKMARKED_SPACES:
