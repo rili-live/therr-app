@@ -15,6 +15,7 @@ export const getSpaceDetailsValidation = [
 
 export const createSpaceValidation = [
     ...createAreaValidation,
+    body('addressReadable').isString().optional(),
     body('featuredIncentiveKey').isString().optional(),
     body('featuredIncentiveValue').isNumeric().optional(),
     body('featuredIncentiveRewardKey').isString().optional(),
