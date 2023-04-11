@@ -24,6 +24,8 @@ import {
     LOCATION_PROCESSING_THROTTLE_MS,
     SECONDARY_LATITUDE_DELTA,
     SECONDARY_LONGITUDE_DELTA,
+    MAX_ANIMATION_LATITUDE_DELTA,
+    MAX_ANIMATION_LONGITUDE_DELTA,
 } from '../../constants';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildBottomSheetStyles } from '../../styles/bottom-sheet';
@@ -233,11 +235,21 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         this.previewScrollIndex = index;
                         const { latitude, longitude } = areasInPreview[index] || {};
                         if (latitude && longitude) {
+                            const { location } = this.props;
+                            let animationLatitudeDelta = PRIMARY_LATITUDE_DELTA * 2;
+                            let animationLongitudeDelta = PRIMARY_LONGITUDE_DELTA * 2;
+
+                            if (location?.user?.latitudeDelta && location?.user?.latitudeDelta <= MAX_ANIMATION_LATITUDE_DELTA) {
+                                animationLatitudeDelta = location?.user?.latitudeDelta;
+                            }
+                            if (location?.user?.longitudeDelta && location?.user?.longitudeDelta <= MAX_ANIMATION_LONGITUDE_DELTA) {
+                                animationLongitudeDelta = location?.user?.longitudeDelta;
+                            }
                             const loc = {
                                 latitude,
                                 longitude,
-                                latitudeDelta: PRIMARY_LATITUDE_DELTA * 2,
-                                longitudeDelta: PRIMARY_LONGITUDE_DELTA * 2,
+                                latitudeDelta: animationLatitudeDelta,
+                                longitudeDelta: animationLongitudeDelta,
                             };
                             this.props.animateToWithHelp(
                                 () => this.mapViewRef && this.mapViewRef.animateToRegion(loc, ANIMATE_TO_REGION_DURATION_RAPID)
@@ -428,6 +440,10 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
     togglePreviewBottomSheet = (pressedCoords: { latitude: number, longitude: number }, pressedAreaId?: any) => {
         const { content, location } = this.props;
         const { areasInPreview, isPreviewBottomSheetVisible } = this.state;
+
+        if (isPreviewBottomSheetVisible && pressedAreaId) {
+            return;
+        }
 
         let modifiedAreasInPreview = [...areasInPreview];
         if (!isPreviewBottomSheetVisible) {
@@ -709,6 +725,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
         const { navigation, user } = this.props;
 
         // TODO: Should handle space or moment
+        // TODO: Activate spaces on click
         this.getAreaDetails(area)
             .then((details) => {
                 navigation.navigate('ViewSpace', {
