@@ -12,7 +12,8 @@
     "momentCreatedSuccess": "Moment Created  🎉",
     "spaceCreatedSuccess": "You Claimed a Space",
     "ssoLoginError": "Error With Single Sign-On",
-    "walkCloser": "Too Far Away"
+    "walkCloser": "Too Far Away",
+    "nameUnknown": "Anonymous User"
   },
   "alertMessages": {
     "codeSent": "Check your phone for a new verification code.",

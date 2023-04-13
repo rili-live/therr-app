@@ -63,7 +63,7 @@ const renderItem = ({ item: post }, {
     const userDetails = post.fromUserName ? {
         userName: post.fromUserName,
     } : {
-        userName: user.details.id === post.fromUserId ? user.details.userName : post.fromUserId,
+        userName: user.details.id === post.fromUserId ? user.details.userName : translate('alertTitles.nameUnknown'),
     };
 
     if (!post.areaType) {
@@ -135,6 +135,7 @@ const renderItem = ({ item: post }, {
                         updateAreaReaction={updateReaction}
                         areaMedia={postMedia}
                         isDarkMode={false}
+                        placeholderMediaType={post.areaType === 'spaces' ? 'static' : undefined}
                         theme={theme}
                         themeForms={themeForms}
                         themeViewArea={themeViewPost}

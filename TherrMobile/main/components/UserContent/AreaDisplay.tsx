@@ -12,6 +12,7 @@ import { Button, Image } from 'react-native-elements';
 import Autolink from 'react-native-autolink';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import LottieView from 'lottie-react-native';
 import { IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import HashtagsContainer from './HashtagsContainer';
@@ -21,6 +22,15 @@ import sanitizeNotificationMsg from '../../utilities/sanitizeNotificationMsg';
 import { getUserImageUri } from '../../utilities/content';
 import PresssableWithDoubleTap from '../../components/PressableWithDoubleTap';
 import TherrIcon from '../TherrIcon';
+import missingImageDeals from '../../assets/missing-image-deals.json';
+import missingImageFood from '../../assets/missing-image-food.json';
+import missingImageStorefront from '../../assets/missing-image-storefront.json';
+import missingImageIdea from '../../assets/missing-image-idea.json';
+import missingImageMusic from '../../assets/missing-image-music.json';
+import missingImageNature from '../../assets/missing-image-nature.json';
+
+const placeholderMedia = require('../../assets/placeholder-content-media.png');
+
 
 const { width: viewportWidth } = Dimensions.get('window');
 
@@ -50,6 +60,7 @@ interface IAreaDisplayProps {
     updateAreaReaction: Function;
     user: IUserState;
     areaUserDetails: IUserDetails;
+    placeholderMediaType?: 'autoplay' | 'static' | undefined;
     theme: {
         styles: any;
         colors: ITherrThemeColors;
@@ -138,6 +149,59 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
         }
     };
 
+    renderMissingImage = () => {
+        const { area, placeholderMediaType } = this.props;
+
+        if (area?.category) {
+            let missingImage: any = missingImageFood;
+            if (area?.category === 'food' || area?.category === 'menu') {
+                missingImage = missingImageFood;
+            }
+            if (area?.category === 'deals') {
+                missingImage = missingImageDeals;
+            }
+            if (area?.category === 'storefront') {
+                missingImage = missingImageStorefront;
+            }
+            if (area?.category === 'idea') {
+                missingImage = missingImageIdea;
+            }
+            if (area?.category === 'music') {
+                missingImage = missingImageMusic;
+            }
+            if (area?.category === 'nature') {
+                missingImage = missingImageNature;
+            }
+            return (
+                <View style={{
+                    width: viewportWidth,
+                    height: viewportWidth,
+                }}>
+                    <LottieView
+                        source={missingImage}
+                        resizeMode="contain"
+                        speed={1}
+                        progress={placeholderMediaType === 'autoplay' ? 0 : 1}
+                        autoPlay={placeholderMediaType === 'autoplay'}
+                        loop={false}
+                    />
+                </View>
+            );
+        }
+
+        return (
+            <Image
+                source={placeholderMedia}
+                style={{
+                    width: viewportWidth,
+                    height: viewportWidth,
+                }}
+                resizeMode='contain'
+                PlaceholderContent={<ActivityIndicator />}
+            />
+        );
+    };
+
     render() {
         const {
             date,
@@ -150,6 +214,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             goToViewUser,
             inspectContent,
             areaUserDetails,
+            placeholderMediaType,
             theme,
             themeForms,
             themeViewArea,
@@ -219,18 +284,19 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         isSingleView={isExpanded}
                     /> */}
                     {
-                        areaMedia &&
-                        <Image
-                            source={{
-                                uri: areaMedia,
-                            }}
-                            style={{
-                                width: viewportWidth,
-                                height: viewportWidth,
-                            }}
-                            resizeMode='contain'
-                            PlaceholderContent={<ActivityIndicator />}
-                        />
+                        areaMedia ?
+                            <Image
+                                source={{
+                                    uri: areaMedia,
+                                }}
+                                style={{
+                                    width: viewportWidth,
+                                    height: viewportWidth,
+                                }}
+                                resizeMode='contain'
+                                PlaceholderContent={<ActivityIndicator />}
+                            /> :
+                            placeholderMediaType && this.renderMissingImage()
                     }
                 </PresssableWithDoubleTap>
                 <View style={themeViewArea.styles.areaContentTitleContainer}>

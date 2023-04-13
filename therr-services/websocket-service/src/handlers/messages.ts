@@ -76,28 +76,55 @@ const sendDirectMessage = (socket: socketio.Socket, data: any, decodedAuthentica
                                 fromUserName: data.userName,
                             },
                         }, socket, decodedAuthenticationToken).catch((err) => {
-                            console.log(err);
-                        }).catch((err) => {
-                            console.log(err);
+                            printLogs({
+                                level: 'error',
+                                messageOrigin: 'SOCKET_IO_LOGS',
+                                messages: err.toString(),
+                                tracer: beeline,
+                                traceArgs: {
+                                    errorMessage: err?.message,
+                                    source: 'messages.sendUserNotification',
+                                },
+                            });
                         });
                     }
+                }).catch((err) => {
+                    printLogs({
+                        level: 'error',
+                        messageOrigin: 'SOCKET_IO_LOGS',
+                        messages: err.toString(),
+                        tracer: beeline,
+                        traceArgs: {
+                            errorMessage: err?.message,
+                            source: 'messages.throttleDmNotifications',
+                        },
+                    });
                 });
         }
-        printLogs({
-            level: 'debug',
-            messageOrigin: 'SOCKET_IO_LOGS',
-            messages: `${data.userName} said: ${data.message}`,
-            tracer: beeline,
-            traceArgs: {
-                socketId: socket.id,
-                userName: data.userName,
-                messageText: data.message,
-                context: data.to,
-            },
-        });
+        // printLogs({
+        //     level: 'debug',
+        //     messageOrigin: 'SOCKET_IO_LOGS',
+        //     messages: `${data.userName} said: ${data.message}`,
+        //     tracer: beeline,
+        //     traceArgs: {
+        //         socketId: socket.id,
+        //         userName: data.userName,
+        //         messageText: data.message,
+        //         context: data.to,
+        //     },
+        // });
     }).catch((err) => {
         // TODO: RSERV-36 - Emit error message
-        console.log(err);
+        printLogs({
+            level: 'error',
+            messageOrigin: 'SOCKET_IO_LOGS',
+            messages: err.toString(),
+            tracer: beeline,
+            traceArgs: {
+                errorMessage: err?.message,
+                source: 'messages.sendDirectMessage',
+            },
+        });
     });
 };
 

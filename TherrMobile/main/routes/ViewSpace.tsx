@@ -622,9 +622,10 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                         // TODO: User Username from response
                                         user={user}
                                         areaUserDetails={{
-                                            userName: spaceUserName || spaceInView.fromUserId || '',
+                                            userName: spaceUserName || this.translate('alertTitles.nameUnknown'),
                                         }}
                                         areaMedia={spaceMedia}
+                                        placeholderMediaType="autoplay"
                                         theme={this.theme}
                                         themeForms={this.themeForms}
                                         themeViewArea={this.themeArea}

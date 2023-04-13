@@ -92,14 +92,32 @@ const startExpressSocketIOServer = () => {
         pingTimeout: Number(globalConfig[process.env.NODE_ENV || 'development'].socket.pingTimeout),
     });
 
-    io.on('connect_error', (error: string) => {
-        console.log(error); // eslint-disable-line no-console
+    io.on('connect_error', (errorMsg: string) => {
+        printLogs({
+            level: 'error',
+            messageOrigin: 'SOCKET_IO_LOGS',
+            messages: errorMsg,
+            tracer: beeline,
+            traceArgs: {
+                errorMessage: errorMsg,
+                source: 'connect_error',
+            },
+        });
     });
 
     io.adapter(redisAdapter);
 
     io.of('/').adapter.on('error', (err) => {
-        console.log(err);
+        printLogs({
+            level: 'error',
+            messageOrigin: 'SOCKET_IO_LOGS',
+            messages: err.toString(),
+            tracer: beeline,
+            traceArgs: {
+                errorMessage: err?.message,
+                source: 'adapter',
+            },
+        });
     });
 
     io.on('connection', async (socket: Socket) => {

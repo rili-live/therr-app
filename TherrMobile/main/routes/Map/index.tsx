@@ -1239,6 +1239,11 @@ class Map extends React.PureComponent<IMapProps, IMapState> {
     };
 
     onRegionChangeComplete = (region, filteredAreasCount: number) => {
+        const { updateUserCoordinates } = this.props;
+        updateUserCoordinates({
+            latitudeDelta: region.latitudeDelta,
+            longitudeDelta: region.longitudeDelta,
+        });
         this.setState({
             isSearchThisLocationBtnVisible: false,
             region,
