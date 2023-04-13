@@ -379,7 +379,7 @@ const validateCredentials = (userSearchResults, {
             }
 
             // Create user with phonenumber equal to 'apple-sso'
-            // We can use this in the future mark an account un-verified and still allow Apple SSO
+            // We can use this in the future to mark an account un-verified and still allow Apple SSO
             if (!userSearchResults.length) { // First time SSO login
                 return createUserHelper({
                     email: reqBody.userEmail,

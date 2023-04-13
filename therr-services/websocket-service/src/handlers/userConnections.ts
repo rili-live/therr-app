@@ -151,7 +151,16 @@ const updateConnection = (socket: socketio.Socket, data: IUpdateUserConnectionDa
 
         return Promise.resolve(connection);
     }).catch((err) => {
-        console.log(err);
+        printLogs({
+            level: 'error',
+            messageOrigin: 'SOCKET_IO_LOGS',
+            messages: err.toString(),
+            tracer: beeline,
+            traceArgs: {
+                errorMessage: err?.message,
+                source: 'userConnections',
+            },
+        });
     });
 };
 

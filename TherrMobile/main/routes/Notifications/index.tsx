@@ -184,7 +184,6 @@ class Notifications extends React.Component<
             } else {
                 // NEW_AREAS_ACTIVATED
                 // TODO: Load a page with a list of the newly activated areas
-                console.log('ZACK_DEBUG', notification.messageParams);
                 navigation.navigate('Nearby');
             }
         } else if (notification.type === NotificationsEmuns.Types.ACHIEVEMENT_COMPLETED) {

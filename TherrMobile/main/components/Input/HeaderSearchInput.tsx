@@ -84,8 +84,10 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
         clearTimeout(this.throttleTimeoutId);
     };
 
-    onInputChange = (text: string) => {
+    onInputChange = (text: string, invoker: string = 'input') => {
         const { getPlacesSearchAutoComplete, map, setSearchDropdownVisibility } = this.props;
+        const { inputText } = this.state;
+
         clearTimeout(this.throttleTimeoutId);
         this.setState({
             inputText: text,
@@ -101,18 +103,23 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
             });
         }, 500);
 
+        if (invoker === 'input' && text === inputText) {
+            return;
+        }
         setSearchDropdownVisibility(!!text?.length);
     };
 
-    handlePress = () => {
+    handlePress = (invoker: string) => {
         const { isAdvancedSearch, navigation, setSearchDropdownVisibility } = this.props;
         const { inputText } = this.state;
 
         if (isAdvancedSearch) {
             navigation.navigate('AdvancedSearch');
         } else {
-            this.onInputChange(inputText || '');
             setSearchDropdownVisibility(!!inputText?.length);
+
+            this.onInputChange(inputText || '', invoker);
+
         }
     };
 
@@ -154,7 +161,7 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                     }
                     inputContainerStyle={[themeForms.styles.inputContainerRound, theme.styles.headerSearchInputContainer]}
                     onChangeText={this.onInputChange}
-                    onFocus={this.handlePress}
+                    onFocus={() => this.handlePress('onfocus')}
                     placeholder={this.translate('components.header.searchInput.placeholder')}
                     placeholderTextColor={theme.colorVariations.textGrayFade}
                     rightIcon={
@@ -162,7 +169,7 @@ export class HeaderSearchInput extends React.Component<IHeaderSearchInputProps, 
                             name={isAdvancedSearch ? 'filters' : 'search'}
                             size={18}
                             color={theme.colors.primary3}
-                            onPress={this.handlePress}
+                            onPress={() => this.handlePress('onpress')}
                         />
                     }
                     themeForms={themeForms}

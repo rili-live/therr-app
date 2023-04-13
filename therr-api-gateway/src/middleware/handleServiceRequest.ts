@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import beeline from '../beeline';
 import handleHttpError from '../utilities/handleHttpError';
 import restRequest from '../utilities/restRequest';
 import isBlacklisted from '../utilities/isBlacklisted';
@@ -59,6 +60,13 @@ const handleServiceRequest = ({
             }
 
             if (!error.response) {
+                if (error?.message?.includes('ECONNREFUSED')) {
+                    beeline.addContext({
+                        hasConnectionError: true,
+                        targetHost: req.host,
+                        targetPath: basePath,
+                    });
+                }
                 console.log(error);
             }
 

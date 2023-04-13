@@ -8,9 +8,16 @@ import {
     View,
 } from 'react-native';
 import { Image } from 'react-native-elements';
+import LottieView from 'lottie-react-native';
 import { IncentiveRewardKeys } from 'therr-js-utilities/constants';
 import { ITherrThemeColors } from '../../styles/themes';
 import TherrIcon from '../TherrIcon';
+import missingImageDeals from '../../assets/missing-image-deals.json';
+import missingImageFood from '../../assets/missing-image-food.json';
+import missingImageStorefront from '../../assets/missing-image-storefront.json';
+import missingImageIdea from '../../assets/missing-image-idea.json';
+import missingImageMusic from '../../assets/missing-image-music.json';
+import missingImageNature from '../../assets/missing-image-nature.json';
 
 const { width: viewportWidth } = Dimensions.get('window');
 const placeholderMedia = require('../../assets/placeholder-content-media.png');
@@ -50,6 +57,52 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
         this.setState({
             mediaWidth: width,
         });
+    };
+
+    renderMissingImage = () => {
+        const { area, themeViewArea } = this.props;
+
+        if (area?.category) {
+            let missingImage: any = missingImageFood;
+            if (area?.category === 'food' || area?.category === 'menu') {
+                missingImage = missingImageFood;
+            }
+            if (area?.category === 'deals') {
+                missingImage = missingImageDeals;
+            }
+            if (area?.category === 'storefront') {
+                missingImage = missingImageStorefront;
+            }
+            if (area?.category === 'idea') {
+                missingImage = missingImageIdea;
+            }
+            if (area?.category === 'music') {
+                missingImage = missingImageMusic;
+            }
+            if (area?.category === 'nature') {
+                missingImage = missingImageNature;
+            }
+            return (
+                <View style={themeViewArea.styles.cardImage}>
+                    <LottieView
+                        source={missingImage}
+                        resizeMode="contain"
+                        speed={1}
+                        autoPlay
+                        loop={false}
+                    />
+                </View>
+            );
+        }
+
+        return (
+            <Image
+                source={placeholderMedia}
+                style={themeViewArea.styles.cardImage}
+                resizeMode='cover'
+                PlaceholderContent={<ActivityIndicator />}
+            />
+        );
     };
 
     render() {
@@ -99,12 +152,7 @@ export default class AreaDisplayCard extends React.PureComponent<IAreaDisplayCar
                                     resizeMode='cover'
                                     PlaceholderContent={<ActivityIndicator />}
                                 /> :
-                                <Image
-                                    source={placeholderMedia}
-                                    style={themeViewArea.styles.cardImage}
-                                    resizeMode='cover'
-                                    PlaceholderContent={<ActivityIndicator />}
-                                />
+                                this.renderMissingImage()
                         }
                     </View>
                     <View style={themeViewArea.styles.textContent}>

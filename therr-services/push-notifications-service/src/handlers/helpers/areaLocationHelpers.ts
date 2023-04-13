@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { distanceTo } from 'geolocation-utils';
+import printLogs from 'therr-js-utilities/print-logs';
 import { Location, Notifications, PushNotifications } from 'therr-js-utilities/constants';
 import { getSearchQueryString } from 'therr-js-utilities/http';
 // eslint-disable-next-line import/extensions, import/no-unresolved
@@ -419,6 +420,16 @@ const activateAreasAndNotify = (
         })
         .catch((err) => {
             console.log('WARNING WARNING WARNING: Moment activation is failing!', err);
+            printLogs({
+                level: 'error',
+                messageOrigin: 'API_SERVER',
+                messages: err.toString(),
+                tracer: beeline,
+                traceArgs: {
+                    errorMessage: err?.message,
+                    source: 'areaLocationHelpers',
+                },
+            });
         });
 };
 

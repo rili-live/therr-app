@@ -1,5 +1,7 @@
 import { getSearchQueryString } from 'therr-js-utilities/http';
 import { SocketServerActionTypes, SOCKET_MIDDLEWARE_ACTION } from 'therr-js-utilities/constants';
+import printLogs from 'therr-js-utilities/print-logs';
+import beeline from '../beeline';
 import restRequest from './restRequest';
 import redisSessions from '../store/redisSessions';
 import globalConfig from '../../../../global-config';
@@ -70,6 +72,15 @@ export default (socket, userDetails, actionType, shouldReturnActiveConnections =
             });
         });
     }).catch((err) => {
-        console.log(err);
+        printLogs({
+            level: 'error',
+            messageOrigin: 'SOCKET_IO_LOGS',
+            messages: err.toString(),
+            tracer: beeline,
+            traceArgs: {
+                errorMessage: err?.message,
+                source: 'notify-connections',
+            },
+        });
     });
 };

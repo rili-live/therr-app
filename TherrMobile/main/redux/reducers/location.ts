@@ -36,10 +36,12 @@ const locations = (state: ILocationState = initialState, action: any) => {
             });
         case MapActionTypes.UPDATE_COORDS:
             return state
-                .setIn(['user', 'longitude'], action.data.longitude)
-                .setIn(['user', 'latitude'], action.data.latitude)
-                .setIn(['user', 'prevLongitude'], state.longitude)
-                .setIn(['user', 'prevLatitude'], state.latitude);
+                .setIn(['user', 'longitude'], action.data.longitude || state.user?.longitude)
+                .setIn(['user', 'latitude'], action.data.latitude || state.user?.latitude)
+                .setIn(['user', 'longitudeDelta'], action.data.longitudeDelta || state.user?.longitudeDelta)
+                .setIn(['user', 'latitudeDelta'], action.data.latitudeDelta || state.user?.latitudeDelta)
+                .setIn(['user', 'prevLongitude'], state.user?.longitude)
+                .setIn(['user', 'prevLatitude'], state.user?.latitude);
         default:
             return state;
     }

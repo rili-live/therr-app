@@ -16,7 +16,10 @@ const renderListItem = (item, { handleSelect, styles }) => {
     return (
         <Pressable
             android_ripple={{}}
-            onPress={() => handleSelect(item)}
+            onPress={(e) => {
+                e.stopPropagation();
+                handleSelect(item);
+            }}
             style={styles.itemContainer}
         >
             <Text style={styles.itemText}>{item.description}</Text>
