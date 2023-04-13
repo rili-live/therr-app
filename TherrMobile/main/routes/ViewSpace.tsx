@@ -625,7 +625,7 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
                                             userName: spaceUserName || this.translate('alertTitles.nameUnknown'),
                                         }}
                                         areaMedia={spaceMedia}
-                                        shouldUsePlaceholderMedia
+                                        placeholderMediaType="autoplay"
                                         theme={this.theme}
                                         themeForms={this.themeForms}
                                         themeViewArea={this.themeArea}

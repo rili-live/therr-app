@@ -35,7 +35,16 @@ const updateNotification = (socket: Socket, data: IUpdateNotificationData, decod
             },
         });
     }).catch((err) => {
-        console.log(err);
+        printLogs({
+            level: 'error',
+            messageOrigin: 'SOCKET_IO_LOGS',
+            messages: err.toString(),
+            tracer: beeline,
+            traceArgs: {
+                errorMessage: err?.message,
+                source: 'updateNotification',
+            },
+        });
     });
 };
 

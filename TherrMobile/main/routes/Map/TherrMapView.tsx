@@ -831,6 +831,30 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         })
                     }
                     {
+                        !areasInPreview?.length && Object.values(filteredSpaces).map((space: any) => {
+                            return (
+                                <Marker
+                                    anchor={{
+                                        x: 0.5,
+                                        y: 0.5,
+                                    }}
+                                    key={space.id}
+                                    coordinate={{
+                                        longitude: space.longitude,
+                                        latitude: space.latitude,
+                                    }}
+                                    onPress={this.handleMapPress}
+                                    stopPropagation={true}
+                                    tracksViewChanges={false} // Note: Supposedly affects performance but not sure the implications
+                                >
+                                    <View style={{ /* transform: [{ translateY: 0 }] */ }}>
+                                        <MarkerIcon area={space} areaType="spaces" theme={this.theme} />
+                                    </View>
+                                </Marker>
+                            );
+                        })
+                    }
+                    {
                         isMapReady && areasInPreview.map((space: any, index) => {
                             const inputRange = [
                                 (index - 1) * CARD_WIDTH,
@@ -896,10 +920,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         })
                     }
                     {
-                        isMapReady && Object.values(filteredMoments).map((moment: any) => {
-                            if (!shouldRenderMapCircles) {
-                                return null;
-                            }
+                        isMapReady && shouldRenderMapCircles && Object.values(filteredMoments).map((moment: any) => {
                             return (
                                 <Circle
                                     key={moment.id}
@@ -917,10 +938,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         })
                     }
                     {
-                        isMapReady && Object.values(filteredSpaces).map((space: any) => {
-                            if (!shouldRenderMapCircles) {
-                                return null;
-                            }
+                        isMapReady && shouldRenderMapCircles && Object.values(filteredSpaces).map((space: any) => {
                             return (
                                 <Circle
                                     key={space.id}

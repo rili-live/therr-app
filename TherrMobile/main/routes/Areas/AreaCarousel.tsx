@@ -135,7 +135,7 @@ const renderItem = ({ item: post }, {
                         updateAreaReaction={updateReaction}
                         areaMedia={postMedia}
                         isDarkMode={false}
-                        shouldUsePlaceholderMedia={post.areaType === 'spaces'}
+                        placeholderMediaType={post.areaType === 'spaces' ? 'static' : undefined}
                         theme={theme}
                         themeForms={themeForms}
                         themeViewArea={themeViewPost}

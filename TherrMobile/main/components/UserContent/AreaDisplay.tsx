@@ -60,7 +60,7 @@ interface IAreaDisplayProps {
     updateAreaReaction: Function;
     user: IUserState;
     areaUserDetails: IUserDetails;
-    shouldUsePlaceholderMedia?: boolean;
+    placeholderMediaType?: 'autoplay' | 'static' | undefined;
     theme: {
         styles: any;
         colors: ITherrThemeColors;
@@ -150,7 +150,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
     };
 
     renderMissingImage = () => {
-        const { area } = this.props;
+        const { area, placeholderMediaType } = this.props;
 
         if (area?.category) {
             let missingImage: any = missingImageFood;
@@ -181,7 +181,8 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                         source={missingImage}
                         resizeMode="contain"
                         speed={1}
-                        autoPlay
+                        progress={placeholderMediaType === 'autoplay' ? 0 : 1}
+                        autoPlay={placeholderMediaType === 'autoplay'}
                         loop={false}
                     />
                 </View>
@@ -213,7 +214,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
             goToViewUser,
             inspectContent,
             areaUserDetails,
-            shouldUsePlaceholderMedia,
+            placeholderMediaType,
             theme,
             themeForms,
             themeViewArea,
@@ -295,7 +296,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                                 resizeMode='contain'
                                 PlaceholderContent={<ActivityIndicator />}
                             /> :
-                            shouldUsePlaceholderMedia && this.renderMissingImage()
+                            placeholderMediaType && this.renderMissingImage()
                     }
                 </PresssableWithDoubleTap>
                 <View style={themeViewArea.styles.areaContentTitleContainer}>
