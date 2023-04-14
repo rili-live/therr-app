@@ -300,3 +300,20 @@ if (process.env.NODE_ENV === 'development' && module.hot) {
     module.hot.accept();
     module.hot.dispose(() => serverObj.close());
 }
+
+process.on('uncaughtExceptionMonitor', (err, origin) => {
+    printLogs({
+        level: 'error',
+        messageOrigin: 'API_SERVER',
+        messages: ['Uncaught Exception'],
+        tracer: beeline,
+        traceArgs: {
+            port: process.env.SOCKET_PORT,
+            processId: process.pid,
+            isUncaughtException: true,
+            errorMessage: err?.message,
+            errorOrigin: origin,
+            source: origin,
+        },
+    });
+});
