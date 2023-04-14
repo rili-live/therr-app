@@ -40,7 +40,13 @@ export default class UserLocationCache {
         pipeline.expire(this.momentsKeyPrefix, USER_CACHE_TTL_SEC);
         pipeline.hset(this.spacesKeyPrefix, 'exists', 'true'); // arbitrary placeholder, allows us to expire all keys together
         pipeline.expire(this.spacesKeyPrefix, USER_CACHE_TTL_SEC);
-        pipeline.exec().then(() => callback && callback());
+        pipeline.exec().then(() => callback && callback()).catch((err) => {
+            beeline.addContext({
+                errorMessage: err?.stack,
+                context: 'redis',
+                source: 'UserLocationCache',
+            });
+        });
     }
 
     clearCache = (): Promise<[Error | null, any][]> => {
@@ -51,14 +57,31 @@ export default class UserLocationCache {
         pipeline.expire(this.spacesKeyPrefix, 0);
         pipeline.expire(this.spacesGeoKeyPrefix, 0);
 
-        return pipeline.exec();
+        return pipeline.exec().catch((err) => {
+            beeline.addContext({
+                errorMessage: err?.stack,
+                context: 'redis',
+                source: 'UserLocationCache.clearCache',
+            });
+            return [];
+        });
     };
 
     // Stored on moments hset, although could just as well be stored on spaces hset
-    getOrigin = () => redisClient.hget(this.momentsKeyPrefix, this.keys.origin).then((response) => response && JSON.parse(response));
+    getOrigin = () => redisClient.hget(this.momentsKeyPrefix, this.keys.origin)
+        .then((response) => response && JSON.parse(response))
+        .catch((err) => beeline.addContext({
+            errorMessage: err?.stack,
+            context: 'redis',
+            source: 'UserLocationCache.getOrigin',
+        }));
 
     // Stored on moments hset, although could just as well be stored on spaces hset
-    setOrigin = (origin: IOrigin) => redisClient.hset(this.momentsKeyPrefix, this.keys.origin, JSON.stringify(origin));
+    setOrigin = (origin: IOrigin) => redisClient.hset(this.momentsKeyPrefix, this.keys.origin, JSON.stringify(origin)).catch((err) => beeline.addContext({
+        errorMessage: err?.stack,
+        context: 'redis',
+        source: 'UserLocationCache.setOrigin',
+    }));
 
     invalidateCache = () => {
         const pipeline = redisClient.pipeline();
@@ -66,7 +89,11 @@ export default class UserLocationCache {
         pipeline.del(this.momentsKeyPrefix);
         pipeline.del(this.spacesKeyPrefix);
 
-        return pipeline.exec();
+        return pipeline.exec().catch((err) => beeline.addContext({
+            errorMessage: err?.stack,
+            context: 'redis',
+            source: 'UserLocationCache.invalidateCache',
+        }));
     };
 
     getLastAreaNotificationDate = (areaType: IAreaType, keyPrefix: string) => redisClient.hget(keyPrefix, this.keys.lastNotificationDateMs)
@@ -80,11 +107,25 @@ export default class UserLocationCache {
             });
         });
 
-    setLastAreaNotificationDate = (keyPrefix: string) => redisClient.hset(keyPrefix, this.keys.lastNotificationDateMs, Date.now());
+    setLastAreaNotificationDate = (keyPrefix: string) => redisClient.hset(keyPrefix, this.keys.lastNotificationDateMs, Date.now())
+        .catch((err) => beeline.addContext({
+            errorMessage: err?.stack,
+            context: 'redis',
+            source: 'UserLocationCache.setLastAreaNotificationDate',
+        }));
 
-    getMaxAreaActivationDistance = (keyPrefix: string) => redisClient.get(`${keyPrefix}${this.keys.maxActivationDistance}`);
+    getMaxAreaActivationDistance = (keyPrefix: string) => redisClient.get(`${keyPrefix}${this.keys.maxActivationDistance}`).catch((err) => beeline.addContext({
+        errorMessage: err?.stack,
+        context: 'redis',
+        source: 'UserLocationCache.getMaxAreaActivationDistance',
+    }));
 
-    setMaxAreaActivationDistance = (keyPrefix: string, value) => redisClient.set(`${keyPrefix}${this.keys.maxActivationDistance}`, value);
+    setMaxAreaActivationDistance = (keyPrefix: string, value) => redisClient.set(`${keyPrefix}${this.keys.maxActivationDistance}`, value)
+        .catch((err) => beeline.addContext({
+            errorMessage: err?.stack,
+            context: 'redis',
+            source: 'UserLocationCache.setMaxAreaActivationDistance',
+        }));
 
     addAreas = (areaType: IAreaType, geoKeyPrefix: string, areas: any[], loggingDetails) => {
         const pipeline: any = redisClient.pipeline();
