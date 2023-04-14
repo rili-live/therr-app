@@ -331,7 +331,7 @@ const predictAndSendNotification = (
                 errorMessage: error?.stack || 'Failed to send push notification',
                 messageData: message && message.data,
                 messageNotification: message && message.notification,
-                userId: config.userId,
+                userId: config?.userId,
                 significance: 'failed to send push notification',
                 ...metrics,
             }, process.env.LOGGING_DATASET);
