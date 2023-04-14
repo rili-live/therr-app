@@ -151,3 +151,20 @@ app.listen(port, () => {
         },
     });
 });
+
+process.on('uncaughtExceptionMonitor', (err, origin) => {
+    printLogs({
+        level: 'error',
+        messageOrigin: 'SERVER_CLIENT',
+        messages: ['Uncaught Exception'],
+        tracer: beeline,
+        traceArgs: {
+            port: process.env.CLIENT_PORT,
+            processId: process.pid,
+            isUncaughtException: true,
+            errorMessage: err?.message,
+            errorOrigin: origin,
+            source: origin,
+        },
+    });
+});

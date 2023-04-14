@@ -36,7 +36,7 @@ export default (socket, userDetails, actionType, shouldReturnActiveConnections =
                 return connection.users.find((user) => user.id === contextUserId);
             });
 
-        redisSessions.getUsersByIds(users).then((cachedActiveUsers) => {
+        return redisSessions.getUsersByIds(users).then((cachedActiveUsers) => {
             const activeUsers: any[] = [];
             users.forEach((u) => {
                 const mappedMatch = cachedActiveUsers.find((activeUser) => activeUser.id === u.id);
