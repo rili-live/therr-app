@@ -68,6 +68,7 @@ const createMessage = (type: PushNotifications.Types, data: any, config: ICreate
     let baseMessage: any = {};
     const modifiedData = {
         type,
+        timestamp: Date.now().toString(), // values must be strings!
     };
     Object.keys(data).forEach((key) => { modifiedData[key] = JSON.stringify(data[key]); });
 
