@@ -11,9 +11,37 @@ import translate from '../utilities/translator';
 import { validateCredentials } from './helpers/user';
 import TherrEventEmitter from '../api/TherrEventEmitter';
 
+// Used to disguise customer info, but be consistent for same input string
+const basicHash = (input: string) => {
+    let hash = 0;
+    let i;
+    let chr;
+    if (input.length === 0) return hash;
+    for (i = 0; i < input.length; i += 1) {
+        chr = input.charCodeAt(i);
+        // eslint-disable-next-line no-bitwise
+        hash = ((hash << 5) - hash) + chr;
+        // eslint-disable-next-line no-bitwise
+        hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+};
+
 // Authenticate user
 const login: RequestHandler = (req: any, res: any) => {
     const userNameEmailPhone = req.body.userName?.trim() || req.body.userEmail?.trim();
+
+    const userHash = basicHash(userNameEmailPhone);
+
+    printLogs({
+        level: 'info',
+        messageOrigin: 'API_SERVER',
+        messages: ['user auth'],
+        tracer: beeline,
+        traceArgs: {
+            userHash,
+        },
+    });
 
     return Store.users
         .getUsers(
@@ -72,6 +100,19 @@ const login: RequestHandler = (req: any, res: any) => {
                         isSSO: !!req.body.isSSO,
                     };
                     const idToken = createUserToken(user, req.body.rememberMe);
+
+                    printLogs({
+                        level: 'info',
+                        messageOrigin: 'API_SERVER',
+                        messages: ['user login success'],
+                        tracer: beeline,
+                        traceArgs: {
+                            isSSO: req.body.isSSO,
+                            loginCount: !userSearchResults?.length ? 1 : userSearchResults[0].loginCount,
+                            userHash,
+                            userId: userDetails.id,
+                        },
+                    });
 
                     // Fire and forget
                     // Reward inviting user for first time login
