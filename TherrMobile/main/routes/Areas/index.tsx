@@ -5,7 +5,7 @@ import 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ContentActions } from 'therr-react/redux/actions';
-import { IContentState, IMapState, IUserState, IUserConnectionsState } from 'therr-react/types';
+import { IContentState, ILocationState, IMapState, IUserState, IUserConnectionsState } from 'therr-react/types';
 import { TabBar, TabView } from 'react-native-tab-view';
 import { buildStyles } from '../../styles';
 import { buildStyles as buildAreaStyles } from '../../styles/user-content/areas';
@@ -58,6 +58,7 @@ interface IAreasDispatchProps {
 
 interface IStoreProps extends IAreasDispatchProps {
     content: IContentState;
+    location: ILocationState;
     map: IMapState;
     user: IUserState;
     userConnections: IUserConnectionsState;
@@ -80,6 +81,7 @@ interface IAreasState {
 
 const mapStateToProps = (state: any) => ({
     content: state.content,
+    location: state.location,
     map: state.map,
     user: state.user,
     userConnections: state.userConnections,
@@ -268,11 +270,12 @@ class Areas extends React.Component<IAreasProps, IAreasState> {
 
     // TODO: We don't need to load more areas when scrolling thoughts and vice versa
     tryLoadMore = () => {
-        const { content, searchActiveMoments, searchActiveSpaces, searchActiveThoughts, user } = this.props;
+        const { content, location, searchActiveMoments, searchActiveSpaces, searchActiveThoughts, user } = this.props;
 
         loadMorePosts({
             content,
             user,
+            location,
             searchActiveMoments,
             searchActiveSpaces,
             searchActiveThoughts,

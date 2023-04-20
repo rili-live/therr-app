@@ -176,6 +176,8 @@ export class ViewSpace extends React.Component<IViewSpaceProps, IViewSpaceState>
             this.setState({
                 fetchedSpace: data?.space,
             });
+        }).catch(() => {
+            // Happens when space is not yet activated, but that is OK
         });
 
         navigation.setOptions({

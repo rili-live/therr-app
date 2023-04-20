@@ -36,7 +36,7 @@ const handleThoughtReaction = (selectedArea, reactionType: ISelectionType, {
 
 interface ILoadMoreAreas {
     content: any;
-    map?: any;
+    location?: any;
     user: any;
     searchActiveMoments: any;
     searchActiveSpaces: any;
@@ -48,7 +48,7 @@ interface ILoadMorePosts extends ILoadMoreAreas{
 
 const loadMoreAreas = ({
     content,
-    map,
+    location,
     user,
     searchActiveMoments,
     searchActiveSpaces,
@@ -58,8 +58,8 @@ const loadMoreAreas = ({
         const lastContentCreatedAt = content.activeMoments?.length ? content.activeMoments[content.activeMoments.length - 1].createdAt : null;
 
         searchActiveMoments({
-            userLatitude: map?.latitude,
-            userLongitude: map?.longitude,
+            userLatitude: location?.user?.latitude,
+            userLongitude: location?.user?.longitude,
             withMedia: true,
             withUser: true,
             offset: content.activeMomentsPagination.offset + content.activeMomentsPagination.itemsPerPage,
@@ -75,8 +75,8 @@ const loadMoreAreas = ({
         const lastContentCreatedAt = content.activeSpaces?.length ? content.activeSpaces[content.activeSpaces.length - 1].createdAt : null;
 
         searchActiveSpaces({
-            userLatitude: map?.latitude,
-            userLongitude: map?.longitude,
+            userLatitude: location?.user?.latitude,
+            userLongitude: location?.user?.longitude,
             withMedia: true,
             withUser: true,
             offset: content.activeSpacesPagination.offset + content.activeSpacesPagination.itemsPerPage,
@@ -90,7 +90,7 @@ const loadMoreAreas = ({
 
 const loadMorePosts = ({
     content,
-    map,
+    location,
     user,
     searchActiveMoments,
     searchActiveSpaces,
@@ -98,7 +98,7 @@ const loadMorePosts = ({
 }: ILoadMorePosts) => {
     loadMoreAreas({
         content,
-        map,
+        location,
         user,
         searchActiveMoments,
         searchActiveSpaces,
