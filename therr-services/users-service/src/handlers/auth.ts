@@ -33,16 +33,6 @@ const login: RequestHandler = (req: any, res: any) => {
 
     const userHash = basicHash(userNameEmailPhone);
 
-    printLogs({
-        level: 'info',
-        messageOrigin: 'API_SERVER',
-        messages: ['user auth'],
-        tracer: beeline,
-        traceArgs: {
-            userHash,
-        },
-    });
-
     return Store.users
         .getUsers(
             { userName: userNameEmailPhone },
@@ -63,6 +53,15 @@ const login: RequestHandler = (req: any, res: any) => {
             }
 
             if (!userSearchResults.length && !req.body.isSSO) {
+                printLogs({
+                    level: 'warn',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['user auth failed: user not found'],
+                    tracer: beeline,
+                    traceArgs: {
+                        userHash,
+                    },
+                });
                 return handleHttpError({
                     res,
                     message: translate(locale, 'errorMessages.auth.noUserFound'),
@@ -73,6 +72,15 @@ const login: RequestHandler = (req: any, res: any) => {
             if (!req.body.isSSO
                 && !(userSearchResults[0].accessLevels.includes(AccessLevels.EMAIL_VERIFIED)
                     || userSearchResults[0].accessLevels.includes(AccessLevels.EMAIL_VERIFIED_MISSING_PROPERTIES))) {
+                printLogs({
+                    level: 'warn',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['user auth failed: user not verified'],
+                    tracer: beeline,
+                    traceArgs: {
+                        userHash,
+                    },
+                });
                 return handleHttpError({
                     res,
                     message: translate(locale, 'errorMessages.auth.accountNotVerified'),
@@ -171,6 +179,16 @@ const login: RequestHandler = (req: any, res: any) => {
                         });
                     });
                 }
+
+                printLogs({
+                    level: 'warn',
+                    messageOrigin: 'API_SERVER',
+                    messages: ['user auth failed: incorrect password'],
+                    tracer: beeline,
+                    traceArgs: {
+                        userHash,
+                    },
+                });
 
                 return handleHttpError({
                     res,
