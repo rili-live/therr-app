@@ -35,6 +35,15 @@ export interface ISearchActiveAreasParams {
     lastContentCreatedAt?: Date;
     authorId?: string;
 }
+export interface ISearchActiveAreasByIdsParams {
+    blockedUsers?: number[];
+    shouldHideMatureContent?: boolean;
+    withMedia: boolean;
+    withUser: boolean;
+    withReplies?: boolean;
+    userLatitude?: number;
+    userLongitude?: number,
+}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ISearchBookmarkedAreasParams extends ISearchActiveAreasParams {}
@@ -116,6 +125,29 @@ class ReactionsService {
         },
     });
 
+    searchActivePostsByIds = (postType: IAreaType, options: ISearchActiveAreasByIdsParams, ids: string[]) => {
+        const data: any = {
+            blockedUsers: options.blockedUsers || [],
+            shouldHideMatureContent: !!options.shouldHideMatureContent,
+            withMedia: options.withMedia,
+            withUser: options.withUser,
+            withReplies: options.withReplies,
+            userLatitude: options.userLatitude,
+            userLongitude: options.userLongitude,
+        };
+        if (postType === 'moments') {
+            data.momentIds = ids;
+        }
+        if (postType === 'spaces') {
+            data.spaceIds = ids;
+        }
+        return axios({
+            method: 'post',
+            url: `/reactions-service/${postType}/active/search/ids`,
+            data,
+        });
+    };
+
     searchBookmarkedAreas = (areaType: IAreaType, options: ISearchBookmarkedAreasParams, limit = 21) => axios({
         method: 'post',
         url: `/reactions-service/${areaType}/bookmarked/search`,
@@ -170,6 +202,9 @@ class ReactionsService {
 
     searchActiveMoments = (options: ISearchActiveAreasParams, limit = 21) => this.searchActivePosts('moments', options, limit);
 
+    searchActiveMomentsByIds = (options: ISearchActiveAreasByIdsParams, ids: string[]) => this
+        .searchActivePostsByIds('moments', options, ids);
+
     searchBookmarkedMoments = (options: ISearchBookmarkedAreasParams, limit = 21) => this.searchBookmarkedAreas(
         'moments',
         options,
@@ -216,6 +251,9 @@ class ReactionsService {
     };
 
     searchActiveSpaces = (options: ISearchActiveAreasParams, limit = 21) => this.searchActivePosts('spaces', options, limit);
+
+    searchActiveSpacesByIds = (options: ISearchActiveAreasByIdsParams, ids: string[]) => this
+        .searchActivePostsByIds('spaces', options, ids);
 
     searchBookmarkedSpaces = (options: ISearchBookmarkedAreasParams, limit = 21) => this.searchBookmarkedAreas(
         'spaces',

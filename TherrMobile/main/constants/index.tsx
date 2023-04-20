@@ -1,3 +1,5 @@
+import { AndroidChannel, AndroidImportance } from "@notifee/react-native";
+
 // CAROUSEL Constants
 const CAROUSEL_TABS = {
     DISCOVERIES: 'discoveries',
@@ -45,6 +47,42 @@ const youtubeLinkRegex = /(?:http(?:s?):\/\/)?(?:www\.)?youtu(?:be\.com\/watch\?
 const DEFAULT_FIRSTNAME = 'Anonymous';
 const DEFAULT_LASTNAME = 'User';
 
+enum PressActionIds {
+    default = 'default',
+    discovered = 'discovered',
+    exchange = 'exchange-coins',
+    markAsRead = 'mark-as-read',
+}
+
+enum AndroidChannelIds {
+    default = 'default',
+    contentDiscovery = 'contentDiscovery',
+    rewardUpdates = 'rewardUpdates'
+}
+
+const AndroidChannels = {
+    default: {
+        id: 'default',
+        name: 'Miscellaneous',
+        importance: AndroidImportance.DEFAULT,
+    },
+    contentDiscovery: {
+        id: 'contentDiscovery',
+        name: 'Content Discovery',
+        importance: AndroidImportance.DEFAULT,
+    },
+    rewardUpdates: {
+        id: 'rewardUpdates',
+        name: 'Reward Updates',
+        importance: AndroidImportance.HIGH,
+    },
+};
+
+const getAndroidChannel = (channelId: AndroidChannelIds, vibration = true): AndroidChannel => ({
+    ...AndroidChannels[channelId],
+    vibration,
+});
+
 export {
     // Carousel
     CAROUSEL_TABS,
@@ -82,6 +120,12 @@ export {
 
     // RegEx
     youtubeLinkRegex,
+
+    // Push Notifications
+    AndroidChannels,
+    AndroidChannelIds,
+    getAndroidChannel,
+    PressActionIds,
 
     // User
     DEFAULT_FIRSTNAME,

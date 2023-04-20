@@ -1,6 +1,7 @@
 import * as Immutable from 'seamless-immutable';
 import { Location, SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { IMapState, MapActionTypes } from '../../types/redux/maps';
+import { ContentActionTypes } from '../../types/redux/content';
 
 const initialState: IMapState = Immutable.from({
     moments: Immutable.from({}),
@@ -21,14 +22,34 @@ const map = (state: IMapState = initialState, action: any) => {
         state = state ? Immutable.from(state) : initialState; // eslint-disable-line no-param-reassign
     }
 
-    const modifiedMoments = { ...state.moments };
-    const modifiedSpaces = { ...state.spaces };
+    // Slice to keep total from overflowing
+    const slicedMoments = Object.entries(state.moments).slice(0, 500).reduce((acc, cur) => {
+        const [key, value] = cur;
+        acc[key] = value;
+
+        return acc;
+    }, {});
+    const modifiedMoments = { ...slicedMoments };
+    const slicedSpaces = Object.entries(state.spaces).slice(0, 500).reduce((acc, cur) => {
+        const [key, value] = cur;
+        acc[key] = value;
+
+        return acc;
+    }, {});
+    const modifiedSpaces = { ...slicedSpaces };
 
     switch (action.type) {
         case MapActionTypes.GET_MOMENTS:
         case MapActionTypes.GET_MY_MOMENTS:
             // Convert array to object for faster lookup and de-duping
             return state.setIn(['moments'], action.data.results.filter((a) => a.longitude && a.latitude)
+                .reduce((acc, item) => ({
+                    ...acc,
+                    [item.id]: item,
+                }), modifiedMoments));
+        case ContentActionTypes.SEARCH_ACTIVE_MOMENTS_BY_IDS:
+            // Convert array to object for faster lookup and de-duping
+            return state.setIn(['moments'], action.data.moments.filter((a) => a.longitude && a.latitude)
                 .reduce((acc, item) => ({
                     ...acc,
                     [item.id]: item,
@@ -65,6 +86,13 @@ const map = (state: IMapState = initialState, action: any) => {
         case MapActionTypes.GET_SPACES:
         case MapActionTypes.GET_MY_SPACES:
             return state.setIn(['spaces'], action.data.results.filter((a) => a.longitude && a.latitude)
+                .reduce((acc, item) => ({
+                    ...acc,
+                    [item.id]: item,
+                }), modifiedSpaces));
+        case ContentActionTypes.SEARCH_ACTIVE_SPACES_BY_IDS:
+            // Convert array to object for faster lookup and de-duping
+            return state.setIn(['spaces'], action.data.spaces.filter((a) => a.longitude && a.latitude)
                 .reduce((acc, item) => ({
                     ...acc,
                     [item.id]: item,

@@ -1,6 +1,6 @@
 import { SocketClientActionTypes } from 'therr-js-utilities/constants';
 import { ContentActionTypes } from '../../types/redux/content';
-import ReactionsService, { ISearchActiveAreasParams, ICreateOrUpdateAreaReactionBody } from '../../services/ReactionsService';
+import ReactionsService, { ISearchActiveAreasParams, ICreateOrUpdateAreaReactionBody, ISearchActiveAreasByIdsParams } from '../../services/ReactionsService';
 import { ISearchAreasArgs } from '../../services/MapsService';
 import { MapsService } from '../../services';
 
@@ -19,6 +19,14 @@ const Content = {
         .then((response: any) => {
             dispatch({
                 type: ContentActionTypes.SEARCH_ACTIVE_MOMENTS,
+                data: response?.data,
+            });
+        }),
+    searchActiveMomentsByIds: (options: ISearchActiveAreasByIdsParams, ids: string[]) => (dispatch: any) => ReactionsService
+        .searchActiveMomentsByIds(options, ids)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.SEARCH_ACTIVE_MOMENTS_BY_IDS,
                 data: response?.data,
             });
         }),
@@ -99,6 +107,14 @@ const Content = {
         .then((response: any) => {
             dispatch({
                 type: ContentActionTypes.SEARCH_ACTIVE_SPACES,
+                data: response?.data,
+            });
+        }),
+    searchActiveSpacesByIds: (options: ISearchActiveAreasByIdsParams, ids: string[]) => (dispatch: any) => ReactionsService
+        .searchActiveSpacesByIds(options, ids)
+        .then((response: any) => {
+            dispatch({
+                type: ContentActionTypes.SEARCH_ACTIVE_SPACES_BY_IDS,
                 data: response?.data,
             });
         }),

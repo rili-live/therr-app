@@ -83,15 +83,27 @@ export class LoginFormComponent extends React.Component<
         );
     }
 
-    onSSOLoginError = () => {
-        Toast.show({
-            type: 'errorBig',
-            text1: this.translate('alertTitles.phoneNumberAlreadyInUse'),
-            text2: this.translate('alertMessages.phoneNumberAlreadyInUse'),
-        });
+    onSSOLoginError = (err) => {
         this.setState({
             isSubmitting: false,
         });
+
+        if (err?.message?.includes('The user canceled the sign in request')) {
+            // Google SSO User Canceled
+            return;
+        } else if (err?.message?.includes('com.apple.AuthenticationServices.AuthorizationError')) {
+            Toast.show({
+                type: 'errorBig',
+                text1: this.translate('alertTitles.errorWithAppleSSO'),
+                text2: this.translate('alertMessages.errorWithAppleSSO'),
+            });
+        } else {
+            Toast.show({
+                type: 'errorBig',
+                text1: this.translate('alertTitles.phoneNumberAlreadyInUse'),
+                text2: this.translate('alertMessages.phoneNumberAlreadyInUse'),
+            });
+        }
     };
 
     onSSOLoginSuccess = (idToken, user, additionalUserInfo, provider = 'google') => {
