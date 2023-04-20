@@ -151,7 +151,7 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
         super(props);
 
         this.state = {
-            activeTab: CAROUSEL_TABS.SOCIAL,
+            activeTab: CAROUSEL_TABS.DISCOVERIES,
             isFirstLoad: true,
             isLoading: true,
             isLocationUseDisclosureModalVisible: false,
@@ -321,11 +321,11 @@ class NearbyWrapper extends React.Component<INearbyWrapperProps, INearbyWrapperS
     };
 
     tryLoadMore = () => {
-        const { content, map, searchActiveMoments, searchActiveSpaces, user } = this.props;
+        const { content, location, searchActiveMoments, searchActiveSpaces, user } = this.props;
 
         loadMoreAreas({
             content,
-            map,
+            location,
             user,
             searchActiveMoments,
             searchActiveSpaces,

@@ -125,6 +125,10 @@ const content = (state: IContentState = initialState, action: any) => {
         case ContentActionTypes.UPDATE_ACTIVE_MOMENT_REACTION:
             return state.setIn(['activeMoments'], modifiedActiveMoments)
                 .setIn(['bookmarkedMoments'], modifiedBookmarkedMoments);
+        case ContentActionTypes.SEARCH_ACTIVE_MOMENTS_BY_IDS:
+            // Add newly activated moments to the top
+            return state.setIn(['activeMoments'], [...new Set(action.data.moments.concat(state.activeMoments))])
+                .setIn(['media'], { ...state.media, ...action.data.media });
         case ContentActionTypes.SEARCH_ACTIVE_MOMENTS:
             // Add next offset of moments to end
             return state.setIn(['activeMoments'], [...new Set(state.activeMoments.concat(action.data.moments))])
@@ -163,6 +167,10 @@ const content = (state: IContentState = initialState, action: any) => {
         case ContentActionTypes.UPDATE_ACTIVE_SPACE_REACTION:
             return state.setIn(['activeSpaces'], [...new Set(modifiedActiveSpaces)])
                 .setIn(['bookmarkedSpaces'], modifiedBookmarkedSpaces);
+        case ContentActionTypes.SEARCH_ACTIVE_SPACES_BY_IDS:
+            // Add newly activated space to the top
+            return state.setIn(['activeSpaces'], [...new Set(action.data.space.concat(state.activeSpaces))])
+                .setIn(['media'], { ...state.media, ...action.data.media });
         case ContentActionTypes.SEARCH_ACTIVE_SPACES:
             // Add next offset of spaces to end
             return state.setIn(['activeSpaces'], [...new Set(state.activeSpaces.concat(action.data.spaces))])

@@ -34,16 +34,20 @@ import {
     DEFAULT_RADIUS,
     MIN_RADIUS_PRIVATE,
     MAX_RADIUS_PRIVATE,
+    getAndroidChannel,
+    AndroidChannelIds,
+    PressActionIds,
 } from '../constants';
 import Alert from '../components/Alert';
-import formatHashtags from '../utilities/formatHashtags';
 import RoundInput from '../components/Input/Round';
 import RoundTextInput from '../components/Input/TextInput/Round';
 import HashtagsContainer from '../components/UserContent/HashtagsContainer';
 import BaseStatusBar from '../components/BaseStatusBar';
+import formatHashtags from '../utilities/formatHashtags';
 import { getImagePreviewPath } from '../utilities/areaUtils';
 import { signImageUrl } from '../utilities/content';
 import { requestOSCameraPermissions } from '../utilities/requestOSPermissions';
+import { sendForegroundNotification } from '../utilities/pushNotifications';
 import BottomSheet from '../components/BottomSheet/BottomSheet';
 import TherrIcon from '../components/TherrIcon';
 import ConfirmModal from '../components/Modals/ConfirmModal';
@@ -350,6 +354,21 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                             position: 'top',
                             onHide: () => {
                                 if (response?.therrCoinRewarded && response?.therrCoinRewarded > 0) {
+                                    // TODO: Only send toast is push notifications are disabled
+                                    sendForegroundNotification({
+                                        title: this.translate('alertTitles.coinsReceived'),
+                                        body: this.translate('alertMessages.coinsReceived', {
+                                            total: response.therrCoinRewarded,
+                                        }),
+                                        android: {
+                                            actions: [
+                                                {
+                                                    pressAction: { id: PressActionIds.exchange, launchActivity: 'default' },
+                                                    title: this.translate('alertActions.exchange'),
+                                                },
+                                            ],
+                                        },
+                                    }, getAndroidChannel(AndroidChannelIds.rewardUpdates, false));
                                     Toast.show({
                                         type: 'success',
                                         text1: this.translate('alertTitles.coinsReceived'),
