@@ -401,7 +401,9 @@ const activateAreasAndNotify = (
                         PushNotifications.Types.newAreasActivated,
                         {
                             // NOTE: Not needed in push notification. Payload too big for firebase
-                            // areasActivated: spaces.slice(0, activatedSpaceIds.length).concat(moments.slice(0, activatedMomentIds.length)),
+                            areasActivated: activatedSpaceIds.map((id) => ({ spaceId: id }))
+                                .concat(activatedMomentIds.map((id) => ({ spaceId: id })))
+                                .slice(0, 20), // Slice to fix max size of 4000 Bytes
                             notificationData,
                         },
                         {
