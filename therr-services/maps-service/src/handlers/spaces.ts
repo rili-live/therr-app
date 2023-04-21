@@ -1,5 +1,6 @@
 import axios from 'axios';
 import path from 'path';
+import * as countryGeo from 'country-reverse-geocoding';
 import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
 import { ErrorCodes } from 'therr-js-utilities/constants';
 import { RequestHandler } from 'express';
@@ -13,6 +14,8 @@ import translate from '../utilities/translator';
 import Store from '../store';
 import { checkIsMediaSafeForWork } from './helpers';
 import { isTextUnsafe } from '../utilities/contentSafety';
+
+const countryReverseGeo = countryGeo.country_reverse_geocoding();
 
 // CREATE
 const createSpace = async (req, res) => {
@@ -35,6 +38,8 @@ const createSpace = async (req, res) => {
             errorCode: ErrorCodes.DUPLICATE_POST,
         });
     }
+
+    const region = countryReverseGeo.get_country(req.body.latitude, req.body.longitude);
 
     const {
         hashTags,
@@ -62,6 +67,23 @@ const createSpace = async (req, res) => {
                 userHasActivated: true,
             },
         }).then(({ data: reaction }) => {
+            printLogs({
+                level: 'info',
+                messageOrigin: 'API_SERVER',
+                messages: ['Space Created'],
+                tracer: beeline,
+                traceArgs: {
+                    // TODO: Add a sentiment analysis property
+                    action: 'create-space',
+                    category: 'user-sentiment',
+                    userId,
+                    region,
+                    hashTags,
+                    hasMedia: media.length > 0,
+                    isTextMature,
+                    locale,
+                },
+            });
             // if condition could work for any incentive property
             let createIncentivePromise: Promise<any[]> = Promise.resolve([]);
             if (req.body.featuredIncentiveKey) {

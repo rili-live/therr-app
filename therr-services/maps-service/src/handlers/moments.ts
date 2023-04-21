@@ -1,4 +1,5 @@
 import axios from 'axios';
+import * as countryGeo from 'country-reverse-geocoding';
 import { getSearchQueryArgs, getSearchQueryString } from 'therr-js-utilities/http';
 import {
     Content,
@@ -25,6 +26,7 @@ import updateAchievements from './helpers/updateAchievements';
 import { isTextUnsafe } from '../utilities/contentSafety';
 
 const MAX_INTERGRATIONS_PER_USER = 50;
+const countryReverseGeo = countryGeo.country_reverse_geocoding();
 
 // CREATE
 const createMoment = async (req, res) => {
@@ -48,6 +50,8 @@ const createMoment = async (req, res) => {
             errorCode: ErrorCodes.DUPLICATE_POST,
         });
     }
+
+    const region = countryReverseGeo.get_country(req.body.latitude, req.body.longitude);
 
     if (req.body.spaceId && !req.body.skipReward) {
         try {
@@ -76,6 +80,7 @@ const createMoment = async (req, res) => {
                             isIncentiveClaimable: isClaimable,
                             incentiveAmount: therrCoinIncentive.incentiveRewardValue,
                             userId,
+                            region,
                         },
                     });
                     if (isClaimable) {
@@ -143,7 +148,7 @@ const createMoment = async (req, res) => {
         }
     }
 
-    // 2. If successful, create the space
+    // 2. If successful, create the moment
     const {
         hashTags,
         media,
@@ -170,6 +175,23 @@ const createMoment = async (req, res) => {
                 userHasActivated: true,
             },
         }).then(({ data: reaction }) => {
+            printLogs({
+                level: 'info',
+                messageOrigin: 'API_SERVER',
+                messages: ['Moment Created'],
+                tracer: beeline,
+                traceArgs: {
+                    // TODO: Add a sentiment analysis property
+                    action: 'create-moment',
+                    category: 'user-sentiment',
+                    userId,
+                    region,
+                    hashTags,
+                    hasMedia: media.length > 0,
+                    isTextMature,
+                    locale,
+                },
+            });
             // TODO: This technically leaves room for a gap of time where users may find
             // explicit content before it's flag has been updated. We should solve this by
             // marking the content pending before making it available to search.
@@ -192,6 +214,7 @@ const createMoment = async (req, res) => {
                                 traceArgs: {
                                     errorMessage: err?.message,
                                     errorResponse: err?.response?.data,
+                                    region,
                                 },
                             });
                         });

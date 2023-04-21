@@ -50,7 +50,7 @@ const createOrUpdateMultiSpaceReactions = (req, res) => {
         userId,
     }, spaceIds).then((existing) => {
         const existingMapped = {};
-        const existingReactions = existing.map((reaction) => {
+        const existingReactions: string[][] = existing.map((reaction) => {
             existingMapped[reaction.spaceId] = reaction;
             return [userId, reaction.spaceId];
         });

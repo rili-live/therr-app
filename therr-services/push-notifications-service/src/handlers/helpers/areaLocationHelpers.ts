@@ -29,8 +29,8 @@ interface IAreaGetSettings {
 }
 
 interface IActivationArgs {
-    activatedMomentIds: number[];
-    activatedSpaceIds: number[];
+    activatedMomentIds: string[];
+    activatedSpaceIds: string[];
     moments: any[];
     spaces: any[];
 }
