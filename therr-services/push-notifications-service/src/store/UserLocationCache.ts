@@ -157,7 +157,7 @@ export default class UserLocationCache {
             });
     };
 
-    removeAreas = (areaType: IAreaType, geoKeyPrefix: string, areaIds: number[], loggingDetails) => {
+    removeAreas = (areaType: IAreaType, geoKeyPrefix: string, areaIds: string[], loggingDetails) => {
         const pipeline = redisClient.pipeline();
 
         areaIds.forEach((id) => {
@@ -224,7 +224,7 @@ export default class UserLocationCache {
 
     addMoments = (areas: any[], loggingDetails) => this.addAreas('moments', this.momentsGeoKeyPrefix, areas, loggingDetails);
 
-    removeMoments = (momentIds: number[], loggingDetails) => this.removeAreas('moments', this.momentsGeoKeyPrefix, momentIds, loggingDetails);
+    removeMoments = (momentIds: string[], loggingDetails) => this.removeAreas('moments', this.momentsGeoKeyPrefix, momentIds, loggingDetails);
 
     getMomentsWithinDistance = (userLocation, radius: number, loggingDetails) => this
         .getAreasWithinDistance('moments', this.momentsGeoKeyPrefix, userLocation, radius, loggingDetails);
@@ -240,7 +240,7 @@ export default class UserLocationCache {
 
     addSpaces = (areas: any[], loggingDetails) => this.addAreas('spaces', this.spacesGeoKeyPrefix, areas, loggingDetails);
 
-    removeSpaces = (momentIds: number[], loggingDetails) => this.removeAreas('spaces', this.spacesGeoKeyPrefix, momentIds, loggingDetails);
+    removeSpaces = (momentIds: string[], loggingDetails) => this.removeAreas('spaces', this.spacesGeoKeyPrefix, momentIds, loggingDetails);
 
     getSpacesWithinDistance = (userLocation, radius: number, loggingDetails) => this
         .getAreasWithinDistance('spaces', this.spacesGeoKeyPrefix, userLocation, radius, loggingDetails);
