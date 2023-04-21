@@ -79,7 +79,7 @@ const createSpace = async (req, res) => {
                     userId,
                     region,
                     hashTags,
-                    hasMedia: media.length > 0,
+                    hasMedia: media?.length > 0,
                     isTextMature,
                     locale,
                 },
