@@ -183,12 +183,17 @@ const createMoment = async (req, res) => {
                 traceArgs: {
                     // TODO: Add a sentiment analysis property
                     action: 'create-moment',
-                    category: 'user-sentiment',
+                    category: moment.category,
+                    radius: moment.radius,
+                    spaceId: moment.spaceId,
+                    isPublic: moment.isPublic,
+                    isDraft: moment.isDraft,
+                    logCategory: 'user-sentiment',
                     userId,
-                    region,
-                    hashTags,
+                    region: moment.region,
+                    hashTags: moment.hashTags,
                     hasMedia: media?.length > 0,
-                    isTextMature,
+                    isMatureContent: moment.isMatureContent,
                     locale,
                 },
             });
