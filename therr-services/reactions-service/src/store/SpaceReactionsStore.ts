@@ -97,7 +97,7 @@ export default class SpaceReactionsStore {
             .where(conditions)
             .returning('*');
 
-        if (whereIn && whereIn.whereInArray?.length) {
+        if (whereIn && whereIn.whereInArray?.length && whereIn.columns?.length) {
             queryString = queryString.whereIn(whereIn.columns, whereIn.whereInArray);
         }
 
