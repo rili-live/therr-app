@@ -57,9 +57,9 @@ const processUserLocationChange: RequestHandler = (req, res) => {
             limit: 100,
         })
             .then(([filteredMoments, filteredSpaces]) => {
-                const momentIdsToActivate: number[] = [];
+                const momentIdsToActivate: string[] = [];
                 const momentsToActivate: any[] = [];
-                const spaceIdsToActivate: number[] = [];
+                const spaceIdsToActivate: string[] = [];
                 const spacesToActivate: any[] = [];
                 // NOTE: only activate 'x' spaces max to limit high density locations
                 for (let i = 0; i <= Location.MAX_AREA_ACTIVATE_COUNT && i <= filteredSpaces.length - 1; i += 1) {
