@@ -1,0 +1,99 @@
+@import './messaging-container';
+
+footer {
+    z-index: 90;
+    position: fixed;
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: $footer-height-small;
+    text-align: center;
+    background: $therr-primary-1;
+    box-shadow: $box-shadow-fixed-bot;
+
+    .footer-menu-item {
+        display: flex;
+        flex: 1;
+        justify-content: center;
+
+        &:first-child {
+            justify-content: flex-start;
+
+            
+        }
+
+        &:last-child {
+            justify-content: flex-end;
+        }
+    }
+}
+
+button {
+    &#footer_close,
+    &#footer_home,
+    &#footer_messages {
+        width: 2.15rem;
+    }
+
+    &#footer_close,
+    &#footer_messages {
+        margin-right: $messaging-side-margin;
+        padding: rem-calc(7px);
+        background: transparent;
+    }
+
+    &#footer_info {
+        display: flex;
+        align-items: center;
+        margin-left: $messaging-side-margin-half;
+        background: transparent;
+    }
+
+    &#footer_messaging {
+        display: flex;
+        align-items: center;
+        margin-left: $messaging-side-margin;
+        background: transparent;
+
+        .inline-svg:nth-child(2),
+        .inline-svg:nth-child(3) {
+            display: none;
+        }
+    }
+}
+
+.inline-svg {
+    &.close-button {
+        svg {
+            fill: $therr-black;
+        }
+    }
+
+    &.home-button {
+        svg {
+            fill: $therr-white;
+        }
+    }
+}
+
+@media only screen and (min-width: rem-calc(540px)) {
+    footer {
+        height: $footer-height;
+    }
+
+    button {
+        &#footer_messaging {
+            width: $messaging-toggle-width;
+            background: $therr-secondary-1;
+
+            .inline-svg:nth-child(2),
+            .inline-svg:nth-child(3) {
+                display: inline;
+            }
+        }
+    }
+}

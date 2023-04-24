@@ -11,6 +11,8 @@ spec:
   dnsNames:
     - 'therr.com'
     - 'www.therr.com'
+    - 'dashboard.therr.com'
+    - 'www.dashboard.therr.com'
     - 'api.therr.com'
     - 'www.api.therr.com'
     - 'websocket-service.therr.com'
