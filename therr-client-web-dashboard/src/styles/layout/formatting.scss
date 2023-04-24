@@ -1,0 +1,17 @@
+.info-text {
+    font-size: 1rem;
+    line-height: 1.2rem;
+    letter-spacing: .05rem;
+}
+
+.font-size-20 {
+    font-size: rem-calc(20px)
+}
+
+@media only screen and (min-width: rem-calc(540px)) {
+    .info-text {
+        font-size: 1rem;
+        line-height: 1.2rem;
+        letter-spacing: .05rem;
+    }
+}

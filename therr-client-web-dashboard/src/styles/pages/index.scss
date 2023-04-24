@@ -1,0 +1,26 @@
+@import './forum';
+@import './home';
+@import './login';
+@import './register';
+@import './user-profile';
+@import './discovered';
+
+.PhoneInput {
+    position: relative;
+
+    .PhoneInputCountry {
+        color: $therr-secondary-1;
+        top: 1.125rem;
+        left: 1rem;
+        position: absolute;
+    }
+
+    .PhoneInputCountrySelectArrow {
+        display: none;
+    }
+
+    input {
+        padding-left: rem-calc(52px);
+        background: $therr-white;
+    }
+}

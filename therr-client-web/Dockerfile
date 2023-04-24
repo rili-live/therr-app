@@ -50,16 +50,26 @@ ENV PATH $PATH:/usr/src/app/node_modules/.bin:$PATH
 # Copy main app files
 WORKDIR /usr/src/app
 COPY ./therr-client-web ./therr-client-web
+COPY ./therr-client-web-dashboard ./therr-client-web-dashboard
 USER root
-RUN chown -R node:node /usr/src/app/therr-client-web
+RUN chown -R node:node /usr/src/app/therr-client-web /usr/src/app/therr-client-web-dashboard
 USER node
-WORKDIR /usr/src/app/therr-client-web
 
+WORKDIR /usr/src/app/therr-client-web-dashboard
 RUN if [ "$BUILD_MODE" = "development" ]; then \
-      echo "Building in $BUILD_MODE mode" \
+      echo "Building dashboard app in $BUILD_MODE mode" \
       && npm run build:dev; \
     else \
-      echo "Building in $BUILD_MODE mode" \
+      echo "Building dashboard app in $BUILD_MODE mode" \
+      && npm run build; \
+    fi
+
+WORKDIR /usr/src/app/therr-client-web
+RUN if [ "$BUILD_MODE" = "development" ]; then \
+      echo "Building web app in $BUILD_MODE mode" \
+      && npm run build:dev; \
+    else \
+      echo "Building web app in $BUILD_MODE mode" \
       && npm run build; \
     fi
 
@@ -72,6 +82,8 @@ ENV BUILD_MODE $BUILD_MODE
 ENV NODE_ENV $BUILD_MODE
 RUN echo "Running app in $NODE_ENV"
 
-EXPOSE 7070
+EXPOSE 7070 7071
 
-CMD ["node", "./build/server-client.js"]
+# Run both servers simultaneously
+# https://stackoverflow.com/questions/46496743/what-is-the-proper-way-to-start-multiple-local-node-js-servers
+CMD ["node", "./build/server-client.js", "&" "cd ../therr-client-web-dashboard", "&&", "node", "./build/server-client.js", "fg"]

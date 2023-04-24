@@ -34,11 +34,14 @@ spec:
             cpu: "100m"
         ports:
         - containerPort: 7070
+        - containerPort: 7071
         env:
           - name: USERS_SERVICE_API_PORT
             value: "7771"
           - name: CLIENT_PORT
             value: "7070"
+          - name: CLIENT_DASHBOARD_PORT
+            value: "7071"
           - name: HONEYCOMB_API_KEY
             valueFrom:
               secretKeyRef:

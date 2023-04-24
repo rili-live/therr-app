@@ -1,0 +1,12 @@
+[{
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+        "namespace": "android_app",
+        "package_name": "app.therrmobile",
+        "sha256_cert_fingerprints": [
+            "FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C",
+            "E7:27:09:09:87:B5:C8:DF:34:7D:04:D6:BF:F7:36:4E:06:D7:86:97:8D:EA:11:5F:B0:7B:DF:92:81:D7:DE:7D",
+            "1F:8B:8B:44:F6:B0:77:45:BA:5E:2C:4E:1A:5D:D8:B0:71:FE:3F:FB:33:D0:67:24:9C:59:21:7B:28:4F:0B:80"
+        ]
+    }
+}]
