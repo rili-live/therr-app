@@ -4,7 +4,7 @@
 node ./build/server-client.js &
   
 # Start the second process
-cd ../therr-client-web-dashboard && node ./build/server-client.js" &
+cd ../therr-client-web-dashboard && node ./build/server-client.js &
   
 # Wait for any process to exit
 wait -n
