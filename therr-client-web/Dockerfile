@@ -50,6 +50,7 @@ ENV PATH $PATH:/usr/src/app/node_modules/.bin:$PATH
 # Copy main app files
 WORKDIR /usr/src/app
 COPY ./therr-client-web ./therr-client-web
+COPY ./_bin/start-frontend-services.sh ./therr-client-web/start-frontend-services.sh
 COPY ./therr-client-web-dashboard ./therr-client-web-dashboard
 USER root
 RUN chown -R node:node /usr/src/app/therr-client-web /usr/src/app/therr-client-web-dashboard
@@ -86,4 +87,4 @@ EXPOSE 7070 7071
 
 # Run both servers simultaneously
 # https://stackoverflow.com/questions/46496743/what-is-the-proper-way-to-start-multiple-local-node-js-servers
-CMD ["node", "./build/server-client.js", "&", "cd ../therr-client-web-dashboard", "&&", "node", "./build/server-client.js", "fg"]
+CMD ./start-frontend-services.sh
