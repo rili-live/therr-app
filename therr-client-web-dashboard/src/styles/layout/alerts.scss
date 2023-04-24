@@ -1,0 +1,12 @@
+.alert-error {
+  color: $therr-alert-error;
+
+  &.backed {
+    background-color: transparentize(lighten($therr-alert-error, 60%), .5);
+  }
+}
+
+.alert-success {
+  color: $therr-alert-success;
+  margin-bottom: 1rem;
+}

@@ -1,0 +1,82 @@
+#page_chat_forum {
+    .message-input {
+        margin-bottom: 3rem;
+        padding: 0 1rem;
+        width: calc(100% - 2rem);
+    }
+
+    .message-list {
+        padding: 1rem .5rem;
+        display: block;
+        text-align: left;
+        font-size: rem-calc(17px);
+        list-style-type: none;
+        margin-bottom: 1.5rem;
+
+        li:last-child {
+            margin-bottom: 1rem;
+        }
+
+        .forum-messages-date {
+            display: flex;
+            justify-content: center;
+            margin: rem-calc(10px) 0 rem-calc(6px);
+        }
+
+        .forum-message {
+            display: flex;
+            flex-direction: row;
+            margin: rem-calc(4px) 0;
+            color: $therr-black;
+            background-color: transparentize($therr-white, 0.1);
+            padding: rem-calc(8px) rem-calc(8px) rem-calc(8px) rem-calc(8px);
+            border-radius: rem-calc(4px);
+            border-left-width: rem-calc(5px);
+            border-left-style: solid;
+
+            &.indented {
+                padding-left: rem-calc(20px);
+            }
+
+            .forum-message-user-image {
+                display: flex;
+                height: rem-calc(40px);
+                width: rem-calc(40px);
+                margin-right: rem-calc(10px);
+                overflow: hidden;
+                border-radius: 50%;
+            }
+
+            .forum-message-content-container {
+                flex: 1;
+
+                .forum-message-header {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: flex-end;
+                    padding-bottom: rem-calc(5px);
+    
+                    .sender-text {
+                        font-weight: 600;
+                        margin-right: rem-calc(4px);
+                    }
+    
+                    .forum-message-time {
+                        font-size: rem-calc(14px);
+                    }
+                }
+            }
+        }
+    }
+
+    .forums-list {
+        padding: 1rem .5rem;
+        display: block;
+        text-align: center;
+        font-size: rem-calc(16px);
+
+        li {
+            padding-bottom: .25rem;
+        }
+    }
+}

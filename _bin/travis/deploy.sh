@@ -48,6 +48,13 @@ should_deploy_web_app()
   has_prev_diff_changes "therr-client-web" || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
 }
 
+# NOTE: This is currently included in the web app build (container)
+# This is reliant on the previous commit being a single merge commit with all prior changes
+should_deploy_web_app_dashboard()
+{
+  has_prev_diff_changes "therr-client-web-dashboard" || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILE_CHANGES" = true
+}
+
 # This is reliant on the previous commit being a single merge commit with all prior changes
 should_deploy_service()
 {
@@ -56,7 +63,7 @@ should_deploy_service()
 }
 
 # Docker Build
-if should_deploy_web_app; then
+if should_deploy_web_app || should_deploy_web_app_dashboard; then
   docker build -t therrapp/client-web$SUFFIX:latest -t therrapp/client-web$SUFFIX:$GIT_SHA -f ./therr-client-web/Dockerfile \
     --build-arg NODE_VERSION=${NODE_VERSION} .
 fi

@@ -63,7 +63,7 @@ else
 fi
 
 # UI Apps
-declare -a arr=("therr-client-web" "TherrMobile")
+declare -a arr=("therr-client-web" "therr-client-web-dashboard" "TherrMobile")
 for i in "${arr[@]}"; do
   if has_diff_changes $TARGET_BRANCH ${i} || "$HAS_ANY_LIBRARY_CHANGES" = true || "$HAS_GLOBAL_CONFIG_FILES_CHANGES" = true; then
     if [ -f package.json ]; then

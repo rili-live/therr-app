@@ -37,3 +37,4 @@ layer of abstraction along with security and validations.*
 *The web frontend and mobile app frontend share a common redux layer from the Therr React Library*
 * [Therr Client Mobile Documentation](./TherrMobile/#readme)
 * [Therr Client Web Documentation](./therr-client-web/#readme)
+* [Therr Client Web Dashbaord Documentation](./therr-client-web-dashboard/#readme)

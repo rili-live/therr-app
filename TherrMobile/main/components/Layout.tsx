@@ -283,7 +283,7 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                                             withUser: true,
                                             blockedUsers: user.details.blockedUsers,
                                             shouldHideMatureContent: user.details.shouldHideMatureContent,
-                                        }, [spacesData.map(space => space.spaceId)]);
+                                        }, spacesData.map(space => space.spaceId));
                                     }
                                 }
                                 // TODO: Fetch associated media files

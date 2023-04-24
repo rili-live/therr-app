@@ -24,6 +24,8 @@ spec:
       - www.therr.com
       - api.therr.com
       - www.api.therr.com
+      - dashboard.therr.com
+      - www.dashboard.therr.com
       - websocket-service.therr.com
       - www.websocket-service.therr.com
     secretName: therr-network-secret
@@ -47,6 +49,26 @@ spec:
             name: client-cluster-ip-service
             port:
               number: 7070
+        pathType: ImplementationSpecific
+  - host: dashboard.therr.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: client-cluster-ip-service
+            port:
+              number: 7071
+        pathType: ImplementationSpecific
+  - host: www.dashboard.therr.com
+    http:
+      paths:
+      - path: /?(.*)
+        backend:
+          service:
+            name: client-cluster-ip-service
+            port:
+              number: 7071
         pathType: ImplementationSpecific
   - host: api.therr.com
     http:

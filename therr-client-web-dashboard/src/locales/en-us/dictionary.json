@@ -1,0 +1,249 @@
+{
+  "branding": {
+    "motto": "This is our time, and these are our spaces. Share a moment."
+  },
+  "validations": {
+    "email": "Invalid email address",
+    "isRequired": "This is a required field",
+    "password": "Password must contain letter(s), number(s), and special character(s)",
+    "lettersOnly": "Input only accepts alphabetic values",
+    "mobilePhoneNumber": "Input must be a valid, international mobile number beginning with '+'",
+    "numbersOnly": "Input only accepts numeric values"
+  },
+  "components": {
+    "header": {
+      "buttons": {
+        "login": "Login"
+      }
+    },
+    "createProfileForm": {
+      "buttons": {
+        "backToLogin": "Back to Login",
+        "submit": "Continue",
+        "resend": "Resend"
+      },
+      "labels": {
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "mobilePhone": "Mobile Phone #",
+        "userName": "Username",
+        "verificationCode": "Verification Code"
+      },
+      "validationErrors": {
+        "phoneNumber": "Invalid phone number"
+      }
+    },
+    "loginForm": {
+      "buttons": {
+        "login": "Log In",
+        "signUp": "Create Account",
+        "forgotPassword": "Forgot Password?",
+        "privacyPolicy": "Privacy Policy",
+        "toc": "Terms & Conditions"
+      },
+      "defaultTitle": "Login",
+      "labels": {
+        "password": "Password",
+        "userName": "Username/Email"
+      },
+      "backendErrorMessage": "Connection error. Please try again later.",
+      "oneTimePasswordExpired": "Your one-time password has expired.",
+      "tooManyRequests": "Too many login attempts, please try again later."
+    },
+    "messagingContainer": {
+      "conversation": {
+        "to": "To: {firstName} {lastName}"
+      },
+      "inputPlaceholder": "Enter a message",
+      "welcome": "This is the start of a new conversation..."
+    },
+    "messagesMenu": {
+      "buttons": {
+        "createForum": "Create a Hosted Chat"
+      },
+      "h2": {
+        "messaging": "Messaging",
+        "forums": "Hosted Chat",
+        "friendRequest": "Connection Request",
+        "locationMap": "Explore"
+      },
+      "noActiveConnections": "No recently active connections"
+    },
+    "registerForm": {
+      "buttons": {
+        "backToLogin": "Back to Login",
+        "register": "Register",
+        "terms": "Terms & Conditions"
+      },
+      "labels": {
+        "email": "E-mail",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "mobilePhone": "Mobile Phone #",
+        "password": "Password",
+        "repeatPassword": "Repeat Password",
+        "userName": "Username",
+        "mySweet": "Are you Sweet?"
+      },
+      "validationErrors": {
+        "phoneNumber": "Invalid phone number"
+      }
+    },
+    "userMenu": {
+      "buttons": {
+        "changePassword": "Change Password",
+        "editProfile": "Edit Profile",
+        "viewProfile": "View Profile"
+      },
+      "h2": {
+        "accountSettings": "Account Settings",
+        "locationMap": "Explore",
+        "notifications": "Notifications",
+        "profileSettings": "Profile Settings"
+      }
+    }
+  },
+  "pages": {
+    "discovered": {
+      "pageTitle": "Discovered"
+    },
+    "chatForum": {
+      "pageTitle": "Hosted Chat",
+      "welcome": "Welcome!",
+      "inputPlaceholder": "Enter a message"
+    },
+    "changePassword": {
+      "buttons": {
+        "send": "Submit"
+      },
+      "failedMessage": "An error occurred while trying to reset your password.",
+      "failedMessageUserNotFound": "No user found. Logout and try again.",
+      "failedMessageIncorrectPassword": "The password you entered is incorrect.",
+      "labels": {
+        "oldPassword": "Old Password",
+        "newPassword": "New Password",
+        "newPasswordRepeat": "Repeat New Password"
+      },
+      "pageTitle": "Change Password",
+      "successMessage": "Your password has been updated!"
+    },
+    "emailVerification": {
+      "buttons": {
+        "send": "Send E-mail"
+      },
+      "failedMessage": "Failed to verify your e-mail. Invalid verification code.",
+      "failedMessageExpired": "Failed to verify your e-mail. Verification code has expired.",
+      "failedMessageAlreadyVerified": "Your e-mail is already verified. Log in to continue.",
+      "failedMessageVerificationResent": "A new verification code has been sent to {email}.",
+      "failedMessageUserNotFound": "No user found. Try a different e-mail or create an account to continue.",
+      "labels": {
+        "email": "E-mail"
+      },
+      "pageTitle": "Account Verification",
+      "returnToLogin": "Return to login page",
+      "successMessage": "Your!",
+      "successVerifiedMessage": "Your account has been verified. Log in to continue."
+    },
+    "resetPassword": {
+      "buttons": {
+        "send": "Send E-mail"
+      },
+      "failedMessage": "An error occurred while trying to reset your password.",
+      "failedMessageUserNotFound": "No user found. Try a different e-mail or create an account to continue.",
+      "instructions": "Enter your account e-mail to reset your password.",
+      "labels": {
+        "email": "E-mail"
+      },
+      "pageTitle": "Reset Password",
+      "returnToLogin": "Return to login page",
+      "successMessage": "Check your e-mail for a link to reset your password"
+    },
+    "home": {
+      "pageTitle": "Home",
+      "welcome": "The Nearby Event Stream & Rewards App",
+      "apple": "Apple",
+      "android": "Android",
+      "devices": "devices",
+      "eventOrganizers": "Storefronts",
+      "freelancers": "Freelancers",
+      "or": "or",
+      "info": "Therr is a space to share content at various geo-locations and connect with other users while traveling the globe or even just walking around your local community.",
+      "info2": "Install the mobile app for the best experience."
+    },
+    "createForum": {
+      "buttons": {
+        "submit": "Create & Join Room"
+      },
+      "labels": {
+        "title": "Title",
+        "subtitle": "Subtitle",
+        "hashTags": "Tags",
+        "description": "Description",
+        "activeForums": "Total Active Chats"
+      },
+      "placeholders": {
+        "title": "A catchy title...",
+        "subtitle": "An optional subtitle",
+        "hashTags": "Tags (ie. my_tag, MyTag)",
+        "description": "A brief description of the chat..."
+      },
+      "noForumsMessage": "No chats are currently active. Click 'Create Hosted Chat' to start a new one.",
+      "pageTitle": "Hosted Chats"
+    },
+    "createProfile": {
+      "pageTitle": "Create Profile",
+      "pageTitleVerify": "Create Profile: Verify Phone",
+      "createProfileSuccess": "Profile successfully updated!",
+      "createProfileError": "Oops, something went wrong",
+      "phoneNumberAlreadyInUseError": "Phone number is already in use for this account type",
+      "invalidCode": "Code is invalid or expired. Try again or resend.",
+      "infoTitle": "Why Require Phone #?",
+      "info": "We are dedicated to preventing fake users, so Multi-Factor Authentication is a must. Requiring an e-mail and phone # along with geo-tag post requirements drastically reduces the impact of scammers or fake users."
+    },
+    "login": {
+      "pageTitle": "Login"
+    },
+    "pageNotFound": {
+      "pageTitle": "Page Not Found"
+    },
+    "register": {
+      "pageTitle": "Register",
+      "registerSuccess": "Registration success! Check your e-mail for verification.",
+      "registerError": "Oops, something went wrong"
+    },
+    "template": {
+      "pageTitle": "Template",
+      "helloTemplate": "Hello, Template!"
+    },
+    "userProfile": {
+      "buttons": {
+        "createAForum": "Create a Hosted Chat",
+        "sendRequest": "Send Request"
+      },
+      "connectionSent": "You connection request is on the way!",
+      "h2": {
+        "accountDetails": "Account Details",
+        "addConnection": "Add New Connection",
+        "connections": "Connections"
+      },
+      "labels": {
+        "email": "E-mail",
+        "firstName": "Firstname",
+        "lastName": "Lastname",
+        "phone": "Phone",
+        "phoneNumber": "Phone Number",
+        "userName": "Username"
+      },
+      "pageTitle": "User Profile",
+      "requestRecommendation": "Send a request to make connections and build a network",
+      "validationErrors": {
+        "phoneNumber": "Invalid phone number"
+      }
+    },
+    "underConstruction": {
+      "pageTitle": "Go Mobile",
+      "welcome": "Get the Mobile App",
+      "info": "You must be looking for the mobile app! Find it below. For now, the desktop app only supports basic features like updating your password or account details."
+    }
+  }
+}
