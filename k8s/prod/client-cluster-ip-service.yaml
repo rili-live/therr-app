@@ -10,5 +10,7 @@ spec:
   ports:
   - port: 7070
     targetPort: 7070
+    name: web-app
   - port: 7071
     targetPort: 7071
+    name: web-app-dashboard
