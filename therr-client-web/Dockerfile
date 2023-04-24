@@ -86,4 +86,4 @@ EXPOSE 7070 7071
 
 # Run both servers simultaneously
 # https://stackoverflow.com/questions/46496743/what-is-the-proper-way-to-start-multiple-local-node-js-servers
-CMD ["node", "./build/server-client.js", "&", "cd ../therr-client-web-dashboard", "&&", "node", "./build/server-client.js", "fg"]
+CMD ["node", "./build/server-client.js", "&", "cd ../therr-client-web-dashboard", "&&", "node", "./build/server-client.js", "&&", "fg"]
