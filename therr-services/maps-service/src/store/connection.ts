@@ -1,4 +1,6 @@
 import { Pool } from 'pg';
+import printLogs from 'therr-js-utilities/print-logs';
+import beeline from '../beeline'; // eslint-disable-line import/order
 
 export interface IConnection {
     read: Pool;
@@ -19,6 +21,44 @@ const write: Pool = new Pool({
     password: process.env.DB_PASSWORD_MAIN_WRITE,
     database: process.env.MAPS_SERVICE_DATABASE,
     port: Number(process.env.DB_PORT_MAIN_WRITE),
+});
+
+read.on('error', (err, client) => {
+    printLogs({
+        level: 'error',
+        messageOrigin: 'API_SERVER',
+        messages: ['Uncaught Exception'],
+        tracer: beeline,
+        traceArgs: {
+            dbHost: process.env.DB_HOST_MAIN_READ,
+            dbName: process.env.MAPS_SERVICE_DATABASE,
+            processId: process.pid,
+            isUncaughtException: true,
+            errorMessage: err?.message,
+            errorOrigin: 'connection',
+            source: 'maps-service',
+            hasDBConnectionError: true,
+        },
+    });
+});
+
+write.on('error', (err, client) => {
+    printLogs({
+        level: 'error',
+        messageOrigin: 'API_SERVER',
+        messages: ['Uncaught Exception'],
+        tracer: beeline,
+        traceArgs: {
+            dbHost: process.env.DB_HOST_MAIN_READ,
+            dbName: process.env.MAPS_SERVICE_DATABASE,
+            processId: process.pid,
+            isUncaughtException: true,
+            errorMessage: err?.message,
+            errorOrigin: 'connection',
+            source: 'maps-service',
+            hasDBConnectionError: true,
+        },
+    });
 });
 
 export default {
