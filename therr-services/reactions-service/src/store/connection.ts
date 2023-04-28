@@ -13,6 +13,10 @@ const read: Pool = new Pool({
     password: process.env.DB_PASSWORD_MAIN_READ,
     database: process.env.REACTIONS_SERVICE_DATABASE,
     port: Number(process.env.DB_PORT_MAIN_READ),
+    max: 20, // set pool max size to 20
+    idleTimeoutMillis: 10000, // close idle clients after 10 second
+    connectionTimeoutMillis: 5000, // return an error after 5 second if connection could not be established
+    // maxUses: 7500, // close (and replace) a connection after it has been used 7500 times (see below for discussion)
 });
 
 const write: Pool = new Pool({
@@ -21,6 +25,10 @@ const write: Pool = new Pool({
     password: process.env.DB_PASSWORD_MAIN_WRITE,
     database: process.env.REACTIONS_SERVICE_DATABASE,
     port: Number(process.env.DB_PORT_MAIN_WRITE),
+    max: 20, // set pool max size to 20
+    idleTimeoutMillis: 10000, // close idle clients after 10 second
+    connectionTimeoutMillis: 5000, // return an error after 5 second if connection could not be established
+    // maxUses: 7500, // close (and replace) a connection after it has been used 7500 times (see below for discussion)
 });
 
 read.on('error', (err, client) => {
