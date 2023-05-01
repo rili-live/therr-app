@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { distanceTo } from 'geolocation-utils';
 import handleHttpError from '../utilities/handleHttpError';
+import getReadableDistance from '../utilities/getReadableDistance';
 import Store from '../store';
 // import translate from '../utilities/translator';
 import * as globalConfig from '../../../../global-config';
@@ -81,7 +82,7 @@ const searchActiveSpaces = async (req: any, res: any) => {
                         lon: userLongitude,
                         lat: userLatitude,
                     }) / 1069.344; // convert meters to miles
-                    alteredSpace.distance = Math.round(10 * distance) / 10;
+                    alteredSpace.distance = getReadableDistance(distance);
                 }
                 return {
                     ...alteredSpace,
