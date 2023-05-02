@@ -1,13 +1,14 @@
-
 import React, { useState } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { Card, Button, Tooltip, OverlayTrigger } from '@themesberg/react-bootstrap';
+import {
+    Card, Button, Tooltip, OverlayTrigger,
+} from '@themesberg/react-bootstrap';
 import Highlight, { Prism } from 'prism-react-renderer';
 
-import themeStyle from "../assets/syntax-themes/ghcolors.json";
+import themeStyle from '../assets/syntax-themes/ghcolors.json';
 
 export default (props) => {
-    const { code = "", language = "jsx" } = props;
+    const { code = '', language = 'jsx' } = props;
     const [copied, setCopied] = useState(false);
 
     const handleCopy = () => {
@@ -15,7 +16,9 @@ export default (props) => {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const CodeStyling = ({ className, style, tokens, getLineProps, getTokenProps }) => (
+    const CodeStyling = ({
+        className, style, tokens, getLineProps, getTokenProps,
+    }) => (
         <Card className="position-relative pe-8 mb-2">
             <Card.Body>
                 <pre className={className} style={style}>
@@ -47,4 +50,3 @@ export default (props) => {
         </Highlight>
     );
 };
-

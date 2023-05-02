@@ -1,11 +1,13 @@
-import React from "react";
+import React from 'react';
 import { ProgressBar } from '@themesberg/react-bootstrap';
 
 export default (props) => {
-    const { label, variant, value, type = "label", size = "md" } = props;
-    const finalValue = value ? value : Math.floor(Math.random() * (Math.floor(100) - 20 + 1)) + 20; // generates a random number between 20 and 100
-    const textColor = type === "label" ? variant : "white";
-    const bgColorClass = type === "tooltip" ? `bg-${variant}` : "";
+    const {
+        label, variant, value, type = 'label', size = 'md',
+    } = props;
+    const finalValue = value || Math.floor(Math.random() * (Math.floor(100) - 20 + 1)) + 20; // generates a random number between 20 and 100
+    const textColor = type === 'label' ? variant : 'white';
+    const bgColorClass = type === 'tooltip' ? `bg-${variant}` : '';
 
     return (
         <div className="progress-wrapper">

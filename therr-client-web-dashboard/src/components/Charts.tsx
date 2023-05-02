@@ -1,12 +1,11 @@
-
-import React from "react";
-import Chartist from "react-chartist";
+import React from 'react';
+import Chartist from 'react-chartist';
 import ChartistTooltip from 'chartist-plugin-tooltips-updated';
 
 export const SalesValueChart = () => {
     const data = {
         labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        series: [[1, 2, 2, 3, 3, 4, 3]]
+        series: [[1, 2, 2, 3, 3, 4, 3]],
     };
 
     const options = {
@@ -15,29 +14,29 @@ export const SalesValueChart = () => {
         fullWidth: true,
         axisX: {
             position: 'end',
-            showGrid: true
+            showGrid: true,
         },
         axisY: {
             // On the y-axis start means left and end means right
             showGrid: false,
             showLabel: false,
-            labelInterpolationFnc: value => `$${value / 1}k`
-        }
+            labelInterpolationFnc: (value) => `$${value / 1}k`,
+        },
     };
 
     const plugins = [
-        ChartistTooltip()
-    ]
+        ChartistTooltip(),
+    ];
 
     return (
-        <Chartist data={data} options={{...options, plugins}} type="Line" className="ct-series-g ct-double-octave" />
+        <Chartist data={data} options={{ ...options, plugins }} type="Line" className="ct-series-g ct-double-octave" />
     );
 };
 
 export const SalesValueChartphone = () => {
     const data = {
         labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        series: [[1, 2, 2, 3, 3, 4, 3]]
+        series: [[1, 2, 2, 3, 3, 4, 3]],
     };
 
     const options = {
@@ -46,22 +45,22 @@ export const SalesValueChartphone = () => {
         fullWidth: false,
         axisX: {
             position: 'end',
-            showGrid: true
+            showGrid: true,
         },
         axisY: {
             // On the y-axis start means left and end means right
             showGrid: false,
             showLabel: false,
-            labelInterpolationFnc: value => `$${value / 1}k`
-        }
+            labelInterpolationFnc: (value) => `$${value / 1}k`,
+        },
     };
 
     const plugins = [
-        ChartistTooltip()
-    ]
+        ChartistTooltip(),
+    ];
 
     return (
-        <Chartist data={data} options={{...options, plugins}} type="Line" className="ct-series-g ct-major-tenth" />
+        <Chartist data={data} options={{ ...options, plugins }} type="Line" className="ct-series-g ct-major-tenth" />
     );
 };
 
@@ -77,40 +76,40 @@ export const CircleChart = (props) => {
         donutSolid: true,
         fullWidth: false,
         showLabel: false,
-        labelInterpolationFnc: value => `${Math.round(value / series.reduce(sum) * 100)}%`,
-    }
+        labelInterpolationFnc: (value) => `${Math.round(value / series.reduce(sum) * 100)}%`,
+    };
 
     const plugins = [
-        ChartistTooltip()
-    ]
+        ChartistTooltip(),
+    ];
 
     return (
-        <Chartist data={{ series }} options={{...options, plugins}} type="Pie" className="ct-golden-section" />
+        <Chartist data={{ series }} options={{ ...options, plugins }} type="Pie" className="ct-golden-section" />
     );
 };
 
 export const BarChart = (props) => {
-    const { labels = [], series = [], chartClassName = "ct-golden-section" } = props;
+    const { labels = [], series = [], chartClassName = 'ct-golden-section' } = props;
     const data = { labels, series };
 
     const options = {
         low: 0,
         showArea: true,
         axisX: {
-            position: 'end'
+            position: 'end',
         },
         axisY: {
             showGrid: false,
             showLabel: false,
-            offset: 0
-        }
+            offset: 0,
+        },
     };
 
     const plugins = [
-        ChartistTooltip()
-    ]
+        ChartistTooltip(),
+    ];
 
     return (
-        <Chartist data={data} options={{...options, plugins}} type="Bar" className={chartClassName} />
+        <Chartist data={data} options={{ ...options, plugins }} type="Bar" className={chartClassName} />
     );
 };

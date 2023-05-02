@@ -62,7 +62,7 @@ const DashboardFooter = (props: any) => {
                     </Card.Body>
                 </Card>
             ) : (
-                <Card className="theme-settings theme-settings-expand" onClick={() => { toggleSettings(true) }}>
+                <Card className="theme-settings theme-settings-expand" onClick={() => { toggleSettings(true); }}>
                     <Card.Body className="p-3 py-2">
                         <span className="fw-bold h6"><FontAwesomeIcon icon={faCogs} className="me-1 fs-7" /> Settings</span>
                     </Card.Body>

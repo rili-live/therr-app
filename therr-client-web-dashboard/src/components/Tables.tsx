@@ -53,9 +53,11 @@ const ValueChange = ({ value, suffix }: any) => {
 
 export const PageVisitsTable = () => {
     const TableRow = (props) => {
-        const { pageName, views, returnValue, bounceRate } = props;
+        const {
+            pageName, views, returnValue, bounceRate,
+        } = props;
         const bounceIcon = bounceRate < 0 ? faArrowDown : faArrowUp;
-        const bounceTxtColor = bounceRate < 0 ? "text-danger" : "text-success";
+        const bounceTxtColor = bounceRate < 0 ? 'text-danger' : 'text-success';
 
         return (
             <tr>
@@ -92,7 +94,7 @@ export const PageVisitsTable = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {pageVisits.map(pv => <TableRow key={`page-visit-${pv.id}`} {...pv} />)}
+                    {pageVisits.map((pv) => <TableRow key={`page-visit-${pv.id}`} {...pv} />)}
                 </tbody>
             </Table>
         </Card>
@@ -101,7 +103,9 @@ export const PageVisitsTable = () => {
 
 export const PageTrafficTable = () => {
     const TableRow = (props) => {
-        const { id, source, sourceIcon, sourceIconColor, sourceType, category, rank, trafficShare, change } = props;
+        const {
+            id, source, sourceIcon, sourceIconColor, sourceType, category, rank, trafficShare, change,
+        } = props;
 
         return (
             <tr>
@@ -113,8 +117,8 @@ export const PageTrafficTable = () => {
                     {source}
                 </td>
                 <td>{sourceType}</td>
-                <td>{category ? category : "--"}</td>
-                <td>{rank ? rank : "--"}</td>
+                <td>{category || '--'}</td>
+                <td>{rank || '--'}</td>
                 <td>
                     <Row className="d-flex align-items-center">
                         <Col xs={12} xl={2} className="px-0">
@@ -148,7 +152,7 @@ export const PageTrafficTable = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {pageTraffic.map(pt => <TableRow key={`page-traffic-${pt.id}`} {...pt} />)}
+                        {pageTraffic.map((pt) => <TableRow key={`page-traffic-${pt.id}`} {...pt} />)}
                     </tbody>
                 </Table>
             </Card.Body>
@@ -158,7 +162,9 @@ export const PageTrafficTable = () => {
 
 export const RankingTable = () => {
     const TableRow = (props) => {
-        const { country, countryImage, overallRank, overallRankChange, travelRank, travelRankChange, widgetsRank, widgetsRankChange } = props;
+        const {
+            country, countryImage, overallRank, overallRankChange, travelRank, travelRankChange, widgetsRank, widgetsRankChange,
+        } = props;
 
         return (
             <tr>
@@ -169,19 +175,19 @@ export const RankingTable = () => {
                     </Card.Link>
                 </td>
                 <td className="fw-bold border-0">
-                    {overallRank ? overallRank : "-"}
+                    {overallRank || '-'}
                 </td>
                 <td className="border-0">
                     <ValueChange value={overallRankChange} />
                 </td>
                 <td className="fw-bold border-0">
-                    {travelRank ? travelRank : "-"}
+                    {travelRank || '-'}
                 </td>
                 <td className="border-0">
                     <ValueChange value={travelRankChange} />
                 </td>
                 <td className="fw-bold border-0">
-                    {widgetsRank ? widgetsRank : "-"}
+                    {widgetsRank || '-'}
                 </td>
                 <td className="border-0">
                     <ValueChange value={widgetsRankChange} />
@@ -206,7 +212,7 @@ export const RankingTable = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {pageRanking.map(r => <TableRow key={`ranking-${r.id}`} {...r} />)}
+                        {pageRanking.map((r) => <TableRow key={`ranking-${r.id}`} {...r} />)}
                     </tbody>
                 </Table>
             </Card.Body>
@@ -218,7 +224,9 @@ export const TransactionsTable = () => {
     const totalTransactions = transactions.length;
 
     const TableRow = (props) => {
-        const { invoiceNumber, subscription, price, issueDate, dueDate, status } = props;
+        const {
+            invoiceNumber, subscription, price, issueDate, dueDate, status,
+        } = props;
         const statusVariant = status === 'Paid' ? 'success'
             : status === 'Due' ? 'warning'
                 : status === 'Canceled' ? 'danger' : 'primary';
@@ -295,7 +303,7 @@ export const TransactionsTable = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {transactions.map(t => <TableRow key={`transaction-${t.invoiceNumber}`} {...t} />)}
+                        {transactions.map((t) => <TableRow key={`transaction-${t.invoiceNumber}`} {...t} />)}
                     </tbody>
                 </Table>
                 <Card.Footer className="px-3 border-0 d-lg-flex align-items-center justify-content-between">
@@ -325,7 +333,9 @@ export const TransactionsTable = () => {
 
 export const CommandsTable = () => {
     const TableRow = (props) => {
-        const { name, usage = [], description, link } = props;
+        const {
+            name, usage = [], description, link,
+        } = props;
 
         return (
             <tr>
@@ -334,7 +344,7 @@ export const CommandsTable = () => {
                 </td>
                 <td className="fw-bold border-0" style={{ width: '5%' }}>
                     <ul className="ps-0">
-                        {usage.map(u => (
+                        {usage.map((u) => (
                             <ol key={u} className="ps-0">
                                 <code>{u}</code>
                             </ol>
@@ -364,7 +374,7 @@ export const CommandsTable = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {commands.map(c => <TableRow key={`command-${c.id}`} {...c} />)}
+                        {commands.map((c) => <TableRow key={`command-${c.id}`} {...c} />)}
                     </tbody>
                 </Table>
             </Card.Body>

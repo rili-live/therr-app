@@ -1,41 +1,43 @@
+import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faAngleDown, faAngleUp } from '@fortawesome/free-solid-svg-icons';
+import {
+    Col, Row, Table, Image, Container,
+} from '@themesberg/react-bootstrap';
 
-import React from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faAngleDown, faAngleUp } from "@fortawesome/free-solid-svg-icons";
-import { Col, Row, Table, Image, Container } from '@themesberg/react-bootstrap';
+import Documentation from '../../components/Documentation';
 
-import Documentation from "../../components/Documentation";
+const USAFlag = '/assets/img/flags/united-states-of-america.svg';
+const CanadaFlag = '/assets/img/flags/canada.svg';
+const UKFlag = '/assets/img/flags/united-kingdom.svg';
+const FranceFlag = '/assets/img/flags/france.svg';
+const JapanFlag = '/assets/img/flags/japan.svg';
+const GermanyFlag = '/assets/img/flags/germany.svg';
 
-const USAFlag = "/assets/img/flags/united-states-of-america.svg";
-const CanadaFlag = "/assets/img/flags/canada.svg";
-const UKFlag = "/assets/img/flags/united-kingdom.svg";
-const FranceFlag = "/assets/img/flags/france.svg";
-const JapanFlag = "/assets/img/flags/japan.svg";
-const GermanyFlag = "/assets/img/flags/germany.svg";
-
-export default () => {
-  return (
+export default () => (
     <article>
-      <Container className="px-0">
-        <Row className="d-flex flex-wrap flex-md-nowrap align-items-center py-4">
-          <Col className="d-block mb-4 mb-md-0">
-            <h1 className="h2">Tables</h1>
-            <p className="mb-0">
-              Use tables to show more complex amount of data.
-            </p>
-          </Col>
-        </Row>
+        <Container className="px-0">
+            <Row className="d-flex flex-wrap flex-md-nowrap align-items-center py-4">
+                <Col className="d-block mb-4 mb-md-0">
+                    <h1 className="h2">Tables</h1>
+                    <p className="mb-0">
+                        Use tables to show more complex amount of data.
+                    </p>
+                </Col>
+            </Row>
 
-        <Documentation
-          title="Example"
-          description={
-            <>
-              <p>The <code>&#x3C;Table&#x3E;</code> component can be used to show more complex amounts of data. We recommend you to use the local <code>&#x3C;TableRow&#x3E;</code> method and component to build rows for the table and set the columns and props from there.</p>
-              <p>In this example, the props from <code>&#x3C;TableRow&#x3E;</code>, such as the <code>country</code>, <code>countryIcon</code>, <code>value</code>, and <code>percentage</code> are being set as props. After that, the <code>&#x3C;TableRow&#x3E;</code> components are being added in the final <code>&#x3C;Table&#x3E;</code> rendering.</p>
-            </>
-          }
-          scope={{ Image, Table, FontAwesomeIcon, faAngleDown, faAngleUp, USAFlag, CanadaFlag, UKFlag, FranceFlag, JapanFlag, GermanyFlag }}
-          imports={`import { Image, Table } from '@themesberg/react-bootstrap';
+            <Documentation
+                title="Example"
+                description={
+                    <>
+                        <p>The <code>&#x3C;Table&#x3E;</code> component can be used to show more complex amounts of data. We recommend you to use the local <code>&#x3C;TableRow&#x3E;</code> method and component to build rows for the table and set the columns and props from there.</p>
+                        <p>In this example, the props from <code>&#x3C;TableRow&#x3E;</code>, such as the <code>country</code>, <code>countryIcon</code>, <code>value</code>, and <code>percentage</code> are being set as props. After that, the <code>&#x3C;TableRow&#x3E;</code> components are being added in the final <code>&#x3C;Table&#x3E;</code> rendering.</p>
+                    </>
+                }
+                scope={{
+                    Image, Table, FontAwesomeIcon, faAngleDown, faAngleUp, USAFlag, CanadaFlag, UKFlag, FranceFlag, JapanFlag, GermanyFlag,
+                }}
+                imports={`import { Image, Table } from '@themesberg/react-bootstrap';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAngleDown, faAngleUp } from "@fortawesome/free-solid-svg-icons";
 
@@ -45,7 +47,7 @@ import UKFlag from "src/assets/img/flags/united-kingdom.svg";
 import FranceFlag from "src/assets/img/flags/france.svg";
 import JapanFlag from "src/assets/img/flags/japan.svg";
 import GermanyFlag from "src/assets/img/flags/germany.svg";`}
-          example={`<Table>
+                example={`<Table>
   <thead className="thead-light">
     <tr>
       <th className="border-0">Country</th>
@@ -134,8 +136,7 @@ import GermanyFlag from "src/assets/img/flags/germany.svg";`}
     </tr>
   </tbody>
 </Table>`}
-        />
-      </Container>
+            />
+        </Container>
     </article>
-  );
-};
+);

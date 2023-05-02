@@ -14,6 +14,7 @@ import { NotificationActions, SocketActions, MessageActions } from 'therr-react/
 import { UsersService } from 'therr-react/services';
 // import { Alerts } from '../library/alerts'
 // import { Loader } from '../library/loader';
+import classNames from 'classnames';
 import Header from './Header';
 import initInterceptors from '../interceptors';
 import * as globalConfig from '../../../global-config';
@@ -31,7 +32,6 @@ import AppRoutes from './AppRoutes';
 import Preloader from './Preloader';
 import Sidebar from './Sidebar';
 import DashboardNavbar from './DashboardNavbar';
-import classNames from 'classnames';
 
 interface ILayoutRouterProps {
     navigation: {
@@ -352,7 +352,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         // Cloak the view so it doesn't flash before client mounts
         const mainClassNames = classNames({
             content: !isLandingStylePage,
-        })
+        });
         if (this.state.clientHasLoaded) {
             return (
                 <>
@@ -372,16 +372,16 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                         <Sidebar show={!isLandingStylePage} />
                         <main className={mainClassNames}>
                             {
-                                !isLandingStylePage &&
-                                <DashboardNavbar onLogout={this.handleLogout} />
+                                !isLandingStylePage
+                                && <DashboardNavbar onLogout={this.handleLogout} />
                             }
                             <AppRoutes
                                 initMessaging={this.initMessaging}
                                 isAuthorized={(access) => UsersService.isAuthorized(access, user)}
                             />
                             {
-                                !isLandingStylePage &&
-                                <DashboardFooter toggleSettings={() => { console.log('toggleSettings'); }} showSettings={false} />
+                                !isLandingStylePage
+                                && <DashboardFooter toggleSettings={() => { console.log('toggleSettings'); }} showSettings={false} />
                             }
                         </main>
                     </TransitionGroup>
