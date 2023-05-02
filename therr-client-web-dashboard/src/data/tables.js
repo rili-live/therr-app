@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import {
     faGoogle, faTwitter, faYahoo, faYoutube,
 } from '@fortawesome/free-brands-svg-icons';
