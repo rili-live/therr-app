@@ -1,0 +1,13 @@
+/**
+ * = Counters
+ */
+
+.counter-alternate{
+    &::after{
+        content: '\f067';
+        font: var(--fa-font-solid);
+        position: absolute;
+        font-size: 2.25rem;
+        color:$dark;
+    }
+}

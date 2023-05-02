@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import { IMobileThemeName } from 'therr-react/types';
 import { getTheme } from '../themes';
 
-export const botSheetScrollViewHeight = 180;
+export const botSheetScrollViewHeight = 220;
 export const botSheetScrollViewPad = 10;
 
 
@@ -18,7 +18,6 @@ const buildStyles = (themeName?: IMobileThemeName) => {
             alignItems: 'center',
         },
         scrollViewOuterContainer: {
-            height: botSheetScrollViewHeight + 10,
             position: 'absolute',
             width: '100%',
             bottom: 10,

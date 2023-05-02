@@ -43,8 +43,12 @@
       },
       "defaultTitle": "Login",
       "labels": {
+        "password": "Your Password",
+        "userName": "Your Email"
+      },
+      "placeHolders": {
         "password": "Password",
-        "userName": "Username/Email"
+        "userName": "example@company.com"
       },
       "backendErrorMessage": "Connection error. Please try again later.",
       "oneTimePasswordExpired": "Your one-time password has expired.",
@@ -104,14 +108,6 @@
     }
   },
   "pages": {
-    "discovered": {
-      "pageTitle": "Discovered"
-    },
-    "chatForum": {
-      "pageTitle": "Hosted Chat",
-      "welcome": "Welcome!",
-      "inputPlaceholder": "Enter a message"
-    },
     "changePassword": {
       "buttons": {
         "send": "Submit"
@@ -170,26 +166,6 @@
       "info": "Therr is a space to share content at various geo-locations and connect with other users while traveling the globe or even just walking around your local community.",
       "info2": "Install the mobile app for the best experience."
     },
-    "createForum": {
-      "buttons": {
-        "submit": "Create & Join Room"
-      },
-      "labels": {
-        "title": "Title",
-        "subtitle": "Subtitle",
-        "hashTags": "Tags",
-        "description": "Description",
-        "activeForums": "Total Active Chats"
-      },
-      "placeholders": {
-        "title": "A catchy title...",
-        "subtitle": "An optional subtitle",
-        "hashTags": "Tags (ie. my_tag, MyTag)",
-        "description": "A brief description of the chat..."
-      },
-      "noForumsMessage": "No chats are currently active. Click 'Create Hosted Chat' to start a new one.",
-      "pageTitle": "Hosted Chats"
-    },
     "createProfile": {
       "pageTitle": "Create Profile",
       "pageTitleVerify": "Create Profile: Verify Phone",
@@ -201,7 +177,8 @@
       "info": "We are dedicated to preventing fake users, so Multi-Factor Authentication is a must. Requiring an e-mail and phone # along with geo-tag post requirements drastically reduces the impact of scammers or fake users."
     },
     "login": {
-      "pageTitle": "Login"
+      "pageTitle": "Login",
+      "pageHeader": "Sign in to your dashboard"
     },
     "pageNotFound": {
       "pageTitle": "Page Not Found"
@@ -211,39 +188,8 @@
       "registerSuccess": "Registration success! Check your e-mail for verification.",
       "registerError": "Oops, something went wrong"
     },
-    "template": {
-      "pageTitle": "Template",
-      "helloTemplate": "Hello, Template!"
-    },
-    "userProfile": {
-      "buttons": {
-        "createAForum": "Create a Hosted Chat",
-        "sendRequest": "Send Request"
-      },
-      "connectionSent": "You connection request is on the way!",
-      "h2": {
-        "accountDetails": "Account Details",
-        "addConnection": "Add New Connection",
-        "connections": "Connections"
-      },
-      "labels": {
-        "email": "E-mail",
-        "firstName": "Firstname",
-        "lastName": "Lastname",
-        "phone": "Phone",
-        "phoneNumber": "Phone Number",
-        "userName": "Username"
-      },
-      "pageTitle": "User Profile",
-      "requestRecommendation": "Send a request to make connections and build a network",
-      "validationErrors": {
-        "phoneNumber": "Invalid phone number"
-      }
-    },
-    "underConstruction": {
-      "pageTitle": "Go Mobile",
-      "welcome": "Get the Mobile App",
-      "info": "You must be looking for the mobile app! Find it below. For now, the desktop app only supports basic features like updating your password or account details."
+    "dashboardOverview": {
+      "pageTitle": "Dashboard"
     }
   }
 }

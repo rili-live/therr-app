@@ -10,6 +10,7 @@ import { MapActions, ReactionActions } from 'therr-react/redux/actions';
 import { IAreaType, IContentState } from 'therr-js-utilities/types';
 import { distanceTo, insideCircle } from 'geolocation-utils';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import getReadableDistance from '../../utilities/getReadableDistance';
 import { ILocationState } from '../../types/redux/location';
 import translator from '../../services/translator';
 import {
@@ -39,8 +40,8 @@ import AreaDisplayCard from '../../components/UserContent/AreaDisplayCard';
 
 const { width: viewPortWidth, height: viewPortHeight } = Dimensions.get('window');
 
-const CARD_HEIGHT = viewPortHeight / 5;
-const CARD_WIDTH = CARD_HEIGHT - 50;
+const CARD_HEIGHT = viewPortHeight / 4;
+const CARD_WIDTH = CARD_HEIGHT - 70;
 const spaceBubbleWidth = viewPortWidth / 8;
 const MAX_CIRCLE_DIAMETER_SCALE = 2;
 
@@ -245,8 +246,9 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                             if (location?.user?.longitudeDelta && location?.user?.longitudeDelta <= MAX_ANIMATION_LONGITUDE_DELTA) {
                                 animationLongitudeDelta = location?.user?.longitudeDelta;
                             }
+
                             const loc = {
-                                latitude,
+                                latitude: latitude - (animationLatitudeDelta / 7),
                                 longitude,
                                 latitudeDelta: animationLatitudeDelta,
                                 longitudeDelta: animationLongitudeDelta,
@@ -494,10 +496,7 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                         missingMediaIds.push(...area.mediaIds.split(","));
                     }
                 }
-                const readableDistance = area.distanceFromUser < 0.1
-                    ? `${Math.round(area.distanceFromUser * 5280)} ft`
-                    : `${Math.round(10 * area.distanceFromUser) / 10} mi`;
-                area.distance = readableDistance;
+                area.distance = getReadableDistance(area.distanceFromUser);
 
                 if (pressedAreaId && area.id === pressedAreaId) {
                     pressedAreas.push(area);
@@ -958,7 +957,9 @@ class TherrMapView extends React.PureComponent<ITherrMapViewProps, ITherrMapView
                 </MapView>
                 {
                     isPreviewBottomSheetVisible &&
-                    <View style={this.themeBottomSheet.styles.scrollViewOuterContainer}>
+                    <View style={[this.themeBottomSheet.styles.scrollViewOuterContainer, {
+                        height: CARD_HEIGHT + this.themeBottomSheet.styles.scrollViewOuterContainer.bottom,
+                    }]}>
                         <Animated.ScrollView
                             horizontal
                             scrollEventThrottle={20}

@@ -47,7 +47,7 @@ import formatHashtags from '../utilities/formatHashtags';
 import { getImagePreviewPath } from '../utilities/areaUtils';
 import { signImageUrl } from '../utilities/content';
 import { requestOSCameraPermissions } from '../utilities/requestOSPermissions';
-import { sendForegroundNotification } from '../utilities/pushNotifications';
+import { sendForegroundNotification, sendTriggerNotification } from '../utilities/pushNotifications';
 import BottomSheet from '../components/BottomSheet/BottomSheet';
 import TherrIcon from '../components/TherrIcon';
 import ConfirmModal from '../components/Modals/ConfirmModal';
@@ -380,6 +380,23 @@ export class EditMoment extends React.Component<IEditMomentProps, IEditMomentSta
                                 }
                             },
                         });
+
+                        if (isDraft) {
+                            const nowPlus = new Date();
+                            nowPlus.setHours(nowPlus.getHours() + 1.5);
+                            sendTriggerNotification(nowPlus, {
+                                title: this.translate('alertTitles.draftReminder'),
+                                body: this.translate('alertMessages.draftReminder'),
+                                android: {
+                                    actions: [
+                                        {
+                                            pressAction: { id: PressActionIds.drafts, launchActivity: 'default' },
+                                            title: this.translate('alertActions.edit'),
+                                        },
+                                    ],
+                                },
+                            }, getAndroidChannel(AndroidChannelIds.reminders, true));
+                        }
 
                         analytics().logEvent('moment_create', {
                             userId: user.details.id,
