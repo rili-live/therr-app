@@ -40,23 +40,7 @@
       "last 1 safari version"
     ]
   },
-  "dependencies": {
-    "@fortawesome/fontawesome-free": "^6.4.0",
-    "@fortawesome/fontawesome-svg-core": "^1.2.36",
-    "@fortawesome/free-brands-svg-icons": "^5.15.4",
-    "@fortawesome/free-regular-svg-icons": "^5.15.4",
-    "@fortawesome/free-solid-svg-icons": "^5.15.4",
-    "@fortawesome/react-fontawesome": "^0.2.0",
-    "@themesberg/react-bootstrap": "^1.4.1",
-    "bootstrap": "^5.2.3",
-    "chartist": "^0.11.4",
-    "chartist-plugin-tooltips-updated": "^0.1.4",
-    "react-chartist": "^0.14.4",
-    "react-copy-to-clipboard": "^5.0.3",
-    "react-datetime": "^3.0.4",
-    "react-github-btn": "^1.2.0",
-    "simplebar-react": "^2.3.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "webpack-cli": "^4.7.2"
   }
