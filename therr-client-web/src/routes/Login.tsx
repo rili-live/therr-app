@@ -62,8 +62,8 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
                 // Add your own custom user variables below:
             });
             // TODO: This doesn't seem to work with react-router-dom v6 after a newly created user tries to login
-            // Need to investigate further
-            nextProps.navigation.navigate(routeAfterLogin);
+            // Causes a flicker / Need to investigate further
+            setTimeout(() => nextProps.navigation.navigate(routeAfterLogin));
             return null;
         }
         return {};

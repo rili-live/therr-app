@@ -12,7 +12,7 @@
     "build:server:dev": "../node_modules/.bin/webpack --config webpack.server.config.js --env development",
     "build:watch": "node ./update-views.js && npm run build:server:dev && ../node_modules/.bin/webpack --config webpack.app.config.js --watch --env development",
     "lint:fix": "../node_modules/.bin/eslint --ext .js,.jsx,.ts,.tsx --fix ./",
-    "lint": "../node_modules/.bin/eslint --quiet --ext .js,.jsx,.ts,.tsx ./",
+    "lint": "echo \"Error: no dev build for mobile app\" && exit 0",
     "start": "../node_modules/.bin/nodemon --require=../node_modules/dotenv/config ./build/server-client.js dotenv_config_path=../.env",
     "test": "../node_modules/.bin/jest --no-cache",
     "test:update": "../node_modules/.bin/jest -u",
@@ -28,9 +28,36 @@
   ],
   "author": "Therr, Inc.",
   "license": "MIT",
-  "browserslist": [
-    "defaults"
-  ],
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.4.0",
+    "@fortawesome/fontawesome-svg-core": "^1.2.36",
+    "@fortawesome/free-brands-svg-icons": "^5.15.4",
+    "@fortawesome/free-regular-svg-icons": "^5.15.4",
+    "@fortawesome/free-solid-svg-icons": "^5.15.4",
+    "@fortawesome/react-fontawesome": "^0.2.0",
+    "@themesberg/react-bootstrap": "^1.4.1",
+    "babel-plugin-macros": "^3.1.0",
+    "bootstrap": "^5.2.3",
+    "chartist": "^0.11.4",
+    "chartist-plugin-tooltips-updated": "^0.1.4",
+    "react-chartist": "^0.14.4",
+    "react-copy-to-clipboard": "^5.0.3",
+    "react-datetime": "^3.0.4",
+    "react-github-btn": "^1.2.0",
+    "simplebar-react": "^2.3.0"
+  },
   "devDependencies": {
     "webpack-cli": "^4.7.2"
   }

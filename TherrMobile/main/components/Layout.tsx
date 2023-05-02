@@ -426,6 +426,13 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                 return Promise.resolve();
             }
 
+            if (notification?.id && pressAction?.id === PressActionIds.drafts) {
+                if (isUserAuthorized) {
+                    RootNavigation.navigate('MyDrafts');
+                }
+                return Promise.resolve();
+            }
+
             if (notification?.id && pressAction?.id === PressActionIds.discovered) {
                 if (isUserAuthorized) {
                     RootNavigation.navigate('Areas');
