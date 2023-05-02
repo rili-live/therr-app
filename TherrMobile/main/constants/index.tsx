@@ -50,6 +50,7 @@ const DEFAULT_LASTNAME = 'User';
 enum PressActionIds {
     default = 'default',
     discovered = 'discovered',
+    drafts = 'drafts',
     exchange = 'exchange-coins',
     markAsRead = 'mark-as-read',
 }
@@ -57,7 +58,8 @@ enum PressActionIds {
 enum AndroidChannelIds {
     default = 'default',
     contentDiscovery = 'contentDiscovery',
-    rewardUpdates = 'rewardUpdates'
+    rewardUpdates = 'rewardUpdates',
+    reminders = 'reminders'
 }
 
 const AndroidChannels = {

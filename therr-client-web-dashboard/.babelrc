@@ -3,7 +3,7 @@
         "@babel/preset-env",
         "@babel/preset-react"
     ],
-    "plugins": ["add-react-displayname"],
+    "plugins": ["add-react-displayname", "macros"],
     "env": {
         "start": {
             "presets": [

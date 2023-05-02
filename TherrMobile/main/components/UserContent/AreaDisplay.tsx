@@ -449,7 +449,7 @@ export default class AreaDisplay extends React.Component<IAreaDisplayProps, IAre
                 </View>
                 {
                     area.distance != null &&
-                    <Text  style={themeViewArea.styles.areaDistance}>{`${area.distance} mi`}</Text>
+                    <Text  style={themeViewArea.styles.areaDistance}>{`${area.distance}`}</Text>
                 }
             </>
         );

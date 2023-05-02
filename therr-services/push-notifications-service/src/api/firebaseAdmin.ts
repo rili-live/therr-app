@@ -334,6 +334,7 @@ const predictAndSendNotification = (
                 messageNotification: message && message.notification,
                 userId: config?.userId,
                 significance: 'failed to send push notification',
+                serviceName: 'push-notifications-service',
                 ...metrics,
             }, process.env.LOGGING_DATASET);
         });

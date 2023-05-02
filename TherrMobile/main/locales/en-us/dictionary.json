@@ -1,7 +1,8 @@
 
 {
   "alertActions": {
-    "exchange": "Exchange"
+    "exchange": "Exchange",
+    "edit": "Edit"
   },
   "alertTitles": {
     "codeSent": "New Code Sent",
@@ -18,7 +19,8 @@
     "ssoLoginError": "Error With Single Sign-On",
     "walkCloser": "Too Far Away",
     "nameUnknown": "Anonymous User",
-    "newAreasActivated": "New Areas Activated"
+    "newAreasActivated": "New Areas Activated",
+    "draftReminder": "✏️ Don't Forget Drafts ✏️"
   },
   "alertMessages": {
     "codeSent": "Check your phone for a new verification code.",
@@ -34,7 +36,8 @@
     "spaceCreatedSuccess": "You have successfully claimed this space!",
     "pleaseTryAgain": "Connection error. Please try again later.",
     "walkCloser": "Walk closer to claim rewards. Check the map for details.",
-    "newAreasActivated": "You recently activated {total} new moments/spaces."
+    "newAreasActivated": "You recently activated {total} new moments/spaces.",
+    "draftReminder": "Did you remember to finish your drafted post?"
   },
   "quoteOfTheDay": "Quote of the Day",
   "dailyQuotes": [

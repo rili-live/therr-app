@@ -19,6 +19,7 @@ import initInterceptors from '../interceptors';
 import * as globalConfig from '../../../global-config';
 import { INavMenuContext } from '../types';
 import Footer from './footer/Footer';
+import DashboardFooter from './DashboardFooter';
 import UserMenu from './nav-menu/UserMenu';
 import MessagesMenu from './nav-menu/MessagesMenu';
 import { socketIO, updateSocketToken } from '../socket-io-middleware';
@@ -27,6 +28,10 @@ import UsersActions from '../redux/actions/UsersActions';
 import { routeAfterLogin } from '../routes/Login';
 import withNavigation from '../wrappers/withNavigation';
 import AppRoutes from './AppRoutes';
+import Preloader from './Preloader';
+import Sidebar from './Sidebar';
+import DashboardNavbar from './DashboardNavbar';
+import classNames from 'classnames';
 
 interface ILayoutRouterProps {
     navigation: {
@@ -219,7 +224,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
     handleLogout = (e) => {
         const { logout, user } = this.props;
 
-        this.toggleNavMenu(e);
+        // this.toggleNavMenu(e);
         logout(user.details);
     };
 
@@ -345,15 +350,17 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             || location.pathname === '/verify-account'
             || location.pathname === '/reset-password';
         // Cloak the view so it doesn't flash before client mounts
+        const mainClassNames = classNames({
+            content: !isLandingStylePage,
+        })
         if (this.state.clientHasLoaded) {
             return (
                 <>
-                    {this.renderHeader(isLandingStylePage)}
-                    <AccessControl isAuthorized={UsersService.isAuthorized({ type: AccessCheckType.ALL, levels: ['user.default'] }, this.props.user)}>
+                    {/* <AccessControl isAuthorized={UsersService.isAuthorized({ type: AccessCheckType.ALL, levels: ['user.default'] }, this.props.user)}>
                         <div id="nav_menu" className={navMenuClassNames}>
                             {this.renderNavMenuContent()}
                         </div>
-                    </AccessControl>
+                    </AccessControl> */}
                     <TransitionGroup
                         appear
                         enter
@@ -361,25 +368,31 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                         component="div"
                         className={ isLandingStylePage ? 'content-container-home view' : 'content-container view' }
                     >
-                        <AppRoutes
-                            initMessaging={this.initMessaging}
-                            isAuthorized={(access) => UsersService.isAuthorized(access, user)}
-                        />
+                        <Preloader show={!this.state.clientHasLoaded} />
+                        <Sidebar show={!isLandingStylePage} />
+                        <main className={mainClassNames}>
+                            {
+                                !isLandingStylePage &&
+                                <DashboardNavbar onLogout={this.handleLogout} />
+                            }
+                            <AppRoutes
+                                initMessaging={this.initMessaging}
+                                isAuthorized={(access) => UsersService.isAuthorized(access, user)}
+                            />
+                            {
+                                !isLandingStylePage &&
+                                <DashboardFooter toggleSettings={() => { console.log('toggleSettings'); }} showSettings={false} />
+                            }
+                        </main>
                     </TransitionGroup>
 
                     {/* <Alerts></Alerts> */}
                     {/* <Loader></Loader> */}
-
-                    { this.renderFooter(isLandingStylePage) }
                 </>
             );
         }
         // Opportunity to add a loader of graphical display
-        return (
-            <>
-                {this.renderHeader(isLandingStylePage)}
-            </>
-        );
+        return null;
     }
 }
 

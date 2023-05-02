@@ -48,7 +48,9 @@ export class HomeComponent extends React.Component<IHomeProps, IHomeState> {
 
     static getDerivedStateFromProps(nextProps: IHomeProps) {
         if (!shouldRenderLoginForm(nextProps as ILoginProps)) {
-            nextProps.navigation.navigate(routeAfterLogin);
+            // TODO: This doesn't seem to work with react-router-dom v6 after a newly created user tries to login
+            // Causes a flicker / Need to investigate further
+            setTimeout(() => nextProps.navigation.navigate(routeAfterLogin));
             return null;
         }
         return {};

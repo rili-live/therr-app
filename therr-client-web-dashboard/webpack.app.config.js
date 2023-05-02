@@ -14,7 +14,7 @@ const PATHS = {
     app: path.join(__dirname, 'src'),
     assets: path.join(__dirname, 'src/_static'),
     build: path.join(__dirname, 'build/static'),
-    themes: path.join(__dirname, 'src/styles/themes'),
+    // themes: path.join(__dirname, 'src/styles/themes'),
     utils: path.join(__dirname, '../utilities'),
     reactComponents: path.join(__dirname, '../therr-public-library/therr-react'),
     public: '/',
@@ -25,11 +25,11 @@ const entry = {
 };
 
 // This allows us to output multiple css theme files
-fs.readdirSync(PATHS.themes).forEach((pathName) => {
-    if (pathName !== '_sample') {
-        entry[`theme-${pathName}`] = `${PATHS.themes}/${pathName}/index.ts`;
-    }
-});
+// fs.readdirSync(PATHS.themes).forEach((pathName) => {
+//     if (pathName !== '_sample') {
+//         entry[`theme-${pathName}`] = `${PATHS.themes}/${pathName}/index.ts`;
+//     }
+// });
 
 const common = merge([
     {
