@@ -4,7 +4,7 @@ import { bindActionCreators, Dispatch } from 'redux';
 import { connect } from 'react-redux';
 import { Location, NavigateFunction } from 'react-router-dom';
 import { TransitionGroup } from 'react-transition-group';
-import * as ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import { IMessagesState, IUserState, AccessCheckType } from 'therr-react/types';
 import {
     AccessControl,
@@ -108,7 +108,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
         // Initialize global interceptors such as 401, 403
         initInterceptors(navigation.navigate, undefined, 300);
 
-        ReactGA.initialize(globalConfig[process.env.NODE_ENV].googleAnalyticsKey);
+        ReactGA.initialize(globalConfig[process.env.NODE_ENV].googleAnalyticsKeyDashboard);
 
         document.addEventListener('click', this.handleClick);
         this.setState({
