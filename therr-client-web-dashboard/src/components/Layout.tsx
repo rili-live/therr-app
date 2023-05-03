@@ -349,9 +349,17 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
             || location.pathname === '/register'
             || location.pathname === '/verify-account'
             || location.pathname === '/reset-password';
+        const isMinimumAuthorized = UsersService.isAuthorized(
+            {
+                type: AccessCheckType.ALL,
+                levels: ['user.default'],
+            },
+            this.props.user,
+        );
+        const shouldShowSidebar = !isLandingStylePage && isMinimumAuthorized;
         // Cloak the view so it doesn't flash before client mounts
         const mainClassNames = classNames({
-            content: !isLandingStylePage,
+            content: shouldShowSidebar,
         });
         if (this.state.clientHasLoaded) {
             return (
@@ -369,10 +377,10 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                         className={ isLandingStylePage ? 'content-container-home view' : 'content-container view' }
                     >
                         <Preloader show={!this.state.clientHasLoaded} />
-                        <Sidebar show={!isLandingStylePage} />
+                        <Sidebar show={shouldShowSidebar} />
                         <main className={mainClassNames}>
                             {
-                                !isLandingStylePage
+                                shouldShowSidebar
                                 && <DashboardNavbar onLogout={this.handleLogout} />
                             }
                             <AppRoutes
@@ -380,8 +388,7 @@ export class LayoutComponent extends React.Component<ILayoutProps, ILayoutState>
                                 isAuthorized={(access) => UsersService.isAuthorized(access, user)}
                             />
                             {
-                                !isLandingStylePage
-                                && <DashboardFooter toggleSettings={() => { console.log('toggleSettings'); }} showSettings={false} />
+                                <DashboardFooter toggleSettings={() => { console.log('toggleSettings'); }} showSettings={false} />
                             }
                         </main>
                     </TransitionGroup>

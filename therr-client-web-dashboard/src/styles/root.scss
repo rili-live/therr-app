@@ -1,4 +1,90 @@
-@import '../../../therr-public-library/therr-styles/lib/variables'; // Default variable definitions
-@import './variables';
-@import './helpers';
-@import './layout/index';
+// @import '../../../therr-public-library/therr-styles/lib/variables'; // Default variable definitions
+// @import './variables';
+// @import './helpers';
+// @import './layout/index';
+
+// =========================================================
+// * Volt React Dashboard
+// =========================================================
+
+// * Product Page: https://themesberg.com/product/dashboard/volt-react
+// * Copyright 2021 Themesberg (https://www.themesberg.com)
+// * Official Repository: https://github.com/themesberg/volt-react-dashboard
+// * License: MIT License (https://themesberg.com/licensing)
+
+// * Designed and coded by https://themesberg.com
+
+// =========================================================
+
+// * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. Please contact us to request a removal.
+
+@import url('https://fonts.googleapis.com/css?family=Nunito+Sans:300,400,600,700,800&display=swap');
+$fa-font-path: '../../../node_modules/@fortawesome/fontawesome-free/webfonts'; 
+@import '../../../node_modules/@fortawesome/fontawesome-free/scss/fontawesome';
+@import '../../../node_modules/@fortawesome/fontawesome-free/scss/solid';
+@import '../../../node_modules/@fortawesome/fontawesome-free/scss/regular';
+
+// Bootstrap mixins and functions
+@import "../../../node_modules/bootstrap/scss/mixins";
+@import "../../../node_modules/bootstrap/scss/functions";
+
+// Change variables here
+@import "volt/variables";
+
+// Bootstrap
+@import "../../../node_modules/bootstrap/scss/bootstrap";
+
+// Vendor
+@import "volt/vendor";
+
+// volt mixins & functions
+@import "volt/mixins";
+@import "volt/functions";
+
+// Utilities
+@import "volt/reboot";
+@import "volt/utilities";
+
+// Layout
+@import "volt/layout";
+
+// Components
+@import "volt/components";
+
+// write your custom styles here!
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.content-container,
+.content-container-home {
+    display: flex;
+    flex-direction: column;
+    border: none;
+    border-radius: 0;
+    // border-left: rem-calc(4px) double $therr-primary-2;
+    // border-right: rem-calc(4px) double $therr-primary-2;
+    padding: 0;
+    box-shadow: none;
+    box-sizing: border-box;
+    min-height: 100vh;
+
+    main:first-of-type {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        flex: 1;
+
+        #page_login {
+            flex: 1;
+        }
+    }
+}
+
+.footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}

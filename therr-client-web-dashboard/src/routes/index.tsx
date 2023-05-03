@@ -5,6 +5,7 @@ import { AccessLevels } from 'therr-js-utilities/constants';
 import { AuthRoute } from 'therr-react/components';
 import Login from './Login';
 import DashboardOverview from './DashboardOverview';
+import PageNotFound from './PageNotFound';
 
 export interface IRoute extends RouteObject {
     access?: IAccess;
@@ -47,10 +48,10 @@ const getRoutes = (routePropsConfig: IRoutePropsConfig): IRoute[] => [
     },
 
     // If no route matches, return NotFound component
-    // {
-    //     path: '*',
-    //     element: <PageNotFound />,
-    // },
+    {
+        path: '*',
+        element: <PageNotFound />,
+    },
 ];
 
 export default getRoutes;
