@@ -6,7 +6,7 @@ import * as React from 'react';
 import * as ReactDOMServer from 'react-dom/server'; // eslint-disable-line import/extensions
 // import { matchPath } from 'react-router-dom';
 import { StaticRouter } from 'react-router-dom/server';
-import * as ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import LogRocket from 'logrocket';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
@@ -123,7 +123,7 @@ routeConfig.forEach((config) => {
                 });
                 res.end();
             } else {
-                ReactGA.pageview(req.path, null, title);
+                ReactGA.send({ hitType: 'pageview', page: req.path, title });
                 return res.render(routeView, {
                     title,
                     description,

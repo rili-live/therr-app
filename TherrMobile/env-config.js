@@ -11,6 +11,7 @@ module.exports = {
         baseApiGatewayRoute: `http://${hostDev}:${apiGatewayPort}/v1`,
         baseSocketUrl: `http://${hostDev}:${websocketPort}`,
         googleAnalyticsKey: '',
+        googleAnalyticsKeyDashboard: '',
         googleOAuth2WebClientId,
         host: hostDev,
         socket: {
@@ -24,6 +25,7 @@ module.exports = {
         baseApiGatewayRoute: `https://api.${hostStage}/v1`,
         baseSocketUrl: `https://websocket-service.${hostStage}`,
         googleAnalyticsKey: '',
+        googleAnalyticsKeyDashboard: '',
         googleOAuth2WebClientId,
         host: hostStage,
         socket: {
@@ -37,6 +39,7 @@ module.exports = {
         baseApiGatewayRoute: `https://api.${hostProd}/v1`,
         baseSocketUrl: `https://websocket-service.${hostProd}`,
         googleAnalyticsKey: '',
+        googleAnalyticsKeyDashboard: '',
         googleOAuth2WebClientId,
         host: hostProd,
         hostFull: `https://${hostProd}`,
