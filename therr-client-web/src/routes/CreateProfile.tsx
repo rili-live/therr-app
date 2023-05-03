@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import * as ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import { ErrorCodes } from 'therr-js-utilities/constants';
 import { IUserState } from 'therr-react/types';
 import { ApiService } from 'therr-react/services';
